@@ -17,7 +17,7 @@ constexpr void print_define(dest_type& dest,manip::drainage<source_type&> source
 	write(dest,obuffer_begin(source.reference),obuffer_curr(source.reference));
 }
 
-template<output_stream dest_type,buffer_output_stream source_type>
+template<output_stream dest_type,output_stream source_type>
 inline constexpr void drain(dest_type&& dest,source_type&& source)
 {
 	print(std::forward<dest_type>(dest),drainage(source));
