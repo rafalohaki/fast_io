@@ -39,6 +39,7 @@
 #include"fast_io_core_impl/mode.h"
 #include"fast_io_core_impl/perms.h"
 #include"fast_io_core_impl/seek.h"
+#include"fast_io_core_impl/drain.h"
 
 #include"fast_io_core_impl/print_scan.h"
 #include"fast_io_core_impl/print_reserver.h"

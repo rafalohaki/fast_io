@@ -160,8 +160,20 @@ struct space
 	Func function;
 };
 
+template<typename T>
+struct drainage
+{
+	using manip_tag = manip_tag_t;
+	T reference;
+};
+
 }
 
+template<output_stream T>
+inline constexpr manip::drainage<T&> drainage(T&& age)
+{
+	return {age};
+}
 
 template<std::integral T>
 inline constexpr manip::chvw<T> chvw(T ch)

@@ -50,9 +50,9 @@ inline constexpr manip::parallel_unit<Func> parallel_unit(Func callback,std::siz
 namespace details
 {
 template<std::integral ch_type,typename Func>
-inline constexpr void print_out(fast_io::basic_ospan<std::span<ch_type>>* osp,Func func,std::size_t start_number,std::size_t stop_number)
+inline constexpr void print_out(fast_io::ospan<ch_type>* osp,Func func,std::size_t start_number,std::size_t stop_number)
 {
-	fast_io::basic_ospan<std::span<ch_type>> bas{*osp};
+	fast_io::ospan<ch_type> bas{*osp};
 	func(bas,start_number,stop_number);
 	*osp=bas;
 }
@@ -60,7 +60,7 @@ inline constexpr void print_out(fast_io::basic_ospan<std::span<ch_type>>* osp,Fu
 template<std::integral ch_type>
 struct span_raii
 {
-	using ospan_type = fast_io::basic_ospan<std::span<ch_type>>;
+	using ospan_type = fast_io::ospan<ch_type>;
 	ospan_type osp;
 //	constexpr span_raii()=default;
 	template<typename... Args>
