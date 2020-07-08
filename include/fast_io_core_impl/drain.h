@@ -8,7 +8,7 @@ constexpr io_scatter_t print_scatter_define(manip::drainage<source_type&> source
 {
 	auto bg{obuffer_begin(source.reference)};
 	auto curr{obuffer_curr(source.reference)};
-	return io_scatter(bg,(curr-bg)*sizeof(bg));
+	return io_scatter(bg,curr-bg);
 }
 
 template<output_stream dest_type,buffer_output_stream source_type>
