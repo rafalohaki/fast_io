@@ -63,7 +63,7 @@ inline constexpr std::uintmax_t bufferred_transmit_impl(output& outp,input& inp)
 #else
 		temp_unique_arr_ptr<char_type> ptr(buffer_size);
 // we need to allocate it on the heap to avoid potential stack overflows
-		std::span<char_type,buffer_size> array(ptr);
+		std::span<char_type,buffer_size> array(ptr.data(),ptr.data()+buffer_size);
 #endif
 		for(;;)
 		{
@@ -117,7 +117,7 @@ inline constexpr std::uintmax_t bufferred_transmit_impl(output& outp,input& inp,
 #else
 		temp_unique_arr_ptr<char_type> ptr(buffer_size);
 // we need to allocate it on the heap to avoid potential stack overflows
-		std::span<char_type,buffer_size> array(ptr);
+		std::span<char_type,buffer_size> array(ptr.data(),ptr.data()+buffer_size);
 #endif
 		for(;bytes;)
 		{
