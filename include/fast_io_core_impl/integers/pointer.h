@@ -58,7 +58,7 @@ template<std::integral char_type,std::integral array_value_type,std::size_t n>
 requires (std::same_as<char_type,std::remove_cvref_t<array_value_type>>||
 (std::same_as<char_type,char>&&std::same_as<std::remove_cvref_t<array_value_type>,char8_t>)
 &&n!=0)	//array cannot be zero size. but we do the check too
-constexpr io_scatter_t print_scatter_define(array_value_type (&s)[n])
+constexpr io_scatter_t print_scatter_define(array_value_type (&&s)[n])
 {
 	return io_scatter(s,s+(n-1));
 }
