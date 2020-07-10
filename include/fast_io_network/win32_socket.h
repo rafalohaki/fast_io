@@ -4,9 +4,6 @@
 
 namespace fast_io::sock::details
 {
-namespace
-{
-
 
 inline fast_io::details::win32_library const ws2_32_dll(L"ws2_32.dll");
 
@@ -203,51 +200,42 @@ public:
 inline win32_startup const startup;
 
 }
-}
 
 namespace fast_io::details
 {
 //zero copy IO for win32
 template<bool rac=false, zero_copy_output_stream output,zero_copy_input_stream input>
-inline std::size_t zero_copy_transmit_once(output& outp,input& inp,std::size_t bytes,std::int64_t offset)
+inline std::uintmax_t zero_copy_transmit_once(output& outp,input& inp,std::uintmax_t bytes,std::int64_t offset)
 {
 	if constexpr(rac)
 	{
 		fast_io::win32::overlapped ov{};
-		memcpy(std::addressof(ov),offset,sizeof(std::int64_t));
+		memcpy(std::addressof(ov),std::addressof(offset),sizeof(std::int64_t));
 	if(!((fast_io::sock::details::get_proc_address_mswsock<decltype(fast_io::win32::TransmitFile)*>
-		("TransmitFile"))(zero_copy_out_handle(outp),zero_copy_in_handle(inp),bytes,0,std::addressof(ov),nullptr,0/*TF_USE_DEFAULT_WORKER*/)))
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		("TransmitFile"))(zero_copy_out_handle(outp),zero_copy_in_handle(inp),bytes,0,std::addressof(ov),nullptr,32/*TF_USE_DEFAULT_WORKER*/)))
+		throw_win32_error();
 	}
 	else
 	{
 	if(!((fast_io::sock::details::get_proc_address_mswsock<decltype(fast_io::win32::TransmitFile)*>
 		("TransmitFile"))(zero_copy_out_handle(outp),zero_copy_in_handle(inp),bytes,0,nullptr,nullptr,0/*TF_USE_DEFAULT_WORKER*/)))
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_win32_error();
 	}
 	return bytes;
 }
 
 
 template<bool rac=false,zero_copy_output_stream output,zero_copy_input_stream input>
-inline std::uintmax_t zero_copy_transmit(output& outp,input& inp,std::intmax_t offset,std::size_t bytes)
+inline std::uintmax_t zero_copy_transmit(output& outp,input& inp,std::int64_t offset,std::uintmax_t bytes)
 {
-	constexpr std::size_t maximum_transmit_bytes(2147483646);
+	constexpr std::uintmax_t maximum_transmit_bytes(2147483646);
 	std::uintmax_t transmitted{};
 	for(;bytes;)
 	{
-		std::size_t should_transfer(maximum_transmit_bytes);
+		std::uintmax_t should_transfer(maximum_transmit_bytes);
 		if(bytes<should_transfer)
 			should_transfer=bytes;
-		std::size_t transferred_this_round(details::zero_copy_transmit_once<rac>(outp,inp,should_transfer,offset));
+		std::uintmax_t transferred_this_round(details::zero_copy_transmit_once<rac>(outp,inp,should_transfer,offset));
 		transmitted+=transferred_this_round;
 		if(transferred_this_round!=should_transfer)
 			return transmitted;
@@ -257,12 +245,12 @@ inline std::uintmax_t zero_copy_transmit(output& outp,input& inp,std::intmax_t o
 	
 }
 template<bool rac=false,zero_copy_output_stream output,zero_copy_input_stream input>
-inline std::size_t zero_copy_transmit(output& outp,input& inp,std::intmax_t offset)
+inline std::uintmax_t zero_copy_transmit(output& outp,input& inp,std::int64_t offset)
 {
-	constexpr std::size_t maximum_transmit_bytes(2147483646);
-	for(std::uintmax_t transmitted(0);;)
+	constexpr std::uintmax_t maximum_transmit_bytes(2147483646);
+	for(std::uintmax_t transmitted{};;)
 	{
-		std::size_t transferred_this_round(details::zero_copy_transmit_once<rac>(outp,inp,maximum_transmit_bytes,offset));
+		std::uintmax_t transferred_this_round(details::zero_copy_transmit_once<rac>(outp,inp,maximum_transmit_bytes,offset));
 		transmitted+=transferred_this_round;
 		if(transferred_this_round!=maximum_transmit_bytes)
 			return transmitted;

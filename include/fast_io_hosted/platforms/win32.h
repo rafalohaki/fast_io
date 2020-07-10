@@ -653,9 +653,9 @@ public:
 };
 
 template<std::integral ch_type>
-inline auto zero_copy_in_handle(basic_win32_io_observer<ch_type> handle)
+inline constexpr auto zero_copy_in_handle(basic_win32_io_observer<ch_type> iob)
 {
-	return handle.native_handle();
+	return iob.handle;
 }
 
 template<std::integral ch_type>

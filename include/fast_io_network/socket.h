@@ -131,14 +131,16 @@ inline auto zero_copy_out_handle(basic_socket<false>& soc)
 #endif
 
 #if defined(__WINNT__) || defined(_MSC_VER)
+
+//Bug to be fixed. disable first
 /*
-Bug to be fixed. disable first
+TransmitFile is garbage
 inline auto zero_copy_out_handle(basic_socket<false>& soc)
 {
 	return soc.native_handle();
 }
-
 */
+
 /*
 namespace sock::details
 {
