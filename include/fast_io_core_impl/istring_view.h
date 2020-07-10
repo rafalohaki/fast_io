@@ -17,11 +17,11 @@ public:
 	constexpr istring_view(Args&& ...args):string_view(std::forward<Args>(args)...),current(string_view.data()){}
 	constexpr auto data() const noexcept
 	{
-		return string_view.data();
+		return current;
 	}
 	constexpr auto data() noexcept
 	{
-		return string_view.data();
+		return current;
 	}
 	constexpr std::size_t size() const noexcept
 	{

@@ -14,7 +14,11 @@ inline constexpr std::size_t cal_buffer_size()
 #ifdef FAST_IO_BUFFER_SIZE
 		FAST_IO_BUFFER_SIZE
 #else
-		2097152
+#if defined(__WINNT__) || defined(_MSC_VER)
+	1048576
+#else
+	65536
+#endif
 #endif
 		/sizeof(char_type);
 	}
@@ -27,7 +31,11 @@ inline constexpr std::size_t cal_buffer_size()
 #ifdef FAST_IO_TRANSMIT_ON_STACK
 	4096
 #else
-	2097152 //2MB buffer size should be large enough for most transmission
+#if defined(__WINNT__) || defined(_MSC_VER)
+	1048576
+#else
+	65536
+#endif
 #endif
 #endif
 	/sizeof(char_type);
