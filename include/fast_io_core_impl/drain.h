@@ -3,7 +3,7 @@
 namespace fast_io
 {
 
-template<buffer_output_stream source_type>
+template<std::integral char_type,buffer_output_stream source_type>
 constexpr io_scatter_t print_scatter_define(manip::drainage<source_type&> source)
 {
 	auto bg{obuffer_begin(source.reference)};
