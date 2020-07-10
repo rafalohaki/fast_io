@@ -96,15 +96,6 @@ inline constexpr void reserve_read(input& in,std::size_t required_size,Func func
 		else
 			details::reserve_read_cold_path(in,required_size,func);
 	}
-	else if constexpr(contiguous_input_stream<input>)
-	{
-		auto curr{ibuffer_curr(in)};
-		std::size_t cap{isize(in)};
-		if(required_size<cap)
-			cap=required_size;
-		func(curr,curr+cap);
-		iremove_prefix(in,cap);
-	}
 	else
 		details::reserve_read_cold_path(in,required_size,func);
 }

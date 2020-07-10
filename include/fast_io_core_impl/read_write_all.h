@@ -6,7 +6,7 @@ namespace fast_io
 template<input_stream input,std::input_iterator Iter>
 [[nodiscard]] inline constexpr Iter read_all(input& inp,Iter begin,Iter end)
 {
-	if constexpr(contiguous_input_stream<input>)
+	if constexpr(contiguous_buffer_input_stream<input>)
 		return read(inp,begin,end);
 	else
 	{

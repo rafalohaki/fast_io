@@ -28,6 +28,7 @@ template<character_input_stream input,typename UnaryPredicate>
 			ibuffer_set_curr(in,b);
 			if(b==e)[[unlikely]]
 			{
+				if constexpr(!contiguous_buffer_input_stream<input>)
 				if(underflow(in))[[likely]]
 					continue;
 				return false;
@@ -57,6 +58,7 @@ template<character_input_stream input,typename UnaryPredicate>
 			ibuffer_set_curr(in,b);
 			if(b==e)[[unlikely]]
 			{
+				if constexpr(!contiguous_buffer_input_stream<input>)
 				if(underflow(in))[[likely]]
 					continue;
 				return false;
@@ -77,7 +79,7 @@ template<character_input_stream input,typename UnaryPredicate>
 template<character_input_stream input>
 inline constexpr std::size_t discard(input& in)
 {
-	if constexpr(contiguous_input_stream<input>)
+/*	if constexpr(contiguous_input_stream<input>)
 	{
 		if(iempty(in))[[unlikely]]
 			return 0;
@@ -85,7 +87,7 @@ inline constexpr std::size_t discard(input& in)
 		return 1;
 	}
 	else
-	{
+	{*/
 		auto gen(igenerator(in));
 		auto b(begin(gen));
 		auto e(end(gen));
@@ -93,13 +95,14 @@ inline constexpr std::size_t discard(input& in)
 			return 0;
 		++b;
 		return 1;
-	}
+//	}
 }
 
 
 template<character_input_stream input>
 inline constexpr std::size_t discard(input& in,std::size_t n)
 {
+/*
 	if constexpr(contiguous_input_stream<input>)
 	{
 		auto sz{isize(in)};
@@ -108,7 +111,9 @@ inline constexpr std::size_t discard(input& in,std::size_t n)
 		iremove_prefix(in,n);
 		return n;
 	}
-	else if constexpr(buffer_input_stream<input>)
+	else
+*/
+	if constexpr(buffer_input_stream<input>)
 	{
 		std::size_t discarded{};
 		for(;;)
@@ -118,6 +123,7 @@ inline constexpr std::size_t discard(input& in,std::size_t n)
 			if(e-b<n)
 			{
 				discarded+=e-b;
+				if constexpr(!contiguous_buffer_input_stream<input>)
 				if(!underflow(in))[[unlikely]]
 					return discarded;
 			}

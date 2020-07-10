@@ -31,10 +31,12 @@ inline constexpr auto operator*(basic_input_buffer_iterator<input>& gen)
 template<buffer_input_stream input>
 inline constexpr basic_input_buffer_iterator<input>& operator++(basic_input_buffer_iterator<input>& gen)
 {
-	auto& ref{*gen.ptr};
-	ibuffer_set_curr(ref,ibuffer_curr(ref)+1);
-	if(ibuffer_curr(ref)==ibuffer_end(ref))[[unlikely]]
-		return details::deal_with_underflow(gen);
+	ibuffer_set_curr(*gen.ptr,ibuffer_curr(*gen.ptr)+1);
+	if constexpr(!contiguous_buffer_input_stream<input>)
+	{
+		if(ibuffer_curr(*gen.ptr)==ibuffer_end(*gen.ptr))[[unlikely]]
+			return details::deal_with_underflow(gen);
+	}
 	return gen;
 }
 
@@ -47,25 +49,37 @@ inline constexpr void operator++(basic_input_buffer_iterator<input>& gen,int)
 template<buffer_input_stream input>
 inline constexpr bool operator!=(basic_input_buffer_iterator<input> a, std::default_sentinel_t)
 {
-	return a.ptr;
+	if constexpr(contiguous_buffer_input_stream<input>)
+		return ibuffer_curr(*a.ptr)!=ibuffer_end(*a.ptr);
+	else
+		return a.ptr;
 }
 
 template<buffer_input_stream input>
 inline constexpr bool operator==(basic_input_buffer_iterator<input> a, std::default_sentinel_t)
 {
-	return a.ptr==nullptr;
+	if constexpr(contiguous_buffer_input_stream<input>)
+		return ibuffer_curr(*a.ptr)==ibuffer_end(*a.ptr);
+	else
+		return a.ptr==nullptr;
 }
 
 template<buffer_input_stream input>
 inline constexpr bool operator!=(std::default_sentinel_t,basic_input_buffer_iterator<input> a)
 {
-	return a.ptr;
+	if constexpr(contiguous_buffer_input_stream<input>)
+		return ibuffer_curr(*a.ptr)!=ibuffer_end(*a.ptr);
+	else
+		return a.ptr;
 }
 
 template<buffer_input_stream input>
 inline constexpr bool operator==(std::default_sentinel_t,basic_input_buffer_iterator<input> a)
 {
-	return a.ptr==nullptr;
+	if constexpr(contiguous_buffer_input_stream<input>)
+		return ibuffer_curr(*a.ptr)==ibuffer_end(*a.ptr);
+	else
+		return a.ptr==nullptr;
 }
 
 template<buffer_input_stream input>
@@ -89,10 +103,13 @@ inline constexpr std::default_sentinel_t end(basic_input_buffer_generator<input>
 template<buffer_input_stream input>
 inline constexpr basic_input_buffer_generator<input> igenerator(input& in)
 {
-	if(ibuffer_curr(in)==ibuffer_end(in))[[unlikely]]
+	if constexpr(!contiguous_buffer_input_stream<input>)
 	{
-		if(!underflow(in))[[unlikely]]
-			return {};
+		if(ibuffer_curr(in)==ibuffer_end(in))[[unlikely]]
+		{
+			if(!underflow(in))[[unlikely]]
+				return {};
+		}
 	}
 	return {std::addressof(in)};
 }

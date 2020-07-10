@@ -279,7 +279,7 @@ void in_place_to(T& t,Args&& ...args)
 	std::string str;
 	ostring_ref ref{str};
 	print(ref,std::forward<Args>(args)...);
-	basic_istring_view<std::string_view> is(str);
+	istring_view is(str);
 	scan(is,t);		//Todo. no_decoration
 }
 

@@ -266,8 +266,7 @@ inline constexpr F input_floating(It_First iter,It_Second ed)
 			++index;
 		}
 	}
-	detect_overflow<10>(ue10,ue10digits);
-	if((ue10+=extra_e10)<extra_e10)[[unlikely]]
+	if((6<ue10digits)|((ue10+=extra_e10)<extra_e10))[[unlikely]]
 #ifdef __cpp_exceptions
 		throw fast_io_text_error("exp part integer overflow");
 #else

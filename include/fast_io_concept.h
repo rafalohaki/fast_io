@@ -76,10 +76,16 @@ concept random_access_stream_impl = requires(T& t)
 template<typename T>
 concept buffer_input_stream_impl = requires(T&& in)
 {
-	{ibuffer_begin(in)}->std::convertible_to<typename std::remove_cvref_t<T>::char_type*>;
+	{ibuffer_begin(in)}->std::convertible_to<typename std::remove_cvref_t<T>::char_type const*>;
 	ibuffer_set_curr(in,ibuffer_curr(in));
-	{ibuffer_end(in)}->std::convertible_to<typename std::remove_cvref_t<T>::char_type*>;
+	{ibuffer_end(in)}->std::convertible_to<typename std::remove_cvref_t<T>::char_type const*>;
 	{underflow(in)}->std::convertible_to<bool>;
+};
+
+template<typename T>
+concept contiguous_buffer_input_stream_impl = requires(T&& in)
+{
+	underflow_forever_false(in);
 };
 
 template<typename T>
@@ -87,18 +93,6 @@ concept refill_buffer_input_stream_impl = requires(T&& in)
 {
 	{irefill(in)}->std::convertible_to<bool>;
 };
-
-template<typename T>
-concept contiguous_input_stream_impl = requires(T& in)
-{
-	iremove_prefix(in,static_cast<std::size_t>(0));
-	std::to_address(idata(in));
-	{isize(in)}->std::convertible_to<std::size_t>;
-	ifront(in);
-	iclear(in);
-	{iempty(in)}->std::convertible_to<bool>;
-};
-
 
 template<typename T>
 concept reserve_output_stream_impl = requires(T& out,std::size_t n)
@@ -244,7 +238,7 @@ template<typename T>
 concept refill_buffer_input_stream = buffer_input_stream<T>&&details::refill_buffer_input_stream_impl<T>;
 
 template<typename T>
-concept contiguous_input_stream = input_stream<T>&&details::contiguous_input_stream_impl<T>;
+concept contiguous_buffer_input_stream = buffer_input_stream<T>&&details::contiguous_buffer_input_stream_impl<T>;
 
 template<typename T>
 concept buffer_output_stream = output_stream<T>&&details::buffer_output_stream_impl<T>;
