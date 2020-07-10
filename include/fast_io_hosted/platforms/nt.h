@@ -167,7 +167,7 @@ FILE_OVERWRITE_IF	Open the file, and overwrite it.	Create the file. 0x00000005
 		mode.CreateOptions|=0x00000020;	//FILE_SYNCHRONOUS_IO_NONALERT 0x00000020
 	else
 		mode.CreateOptions|=0x00000010;	//FILE_SYNCHRONOUS_IO_ALERT 0x00000010
-	if((value&open_mode::sequential_scan)!=open_mode::none)
+	if((value&open_mode::random_access)==open_mode::none)
 		mode.CreateOptions|=0x00000004;	//FILE_SEQUENTIAL_ONLY 0x00000004
 	else
 		mode.CreateOptions|=0x00000800;

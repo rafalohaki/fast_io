@@ -244,10 +244,10 @@ does not exist
 	}
 	if(set_normal)[[likely]]
 		mode.dwFlagsAndAttributes|=0x80;						//FILE_ATTRIBUTE_NORMAL
-	if((value&open_mode::sequential_scan)==open_mode::none)
-		mode.dwFlagsAndAttributes|=0x10000000;		//FILE_FLAG_RANDOM_ACCESS
+	if((value&open_mode::random_access)==open_mode::none)
+		mode.dwFlagsAndAttributes|=0x10000000;		//FILE_FLAG_SEQUENTIAL_SCAN
 	else
-		mode.dwFlagsAndAttributes|=0x08000000;		//FILE_FLAG_SEQUENTIAL_SCAN
+		mode.dwFlagsAndAttributes|=0x08000000;		//FILE_FLAG_RANDOM_ACCESS
 	if((value&open_mode::no_recall)!=open_mode::none)
 		mode.dwFlagsAndAttributes|=0x00100000;					//FILE_FLAG_OPEN_NO_RECALL
 	if((value&open_mode::posix_semantics)!=open_mode::none)

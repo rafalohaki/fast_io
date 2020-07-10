@@ -486,7 +486,7 @@ public:
 		_lock_file(fp);
 #elif defined(__NEWLIB__)
 #ifndef __SINGLE_THREAD__
-//		flockfile(fp);
+//		flockfile(fp);	//TO FIX
 #endif
 #else
 		flockfile(fp);
@@ -500,7 +500,7 @@ public:
 		_unlock_file(fp);
 #elif defined(__NEWLIB__)
 #ifndef __SINGLE_THREAD__
-//		_funlockfile(fp);
+//		_funlockfile(fp); //TO FIX
 #endif
 #else
 		funlockfile(fp);
@@ -634,8 +634,7 @@ public:
 			seek(*this,0,seekdir::end);
 	}*/
 //fdopen interface
-
-	basic_c_file_impl(basic_posix_io_handle<typename T::char_type>&& posix_handle,std::string_view mode):T(
+	basic_c_file_impl(native_interface_t,basic_posix_io_handle<typename T::char_type>&& posix_handle,char const* mode):T(
 #if defined(__WINNT__) || defined(_MSC_VER)
 			::_fdopen(
 #elif defined(__NEWLIB__)
@@ -643,7 +642,8 @@ public:
 #else
 			::fdopen(
 #endif
-posix_handle.native_handle(),mode.data()))
+		posix_handle.fd,mode)
+			)
 	{
 		if(native_handle()==nullptr)
 #ifdef __cpp_exceptions
@@ -672,11 +672,12 @@ posix_handle.native_handle(),mode.data()))
 	}
 
 	basic_c_file_impl(basic_posix_io_handle<char_type>&& posix_handle,open_mode om):
-		basic_c_file_impl(std::move(posix_handle),to_c_mode(om)){}
+		basic_c_file_impl(native_interface,std::move(posix_handle),to_c_mode(om).data()){}
 	template<open_mode om>
 	basic_c_file_impl(basic_posix_io_handle<char_type>&& posix_handle,open_interface_t<om>):
-		basic_c_file_impl(std::move(posix_handle),details::c_open_mode<om>::value){}
-
+		basic_c_file_impl(native_interface,std::move(posix_handle),details::c_open_mode<om>::value.data()){}
+	basic_c_file_impl(basic_posix_io_handle<char_type>&& posix_handle,std::string_view mode):
+		basic_c_file_impl(native_interface,std::move(posix_handle),to_c_mode(from_c_mode(mode)).data()){}
 #if defined(__WINNT__) || defined(_MSC_VER)
 //windows specific. open posix file from win32 io handle
 	basic_c_file_impl(basic_win32_io_handle<char_type>&& win32_handle,std::string_view mode):

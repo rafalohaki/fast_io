@@ -45,19 +45,7 @@ struct io_aligned_allocator
 	}
 };
 
-template<std::integral CharT,std::size_t buffer_size = ((
-#if defined(__WINNT__) || defined(_MSC_VER)
-1048576
-#else
-65536
-#endif
-<sizeof(CharT))?1:
-#if defined(__WINNT__) || defined(_MSC_VER)
-1048576
-#else
-65536
-#endif
-/sizeof(CharT)),typename Allocator = io_aligned_allocator<CharT>>
+template<std::integral CharT,std::size_t buffer_size = details::cal_buffer_size<CharT,true>(),typename Allocator = io_aligned_allocator<CharT>>
 requires (buffer_size!=0)
 class basic_buf_handler
 {

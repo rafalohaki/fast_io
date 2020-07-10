@@ -31,6 +31,7 @@ inline constexpr std::size_t transmit_once(output&& outp,input&& inp)
 	else
 	{
 		using char_type = typename std::remove_cvref_t<input>::char_type;
+		
 		std::array<char_type,65536> buffer;
 		auto it{read(inp,buffer.data(),buffer.data()+buffer.size())};
 		write(outp,buffer.data(),it);
