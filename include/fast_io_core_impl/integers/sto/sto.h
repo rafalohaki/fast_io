@@ -6,12 +6,13 @@ namespace details
 {
 
 template<char8_t base,my_unsigned_integral T>
-inline constexpr void detect_overflow(T const& t,std::size_t length)
+inline constexpr void detect_overflow(T const t1,T const t2,std::size_t length)
 {
 	constexpr std::size_t max_size{cal_max_int_size<T,base>()};
+	constexpr std::remove_cvref_t<T> mx_val(std::numeric_limits<std::remove_cvref_t<T>>::max()/static_cast<std::remove_cvref_t<T>>(base));
 	if(max_size<=length)[[unlikely]]
 	{
-		if((max_size<length)|(t<=base))[[unlikely]]
+		if((max_size<length)|(t1<base)|(mx_val<t2))[[unlikely]]
 #ifdef __cpp_exceptions
 			throw fast_io_text_error("unsigned overflow");
 #else
@@ -21,18 +22,13 @@ inline constexpr void detect_overflow(T const& t,std::size_t length)
 }
 
 template<char8_t base,my_unsigned_integral T>
-inline constexpr void detect_signed_overflow(T const& t,std::size_t length,bool sign)
+inline constexpr void detect_signed_overflow(T const t1,T const t2,std::size_t length,bool sign)
 {
 	constexpr std::size_t max_size{cal_max_int_size<T,base>()};
+	constexpr std::remove_cvref_t<T> mx_val(std::numeric_limits<std::remove_cvref_t<T>>::max()/static_cast<std::remove_cvref_t<T>>(base));
 	if(max_size<=length)[[unlikely]]
 	{
-		if((max_size<length)|(t<=base))[[unlikely]]
-#ifdef __cpp_exceptions
-			throw fast_io_text_error("signed overflow");
-#else
-			fast_terminate();
-#endif
-		if(static_cast<T>(get_int_max_unsigned<T>()+sign)<t)
+		if((max_size<length)|(t1<base)|(mx_val<t2)|(static_cast<T>(get_int_max_unsigned<T>()+sign)<t1))[[unlikely]]
 #ifdef __cpp_exceptions
 			throw fast_io_text_error("signed overflow");
 #else
@@ -89,6 +85,7 @@ inline constexpr T input_base_number(input& in)
 			if(it!=ed&&length==19)	//phase 2
 			{
 				unsigned_t t2(t);
+				unsigned_t t3{};
 				for(++it;it!=ed;++it)
 				{
 					unsigned_char_type e(static_cast<unsigned_char_type>(*it)-u8'0');
@@ -96,6 +93,7 @@ inline constexpr T input_base_number(input& in)
 					{
 						if(base<=e)[[unlikely]]
 							break;
+						t3=t2;
 						t2*=base;
 						t2+=e;
 					}
@@ -104,11 +102,13 @@ inline constexpr T input_base_number(input& in)
 						constexpr char8_t bm10{base-10};
 						if(e<=10)
 						{
+							t3=t2;
 							t2*=base;
 							t2+=e;
 						}
 						else if(static_cast<unsigned_char_type>(e-=17)<bm10||static_cast<unsigned_char_type>(e-=32)<bm10)
 						{
+							t3=t2;
 							t2*=base;
 							t2+=e+10;
 						}
@@ -117,7 +117,7 @@ inline constexpr T input_base_number(input& in)
 					}
 					++length;
 				}
-				detect_overflow<base>(t2,length);
+				detect_overflow<base>(t2,t3,length);
 				return t2;
 			};
 			if(!length)[[unlikely]]
@@ -132,7 +132,7 @@ inline constexpr T input_base_number(input& in)
 		}
 		else
 		{
-			unsigned_t t{};
+			unsigned_t t{},t1{};
 			std::size_t length{};
 			for(unsigned_char_type ch : igenerator(in))
 			{
@@ -141,6 +141,7 @@ inline constexpr T input_base_number(input& in)
 					unsigned_char_type const e(static_cast<unsigned_char_type>(ch)-u8'0');
 					if(base<=e)[[unlikely]]
 						break;
+					t1=t;
 					t*=base;
 					t+=e;
 				}
@@ -150,11 +151,13 @@ inline constexpr T input_base_number(input& in)
 					constexpr char8_t bm10{base-10};
 					if(e<=10)
 					{
+						t1=t;
 						t*=base;
 						t+=e;
 					}
 					else if(static_cast<unsigned_char_type>(e-=17)<bm10||static_cast<unsigned_char_type>(e-=32)<bm10)
 					{
+						t1=t;
 						t*=base;
 						t+=e+10;
 					}
@@ -170,7 +173,7 @@ inline constexpr T input_base_number(input& in)
 #else
 				fast_terminate();
 #endif
-			detect_overflow<base>(t,length);
+			detect_overflow<base>(t,t1,length);
 			return t;
 		}
 	}
@@ -225,6 +228,7 @@ inline constexpr T input_base_number(input& in)
 			if(it!=ed&&length==19)	//phase 2
 			{
 				unsigned_t t2(t);
+				unsigned_t t3{};
 				for(++it;it!=ed;++it)
 				{
 					unsigned_char_type e(static_cast<unsigned_char_type>(*it)-u8'0');
@@ -232,6 +236,7 @@ inline constexpr T input_base_number(input& in)
 					{
 						if(base<=e)[[unlikely]]
 							break;
+						t3=t2;
 						t2*=base;
 						t2+=e;
 					}
@@ -240,11 +245,13 @@ inline constexpr T input_base_number(input& in)
 						constexpr char8_t bm10{base-10};
 						if(e<=10)
 						{
+							t3=t2;
 							t2*=base;
 							t2+=e;
 						}
 						else if(static_cast<unsigned_char_type>(e-=17)<bm10||static_cast<unsigned_char_type>(e-=32)<bm10)
 						{
+							t3=t2;
 							t2*=base;
 							t2+=e+10;
 						}
@@ -253,7 +260,7 @@ inline constexpr T input_base_number(input& in)
 					}
 					++length;
 				}
-				detect_signed_overflow<base>(t2,length,sign);
+				detect_signed_overflow<base>(t2,t3,length,sign);
 				if(sign)
 					return -static_cast<T>(t2);
 				else if(!length)[[unlikely]]
@@ -276,7 +283,7 @@ inline constexpr T input_base_number(input& in)
 		}
 		else
 		{
-			unsigned_t t{};
+			unsigned_t t{},t1{};
 			for(;it!=ed;++it)
 			{
 				if constexpr(base<=10)
@@ -284,6 +291,7 @@ inline constexpr T input_base_number(input& in)
 					unsigned_char_type const e(static_cast<unsigned_char_type>(*it)-u8'0');
 					if(base<=e)[[unlikely]]
 						break;
+					t1=t;
 					t*=base;
 					t+=e;
 				}
@@ -293,11 +301,13 @@ inline constexpr T input_base_number(input& in)
 					constexpr char8_t bm10{base-10};
 					if(e<=10)
 					{
+						t1=t;
 						t*=base;
 						t+=e;
 					}
 					else if(static_cast<unsigned_char_type>(e-=17)<bm10||static_cast<unsigned_char_type>(e-=32)<bm10)
 					{
+						t1=t;
 						t*=base;
 						t+=e+10;
 					}
@@ -306,7 +316,7 @@ inline constexpr T input_base_number(input& in)
 				}
 				++length;
 			}
-			detect_signed_overflow<base>(t,length,sign);
+			detect_signed_overflow<base>(t,t1,length,sign);
 			if(sign)
 				return -static_cast<T>(t);
 			else if(!length)[[unlikely]]
