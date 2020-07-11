@@ -8,20 +8,26 @@ namespace details
 
 struct io_uring_overlapped_base
 {
-	virtual void invoke() noexcept = 0;
+	virtual void invoke(io_uring_cqe*) noexcept = 0;
 	virtual ~io_uring_overlapped_base()=default;
 };
 
-template<typename T>
+enum class uring_operation_callbacks
+{
+callback_bytes
+};
+
+template<typename T,uring_operation_callbacks cabs>
 struct io_uring_overlapped_data:io_uring_overlapped_base
 {
 	T callback;
 	template<typename... Args>
 	requires std::constructible_from<T,Args...>
 	io_uring_overlapped_data(std::in_place_t,Args&& ...args):callback(std::forward<Args>(args)...){}
-	void invoke() noexcept override
+	void invoke(io_uring_cqe* cqe) noexcept override
 	{
-		callback();
+//		if constexpr(cabs==uring_operation_callbacks::callback_bytes)
+//			callback(cqe,);
 	}
 };
 
@@ -30,7 +36,7 @@ struct io_uring_overlapped_data:io_uring_overlapped_base
 template<std::integral char_type,typename Func>
 inline void async_scatter_write_callback(io_uring_observer ring, basic_posix_io_observer<char_type> piob,std::span<io_scatter_t const> span,Func&& callback)
 {
-	std::unique_ptr<details::io_uring_overlapped_base> uptr(new details::io_uring_overlapped_data<Func>(std::in_place,std::forward<Func>(callback)));
+	std::unique_ptr<details::io_uring_overlapped_base> uptr(new details::io_uring_overlapped_data<Func,details::uring_operation_callbacks::callback_bytes>(std::in_place,std::forward<Func>(callback)));
 	auto sqe{io_uring_get_sqe(ring.ring)};
 	if(sqe==nullptr)
 		throw_posix_error();

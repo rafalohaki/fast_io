@@ -44,21 +44,22 @@ public:
 	io_uring(io_uring const&)=delete;
 	io_uring& operator=(io_uring const&)=delete;
 	constexpr io_uring(io_uring&& bmv) noexcept:io_uring_observer{bmv.release()}{}
-#if __cpp_constexpr_dynamic_alloc >= 201907L
-	constexpr
-#endif
 	io_uring& operator=(io_uring&& bmv) noexcept
 	{
 		if(this->native_handle()==bmv.native_handle())[[unlikely]]
 			return *this;
-		delete native_handle();
+		io_uring_queue_exit(this->native_handle());
+		delete this->native_handle();
 		native_handle()=bmv.release();
 		return *this;
 	}
 	~io_uring()
 	{
 		if(this->native_handle()) [[likely]]
+		{
 			io_uring_queue_exit(this->native_handle());
+			delete this->native_handle();
+		}
 	}
 };
 

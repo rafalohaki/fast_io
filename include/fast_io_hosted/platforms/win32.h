@@ -813,11 +813,6 @@ inline basic_win32_io_observer<char_type> native_stderr()
 {
 	return basic_win32_io_observer<char_type>{fast_io::win32::GetStdHandle(-12)};
 }
-template<output_stream output,std::integral intg>
-inline constexpr void print_define(output& out,basic_win32_io_observer<intg> iob)
-{
-	print(out,iob.handle);
-}
 
 template<std::integral char_type>
 inline constexpr std::size_t print_reserve_size(print_reserve_type_t<basic_win32_io_observer<char_type>>)
