@@ -182,12 +182,20 @@ struct posix_file_openmode
 	static int constexpr mode = calculate_posix_open_mode(om);
 };
 }
+
+#ifdef __linux__
+class io_uring_observer;
+#endif
+
 template<std::integral ch_type>
 class basic_posix_io_observer
 {
 public:
 	using char_type = ch_type;
 	using native_handle_type = int;
+#ifdef __linux__
+	using async_scheduler_type = io_uring_observer;
+#endif
 	native_handle_type fd=-1;
 	constexpr auto& native_handle() noexcept
 	{
@@ -457,6 +465,9 @@ public:
 	using char_type = ch_type;
 	using native_handle_type = typename basic_posix_io_handle<char_type>::native_handle_type;
 	using basic_posix_io_handle<ch_type>::native_handle;
+#ifdef __linux__
+	using async_scheduler_type = io_uring_observer;
+#endif
 	constexpr basic_posix_file() noexcept = default;
 	constexpr basic_posix_file(int fd) noexcept: basic_posix_io_handle<ch_type>(fd){}
 	template<typename ...Args>
@@ -599,6 +610,9 @@ class basic_posix_pipe
 public:
 	using char_type = ch_type;
 	using native_handle_type = std::array<basic_posix_file<ch_type>,2>;
+#ifdef __linux__
+	using async_scheduler_type = io_uring_observer;
+#endif
 private:
 	native_handle_type pipes;
 public:
