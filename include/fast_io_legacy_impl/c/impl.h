@@ -372,14 +372,13 @@ inline void flush(basic_c_io_observer_unlocked<T> cfhd)
 #endif
 }
 
+
 template<std::integral ch_type,typename T,std::integral U>
 inline auto seek(basic_c_io_observer_unlocked<ch_type> cfhd,seek_type_t<T>,U i,seekdir s=seekdir::beg)
 {
 	if(
 #if defined(__WINNT__) || defined(_MSC_VER)
 		_fseek_nolock
-#elif defined(_POSIX_SOURCE)
-		fseek_unlocked
 #else
 		fseek
 #endif
