@@ -63,5 +63,10 @@ public:
 	}
 };
 
+inline void submit(io_uring_observer ring)
+{
+	if(io_uring_submit(ring.ring)<0)
+		throw_posix_error();
+}
 
 }

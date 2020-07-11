@@ -112,8 +112,6 @@ public:
 template<output_stream stm,typename ...Args> async_println(typename stm::async_scheduler_type&,stm&,Args&& ...) -> async_println<stm>;
 template<output_stream stm,typename ...Args> async_println(typename stm::async_scheduler_type&,std::ptrdiff_t,stm&,Args&& ...) -> async_println<stm>;
 
-
-
 template<typename stm>
 class async_scatter_write
 {
@@ -136,7 +134,6 @@ public:
 };
 
 template<output_stream stm> async_scatter_write(typename stm::async_scheduler_type&,stm&,std::span<io_scatter_t const>,std::ptrdiff_t) -> async_scatter_write<stm>;
-
 template<output_stream stm> async_scatter_write(typename stm::async_scheduler_type&,stm&,std::span<io_scatter_t const>) -> async_scatter_write<stm>;
 
 }

@@ -16,12 +16,6 @@ int main()
 {
 	using namespace std::chrono_literals;
 	fast_io::io_uring ior(fast_io::io_async);
-	std::vector<std::jthread> pools;
-	pools.reserve(std::thread::hardware_concurrency());
-	pools.emplace_back([&](std::stop_token token)
-	{
-		for(;!token.stop_requested();fast_io::linux::io_async_wait_timeout(ior,1ms));
-	});
 	io_task(ior);
-	std::this_thread::sleep_for(100ms);
+	for(;;fast_io::linux::io_async_wait_timeout(ior,1ms));
 }
