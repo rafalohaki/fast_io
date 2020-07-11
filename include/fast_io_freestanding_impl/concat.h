@@ -71,14 +71,14 @@ inline constexpr bool test_first_is_string_rvalue_reference()
 template<std::integral char_type,typename T>
 inline constexpr std::size_t scatter_concat_recursive(io_scatter_t* arr,T&& t)
 {
-	*arr=print_scatter_define<char_type>(std::forward<T>(t));
+	*arr=print_scatter_define(print_scatter_type<char_type>,std::forward<T>(t));
 	return arr->len;
 }
 
 template<std::integral char_type,typename T,typename... Args>
 inline constexpr std::size_t scatter_concat_recursive(io_scatter_t* arr,T&& t, Args&& ...args)
 {
-	*arr=print_scatter_define<char_type>(std::forward<T>(t));
+	*arr=print_scatter_define(print_scatter_type<char_type>,std::forward<T>(t));
 	return scatter_concat_recursive<char_type>(arr+1,std::forward<Args>(args)...)+arr->len;
 }
 
@@ -88,7 +88,7 @@ inline constexpr std::size_t scatter_concat_with_reserve_recursive_unit(char_typ
 		io_scatter_t* arr,T&& t)
 {
 	if constexpr(scatter_printable<char_type,T>)
-		*arr=print_scatter_define<char_type>(std::forward<T>(t));
+		*arr=print_scatter_define(print_scatter_type<char_type>,std::forward<T>(t));
 	else
 	{
 		using real_type = std::remove_cvref_t<T>;

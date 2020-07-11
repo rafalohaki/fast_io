@@ -526,7 +526,7 @@ constexpr void obuf_write_cold(basic_obuf<Ohandler,forcecopy,Buf>& ob,Iter cbegi
 		if constexpr(punning)
 			memcpy(ob.obuffer.curr,cbegin,n*sizeof(std::iter_value_t<Iter>));
 		else
-			std::copy_n(cbegin,n,ob.obuffer.curr);		
+			std::copy_n(cbegin,n,ob.obuffer.curr);	
 		cbegin+=n;
 		write(ob.native_handle(),ob.obuffer.beg,ob.obuffer.end);
 		if(cbegin+(T::buffer_type::size)<cend)

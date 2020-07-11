@@ -57,29 +57,86 @@ inline caiter print_reserve_define(print_reserve_type_t<Iter>,caiter iter,U&& v)
 template<std::integral char_type,std::integral array_value_type,std::size_t n>
 requires (std::same_as<char_type,std::remove_cvref_t<array_value_type>>||
 (std::same_as<char_type,char>&&std::same_as<std::remove_cvref_t<array_value_type>,char8_t>)
-&&n!=0)	//array cannot be zero size. but we do the check too
-constexpr io_scatter_t print_scatter_define(array_value_type (&&s)[n])
+&&n!=0)	//C-style array cannot be zero size. but we do the check too
+inline constexpr basic_io_scatter_t<char_type> print_scatter_define(print_scatter_type_t<char_type>,array_value_type const (&s)[n])
 {
-	return io_scatter(s,s+(n-1));
+	if constexpr(std::same_as<char_type,std::remove_cvref_t<array_value_type>>)
+		return {s,n-1};
+	else
+		return {reinterpret_cast<char const*>(s),n-1};
 }
 
 template<std::integral char_type,std::integral T>
 requires (std::same_as<char_type,std::remove_cvref_t<T>>||
 (std::same_as<char_type,char>&&std::same_as<std::remove_cvref_t<T>,char8_t>))
-constexpr io_scatter_t print_scatter_define(manip::chvw<T*> a)
+inline constexpr basic_io_scatter_t<char_type> print_scatter_define(print_scatter_type_t<char_type>,manip::chvw<T*> a)
 {
-	std::basic_string_view<std::remove_cvref_t<T>> bsv(a.reference);
-	return io_scatter(a.reference,a.reference+bsv.size());
+	if constexpr(std::same_as<char_type,std::remove_cvref_t<T>>)
+	{
+#if __cpp_lib_is_constant_evaluated >= 201811L
+		if(std::is_constant_evaluated())
+		{
+			std::basic_string_view<std::remove_cvref_t<T>> bsv(a.reference);
+			return {bsv.data(),bsv.size()};
+		}
+		else
+		{
+#endif
+			if constexpr(std::same_as<char,char_type>)
+				return {a.reference,strlen(a.reference)};
+			else if constexpr(std::same_as<char8_t,char_type>)
+				return {a.reference,strlen(reinterpret_cast<char const*>(a.reference))};
+			else
+			{
+				std::basic_string_view<std::remove_cvref_t<T>> bsv(a.reference);
+				return {bsv.data(),bsv.size()};
+			}
+#if __cpp_lib_is_constant_evaluated >= 201811L
+		}
+#endif
+	}
+	else
+		return {reinterpret_cast<char const*>(a.reference),strlen(reinterpret_cast<char const*>(a.reference))};
 }
 
 
 template<std::integral char_type,typename T>
 requires (!std::is_pointer_v<std::remove_cvref_t<T>>&&!std::is_array_v<std::remove_cvref_t<T>>&&
 (std::convertible_to<T,std::basic_string_view<char_type>>||(std::same_as<char_type,char>&&std::convertible_to<T,std::basic_string_view<char8_t>>)))
-constexpr io_scatter_t print_scatter_define(T&& convt_str)
+inline constexpr basic_io_scatter_t<char_type> print_scatter_define(print_scatter_type_t<char_type>,T&& convt_str)
 {
-	std::basic_string_view<std::conditional_t<std::convertible_to<T,std::basic_string_view<char_type>>,char_type,char>> str(std::forward<T>(convt_str));
-	return io_scatter(str.data(),str.data()+str.size());
+	if constexpr(std::convertible_to<T,std::basic_string_view<char_type>>)
+	{
+#if __cpp_lib_is_constant_evaluated >= 201811L
+		if(std::is_constant_evaluated())
+		{
+			std::basic_string_view<char_type> bsv(std::forward<T>(convt_str));
+			return {bsv.data(),bsv.size()};
+		}
+		else
+		{
+#endif
+			if constexpr(std::same_as<std::basic_string_view<char_type>,std::remove_cvref_t<T>>)
+				return {convt_str.data(),convt_str.size()};
+			else
+			{
+				std::basic_string_view<char_type> bsv(std::forward<T>(convt_str));
+				return {bsv.data(),bsv.size()};
+			}
+#if __cpp_lib_is_constant_evaluated >= 201811L
+		}
+#endif
+	}
+	else
+	{
+		if constexpr(std::same_as<std::basic_string_view<char8_t>,std::remove_cvref_t<T>>)
+			return {reinterpret_cast<char const*>(convt_str.data()),convt_str.size()};
+		else
+		{
+			std::basic_string_view<char8_t> bsv(std::forward<T>(convt_str));
+			return {reinterpret_cast<char const*>(bsv.data()),bsv.size()};
+		}
+	}
 }
 
 template<output_stream output>

@@ -217,7 +217,14 @@ inline constexpr void normal_send(output &out,Args&& ...args)
 {
 	(send_define(out,std::forward<Args>(args)),...);
 }
-
+/*
+template<std::integral char_type,typename Args>
+inline std::basic_string_view<char_type> extract_one_scatter(Args&& args)
+{
+	auto scatter=print_scatter_define<char_type>(std::forward<Args>(args));
+	return std::basic_string_view<char_type>(reinterpret_cast<char_type const*>(scatter),scatter.len/sizeof(char_type));
+}
+*/
 }
 
 template<output_stream output,typename T>
@@ -264,13 +271,13 @@ namespace details
 template<std::integral char_type,typename T>
 inline constexpr void scatter_print_recursive(io_scatter_t* arr,T&& t)
 {
-	*arr=print_scatter_define<char_type>(std::forward<T>(t));
+	*arr=print_scatter_define(print_scatter_type<char_type>,std::forward<T>(t));
 }
 
 template<std::integral char_type,typename T,typename... Args>
 inline constexpr void scatter_print_recursive(io_scatter_t* arr,T&& t, Args&& ...args)
 {
-	*arr=print_scatter_define<char_type>(std::forward<T>(t));
+	*arr=print_scatter_define(print_scatter_type<char_type>,std::forward<T>(t));
 	scatter_print_recursive<char_type>(arr+1,std::forward<Args>(args)...);
 }
 
@@ -280,7 +287,7 @@ inline constexpr void scatter_print_with_buffer_recursive_unit(internal_temporar
 {
 	if constexpr(scatter_printable<char_type,T>)
 	{
-		*arr=print_scatter_define<char_type>(std::forward<T>(t));
+		*arr=print_scatter_define(print_scatter_type<char_type>,std::forward<T>(t));
 	}
 	else
 	{
@@ -339,7 +346,7 @@ inline constexpr void scatter_print_with_reserve_recursive_unit(char_type*& star
 {
 	if constexpr(scatter_printable<char_type,T>)
 	{
-		*arr=print_scatter_define<char_type>(std::forward<T>(t));
+		*arr=print_scatter_define(print_scatter_type<char_type>,std::forward<T>(t));
 	}
 	else
 	{
@@ -421,7 +428,16 @@ inline constexpr void print_fallback(output &out,Args&& ...args)
 		write(out,buffer.beg_ptr,buffer.end_ptr);
 	}
 }
+
+template<std::integral char_type,typename T>
+requires scatter_type_printable<char_type,T>
+inline constexpr auto extract_one_scatter(T&& t)
+{
+	return print_scatter_define(print_scatter_type<char_type>,std::forward<T>(t));
 }
+
+}
+
 
 template<output_stream output,typename callback>
 inline constexpr void print_transaction(output &&out,callback func)
@@ -472,8 +488,9 @@ inline constexpr void println(output &&out,Args&& ...args)
 	else if constexpr(status_output_stream<output>)
 		println_status_define(out,std::forward<Args>(args)...);
 	else if constexpr((sizeof...(Args)==1&&(reserve_printable<Args>&&...))||
-	((printable<output,Args>&&...)&&buffer_output_stream<output>&&character_output_stream<output>))
+	((printable<output,Args>&&...)&&buffer_output_stream<output>))
 	{
+		using char_type = typename std::remove_cvref_t<output>::char_type;
 		if constexpr((sizeof...(Args)==1)&&(reserve_printable<Args>&&...))
 			((details::print_control_line(out,std::forward<Args>(args))),...);
 		else
@@ -486,8 +503,29 @@ inline constexpr void println(output &&out,Args&& ...args)
 					return;
 				}
 			}
-			((details::print_control(out,std::forward<Args>(args))),...);
-			put(out,u8'\n');
+			if constexpr(sizeof...(Args)==1&&(scatter_type_printable<char_type,Args>&&...))
+			{
+				auto curr=obuffer_curr(out);
+				std::size_t const remain_space=obuffer_end(out)-curr;
+				auto scatter=details::extract_one_scatter<char_type>(std::forward<Args>(args)...);
+				std::size_t const len{scatter.len};
+				if(len+1<remain_space)[[likely]]
+				{
+					details::non_overlapped_copy_n(scatter.base,len,curr);
+					curr[len]=u8'\n';
+					obuffer_set_curr(out,curr+(len+1));
+				}
+				else
+				{
+					write(out,scatter.base,scatter.base+len);
+					put(out,u8'\n');
+				}
+			}
+			else
+			{
+				((details::print_control(out,std::forward<Args>(args))),...);
+				put(out,u8'\n');
+			}
 		}
 	}
 	else

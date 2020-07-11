@@ -4,11 +4,11 @@ namespace fast_io
 {
 
 template<std::integral char_type,buffer_output_stream source_type>
-constexpr io_scatter_t print_scatter_define(manip::drainage<source_type&> source)
+constexpr basic_io_scatter_t<char_type> print_scatter_define(print_scatter_type_t<char_type>,manip::drainage<source_type&> source)
 {
 	auto bg{obuffer_begin(source.reference)};
 	auto curr{obuffer_curr(source.reference)};
-	return io_scatter(bg,curr-bg);
+	return {bg,curr-bg};
 }
 
 template<output_stream dest_type,buffer_output_stream source_type>

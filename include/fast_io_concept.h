@@ -11,20 +11,21 @@
 
 namespace fast_io
 {
-//should be binary compatible with POSIX's iovec
-struct io_scatter_t
+
+template<typename T>
+struct basic_io_scatter_t
 {
-	void *base{};
-	std::size_t len{};
+	T const* base;
+	std::size_t len;
+	inline operator basic_io_scatter_t<void>() const noexcept
+	{
+		return {base,len*sizeof(T)};
+	}
 };
 
-template<std::contiguous_iterator Iter>
-requires std::integral<std::iter_value_t<Iter>>
-inline constexpr io_scatter_t io_scatter(Iter begin,Iter end)
-{
-	void const* ptr{std::to_address(begin)};
-	return io_scatter_t{const_cast<void*>(ptr),(end-begin)*sizeof(*begin)};
-}
+//should be binary compatible with POSIX's iovec
+
+using io_scatter_t = basic_io_scatter_t<void>;
 
 namespace details
 {
@@ -329,6 +330,14 @@ template<typename T>
 inline constexpr print_reserve_type_t<T> print_reserve_type{};
 
 template<typename T>
+struct print_scatter_type_t
+{
+	explicit constexpr print_scatter_type_t() = default;
+};
+template<typename T>
+inline constexpr print_scatter_type_t<T> print_scatter_type{};
+
+template<typename T>
 concept reserve_printable=requires(T&& t,char8_t* ptr)
 {
 	{print_reserve_size(print_reserve_type<std::remove_cvref_t<T>>)}->std::convertible_to<std::size_t>;
@@ -356,7 +365,13 @@ concept printable=output_stream<output>&&requires(output& out,T&& t)
 template<typename char_type,typename T>
 concept scatter_printable=requires(char_type ch,T&& t)
 {
-	{print_scatter_define<char_type>(std::forward<T>(t))}->std::convertible_to<io_scatter_t>;
+	{print_scatter_define(print_scatter_type<char_type>,std::forward<T>(t))}->std::convertible_to<io_scatter_t>;
+};
+
+template<typename char_type,typename T>
+concept scatter_type_printable=scatter_printable<char_type,T>&&requires(char_type ch,T&& t)
+{
+	{print_scatter_define(print_scatter_type<char_type>,std::forward<T>(t))}->std::convertible_to<basic_io_scatter_t<char_type>>;
 };
 
 template<typename input,typename T>
