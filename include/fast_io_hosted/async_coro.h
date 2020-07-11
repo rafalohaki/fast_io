@@ -81,6 +81,31 @@ public:
 		});
 	}
 };
+
 template<output_stream stm,typename ...Args> async_println(stm&,Args&& ...) -> async_println<stm>;
+
+template<typename stm>
+class async_scatter_write
+{
+public:
+	typename stm::async_scheduler_type& sch;
+	stm& sm;
+	std::span<io_scatter_t const> span;
+	std::size_t transferred_size{};
+	async_scatter_write(typename stm::async_scheduler_type& sh,stm& s,std::span<io_scatter_t const> sp):sch(sh),sm(s),span(sp){}
+	constexpr bool await_ready() const { return false; }
+	constexpr std::size_t await_resume() const { return transferred_size; }
+	void await_suspend(std::coroutine_handle<> handle)
+	{
+		async_scatter_write_callback(sch,sm,span,[handle,this](std::size_t bytes)
+		{
+			this->transferred_size=bytes;
+			handle.resume();
+		});
+	}
+};
+
+template<output_stream stm> async_scatter_write(typename stm::async_scheduler_type&,stm&,std::span<io_scatter_t const>) -> async_scatter_write<stm>;
+
 
 }

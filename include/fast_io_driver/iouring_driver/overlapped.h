@@ -1,0 +1,111 @@
+#pragma once
+
+namespace fast_io
+{
+
+namespace details
+{
+struct io_uring_overlapped_base
+{
+#if __cpp_constexpr >= 201907L
+	constexpr
+#endif
+	virtual void invoke(std::size_t) noexcept = 0;
+#if __cpp_constexpr >= 201907L
+	constexpr
+#endif
+	virtual ~io_uring_overlapped_base()=default;
+};
+
+template<typename T>
+struct io_uring_overlapped_derv:io_uring_overlapped_base
+{
+	T callback;
+	template<typename... Args>
+	requires std::constructible_from<T,Args...>
+	constexpr io_uring_overlapped_derv(std::in_place_t,Args&& ...args):callback(std::forward<Args>(args)...){}
+#if __cpp_constexpr >= 201907L
+	constexpr
+#endif
+	void invoke(std::size_t res) noexcept override
+	{
+		callback(res);
+	}
+};
+}
+
+class io_uring_overlapped_observer
+{
+public:
+	using native_handle_type = details::io_uring_overlapped_base*;
+	native_handle_type handle{};
+#if __cpp_constexpr >= 201907L
+	constexpr
+#endif
+	void operator()(std::size_t res) noexcept
+	{
+		handle->invoke(res);
+	}
+	constexpr native_handle_type const& native_handle() const noexcept
+	{
+		return handle;
+	}
+	constexpr native_handle_type& native_handle() noexcept
+	{
+		return handle;
+	}
+	constexpr native_handle_type release() noexcept
+	{
+		auto temp{handle};
+		handle={};
+		return temp;
+	}
+};
+
+class io_uring_overlapped:public io_uring_overlapped_observer
+{
+public:
+	using native_handle_type = details::io_uring_overlapped_base*;
+	constexpr io_uring_overlapped()=default;
+	constexpr io_uring_overlapped(native_handle_type hd):io_uring_overlapped_observer{hd}{}
+
+	template<typename T,typename... Args>
+	requires std::constructible_from<T,Args...>
+#if __cpp_constexpr_dynamic_alloc >= 201907L
+	constexpr
+#endif
+	io_uring_overlapped(std::in_place_type_t<T>,Args&& ...args):
+		io_uring_overlapped_observer{new details::io_uring_overlapped_derv<T>(std::in_place,std::forward<Args>(args)...)}{}
+	template<typename Func>
+#if __cpp_constexpr_dynamic_alloc >= 201907L
+	constexpr
+#endif
+	io_uring_overlapped(std::in_place_t,Func&& func):io_uring_overlapped(std::in_place_type<std::remove_cvref_t<Func>>,std::forward<Func>(func)){}
+
+	io_uring_overlapped(io_uring_overlapped const&)=delete;
+	io_uring_overlapped& operator=(io_uring_overlapped const&)=delete;
+	constexpr io_uring_overlapped(io_uring_overlapped&& bmv) noexcept : io_uring_overlapped_observer{bmv.release()}{}
+
+#if __cpp_constexpr_dynamic_alloc >= 201907L
+	constexpr
+#endif	
+	io_uring_overlapped& operator=(io_uring_overlapped&& bmv) noexcept
+	{
+		if(bmv.native_handle()==this->native_handle())
+			return *this;
+		delete this->native_handle();
+		this->native_handle() = bmv.release();
+		return *this;
+	}
+	
+
+#if __cpp_constexpr_dynamic_alloc >= 201907L
+	constexpr
+#endif
+	~io_uring_overlapped()
+	{
+		delete this->native_handle();
+	}
+};
+
+}
