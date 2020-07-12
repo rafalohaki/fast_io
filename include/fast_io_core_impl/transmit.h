@@ -8,6 +8,9 @@ namespace details
 template<std::integral char_type,bool iobuf=false>
 inline constexpr std::size_t cal_buffer_size()
 {
+#ifdef FAST_IO_BUFFER_SIZE
+	static_assert(sizeof(char_type)<=FAST_IO_BUFFER_SIZE);
+#endif
 	if constexpr(iobuf)
 	{
 		return 

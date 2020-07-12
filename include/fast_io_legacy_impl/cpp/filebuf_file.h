@@ -70,13 +70,7 @@ std::basic_filebuf<char_type,traits_type>
 #if defined(__GLIBCXX__)
 	template<typename T>
 	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,T&& t):
-		fb(piohd.native_handle(),details::calculate_fstream_open_value(std::forward<T>(t)),
-#if defined(__WINNT__)
-1048576
-#else
-65536
-#endif
-)
+		fb(piohd.native_handle(),details::calculate_fstream_open_value(std::forward<T>(t)),fast_io::details::cal_buffer_size<CharT,true>())
 	{
 		piohd.detach();
 	}
