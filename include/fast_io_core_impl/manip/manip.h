@@ -167,6 +167,15 @@ struct drainage
 	T reference;
 };
 
+template<typename T,char8_t base,bool uppercase,bool space>
+requires ((base==2&&!uppercase)||base==16)
+struct representation
+{
+	using manip_tag = manip_tag_t;
+	T reference;
+};
+
+
 }
 
 template<output_stream T>
@@ -273,6 +282,27 @@ inline constexpr manip::status_tag<typename stm::status_type,T const> status(stm
 {
 	return {f,ch};
 }*/
+template<typename T>
+inline constexpr manip::representation<T,2,false,true> bin_rep(T const&f){return {f};}
+
+template<typename T>
+inline constexpr manip::representation<T,16,false,true> hex_rep(T const&f){return {f};}
+
+template<typename T>
+inline constexpr manip::representation<T,16,true,true> hexupper_rep(T const&f){return {f};}
+
+template<typename T>
+inline constexpr manip::representation<T,2,false,false> bin_pure(T const&f){return {f};}
+
+template<typename T>
+inline constexpr manip::representation<T,16,false,false> hex_pure(T const&f){return {f};}
+
+template<typename T>
+inline constexpr manip::representation<T,16,true,false> hexupper_pure(T const&f){return {f};}
+
+template<char8_t base,bool uppercase=false,bool space=true,typename T>
+requires ((base==2&&!uppercase)||base==16)
+inline constexpr manip::representation<T,base,uppercase,space> representation(T const&f){return {f};}
 
 template<typename T,typename Func>
 inline constexpr manip::space<T&,Func&> space(T&& f,Func&& func){return {f,func};}
