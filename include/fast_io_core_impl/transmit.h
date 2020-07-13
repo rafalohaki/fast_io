@@ -54,7 +54,7 @@ inline constexpr std::uintmax_t bufferred_transmit_impl(output& outp,input& inp)
 		do
 		{
 			auto b{ibuffer_curr(inp)};
-			auto e{std::to_address(ibuffer_end(inp))};
+			auto e{ibuffer_end(inp)};
 			if(b!=e)[[likely]]
 			{
 				std::size_t transmitted_this_round(static_cast<std::size_t>(e-b));
@@ -99,8 +99,8 @@ inline constexpr std::uintmax_t bufferred_transmit_impl(output& outp,input& inp,
 	{
 		do
 		{
-			auto b(begin(inp));
-			auto e(end(inp));
+			auto b(ibuffer_begin(inp));
+			auto e(ibuffer_end(inp));
 			if(b!=e)[[likely]]
 			{
 				std::size_t transmitted_this_round((e-b)*sizeof(*b));
