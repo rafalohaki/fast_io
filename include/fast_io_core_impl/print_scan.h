@@ -225,6 +225,7 @@ inline std::basic_string_view<char_type> extract_one_scatter(Args&& args)
 	return std::basic_string_view<char_type>(reinterpret_cast<char_type const*>(scatter),scatter.len/sizeof(char_type));
 }
 */
+
 }
 
 template<output_stream output,typename T>
@@ -260,8 +261,23 @@ inline constexpr auto scan(input &&in,Args&& ...args)
 	}
 	else if constexpr(status_input_stream<input>)
 		return scan_status_define<report_eof>(in,std::forward<Args>(args)...);
+	else if constexpr(!requires()
+	{
+		details::normal_scan<report_eof>(in,std::forward<Args>(args)...);
+	})
+	{
+		if constexpr(character_input_stream<input>)
+			static_assert(!character_input_stream<input>,
+			"\n\tThe type is not defined for scanning. Please consider defining as with scan_define or space_scan_define.\n");
+		else
+		{
+			static_assert(character_input_stream<input>,
+			"\n\tThe input stream type is not a character_input_stream.\n");
+		}
+	}
 	else
 		return details::normal_scan<report_eof>(in,std::forward<Args>(args)...);
+
 }
 
 namespace details
@@ -408,24 +424,37 @@ inline constexpr void print_fallback(output &out,Args&& ...args)
 	}
 	else
 	{
-		internal_temporary_buffer<typename output::char_type> buffer;
-		if constexpr(line)
+		using internal_buffer_type = internal_temporary_buffer<typename output::char_type>;
+		internal_buffer_type buffer;
+		if constexpr(requires(Args&& ...args)
 		{
-			if constexpr((sizeof...(Args)==1)&&(reserve_printable<Args>&&...))
+			((details::print_control_line(buffer,std::forward<Args>(args))),...);
+		})
+		{
+			if constexpr(line)
 			{
-				((details::print_control_line(buffer,std::forward<Args>(args))),...);
+				if constexpr((sizeof...(Args)==1)&&(reserve_printable<Args>&&...))
+				{
+					((details::print_control_line(buffer,std::forward<Args>(args))),...);
+				}
+				else
+				{
+					((details::print_control(buffer,std::forward<Args>(args))),...);
+					put(buffer,u8'\n');
+				}
 			}
 			else
 			{
-				((details::print_control(buffer,std::forward<Args>(args))),...);
-				put(buffer,u8'\n');
+				(details::print_control(buffer,std::forward<Args>(args)),...);
 			}
+			write(out,buffer.beg_ptr,buffer.end_ptr);
 		}
-		else
+		else if constexpr(buffer_output_stream<internal_buffer_type>)
 		{
-			(details::print_control(buffer,std::forward<Args>(args)),...);
+			static_assert(!buffer_output_stream<internal_buffer_type>,
+			"\n\n\tThis type is not defined for printing. Please consider define it with print_define or print_reserve_define."
+			"\n\tSee wiki page https://github.com/expnkx/fast_io/wiki/0018.-custom-type\n");
 		}
-		write(out,buffer.beg_ptr,buffer.end_ptr);
 	}
 }
 
