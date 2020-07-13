@@ -79,7 +79,6 @@ inline constexpr void debug_println(T&& t,Args&& ...args)
 
 #include"fast_io_core_impl/igenerator.h"
 #include"fast_io_core_impl/black_hole.h"
-//#include"fast_io_core_impl/white_hole.h"
 #include"fast_io_core_impl/istring_view.h"
 #include"fast_io_core_impl/ospan.h"
 // Provide template prototype for custom string types
@@ -92,6 +91,7 @@ inline constexpr void debug_println(T&& t,Args&& ...args)
 #include"fast_io_core_impl/read_write_ranges.h"
 
 #include"fast_io_core_impl/tie.h"
+#include"fast_io_core_impl/secure_clear_guard.h"
 #include"fast_io_core_impl/transmit.h"
 #include"fast_io_core_impl/random_access_transmit.h"
 #include"fast_io_core_impl/transmit_once.h"

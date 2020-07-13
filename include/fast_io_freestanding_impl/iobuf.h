@@ -45,7 +45,7 @@ struct io_aligned_allocator
 	}
 };
 
-template<std::integral CharT,std::size_t buffer_size = details::cal_buffer_size<CharT,true>(),typename Allocator = io_aligned_allocator<CharT>>
+template<std::integral CharT,bool need_secure_clear=false,std::size_t buffer_size = details::cal_buffer_size<CharT,true>(),typename Allocator = io_aligned_allocator<CharT>>
 requires (buffer_size!=0)
 class basic_buf_handler
 {
@@ -67,7 +67,11 @@ public:
 		if(std::addressof(m)!=this)[[likely]]
 		{
 			if(m.beg)
-				alloc.deallocate(beg,buffer_size);
+			{
+				if constexpr(need_secure_clear)
+					secure_clear(beg,buffer_size*sizeof(char_type));
+				std::allocator_traits<allocator_type>::deallocate(alloc,beg,buffer_size);
+			}
 			beg=m.beg;
 			curr=m.curr;
 			end=m.end;
@@ -77,12 +81,16 @@ public:
 	}
 	constexpr inline void init_space()
 	{
-		end=curr=beg=alloc.allocate(buffer_size);
+		end=curr=beg=std::allocator_traits<allocator_type>::allocate(alloc,buffer_size);
 	}
 	constexpr inline void release()
 	{
 		if(beg)[[likely]]
-			alloc.deallocate(beg,buffer_size);
+		{
+			if constexpr(need_secure_clear)
+				secure_clear(beg,buffer_size*sizeof(char_type));
+			std::allocator_traits<allocator_type>::deallocate(alloc,beg,buffer_size);
+		}
 		end=curr=beg=nullptr;
 	}
 #if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_constexpr_dynamic_alloc >= 201907L
@@ -91,13 +99,17 @@ public:
 	~basic_buf_handler()
 	{
 		if(beg)[[likely]]
-			alloc.deallocate(beg,buffer_size);
+		{
+			if constexpr(need_secure_clear)
+				secure_clear(beg,buffer_size*sizeof(char_type));
+			std::allocator_traits<allocator_type>::deallocate(alloc,beg,buffer_size);
+		}
 	}
 	Allocator get_allocator() const{ return alloc;}
 };
 
 
-template<input_stream Ihandler,typename Buf=basic_buf_handler<typename Ihandler::char_type>>
+template<input_stream Ihandler,typename Buf=basic_buf_handler<typename Ihandler::char_type,secure_clear_requirement_stream<Ihandler>>>
 class basic_ibuf:public ocrtp<basic_ibuf<Ihandler,Buf>>
 {
 public:
@@ -175,6 +187,10 @@ inline constexpr decltype(auto) redirect_handle(basic_ibuf<Ihandler,Buf>& ib)
 {
 	return redirect_handle(ib.native_handle());
 }
+
+template<stream Ihandler,typename Buf>
+requires secure_clear_requirement_stream<Ihandler>
+inline constexpr void require_secure_clear(basic_ibuf<Ihandler,Buf>&){}
 
 template<typename T,typename Iter>
 concept write_read_punned_constraints = (std::contiguous_iterator<Iter>&&sizeof(typename T::char_type)==1) ||
@@ -308,7 +324,7 @@ inline constexpr decltype(auto) memory_map_in_handle(basic_ibuf<Ihandler,Buf>& h
 	return memory_map_in_handle(handle.native_handle());
 }
 
-template<output_stream Ohandler,bool forcecopy=false,typename Buf=basic_buf_handler<typename Ohandler::char_type>>
+template<output_stream Ohandler,bool forcecopy=false,typename Buf=basic_buf_handler<typename Ohandler::char_type,secure_clear_requirement_stream<Ohandler>>>
 class basic_obuf:public icrtp<basic_obuf<Ohandler,forcecopy,Buf>>
 {
 public:
@@ -385,6 +401,10 @@ inline constexpr void obuffer_set_curr(basic_obuf<Ohandler,forcecopy,Buf>& ob,ty
 {
 	ob.obuffer.curr=ptr;
 }
+
+template<stream Ohandler,bool forcecopy,typename Buf>
+requires secure_clear_requirement_stream<Ohandler>
+inline constexpr void require_secure_clear(basic_obuf<Ohandler,forcecopy,Buf>&){}
 
 namespace details
 {
@@ -605,6 +625,7 @@ inline constexpr decltype(auto) seek(basic_obuf<Ohandler,forcecopy,Buf>& ob,Args
 	}
 	return seek(ob.native_handle(),std::forward<Args>(args)...);
 }
+
 template<io_stream ioh,bool forcecopy=false,typename bf=basic_buf_handler<typename ioh::char_type>>
 using basic_iobuf=basic_obuf<basic_ibuf<ioh,bf>,forcecopy,bf>;
 

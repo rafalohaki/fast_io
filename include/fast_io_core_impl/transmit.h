@@ -76,6 +76,7 @@ inline constexpr std::uintmax_t bufferred_transmit_impl(output& outp,input& inp)
 // we need to allocate it on the heap to avoid potential stack overflows
 		std::span<char_type,buffer_size> array(ptr.data(),ptr.data()+buffer_size);
 #endif
+		conditional_secure_clear_guard<char_type,secure_clear_requirement_stream<std::remove_cvref_t<input>>> guard(array.data(),buffer_size);
 		for(;;)
 		{
 			auto p(read(inp,array.data(),array.data()+array.size()));
@@ -130,6 +131,7 @@ inline constexpr std::uintmax_t bufferred_transmit_impl(output& outp,input& inp,
 // we need to allocate it on the heap to avoid potential stack overflows
 		std::span<char_type,buffer_size> array(ptr.data(),ptr.data()+buffer_size);
 #endif
+		conditional_secure_clear_guard<char_type,secure_clear_requirement_stream<std::remove_cvref_t<input>>> guard(array.data(),buffer_size);
 		for(;bytes;)
 		{
 			std::size_t b(array.size());

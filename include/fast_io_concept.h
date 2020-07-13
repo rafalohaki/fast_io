@@ -285,6 +285,12 @@ template<typename T>
 concept scatter_output_stream = output_stream<T>&&details::scatter_output_stream_impl<T>;
 
 template<typename T>
+concept secure_clear_requirement_stream = stream<T>&&requires(T stm)
+{
+	require_secure_clear(stm);
+};
+
+template<typename T>
 concept status_output_stream = output_stream<T>&&details::status_stream_impl<T>&&requires(T out)
 {
 	print_status_define(out);

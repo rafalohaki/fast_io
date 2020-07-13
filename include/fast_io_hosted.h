@@ -16,7 +16,5 @@ For hosted implementations the set of standard library headers required by the C
 #endif
 #include"fast_io_hosted/chrono.h"
 #include"fast_io_hosted/process/native.h"
-
-
-//#include<clocale>
-//#include"fast_io_hosted/posix_locale.h"
+#include"fast_io_hosted/white_hole/white_hole.h"
+#include"fast_io_hosted/secure_clear.h"
