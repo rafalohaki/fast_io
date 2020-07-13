@@ -28,12 +28,10 @@ In file included from ../../include/fast_io_core.h:44,
                  from wrong_input_device.cc:1:
 ../../include/fast_io_core_impl/print_scan.h: In instantiation of 'constexpr auto fast_io::scan(input&&, Args&& ...) [with bool report_eof = false; input = not_a_character_stream&; Args = {int&}]':
 wrong_input_device.cc:19:19:   required from here
-../../include/fast_io_core_impl/print_scan.h:274:18: error: static assertion failed:
-        The input stream type is not a character_input_stream.
-
-  274 |    static_assert(character_input_stream<input>,
+../../include/fast_io_core_impl/print_scan.h:273:18: error: static assertion failed
+  273 |    static_assert(character_input_stream<input>);
       |                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-../../include/fast_io_core_impl/print_scan.h:274:18: note: constraints not satisfied
+../../include/fast_io_core_impl/print_scan.h:273:18: note: constraints not satisfied
 In file included from ../../include/fast_io_core.h:5,
                  from ../../include/fast_io_freestanding.h:5,
                  from ../../include/fast_io_hosted.h:9,
@@ -45,6 +43,7 @@ In file included from ../../include/fast_io_core.h:5,
    62 |  igenerator(in);
       |  ~~~~~~~~~~^~~~
 cc1plus.exe: note: set '-fconcepts-diagnostics-depth=' to at least 2 for more detail
+
 
 
 */

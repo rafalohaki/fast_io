@@ -268,12 +268,9 @@ inline constexpr auto scan(input &&in,Args&& ...args)
 	{
 		if constexpr(character_input_stream<input>)
 			static_assert(!character_input_stream<input>,
-			"\n\tThe type is not defined for scanning. Please consider defining as with scan_define or space_scan_define.\n");
+			"\n\n\tThe type is not defined for scanning. Please consider defining as with scan_define or space_scan_define.\n");
 		else
-		{
-			static_assert(character_input_stream<input>,
-			"\n\tThe input stream type is not a character_input_stream.\n");
-		}
+			static_assert(character_input_stream<input>);
 	}
 	else
 		return details::normal_scan<report_eof>(in,std::forward<Args>(args)...);

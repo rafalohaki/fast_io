@@ -14,6 +14,7 @@ int main()
 }
 
 /*
+
 D:\hg\fast_io\examples\0061.error_message>g++ -o wrong_output_device wrong_output_device.cc -Ofast -std=c++20 -s
 wrong_output_device.cc: In function 'int main()':
 wrong_output_device.cc:13:20: error: use of function 'constexpr void fast_io::print(output&&, Args&& ...) [with output = not_a_character_stream&; Args = {int&}]' with unsatisfied constraints
@@ -24,10 +25,10 @@ In file included from ../../include/fast_io_core.h:44,
                  from ../../include/fast_io_hosted.h:9,
                  from ../../include/fast_io.h:3,
                  from wrong_output_device.cc:1:
-../../include/fast_io_core_impl/print_scan.h:480:23: note: declared here
-  480 | inline constexpr void print(output &&out,Args&& ...args)
+../../include/fast_io_core_impl/print_scan.h:477:23: note: declared here
+  477 | inline constexpr void print(output &&out,Args&& ...args)
       |                       ^~~~~
-../../include/fast_io_core_impl/print_scan.h:480:23: note: constraints not satisfied
+../../include/fast_io_core_impl/print_scan.h:477:23: note: constraints not satisfied
 In file included from ../../include/fast_io_core.h:5,
                  from ../../include/fast_io_freestanding.h:5,
                  from ../../include/fast_io_hosted.h:9,
