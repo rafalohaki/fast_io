@@ -30,10 +30,10 @@ inline constexpr Iter read(posix_dev_urandom<T>& t,Iter begin,Iter end)
 	return read(t.device,begin,end);
 }
 
-template<scatter_input_stream T>
-inline constexpr auto read(posix_dev_urandom<T>& t,std::span<io_scatter_t const> scatter)
+template<scatter_input_stream T,typename... Args>
+inline constexpr auto scatter_read(posix_dev_urandom<T>& t,Args&& ...args)
 {
-	return scatter_read(t.device,scatter);
+	return scatter_read(t.device,std::forward<Args>(args)...);
 }
 
 template<typename T>
