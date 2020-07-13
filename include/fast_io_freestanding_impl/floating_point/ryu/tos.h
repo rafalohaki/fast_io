@@ -161,7 +161,13 @@ inline constexpr Iter output_shortest(
 	auto const r2(init_repm2<F>(mantissa,static_cast<signed_exponent_type>(exponent)));
 	bool const accept_bounds(!(r2.m&1));
 	auto const mv(r2.m<<2);
-	exponent_type const mm_shift(mantissa||static_cast<signed_exponent_type>(exponent)<2);
+	exponent_type mm_shift;
+#ifdef __SIZEOF_INT128__
+	if constexpr(std::same_as<std::remove_cvref_t<F>,long double>)
+		mm_shift=(mantissa!=static_cast<mantissa_type>(1)<<(floating_trait::mantissa_bits-1))||exponent==0;
+	else
+#endif
+		mm_shift=(mantissa||static_cast<signed_exponent_type>(exponent)<2);
 	//vr,vp,vm
 	mantissa_type vr,vp,vm;
 	signed_exponent_type e10{};
