@@ -100,6 +100,7 @@ A general purpose I/O library to replace stdio.h and iostream
 - Intrinsic SHA-1, Intrinsic HMAC-SHA1, Intrinsic SHA-256, Intrinsic HMAC-SHA256, SHA-512, HMAC-SHA512
 - zlib compression/decompression support
 - Non crypto hash algorithms support. Jenkins Hash
+- fmtlib support
 
 ## Post C++20 Plan
   1. Module support
