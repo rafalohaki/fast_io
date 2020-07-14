@@ -1,6 +1,5 @@
 #include"../../include/fast_io_driver/fmt_driver.h"
 #include"../../include/fast_io_device.h"
-#include<fmt/compile.h>
 
 int main()
 {
