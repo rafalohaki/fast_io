@@ -99,7 +99,7 @@ inline constexpr std::uintmax_t bufferred_transmit_impl(output& outp,input& inp,
 	{
 		do
 		{
-			auto b(ibuffer_begin(inp));
+			auto b(ibuffer_curr(inp));
 			auto e(ibuffer_end(inp));
 			if(b!=e)[[likely]]
 			{
