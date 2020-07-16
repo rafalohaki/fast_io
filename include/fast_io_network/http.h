@@ -1,5 +1,5 @@
 #pragma once
-#include<unordered_map>
+//#include<unordered_map>
 
 namespace fast_io
 {
@@ -97,7 +97,7 @@ inline void print_define(output& out,basic_http_request_status<typename output::
 	print(out,s.method,u8" ",s.path,u8" ",s.version);
 }
 
-#ifdef __cpp_coroutines
+#if __cpp_lib_coroutine >= 201707L
 
 template<input_stream input>
 requires (buffer_input_stream<input>||mutex_input_stream<input>)

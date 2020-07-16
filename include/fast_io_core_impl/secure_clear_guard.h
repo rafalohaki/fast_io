@@ -23,6 +23,7 @@ public:
 template<typename T>
 class secure_clear_no_op
 {
+public:
 	constexpr secure_clear_no_op(T*,std::size_t){};
 };
 

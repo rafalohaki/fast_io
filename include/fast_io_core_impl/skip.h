@@ -158,7 +158,7 @@ template<std::size_t sign=false,std::uint8_t base=0xA,character_input_stream inp
 }
 
 template<character_input_stream input>
-[[nodiscard]] inline constexpr std::size_t skip_line(input& in)
+inline constexpr std::size_t skip_line(input& in)
 {
 	if constexpr(buffer_input_stream<input>)
 	{
