@@ -9,6 +9,7 @@
 #endif
 #include<coroutine>
 #include"fast_io_hosted/async_coro.h"
+#include"fast_io_hosted/async_transmit.h"
 
 namespace fast_io
 {
