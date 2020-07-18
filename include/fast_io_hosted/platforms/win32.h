@@ -437,38 +437,33 @@ inline Iter write(basic_win32_io_observer<ch_type> handle,Iter cbegin,Iter cend)
 #endif
 	return cbegin+numberOfBytesWritten/sizeof(*cbegin);
 }
-/*
-template<std::integral ch_type,std::contiguous_iterator Iter>
-inline void async_read(basic_win32_io_observer<ch_type> h,Iter begin,Iter end)
-{
-//https://github.com/changman/iocp_sample/blob/master/iocp_tcp_server/iocp_tcp_server.cpp
-	std::uint32_t numberOfBytesRead{};
-	std::size_t to_read((end-begin)*sizeof(*begin));
 
-	std::size_t total_bytes{sizeof(win32::overlapped)+sizeof(std::size_t)*2+1+to_read};
-	std::byte* ptr=new std::byte[total_bytes];
-	win32::overlapped* over=new(ptr)win32::overlapped{};
-	memset(ptr+(sizeof(win32::overlapped)+sizeof(std::size_t)),0,sizeof(std::size_t)+1);
-	memcpy(ptr+sizeof(win32::overlapped),std::addressof(to_read),sizeof(std::size_t));
-	memcpy(ptr+(sizeof(win32::overlapped)+sizeof(std::size_t)*2+1),std::to_address(begin),to_read);
+template<std::integral ch_type,std::contiguous_iterator Iter,typename Func>
+inline void async_read_callback(basic_win32_io_observer<char>,basic_win32_io_observer<ch_type> h,Iter cbegin,Iter cend,
+	Func&& callback,std::ptrdiff_t offset=0)
+{
+	iocp_overlapped over(std::in_place,std::forward<Func>(callback));
+	std::size_t to_read((cend-cbegin)*sizeof(*cbegin));
 	if constexpr(4<sizeof(std::size_t))
 		if(static_cast<std::size_t>(UINT32_MAX)<to_read)
 			to_read=static_cast<std::size_t>(UINT32_MAX);
-	if(!win32::ReadFile(h.native_handle(),ptr+(sizeof(win32::overlapped)+sizeof(std::size_t)*2+1),static_cast<std::uint32_t>(to_read),nullptr,over))
+	if(!win32::ReadFile(h.native_handle(),std::to_address(cbegin),static_cast<std::uint32_t>(to_read),nullptr,over.native_handle()))[[likely]]
 	{
 		auto err(win32::GetLastError());
 		if(err==997)[[likely]]
+		{
+			over.release();
 			return;
+		}
 #ifdef __cpp_exceptions
-		over->~overlapped();
-		delete[] ptr;
 		throw win32_error(err);
 #else
 		fast_terminate();
 #endif
 	}
+	over.release();
 }
-*/
+
 template<std::integral ch_type,std::contiguous_iterator Iter,typename Func>
 inline void async_write_callback(basic_win32_io_observer<char>,basic_win32_io_observer<ch_type> h,Iter cbegin,Iter cend,
 	Func&& callback,std::ptrdiff_t offset=0)
