@@ -7,11 +7,11 @@ struct task
 {
 struct promise_type
 {
-auto get_return_object() { return task{}; }
-auto initial_suspend() { return std::suspend_never{}; }
-auto final_suspend() { return std::suspend_never{}; }
+constexpr auto get_return_object() { return task{}; }
+constexpr auto initial_suspend() { return std::suspend_never{}; }
+constexpr auto final_suspend() { return std::suspend_never{}; }
 void unhandled_exception() { std::terminate(); }
-void return_void() {}
+constexpr void return_void() {}
 };
 };
 template<output_stream stm,std::input_or_output_iterator Iter1,std::input_or_output_iterator Iter2>
@@ -28,11 +28,11 @@ public:
 	constexpr Iter1 await_resume() const { return beg+transferred_size; }
 	void await_suspend(std::coroutine_handle<> handle)
 	{
-		async_write_callback(sch,sm,beg,end,offset*sizeof(*beg),[handle,this](std::size_t calb)
+		async_write_callback(sch,sm,beg,end,[handle,this](std::size_t calb)
 		{
 			this->transferred_size=calb/sizeof(*beg);
 			handle.resume();
-		});
+		},offset*sizeof(*beg));
 	}
 };
 
@@ -65,11 +65,11 @@ public:
 	constexpr std::size_t await_resume() const { return transferred_size; }
 	void await_suspend(std::coroutine_handle<> handle)
 	{
-		async_write_callback(sch,sm,buffer.beg_ptr,buffer.end_ptr,offset*sizeof(typename stm::char_type),[handle,this](std::size_t bytes)
+		async_write_callback(sch,sm,buffer.beg_ptr,buffer.end_ptr,[handle,this](std::size_t bytes)
 		{
 			this->transferred_size=bytes/sizeof(typename stm::char_type);
 			handle.resume();
-		});
+		},offset*sizeof(typename stm::char_type));
 	}
 };
 
@@ -101,11 +101,11 @@ public:
 	constexpr std::size_t await_resume() const { return transferred_size; }
 	void await_suspend(std::coroutine_handle<> handle)
 	{
-		async_write_callback(sch,sm,buffer.beg_ptr,buffer.end_ptr,offset*sizeof(typename stm::char_type),[handle,this](std::size_t bytes)
+		async_write_callback(sch,sm,buffer.beg_ptr,buffer.end_ptr,[handle,this](std::size_t bytes)
 		{
 			this->transferred_size=bytes/sizeof(typename stm::char_type);
 			handle.resume();
-		});
+		},offset*sizeof(typename stm::char_type));
 	}
 };
 
@@ -125,11 +125,11 @@ public:
 	constexpr std::size_t await_resume() const { return transferred_size; }
 	void await_suspend(std::coroutine_handle<> handle)
 	{
-		async_scatter_write_callback(sch,sm,span,offset,[handle,this](std::size_t bytes)
+		async_scatter_write_callback(sch,sm,span,[handle,this](std::size_t bytes)
 		{
 			this->transferred_size=bytes;
 			handle.resume();
-		});
+		},offset);
 	}
 };
 

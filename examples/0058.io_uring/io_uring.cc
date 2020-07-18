@@ -17,5 +17,5 @@ int main()
 	using namespace std::chrono_literals;
 	fast_io::io_uring ior(fast_io::io_async);
 	io_task(ior);
-	for(;;fast_io::linux::io_async_wait_timeout(ior,1ms));
+	for(;;fast_io::io_async_wait_timeout(ior,1ms));
 }

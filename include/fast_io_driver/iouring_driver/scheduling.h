@@ -1,6 +1,6 @@
 #pragma once
 
-namespace fast_io::linux
+namespace fast_io
 {
 
 namespace details
@@ -47,8 +47,10 @@ inline bool io_async_peek(io_uring_observer ring)
 	return true;
 }
 
-template<typename Rep,typename Period>
-inline bool io_async_wait_timeout(io_uring_observer ring,std::chrono::duration<Rep,Period> duration)
+namespace details
+{
+
+inline bool io_uring_io_async_wait_timeout_detail(io_uring_observer ring,__kernel_timespec ts)
 {
 	auto val{std::chrono::duration_cast<std::chrono::nanoseconds>(duration)};
 	__kernel_timespec ts{std::chrono::duration_cast<std::chrono::seconds>(duration).count(),std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count()%1000000000};
@@ -62,6 +64,15 @@ inline bool io_async_wait_timeout(io_uring_observer ring,std::chrono::duration<R
 	}
 	details::deal_with_cqe(ring,cqe);
 	return true;
+}
+
+}
+
+template<typename Rep,typename Period>
+inline auto io_async_wait_timeout(io_uring_observer ring,std::chrono::duration<Rep,Period> duration)
+{
+	auto val{std::chrono::duration_cast<std::chrono::nanoseconds>(duration)};
+	return details::io_uring_io_async_wait_timeout_detail({std::chrono::duration_cast<std::chrono::seconds>(duration).count(),std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count()%1000000000});
 }
 
 }

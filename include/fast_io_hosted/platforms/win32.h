@@ -289,6 +289,7 @@ class basic_win32_io_observer
 public:
 	using native_handle_type = void*;
 	using char_type = ch_type;
+	using async_scheduler_type = basic_win32_io_observer<char>;
 	native_handle_type handle=nullptr;
 	constexpr auto& native_handle() noexcept
 	{
@@ -314,6 +315,7 @@ class basic_win32_io_handle:public basic_win32_io_observer<ch_type>
 public:
 	using native_handle_type = void*;
 	using char_type = ch_type;
+	using async_scheduler_type = basic_win32_io_observer<char>;
 protected:
 	void close_impl() noexcept
 	{
@@ -468,31 +470,29 @@ inline void async_read(basic_win32_io_observer<ch_type> h,Iter begin,Iter end)
 }
 */
 template<std::integral ch_type,std::contiguous_iterator Iter,typename Func>
-inline void async_write_callback(basic_win32_io_observer<ch_type> h,Iter cbegin,Iter cend,Func callback)
+inline void async_write_callback(basic_win32_io_observer<ch_type>,basic_win32_io_observer<ch_type> h,Iter cbegin,Iter cend,
+	Func&& callback,std::ptrdiff_t offset=0)
 {
-	using overlapped_t = win32::win32_overlapped<Func>;
-	auto over{new overlapped_t{{.operations=win32::win32_overlapped_operations::write,.function_ptr=[]
-		(win32::overlapped *ptr,std::uintptr_t completionkey,std::size_t bytes)
-	{
-		std::unique_ptr<overlapped_t> uptr(reinterpret_cast<overlapped_t*>(ptr)); 
-		uptr->function(bytes/sizeof(*cbegin));
-	}},callback}};
+	iocp_overlapped over(std::in_place,std::forward<Func>(callback));
 	std::size_t to_write((cend-cbegin)*sizeof(*cbegin));
 	if constexpr(4<sizeof(std::size_t))
 		if(static_cast<std::size_t>(UINT32_MAX)<to_write)
 			to_write=static_cast<std::size_t>(UINT32_MAX);
-	if(!win32::WriteFile(h.native_handle(),std::to_address(cbegin),static_cast<std::uint32_t>(to_write),nullptr,std::addressof(over->base.over)))[[likely]]
+	if(!win32::WriteFile(h.native_handle(),std::to_address(cbegin),static_cast<std::uint32_t>(to_write),nullptr,over.native_handle()))[[likely]]
 	{
 		auto err(win32::GetLastError());
 		if(err==997)[[likely]]
+		{
+			over.release();
 			return;
+		}
 #ifdef __cpp_exceptions
-		delete over;
 		throw win32_error(err);
 #else
 		fast_terminate();
 #endif
 	}
+	over.release();
 }
 
 template<std::integral ch_type>
@@ -540,6 +540,7 @@ public:
 	using char_type=ch_type;
 	using native_handle_type = basic_win32_io_handle<ch_type>::native_handle_type;
 	using basic_win32_io_handle<ch_type>::native_handle;
+	using async_scheduler_type = basic_win32_io_observer<char>;
 	explicit constexpr basic_win32_file()=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
@@ -620,6 +621,8 @@ public:
 	}
 	basic_win32_file(std::string_view file,std::string_view mode,perms pm=static_cast<perms>(420)):
 		basic_win32_file(file,fast_io::from_c_mode(mode),pm){}
+	basic_win32_file(io_async_t) requires(std::same_as<char_type,char>):
+		basic_win32_io_handle<char_type>(details::create_io_completion_port(bit_cast<void*>(static_cast<std::uintptr_t>(-1)),nullptr,0,0)){}
 	template<typename... Args>
 	basic_win32_file(io_async_t,basic_win32_io_observer<char> iob,Args&& ...args):basic_win32_file(std::forward<Args>(args)...)
 	{

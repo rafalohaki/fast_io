@@ -575,6 +575,11 @@ public:
 			seek_end_local();
 	}
 	basic_posix_file(std::string_view file,std::string_view mode,perms pm=static_cast<perms>(436)):basic_posix_file(file,from_c_mode(mode),pm){}
+#ifdef __linux__
+	template<typename ...Args>
+	basic_posix_file(io_async_t,io_uring_observer,std::string_view file,Args&& ...args):basic_posix_file(file,std::forward<Args>(args)...){}
+#endif
+
 #endif
 	~basic_posix_file()
 	{

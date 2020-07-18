@@ -5,7 +5,7 @@ namespace fast_io
 
 template<std::integral char_type,typename Func>
 inline void async_scatter_write_callback(io_uring_observer ring,basic_posix_io_observer<char_type> piob,
-		std::span<io_scatter_t const> span,std::ptrdiff_t offset,Func&& callback)
+		std::span<io_scatter_t const> span,Func&& callback,std::ptrdiff_t offset=0)
 {
 	io_uring_overlapped over(std::in_place,std::forward<Func>(callback));
 	auto sqe{io_uring_get_sqe(ring.ring)};
@@ -18,7 +18,7 @@ inline void async_scatter_write_callback(io_uring_observer ring,basic_posix_io_o
 
 template<std::integral char_type,std::contiguous_iterator Iter,typename Func>
 inline void async_write_callback(io_uring_observer ring, basic_posix_io_observer<char_type> piob,
-	Iter begin,Iter end,std::ptrdiff_t offset,Func&& callback)
+	Iter begin,Iter end,Func&& callback,std::ptrdiff_t offset=0)
 {
 	io_uring_overlapped over(std::in_place,std::forward<Func>(callback));
 	auto sqe{io_uring_get_sqe(ring.ring)};
