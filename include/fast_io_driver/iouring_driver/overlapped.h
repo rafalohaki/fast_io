@@ -17,13 +17,13 @@ public:
 };
 
 template<typename T>
-class io_uring_overlapped_derv:public io_uring_overlapped_base
+class io_uring_overlapped_derived:public io_uring_overlapped_base
 {
 public:
 	T callback;
 	template<typename... Args>
 	requires std::constructible_from<T,Args...>
-	constexpr io_uring_overlapped_derv(std::in_place_t,Args&& ...args):callback(std::forward<Args>(args)...){}
+	constexpr io_uring_overlapped_derived(std::in_place_t,Args&& ...args):callback(std::forward<Args>(args)...){}
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
@@ -36,7 +36,7 @@ public:
 class io_uring_overlapped_observer
 {
 public:
-	using native_handle_type = details::io_uring_overlapped_base*;
+	using native_handle_type = io_uring_overlapped_base*;
 	native_handle_type handle{};
 #if __cpp_constexpr >= 201907L
 	constexpr
@@ -64,7 +64,7 @@ public:
 class io_uring_overlapped:public io_uring_overlapped_observer
 {
 public:
-	using native_handle_type = details::io_uring_overlapped_base*;
+	using native_handle_type = io_uring_overlapped_base*;
 	constexpr io_uring_overlapped()=default;
 	constexpr io_uring_overlapped(native_handle_type hd):io_uring_overlapped_observer{hd}{}
 
@@ -74,7 +74,7 @@ public:
 	constexpr
 #endif
 	io_uring_overlapped(std::in_place_type_t<T>,Args&& ...args):
-		io_uring_overlapped_observer{new details::io_uring_overlapped_derv<T>(std::in_place,std::forward<Args>(args)...)}{}
+		io_uring_overlapped_observer{new io_uring_overlapped_derived<T>(std::in_place,std::forward<Args>(args)...)}{}
 	template<typename Func>
 #if __cpp_constexpr_dynamic_alloc >= 201907L
 	constexpr

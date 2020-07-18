@@ -9,6 +9,7 @@
 #ifdef __linux__
 #include<sys/uio.h>
 #include<sys/sendfile.h>
+struct io_uring;
 #endif
 #ifdef __BSD_VISIBLE
 #ifndef __NEWLIB__
@@ -184,7 +185,26 @@ struct posix_file_openmode
 }
 
 #ifdef __linux__
-class io_uring_observer;
+class io_uring_observer
+{
+public:
+	using native_handle_type = struct ::io_uring*;
+	native_handle_type ring{};
+	constexpr native_handle_type& native_handle() noexcept
+	{
+		return ring;
+	}
+	constexpr native_handle_type const& native_handle() const noexcept
+	{
+		return ring;
+	}
+	constexpr native_handle_type release() noexcept
+	{
+		auto temp{ring};
+		ring=nullptr;
+		return temp;
+	}
+};
 #endif
 
 template<std::integral ch_type>

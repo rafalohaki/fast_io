@@ -4,10 +4,11 @@
 
 #if defined(__linux__)
 #include"fast_io_driver/liburing.h"
+#else
+#include"fast_io_hosted/platforms/win32_scheduling.h"
 #endif
 #include<coroutine>
 #include"fast_io_hosted/async_coro.h"
-#include"fast_io_hosted/platforms/win32_scheduling.h"
 
 namespace fast_io
 {
