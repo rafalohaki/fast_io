@@ -438,63 +438,65 @@ inline Iter write(basic_win32_io_observer<ch_type> handle,Iter cbegin,Iter cend)
 	return cbegin+numberOfBytesWritten/sizeof(*cbegin);
 }
 
-template<std::integral ch_type,std::contiguous_iterator Iter,typename Func>
+template<std::integral ch_type,std::contiguous_iterator Iter>
 inline void async_read_callback(basic_win32_io_observer<char>,basic_win32_io_observer<ch_type> h,Iter cbegin,Iter cend,
-	Func&& callback,std::ptrdiff_t offset=0)
+	iocp_overlapped_observer callback,std::ptrdiff_t offset=0)
 {
-	iocp_overlapped over(std::in_place,std::forward<Func>(callback));
 	std::size_t to_read((cend-cbegin)*sizeof(*cbegin));
 	if constexpr(4<sizeof(std::size_t))
 		if(static_cast<std::size_t>(UINT32_MAX)<to_read)
 			to_read=static_cast<std::size_t>(UINT32_MAX);
-	if(!win32::ReadFile(h.native_handle(),std::to_address(cbegin),static_cast<std::uint32_t>(to_read),nullptr,over.native_handle()))[[likely]]
+	if(!win32::ReadFile(h.native_handle(),std::to_address(cbegin),static_cast<std::uint32_t>(to_read),nullptr,callback.native_handle()))[[likely]]
 	{
 		auto err(win32::GetLastError());
 		if(err==997)[[likely]]
-		{
-			over.release();
 			return;
-		}
 #ifdef __cpp_exceptions
 		throw win32_error(err);
 #else
 		fast_terminate();
 #endif
 	}
-	over.release();
 }
 
-template<std::integral ch_type,std::contiguous_iterator Iter,typename Func>
-inline void async_write_callback(basic_win32_io_observer<char>,basic_win32_io_observer<ch_type> h,Iter cbegin,Iter cend,
-	Func&& callback,std::ptrdiff_t offset=0)
+template<std::integral char_type>
+inline constexpr io_type_t<basic_win32_io_observer<char>> async_scheduler_type(basic_win32_io_observer<char_type>)
 {
-	iocp_overlapped over(std::in_place,std::forward<Func>(callback));
+	return {};
+}
+
+template<std::integral char_type>
+inline constexpr io_type_t<iocp_overlapped> async_overlapped_type(basic_win32_io_observer<char_type>)
+{
+	return {};
+}
+
+template<std::integral ch_type,std::contiguous_iterator Iter>
+inline void async_write_callback(basic_win32_io_observer<char> over,basic_win32_io_observer<ch_type> h,Iter cbegin,Iter cend,
+	iocp_overlapped_observer callback,std::ptrdiff_t offset=0)
+{
 	std::size_t to_write((cend-cbegin)*sizeof(*cbegin));
 	if constexpr(4<sizeof(std::size_t))
 		if(static_cast<std::size_t>(UINT32_MAX)<to_write)
 			to_write=static_cast<std::size_t>(UINT32_MAX);
-	if(!win32::WriteFile(h.native_handle(),std::to_address(cbegin),static_cast<std::uint32_t>(to_write),nullptr,over.native_handle()))[[likely]]
+	if(!win32::WriteFile(h.native_handle(),std::to_address(cbegin),static_cast<std::uint32_t>(to_write),nullptr,callback.native_handle()))[[likely]]
 	{
 		auto err(win32::GetLastError());
 		if(err==997)[[likely]]
-		{
-			over.release();
 			return;
-		}
 #ifdef __cpp_exceptions
 		throw win32_error(err);
 #else
 		fast_terminate();
 #endif
 	}
-	over.release();
 }
 
 template<std::integral ch_type>
 inline void cancel(basic_win32_io_observer<ch_type> h)
 {
 	if(!fast_io::win32::CancelIo(h.native_handle()))
-		throw win32_error();
+		details::throw_win32_error();
 }
 
 template<std::integral ch_type,typename... Args>
@@ -505,11 +507,7 @@ requires requires(basic_win32_io_observer<ch_type> h,Args&& ...args)
 inline void io_control(basic_win32_io_observer<ch_type> h,Args&& ...args)
 {
 	if(!fast_io::win32::DeviceIoControl(h.native_handle(),std::forward<Args>(args)...))
-#ifdef __cpp_exceptions
-		throw win32_error();
-#else
-		fast_terminate();
-#endif
+		details::throw_win32_error();
 }
 
 /*

@@ -334,11 +334,37 @@ inline decltype(auto) io_control(basic_filebuf_file<CharT,Traits>& t,Args&& ...a
 	return io_control(fiob,std::forward<Args>(args)...);
 }
 
+
+template<std::integral CharT,typename Traits>
+requires async_stream<basic_c_io_observer_unlocked<CharT>>
+inline constexpr io_async_scheduler_t<basic_c_io_observer_unlocked<CharT>>
+	async_scheduler_type(basic_filebuf_file<CharT,Traits>&)
+{
+	return {};
+}
+
+template<std::integral CharT,typename Traits>
+requires async_stream<basic_c_io_observer_unlocked<CharT>>
+inline constexpr io_async_overlapped_t<basic_c_io_observer_unlocked<CharT>>
+	async_overlapped_type(basic_filebuf_file<CharT,Traits>&)
+{
+	return {};
+}
+
 template<std::integral CharT,typename Traits,typename... Args>
+requires async_output_stream<basic_c_io_observer_unlocked<CharT>>
 inline void async_write_callback(io_async_observer ioa,basic_filebuf_file<CharT,Traits>& h,Args&& ...args)
 {
-	async_write_callback(ioa,static_cast<basic_c_io_observer<CharT>>(h),std::forward<Args>(args)...);
+	async_write_callback(ioa,static_cast<basic_c_io_observer_unlocked<CharT>>(h),std::forward<Args>(args)...);
 }
+
+template<std::integral CharT,typename Traits,typename... Args>
+requires async_input_stream<basic_c_io_observer_unlocked<CharT>>
+inline void async_read_callback(io_async_observer ioa,basic_filebuf_file<CharT,Traits>& h,Args&& ...args)
+{
+	async_read_callback(ioa,static_cast<basic_c_io_observer_unlocked<CharT>>(h),std::forward<Args>(args)...);
+}
+
 
 using filebuf_file=basic_filebuf_file<char>;
 using wfilebuf_file=basic_filebuf_file<wchar_t>;

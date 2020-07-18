@@ -27,6 +27,20 @@ struct basic_io_scatter_t
 
 using io_scatter_t = basic_io_scatter_t<void>;
 
+template<typename T>
+class io_async_scheduler_t
+{
+public:
+	using type = typename std::remove_cvref_t<decltype(async_scheduler_type(*static_cast<T*>(nullptr)))>::type;
+};
+
+template<typename T>
+class io_async_overlapped_t
+{
+public:
+	using type = typename std::remove_cvref_t<decltype(async_overlapped_type(*static_cast<T*>(nullptr)))>::type;
+};
+
 namespace details
 {
 
@@ -184,6 +198,51 @@ concept scatter_output_stream_impl = requires(T& out,std::span<io_scatter_t cons
 	scatter_write(out,sp);
 };
 
+
+//async stream concepts
+
+template<typename T>
+concept async_input_stream_impl = stream_char_type_requirement<T>&&
+	requires(T in,typename T::char_type* b)
+{
+	requires requires(typename std::remove_cvref_t<decltype(async_scheduler_type(in))>::type sch,
+	typename std::remove_cvref_t<decltype(async_overlapped_type(in))>::type overlapped,std::ptrdiff_t offset)
+	{
+		async_read_callback(sch,in,b,b,overlapped,offset);
+	};
+};
+
+template<typename T>
+concept async_output_stream_impl = stream_char_type_requirement<T>&&
+	requires(T out,typename T::char_type const* b)
+{
+	requires requires(typename std::remove_cvref_t<decltype(async_scheduler_type(out))>::type sch,
+	typename std::remove_cvref_t<decltype(async_overlapped_type(out))>::type overlapped,std::ptrdiff_t offset)
+	{
+		async_write_callback(sch,out,b,b,overlapped,offset);
+	};
+};
+
+template<typename T>
+concept async_scatter_input_stream_impl = requires(T in,std::span<io_scatter_t const> sp)
+{
+	requires requires(typename std::remove_cvref_t<decltype(async_scheduler_type(in))>::type sch,
+	typename std::remove_cvref_t<decltype(async_overlapped_type(in))>::type overlapped,std::ptrdiff_t offset)
+	{
+		async_scatter_read_callback(sch,in,sp,overlapped,offset);
+	};
+};
+
+template<typename T>
+concept async_scatter_output_stream_impl = requires(T out,std::span<io_scatter_t const> sp)
+{
+	requires requires(typename std::remove_cvref_t<decltype(async_scheduler_type(out))>::type sch,
+	typename std::remove_cvref_t<decltype(async_overlapped_type(out))>::type overlapped,std::ptrdiff_t offset)
+	{
+		async_write_callback(sch,out,sp,overlapped,offset);
+	};
+};
+
 }
 
 
@@ -283,6 +342,32 @@ concept scatter_input_stream = input_stream<T>&&details::scatter_input_stream_im
 
 template<typename T>
 concept scatter_output_stream = output_stream<T>&&details::scatter_output_stream_impl<T>;
+
+template<typename T>
+concept async_stream = details::async_input_stream_impl<T>||details::async_output_stream_impl<T>;
+
+
+
+template<typename T>
+concept async_input_stream = async_stream<T>&&details::async_input_stream_impl<T>;
+
+template<typename T>
+concept async_output_stream = async_stream<T>&&details::async_output_stream_impl<T>;
+
+template<typename T>
+concept async_io_stream = async_input_stream<T>&&async_output_stream<T>;
+
+template<typename T>
+concept async_scatter_input_stream = async_stream<T>&&details::async_scatter_input_stream_impl<T>;
+
+template<typename T>
+concept async_scatter_output_stream = async_stream<T>&&details::async_scatter_output_stream_impl<T>;
+
+template<typename T>
+concept async_scatter_io_stream = async_input_stream<T>&&async_scatter_output_stream<T>;
+
+
+
 
 template<typename T>
 concept secure_clear_requirement_stream = stream<T>&&requires(T stm)

@@ -243,4 +243,13 @@ explicit constexpr io_async_t()=default;
 };
 inline constexpr io_async_t io_async{};
 
+template<typename T>
+struct io_type_t
+{
+explicit constexpr io_type_t()=default;
+using type = T;
+};
+template<typename T>
+inline constexpr io_type_t<T> io_type{};
+
 }

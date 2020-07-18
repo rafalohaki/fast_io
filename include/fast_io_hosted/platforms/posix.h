@@ -885,11 +885,30 @@ inline constexpr basic_posix_io_observer<char_type> posix_stderr()
 
 #if defined(__WINNT__) || defined(_MSC_VER)
 
+template<std::integral char_type>
+inline constexpr io_type_t<win32_io_observer> async_scheduler_type(basic_posix_io_observer<char_type>)
+{
+	return {};
+}
+
+template<std::integral char_type>
+inline constexpr io_type_t<iocp_overlapped> async_overlapped_type(basic_posix_io_observer<char_type>)
+{
+	return {};
+}
+
 template<std::integral char_type,typename... Args>
 inline void async_write_callback(io_async_observer ioa,basic_posix_io_observer<char_type> h,Args&& ...args)
 {
 	async_write_callback(ioa,static_cast<basic_win32_io_observer<char_type>>(h),std::forward<Args>(args)...);
 }
+
+template<std::integral char_type,typename... Args>
+inline void async_read_callback(io_async_observer ioa,basic_posix_io_observer<char_type> h,Args&& ...args)
+{
+	async_read_callback(ioa,static_cast<basic_win32_io_observer<char_type>>(h),std::forward<Args>(args)...);
+}
+
 
 #else
 template<std::integral char_type=char>

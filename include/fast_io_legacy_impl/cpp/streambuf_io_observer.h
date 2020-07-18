@@ -89,12 +89,40 @@ inline void flush(basic_general_streambuf_io_observer<T> h)
 #endif
 }
 
+
+
+template<typename T>
+requires async_stream<basic_c_io_observer_unlocked<typename T::char_type>>
+inline constexpr io_async_scheduler_t<basic_c_io_observer_unlocked<typename T::char_type>>
+	async_scheduler_type(basic_general_streambuf_io_observer<T>)
+{
+	return {};
+}
+
+template<typename T>
+requires async_stream<basic_c_io_observer_unlocked<typename T::char_type>>
+inline constexpr io_async_overlapped_t<basic_c_io_observer_unlocked<typename T::char_type>>
+	async_overlapped_type(basic_general_streambuf_io_observer<T>)
+{
+	return {};
+}
+
 template<typename T,typename... Args>
+requires async_output_stream<basic_c_io_observer_unlocked<typename T::char_type>>
 inline void async_write_callback(io_async_observer ioa,basic_general_streambuf_io_observer<T> h,Args&& ...args)
 {
-	async_write_callback(ioa,static_cast<basic_c_io_observer<typename std::remove_cvref_t<T>::char_type>>(h),
-		std::forward<Args>(args)...);
+	async_write_callback(ioa,static_cast<basic_c_io_observer_unlocked<typename T::char_type>>(h),std::forward<Args>(args)...);
 }
+
+template<typename T,typename... Args>
+requires async_input_stream<basic_c_io_observer_unlocked<typename T::char_type>>
+inline void async_read_callback(io_async_observer ioa,basic_general_streambuf_io_observer<T> h,Args&& ...args)
+{
+	async_read_callback(ioa,static_cast<basic_c_io_observer_unlocked<typename T::char_type>>(h),std::forward<Args>(args)...);
+}
+
+
+
 
 template<std::integral CharT,typename Traits = std::char_traits<CharT>>
 using basic_streambuf_io_observer = basic_general_streambuf_io_observer<std::basic_streambuf<CharT,Traits>>;
