@@ -16,7 +16,7 @@ inline void deal_with_cqe(io_uring_observer ring,io_uring_cqe *cqe)
 	io_uring_cqe_seen(ring.ring,cqe);
 	if(res<0)
 		throw_posix_error(-res);
-	static_cast<iocp_overlapped_base*>(data)->invoke(static_cast<std::size_t>(transferred));
+	static_cast<io_uring_overlapped_base*>(data)->invoke(static_cast<std::size_t>(transferred));
 }
 
 }
