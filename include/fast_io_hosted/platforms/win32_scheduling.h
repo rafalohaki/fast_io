@@ -29,7 +29,7 @@ inline bool iocp_io_async_wait_timeout_detail(win32_io_observer iocp,std::uint32
 	std::uintptr_t completionkey{};
 	win32::overlapped *over{};
 	if(!GetQueuedCompletionStatus(iocp.native_handle(),std::addressof(transferred),std::addressof(completionkey),
-		std::addressof(over),std::numeric_limits<std::uint32_t>::max()))
+		std::addressof(over),millseconds))
 	{
 #ifdef __cpp_exceptions
 		throw win32_error();
