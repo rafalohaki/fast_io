@@ -257,6 +257,9 @@ public:
 	std::FILE *fp=nullptr;
 	using char_type = ch_type;
 	using native_handle_type = std::FILE*;
+#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
+	using async_scheduler_type = io_async_observer;
+#endif
 	constexpr auto& native_handle() noexcept
 	{
 		return fp;
@@ -421,6 +424,9 @@ public:
 	using lock_guard_type = c_io_lock_guard;
 	using char_type = ch_type;
 	using native_handle_type = std::FILE*;
+#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
+	using async_scheduler_type = io_async_observer;
+#endif
 	constexpr auto& native_handle() const noexcept
 	{
 		return fp;
@@ -583,6 +589,9 @@ protected:
 public:
 	using char_type = typename T::char_type;
 	using native_handle_type = std::FILE*;
+#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
+	using async_scheduler_type = io_async_observer;
+#endif
 	constexpr basic_c_io_handle_impl()=default;
 	constexpr basic_c_io_handle_impl(native_handle_type fp2) noexcept:T{fp2}{}
 	basic_c_io_handle_impl(basic_c_io_handle_impl const&)=delete;
@@ -615,6 +624,9 @@ public:
 	using T::native_handle;
 	using char_type=typename T::char_type;
 	using native_handle_type=typename T::native_handle_type;
+#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
+	using async_scheduler_type = io_async_observer;
+#endif
 	basic_c_file_impl()=default;
 	basic_c_file_impl(native_handle_type hd):T(hd){}
 /*
@@ -709,6 +721,22 @@ public:
 		basic_c_file_impl(basic_posix_file<typename T::char_type>(file,mode,std::forward<Args>(args)...),mode)
 	{}
 
+#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
+	template<open_mode om,typename... Args>
+	basic_c_file_impl(io_async_t,io_async_observer ioa,std::string_view file,open_interface_t<om>,Args&& ...args):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_async,ioa,file,open_interface<om>,std::forward<Args>(args)...),
+			open_interface<om>)
+	{}
+	template<typename... Args>
+	basic_c_file_impl(io_async_t,io_async_observer ioa,std::string_view file,open_mode om,Args&& ...args):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_async,ioa,file,om,std::forward<Args>(args)...),om)
+	{}
+	template<typename... Args>
+	basic_c_file_impl(io_async_t,io_async_observer ioa,std::string_view file,std::string_view mode,Args&& ...args):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_async,ioa,file,mode,std::forward<Args>(args)...),mode)
+	{}
+#endif
+
 	template<stream stm,typename... Args>
 	basic_c_file_impl(io_cookie_t,std::string_view mode,std::in_place_type_t<stm>,Args&& ...args)
 	{
@@ -801,6 +829,18 @@ inline auto redirect_handle(basic_c_io_observer<ch_type> h)
 #else
 	return static_cast<basic_posix_io_observer<ch_type>>(h).native_handle();
 #endif
+}
+
+template<std::integral char_type,typename... Args>
+inline void async_write_callback(io_async_observer ioa,basic_c_io_observer<char_type> h,Args&& ...args)
+{
+	async_write_callback(ioa,static_cast<basic_posix_io_observer<char_type>>(h),std::forward<Args>(args)...);
+}
+
+template<std::integral char_type,typename... Args>
+inline void async_write_callback(io_async_observer ioa,basic_c_io_observer_unlocked<char_type> h,Args&& ...args)
+{
+	async_write_callback(ioa,static_cast<basic_posix_io_observer<char_type>>(h),std::forward<Args>(args)...);
 }
 
 using c_io_observer_unlocked=basic_c_io_observer_unlocked<char>;

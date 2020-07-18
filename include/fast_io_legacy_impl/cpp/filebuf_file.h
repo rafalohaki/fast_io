@@ -65,6 +65,9 @@ __gnu_cxx::stdio_filebuf<char_type,traits_type>
 std::basic_filebuf<char_type,traits_type>
 #endif
 ;
+#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
+	using async_scheduler_type = io_async_observer;
+#endif
 	native_handle_type fb;
 	basic_filebuf_file()=default;
 #if defined(__GLIBCXX__)
@@ -116,6 +119,23 @@ std::basic_filebuf<char_type,traits_type>
 	basic_filebuf_file(std::string_view file,std::string_view mode,Args&& ...args):
 		basic_filebuf_file(basic_posix_file<char_type>(file,mode,std::forward<Args>(args)...),mode)
 	{}
+
+#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
+	template<open_mode om,typename... Args>
+	basic_filebuf_file(io_async_t,io_async_observer ioa,std::string_view file,open_interface_t<om>,Args&& ...args):
+		basic_filebuf_file(basic_posix_file<char_type>(io_async,ioa,file,open_interface<om>,std::forward<Args>(args)...),
+			open_interface<om>)
+	{}
+	template<typename... Args>
+	basic_filebuf_file(io_async_t,io_async_observer ioa,std::string_view file,open_mode om,Args&& ...args):
+		basic_filebuf_file(basic_posix_file<char_type>(io_async,ioa,file,om,std::forward<Args>(args)...),om)
+	{}
+	template<typename... Args>
+	basic_filebuf_file(io_async_t,io_async_observer ioa,std::string_view file,std::string_view mode,Args&& ...args):
+		basic_filebuf_file(basic_posix_file<char_type>(io_async,ioa,file,mode,std::forward<Args>(args)...),mode)
+	{}
+#endif
+
 
 	inline constexpr auto& native_handle() noexcept
 	{
@@ -312,6 +332,12 @@ inline decltype(auto) io_control(basic_filebuf_file<CharT,Traits>& t,Args&& ...a
 {
 	basic_filebuf_io_observer<CharT,Traits> fiob{t.rdbuf()};
 	return io_control(fiob,std::forward<Args>(args)...);
+}
+
+template<std::integral CharT,typename Traits,typename... Args>
+inline void async_write_callback(io_async_observer ioa,basic_filebuf_file<CharT,Traits>& h,Args&& ...args)
+{
+	async_write_callback(ioa,static_cast<basic_c_io_observer<CharT>>(h),std::forward<Args>(args)...);
 }
 
 using filebuf_file=basic_filebuf_file<char>;

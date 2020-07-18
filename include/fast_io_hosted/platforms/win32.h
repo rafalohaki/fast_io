@@ -470,7 +470,7 @@ inline void async_read(basic_win32_io_observer<ch_type> h,Iter begin,Iter end)
 }
 */
 template<std::integral ch_type,std::contiguous_iterator Iter,typename Func>
-inline void async_write_callback(basic_win32_io_observer<ch_type>,basic_win32_io_observer<ch_type> h,Iter cbegin,Iter cend,
+inline void async_write_callback(basic_win32_io_observer<char>,basic_win32_io_observer<ch_type> h,Iter cbegin,Iter cend,
 	Func&& callback,std::ptrdiff_t offset=0)
 {
 	iocp_overlapped over(std::in_place,std::forward<Func>(callback));
@@ -524,8 +524,6 @@ inline auto memory_map_in_handle(basic_win32_io_observer<ch_type> handle)
 	return handle.native_handle();
 }
 */
-template<std::integral ch_type>
-inline constexpr void flush(basic_win32_io_observer<ch_type>){}
 
 template<std::integral ch_type>
 class basic_win32_file:public basic_win32_io_handle<ch_type>
@@ -781,6 +779,9 @@ using wwin32_io_observer=basic_win32_io_observer<wchar_t>;
 using wwin32_io_handle=basic_win32_io_handle<wchar_t>;
 using wwin32_file=basic_win32_file<wchar_t>;
 using wwin32_pipe=basic_win32_pipe<wchar_t>;
+
+using io_async_observer=win32_io_observer;
+using io_async_scheduler=win32_file;
 
 inline constexpr std::uint32_t win32_stdin_number(-10);
 inline constexpr std::uint32_t win32_stdout_number(-11);

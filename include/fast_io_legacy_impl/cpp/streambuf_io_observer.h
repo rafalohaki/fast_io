@@ -20,6 +20,9 @@ public:
 	using char_type = typename streambuf_type::char_type;
 	using traits_type = typename streambuf_type::traits_type;
 	using native_handle_type = streambuf_type*;
+#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
+	using async_scheduler_type = io_async_observer;
+#endif
 	native_handle_type rdb{};
 	inline constexpr native_handle_type& native_handle() const noexcept
 	{
@@ -86,6 +89,12 @@ inline void flush(basic_general_streambuf_io_observer<T> h)
 #endif
 }
 
+template<typename T,typename... Args>
+inline void async_write_callback(io_async_observer ioa,basic_general_streambuf_io_observer<T> h,Args&& ...args)
+{
+	async_write_callback(ioa,static_cast<basic_c_io_observer<typename std::remove_cvref_t<T>::char_type>>(h),
+		std::forward<Args>(args)...);
+}
 
 template<std::integral CharT,typename Traits = std::char_traits<CharT>>
 using basic_streambuf_io_observer = basic_general_streambuf_io_observer<std::basic_streambuf<CharT,Traits>>;
