@@ -25,11 +25,11 @@ native=single
 };
 
 #if defined(__WINNT__) || defined(_MSC_VER)
-using async_observer=win32_io_observer;
-using async_scheduler=win32_file;
+using io_async_observer=win32_io_observer;
+using io_async_scheduler=win32_file;
 #elif defined(__linux__)
-using async_observer=io_uring_observer;
-using async_scheduler=io_uring;
+using io_async_observer=io_uring_observer;
+using io_async_scheduler=io_uring;
 #endif
 
 }
