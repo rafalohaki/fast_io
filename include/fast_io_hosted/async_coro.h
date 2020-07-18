@@ -58,7 +58,7 @@ public:
 	stm& sm;
 	Iter1 beg;
 	Iter2 end;
-	std::ptrdiff_t offset{};
+	std::ptrdiff_t offset{-1};
 	std::size_t transferred_size{};
 	typename io_async_overlapped_t<stm>::type overlapped;
 	constexpr bool await_ready() const { return false; }
@@ -86,7 +86,7 @@ class async_print
 public:
 	typename stm::async_scheduler_type& sch;
 	stm& sm;
-	std::ptrdiff_t offset{};
+	std::ptrdiff_t offset{-1};
 	internal_temporary_buffer<typename stm::char_type> buffer;
 	std::size_t transferred_size{};
 	typename io_async_overlapped_t<stm>::type overlapped;
@@ -122,7 +122,7 @@ class async_println
 public:
 	typename stm::async_scheduler_type& sch;
 	stm& sm;
-	std::ptrdiff_t offset{};
+	std::ptrdiff_t offset{-1};
 	internal_temporary_buffer<typename stm::char_type> buffer;
 	std::size_t transferred_size{};
 	typename io_async_overlapped_t<stm>::type overlapped;
