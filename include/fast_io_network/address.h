@@ -10,11 +10,33 @@ struct ipv4
 };
 
 
-template<buffer_input_stream input>
-inline constexpr void scan_define(input& in,ipv4& v4)
+namespace details
 {
-	for(auto& e: v4.storage)
-		scan(in,e);
+template<character_input_stream input>
+inline constexpr void ipv4_scan_sep(input& in)
+{
+	auto ig{igenerator(in)};
+	auto bg{begin(ig)},ed{end(ig)};
+	if(bg==ed||*bg!=u8'.')
+#ifdef __cpp_exceptions
+		throw posix_error(EIO);
+#else
+		fast_terminate();
+#endif
+	++bg;
+}
+}
+
+template<character_input_stream input>
+inline constexpr void space_scan_define(input& in,ipv4& v4)
+{
+	space_scan_define(in,v4.storage[0]);
+	details::ipv4_scan_sep(in);
+	space_scan_define(in,v4.storage[1]);
+	details::ipv4_scan_sep(in);
+	space_scan_define(in,v4.storage[2]);
+	details::ipv4_scan_sep(in);
+	space_scan_define(in,v4.storage[3]);
 }
 
 inline constexpr std::size_t native_socket_address_size(ipv4 const&)
@@ -48,21 +70,23 @@ inline constexpr auto to_socket_address_storage(ipv4 const& add,U port)
 	return stor;
 }
 
-template<character_output_stream output>
-inline constexpr void print_define(output& os, ipv4 const &v)
+constexpr std::size_t print_reserve_size(print_reserve_type_t<ipv4>)
 {
-	print(os, v.storage.front());
-	put(os, 0x2E);
-	print(os, v.storage[1]);
-	put(os, 0x2E);
-	print(os, v.storage[2]);
-	put(os, 0x2E);
-	print(os, v.storage.back());
+	return 15;
+}
+
+template<std::random_access_iterator Iter>
+constexpr Iter print_reserve_define(print_reserve_type_t<ipv4>,Iter it,ipv4 const& v4)
+{
+	*(it=print_reserve_define(print_reserve_type<char unsigned>,it,v4.storage.front()))=u8'.';
+	*(it=print_reserve_define(print_reserve_type<char unsigned>,++it,v4.storage[1]))=u8'.';
+	*(it=print_reserve_define(print_reserve_type<char unsigned>,++it,v4.storage[2]))=u8'.';
+	return print_reserve_define(print_reserve_type<char unsigned>,++it,v4.storage[3]);
 }
 
 struct ipv6
 {
-	std::array<unsigned char, 16> storage{};
+	std::array<std::uint16_t, 8> storage{};
 };
 inline constexpr std::size_t native_socket_address_size(ipv6 const&)
 {
@@ -74,8 +98,8 @@ inline constexpr auto family(ipv6 const&)
 	return sock::family::ipv6;
 }
 
-template<buffer_input_stream input>
-inline constexpr void scan_define(input& in,ipv6& v6)
+template<character_input_stream input>
+inline constexpr void space_scan_define(input& in,ipv6& v6)
 {
 /*	constexpr auto npos(static_cast<std::size_t>(-1));
 	std::basic_string<typename input::char_type> str;
@@ -119,87 +143,111 @@ inline constexpr void scan_define(input& in,ipv6& v6)
 }
 
 template<std::integral U>
-inline constexpr auto to_socket_address_storage(ipv6 const& add,U port)
+inline constexpr auto to_socket_address_storage(ipv6 add,U port)
 {
 	sockaddr_in6 v6st{};
 	v6st.sin6_family=static_cast<sock::details::address_family>(fast_io::sock::family::ipv6);
 	v6st.sin6_port=details::big_endian(static_cast<std::uint16_t>(port));
+	if constexpr(std::endian::little==std::endian::native)
+		for(auto& e : add.storage)
+			e=details::byte_swap(e);
 	std::memcpy(std::addressof(v6st.sin6_addr),add.storage.data(),sizeof(add.storage));
 	socket_address_storage stor{};
 	std::memcpy(std::addressof(stor),std::addressof(v6st),sizeof(sockaddr_in6));
 	return stor;
 }
 
-template<character_output_stream output,std::size_t base,bool uppercase,typename T>
-requires std::same_as<ipv6,std::remove_cvref_t<T>>
-inline constexpr void print_define(output& os,manip::base_t<base,uppercase,T> e)
+constexpr std::size_t print_reserve_size(print_reserve_type_t<ipv6>)
 {
-	std::array<std::uint16_t,8> storage{};
-	for(std::size_t i(0);i!=storage.size();++i)
-		storage[i]=(std::to_integer<std::uint16_t>(e.reference.storage[i<<1])<<8)|std::to_integer<std::uint16_t>(e.reference.storage[(i<<1)+1]);
-	constexpr auto npos(static_cast<std::size_t>(-1));
-	std::size_t last_zero_range(npos);
-	std::size_t maximum_zero_size(0),maximum_zero_start(npos);
-	for(std::size_t i(0),sz(storage.size());i!=sz;++i)
+	return 39;
+}
+
+namespace details
+{
+
+template<bool uppercase=false,char8_t base=16,std::random_access_iterator Iter>
+constexpr Iter print_ipv6(Iter it,ipv6 const& v6)
+{
+	std::size_t max_zero_start{std::numeric_limits<std::size_t>::max()},max_zero_len{};
+	std::size_t zero_start{std::numeric_limits<std::size_t>::max()},zero_len{};
+	for(std::size_t i{};i!=v6.storage.size();++i)
 	{
-		auto& e(storage[i]);
-		if(e)
-			last_zero_range=npos;
-		else
+		if(v6.storage[i])
 		{
-			if(maximum_zero_start==npos)
+			if(max_zero_len<zero_len)
 			{
-				maximum_zero_size=1;
-				maximum_zero_start=last_zero_range=i;
-			}
-			else if(last_zero_range==npos)
-				last_zero_range=i;
-			else
-			{
-				if(maximum_zero_size<i+1-last_zero_range)
-				{
-					maximum_zero_size=i+1-last_zero_range;
-					maximum_zero_start=last_zero_range;
-				}
+				max_zero_len=zero_len;
+				max_zero_start=zero_start;
+				zero_len=0;
+				zero_start=std::numeric_limits<std::size_t>::max();
 			}
 		}
+		else
+		{
+			++zero_len;
+			if(!i||v6.storage[i-1])
+				zero_start=i;
+		}
 	}
-	if(maximum_zero_size)
+	if(max_zero_len<zero_len)
 	{
-		if(maximum_zero_start)
-			print(os,fast_io::base<base,uppercase>(storage.front()));
-		for(std::size_t i(1);i<maximum_zero_start;++i)
-			print(os,fast_io::chvw(0x3a),fast_io::base<base,uppercase>(storage[i]));
-		print(os,u8"::");
-		std::size_t const maximum_zero_end(maximum_zero_start+maximum_zero_size);
-		if(maximum_zero_end==storage.size())
-			return;
-		print(os,fast_io::base<base,uppercase>(storage[maximum_zero_end]));
-		for(std::size_t i(maximum_zero_end+1);i<storage.size();++i)
-			print(os,fast_io::chvw(0x3a),fast_io::base<base,uppercase>(storage[i]));
+		max_zero_start=zero_start;
+		max_zero_len=zero_len;
+	}
+	if(max_zero_len<2)
+	{
+		for(std::size_t i{};i!=v6.storage.size();++i)
+		{
+			if(i)
+			{
+				*it=u8':';
+				++it;
+			}
+			it=details::process_integer_output<base,uppercase>(it,v6.storage[i]);
+		}
 	}
 	else
 	{
-		print(os, fast_io::hex(storage.front()));
-		for (auto i(storage.cbegin() + 1); i != storage.cend(); ++i)
-			print(os,fast_io::chvw(0x3a),fast_io::base<base,uppercase>(*i));
+		std::size_t i{};
+		for(;i!=max_zero_start;++i)
+		{
+			if(i)
+			{
+				*it=u8':';
+				++it;
+			}
+			it=details::process_integer_output<base,uppercase>(it,v6.storage[i]);
+		}
+		non_overlapped_copy_n(u8"::",2,it);
+		i+=max_zero_len;
+		it+=2;
+		if(i!=8)
+		{
+			it=details::process_integer_output<base,uppercase>(it,v6.storage[i]);
+			for(++i;i!=8;++i)
+			{
+				*it=u8':';
+				it=details::process_integer_output<base,uppercase>(++it,v6.storage[i]);
+			}
+		}
 	}
+	return it;
 }
 
-template<character_output_stream output,typename T>
-requires std::same_as<ipv6,std::remove_cvref_t<T>>
-inline constexpr void print_define(output& out,T const& v)
-{
-	print(out,fast_io::hex(v));
 }
+
+template<std::random_access_iterator Iter>
+constexpr Iter print_reserve_define(print_reserve_type_t<ipv6>,Iter it,ipv6 const& v6)
+{
+	return details::print_ipv6(it,v6);
+}
+
 
 class address
 {
 public:
 	using variant_type = std::variant<ipv4, ipv6>;
-private:
 	variant_type var;
-public:
 	template<typename... Args>
 	requires std::constructible_from<variant_type, Args...>
 	explicit constexpr address(Args &&... args) :var(std::forward<Args>(args)...){}
@@ -231,11 +279,17 @@ inline constexpr auto family(address const& v)
 	}, v.variant());
 }
 
-template<character_output_stream output>
-inline constexpr void print_define(output &os, address const &v)
+constexpr std::size_t print_reserve_size(print_reserve_type_t<address>)
 {
-	std::visit([&os](auto const &arg) {
-		print_define(os,arg);
+	return 39;
+}
+
+
+template<std::random_access_iterator Iter>
+constexpr Iter print_reserve_define(print_reserve_type_t<address>,Iter it,address const& v)
+{
+	return std::visit([&](auto&& arg) {
+		return print_reserve_define(print_reserve_type<std::decay_t<decltype(arg)>>,it,arg);
 	}, v.variant());
 }
 
