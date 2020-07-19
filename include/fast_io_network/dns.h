@@ -51,7 +51,7 @@ inline address operator*(dns_iterator const &a)
 		memcpy(ret.storage.data(), std::addressof(addr.sin6_addr), sizeof(ret.storage));
 		if constexpr(std::endian::native==std::endian::little)
 			for(auto& e : ret.storage)
-				details::byte_swap(e);
+				e=details::byte_swap(e);
 		return address(ret);
 	}
 #ifdef __cpp_exceptions
