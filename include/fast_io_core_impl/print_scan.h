@@ -5,21 +5,84 @@ namespace fast_io
 
 namespace details
 {
-template<character_input_stream input,typename T>
-requires (general_scanable<input,T>)
-inline constexpr auto scan_with_space(input &in,T&& t)
+
+template<bool space=true,character_input_stream input,typename T>
+inline constexpr bool scan_with_space_temporary_buffer(input& in,T&& t)
 {
-	if constexpr(space_scanable<input,T>)
+	using no_cvref = std::remove_cvref_t<T>;
+	internal_temporary_buffer<typename std::remove_cvref_t<input>::char_type> buffer;
+	if(!scan_reserve_transmit(io_reserve_type<no_cvref>,buffer,in))
+		return false;
+	if constexpr(space)
 	{
-		if(!skip_space(in))
-			return false;
-		space_scan_define(in,std::forward<T>(t));
+		space_scan_reserve_define(io_reserve_type<no_cvref>,buffer.beg_ptr,buffer.end_ptr,std::forward<T>(t));
 		return true;
 	}
 	else
-		return scan_define(in,std::forward<T>(t));
+	{
+		return scan_reserve_define(io_reserve_type<no_cvref>,buffer.beg_ptr,buffer.end_ptr,std::forward<T>(t)).second;
+	}
 }
 
+template<character_input_stream input,typename T>
+requires (general_scanable<input,T>||general_reserve_scanable<T,internal_temporary_buffer<typename std::remove_cvref_t<input>::char_type>,input>)
+inline constexpr auto scan_with_space(input &in,T&& t)
+{
+	if constexpr(space_scanable<input,T>||reserve_space_scanable<T,internal_temporary_buffer<typename std::remove_cvref_t<input>::char_type>,input>)
+	{
+		if(!skip_space(in))
+			return false;
+		if constexpr(reserve_space_scanable<T,internal_temporary_buffer<typename std::remove_cvref_t<input>::char_type>,input>)
+		{
+			using no_cvref = std::remove_cvref_t<T>;
+			if constexpr(buffer_input_stream<input>)
+			{
+				auto curr{ibuffer_curr(in)};
+				auto ed{ibuffer_end(in)};
+				auto res{space_scan_reserve_define(io_reserve_type<no_cvref>,curr,ed,std::forward<T>(t))};
+				if constexpr(!contiguous_buffer_input_stream<input>)
+				{
+					if(res==ed)[[unlikely]]
+						return scan_with_space_temporary_buffer(in,std::forward<T>(t));
+				}
+				ibuffer_set_curr(in,res);
+			}
+			else
+				return scan_with_space_temporary_buffer(in,std::forward<T>(t));
+		}
+		else
+		{
+			space_scan_define(in,std::forward<T>(t));
+		}
+		return true;
+	}
+	else
+	{
+		if constexpr(reserve_scanable<T,internal_temporary_buffer<typename std::remove_cvref_t<input>::char_type>,input>)
+		{
+			using no_cvref = std::remove_cvref_t<T>;
+			if constexpr(buffer_input_stream<input>)
+			{
+				auto curr{ibuffer_curr(in)};
+				auto ed{ibuffer_end(in)};
+				auto res{scan_reserve_define(io_reserve_type<no_cvref>,curr,ed,std::forward<T>(t))};
+				if constexpr(!contiguous_buffer_input_stream<input>)
+				{
+					if(res==ed)[[unlikely]]
+						return scan_with_space_temporary_buffer<false>(in,std::forward<T>(t));
+				}
+				ibuffer_set_curr(in,res);
+			}
+			else
+				return scan_with_space_temporary_buffer<false>(in,std::forward<T>(t));
+		}
+		else
+		{
+			return scan_define(in,std::forward<T>(t));
+		}
+	}
+}
+/*
 template<character_input_stream input,typename T>
 inline constexpr void scan_with_ex(input &in,T&& t)
 {
@@ -35,15 +98,16 @@ inline constexpr void scan_with_ex(input &in,T&& t)
 #endif
 	}
 }
-
+*/
 template<bool report_eof,character_input_stream input,typename ...Args>
-requires(general_scanable<input,Args>&&...)
+requires((general_scanable<input,Args>||
+	general_reserve_scanable<Args,internal_temporary_buffer<typename input::char_type>,input>)&&...)
 inline constexpr auto normal_scan(input &ip,Args&& ...args)
 {
 	if constexpr(report_eof)
 		return (static_cast<std::size_t>(scan_with_space(ip,std::forward<Args>(args)))+...);
 	else
-		(scan_with_ex(ip,std::forward<Args>(args)),...);
+		(scan_with_space(ip,std::forward<Args>(args)),...);
 }
 
 
