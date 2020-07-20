@@ -111,7 +111,10 @@ inline constexpr bool scn_int_res_impl(output& out,input& in)
 	if constexpr(my_signed_integral<intg>)
 	{
 		if((*bg==u8'-')|(*bg==u8'+'))
+		{
+			put(out,*bg)
 			++bg;
+		}
 	}
 	for(;bg!=ed;++bg)
 	{
