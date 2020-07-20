@@ -70,18 +70,18 @@ inline constexpr auto to_socket_address_storage(ipv4 const& add,U port)
 	return stor;
 }
 
-constexpr std::size_t print_reserve_size(print_reserve_type_t<ipv4>)
+constexpr std::size_t print_reserve_size(io_reserve_type_t<ipv4>)
 {
 	return 15;
 }
 
 template<std::random_access_iterator Iter>
-constexpr Iter print_reserve_define(print_reserve_type_t<ipv4>,Iter it,ipv4 const& v4)
+constexpr Iter print_reserve_define(io_reserve_type_t<ipv4>,Iter it,ipv4 const& v4)
 {
-	*(it=print_reserve_define(print_reserve_type<char unsigned>,it,v4.storage.front()))=u8'.';
-	*(it=print_reserve_define(print_reserve_type<char unsigned>,++it,v4.storage[1]))=u8'.';
-	*(it=print_reserve_define(print_reserve_type<char unsigned>,++it,v4.storage[2]))=u8'.';
-	return print_reserve_define(print_reserve_type<char unsigned>,++it,v4.storage[3]);
+	*(it=print_reserve_define(io_reserve_type<char unsigned>,it,v4.storage.front()))=u8'.';
+	*(it=print_reserve_define(io_reserve_type<char unsigned>,++it,v4.storage[1]))=u8'.';
+	*(it=print_reserve_define(io_reserve_type<char unsigned>,++it,v4.storage[2]))=u8'.';
+	return print_reserve_define(io_reserve_type<char unsigned>,++it,v4.storage[3]);
 }
 
 struct ipv6
@@ -157,7 +157,7 @@ inline constexpr auto to_socket_address_storage(ipv6 add,U port)
 	return stor;
 }
 
-constexpr std::size_t print_reserve_size(print_reserve_type_t<ipv6>)
+constexpr std::size_t print_reserve_size(io_reserve_type_t<ipv6>)
 {
 	return 39;
 }
@@ -237,7 +237,7 @@ constexpr Iter print_ipv6(Iter it,ipv6 const& v6)
 }
 
 template<std::random_access_iterator Iter>
-constexpr Iter print_reserve_define(print_reserve_type_t<ipv6>,Iter it,ipv6 const& v6)
+constexpr Iter print_reserve_define(io_reserve_type_t<ipv6>,Iter it,ipv6 const& v6)
 {
 	return details::print_ipv6(it,v6);
 }
@@ -279,17 +279,17 @@ inline constexpr auto family(address const& v)
 	}, v.variant());
 }
 
-constexpr std::size_t print_reserve_size(print_reserve_type_t<address>)
+constexpr std::size_t print_reserve_size(io_reserve_type_t<address>)
 {
 	return 39;
 }
 
 
 template<std::random_access_iterator Iter>
-constexpr Iter print_reserve_define(print_reserve_type_t<address>,Iter it,address const& v)
+constexpr Iter print_reserve_define(io_reserve_type_t<address>,Iter it,address const& v)
 {
 	return std::visit([&](auto&& arg) {
-		return print_reserve_define(print_reserve_type<std::decay_t<decltype(arg)>>,it,arg);
+		return print_reserve_define(io_reserve_type<std::decay_t<decltype(arg)>>,it,arg);
 	}, v.variant());
 }
 

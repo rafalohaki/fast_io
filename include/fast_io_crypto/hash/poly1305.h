@@ -232,13 +232,13 @@ struct poly1305
 };
 
 
-inline constexpr std::size_t print_reserve_size(print_reserve_type_t<poly1305>)
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<poly1305>)
 {
 	return 32;
 }
 
 template<std::random_access_iterator caiter>
-inline constexpr caiter print_reserve_define(print_reserve_type_t<poly1305>,caiter iter,auto& i)
+inline constexpr caiter print_reserve_define(io_reserve_type_t<poly1305>,caiter iter,auto& i)
 {
 	auto to_hex([](unsigned char ch){return ch>=10?ch-10+'A':ch+'0';});
 	constexpr std::size_t offset{1};

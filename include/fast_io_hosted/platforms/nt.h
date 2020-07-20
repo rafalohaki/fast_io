@@ -378,15 +378,15 @@ using u8nt_io_handle=basic_nt_io_handle<char8_t>;
 using u8nt_file=basic_nt_file<char8_t>;
 
 template<std::integral char_type>
-inline constexpr std::size_t print_reserve_size(print_reserve_type_t<basic_nt_io_observer<char_type>>)
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<basic_nt_io_observer<char_type>>)
 {
-	return print_reserve_size(print_reserve_type<void*>);
+	return print_reserve_size(io_reserve_type<void*>);
 }
 
 template<std::integral char_type,std::contiguous_iterator caiter,typename U>
-inline constexpr caiter print_reserve_define(print_reserve_type_t<basic_nt_io_observer<char_type>>,caiter iter,U&& v)
+inline constexpr caiter print_reserve_define(io_reserve_type_t<basic_nt_io_observer<char_type>>,caiter iter,U&& v)
 {
-	return print_reserve_define(print_reserve_type<void*>,iter,v.handle);
+	return print_reserve_define(io_reserve_type<void*>,iter,v.handle);
 }
 
 }

@@ -367,8 +367,6 @@ template<typename T>
 concept async_scatter_io_stream = async_input_stream<T>&&async_scatter_output_stream<T>;
 
 
-
-
 template<typename T>
 concept secure_clear_requirement_stream = stream<T>&&requires(T stm)
 {
@@ -400,25 +398,13 @@ concept scanable=input_stream<input>&&requires(input& in,T&& t)
 	scan_define(in,std::forward<T>(t));
 };
 
-template<typename input,typename T>
-concept receiveable=input_stream<input>&&requires(input& in,T&& t)
-{
-	receive_define(in,std::forward<T>(t));
-};
-
-template<typename output,typename T>
-concept sendable=output_stream<output>&&requires(output& out,T&& t)
-{
-	send_define(out,std::forward<T>(t));
-};
-
 template<typename T>
-struct print_reserve_type_t
+struct io_reserve_type_t
 {
-	explicit constexpr print_reserve_type_t() = default;
+	explicit constexpr io_reserve_type_t() = default;
 };
 template<typename T>
-inline constexpr print_reserve_type_t<T> print_reserve_type{};
+inline constexpr io_reserve_type_t<T> io_reserve_type{};
 
 template<typename T>
 struct print_scatter_type_t
@@ -428,23 +414,51 @@ struct print_scatter_type_t
 template<typename T>
 inline constexpr print_scatter_type_t<T> print_scatter_type{};
 
+namespace details
+{
+template<typename T,typename output,typename input>
+concept scan_reserve_transmit_impl = std::same_as<typename output::char_type,typename input::char_type>&&dynamic_buffer_output_stream<output>&&character_input_stream<input>&&requires(T t,output out,input in)
+{
+	scan_reserve_transmit(io_reserve_type<std::remove_cvref_t<T>>,out,in);
+};
+
+
+}
+
+template<typename T,typename output,typename input>
+concept reserve_space_scanable=details::scan_reserve_transmit_impl<T,output,input>&&
+	requires(T t,char8_t const* ptr)
+{
+	{space_scan_reserve_define(io_reserve_type<std::remove_cvref_t<T>>,ptr,ptr,t)}->std::same_as<std::pair<char8_t const*,bool>>;
+};
+
+template<typename T,typename output,typename input>
+concept reserve_scanable=details::scan_reserve_transmit_impl<T,output,input>&&requires(T t,char8_t const* ptr,input in)
+{
+	scan_reserve_skip(io_reserve_type<std::remove_cvref_t<T>>,in);
+	{scan_reserve_define(io_reserve_type<std::remove_cvref_t<T>>,ptr,ptr,t)}->std::same_as<std::pair<char8_t const*,bool>>;
+};
+
+template<typename T,typename output,typename input>
+concept general_reserve_scanable=reserve_space_scanable<T,output,input>||reserve_scanable<T,output,input>;
+
 template<typename T>
 concept reserve_printable=requires(T&& t,char8_t* ptr)
 {
-	{print_reserve_size(print_reserve_type<std::remove_cvref_t<T>>)}->std::convertible_to<std::size_t>;
-	{print_reserve_define(print_reserve_type<std::remove_cvref_t<T>>,ptr,t)}->std::same_as<char8_t*>;
+	{print_reserve_size(io_reserve_type<std::remove_cvref_t<T>>)}->std::convertible_to<std::size_t>;
+	{print_reserve_define(io_reserve_type<std::remove_cvref_t<T>>,ptr,t)}->std::same_as<char8_t*>;
 };
 
 template<typename T>
 concept reverse_reserve_printable=reserve_printable<T>&&requires(T&& t,char8_t* ptr)
 {
-	{print_reverse_reserve_define(print_reserve_type<std::remove_cvref_t<T>>,ptr,t)}->std::same_as<char8_t*>;
+	{print_reverse_reserve_define(io_reserve_type<std::remove_cvref_t<T>>,ptr,t)}->std::same_as<char8_t*>;
 };
 
 template<typename T>
 concept reserve_print_testable=requires(T&& t)
 {
-	{print_reserve_test<static_cast<std::size_t>(0)>(print_reserve_type<std::remove_cvref_t<T>>,std::forward<T>(t))}->std::convertible_to<bool>;
+	{print_reserve_test<static_cast<std::size_t>(0)>(io_reserve_type<std::remove_cvref_t<T>>,std::forward<T>(t))}->std::convertible_to<bool>;
 }&&reserve_printable<T>;
 
 template<typename output,typename T>

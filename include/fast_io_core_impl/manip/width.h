@@ -108,7 +108,7 @@ inline constexpr void print_define(output& out,manip::width<T,ch_type> wdt)
 	if constexpr(reserve_output_stream<output>&&reserve_printable<T>)
 	{
 		using no_cvref = std::remove_cvref_t<T>;
-		constexpr std::size_t rsize{print_reserve_size(print_reserve_type<no_cvref>)};
+		constexpr std::size_t rsize{print_reserve_size(io_reserve_type<no_cvref>)};
 		std::size_t size(wdt.width);
 		if(size<rsize)
 			size=rsize;
@@ -123,7 +123,7 @@ inline constexpr void print_define(output& out,manip::width<T,ch_type> wdt)
 					return;
 				}
 			}
-			auto printed(print_reserve_define(print_reserve_type<no_cvref>,ptr,wdt.reference));
+			auto printed(print_reserve_define(io_reserve_type<no_cvref>,ptr,wdt.reference));
 			std::size_t printed_chars_count(printed-ptr);
 			if(printed_chars_count<wdt.width)[[likely]]
 			{

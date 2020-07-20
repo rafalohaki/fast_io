@@ -1032,15 +1032,15 @@ inline auto scatter_write(basic_posix_pipe<ch_type>& h,Args&& ...args)
 #endif
 #endif
 template<std::integral char_type>
-inline constexpr std::size_t print_reserve_size(print_reserve_type_t<basic_posix_io_observer<char_type>>)
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<basic_posix_io_observer<char_type>>)
 {
-	return print_reserve_size(print_reserve_type<int>);
+	return print_reserve_size(io_reserve_type<int>);
 }
 
 template<std::integral char_type,std::contiguous_iterator caiter,typename U>
-inline constexpr caiter print_reserve_define(print_reserve_type_t<basic_posix_io_observer<char_type>>,caiter iter,U&& v)
+inline constexpr caiter print_reserve_define(io_reserve_type_t<basic_posix_io_observer<char_type>>,caiter iter,U&& v)
 {
-	return print_reserve_define(print_reserve_type<int>,iter,v.fd);
+	return print_reserve_define(io_reserve_type<int>,iter,v.fd);
 }
 
 }

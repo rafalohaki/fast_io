@@ -177,15 +177,15 @@ inline decltype(auto) io_control(basic_filebuf_io_observer<ch_type> h,Args&& ...
 #endif
 
 template<typename T>
-inline constexpr std::size_t print_reserve_size(print_reserve_type_t<basic_general_streambuf_io_observer<T>>)
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<basic_general_streambuf_io_observer<T>>)
 {
-	return print_reserve_size(print_reserve_type<void*>);
+	return print_reserve_size(io_reserve_type<void*>);
 }
 
 template<typename T,std::contiguous_iterator caiter,typename U>
-inline constexpr caiter print_reserve_define(print_reserve_type_t<basic_general_streambuf_io_observer<T>>,caiter iter,U&& v)
+inline constexpr caiter print_reserve_define(io_reserve_type_t<basic_general_streambuf_io_observer<T>>,caiter iter,U&& v)
 {
-	return print_reserve_define(print_reserve_type<void*>,iter,v.rdb);
+	return print_reserve_define(io_reserve_type<void*>,iter,v.rdb);
 }
 
 }

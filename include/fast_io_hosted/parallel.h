@@ -191,7 +191,7 @@ inline constexpr void print_define(stm& output,manip::parallel<R,Func> ref)
 	auto be{std::ranges::begin(ref.reference)};
 	if constexpr(std::same_as<void,Func>)
 	{
-		constexpr std::size_t sz{print_reserve_size(print_reserve_type<std::remove_cvref_t<std::ranges::range_value_t<R>>>)};
+		constexpr std::size_t sz{print_reserve_size(io_reserve_type<std::remove_cvref_t<std::ranges::range_value_t<R>>>)};
 		details::parrallel_details(output,std::ranges::size(ref.reference),sz,
 			[be](reserve_output_stream auto& output,std::size_t start_number,std::size_t stop_number)
 		{
@@ -202,7 +202,7 @@ inline constexpr void print_define(stm& output,manip::parallel<R,Func> ref)
 	}
 	else
 	{
-		constexpr std::size_t sz{print_reserve_size(print_reserve_type<std::remove_cvref_t<
+		constexpr std::size_t sz{print_reserve_size(io_reserve_type<std::remove_cvref_t<
 		decltype(ref.callback(*std::ranges::begin(ref.reference)))>>)};
 
 		details::parrallel_details(output,std::ranges::size(ref.reference),sz,
@@ -219,7 +219,7 @@ inline constexpr void print_define(stm& output,manip::parallel<R,Func> ref)
 template<output_stream stm,typename Func>
 inline constexpr void print_define(stm& output,manip::parallel_unit<Func> ref)
 {
-	constexpr std::size_t sz{print_reserve_size(print_reserve_type<std::remove_cvref_t<
+	constexpr std::size_t sz{print_reserve_size(io_reserve_type<std::remove_cvref_t<
 	decltype(ref.callback(static_cast<std::size_t>(0)))>>)};
 	details::parrallel_details(output,ref.count,sz,
 		[&ref](reserve_output_stream auto& output,std::size_t start_number,std::size_t stop_number)

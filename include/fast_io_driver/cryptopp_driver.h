@@ -31,13 +31,13 @@ public:
 };
 
 template<std::size_t N>
-inline constexpr std::size_t print_reserve_size(print_reserve_type_t<digest_result<N>>)
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<digest_result<N>>)
 {
 	return N*2;
 }
 
 template<std::random_access_iterator caiter,std::size_t N>
-inline constexpr caiter print_reserve_define(print_reserve_type_t<digest_result<N>>,caiter iter,auto const& i)
+inline constexpr caiter print_reserve_define(io_reserve_type_t<digest_result<N>>,caiter iter,auto const& i)
 {
 	for(auto e : i.digest_block)
 	{
