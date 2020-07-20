@@ -112,7 +112,7 @@ inline constexpr bool scn_int_res_impl(output& out,input& in)
 	{
 		if((*bg==u8'-')|(*bg==u8'+'))
 		{
-			put(out,*bg)
+			put(out,*bg);
 			++bg;
 		}
 	}
@@ -164,6 +164,41 @@ inline constexpr bool scan_reserve_transmit(io_reserve_type_t<manip::base_t<base
 {
 	return details::scn_int_res_impl<base,intg>(out,in);
 }
+
+
+
+template<std::contiguous_iterator Iter,typename T>
+inline constexpr Iter space_scan_reserve_define(io_reserve_type_t<std::byte>,Iter begin,Iter end,T& t)
+{
+	char8_t val{};
+	auto ret{details::scan_integer_impl<10>(begin,end,val)};
+	t=std::byte(val);
+	return ret;
+}
+
+template<dynamic_buffer_output_stream output,character_input_stream input>
+inline constexpr bool scan_reserve_transmit(io_reserve_type_t<std::byte>,output& out,input& in)
+{
+	return details::scn_int_res_impl<10,char8_t>(out,in);
+}
+
+
+
+template<char8_t base,bool uppercase,std::contiguous_iterator Iter>
+inline constexpr Iter space_scan_reserve_define(io_reserve_type_t<manip::base_t<base,uppercase,std::byte>>,Iter begin,Iter end,auto t)
+{
+	char8_t val{};
+	auto ret{details::scan_integer_impl<base,char8_t>(begin,end,val)};
+	t.reference=std::byte(val);
+	return ret;
+}
+
+template<char8_t base,bool uppercase,dynamic_buffer_output_stream output,character_input_stream input>
+inline constexpr bool scan_reserve_transmit(io_reserve_type_t<manip::base_t<base,uppercase,std::byte>>,output& out,input& in)
+{
+	return details::scn_int_res_impl<base,char8_t>(out,in);
+}
+
 
 
 
