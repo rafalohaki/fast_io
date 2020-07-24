@@ -429,13 +429,13 @@ template<typename T,typename output,typename input>
 concept reserve_space_scanable=details::scan_reserve_transmit_impl<T,output,input>&&
 	requires(T t,char8_t const* ptr)
 {
-	{space_scan_reserve_define(io_reserve_type<std::remove_cvref_t<T>>,ptr,ptr,t)}->std::same_as<char8_t const*>;
+	{space_scan_reserve_define(io_reserve_type<std::remove_cvref_t<T>>,ptr,ptr,t)}->std::convertible_to<std::pair<char8_t const*,bool>>;
 };
 
 template<typename T,typename output,typename input>
 concept reserve_scanable=details::scan_reserve_transmit_impl<T,output,input>&&requires(T t,char8_t const* ptr,input in)
 {
-//	scan_reserve_skip(io_reserve_type<std::remove_cvref_t<T>>,in);
+	scan_reserve_skip(io_reserve_type<std::remove_cvref_t<T>>,in);
 	{scan_reserve_define(io_reserve_type<std::remove_cvref_t<T>>,ptr,ptr,t)}->std::same_as<std::pair<char8_t const*,bool>>;
 };
 

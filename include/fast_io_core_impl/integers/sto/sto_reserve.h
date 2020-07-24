@@ -48,11 +48,7 @@ inline constexpr void detect_overflow(T const t1,T const t2,std::size_t length)
 	if(max_size<=length)[[unlikely]]
 	{
 		if((max_size<length)|(t1<base)|(mx_val<t2))[[unlikely]]
-#ifdef __cpp_exceptions
-			throw fast_io_text_error("unsigned overflow");
-#else
-			fast_terminate();
-#endif
+			throw_input_overflow_error();
 	}
 }
 
@@ -64,16 +60,12 @@ inline constexpr void detect_signed_overflow(T const t1,T const t2,std::size_t l
 	if(max_size<=length)[[unlikely]]
 	{
 		if((max_size<length)|(t1<base)|(mx_val<t2)|(static_cast<T>(get_int_max_unsigned<T>()+sign)<t1))[[unlikely]]
-#ifdef __cpp_exceptions
-			throw fast_io_text_error("signed overflow");
-#else
-			fast_terminate();
-#endif
+			throw_input_overflow_error();
 	}
 }
 
 template<char8_t base,my_integral T,std::contiguous_iterator Iter>
-inline constexpr Iter scan_integer_impl(Iter begin,Iter end,T& t)
+inline constexpr std::pair<Iter,bool> scan_integer_impl(Iter begin,Iter end,T& t)
 {
 	using unsigned_char_type = std::make_unsigned_t<std::iter_value_t<Iter>>;
 	using unsigned_t = details::my_make_unsigned_t<std::remove_cvref_t<T>>;
@@ -83,7 +75,7 @@ inline constexpr Iter scan_integer_impl(Iter begin,Iter end,T& t)
 		auto i{scan_raw_unsigned_integer_impl<base>(begin,end,val,val_last)};
 		detect_overflow<base>(val,val_last,i-begin);
 		t=val;
-		return i;
+		return {i,false};
 	}
 	else
 	{
@@ -96,7 +88,7 @@ inline constexpr Iter scan_integer_impl(Iter begin,Iter end,T& t)
 			t=-static_cast<T>(val);
 		else
 			t=static_cast<T>(val);
-		return i;
+		return {i,false};
 	}
 }
 
@@ -118,7 +110,7 @@ inline constexpr bool scn_int_res_impl(output& out,input& in)
 	}
 	for(;bg!=ed;++bg)
 	{
-		if constexpr(9<base)
+		if constexpr(base<10)
 		{
 			if(static_cast<unsigned_char_type>(base)<=static_cast<unsigned_char_type>(static_cast<unsigned_char_type>(*bg)-static_cast<unsigned_char_type>(u8'0')))
 				break;
@@ -140,7 +132,7 @@ inline constexpr bool scn_int_res_impl(output& out,input& in)
 }
 
 template<details::my_integral intg,std::contiguous_iterator Iter,typename T>
-inline constexpr Iter space_scan_reserve_define(io_reserve_type_t<intg>,Iter begin,Iter end,T& t)
+inline constexpr auto space_scan_reserve_define(io_reserve_type_t<intg>,Iter begin,Iter end,T& t)
 {
 	return details::scan_integer_impl<10>(begin,end,t);
 }
@@ -154,7 +146,7 @@ inline constexpr bool scan_reserve_transmit(io_reserve_type_t<intg>,output& out,
 
 
 template<char8_t base,bool uppercase,details::my_integral intg,std::contiguous_iterator Iter>
-inline constexpr Iter space_scan_reserve_define(io_reserve_type_t<manip::base_t<base,uppercase,intg>>,Iter begin,Iter end,auto t)
+inline constexpr auto space_scan_reserve_define(io_reserve_type_t<manip::base_t<base,uppercase,intg>>,Iter begin,Iter end,auto t)
 {
 	return details::scan_integer_impl<base>(begin,end,t.reference);
 }
@@ -168,7 +160,7 @@ inline constexpr bool scan_reserve_transmit(io_reserve_type_t<manip::base_t<base
 
 
 template<std::contiguous_iterator Iter,typename T>
-inline constexpr Iter space_scan_reserve_define(io_reserve_type_t<std::byte>,Iter begin,Iter end,T& t)
+inline constexpr auto space_scan_reserve_define(io_reserve_type_t<std::byte>,Iter begin,Iter end,T& t)
 {
 	char8_t val{};
 	auto ret{details::scan_integer_impl<10>(begin,end,val)};
@@ -185,7 +177,7 @@ inline constexpr bool scan_reserve_transmit(io_reserve_type_t<std::byte>,output&
 
 
 template<char8_t base,bool uppercase,std::contiguous_iterator Iter>
-inline constexpr Iter space_scan_reserve_define(io_reserve_type_t<manip::base_t<base,uppercase,std::byte>>,Iter begin,Iter end,auto t)
+inline constexpr auto space_scan_reserve_define(io_reserve_type_t<manip::base_t<base,uppercase,std::byte>>,Iter begin,Iter end,auto t)
 {
 	char8_t val{};
 	auto ret{details::scan_integer_impl<base,char8_t>(begin,end,val)};

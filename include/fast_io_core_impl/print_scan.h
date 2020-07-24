@@ -42,10 +42,15 @@ inline constexpr auto scan_with_space(input &in,T&& t)
 				auto res{space_scan_reserve_define(io_reserve_type<no_cvref>,curr,ed,std::forward<T>(t))};
 				if constexpr(!contiguous_buffer_input_stream<input>)
 				{
-					if(res==ed)[[unlikely]]
-						return scan_with_space_temporary_buffer(in,std::forward<T>(t));
+//					if(res.second)
+//					{
+						if(res.first==ed)[[unlikely]]
+							return scan_with_space_temporary_buffer(in,std::forward<T>(t));
+						else
+							throw_malformed_input();
+//					}
 				}
-				ibuffer_set_curr(in,res);
+				ibuffer_set_curr(in,res.first);
 			}
 			else
 				return scan_with_space_temporary_buffer(in,std::forward<T>(t));

@@ -205,4 +205,9 @@ public:
 	}
 };
 
+
+inline void throw_malformed_input();
+
+inline void throw_input_overflow_error();
+
 }

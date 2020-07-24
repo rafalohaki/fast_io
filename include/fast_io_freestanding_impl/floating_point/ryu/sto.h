@@ -236,21 +236,13 @@ inline constexpr F input_floating(It_First iter,It_Second ed)
 	{
 		e_index=index;
 		if(++iter==ed)[[unlikely]]
-#ifdef __cpp_exceptions
-			throw fast_io_text_error("malformed input");
-#else
-			fast_terminate();
-#endif
+			throw_malformed_input();
 		++index;
 		if((*iter==u8'+')||(*iter==u8'-'))[[likely]]
 		{
 			exp_negative=(*iter==u8'-');
 			if(++iter==ed)[[unlikely]]
-#ifdef __cpp_exceptions
-				throw fast_io_text_error("malformed input");
-#else
-				fast_terminate();
-#endif
+				throw_malformed_input();
 			++index;
 		}
 		for(;iter!=ed&&*iter==u8'0';++iter)
@@ -267,11 +259,7 @@ inline constexpr F input_floating(It_First iter,It_Second ed)
 		}
 	}
 	if((6<ue10digits)|((ue10+=extra_e10)<extra_e10))[[unlikely]]
-#ifdef __cpp_exceptions
-		throw fast_io_text_error("exp part integer overflow");
-#else
-		fast_terminate();
-#endif
+		throw_input_overflow_error();
 	auto fl{me10_to_me2<F>(m10,ue10,m10digits,dot_index,e_index,index,exp_negative)};
 	if(need_verify)[[unlikely]]
 	{

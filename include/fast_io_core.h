@@ -100,4 +100,4 @@ inline constexpr void debug_println(T&& t,Args&& ...args)
 #include"fast_io_core_impl/flush.h"
 #include"fast_io_core_impl/read_write_all.h"
 #include"fast_io_core_impl/crtp/crtp.h"
-// Transformers
+#include"fast_io_core_impl/malformed_input.h"
