@@ -5,41 +5,6 @@ namespace fast_io
 
 namespace details
 {
-
-template<char8_t base,my_unsigned_integral T,std::contiguous_iterator Iter>
-inline constexpr Iter scan_raw_unsigned_integer_impl(Iter begin,Iter end,T& val,T& val_last)
-{
-	using unsigned_char_type = std::make_unsigned_t<std::iter_value_t<Iter>>;
-	using unsigned_t = details::my_make_unsigned_t<std::remove_cvref_t<T>>;
-	auto i{begin};
-	for(;i!=end;++i)
-	{
-		if constexpr(base <= 10)
-		{
-			unsigned_char_type ch(static_cast<unsigned_char_type>(*i)-static_cast<unsigned_char_type>(u8'0'));
-			if(static_cast<unsigned_char_type>(base)<=ch)[[unlikely]]
-				break;
-			val=(val_last=val)*static_cast<unsigned_char_type>(base)+ch;
-		}
-		else
-		{
-			constexpr unsigned_char_type mns{base-10};
-			unsigned_char_type ch1(static_cast<unsigned_char_type>(*i)-static_cast<unsigned_char_type>(u8'0'));
-			unsigned_char_type ch2(static_cast<unsigned_char_type>(*i)-static_cast<unsigned_char_type>(u8'A'));
-			unsigned_char_type ch3(static_cast<unsigned_char_type>(*i)-static_cast<unsigned_char_type>(u8'a'));
-			if(ch1<static_cast<unsigned_char_type>(10))
-				val=(val_last=val)*static_cast<unsigned_char_type>(base)+ch1;
-			else if(ch2<mns)
-				val=(val_last=val)*static_cast<unsigned_char_type>(base)+(ch2+static_cast<unsigned_char_type>(10));
-			else if(ch3<mns)
-				val=(val_last=val)*static_cast<unsigned_char_type>(base)+(ch3+static_cast<unsigned_char_type>(10));
-			else[[unlikely]]
-				break;
-		}
-	}
-	return i;
-}
-
 template<char8_t base,my_unsigned_integral T>
 inline constexpr void detect_overflow(T const t1,T const t2,std::size_t length)
 {
@@ -63,76 +28,83 @@ inline constexpr void detect_signed_overflow(T const t1,T const t2,std::size_t l
 			throw_input_overflow_error();
 	}
 }
+template<char8_t base,my_unsigned_integral T,std::contiguous_iterator Iter>
+inline constexpr Iter scan_raw_unsigned_integer_impl(Iter i,Iter end,T& val,T& val_last)
+{
+	using unsigned_char_type = std::make_unsigned_t<std::iter_value_t<Iter>>;
+	using unsigned_t = details::my_make_unsigned_t<std::remove_cvref_t<T>>;
+	for(;i!=end;++i)
+	{
+		if constexpr(base <= 10)
+		{
+			unsigned_char_type ch(static_cast<unsigned_char_type>(*i)-static_cast<unsigned_char_type>(u8'0'));
+			if(static_cast<unsigned_char_type>(base)<=ch)[[unlikely]]
+				break;
+			val=(val_last=val)*static_cast<unsigned_char_type>(base)+ch;
+		}
+		else
+		{
+			constexpr unsigned_char_type mns{base-10};
+			unsigned_char_type const ch(static_cast<unsigned_char_type>(*i));
+			unsigned_char_type ch1(ch-static_cast<unsigned_char_type>(u8'0'));
+			unsigned_char_type ch2(ch-static_cast<unsigned_char_type>(u8'A'));
+			unsigned_char_type ch3(ch-static_cast<unsigned_char_type>(u8'a'));
+			if(ch2<mns)
+				ch1=ch2+static_cast<unsigned_char_type>(10);
+			else if(ch3<mns)
+				ch1=ch3+static_cast<unsigned_char_type>(10);
+			else if(static_cast<unsigned_char_type>(9)<ch1)[[unlikely]]
+				break;
+			val=(val_last=val)*static_cast<unsigned_char_type>(base)+ch1;
+		}
+	}
+	return i;
+}
 
 template<char8_t base,my_integral T,std::contiguous_iterator Iter>
-inline constexpr std::pair<Iter,bool> scan_integer_impl(Iter begin,Iter end,T& t)
+inline constexpr Iter scan_integer_impl(Iter begin,Iter end,T& t)
 {
 	using unsigned_char_type = std::make_unsigned_t<std::iter_value_t<Iter>>;
 	using unsigned_t = details::my_make_unsigned_t<std::remove_cvref_t<T>>;
 	unsigned_t val{},val_last{};
 	if constexpr(my_unsigned_integral<T>)
 	{
+		for(;begin!=end&&*begin==u8'0';++begin);
 		auto i{scan_raw_unsigned_integer_impl<base>(begin,end,val,val_last)};
 		detect_overflow<base>(val,val_last,i-begin);
 		t=val;
-		return {i,false};
+		return i;
 	}
 	else
 	{
 		bool sign{*begin==u8'-'};
 		if(sign|(*begin==u8'+'))
 			++begin;
+		for(;begin!=end&&*begin==u8'0';++begin);
 		auto i{scan_raw_unsigned_integer_impl<base>(begin,end,val,val_last)};
 		detect_signed_overflow<base>(val,val_last,i-begin,sign);
 		if(sign)
-			t=-static_cast<T>(val);
+			t = 0-val;
 		else
-			t=static_cast<T>(val);
-		return {i,false};
+			t = val;
+		return i;
 	}
 }
 
 template<char8_t base,my_integral intg,dynamic_buffer_output_stream output,character_input_stream input>
 inline constexpr bool scn_int_res_impl(output& out,input& in)
 {
-	auto gen{igenerator(in)};
-	auto bg{begin(gen)},ed{end(gen)};
-	if(bg==ed)
-		return false;
-	using unsigned_char_type = std::make_unsigned_t<decltype(*bg)>;
+	using namespace scan_transmitter;
 	if constexpr(my_signed_integral<intg>)
-	{
-		if((*bg==u8'-')|(*bg==u8'+'))
-		{
-			put(out,*bg);
-			++bg;
-		}
-	}
-	for(;bg!=ed;++bg)
-	{
-		if constexpr(base<10)
-		{
-			if(static_cast<unsigned_char_type>(base)<=static_cast<unsigned_char_type>(static_cast<unsigned_char_type>(*bg)-static_cast<unsigned_char_type>(u8'0')))
-				break;
-		}
-		else
-		{
-			constexpr unsigned_char_type mns{base-10};
-			unsigned_char_type ch1(static_cast<unsigned_char_type>(*bg)-static_cast<unsigned_char_type>(u8'0'));
-			unsigned_char_type ch2(static_cast<unsigned_char_type>(*bg)-static_cast<unsigned_char_type>(u8'A'));
-			unsigned_char_type ch3(static_cast<unsigned_char_type>(*bg)-static_cast<unsigned_char_type>(u8'a'));
-			if(static_cast<unsigned_char_type>(10)<=ch1&mns<=ch2&mns<=ch3)
-				break;
-		}
-		put(out,*bg);
-	}
-	return true;
+		return scan_transmit(out,in,single_sign,until_none_digit<base>);
+	else
+		return scan_transmit(out,in,until_none_digit<base>);
 }
 
 }
 
-template<details::my_integral intg,std::contiguous_iterator Iter,typename T>
-inline constexpr auto space_scan_reserve_define(io_reserve_type_t<intg>,Iter begin,Iter end,T& t)
+template<details::my_integral intg,bool end_test,std::contiguous_iterator Iter,typename T>
+inline constexpr auto space_scan_reserve_define(io_reserve_type_t<intg,end_test>,Iter begin,Iter end,T& t)
 {
 	return details::scan_integer_impl<10>(begin,end,t);
 }
@@ -144,9 +116,8 @@ inline constexpr bool scan_reserve_transmit(io_reserve_type_t<intg>,output& out,
 }
 
 
-
-template<char8_t base,bool uppercase,details::my_integral intg,std::contiguous_iterator Iter>
-inline constexpr auto space_scan_reserve_define(io_reserve_type_t<manip::base_t<base,uppercase,intg>>,Iter begin,Iter end,auto t)
+template<char8_t base,bool uppercase,details::my_integral intg,bool end_test,std::contiguous_iterator Iter>
+inline constexpr auto space_scan_reserve_define(io_reserve_type_t<manip::base_t<base,uppercase,intg>,end_test>,Iter begin,Iter end,auto t)
 {
 	return details::scan_integer_impl<base>(begin,end,t.reference);
 }
@@ -159,8 +130,8 @@ inline constexpr bool scan_reserve_transmit(io_reserve_type_t<manip::base_t<base
 
 
 
-template<std::contiguous_iterator Iter,typename T>
-inline constexpr auto space_scan_reserve_define(io_reserve_type_t<std::byte>,Iter begin,Iter end,T& t)
+template<bool end_test,std::contiguous_iterator Iter,typename T>
+inline constexpr auto space_scan_reserve_define(io_reserve_type_t<std::byte,end_test>,Iter begin,Iter end,T& t)
 {
 	char8_t val{};
 	auto ret{details::scan_integer_impl<10>(begin,end,val)};
@@ -176,11 +147,11 @@ inline constexpr bool scan_reserve_transmit(io_reserve_type_t<std::byte>,output&
 
 
 
-template<char8_t base,bool uppercase,std::contiguous_iterator Iter>
-inline constexpr auto space_scan_reserve_define(io_reserve_type_t<manip::base_t<base,uppercase,std::byte>>,Iter begin,Iter end,auto t)
+template<char8_t base,bool uppercase,bool end_test,std::contiguous_iterator Iter>
+inline constexpr auto space_scan_reserve_define(io_reserve_type_t<manip::base_t<base,uppercase,std::byte>,end_test>,Iter begin,Iter end,auto t)
 {
 	char8_t val{};
-	auto ret{details::scan_integer_impl<base,char8_t>(begin,end,val)};
+	auto ret{details::scan_integer_impl<base,char8_t>(begin,end)};
 	t.reference=std::byte(val);
 	return ret;
 }

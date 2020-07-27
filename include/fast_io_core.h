@@ -43,6 +43,7 @@
 
 #include"fast_io_core_impl/print_scan.h"
 #include"fast_io_core_impl/print_reserver.h"
+#include"fast_io_core_impl/scan_transmit/scan_transmit.h"
 
 
 #ifndef NDEBUG

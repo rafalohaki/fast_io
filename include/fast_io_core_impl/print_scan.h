@@ -15,12 +15,13 @@ inline constexpr bool scan_with_space_temporary_buffer(input& in,T&& t)
 		return false;
 	if constexpr(space)
 	{
-		space_scan_reserve_define(io_reserve_type<no_cvref>,buffer.beg_ptr,buffer.end_ptr,std::forward<T>(t));
+		space_scan_reserve_define(io_reserve_type<no_cvref,true>,buffer.beg_ptr,buffer.end_ptr,std::forward<T>(t));
 		return true;
 	}
 	else
 	{
-		return scan_reserve_define(io_reserve_type<no_cvref>,buffer.beg_ptr,buffer.end_ptr,std::forward<T>(t)).second;
+		scan_reserve_define(io_reserve_type<no_cvref,true>,buffer.beg_ptr,buffer.end_ptr,std::forward<T>(t));
+		return true;
 	}
 }
 
@@ -28,29 +29,25 @@ template<character_input_stream input,typename T>
 requires (general_scanable<input,T>||general_reserve_scanable<T,internal_temporary_buffer<typename std::remove_cvref_t<input>::char_type>,input>)
 inline constexpr auto scan_with_space(input &in,T&& t)
 {
+	using no_cvref = std::remove_cvref_t<T>;
+	constexpr bool not_contiguous{!contiguous_buffer_input_stream<input>};
 	if constexpr(space_scanable<input,T>||reserve_space_scanable<T,internal_temporary_buffer<typename std::remove_cvref_t<input>::char_type>,input>)
 	{
 		if(!skip_space(in))
 			return false;
 		if constexpr(reserve_space_scanable<T,internal_temporary_buffer<typename std::remove_cvref_t<input>::char_type>,input>)
 		{
-			using no_cvref = std::remove_cvref_t<T>;
 			if constexpr(buffer_input_stream<input>)
 			{
 				auto curr{ibuffer_curr(in)};
 				auto ed{ibuffer_end(in)};
-				auto res{space_scan_reserve_define(io_reserve_type<no_cvref>,curr,ed,std::forward<T>(t))};
-				if constexpr(!contiguous_buffer_input_stream<input>)
+				auto res{space_scan_reserve_define(io_reserve_type<no_cvref,not_contiguous>,curr,ed,std::forward<T>(t))};
+				if constexpr(not_contiguous)
 				{
-//					if(res.second)
-//					{
-						if(res.first==ed)[[unlikely]]
-							return scan_with_space_temporary_buffer(in,std::forward<T>(t));
-						else
-							throw_malformed_input();
-//					}
+					if(res==ed)[[unlikely]]
+						return scan_with_space_temporary_buffer(in,std::forward<T>(t));
 				}
-				ibuffer_set_curr(in,res.first);
+				ibuffer_set_curr(in,res);
 			}
 			else
 				return scan_with_space_temporary_buffer(in,std::forward<T>(t));
@@ -70,13 +67,16 @@ inline constexpr auto scan_with_space(input &in,T&& t)
 			{
 				auto curr{ibuffer_curr(in)};
 				auto ed{ibuffer_end(in)};
-				auto res{scan_reserve_define(io_reserve_type<no_cvref>,curr,ed,std::forward<T>(t))};
-				if constexpr(!contiguous_buffer_input_stream<input>)
+				auto res{scan_reserve_define(io_reserve_type<no_cvref,!not_contiguous>,curr,ed,std::forward<T>(t))};
+				if(!res.first)
+					return false;
+				if constexpr(not_contiguous)
 				{
 					if(res==ed)[[unlikely]]
 						return scan_with_space_temporary_buffer<false>(in,std::forward<T>(t));
 				}
 				ibuffer_set_curr(in,res);
+				return true;
 			}
 			else
 				return scan_with_space_temporary_buffer<false>(in,std::forward<T>(t));
