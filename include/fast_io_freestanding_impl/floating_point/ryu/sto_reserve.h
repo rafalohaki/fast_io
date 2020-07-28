@@ -264,11 +264,17 @@ inline constexpr Iter real_sto(Iter begin,Iter end,fp_type& t)
 
 	if(need_verify)[[unlikely]]
 	{
+		auto cl{me10_to_me2_revamp<fp_type>(m10+1,e10)};
+		if(fl==cl)
+			t=bit_cast<fp_type>(((static_cast<mantissa_type>(signed_m)) << (real_bits-1))|fl);
+		else
+		{
 #ifdef __cpp_exceptions
-		throw fast_io_text_error("ryu to do with multiprecisions");
+			throw fast_io_text_error("ryu to do with multiprecisions");
 #else
-		fast_terminate();
+			fast_terminate();
 #endif
+		}
 	}
 	else
 	{
