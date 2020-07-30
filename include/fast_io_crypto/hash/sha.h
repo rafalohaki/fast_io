@@ -78,13 +78,13 @@ using md5
 = sha<md5_function,false>;
 
 template<typename T,bool endian_reverse>
-inline constexpr std::size_t print_reserve_size(print_reserve_type_t<sha<T,endian_reverse>>)
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<sha<T,endian_reverse>>)
 {
 	return sizeof(typename T::digest_type)*8;
 }
 
 template<std::random_access_iterator caiter,typename T,bool endian_reverse>
-inline constexpr caiter print_reserve_define(print_reserve_type_t<sha<T,endian_reverse>>,caiter iter,auto& i)
+inline constexpr caiter print_reserve_define(io_reserve_type_t<sha<T,endian_reverse>>,caiter iter,auto& i)
 {
 	constexpr std::size_t offset{sizeof(typename T::digest_type::value_type)*2};
 	for(auto e : i.digest_block)

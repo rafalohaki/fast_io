@@ -4,27 +4,6 @@
 namespace fast_io
 {
 
-class io_uring_observer
-{
-public:
-	using native_handle_type = struct ::io_uring*;
-	native_handle_type ring{};
-	constexpr native_handle_type& native_handle() noexcept
-	{
-		return ring;
-	}
-	constexpr native_handle_type const& native_handle() const noexcept
-	{
-		return ring;
-	}
-	constexpr native_handle_type release() noexcept
-	{
-		auto temp{ring};
-		ring=nullptr;
-		return temp;
-	}
-};
-
 class io_uring:public io_uring_observer
 {
 public:

@@ -6,6 +6,6 @@ int main()
 {
 	fast_io::tcp_server hd(10000);
 	fast_io::acceptor accept(hd);
-	fast_io::onative_file obf("ova2.mp4");
+	fast_io::onative_file obf("result.mp4");
 	transmit(obf,accept);
 }

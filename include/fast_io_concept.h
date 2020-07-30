@@ -27,6 +27,20 @@ struct basic_io_scatter_t
 
 using io_scatter_t = basic_io_scatter_t<void>;
 
+template<typename T>
+class io_async_scheduler_t
+{
+public:
+	using type = typename std::remove_cvref_t<decltype(async_scheduler_type(*static_cast<T*>(nullptr)))>::type;
+};
+
+template<typename T>
+class io_async_overlapped_t
+{
+public:
+	using type = typename std::remove_cvref_t<decltype(async_overlapped_type(*static_cast<T*>(nullptr)))>::type;
+};
+
 namespace details
 {
 
@@ -184,6 +198,51 @@ concept scatter_output_stream_impl = requires(T& out,std::span<io_scatter_t cons
 	scatter_write(out,sp);
 };
 
+
+//async stream concepts
+
+template<typename T>
+concept async_input_stream_impl = stream_char_type_requirement<T>&&
+	requires(T in,typename T::char_type* b)
+{
+	requires requires(typename std::remove_cvref_t<decltype(async_scheduler_type(in))>::type sch,
+	typename std::remove_cvref_t<decltype(async_overlapped_type(in))>::type overlapped,std::ptrdiff_t offset)
+	{
+		async_read_callback(sch,in,b,b,overlapped,offset);
+	};
+};
+
+template<typename T>
+concept async_output_stream_impl = stream_char_type_requirement<T>&&
+	requires(T out,typename T::char_type const* b)
+{
+	requires requires(typename std::remove_cvref_t<decltype(async_scheduler_type(out))>::type sch,
+	typename std::remove_cvref_t<decltype(async_overlapped_type(out))>::type overlapped,std::ptrdiff_t offset)
+	{
+		async_write_callback(sch,out,b,b,overlapped,offset);
+	};
+};
+
+template<typename T>
+concept async_scatter_input_stream_impl = requires(T in,std::span<io_scatter_t const> sp)
+{
+	requires requires(typename std::remove_cvref_t<decltype(async_scheduler_type(in))>::type sch,
+	typename std::remove_cvref_t<decltype(async_overlapped_type(in))>::type overlapped,std::ptrdiff_t offset)
+	{
+		async_scatter_read_callback(sch,in,sp,overlapped,offset);
+	};
+};
+
+template<typename T>
+concept async_scatter_output_stream_impl = requires(T out,std::span<io_scatter_t const> sp)
+{
+	requires requires(typename std::remove_cvref_t<decltype(async_scheduler_type(out))>::type sch,
+	typename std::remove_cvref_t<decltype(async_overlapped_type(out))>::type overlapped,std::ptrdiff_t offset)
+	{
+		async_write_callback(sch,out,sp,overlapped,offset);
+	};
+};
+
 }
 
 
@@ -285,6 +344,30 @@ template<typename T>
 concept scatter_output_stream = output_stream<T>&&details::scatter_output_stream_impl<T>;
 
 template<typename T>
+concept async_stream = details::async_input_stream_impl<T>||details::async_output_stream_impl<T>;
+
+
+
+template<typename T>
+concept async_input_stream = async_stream<T>&&details::async_input_stream_impl<T>;
+
+template<typename T>
+concept async_output_stream = async_stream<T>&&details::async_output_stream_impl<T>;
+
+template<typename T>
+concept async_io_stream = async_input_stream<T>&&async_output_stream<T>;
+
+template<typename T>
+concept async_scatter_input_stream = async_stream<T>&&details::async_scatter_input_stream_impl<T>;
+
+template<typename T>
+concept async_scatter_output_stream = async_stream<T>&&details::async_scatter_output_stream_impl<T>;
+
+template<typename T>
+concept async_scatter_io_stream = async_input_stream<T>&&async_scatter_output_stream<T>;
+
+
+template<typename T>
 concept secure_clear_requirement_stream = stream<T>&&requires(T stm)
 {
 	require_secure_clear(stm);
@@ -315,25 +398,13 @@ concept scanable=input_stream<input>&&requires(input& in,T&& t)
 	scan_define(in,std::forward<T>(t));
 };
 
-template<typename input,typename T>
-concept receiveable=input_stream<input>&&requires(input& in,T&& t)
+template<typename T,bool end_test=false>
+struct io_reserve_type_t
 {
-	receive_define(in,std::forward<T>(t));
+	explicit constexpr io_reserve_type_t() = default;
 };
-
-template<typename output,typename T>
-concept sendable=output_stream<output>&&requires(output& out,T&& t)
-{
-	send_define(out,std::forward<T>(t));
-};
-
-template<typename T>
-struct print_reserve_type_t
-{
-	explicit constexpr print_reserve_type_t() = default;
-};
-template<typename T>
-inline constexpr print_reserve_type_t<T> print_reserve_type{};
+template<typename T,bool end_test=false>
+inline constexpr io_reserve_type_t<T,end_test> io_reserve_type{};
 
 template<typename T>
 struct print_scatter_type_t
@@ -343,23 +414,51 @@ struct print_scatter_type_t
 template<typename T>
 inline constexpr print_scatter_type_t<T> print_scatter_type{};
 
+namespace details
+{
+template<typename T,typename output,typename input>
+concept scan_reserve_transmit_impl = std::same_as<typename output::char_type,typename input::char_type>&&dynamic_buffer_output_stream<output>&&character_input_stream<input>&&requires(T t,output out,input in)
+{
+	{scan_reserve_transmit(io_reserve_type<std::remove_cvref_t<T>>,out,in)}->std::convertible_to<bool>;
+};
+
+
+}
+
+template<typename T,typename output,typename input>
+concept reserve_space_scanable=details::scan_reserve_transmit_impl<T,output,input>&&
+	requires(T t,char8_t const* ptr)
+{
+	{space_scan_reserve_define(io_reserve_type<std::remove_cvref_t<T>,true>,ptr,ptr,t)}->std::convertible_to<char8_t const*>;
+};
+
+template<typename T,typename output,typename input>
+concept reserve_scanable=details::scan_reserve_transmit_impl<T,output,input>&&requires(T t,char8_t const* ptr,input in)
+{
+	scan_reserve_skip(io_reserve_type<std::remove_cvref_t<T>>,in);
+	{scan_reserve_define(io_reserve_type<std::remove_cvref_t<T>,true>,ptr,ptr,t)}->std::convertible_to<std::pair<char8_t const*,bool>>;
+};
+
+template<typename T,typename output,typename input>
+concept general_reserve_scanable=reserve_space_scanable<T,output,input>||reserve_scanable<T,output,input>;
+
 template<typename T>
 concept reserve_printable=requires(T&& t,char8_t* ptr)
 {
-	{print_reserve_size(print_reserve_type<std::remove_cvref_t<T>>)}->std::convertible_to<std::size_t>;
-	{print_reserve_define(print_reserve_type<std::remove_cvref_t<T>>,ptr,t)}->std::same_as<char8_t*>;
+	{print_reserve_size(io_reserve_type<std::remove_cvref_t<T>>)}->std::convertible_to<std::size_t>;
+	{print_reserve_define(io_reserve_type<std::remove_cvref_t<T>>,ptr,t)}->std::same_as<char8_t*>;
 };
 
 template<typename T>
 concept reverse_reserve_printable=reserve_printable<T>&&requires(T&& t,char8_t* ptr)
 {
-	{print_reverse_reserve_define(print_reserve_type<std::remove_cvref_t<T>>,ptr,t)}->std::same_as<char8_t*>;
+	{print_reverse_reserve_define(io_reserve_type<std::remove_cvref_t<T>>,ptr,t)}->std::same_as<char8_t*>;
 };
 
 template<typename T>
 concept reserve_print_testable=requires(T&& t)
 {
-	{print_reserve_test<static_cast<std::size_t>(0)>(print_reserve_type<std::remove_cvref_t<T>>,std::forward<T>(t))}->std::convertible_to<bool>;
+	{print_reserve_test<static_cast<std::size_t>(0)>(io_reserve_type<std::remove_cvref_t<T>>,std::forward<T>(t))}->std::convertible_to<bool>;
 }&&reserve_printable<T>;
 
 template<typename output,typename T>

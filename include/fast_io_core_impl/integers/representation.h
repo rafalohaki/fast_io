@@ -43,7 +43,7 @@ inline constexpr void rep_single_unit(char8_t b,Iter ptr)
 }
 
 template<typename T,char8_t base,bool uppercase=false,bool space=true>
-inline constexpr std::size_t print_reserve_size(print_reserve_type_t<manip::representation<T,base,uppercase,space>>)
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<manip::representation<T,base,uppercase,space>>)
 {
 	if constexpr(sizeof(T)==0)
 		return 0;
@@ -52,7 +52,7 @@ inline constexpr std::size_t print_reserve_size(print_reserve_type_t<manip::repr
 }
 
 template<std::contiguous_iterator caiter,typename T,char8_t base,bool uppercase,bool space,typename U>
-inline caiter print_reserve_define(print_reserve_type_t<manip::representation<T,base,uppercase,space>>,caiter iter,U i)
+inline caiter print_reserve_define(io_reserve_type_t<manip::representation<T,base,uppercase,space>>,caiter iter,U i)
 {
 	if constexpr(sizeof(T)!=0)
 	{

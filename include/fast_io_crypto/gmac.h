@@ -174,15 +174,15 @@ struct gmac
 
 
 template<reserve_printable T>
-inline constexpr std::size_t print_reserve_size(print_reserve_type_t<gmac<T>>)
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<gmac<T>>)
 {
-	return print_reserve_size(print_reserve_type<T>);
+	return print_reserve_size(io_reserve_type<T>);
 }
 
 template<reserve_printable T,std::random_access_iterator caiter>
-inline constexpr caiter print_reserve_define(print_reserve_type_t<gmac<T>>,caiter iter,auto& i)
+inline constexpr caiter print_reserve_define(io_reserve_type_t<gmac<T>>,caiter iter,auto& i)
 {
-	return print_reserve_define(print_reserve_type<T>,iter,i.function);
+	return print_reserve_define(io_reserve_type<T>,iter,i.function);
 }
 
 }

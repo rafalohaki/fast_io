@@ -28,7 +28,7 @@ inline constexpr bool test_one()
 		return false;
 	else
 	{
-		constexpr auto size{print_reserve_size(print_reserve_type<no_cvref>)+static_cast<std::size_t>(ln)};
+		constexpr auto size{print_reserve_size(io_reserve_type<no_cvref>)+static_cast<std::size_t>(ln)};
 		return string_hack::local_capacity<T>()<size;
 	}
 }
@@ -39,18 +39,18 @@ inline constexpr T deal_with_one(U&& t)
 	using value_type = typename T::value_type;
 	using no_cvref = std::remove_cvref_t<U>;
 
-	constexpr auto size{print_reserve_size(print_reserve_type<no_cvref>)+static_cast<std::size_t>(ln)};
+	constexpr auto size{print_reserve_size(io_reserve_type<no_cvref>)+static_cast<std::size_t>(ln)};
 	std::array<value_type,size> array;
 	if constexpr(ln)
 	{
-		auto p {print_reserve_define(print_reserve_type<no_cvref>,array.data(),std::forward<U>(t))};
+		auto p {print_reserve_define(io_reserve_type<no_cvref>,array.data(),std::forward<U>(t))};
 		*p=u8'\n';
 		return T(array.data(),++p);
 	}
 	else
 	{
 		return T(array.data(),
-		print_reserve_define(print_reserve_type<no_cvref>,array.data(),std::forward<U>(t)));
+		print_reserve_define(io_reserve_type<no_cvref>,array.data(),std::forward<U>(t)));
 	}
 }
 
@@ -92,7 +92,7 @@ inline constexpr std::size_t scatter_concat_with_reserve_recursive_unit(char_typ
 	else
 	{
 		using real_type = std::remove_cvref_t<T>;
-		auto end_ptr = print_reserve_define(print_reserve_type<real_type>,start_ptr,std::forward<T>(t));
+		auto end_ptr = print_reserve_define(io_reserve_type<real_type>,start_ptr,std::forward<T>(t));
 		*arr={start_ptr,(end_ptr-start_ptr)*sizeof(*start_ptr)};
 		start_ptr=end_ptr;
 	}

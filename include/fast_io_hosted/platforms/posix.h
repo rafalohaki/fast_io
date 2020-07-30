@@ -9,6 +9,7 @@
 #ifdef __linux__
 #include<sys/uio.h>
 #include<sys/sendfile.h>
+struct io_uring;
 #endif
 #ifdef __BSD_VISIBLE
 #ifndef __NEWLIB__
@@ -184,7 +185,27 @@ struct posix_file_openmode
 }
 
 #ifdef __linux__
-class io_uring_observer;
+class io_uring_observer
+{
+public:
+	using native_handle_type = struct ::io_uring*;
+	native_handle_type ring{};
+	constexpr native_handle_type& native_handle() noexcept
+	{
+		return ring;
+	}
+	constexpr native_handle_type const& native_handle() const noexcept
+	{
+		return ring;
+	}
+	constexpr native_handle_type release() noexcept
+	{
+		auto temp{ring};
+		ring=nullptr;
+		return temp;
+	}
+};
+using io_async_observer=io_uring_observer;
 #endif
 
 template<std::integral ch_type>
@@ -193,8 +214,8 @@ class basic_posix_io_observer
 public:
 	using char_type = ch_type;
 	using native_handle_type = int;
-#ifdef __linux__
-	using async_scheduler_type = io_uring_observer;
+#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
+	using async_scheduler_type = io_async_observer;
 #endif
 	native_handle_type fd=-1;
 	constexpr auto& native_handle() noexcept
@@ -250,7 +271,9 @@ protected:
 public:
 	using char_type = ch_type;
 	using native_handle_type = int;
-
+#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
+	using async_scheduler_type = io_async_observer;
+#endif
 	constexpr explicit basic_posix_io_handle()=default;
 	constexpr explicit basic_posix_io_handle(int fdd):basic_posix_io_observer<ch_type>{fdd}{}
 	basic_posix_io_handle(basic_posix_io_handle const& dp):basic_posix_io_observer<ch_type>{
@@ -381,6 +404,7 @@ inline auto seek(basic_posix_io_observer<ch_type> h,R i=0,seekdir s=seekdir::cur
 {
 	return seek(h,seek_type<ch_type>,i,s);
 }
+/*
 template<std::integral ch_type>
 inline void flush(basic_posix_io_observer<ch_type>)
 {
@@ -388,6 +412,7 @@ inline void flush(basic_posix_io_observer<ch_type>)
 //		if(::fsync(fd)==-1)
 //			throw posix_error();
 }
+*/
 
 #if defined(__linux__) || defined(__BSD_VISIBLE)
 template<std::integral ch_type>
@@ -465,8 +490,8 @@ public:
 	using char_type = ch_type;
 	using native_handle_type = typename basic_posix_io_handle<char_type>::native_handle_type;
 	using basic_posix_io_handle<ch_type>::native_handle;
-#ifdef __linux__
-	using async_scheduler_type = io_uring_observer;
+#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
+	using async_scheduler_type = io_async_observer;
 #endif
 	constexpr basic_posix_file() noexcept = default;
 	constexpr basic_posix_file(int fd) noexcept: basic_posix_io_handle<ch_type>(fd){}
@@ -549,6 +574,19 @@ public:
 	basic_posix_file(std::string_view file,std::string_view mode,Args&& ...args):
 		basic_posix_file(basic_win32_file<char_type>(file,mode,std::forward<Args>(args)...),mode)
 	{}
+
+	template<open_mode om,typename... Args>
+	basic_posix_file(io_async_t,io_async_observer ioa,std::string_view file,open_interface_t<om>,Args&& ...args):
+		basic_posix_file(basic_win32_file<char_type>(io_async,ioa,file,open_interface<om>,std::forward<Args>(args)...),open_interface<om>)
+	{}
+	template<typename... Args>
+	basic_posix_file(io_async_t,io_async_observer ioa,std::string_view file,open_mode om,Args&& ...args):
+		basic_posix_file(basic_win32_file<char_type>(io_async,ioa,file,om,std::forward<Args>(args)...),om)
+	{}
+	template<typename... Args>
+	basic_posix_file(io_async_t,io_async_observer ioa,std::string_view file,std::string_view mode,Args&& ...args):
+		basic_posix_file(basic_win32_file<char_type>(io_async,ioa,file,mode,std::forward<Args>(args)...),mode)
+	{}
 #else
 	template<open_mode om,perms pm>
 	basic_posix_file(std::string_view file,open_interface_t<om>,perms_interface_t<pm>):basic_posix_file(native_interface,file.data(),details::posix_file_openmode<om>::mode,static_cast<mode_t>(pm))
@@ -575,6 +613,11 @@ public:
 			seek_end_local();
 	}
 	basic_posix_file(std::string_view file,std::string_view mode,perms pm=static_cast<perms>(436)):basic_posix_file(file,from_c_mode(mode),pm){}
+#ifdef __linux__
+	template<typename ...Args>
+	basic_posix_file(io_async_t,io_uring_observer,std::string_view file,Args&& ...args):basic_posix_file(file,std::forward<Args>(args)...){}
+#endif
+
 #endif
 	~basic_posix_file()
 	{
@@ -610,8 +653,8 @@ class basic_posix_pipe
 public:
 	using char_type = ch_type;
 	using native_handle_type = std::array<basic_posix_file<ch_type>,2>;
-#ifdef __linux__
-	using async_scheduler_type = io_uring_observer;
+#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
+	using async_scheduler_type = io_async_observer;
 #endif
 private:
 	native_handle_type pipes;
@@ -840,7 +883,34 @@ inline constexpr basic_posix_io_observer<char_type> posix_stderr()
 	return basic_posix_io_observer<char_type>{posix_stderr_number};
 }
 
-#if !defined(__WINNT__) && !defined(_MSC_VER)
+#if defined(__WINNT__) || defined(_MSC_VER)
+
+template<std::integral char_type>
+inline constexpr io_type_t<win32_io_observer> async_scheduler_type(basic_posix_io_observer<char_type>)
+{
+	return {};
+}
+
+template<std::integral char_type>
+inline constexpr io_type_t<iocp_overlapped> async_overlapped_type(basic_posix_io_observer<char_type>)
+{
+	return {};
+}
+
+template<std::integral char_type,typename... Args>
+inline void async_write_callback(io_async_observer ioa,basic_posix_io_observer<char_type> h,Args&& ...args)
+{
+	async_write_callback(ioa,static_cast<basic_win32_io_observer<char_type>>(h),std::forward<Args>(args)...);
+}
+
+template<std::integral char_type,typename... Args>
+inline void async_read_callback(io_async_observer ioa,basic_posix_io_observer<char_type> h,Args&& ...args)
+{
+	async_read_callback(ioa,static_cast<basic_win32_io_observer<char_type>>(h),std::forward<Args>(args)...);
+}
+
+
+#else
 template<std::integral char_type=char>
 inline constexpr basic_posix_io_observer<char_type> native_stdin()
 {
@@ -962,15 +1032,15 @@ inline auto scatter_write(basic_posix_pipe<ch_type>& h,Args&& ...args)
 #endif
 #endif
 template<std::integral char_type>
-inline constexpr std::size_t print_reserve_size(print_reserve_type_t<basic_posix_io_observer<char_type>>)
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<basic_posix_io_observer<char_type>>)
 {
-	return print_reserve_size(print_reserve_type<int>);
+	return print_reserve_size(io_reserve_type<int>);
 }
 
 template<std::integral char_type,std::contiguous_iterator caiter,typename U>
-inline constexpr caiter print_reserve_define(print_reserve_type_t<basic_posix_io_observer<char_type>>,caiter iter,U&& v)
+inline constexpr caiter print_reserve_define(io_reserve_type_t<basic_posix_io_observer<char_type>>,caiter iter,U&& v)
 {
-	return print_reserve_define(print_reserve_type<int>,iter,v.fd);
+	return print_reserve_define(io_reserve_type<int>,iter,v.fd);
 }
 
 }

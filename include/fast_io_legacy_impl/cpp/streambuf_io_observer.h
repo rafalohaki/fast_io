@@ -20,6 +20,9 @@ public:
 	using char_type = typename streambuf_type::char_type;
 	using traits_type = typename streambuf_type::traits_type;
 	using native_handle_type = streambuf_type*;
+#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
+	using async_scheduler_type = io_async_observer;
+#endif
 	native_handle_type rdb{};
 	inline constexpr native_handle_type& native_handle() const noexcept
 	{
@@ -87,6 +90,40 @@ inline void flush(basic_general_streambuf_io_observer<T> h)
 }
 
 
+
+template<typename T>
+requires async_stream<basic_c_io_observer_unlocked<typename T::char_type>>
+inline constexpr io_async_scheduler_t<basic_c_io_observer_unlocked<typename T::char_type>>
+	async_scheduler_type(basic_general_streambuf_io_observer<T>)
+{
+	return {};
+}
+
+template<typename T>
+requires async_stream<basic_c_io_observer_unlocked<typename T::char_type>>
+inline constexpr io_async_overlapped_t<basic_c_io_observer_unlocked<typename T::char_type>>
+	async_overlapped_type(basic_general_streambuf_io_observer<T>)
+{
+	return {};
+}
+
+template<typename T,typename... Args>
+requires async_output_stream<basic_c_io_observer_unlocked<typename T::char_type>>
+inline void async_write_callback(io_async_observer ioa,basic_general_streambuf_io_observer<T> h,Args&& ...args)
+{
+	async_write_callback(ioa,static_cast<basic_c_io_observer_unlocked<typename T::char_type>>(h),std::forward<Args>(args)...);
+}
+
+template<typename T,typename... Args>
+requires async_input_stream<basic_c_io_observer_unlocked<typename T::char_type>>
+inline void async_read_callback(io_async_observer ioa,basic_general_streambuf_io_observer<T> h,Args&& ...args)
+{
+	async_read_callback(ioa,static_cast<basic_c_io_observer_unlocked<typename T::char_type>>(h),std::forward<Args>(args)...);
+}
+
+
+
+
 template<std::integral CharT,typename Traits = std::char_traits<CharT>>
 using basic_streambuf_io_observer = basic_general_streambuf_io_observer<std::basic_streambuf<CharT,Traits>>;
 
@@ -140,15 +177,15 @@ inline decltype(auto) io_control(basic_filebuf_io_observer<ch_type> h,Args&& ...
 #endif
 
 template<typename T>
-inline constexpr std::size_t print_reserve_size(print_reserve_type_t<basic_general_streambuf_io_observer<T>>)
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<basic_general_streambuf_io_observer<T>>)
 {
-	return print_reserve_size(print_reserve_type<void*>);
+	return print_reserve_size(io_reserve_type<void*>);
 }
 
 template<typename T,std::contiguous_iterator caiter,typename U>
-inline constexpr caiter print_reserve_define(print_reserve_type_t<basic_general_streambuf_io_observer<T>>,caiter iter,U&& v)
+inline constexpr caiter print_reserve_define(io_reserve_type_t<basic_general_streambuf_io_observer<T>>,caiter iter,U&& v)
 {
-	return print_reserve_define(print_reserve_type<void*>,iter,v.rdb);
+	return print_reserve_define(io_reserve_type<void*>,iter,v.rdb);
 }
 
 }

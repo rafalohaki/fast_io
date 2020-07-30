@@ -10,7 +10,7 @@ try
 		return 1;
 	}
 	for(auto const& address:fast_io::dns(argv[1]))
-		println(fast_io::out(), address);
+		println(address);
 }
 catch(std::exception const & e)
 {

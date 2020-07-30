@@ -151,14 +151,14 @@ public:
 
 template<typename T>
 requires (std::same_as<T,crc32c>||std::same_as<T,crc32>)
-inline constexpr std::size_t print_reserve_size(print_reserve_type_t<T>)
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<T>)
 {
 	return 8;
 }
 
 template<typename T,std::random_access_iterator caiter>
 requires (std::same_as<T,crc32c>||std::same_as<T,crc32>)
-inline constexpr caiter print_reserve_define(print_reserve_type_t<T>,caiter iter,auto i)
+inline constexpr caiter print_reserve_define(io_reserve_type_t<T>,caiter iter,auto i)
 {
 	fast_io::details::optimize_size::output_unsigned_dummy<8,16>(iter,i.crc);
 	return iter+8;

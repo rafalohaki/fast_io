@@ -5,38 +5,6 @@ namespace fast_io
 namespace details
 {
 
-template<char8_t base,my_unsigned_integral T>
-inline constexpr void detect_overflow(T const t1,T const t2,std::size_t length)
-{
-	constexpr std::size_t max_size{cal_max_int_size<T,base>()};
-	constexpr std::remove_cvref_t<T> mx_val(std::numeric_limits<std::remove_cvref_t<T>>::max()/static_cast<std::remove_cvref_t<T>>(base));
-	if(max_size<=length)[[unlikely]]
-	{
-		if((max_size<length)|(t1<base)|(mx_val<t2))[[unlikely]]
-#ifdef __cpp_exceptions
-			throw fast_io_text_error("unsigned overflow");
-#else
-			fast_terminate();
-#endif
-	}
-}
-
-template<char8_t base,my_unsigned_integral T>
-inline constexpr void detect_signed_overflow(T const t1,T const t2,std::size_t length,bool sign)
-{
-	constexpr std::size_t max_size{cal_max_int_size<T,base>()};
-	constexpr std::remove_cvref_t<T> mx_val(std::numeric_limits<std::remove_cvref_t<T>>::max()/static_cast<std::remove_cvref_t<T>>(base));
-	if(max_size<=length)[[unlikely]]
-	{
-		if((max_size<length)|(t1<base)|(mx_val<t2)|(static_cast<T>(get_int_max_unsigned<T>()+sign)<t1))[[unlikely]]
-#ifdef __cpp_exceptions
-			throw fast_io_text_error("signed overflow");
-#else
-			fast_terminate();
-#endif
-	}
-}
-
 
 template<my_integral T,char8_t base,bool no_dec=false,character_input_stream input>
 inline constexpr T input_base_number(input& in)
@@ -121,13 +89,7 @@ inline constexpr T input_base_number(input& in)
 				return t2;
 			};
 			if(!length)[[unlikely]]
-			{
-#ifdef __cpp_exceptions
-				throw fast_io_text_error("malformed input");
-#else
-				fast_terminate();
-#endif
-			}
+				throw_malformed_input();
 			return t;
 		}
 		else
@@ -168,11 +130,7 @@ inline constexpr T input_base_number(input& in)
 			}
 
 			if(!length)[[unlikely]]
-#ifdef __cpp_exceptions
-				throw fast_io_text_error("malformed input");
-#else
-				fast_terminate();
-#endif
+				throw_malformed_input();
 			detect_overflow<base>(t,t1,length);
 			return t;
 		}
@@ -264,21 +222,13 @@ inline constexpr T input_base_number(input& in)
 				if(sign)
 					return -static_cast<T>(t2);
 				else if(!length)[[unlikely]]
-#ifdef __cpp_exceptions
-					throw fast_io_text_error("malformed input");
-#else
-					fast_terminate();
-#endif
+					throw_malformed_input();
 				return static_cast<T>(t2);
 			};
 			if(sign)
 				return -static_cast<T>(t);
 			else if(!length)[[unlikely]]
-#ifdef __cpp_exceptions
-				throw fast_io_text_error("malformed input");
-#else
-				fast_terminate();
-#endif
+				throw_malformed_input();
 			return t;
 		}
 		else
@@ -320,11 +270,7 @@ inline constexpr T input_base_number(input& in)
 			if(sign)
 				return -static_cast<T>(t);
 			else if(!length)[[unlikely]]
-#ifdef __cpp_exceptions
-				throw fast_io_text_error("malformed input");
-#else
-				fast_terminate();
-#endif
+				throw_malformed_input();
 			return static_cast<T>(t);
 		}
 	}

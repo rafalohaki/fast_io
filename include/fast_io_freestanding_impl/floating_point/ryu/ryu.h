@@ -8,3 +8,4 @@
 #include"stack_arbitary_int.h"
 #include"precise.h"
 #include"sto.h"
+#include"sto_reserve.h"
