@@ -56,20 +56,18 @@ inline constexpr auto obuffer_set_curr(ospan<char_type,extent>& sp,char_type* pt
 }
 
 template<std::integral char_type,std::size_t extent>
-inline constexpr auto overflow(ospan<char_type,extent>&,char_type) noexcept
-{
-	fast_terminate();
-}
+inline constexpr void overflow(ospan<char_type,extent>&,char_type) noexcept{}
 
 template<std::integral char_type,std::size_t extent,std::contiguous_iterator Iter>
 requires (std::same_as<char_type,std::iter_value_t<Iter>>||std::same_as<char,char_type>)
-inline constexpr void write(ospan<char_type,extent>& ob,Iter cbegin,Iter cend) noexcept	//contract : cend-begin + curr <= span's size
+inline constexpr void write(ospan<char_type,extent>& ob,Iter cbegin,Iter cend) noexcept
 {
 	if constexpr(std::same_as<char_type,std::iter_value_t<Iter>>)
 	{
-		std::size_t const sz(cend-cbegin);
-		if(ob.span.size()<ob.size()+sz)[[unlikely]]
-			fast_terminate();
+		std::size_t sz(cend-cbegin);
+		std::size_t const remain_space(ob.span.size()-ob.size());
+		if(remain_space<sz)[[unlikely]]
+			sz=remain_space;
 		details::non_overlapped_copy_n(cbegin,sz,ob.current);
 		ob.current+=sz;
 	}

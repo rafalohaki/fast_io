@@ -91,7 +91,7 @@ inline constexpr Iter scan_integer_impl(Iter begin,Iter end,T& t)
 	}
 }
 
-template<char8_t base,my_integral intg,dynamic_buffer_output_stream output,character_input_stream input>
+template<char8_t base,my_integral intg,buffer_output_stream output,character_input_stream input>
 inline constexpr bool scn_int_res_impl(output& out,input& in)
 {
 	using namespace scan_transmitter;
@@ -109,12 +109,26 @@ inline constexpr auto space_scan_reserve_define(io_reserve_type_t<intg,end_test>
 	return details::scan_integer_impl<10>(begin,end,t);
 }
 
-template<details::my_integral intg,dynamic_buffer_output_stream output,character_input_stream input>
+template<details::my_integral intg,buffer_output_stream output,character_input_stream input>
 inline constexpr bool scan_reserve_transmit(io_reserve_type_t<intg>,output& out,input& in)
 {
 	return details::scn_int_res_impl<10,intg>(out,in);
 }
 
+template<details::my_integral intg>
+inline constexpr std::size_t scan_reserve_size(io_reserve_type_t<intg>)
+{
+	if constexpr(details::my_unsigned_integral<intg>)
+	{
+		constexpr std::size_t sz{details::cal_max_int_size<details::my_make_unsigned_t<intg>>()+2};
+		return sz;
+	}
+	else
+	{
+		constexpr std::size_t sz{details::cal_max_int_size<details::my_make_unsigned_t<intg>>()+3};
+		return sz;
+	}
+}
 
 template<char8_t base,bool uppercase,details::my_integral intg,bool end_test,std::contiguous_iterator Iter>
 inline constexpr auto space_scan_reserve_define(io_reserve_type_t<manip::base_t<base,uppercase,intg>,end_test>,Iter begin,Iter end,auto t)
@@ -122,13 +136,17 @@ inline constexpr auto space_scan_reserve_define(io_reserve_type_t<manip::base_t<
 	return details::scan_integer_impl<base>(begin,end,t.reference);
 }
 
-template<char8_t base,bool uppercase,details::my_integral intg,dynamic_buffer_output_stream output,character_input_stream input>
+template<char8_t base,bool uppercase,details::my_integral intg,buffer_output_stream output,character_input_stream input>
 inline constexpr bool scan_reserve_transmit(io_reserve_type_t<manip::base_t<base,uppercase,intg>>,output& out,input& in)
 {
 	return details::scn_int_res_impl<base,intg>(out,in);
 }
 
-
+inline constexpr std::size_t scan_reserve_size(io_reserve_type_t<std::byte>)
+{
+	constexpr std::size_t sz{details::cal_max_int_size<details::my_make_unsigned_t<std::uint8_t>>()+2};
+	return sz;
+}
 
 template<bool end_test,std::contiguous_iterator Iter,typename T>
 inline constexpr auto space_scan_reserve_define(io_reserve_type_t<std::byte,end_test>,Iter begin,Iter end,T& t)
@@ -139,12 +157,11 @@ inline constexpr auto space_scan_reserve_define(io_reserve_type_t<std::byte,end_
 	return ret;
 }
 
-template<dynamic_buffer_output_stream output,character_input_stream input>
+template<buffer_output_stream output,character_input_stream input>
 inline constexpr bool scan_reserve_transmit(io_reserve_type_t<std::byte>,output& out,input& in)
 {
 	return details::scn_int_res_impl<10,char8_t>(out,in);
 }
-
 
 
 template<char8_t base,bool uppercase,bool end_test,std::contiguous_iterator Iter>
@@ -156,13 +173,10 @@ inline constexpr auto space_scan_reserve_define(io_reserve_type_t<manip::base_t<
 	return ret;
 }
 
-template<char8_t base,bool uppercase,dynamic_buffer_output_stream output,character_input_stream input>
+template<char8_t base,bool uppercase,buffer_output_stream output,character_input_stream input>
 inline constexpr bool scan_reserve_transmit(io_reserve_type_t<manip::base_t<base,uppercase,std::byte>>,output& out,input& in)
 {
 	return details::scn_int_res_impl<base,char8_t>(out,in);
 }
-
-
-
 
 }

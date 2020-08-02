@@ -31,4 +31,4 @@ inline constexpr void put(output& out,typename output::char_type ch)
 	obuffer_set_curr(out,ref+1);
 //	++ref;
 }
-} // namespace fast_io
+}

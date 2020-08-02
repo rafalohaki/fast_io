@@ -1,9 +1,9 @@
 #pragma once
 
 //fast_io_core.h is required to be usable in freestanding environment with EVEN dynamic memory allocation and exceptions are disabled.
-
+#include<cstddef>
 #include"fast_io_concept.h"
-
+#include<memory>
 #include<limits>
 #include<cstdint>
 
@@ -40,6 +40,8 @@
 #include"fast_io_core_impl/perms.h"
 #include"fast_io_core_impl/seek.h"
 #include"fast_io_core_impl/drain.h"
+
+#include"fast_io_core_impl/ospan.h"
 
 #include"fast_io_core_impl/print_scan.h"
 #include"fast_io_core_impl/print_reserver.h"
@@ -81,7 +83,6 @@ inline constexpr void debug_println(T&& t,Args&& ...args)
 #include"fast_io_core_impl/igenerator.h"
 #include"fast_io_core_impl/black_hole.h"
 #include"fast_io_core_impl/istring_view.h"
-#include"fast_io_core_impl/ospan.h"
 // Provide template prototype for custom string types
 #include"fast_io_core_impl/skip.h"
 

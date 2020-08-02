@@ -6,22 +6,38 @@ namespace fast_io
 namespace details
 {
 
-template<bool space=true,character_input_stream input,typename T>
-inline constexpr bool scan_with_space_temporary_buffer(input& in,T&& t)
+template<bool space,buffer_output_stream output,character_input_stream input,typename T>
+inline constexpr bool scan_with_space_temporary_buffer_impl(output& buffer,input& in,T&& t)
 {
 	using no_cvref = std::remove_cvref_t<T>;
-	internal_temporary_buffer<typename std::remove_cvref_t<input>::char_type> buffer;
 	if(!scan_reserve_transmit(io_reserve_type<no_cvref>,buffer,in))
 		return false;
 	if constexpr(space)
 	{
-		space_scan_reserve_define(io_reserve_type<no_cvref,true>,buffer.beg_ptr,buffer.end_ptr,std::forward<T>(t));
+		space_scan_reserve_define(io_reserve_type<no_cvref,true>,obuffer_begin(buffer),obuffer_curr(buffer),std::forward<T>(t));
 		return true;
 	}
 	else
 	{
-		scan_reserve_define(io_reserve_type<no_cvref,true>,buffer.beg_ptr,buffer.end_ptr,std::forward<T>(t));
+		scan_reserve_define(io_reserve_type<no_cvref,true>,obuffer_begin(buffer),obuffer_curr(buffer),std::forward<T>(t));
 		return true;
+	}
+}
+
+template<bool space=true,character_input_stream input,typename T>
+inline constexpr bool scan_with_space_temporary_buffer(input& in,T&& t)
+{
+	using no_cvref = std::remove_cvref_t<T>;
+	if constexpr(reserve_size_scanable<no_cvref>)
+	{
+		std::array<typename std::remove_cvref_t<input>::char_type,scan_reserve_size(io_reserve_type<std::remove_cvref_t<T>>)> array;
+		ospan osp(array);
+		return scan_with_space_temporary_buffer_impl<space>(osp,in,std::forward<T>(t));
+	}
+	else
+	{
+		internal_temporary_buffer<typename std::remove_cvref_t<input>::char_type> buffer;
+		return scan_with_space_temporary_buffer_impl<space>(buffer,in,std::forward<T>(t));
 	}
 }
 
