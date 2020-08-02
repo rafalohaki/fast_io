@@ -9,12 +9,6 @@ struct ipv4
 	std::array<unsigned char, 4> storage{};
 };
 
-inline constexpr std::size_t scan_reserve_size(io_reserve_type_t<ipv4>)
-{
-	constexpr std::size_t sz{17};
-	return sz;
-}
-
 template<buffer_output_stream output,character_input_stream input>
 inline constexpr bool scan_reserve_transmit(io_reserve_type_t<ipv4>,output& out,input& in)
 {
@@ -130,6 +124,19 @@ inline constexpr std::size_t native_socket_address_size(ipv6 const&)
 inline constexpr auto family(ipv6 const&)
 {
 	return sock::family::ipv6;
+}
+/*
+constexpr std::size_t scan_reserve_size(io_reserve_type_t<ipv6>)
+{
+	return 41;
+}
+*/
+
+template<buffer_output_stream output,character_input_stream input>
+inline constexpr bool scan_reserve_transmit(io_reserve_type_t<ipv6>,output& out,input& in)
+{
+	using namespace fast_io::scan_transmitter;
+	return scan_transmit(out,in,until_none_digit<16>,single_dot,until_none_digit<16>,single_dot,until_none_digit<16>,single_dot,until_none_digit<16>);
 }
 
 template<character_input_stream input>

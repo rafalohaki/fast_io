@@ -4,7 +4,29 @@ namespace fast_io
 {
 namespace details
 {
+template<char8_t base,my_unsigned_integral T>
+inline constexpr void detect_overflow(T const t1,T const t2,std::size_t length)
+{
+	constexpr std::size_t max_size{cal_max_int_size<T,base>()};
+	constexpr std::remove_cvref_t<T> mx_val(std::numeric_limits<std::remove_cvref_t<T>>::max()/static_cast<std::remove_cvref_t<T>>(base));
+	if(max_size<=length)[[unlikely]]
+	{
+		if((max_size<length)|(t1<base)|(mx_val<t2))[[unlikely]]
+			throw_input_overflow_error();
+	}
+}
 
+template<char8_t base,my_unsigned_integral T>
+inline constexpr void detect_signed_overflow(T const t1,T const t2,std::size_t length,bool sign)
+{
+	constexpr std::size_t max_size{cal_max_int_size<T,base>()};
+	constexpr std::remove_cvref_t<T> mx_val(std::numeric_limits<std::remove_cvref_t<T>>::max()/static_cast<std::remove_cvref_t<T>>(base));
+	if(max_size<=length)[[unlikely]]
+	{
+		if((max_size<length)|(t1<base)|(mx_val<t2)|(static_cast<T>(get_int_max_unsigned<T>()+sign)<t1))[[unlikely]]
+			throw_input_overflow_error();
+	}
+}
 
 template<my_integral T,char8_t base,bool no_dec=false,character_input_stream input>
 inline constexpr T input_base_number(input& in)

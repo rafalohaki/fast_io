@@ -27,8 +27,18 @@ inline constexpr bool scan_with_space_temporary_buffer_impl(output& buffer,input
 template<bool space=true,character_input_stream input,typename T>
 inline constexpr bool scan_with_space_temporary_buffer(input& in,T&& t)
 {
+	using no_cvref_input = std::remove_cvref_t<input>;
 	using no_cvref = std::remove_cvref_t<T>;
-	if constexpr(reserve_size_scanable<no_cvref>)
+	if constexpr(space&&space_scanable<no_cvref_input,T>)
+	{
+		space_scan_define(in,std::forward<T>(t));
+		return true;
+	}
+	else if constexpr(!space&&!scanable<no_cvref_input,T>)
+	{
+		return scan_define(in,std::forward<T>(t));
+	}
+	else if constexpr(reserve_size_scanable<no_cvref>)
 	{
 		std::array<typename std::remove_cvref_t<input>::char_type,scan_reserve_size(io_reserve_type<std::remove_cvref_t<T>>)> array;
 		ospan osp(array);
@@ -39,6 +49,7 @@ inline constexpr bool scan_with_space_temporary_buffer(input& in,T&& t)
 		internal_temporary_buffer<typename std::remove_cvref_t<input>::char_type> buffer;
 		return scan_with_space_temporary_buffer_impl<space>(buffer,in,std::forward<T>(t));
 	}
+
 }
 
 template<character_input_stream input,typename T>
@@ -300,16 +311,18 @@ inline constexpr auto scan(input &&in,Args&& ...args)
 	}
 	else if constexpr(status_input_stream<input>)
 		return scan_status_define<report_eof>(in,std::forward<Args>(args)...);
+	else if constexpr(!character_input_stream<input>)
+	{
+		single_character_input_buffer<std::remove_cvref_t<input>> scib{in};
+		return scan<report_eof>(scib,std::forward<Args>(args)...);
+	}
 	else if constexpr(!requires()
 	{
 		details::normal_scan<report_eof>(in,std::forward<Args>(args)...);
 	})
 	{
-		if constexpr(character_input_stream<input>)
-			static_assert(!character_input_stream<input>,
-			"\n\n\tThe type is not defined for scanning. Please consider defining as with scan_define or space_scan_define.\n");
-		else
-			static_assert(character_input_stream<input>);
+		static_assert(!character_input_stream<input>,
+		"\n\n\tThe type is not defined for scanning. Please consider defining as with scan_define or space_scan_define.\n");
 	}
 	else
 		return details::normal_scan<report_eof>(in,std::forward<Args>(args)...);

@@ -43,6 +43,8 @@
 
 #include"fast_io_core_impl/ospan.h"
 
+#include"fast_io_core_impl/igenerator.h"
+#include"fast_io_core_impl/unit_character_input_buffer.h"
 #include"fast_io_core_impl/print_scan.h"
 #include"fast_io_core_impl/print_reserver.h"
 #include"fast_io_core_impl/scan_transmit/scan_transmit.h"
@@ -80,7 +82,6 @@ inline constexpr void debug_println(T&& t,Args&& ...args)
 // This should provide an option macro to disable any generation for table in freestanding environments.
 #include"fast_io_core_impl/integers/integer.h"
 
-#include"fast_io_core_impl/igenerator.h"
 #include"fast_io_core_impl/black_hole.h"
 #include"fast_io_core_impl/istring_view.h"
 // Provide template prototype for custom string types

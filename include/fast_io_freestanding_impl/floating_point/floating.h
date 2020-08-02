@@ -30,7 +30,7 @@ constexpr std::size_t cal_floating_len()
 	}
 }
 }
-
+/*
 template<character_input_stream input,std::floating_point T>
 inline constexpr void space_scan_define(input& in,T &t)
 {
@@ -50,7 +50,7 @@ inline constexpr void space_scan_define(input& in,manip::decimal_point<T&,dec> t
 	else
 		t.value=details::ryu::input_floating<dec,std::remove_cvref_t<T>>(begin(igen),end(igen));
 }
-
+*/
 template<manip::floating_formats fm,bool uppercase,std::floating_point T,char32_t dec>
 inline constexpr std::size_t print_reserve_size
 	(io_reserve_type_t<manip::decimal_point<manip::floating_manip_precision<fm,uppercase,T const>,dec>>)
