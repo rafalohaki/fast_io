@@ -51,4 +51,7 @@ constexpr bool underflow(single_character_input_buffer<input>& in)
 	return in.pos_end;
 }
 
+template<input_stream input>
+constexpr void avoid_scan_reserve(single_character_input_buffer<input>&){}
+
 }

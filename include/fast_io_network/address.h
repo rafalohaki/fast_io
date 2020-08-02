@@ -16,6 +16,37 @@ inline constexpr bool scan_reserve_transmit(io_reserve_type_t<ipv4>,output& out,
 	return scan_transmit(out,in,until_none_digit<10>,single_dot,until_none_digit<10>,single_dot,until_none_digit<10>,single_dot,until_none_digit<10>);
 }
 
+namespace details
+{
+
+template<character_input_stream input>	
+inline constexpr void ipv4_scan_sep(input& in)	
+{
+	auto ig{igenerator(in)};
+	auto bg{begin(ig)},ed{end(ig)};
+	if(bg==ed||*bg!=u8'.')
+#ifdef __cpp_exceptions	
+		throw posix_error(EIO);	
+#else	
+		fast_terminate();	
+#endif	
+	++bg;	
+}
+
+}
+
+template<character_input_stream input>
+inline constexpr void space_scan_define(input& in,ipv4& v4)
+{
+	space_scan_define(in,v4.storage[0]);
+	details::ipv4_scan_sep(in);
+	space_scan_define(in,v4.storage[1]);
+	details::ipv4_scan_sep(in);
+	space_scan_define(in,v4.storage[2]);
+	details::ipv4_scan_sep(in);
+	space_scan_define(in,v4.storage[3]);
+}
+
 template<bool end_test,std::contiguous_iterator Iter>
 inline constexpr auto space_scan_reserve_define(io_reserve_type_t<ipv4,end_test>,Iter begin,Iter end,ipv4& t)
 {

@@ -38,6 +38,11 @@ concept reserve_size_scanable=requires()
 	{scan_reserve_size(io_reserve_type<std::remove_cvref_t<T>>)}->std::convertible_to<std::size_t>;
 };
 
+template<typename input>
+concept reserve_scan_avoidance = requires(input in)
+{
+	avoid_scan_reserve(in);
+};
 
 template<typename T>
 concept reserve_printable=requires(T&& t,char8_t* ptr)
