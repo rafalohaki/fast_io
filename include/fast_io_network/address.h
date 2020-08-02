@@ -9,34 +9,68 @@ struct ipv4
 	std::array<unsigned char, 4> storage{};
 };
 
-
-namespace details
+inline constexpr std::size_t scan_reserve_size(io_reserve_type_t<ipv4>)
 {
-template<character_input_stream input>
-inline constexpr void ipv4_scan_sep(input& in)
-{
-	auto ig{igenerator(in)};
-	auto bg{begin(ig)},ed{end(ig)};
-	if(bg==ed||*bg!=u8'.')
-#ifdef __cpp_exceptions
-		throw posix_error(EIO);
-#else
-		fast_terminate();
-#endif
-	++bg;
-}
+	constexpr std::size_t sz{17};
+	return sz;
 }
 
-template<character_input_stream input>
-inline constexpr void space_scan_define(input& in,ipv4& v4)
+template<buffer_output_stream output,character_input_stream input>
+inline constexpr bool scan_reserve_transmit(io_reserve_type_t<ipv4>,output& out,input& in)
 {
-	space_scan_define(in,v4.storage[0]);
-	details::ipv4_scan_sep(in);
-	space_scan_define(in,v4.storage[1]);
-	details::ipv4_scan_sep(in);
-	space_scan_define(in,v4.storage[2]);
-	details::ipv4_scan_sep(in);
-	space_scan_define(in,v4.storage[3]);
+	using namespace fast_io::scan_transmitter;
+	return scan_transmit(out,in,until_none_digit<10>,single_dot,until_none_digit<10>,single_dot,until_none_digit<10>,single_dot,until_none_digit<10>);
+}
+
+template<bool end_test,std::contiguous_iterator Iter>
+inline constexpr auto space_scan_reserve_define(io_reserve_type_t<ipv4,end_test>,Iter begin,Iter end,ipv4& t)
+{
+	using unsigned_char_type = std::make_unsigned_t<std::iter_value_t<Iter>>;
+	for(std::size_t part{};part!=4;++part)
+	{
+		char8_t val{},val_last{};
+		if(begin!=end&&(static_cast<unsigned_char_type>(9)<static_cast<unsigned_char_type>(static_cast<unsigned_char_type>(*begin)-static_cast<unsigned_char_type>(u8'0'))))
+			throw_malformed_input();	
+		auto start{std::find_if(begin,end,[](auto ch)
+		{
+			return ch!=u8'0';
+		})};
+		auto last{begin};
+		for(begin=start;begin!=end;++begin)
+		{
+			unsigned_char_type const ch(static_cast<unsigned_char_type>(*begin)-u8'0');
+			if(static_cast<unsigned_char_type>(10)<=ch)[[unlikely]]
+			{
+				bool const is_part3{part==3};
+				bool const is_dot{static_cast<unsigned_char_type>(*begin)==static_cast<unsigned_char_type>(u8'.')};
+				if(is_part3==is_dot)[[unlikely]]
+					throw_malformed_input();
+				if(!is_part3)[[unlikely]]
+					++begin;
+				break;
+			}
+			val=((val_last=val)*static_cast<char8_t>(10))+static_cast<char8_t>(ch);
+		}
+		if(last==begin)
+		{
+			if constexpr(end_test)
+			{
+				if(begin==end)
+					return end;
+				else
+					throw_malformed_input();
+
+			}
+			else
+			{
+				throw_malformed_input();
+			}
+		}
+		constexpr char8_t mxdv10(std::numeric_limits<char8_t>::max()/10);
+		details::detect_overflow<10>(val,val_last,((begin-start)-(part!=3)));
+		t.storage[part]=val;
+	}
+	return begin;
 }
 
 inline constexpr std::size_t native_socket_address_size(ipv4 const&)

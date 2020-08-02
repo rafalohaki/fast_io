@@ -100,7 +100,9 @@ inline constexpr Iter process_integer_output(Iter iter,int_type i)
 template<details::my_integral int_type>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<int_type>)
 {
-	if constexpr(details::my_unsigned_integral<int_type>)
+	if constexpr(std::same_as<std::remove_cvref_t<int_type>,bool>)
+		return 1;
+	else if constexpr(details::my_unsigned_integral<int_type>)
 		return details::cal_max_int_size<int_type>();
 	else
 		return details::cal_max_int_size<details::my_make_unsigned_t<int_type>>()+1;
@@ -109,7 +111,13 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<int_type>)
 template<std::random_access_iterator caiter,details::my_integral int_type,typename U>
 inline constexpr caiter print_reserve_define(io_reserve_type_t<int_type>,caiter iter,U i)
 {
-	return details::process_integer_output<10,false>(iter,i);
+	if constexpr(std::same_as<std::remove_cvref_t<int_type>,bool>)
+	{
+		*iter=static_cast<char8_t>(i)+u8'0';
+		return ++iter;
+	}
+	else
+		return details::process_integer_output<10,false>(iter,i);
 }
 
 template<char8_t base,bool uppercase,details::my_integral int_type>

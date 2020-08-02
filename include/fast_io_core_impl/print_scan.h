@@ -14,12 +14,12 @@ inline constexpr bool scan_with_space_temporary_buffer_impl(output& buffer,input
 		return false;
 	if constexpr(space)
 	{
-		space_scan_reserve_define(io_reserve_type<no_cvref,true>,obuffer_begin(buffer),obuffer_curr(buffer),std::forward<T>(t));
+		space_scan_reserve_define(io_reserve_type<no_cvref>,obuffer_begin(buffer),obuffer_curr(buffer),std::forward<T>(t));
 		return true;
 	}
 	else
 	{
-		scan_reserve_define(io_reserve_type<no_cvref,true>,obuffer_begin(buffer),obuffer_curr(buffer),std::forward<T>(t));
+		scan_reserve_define(io_reserve_type<no_cvref>,obuffer_begin(buffer),obuffer_curr(buffer),std::forward<T>(t));
 		return true;
 	}
 }

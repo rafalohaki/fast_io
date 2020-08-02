@@ -116,7 +116,10 @@ inline constexpr bool scan_transmit(output&& out,input&& in,Args&& ...args)
 		auto igen{igenerator(in)};
 		auto bg{begin(igen)};
 		auto ed{end(igen)};
+		if(bg==ed)
+			return false;
 		((details::impl_svt_none_buffer(out,bg,ed,std::forward<Args>(args))),...);
+		return true;
 	}
 }
 
