@@ -33,6 +33,46 @@ inline constexpr void ipv4_scan_sep(input& in)
 	++bg;	
 }
 
+enum class v6_sep_result
+{
+space=0,column=1,digit=2,
+};
+
+template<character_input_stream input>	
+inline constexpr v6_sep_result ipv6_scan_sep(input& in)	
+{
+	auto ig{igenerator(in)};
+	auto bg{begin(ig)},ed{end(ig)};
+	if(bg==ed||*bg!=u8':')
+		return v6_sep_result::space;
+	++bg;
+	if(bg!=ed&&*bg==u8':')
+	{
+		++bg;
+		return v6_sep_result::column;
+	}
+	if(bg==ed)
+		return v6_sep_result::space;
+	else
+	{
+		using unsigned_char_type = std::make_unsigned_t<typename input::char_type>;
+		unsigned_char_type ch(*bg);
+		if(ch==u8':')
+			throw_malformed_input();
+		else
+		{
+			unsigned_char_type ch1(ch-static_cast<unsigned_char_type>(u8'0'));
+			unsigned_char_type ch2(ch-static_cast<unsigned_char_type>(u8'A'));
+			unsigned_char_type ch3(ch-static_cast<unsigned_char_type>(u8'a'));
+			if(ch1<10||ch2<6||ch3<6)
+				return v6_sep_result::digit;
+			else
+				return v6_sep_result::space;
+		}
+		return v6_sep_result::digit;
+	}
+}
+
 }
 
 template<character_input_stream input>
@@ -156,62 +196,43 @@ inline constexpr auto family(ipv6 const&)
 {
 	return sock::family::ipv6;
 }
-/*
-constexpr std::size_t scan_reserve_size(io_reserve_type_t<ipv6>)
-{
-	return 41;
-}
-*/
 
+/*
 template<buffer_output_stream output,character_input_stream input>
 inline constexpr bool scan_reserve_transmit(io_reserve_type_t<ipv6>,output& out,input& in)
 {
 	using namespace fast_io::scan_transmitter;
 	return scan_transmit(out,in,until_none_digit<16>,single_dot,until_none_digit<16>,single_dot,until_none_digit<16>,single_dot,until_none_digit<16>);
 }
+*/
 
 template<character_input_stream input>
 inline constexpr void space_scan_define(input& in,ipv6& v6)
 {
-/*	constexpr auto npos(static_cast<std::size_t>(-1));
-	std::basic_string<typename input::char_type> str;
-	scan(in,str);
-	if(str.size()<2)
-		throw fast_io_text_error(reinterpret_cast<char const*>(u8"ipv6 address too short"));
-	else if(39<str.size())
-		throw fast_io_text_error(reinterpret_cast<char const*>(u8"ipv6 address too long"));
-	std::size_t colons(0),position(npos);
-	if(str.front()!=0x3a)
-		++colons;
-	if(str.back()!=0x3a)
-		++colons;
-	for(std::size_t i(0);i!=str.size();++i)
-		if(str[i]==0x3a)
+	std::size_t double_npos{std::numeric_limits<std::size_t>::max()};
+	for(std::size_t i{};i!=v6.storage.size();++i)
+	{
+		v6.storage[i]=details::input_base_number<std::uint16_t,16>(in);
+		if(i==7)[[unlikely]]
+			break;
+		details::v6_sep_result s{details::ipv6_scan_sep(in)};
+		if(s==details::v6_sep_result::column)
 		{
-			++colons;
-			if(i+1!=str.size()&&str[i+1]==0x3a)
-			{
-				position=i;
-				++i;
-			}
+			if(double_npos!=std::numeric_limits<std::size_t>::max())
+				throw_malformed_input();
+			double_npos=i;
 		}
-	if(7<colons)
-		throw fast_io_text_error(reinterpret_cast<char const*>(u8"too many : for ipv6 address"));
-	if(position!=npos)
-	{
-		std::u8string tempstr(1,0x20);
-		for(std::size_t i(9-colons);i--;)
-			tempstr.append(u8"0 ",2);
-		str.insert(position,tempstr);
+		else if(s==details::v6_sep_result::space)
+		{
+			if(double_npos==std::numeric_limits<std::size_t>::max())
+				throw_malformed_input();
+			break;
+		}
 	}
-	fast_io::basic_istring_view<std::basic_string_view<typename input::char_type>> istrbuf(str);
-	std::uint16_t temp{};
-	for(auto i(v6.storage.begin()),e(v6.storage.end());i!=e;++i)
-	{
-		fast_io::scan(istrbuf,fast_io::hex(temp));
-		*i=static_cast<std::byte>(temp>>8);
-		*++i=static_cast<std::byte>(temp&255);
-	}*/
+	++double_npos;
+	std::size_t copy_mid{10-double_npos};
+	if(double_npos!=std::numeric_limits<std::size_t>::max())
+		std::fill(v6.storage.begin()+double_npos,std::copy_backward(v6.storage.begin()+double_npos,v6.storage.begin()+copy_mid,v6.storage.end()),0);
 }
 
 template<std::integral U>
