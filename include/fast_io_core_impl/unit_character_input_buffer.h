@@ -15,10 +15,26 @@ public:
 	bool pos_end{};
 };
 
-template<input_stream input,typename... Args>
-constexpr decltype(auto) read(single_character_input_buffer<input>& in,Args&& ... args)
+template<input_stream input,std::contiguous_iterator Iter>
+requires (std::same_as<typename input::char_type,std::iter_value_t<Iter>>||std::same_as<char,typename input::char_type>)
+constexpr Iter read(single_character_input_buffer<input>& in,Iter begin,Iter end)
 {
-	return read(in.reference,std::forward<Args>(args)...);
+	if constexpr(std::same_as<typename input::char_type,std::iter_value_t<Iter>>)
+	{
+		if(in.pos!=in.pos_end)
+		{
+			if(begin==end)
+				return begin;
+			details::non_overlapped_copy_n(std::addressof(in.single_character),1,std::to_address(begin));
+			in.pos=in.pos_end;
+			++begin;
+		}
+		return read(in.reference,begin,end);
+	}
+	else
+	{
+		return read(in,reinterpret_cast<char*>(std::to_address(begin)),reinterpret_cast<char*>(std::to_address(end)));
+	}
 }
 
 template<input_stream input>
