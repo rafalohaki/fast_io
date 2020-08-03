@@ -57,7 +57,7 @@ public:
 	using native_handle_type = pa_simple*;
 	constexpr basic_pulseaudio_simple_file(){}
 	constexpr basic_pulseaudio_simple_file(native_handle_type sf):basic_pulseaudio_simple_io_observer<char_type>{sf}{}
-	template<typename... Args>
+
 	basic_pulseaudio_simple_file(native_interface_t,
 		char const* 	server,
 		char const* 	name,
