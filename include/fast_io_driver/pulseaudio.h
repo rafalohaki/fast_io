@@ -117,7 +117,7 @@ template<std::integral char_type,std::contiguous_iterator Iter>
 inline void flush(basic_pulseaudio_simple_io_observer<char_type> bpsiob)
 {
 	int err{};
-	if(pa_simple_write(bpsiob.native_handle(),std::addressof(err))<0)[[unlikely]]
+	if(pa_simple_flush(bpsiob.native_handle(),std::addressof(err))<0)[[unlikely]]
 		throw_pulse_audio_error(err);
 }
 
