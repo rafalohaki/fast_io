@@ -1,7 +1,8 @@
 #pragma once
-struct bio_method_st {
+struct bio_method_st
+{
     int type;
-    char const*name;
+    char const *name;
     int (*bwrite) (BIO *, const char *, size_t, size_t *);
     int (*bwrite_old) (BIO *, const char *, int);
     int (*bread) (BIO *, char *, size_t, size_t *);
@@ -50,23 +51,30 @@ struct bio_io_cookie_functions_t
 		{
 			functions.bread=[](BIO* bbio,char* buf,std::size_t size,std::size_t* readd) noexcept->int
 			{
+#ifdef __cpp_exceptions
 				try
 				{
+#endif
 					*readd=read(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size)-buf;
-					return 0;
+					return 1;
+#ifdef __cpp_exceptions
 				}
 				catch(...)
 				{
 					return -1;
 				}
+#endif
 			};
 		}
 		if constexpr(output_stream<value_type>)
 		{
 			functions.bwrite=[](BIO* bbio,char const* buf,std::size_t size,std::size_t* written) noexcept->int
 			{
+#ifdef __cpp_exceptions
 				try
 				{
+#endif
+//					::debug_println("here: ",bbio," name:",std::string_view(buf,size)," ",buf," ",size," ",written);
 					if constexpr(std::same_as<decltype(write(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size)),void>)
 					{
 						write(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size);
@@ -74,19 +82,21 @@ struct bio_io_cookie_functions_t
 					}
 					else
 						*written=write(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size)-buf;
-					return 0;
+					return 1;
+#ifdef __cpp_exceptions
 				}
 				catch(...)
 				{
 					return -1;
 				}
+#endif
 			};
 		}
 		if constexpr(!std::is_reference_v<stm>)
 			functions.destroy=[](BIO* bbio) noexcept -> int
 			{
 				delete bit_cast<stm*>(BIO_get_data(bbio));
-				return 0;
+				return 1;
 			};
 		functions.name=typeid(stm).name();
 		constexpr int value(BIO_TYPE_DESCRIPTOR-BIO_TYPE_START);
@@ -157,7 +167,7 @@ class basic_bio_file:public basic_bio_io_observer<ch_type>
 	void detect_open_failure()
 	{
 		if(this->native_handle()==nullptr)[[unlikely]]
-			throw openssl_error();
+			throw_openssl_error();
 	}
 public:
 	using native_handle_type = BIO*;

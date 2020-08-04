@@ -199,21 +199,38 @@ struct public_key
 /*
 https://linux.die.net/man/3/pem_read_rsa_pubkey
 */
+
+
 template<output_stream output>
+requires std::same_as<typename std::remove_cvref_t<output>::char_type,char>
 inline void print_define(output& out,private_key const& key)
 {
-	bio_file bf(io_cookie,out);
-//	::debug_println(bf.native_handle()," ",key.x.native_handle());
-	if(!PEM_write_bio_PrivateKey(bf.native_handle(),key.x.native_handle(),key.enc,key.kstr,key.klen,key.cb,key.u))
-		throw_openssl_error();
+	if constexpr(std::derived_from<std::remove_cvref_t<output>,bio_io_observer>)
+	{
+		if(!PEM_write_bio_PrivateKey(out.native_handle(),key.x.native_handle(),key.enc,key.kstr,key.klen,key.cb,key.u))
+			throw_openssl_error();
+	}
+	else
+	{
+		bio_file bf(io_cookie,out);
+		print_define(bf,key);
+	}	
 }
 
 template<output_stream output>
+requires std::same_as<typename std::remove_cvref_t<output>::char_type,char>
 inline void print_define(output& out,public_key const& key)
 {
-	bio_file bf(io_cookie,out);
-	if(!PEM_write_bio_PUBKEY(bf.native_handle(),key.x.native_handle()))
-		throw_openssl_error();
+	if constexpr(std::derived_from<std::remove_cvref_t<output>,bio_io_observer>)
+	{
+		if(!PEM_write_bio_PUBKEY(out.native_handle(),key.x.native_handle()))
+			throw_openssl_error();
+	}
+	else
+	{
+		bio_file bf(io_cookie,out);
+		print_define(bf,key);
+	}
 }
 
 
