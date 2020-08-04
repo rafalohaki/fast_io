@@ -74,7 +74,6 @@ struct bio_io_cookie_functions_t
 				try
 				{
 #endif
-//					::debug_println("here: ",bbio," name:",std::string_view(buf,size)," ",buf," ",size," ",written);
 					if constexpr(std::same_as<decltype(write(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size)),void>)
 					{
 						write(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size);
@@ -348,25 +347,4 @@ inline void openssl_error::report(error_reporter& err) const
 	bio_file bf(io_cookie,err);
 	ERR_print_errors(bf.native_handle());
 }
-/*
-inline constexpr char* ibuffer_begin(bio_io_observer cio) noexcept
-{
-}
-
-inline constexpr char* ibuffer_curr(bio_io_observer cio) noexcept
-{
-}
-
-inline constexpr char* ibuffer_end(bio_io_observer cio) noexcept
-{
-}
-
-inline constexpr void ibuffer_set_curr(bio_io_observer cio,char* ptr) noexcept
-{
-}
-
-inline bool underflow(bio_io_observer cio) noexcept
-{
-}
-*/
 }
