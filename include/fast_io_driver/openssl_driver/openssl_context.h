@@ -11,7 +11,7 @@ public:
 	openssl_context():openssl_context_observer(OPENSSL_CTX_new())
 	{
 		if(this->native_handle()==nullptr)
-			throw openssl_error();
+			throw_openssl_error();
 	}
 	openssl_context(openssl_context const&) = delete;
 	openssl_context& operator=(openssl_context const&) = delete;
