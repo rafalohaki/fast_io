@@ -312,7 +312,7 @@ inline Iter read(basic_bio_io_observer<ch_type> iob,Iter begin,Iter end)
 	std::size_t read_bytes{};
 	if(BIO_read_ex(iob.native_handle(),std::to_address(begin),
 		sizeof(*begin)*(std::to_address(end)-std::to_address(begin)),std::addressof(read_bytes))==-1)
-		throw openssl_error();
+		throw_openssl_error();
 	return begin+read_bytes/sizeof(*begin);
 }
 
@@ -322,7 +322,7 @@ inline Iter write(basic_bio_io_observer<ch_type> iob,Iter begin,Iter end)
 	std::size_t written_bytes{};
 	if(BIO_write_ex(iob.native_handle(),std::to_address(begin),
 		sizeof(*begin)*(std::to_address(end)-std::to_address(begin)),std::addressof(written_bytes))==-1)
-		throw openssl_error();
+		throw_openssl_error();
 	return begin+written_bytes/sizeof(*begin);
 }
 

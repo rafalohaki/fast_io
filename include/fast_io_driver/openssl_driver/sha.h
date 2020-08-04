@@ -45,47 +45,27 @@ public:
 		if constexpr(ctx_type==sha_type::sha1)
 		{
 			if(!SHA_Init(std::addressof(ctx)))
-#ifdef __cpp_exceptions
-				throw openssl_error();
-#else
-				fast_terminate();
-#endif
+				throw_openssl_error();
 		}
 		else if constexpr(ctx_type==sha_type::sha224)
 		{
 			if(!SHA224_Init(std::addressof(ctx)))
-#ifdef __cpp_exceptions
-				throw openssl_error();
-#else
-				fast_terminate();
-#endif
+				throw_openssl_error();
 		}
 		else if constexpr(ctx_type==sha_type::sha256)
 		{
 			if(!SHA256_Init(std::addressof(ctx)))
-#ifdef __cpp_exceptions
-				throw openssl_error();
-#else
-				fast_terminate();
-#endif
+				throw_openssl_error();
 		}
 		else if constexpr(ctx_type==sha_type::sha384)
 		{
 			if(!SHA384_Init(std::addressof(ctx)))
-#ifdef __cpp_exceptions
-				throw openssl_error();
-#else
-				fast_terminate();
-#endif
+				throw_openssl_error();
 		}
 		else if constexpr(ctx_type==sha_type::sha512)
 		{
 			if(!SHA512_Init(std::addressof(ctx)))
-#ifdef __cpp_exceptions
-				throw openssl_error();
-#else
-				fast_terminate();
-#endif
+				throw_openssl_error();
 		}
 	}
 	[[nodiscard]] auto do_final()
@@ -94,55 +74,35 @@ public:
 		{
 			sha_final_result<SHA_DIGEST_LENGTH> ret; 
 			if(!SHA_Final(ret.digest_block.data(),std::addressof(ctx)))
-#ifdef __cpp_exceptions
-				throw openssl_error();
-#else
-				fast_terminate();
-#endif
+				throw_openssl_error();
 			return ret;
 		}
 		else if constexpr(ctx_type==sha_type::sha224)
 		{
 			sha_final_result<SHA224_DIGEST_LENGTH> ret; 
 			if(!SHA224_Final(ret.digest_block.data(),std::addressof(ctx)))
-#ifdef __cpp_exceptions
-				throw openssl_error();
-#else
-				fast_terminate();
-#endif
+				throw_openssl_error();
 			return ret;
 		}
 		else if constexpr(ctx_type==sha_type::sha256)
 		{
 			sha_final_result<SHA256_DIGEST_LENGTH> ret; 
 			if(!SHA256_Final(ret.digest_block.data(),std::addressof(ctx)))
-#ifdef __cpp_exceptions
-				throw openssl_error();
-#else
-				fast_terminate();
-#endif
+				throw_openssl_error();
 			return ret;
 		}
 		else if constexpr(ctx_type==sha_type::sha384)
 		{
 			sha_final_result<SHA384_DIGEST_LENGTH> ret; 
 			if(!SHA384_Final(ret.digest_block.data(),std::addressof(ctx)))
-#ifdef __cpp_exceptions
-				throw openssl_error();
-#else
-				fast_terminate();
-#endif
+				throw_openssl_error();
 			return ret;
 		}
 		else if constexpr(ctx_type==sha_type::sha512)
 		{
 			sha_final_result<SHA512_DIGEST_LENGTH> ret; 
 			if(!SHA512_Final(ret.digest_block.data(),std::addressof(ctx)))
-#ifdef __cpp_exceptions
-				throw openssl_error();
-#else
-				fast_terminate();
-#endif
+				throw_openssl_error();
 			return ret;
 		}
 	}
@@ -154,48 +114,40 @@ inline void write(sha_context<ctx_type>& ctx,Iter begin,Iter end)
 	if constexpr(ctx_type==sha_type::sha1)
 	{
 		if(!SHA_Update(std::addressof(ctx.ctx),std::to_address(begin),(std::to_address(end)-std::to_address(begin))*sizeof(*begin)))
-#ifdef __cpp_exceptions
-			throw openssl_error();
-#else
-			fast_terminate();
-#endif		
+			throw_openssl_error();	
 	}
 	else if constexpr(ctx_type==sha_type::sha224)
 	{
 		if(!SHA224_Update(std::addressof(ctx.ctx),std::to_address(begin),(std::to_address(end)-std::to_address(begin))*sizeof(*begin)))
-#ifdef __cpp_exceptions
-			throw openssl_error();
-#else
-			fast_terminate();
-#endif
+			throw_openssl_error();
 	}
 	else if constexpr(ctx_type==sha_type::sha256)
 	{
 		if(!SHA256_Update(std::addressof(ctx.ctx),std::to_address(begin),(std::to_address(end)-std::to_address(begin))*sizeof(*begin)))
-#ifdef __cpp_exceptions
-			throw openssl_error();
-#else
-			fast_terminate();
-#endif
+			throw_openssl_error();
 	}
 	else if constexpr(ctx_type==sha_type::sha384)
 	{
 		if(!SHA384_Update(std::addressof(ctx.ctx),std::to_address(begin),(std::to_address(end)-std::to_address(begin))*sizeof(*begin)))
-#ifdef __cpp_exceptions
-			throw openssl_error();
-#else
-			fast_terminate();
-#endif
+			throw_openssl_error();
 	}
 	else if constexpr(ctx_type==sha_type::sha512)
 	{
 		if(!SHA512_Update(std::addressof(ctx.ctx),std::to_address(begin),(std::to_address(end)-std::to_address(begin))*sizeof(*begin)))
-#ifdef __cpp_exceptions
-			throw openssl_error();
-#else
-			fast_terminate();
-#endif
+			throw_openssl_error();
 	}
+}
+
+template<sha_type ctx_type>
+inline std::size_t scatter_write(sha_context<ctx_type>& ctx,std::span<io_scatter_t const> sp)
+{
+	std::size_t sz{};
+	for(auto const& e : sp)
+	{
+		write(ctx,reinterpret_cast<char const*>(e.base),reinterpret_cast<char const*>(e.base)+e.len);
+		sz+=e.len;
+	}
+	return sz;
 }
 
 using sha1=sha_context<sha_type::sha1>;
