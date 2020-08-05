@@ -40,9 +40,6 @@ public:
 		details::report_win32_error(report,ec);
 	}
 };
-
-namespace details
-{
 inline void throw_win32_error()
 {
 #ifdef __cpp_exceptions
@@ -51,5 +48,12 @@ inline void throw_win32_error()
 	fast_terminate();
 #endif
 }
+inline void throw_win32_error(std::uint32_t err)
+{
+#ifdef __cpp_exceptions
+	throw win32_error(err);
+#else
+	fast_terminate();
+#endif
 }
 }

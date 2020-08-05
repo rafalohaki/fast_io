@@ -239,11 +239,7 @@ inline std::FILE* funopen_wrapper(void* cookie)
 funopen(
 cookie,readfn,writefn,seekfn,closefn)};
 	if(fp==nullptr)
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 	return fp;
 }
 
@@ -285,11 +281,7 @@ public:
 #endif
 );
 		if(fd<0)
-#ifdef __cpp_exceptions
-			throw posix_error();
-#else
-			fast_terminate();
-#endif
+			throw_posix_error();
 		return basic_posix_io_observer<char_type>{fd};
 	}
 #if defined(__WINNT__) || defined(_MSC_VER)
@@ -328,11 +320,7 @@ inline Iter read(basic_c_io_observer_unlocked<T> cfhd,Iter begin,Iter end)
 	(std::to_address(begin),sizeof(*begin),count,cfhd.native_handle()));
 	if(r==count||std::feof(cfhd.native_handle()))
 		return begin+r;
-#ifdef __cpp_exceptions
-	throw posix_error();
-#else
-	fast_terminate();
-#endif
+	throw_posix_error();
 }
 
 template<std::integral T,std::contiguous_iterator Iter>
@@ -349,11 +337,7 @@ inline void write(basic_c_io_observer_unlocked<T> cfhd,Iter begin,Iter end);
 	fwrite
 #endif
 	(std::to_address(begin),sizeof(*begin),count,cfhd.native_handle())<count)
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 }
 */
 template<std::integral T>
@@ -368,11 +352,7 @@ inline void flush(basic_c_io_observer_unlocked<T> cfhd)
 		fflush
 #endif
 	(cfhd.native_handle()))
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 }
 
 
@@ -386,18 +366,10 @@ inline auto seek(basic_c_io_observer_unlocked<ch_type> cfhd,seek_type_t<T>,U i,s
 		fseek
 #endif
 	(cfhd.native_handle(),seek_precondition<long,T,char>(i),static_cast<int>(s)))
-#ifdef __cpp_exceptions
-		throw posix_error(); 
-#else
-		fast_terminate();
-#endif
+		throw_posix_error(); 
 	auto val(std::ftell(cfhd.native_handle()));
 	if(val<0)
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 	return val;
 }
 
@@ -451,11 +423,7 @@ public:
 #endif
 );
 		if(fd<0)
-#ifdef __cpp_exceptions
-			throw posix_error();
-#else
-			fast_terminate();
-#endif
+			throw_posix_error();
 		return basic_posix_io_observer<char_type>{fd};
 	}
 #if defined(__WINNT__) || defined(_MSC_VER)
@@ -521,11 +489,7 @@ inline Iter read(basic_c_io_observer<T> cfhd,Iter begin,Iter end)
 	std::size_t const r(std::fread(std::to_address(begin),sizeof(*begin),count,cfhd.native_handle()));
 	if(r==count||std::feof(cfhd.native_handle()))
 		return begin+r;
-#ifdef __cpp_exceptions
-	throw posix_error();
-#else
-	fast_terminate();
-#endif
+	throw_posix_error();
 }
 
 template<std::integral T,std::contiguous_iterator Iter>
@@ -533,40 +497,24 @@ inline void write(basic_c_io_observer<T> cfhd,Iter begin,Iter end)
 {
 	std::size_t const count(end-begin);
 	if(std::fwrite(std::to_address(begin),sizeof(*begin),count,cfhd.native_handle())<count)
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 }
 
 template<std::integral T>
 inline void flush(basic_c_io_observer<T> cfhd)
 {
 	if(std::fflush(cfhd.native_handle()))
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 }
 
 template<typename P,typename T,std::integral U>
 inline auto seek(basic_c_io_observer<P> cfhd,seek_type_t<T>,U i,seekdir s=seekdir::beg)
 {
 	if(std::fseek(cfhd.native_handle(),seek_precondition<long,T,typename basic_c_io_observer<P>::char_type>(i),static_cast<int>(s)))
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 	auto val(std::ftell(cfhd.native_handle()));
 	if(val<0)
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 	return val;
 }
 
@@ -633,11 +581,7 @@ public:
 	basic_c_file_impl(std::string_view name,std::string_view mode):T(std::fopen(name.data(),mode.data()))
 	{
 		if(native_handle()==nullptr)
-#ifdef __cpp_exceptions
-			throw posix_error();
-#else
-			fast_terminate();
-#endif
+			throw_posix_error();
 	}
 	basic_c_file_impl(std::string_view file,open_mode const& m):basic_c_file_impl(file,c_style(m))
 	{
@@ -657,11 +601,7 @@ public:
 			)
 	{
 		if(native_handle()==nullptr)
-#ifdef __cpp_exceptions
-			throw posix_error();
-#else
-			fast_terminate();
-#endif
+			throw_posix_error();
 		posix_handle.detach();
 		if constexpr(std::same_as<wchar_t,typename T::char_type>)
 		{
@@ -672,12 +612,8 @@ public:
 		//close buffer for non char and wchar_t types like libstdc++ does. All these hacks just violate strict-aliasing rule
 			if(setvbuf(this->native_handle(),nullptr,_IONBF,0))
 			{
-#ifdef __cpp_exceptions
 				std::fclose(this->native_handle());
-				throw posix_error();
-#else
-				fast_terminate();
-#endif
+				throw_posix_error();
 			}
 		}
 	}
@@ -743,22 +679,14 @@ public:
 #if defined(_GNU_SOURCE) || defined(__MUSL__)
 		std::unique_ptr<stm> up{std::make_unique<std::remove_cvref_t<stm>>(std::forward<std::remove_cvref_t<stm>>(args)...)};
 		if(!(this->native_handle()=fopencookie(up.get(),mode.data(),c_io_cookie_functions<std::remove_cvref_t<stm>>.native_functions)))[[unlikely]]
-#ifdef __cpp_exceptions
-               		throw posix_error();
-#else
-			fast_terminate();
-#endif
+               			throw_posix_error();
 		up.release();
 #elif defined(__BSD_VISIBLE) || defined(__BIONIC__) || defined(__NEWLIB__)
 		std::unique_ptr<stm> up{std::make_unique<std::remove_cvref_t<stm>>(std::forward<Args>(args)...)};
 		this->native_handle()=details::funopen_wrapper<std::remove_cvref_t<stm>>(up.get());
 		up.release();
 #else
-#ifdef __cpp_exceptions
-		throw posix_error(EOPNOTSUPP);
-#else
-		fast_terminate();
-#endif
+		throw_posix_error(EOPNOTSUPP);
 #endif
 	}
 
@@ -767,19 +695,11 @@ public:
 	{
 #if defined(_GNU_SOURCE) || defined(__MUSL__)
 		if(!(this->native_handle()=fopencookie(std::addressof(reff),mode.data(),c_io_cookie_functions<stm&>.native_functions)))[[unlikely]]
-#ifdef __cpp_exceptions
-               		throw posix_error();
-#else
-			fast_terminate();
-#endif
+               			throw_posix_error();
 #elif defined(__BSD_VISIBLE) || defined(__BIONIC__) || defined(__NEWLIB__)
 		this->native_handle()=details::funopen_wrapper<stm&>(std::addressof(reff));
 #else
-#ifdef __cpp_exceptions
-		throw posix_error(EOPNOTSUPP);
-#else
-		fast_terminate();
-#endif
+		throw_posix_error(EOPNOTSUPP);
 #endif
 	}
 	template<stream stm>

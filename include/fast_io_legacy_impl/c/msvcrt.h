@@ -75,11 +75,7 @@ inline void overflow(c_io_observer_unlocked cio,char ch)
 {
 	cio.fp->_flag|=0x010000;
 	if(_flsbuf(static_cast<int>(static_cast<unsigned char>(ch)),cio.fp)==EOF)[[unlikely]]
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 }
 
 inline constexpr bool obuffer_is_active(c_io_observer_unlocked cio)
@@ -143,11 +139,7 @@ inline void overflow(wc_io_observer_unlocked cio,wchar_t ch)
 {
 	obuffer_set_curr(cio,obuffer_end(cio));
 	if(fputwc(static_cast<wint_t>(static_cast<std::make_unsigned_t<wchar_t>>(ch)),cio.fp)==WEOF)[[unlikely]]
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 }
 
 inline constexpr bool obuffer_is_active(wc_io_observer_unlocked cio)

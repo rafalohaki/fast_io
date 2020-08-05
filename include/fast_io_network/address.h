@@ -25,12 +25,8 @@ inline constexpr void ipv4_scan_sep(input& in)
 	auto ig{igenerator(in)};
 	auto bg{begin(ig)},ed{end(ig)};
 	if(bg==ed||*bg!=u8'.')
-#ifdef __cpp_exceptions	
-		throw posix_error(EIO);	
-#else	
-		fast_terminate();	
-#endif	
-	++bg;	
+		throw_posix_error(EIO);
+	++bg;
 }
 
 enum class v6_sep_result

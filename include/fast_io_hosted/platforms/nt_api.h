@@ -12,11 +12,7 @@ inline auto get_nt_module_handle() noexcept(no_exception)
 	else
 	{
 		if(mod==nullptr)
-#ifdef __cpp_exceptions
-			throw win32_error();
-#else
-			fast_terminate();
-#endif
+			throw_win32_error();
 		return mod;
 	}
 }
@@ -39,11 +35,7 @@ inline func* get_nt_module_handle(char const* funname) noexcept(no_exception)
 	else
 	{
 		if(proc_addr==nullptr)
-#ifdef __cpp_exceptions
-			throw win32_error();
-#else
-			fast_terminate();
-#endif
+			throw_win32_error();
 		return bit_cast<func*>(proc_addr);
 	}
 }

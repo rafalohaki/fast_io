@@ -35,11 +35,7 @@ inline void overflow(c_io_observer_unlocked cio,char ch)
 {
 	obuffer_set_curr(cio,obuffer_end(cio));
 	if(__sputc_r(_REENT,static_cast<int>(static_cast<char unsigned>(ch)),cio.fp)==EOF)[[unlikely]]
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 }
 
 inline char* ibuffer_begin(c_io_observer_unlocked cio) noexcept
@@ -69,11 +65,7 @@ inline bool underflow(c_io_observer_unlocked cio)
 {
 	bool eof(__ssrefill_r(_REENT,cio.fp));
 	if(!eof&&__sferror(cio.fp))
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 	return eof;
 }
 

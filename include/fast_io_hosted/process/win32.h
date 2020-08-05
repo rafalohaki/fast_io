@@ -65,19 +65,11 @@ public:
 	{
 		std::uint32_t dw_flags{};
 		if(!fast_io::win32::GetHandleInformation(hd,std::addressof(dw_flags)))
-#ifdef __cpp_exceptions
-			throw win32_error();
-#else
-			fast_terminate();
-#endif
+			throw_win32_error();
 		if(!(dw_flags&1))
 		{
 			if(!fast_io::win32::SetHandleInformation(hd,1,1))
-#ifdef __cpp_exceptions
-				throw win32_error();
-#else
-				fast_terminate();
-#endif
+				throw_win32_error();
 			hobject=hd;
 		}
 	}

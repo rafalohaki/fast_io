@@ -41,11 +41,7 @@ inline bool underflow(basic_general_streambuf_io_observer<T> cio)
 	using traits_type = typename T::traits_type;
 	bool test{cio.rdb->sgetc()!=traits_type::eof()};
 	if(test&&ibuffer_begin(cio)==ibuffer_end(cio))[[unlikely]]
-#if __cpp_exceptions
-		throw posix_error(EIO);
-#else
-		fast_terminate();
-#endif
+		throw_posix_error(EIO);
 	return test;
 }
 
@@ -79,11 +75,7 @@ inline void overflow(basic_general_streambuf_io_observer<T> cio,typename T::char
 	obuffer_set_curr(cio,obuffer_end(cio));
 	using traits_type = typename T::traits_type;
 	if(cio.rdb->sputc(ch)==traits_type::eof())
-#ifdef __cpp_exceptions
-		throw posix_error(EIO);
-#else
-		fast_terminate();
-#endif
+		throw_posix_error(EIO);
 }
 
 }

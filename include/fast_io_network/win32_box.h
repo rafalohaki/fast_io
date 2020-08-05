@@ -28,22 +28,14 @@ template<typename func,std::integral char_type,std::contiguous_iterator Iter>
 inline void win32_box_write_impl(func func_ptr,char_type const* title,Iter begin,Iter end)
 {
 	if(func_ptr==nullptr)
-#ifdef __cpp_exceptions
-		throw win32_error();
-#else
-		fast_terminate();
-#endif
+		throw_win32_error();
 	std::basic_string<char_type> str(begin,end);
 	std::erase_if(str,[](auto ch)
 	{
 		return ch==0;
 	});
 	if(!func_ptr(nullptr,str.c_str(),title,0x00000040L/*MB_ICONINFORMATION*/))
-#ifdef __cpp_exceptions
-		throw win32_error();
-#else
-		fast_terminate();
-#endif
+		throw_win32_error();
 }
 
 }

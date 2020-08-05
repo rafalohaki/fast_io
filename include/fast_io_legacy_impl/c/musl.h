@@ -103,11 +103,7 @@ inline bool underflow(c_io_observer_unlocked cio)
 {
 	bool eof{__uflow(cio.fp)!=EOF};
 	if(!eof&&ferror_unlocked(cio.fp))
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 	ibuffer_set_curr(cio,ibuffer_begin(cio));
 	return eof;
 }
@@ -137,11 +133,7 @@ extern "C" int __overflow(_IO_FILE *, int);
 inline void overflow(c_io_observer_unlocked cio,char ch)
 {
 	if(__overflow(cio.fp,static_cast<int>(static_cast<unsigned char>(ch)))==EOF)[[unlikely]]
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 }
 
 

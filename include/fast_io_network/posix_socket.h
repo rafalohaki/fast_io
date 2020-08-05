@@ -27,11 +27,7 @@ inline auto call_posix(Func&& func,Args&& ...args)
 {
 	auto ret(func(std::forward<Args>(args)...));
 	if(ret==-1)
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 	return ret;
 }
 

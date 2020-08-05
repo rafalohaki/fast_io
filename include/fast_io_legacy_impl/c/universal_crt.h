@@ -169,11 +169,7 @@ inline void overflow(c_io_observer_unlocked cio,char ch)
 {
 	obuffer_set_curr(cio,obuffer_end(cio));
 	if(_fputc_nolock(static_cast<int>(static_cast<unsigned char>(ch)),cio.fp)==EOF)[[unlikely]]
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 }
 
 [[gnu::may_alias]] inline wchar_t* ibuffer_begin(wc_io_observer_unlocked cio)
@@ -244,11 +240,7 @@ inline void overflow(wc_io_observer_unlocked cio,wchar_t ch)
 	using namespace details::ucrt_hack;
 	obuffer_set_curr(cio,obuffer_end(cio));
 	if(_fputwc_nolock(static_cast<wint_t>(static_cast<std::make_unsigned_t<wchar_t>>(ch)),cio.fp)==WEOF)[[unlikely]]
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 }
 
 inline bool obuffer_is_active(c_io_observer_unlocked cio)

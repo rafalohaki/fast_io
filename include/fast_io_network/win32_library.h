@@ -21,11 +21,7 @@ public:
 	win32_library(wchar_t const* name):plib(::LoadLibraryW(name))
 	{
 		if(plib==nullptr)
-#ifdef __cpp_exceptions
-			throw win32_error();
-#else
-			fast_terminate();
-#endif
+			throw_win32_error();
 	}
 	win32_library(win32_library const&)=delete;
 	win32_library& operator=(win32_library const&)=delete;

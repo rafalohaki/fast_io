@@ -230,12 +230,8 @@ public:
 	basic_win32_memory_io_handle(basic_win32_memory_io_handle const& other)
 	{
 		auto const current_process(win32::GetCurrentProcess());
-		if(!win32::DuplicateHandle(current_process,other.native_handle(),current_process,std::addressof(this->native_handle()), 0, true, 2/*DUPLICATE_SAME_ACCESS*/))
-#ifdef __cpp_exceptions
-			throw win32_error();
-#else
-			fast_terminate();
-#endif
+		if (!win32::DuplicateHandle(current_process, other.native_handle(), current_process, std::addressof(this->native_handle()), 0, true, 2/*DUPLICATE_SAME_ACCESS*/))
+			throw_win32_error();
 		this->base_address()=other.base_address();
 	}
 	basic_win32_memory_io_handle& operator=(basic_win32_memory_io_handle const& other)
@@ -243,11 +239,7 @@ public:
 		auto const current_process(win32::GetCurrentProcess());
 		void* new_handle{};
 		if(!win32::DuplicateHandle(current_process,other.native_handle(),current_process,std::addressof(new_handle), 0, true, 2/*DUPLICATE_SAME_ACCESS*/))
-#ifdef __cpp_exceptions
-			throw win32_error();
-#else
-			fast_terminate();
-#endif
+			throw_win32_error();
 		if(this->native_handle())[[likely]]
 			fast_io::win32::CloseHandle(this->native_handle());
 		this->native_handle()=new_handle;
