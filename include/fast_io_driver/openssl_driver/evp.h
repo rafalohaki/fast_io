@@ -202,7 +202,7 @@ https://linux.die.net/man/3/pem_read_rsa_pubkey
 
 
 template<output_stream output>
-requires std::same_as<typename std::remove_cvref_t<output>::char_type,char>
+requires (std::same_as<typename std::remove_cvref_t<output>::char_type,char>&&(std::derived_from<std::remove_cvref_t<output>,bio_io_observer>||buffer_output_stream<std::remove_cvref_t<output>>))
 inline void print_define(output& out,private_key const& key)
 {
 	if constexpr(std::derived_from<std::remove_cvref_t<output>,bio_io_observer>)
@@ -218,7 +218,7 @@ inline void print_define(output& out,private_key const& key)
 }
 
 template<output_stream output>
-requires std::same_as<typename std::remove_cvref_t<output>::char_type,char>
+requires (std::same_as<typename std::remove_cvref_t<output>::char_type,char>&&(std::derived_from<std::remove_cvref_t<output>,bio_io_observer>||buffer_output_stream<std::remove_cvref_t<output>>))
 inline void print_define(output& out,public_key const& key)
 {
 	if constexpr(std::derived_from<std::remove_cvref_t<output>,bio_io_observer>)
