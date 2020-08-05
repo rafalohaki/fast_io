@@ -68,7 +68,7 @@ inline void* nt_fork()
 	else if(v==297/*RTL_CLONE_CHILD*/)
 	{
 		if(!AllocConsole())
-			throw win32_error();
+			throw_win32_error();
 		return nullptr;
 	}
 	throw_nt_error(v);

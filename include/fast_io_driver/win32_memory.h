@@ -321,7 +321,7 @@ inline std::uint32_t get_process_id_from_window_name(std::string_view name)
 {
 	void* hwnd {win32::FindWindowA(nullptr,name.data())};
 	if(hwnd==nullptr)
-		throw win32_error();
+		throw_win32_error();
 	std::uint32_t process_id{};
 	win32::GetWindowThreadProcessId(hwnd,std::addressof(process_id));
 	return process_id;
@@ -342,14 +342,14 @@ public:
 		basic_win32_memory_io_handle<ch_type>(win32::OpenProcess(static_cast<std::uint32_t>(dw_desired_access),inherit_handle,process_id),base_addr)
 	{
 		if(this->native_handle()==nullptr)
-			throw win32_error();
+			throw_win32_error();
 	}
 	void close()
 	{
 		if(this->native_handle())[[likely]]
 		{
 			if(!fast_io::win32::CloseHandle(this->native_handle()))[[unlikely]]
-				throw win32_error();
+				throw_win32_error();
 			this->native_handle()=nullptr;
 			this->base_address()={};
 		}
@@ -366,7 +366,7 @@ template<std::integral char_type,std::contiguous_iterator Iter>
 {
 	std::size_t readed{};
 	if(!win32::ReadProcessMemory(iob.handle,bit_cast<void const*>(iob.base_addr),std::to_address(begin),(end-begin)*sizeof(*begin),std::addressof(readed)))
-		throw win32_error();
+		throw_win32_error();
 	iob.base_addr+=readed;
 	return begin+readed/sizeof(*begin);
 }
@@ -383,7 +383,7 @@ inline Iter write(basic_win32_memory_io_observer<char_type>& iob,Iter begin,Iter
 	std::size_t written{};
 	if(!win32::WriteProcessMemory(iob.handle,bit_cast<void*>(iob.base_addr),
 		std::to_address(begin),(end-begin)*sizeof(*begin),std::addressof(written)))
-		throw win32_error();
+		throw_win32_error();
 	iob.base_addr+=written;
 	return begin+written/sizeof(*begin);
 }
@@ -399,7 +399,7 @@ inline win32_memory_basic_information win32_virtual_query(basic_win32_memory_io_
 {
 	win32_memory_basic_information mem{};
 	if(win32::VirtualQueryEx(iob.handle,bit_cast<void const*>(iob.base_addr),std::addressof(mem),sizeof(mem))!=sizeof(mem))
-		throw win32_error();
+		throw_win32_error();
 	return mem;
 }
 
@@ -411,7 +411,7 @@ inline win32_memory_page_protect win32_virtual_protect(basic_win32_memory_io_obs
 	std::uint32_t old_protect{};
 	if(!win32::VirtualProtectEx(iob.handle,bit_cast<void const*>(iob.base_addr),
 		size,static_cast<std::uint32_t>(new_protect),std::addressof(old_protect)))
-		throw win32_error();
+		throw_win32_error();
 	return static_cast<win32_memory_page_protect>(old_protect);
 }
 
