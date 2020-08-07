@@ -206,6 +206,74 @@ inline constexpr bool scan_reserve_transmit(io_reserve_type_t<ipv6>,output& out,
 }
 */
 
+// // from https://gist.github.com/njh/84125c8ededdeb74ec5cc80a4003f308
+// template<character_input_stream input>
+// inline constexpr void space_scan_define(input& in,ipv6& v6)
+// {
+// 	auto asciiToHex([](auto c)
+// 	{
+// 		c |= 0x20;
+
+// 		if (c >= '0' && c <= '9') {
+// 			return c - '0';
+// 		} else if (c >= 'a' && c <= 'f') {
+// 			return (c - 'a') + 10;
+// 		} else {
+// 			return -1;
+// 		}
+// 	});
+// 	std::array<std::uint8_t, 16> tmp;
+// 	std::uint8_t colon_count(0);
+// 	std::uint8_t lastchar(0);
+// 	std::uint16_t accumulator = 0;
+// 	std::uint8_t pos = 0;
+// 	auto ig{igenerator(in)};
+// 	auto cur{begin(ig)}, ed{end(ig)};
+// 	for(uint8_t i(1); i < 40; ++i) {
+// 		if(cur==ed)
+// 			break;
+// 		auto curchar(*cur);
+//         if (curchar == u8':') {
+//             if (lastchar == u8':') {
+//                 // Double colon!
+//                 colon_count = 14;
+//             } else if (colon_count) {
+//                 // Count backwards the number of colons after the ::
+//                 colon_count -= 2;
+//             }
+//         }
+// 		cur++;
+// 		lastchar = curchar;
+//     }
+
+// 	lastchar=0;
+// 	ig=igenerator(in);
+// 	cur=begin(ig);
+// 	for(uint8_t i(0); i < 40 && pos < 16; ++i,cur++) {
+// 		if(cur==ed||*cur==u8':')
+// 		{
+// 			tmp[pos] = accumulator>>8;
+// 			tmp[pos+1] = accumulator;
+// 			accumulator = 0;
+// 			if (colon_count && i && lastchar == u8':') {
+//                 pos = colon_count;
+//             } else {
+//                 pos += 2;
+//             }
+// 		} else {
+//             int8_t val = asciiToHex(*cur);
+// 			if(val==-1)
+// 				throw_malformed_input();
+//             accumulator <<= 4;
+//             accumulator |= val;
+//         }
+// 		if(cur==ed)
+// 		break;
+// 		lastchar=*cur;
+// 	}
+// 	memcpy(v6.storage.data(), tmp.data(), 16);
+// }
+
 template<character_input_stream input>
 inline constexpr void space_scan_define(input& in,ipv6& v6)
 {
