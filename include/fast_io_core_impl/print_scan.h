@@ -603,10 +603,10 @@ inline constexpr void println(output &&out,Args&& ...args)
 			if constexpr(sizeof...(Args)==1&&(scatter_type_printable<char_type,Args>&&...))
 			{
 				auto curr=obuffer_curr(out);
-				std::size_t const remain_space=obuffer_end(out)-curr;
+				auto end=obuffer_end(out);
 				auto scatter=details::extract_one_scatter<char_type>(std::forward<Args>(args)...);
 				std::size_t const len{scatter.len};
-				if(len+1<remain_space)[[likely]]
+				if(curr+(len+1)<end)[[likely]]
 				{
 					details::non_overlapped_copy_n(scatter.base,len,curr);
 					curr[len]=u8'\n';

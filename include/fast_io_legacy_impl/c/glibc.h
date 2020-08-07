@@ -141,14 +141,4 @@ inline void overflow(wc_io_observer_unlocked cio,wchar_t ch)
 		throw_posix_error();
 }
 
-inline constexpr bool obuffer_is_active(c_io_observer_unlocked cio)
-{
-	return cio.fp->_IO_write_base!=cio.fp->_IO_write_end;
-}
-
-inline bool obuffer_is_active(wc_io_observer_unlocked cio)
-{
-	return obuffer_begin(cio)!=obuffer_end(cio);
-}
-
 }
