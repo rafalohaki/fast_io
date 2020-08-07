@@ -34,7 +34,7 @@ inline SSL_METHOD const* get_method(tls_method m)
 	case tls_method::datagram_client:
 		return DTLS_client_method();
 	default:
-		throw fast_io_text_error("unknown TLS method");
+		throw_openssl_error();
 	};
 }
 }
@@ -45,12 +45,12 @@ public:
 	ssl_context(openssl_context_observer ocob,std::string_view view,tls_method m):ssl_context_observer(SSL_CTX_new_with_libctx(ocob.native_handle(),view.data(),details::get_method(m)))
 	{
 		if(this->native_handle()==nullptr)
-			throw openssl_error();
+			throw_openssl_error();
 	}
 	ssl_context(tls_method m):ssl_context_observer(SSL_CTX_new(details::get_method(m)))
 	{
 		if(this->native_handle()==nullptr)
-			throw openssl_error();
+			throw_openssl_error();
 	}
 	ssl_context(ssl_context const&) = delete;
 	ssl_context& operator=(ssl_context const&) = delete;

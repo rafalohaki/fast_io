@@ -44,11 +44,7 @@ public:
 	posix_iconv(std::string_view to_code,std::string_view from_code):posix_iconv(bit_cast<std::uintptr_t>(iconv_open(to_code.data(),from_code.data())))
 	{
 		if(this->native_handle()==std::uintptr_t(-1))
-#ifdef __cpp_exceptions
-			throw posix_error();
-#else
-			fast_terminate();
-#endif
+			throw_posix_error();
 	}
 	posix_iconv(posix_iconv const&)=delete;
 	posix_iconv& operator=(posix_iconv const&)=delete;
@@ -88,11 +84,7 @@ public:
 			auto nconv{iconv(iob.get(),std::addressof(begin_ptr),std::addressof(insize),std::addressof(ptr_ptr),std::addressof(avail))};
 			if(nconv==std::numeric_limits<std::size_t>::max()&&errno!=EINVAL)
 			{
-#ifdef __cpp_exceptions
-				throw posix_error();
-#else
-				fast_termiante();
-#endif
+				throw_posix_error();
 			}
 			return ptr+(ptr_ptr-reinterpret_cast<char*>(std::to_address(ptr)))/sizeof(*ptr);
 		});

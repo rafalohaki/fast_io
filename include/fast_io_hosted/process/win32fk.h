@@ -18,13 +18,13 @@ public:
 	{
 		if(handle&&handle!=(void*)(-1))
 			if(!win32::CloseHandle(handle))
-				throw win32_error();
+				throw_win32_error();
 		handle=(void*)(-1);
 	}
 	void join()
 	{
 		if(!win32::WaitForSingleObject(handle,-1))
-			throw win32_error();
+			throw_win32_error();
 	}
 	auto native_handle() const
 	{
@@ -83,13 +83,13 @@ public:
 	{
 		if(handle&&handle!=(void*)(-1))
 			if(!win32::CloseHandle(handle))
-				throw win32_error();
+				throw_win32_error();
 		handle=(void*)(-1);
 	}
 	void join()
 	{
 		if(!win32::WaitForSingleObject(handle,-1))
-			throw win32_error();
+			throw_win32_error();
 	}
 	auto native_handle() const
 	{

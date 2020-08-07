@@ -93,11 +93,7 @@ inline void ferror_throw_ex_impl(FILE* fp)
 	ferror(fp)
 #endif
 	)
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 }
 
 

@@ -129,11 +129,7 @@ FILE_OVERWRITE_IF	Open the file, and overwrite it.	Create the file. 0x00000005
 	{
 		mode.CreateDisposition=1;		//FILE_OPEN
 		if((value&open_mode::trunc)!=open_mode::none)
-#ifdef __cpp_exceptions
-			throw posix_error(EINVAL);
-#else
-			fast_terminate();
-#endif
+			throw_posix_error(EINVAL);
 	}
 	else if ((value&open_mode::trunc)!=open_mode::none)
 	{
@@ -142,13 +138,7 @@ FILE_OVERWRITE_IF	Open the file, and overwrite it.	Create the file. 0x00000005
 		else if((value&open_mode::in)!=open_mode::none)
 			mode.CreateDisposition=0;	//FILE_SUPERSEDE
 		else
-		{
-#ifdef __cpp_exceptions
-			throw posix_error(EINVAL);
-#else
-			fast_terminate();
-#endif
-		}
+			throw_posix_error(EINVAL);
 	}
 	else if((value&open_mode::in)==open_mode::none)
 	{
@@ -214,11 +204,7 @@ inline Iter write(basic_nt_io_observer<ch_type> obs,Iter cbegin,Iter cend)
 	auto const status{win32::nt::nt_write_file(obs.handle,nullptr,nullptr,nullptr,
 		std::addressof(block), std::to_address(cbegin), static_cast<std::uint32_t>(to_write), nullptr, nullptr)};
 	if(status)
-#ifdef __cpp_exceptions
-		throw nt_error(status);
-#else
-		fast_terminate();
-#endif
+		throw_nt_error(status);
 	return cbegin+(*block.Information)/sizeof(*cbegin);
 }
 
@@ -291,7 +277,7 @@ public:
 		details::temp_unique_arr_ptr<wchar_t> buffer(filename.size()+1);
 		*utf_code_convert(filename.data(),filename.data()+filename.size(),buffer.data())=0;
 		if(!win32::nt::rtl_dos_path_name_to_nt_path_name_u(buffer.data(),std::addressof(nt_name),std::addressof(part_name),std::addressof(relative_name)))
-			details::throw_win32_error();
+			throw_win32_error();
 		}
 		win32::nt::io_status_block block{};
 		win32::nt::object_attributes obj{.Length=sizeof(win32::nt::object_attributes),
@@ -305,11 +291,7 @@ public:
 		mode.DesiredAccess,std::addressof(obj),std::addressof(block),nullptr,mode.FileAttributes,
 		mode.ShareAccess,mode.CreateDisposition,mode.CreateOptions,nullptr,0)};
 		if(status)
-#ifdef __cpp_exceptions
-			throw nt_error(status);
-#else
-			fast_terminate();
-#endif
+			throw_nt_error(status);
 	}
 	~basic_nt_file()
 	{

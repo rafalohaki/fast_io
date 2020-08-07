@@ -82,11 +82,7 @@ template<typename T>
 inline void flush(basic_general_streambuf_io_observer<T> h)
 {
 	if(h.native_handle()->pubsync()==-1)
-#ifdef __cpp_exceptions
-		throw posix_error(EIO);
-#else
-		fast_terminate();
-#endif
+		throw_posix_error(EIO);
 }
 
 

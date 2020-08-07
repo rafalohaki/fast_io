@@ -73,6 +73,8 @@ public:
 		if(this->native_handle()==nullptr)
 			throw_pulse_audio_error(err);
 	}
+	basic_pulseaudio_simple_file(basic_pulseaudio_simple_file const&)=delete;
+	basic_pulseaudio_simple_file& operator=(basic_pulseaudio_simple_file const&)=delete;
 	constexpr basic_pulseaudio_simple_file(basic_pulseaudio_simple_file&& hd) noexcept:basic_pulseaudio_simple_file(hd.native_handle())
 	{
 		hd.native_handle()=nullptr;

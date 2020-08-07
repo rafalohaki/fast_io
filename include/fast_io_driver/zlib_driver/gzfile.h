@@ -127,11 +127,7 @@ public:
 		basic_gz_io_observer<char_type>(gzdopen(posix_handle.native_handle(),mode.data()))
 	{
 		if(this->native_handle()==nullptr)
-#ifdef __cpp_exceptions
-			throw posix_error();
-#else
-			fast_terminate();
-#endif
+			throw_posix_error();
 		posix_handle.detach();
 	}
 
@@ -192,11 +188,7 @@ inline Iter read(basic_gz_io_observer<char_type> giob,Iter b,Iter e)
 				to_read=std::numeric_limits<unsigned>::max();
 		int readed{gzread(giob.gzfile,std::to_address(b),static_cast<unsigned>(to_read))};
 		if(readed==-1)
-#ifdef __cpp_exceptions
-			throw posix_error();
-#else
-			fast_terminate();
-#endif
+			throw_posix_error();
 		return b+static_cast<std::size_t>(readed)/sizeof(*b);
 	}
 	else
@@ -215,11 +207,7 @@ inline Iter write(basic_gz_io_observer<char_type> giob,Iter b,Iter e)
 				to_write=std::numeric_limits<unsigned>::max();
 		int written{gzwrite(giob.gzfile,std::to_address(b),static_cast<unsigned>(to_write))};
 		if(written<0)
-#ifdef __cpp_exceptions
-			throw posix_error();
-#else
-			fast_terminate();
-#endif
+			throw_posix_error();
 		return b+static_cast<std::size_t>(written)/sizeof(*b);
 	}
 	else
@@ -230,11 +218,7 @@ template<std::integral char_type>
 inline void flush(basic_gz_io_observer<char_type> giob)
 {
 	if(gzflush(giob.gzfile))
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 }
 
 static_assert(input_stream<gz_file>);

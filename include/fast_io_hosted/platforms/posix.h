@@ -61,11 +61,7 @@ inline constexpr int calculate_posix_open_mode_for_win32_handle(open_mode value)
 		return mode | O_APPEND;
 //Destroy contents;	Error;	"wx";	Create a file for writing
 	default:
-#ifdef __cpp_exceptions
-		throw posix_error(EINVAL);
-#else
-		fast_terminate();
-#endif
+		throw_posix_error(EINVAL);
 	}
 }
 template<open_mode om>
@@ -113,10 +109,8 @@ inline constexpr int calculate_posix_open_mode(open_mode value)
 	if((value&open_mode::directory)!=open_mode::none)
 #ifdef O_DIRECTORY
 		mode |= O_DIRECTORY;
-#elif __cpp_exceptions
-		throw posix_error(EOPNOTSUPP);
 #else
-		fast_terminate();
+		throw_posix_error(EOPNOTSUPP);
 #endif
 */
 #ifdef O_NOCTTY
@@ -130,10 +124,8 @@ inline constexpr int calculate_posix_open_mode(open_mode value)
 	if((value&open_mode::no_block)!=open_mode::none)
 #ifdef O_NONBLOCK
 		mode |= O_NONBLOCK;
-#elif __cpp_exceptions
-		throw posix_error(EOPNOTSUPP);
 #else
-		fast_terminate();
+		throw_posix_error(EOPNOTSUPP);
 #endif
 
 #ifdef _O_TEMPORARY
@@ -170,11 +162,7 @@ inline constexpr int calculate_posix_open_mode(open_mode value)
 		return mode | O_RDWR | O_CREAT | O_APPEND;
 //Destroy contents;	Error;	"wx";	Create a file for writing
 	default:
-#ifdef __cpp_exceptions
-		throw posix_error(EINVAL);
-#else
-		fast_terminate();
-#endif
+		throw_posix_error(EINVAL);
 	}
 }
 template<open_mode om>
@@ -235,11 +223,7 @@ public:
 	{
 		auto os_handle(_get_osfhandle(fd));
 		if(os_handle==-1)
-#ifdef __cpp_exceptions
-			throw posix_error();
-#else
-			fast_terminate();
-#endif
+			throw_posix_error();
 		return {bit_cast<void*>(os_handle)};
 	}
 	explicit operator basic_nt_io_observer<char_type>() const
@@ -464,11 +448,7 @@ inline void io_control(basic_posix_io_observer<ch_type> h,Args&& ...args)
 #else
 	if(ioctl(h.native_handle(),std::forward<Args>(args)...)==-1)
 	{
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 	}
 #endif
 }
@@ -529,11 +509,8 @@ public:
 	std::forward<Args>(args)...))
 	{
 /*	if(native_handle()<0)
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif*/
+		throw_posix_error();
+*/
 		system_call_throw_error(native_handle());
 	}
 #if defined(__WINNT__) || defined(_MSC_VER)
@@ -543,22 +520,14 @@ public:
 		basic_posix_io_handle<char_type>(::_open_osfhandle(bit_cast<std::intptr_t>(hd.native_handle()),details::posix_file_openmode_for_win32_handle<om>::mode))
 	{
 		if(native_handle()==-1)
-#ifdef __cpp_exceptions
-			throw posix_error();
-#else
-			fast_terminate();
-#endif
+			throw_posix_error();
 		hd.detach();
 	}
 	basic_posix_file(basic_win32_io_handle<char_type>&& hd,open_mode m):
 		basic_posix_io_handle<char_type>(::_open_osfhandle(bit_cast<std::intptr_t>(hd.native_handle()),details::calculate_posix_open_mode_for_win32_handle(m)))
 	{
 		if(native_handle()==-1)
-#ifdef __cpp_exceptions
-			throw posix_error();
-#else
-			fast_terminate();
-#endif
+			throw_posix_error();
 		hd.detach();
 	}
 	basic_posix_file(basic_win32_io_handle<char_type>&& hd,std::string_view mode):basic_posix_file(std::move(hd),from_c_mode(mode)){}
@@ -631,18 +600,10 @@ inline void truncate(basic_posix_io_observer<ch_type> h,std::size_t size)
 #if defined(__WINNT__) || defined(_MSC_VER)
 	auto err(_chsize_s(h.native_handle(),size));
 	if(err)
-#ifdef __cpp_exceptions
-		throw posix_error(err);
-#else
-		fast_terminate();
-#endif
+		throw_posix_error(err);
 #else
 	if(::ftruncate(h.native_handle(),size)<0)
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 #endif
 }
 #endif
@@ -667,11 +628,7 @@ public:
 #else
 		if(::pipe(a2.data())==-1)
 #endif
-#ifdef __cpp_exceptions
-			throw posix_error();
-#else
-			fast_terminate();
-#endif
+			throw_posix_error();
 		pipes.front().native_handle()=a2.front();
 		pipes.back().native_handle()=a2.back();
 	}
@@ -788,11 +745,7 @@ inline std::conditional_t<report_einval,std::pair<std::size_t,bool>,std::size_t>
 		}
 		else
 		{
-			#ifdef __cpp_exceptions
-				throw posix_error();
-			#else
-				fast_terminate();
-			#endif
+			throw_posix_error();
 		}
 	}
 	if constexpr(report_einval)
@@ -965,11 +918,7 @@ inline std::size_t posix_scatter_read_impl(int fd,std::span<io_scatter_t const> 
 	auto ptr{reinterpret_cast<iovec_may_alias const*>(sp.data())};
 	std::ptrdiff_t val{::readv(fd,ptr,static_cast<int>(sz))};
 	if(val<0)
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 	return val;
 #endif
 }
@@ -995,11 +944,7 @@ inline std::size_t posix_scatter_write_impl(int fd,std::span<io_scatter_t const>
 	auto ptr{reinterpret_cast<iovec_may_alias const*>(sp.data())};
 	std::ptrdiff_t val{::writev(fd,ptr,static_cast<int>(sz))};
 	if(val<0)
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 	return val;
 #endif
 }

@@ -44,11 +44,7 @@ inline void write(basic_c_io_observer_unlocked<T> cfhd,Iter begin,Iter end)
 	fwrite
 #endif
 	(std::to_address(begin),sizeof(*begin),count,cfhd.native_handle())<count)
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif	
+		throw_posix_error();
 }
 
 /*

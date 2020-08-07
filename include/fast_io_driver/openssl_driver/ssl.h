@@ -48,14 +48,14 @@ template<std::integral ch_type>
 inline void connect(basic_ssl_io_observer<ch_type> siob)
 {
 	if(SSL_connect(siob.native_handle())==-1)
-		throw fast_io::openssl::openssl_error();
+		throw_openssl_error();
 }
 
 template<std::integral ch_type,zero_copy_io_stream stm>
 inline void attach(basic_ssl_io_observer<ch_type> siob,stm& sm)
 {
 	if(!SSL_set_fd(siob.native_handle(),zero_copy_in_handle(sm)))
-		throw openssl_error();
+		throw_openssl_error();
 }
 
 template<std::integral ch_type>
@@ -77,13 +77,13 @@ public:
 	basic_ssl_io_handle(basic_ssl_io_handle const& h):basic_ssl_io_observer<ch_type>(SSL_dup(h.native_handle()))
 	{
 		if(this->native_handle()==nullptr)[[unlikely]]
-			throw openssl_error();
+			throw_openssl_error();
 	}
 	basic_ssl_io_handle& operator=(basic_ssl_io_handle const& h)
 	{
 		auto temp{SSL_dup(h.native_handle())};
 		if(temp==nullptr)[[unlikely]]
-			throw openssl_error();
+			throw_openssl_error();
 		if(this->native_handle())[[likely]]
 			SSL_free(this->native_handle());
 		this->native_handle()=temp;
@@ -117,13 +117,13 @@ public:
 	basic_ssl_file(std::in_place_t,ssl_context_observer ssl_ctx_ob):basic_ssl_io_handle<ch_type>(SSL_new(ssl_ctx_ob.native_handle()))
 	{
 		if(this->native_handle()==nullptr)
-			throw openssl_error();
+			throw_openssl_error();
 	}
 	template<typename... Args>
 	basic_ssl_file(ssl_context_observer ssl_ctx_ob,Args&& ...args):basic_ssl_io_handle<ch_type>(SSL_new(ssl_ctx_ob.native_handle()))
 	{
 		if(this->native_handle()==nullptr)
-			throw openssl_error();
+			throw_openssl_error();
 		basic_ssl_file<ch_type> self(this->native_handle());
 		attach(*this,std::forward<Args>(args)...);
 		connect(*this);
@@ -146,7 +146,7 @@ inline Iter read(basic_ssl_io_observer<ch_type> iob,Iter begin,Iter end)
 	{
 		int error{SSL_get_error(iob.native_handle(),ret)};
 		if(error == SSL_ERROR_ZERO_RETURN || error == SSL_ERROR_NONE || error == SSL_ERROR_WANT_READ)
-			throw openssl_error();
+			throw_openssl_error();
 		read_bytes=0;
 	}
 	return begin+read_bytes/sizeof(*begin);
@@ -161,7 +161,7 @@ inline Iter write(basic_ssl_io_observer<ch_type> iob,Iter begin,Iter end)
 	{
 		int error{SSL_get_error(iob.native_handle(),ret)};
 		if(error == SSL_ERROR_ZERO_RETURN || error == SSL_ERROR_NONE || error == SSL_ERROR_WANT_WRITE)
-			throw openssl_error();
+			throw_openssl_error();
 		written_bytes=0;
 	}
 	return begin+written_bytes/sizeof(*begin);

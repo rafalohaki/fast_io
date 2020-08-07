@@ -65,19 +65,11 @@ public:
 	{
 		std::uint32_t dw_flags{};
 		if(!fast_io::win32::GetHandleInformation(hd,std::addressof(dw_flags)))
-#ifdef __cpp_exceptions
-			throw win32_error();
-#else
-			fast_terminate();
-#endif
+			throw_win32_error();
 		if(!(dw_flags&1))
 		{
 			if(!fast_io::win32::SetHandleInformation(hd,1,1))
-#ifdef __cpp_exceptions
-				throw win32_error();
-#else
-				fast_terminate();
-#endif
+				throw_win32_error();
 			hobject=hd;
 		}
 	}
@@ -106,7 +98,7 @@ public:
 			nullptr,nullptr,true,
 			0x00000080,
 			nullptr,nullptr,std::addressof(sup),std::addressof(pinfo)))
-			throw win32_error();
+			throw_win32_error();
 	}*/
 	basic_win32_process(std::string_view path,
 				std::vector<std::string_view> args,
@@ -139,7 +131,7 @@ public:
 			nullptr,nullptr,true,
 			0x00000080,
 			nullptr,nullptr,std::addressof(sup),std::addressof(pinfo)))
-			throw win32_error();
+			throw_win32_error();
 	}
 	void detach()
 	{
@@ -165,7 +157,7 @@ public:
 	void join()
 	{
 		if(static_cast<std::uint32_t>(0xFFFFFFFF)==win32::WaitForSingleObject(pinfo.hProcess,-1))
-			throw win32_error();
+			throw_win32_error();
 		win32::CloseHandle(pinfo.hProcess);
 		pinfo.hProcess={};
 	}

@@ -205,21 +205,13 @@ public:
 	c_locale_handle(c_locale_handle const& c):c_locale_observer(duplocale(c.native_handle()))
 	{
 		if(!*this)
-#ifdef __cpp_exceptions
-			throw posix_error();
-#else
-			fast_terminate();
-#endif
+			throw_posix_error();
 	}
 	c_locale_handle& operator=(c_locale_handle const& c)
 	{
 		auto cloned{duplocale(c.native_handle())};
 		if(cloned==static_cast<native_handle_type>(0))
-#ifdef __cpp_exceptions
-			throw posix_error();
-#else
-			fast_terminate();
-#endif
+			throw_posix_error();
 		if(*this)[[likely]]
 #if defined(__WINNT__) || defined(_MSC_VER)
 			_free_locale(this->native_handle());

@@ -20,11 +20,7 @@ inline auto get_proc_address(char const* proc)
 {
 	auto address(::GetProcAddress(ws2_32_dll.get(),proc));
 	if(address==nullptr)
-#ifdef __cpp_exceptions
-		throw win32_error();
-#else
-		fast_terminate();
-#endif
+		throw_win32_error();
 	return bit_cast<prototype>(address);
 }
 
@@ -35,11 +31,7 @@ inline auto get_proc_address_mswsock(char const* proc)
 {
 	auto address(::GetProcAddress(mswsock_dll.get(),proc));
 	if(address==nullptr)
-#ifdef __cpp_exceptions
-		throw win32_error();
-#else
-		fast_terminate();
-#endif
+		throw_win32_error();
 	return bit_cast<prototype>(address);
 }
 
@@ -48,11 +40,7 @@ inline auto call_win32_ws2_32(char const *name,Args&& ...args)
 {
 	auto ret(get_proc_address<prototype>(name)(std::forward<Args>(args)...));
 	if(ret==-1)
-#ifdef __cpp_exceptions
-		throw win32_error(get_last_error());
-#else
-		fast_terminate();
-#endif
+		throw_win32_error(get_last_error());
 	return ret;
 }
 
@@ -61,11 +49,7 @@ inline auto call_win32_ws2_32_invalid_socket(char const *name,Args&& ...args)
 {
 	auto ret(get_proc_address<prototype>(name)(std::forward<Args>(args)...));
 	if(ret==invalid_socket)
-#ifdef __cpp_exceptions
-		throw win32_error(get_last_error());
-#else
-		fast_terminate();
-#endif
+		throw_win32_error(get_last_error());
 	return ret;
 }
 
@@ -74,11 +58,7 @@ inline auto call_win32_ws2_32_minus_one(char const *name,Args&& ...args)
 {
 	auto ret(get_proc_address<prototype>(name)(std::forward<Args>(args)...));
 	if(ret==-1)
-#ifdef __cpp_exceptions
-		throw win32_error(get_last_error());
-#else
-		fast_terminate();
-#endif
+		throw_win32_error(get_last_error());
 	return ret;
 }
 
@@ -87,11 +67,7 @@ inline auto call_win32_ws2_32_nullptr(char const *name,Args&& ...args)
 {
 	auto ret(get_proc_address<prototype>(name)(std::forward<Args>(args)...));
 	if(ret==nullptr)
-#ifdef __cpp_exceptions
-		throw win32_error(get_last_error());
-#else
-		fast_terminate();
-#endif
+		throw_win32_error(get_last_error());
 	return ret;
 }
 
@@ -161,11 +137,7 @@ inline void getaddrinfo(Args&& ...args)
 {
 	auto ec(get_proc_address<decltype(::getaddrinfo)*>("getaddrinfo")(std::forward<Args>(args)...));
 	if(ec)
-#ifdef __cpp_exceptions
-		throw win32_error();
-#else
-		fast_terminate();
-#endif
+		throw_win32_error();
 }
 
 template<typename ...Args>
@@ -182,11 +154,7 @@ public:
 		auto WSAStartup(reinterpret_cast<decltype(::WSAStartup)*>(reinterpret_cast<void(*)()>(::GetProcAddress(ws2_32_dll.get(),"WSAStartup"))));
 		WSADATA data;
 		if(auto error_code=WSAStartup(2<<8|2,std::addressof(data)))
-#ifdef __cpp_exceptions
-			throw win32_error(error_code);
-#else
-			fast_terminate();
-#endif
+			throw_win32_error(error_code);
 	}
 	win32_startup(win32_startup const&) = delete;
 	win32_startup& operator=(win32_startup const&) = delete;

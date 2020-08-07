@@ -160,6 +160,8 @@ inline constexpr void print_control(output& out,T&& t)
 {
 	using char_type = typename output::char_type;
 	using no_cvref = std::remove_cvref_t<T>;
+//	static_assert(printable<std::remove_cvref_t<output>,no_cvref>);
+
 	if constexpr(reserve_printable<T>)
 	{
 		constexpr std::size_t size{print_reserve_size(io_reserve_type<no_cvref>)};
@@ -187,7 +189,7 @@ inline constexpr void print_control(output& out,T&& t)
 			write(out,array.data(),print_reserve_define(io_reserve_type<no_cvref>,array.data(),std::forward<T>(t)));
 		}
 	}
-	else if constexpr(printable<output,T>)
+	else if constexpr(printable<output,no_cvref>)
 	{
 		print_define(out,std::forward<T>(t));
 	}
@@ -550,16 +552,22 @@ inline constexpr void print(output &&out,Args&& ...args)
 	else if constexpr(((printable<output,Args>||reserve_printable<Args>)&&...)&&(sizeof...(Args)==1||buffer_output_stream<output>))
 	{
 		if constexpr(sizeof...(Args)==1||(!maybe_buffer_output_stream<output>))
+		{
 			(details::print_control(out,std::forward<Args>(args)),...);
+		}
 		else
 		{
-			if(!obuffer_is_active(out))[[unlikely]]
+			if constexpr(sizeof...(Args)!=1)
 			{
-				details::print_fallback<false>(out,std::forward<Args>(args)...);
-				return;
+				if(!obuffer_is_active(out))[[unlikely]]
+				{
+					details::print_fallback<false>(out,std::forward<Args>(args)...);
+					return;
+				}
 			}
 			(details::print_control(out,std::forward<Args>(args)),...);
 		}
+
 	}
 	else
 		details::print_fallback<false>(out,std::forward<Args>(args)...);

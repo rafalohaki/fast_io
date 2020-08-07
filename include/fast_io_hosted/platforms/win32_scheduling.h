@@ -10,7 +10,7 @@ inline void io_async_wait(win32_io_observer iocp)
 	win32::overlapped *over{};
 	if(!GetQueuedCompletionStatus(iocp.native_handle(),std::addressof(transferred),std::addressof(completionkey),
 		std::addressof(over),std::numeric_limits<std::uint32_t>::max()))
-		details::throw_win32_error();
+		throw_win32_error();
 	static_cast<iocp_overlapped_base*>(over)->invoke(static_cast<std::size_t>(transferred));
 }
 
@@ -27,11 +27,7 @@ inline bool iocp_io_async_wait_timeout_detail(win32_io_observer iocp,std::uint32
 		auto errc{win32::GetLastError()};
 		if(errc==258)
 			return false;
-#ifdef __cpp_exceptions
-		throw win32_error(errc);
-#else
-		fast_terminate();
-#endif
+		throw_win32_error(errc);
 	}
 	static_cast<iocp_overlapped_base*>(over)->invoke(static_cast<std::size_t>(transferred));
 	return true;

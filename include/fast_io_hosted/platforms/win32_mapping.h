@@ -80,11 +80,7 @@ public:
 	,static_cast<std::uint32_t>(size),nullptr))
 	{
 		if(handle==nullptr)
-#ifdef __cpp_exceptions
-			throw win32_error();
-#else
-			fast_terminate();
-#endif
+			throw_win32_error();
 	}
 	win32_file_mapping(win32_file_mapping const&)=delete;
 	win32_file_mapping& operator=(win32_file_mapping const&)=delete;
@@ -131,11 +127,7 @@ public:
 			,static_cast<std::uint32_t>(start_address),bytes)),bytes})
 	{
 		if(rg.data()==nullptr)
-#ifdef __cpp_exceptions
-			throw win32_error();
-#else
-			fast_terminate();
-#endif
+			throw_win32_error();
 	}
 	win32_map_view_of_file(win32_map_view_of_file const&)=delete;
 	win32_map_view_of_file& operator=(win32_map_view_of_file const&)=delete;

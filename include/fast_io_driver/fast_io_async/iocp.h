@@ -14,7 +14,7 @@ requires (sizeof...(Args)==5)
 inline void get_queued_completion_status(Args&& ..args)
 {
 	if(!win32::GetQueuedCompletionStatus(std::forward<Args>(args)...))
-		throw win32_error();
+		throw_win32_error();
 }
 
 template<std::integral ch_type>
