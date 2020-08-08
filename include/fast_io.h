@@ -46,7 +46,7 @@ decltype(auto) in() noexcept
 	return native_stdin();
 }
 
-inline 
+inline
 #if !defined(__WINNT__) && !defined(_MSC_VER)
 constexpr
 #endif
@@ -115,7 +115,7 @@ inline constexpr void perrln(Args&&... args)
 }
 
 template<typename... Args>
-inline constexpr void panic(Args&&... args)
+inline constexpr void panic(Args&&... args) noexcept
 {
 	if constexpr(sizeof...(Args)!=0)
 	{
@@ -133,7 +133,7 @@ inline constexpr void panic(Args&&... args)
 }
 
 template<typename... Args>
-inline constexpr void panicln(Args&&... args)
+inline constexpr void panicln(Args&&... args) noexcept
 {
 #ifdef __cpp_exceptions
 	try
@@ -184,13 +184,13 @@ inline constexpr void debug_perrln(Args&&... args)
 }
 
 template<typename... Args>
-inline constexpr void debug_panic(Args&&... args)
+inline constexpr void debug_panic(Args&&... args) noexcept
 {
 	::panic(std::forward<Args>(args)...);
 }
 
 template<typename... Args>
-inline constexpr void debug_panicln(Args&&... args)
+inline constexpr void debug_panicln(Args&&... args) noexcept
 {
 	::panicln(std::forward<Args>(args)...);
 }
