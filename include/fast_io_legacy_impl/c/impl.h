@@ -565,6 +565,7 @@ public:
 	{
 		if(std::fclose(this->native_handle())==EOF)
 			throw_posix_error();
+		this->native_handle()=nullptr;
 	}
 };
 
