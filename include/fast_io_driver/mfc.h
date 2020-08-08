@@ -26,6 +26,12 @@ public:
 	{
 		return phandle;
 	}
+	inline constexpr native_handle_type release() noexcept
+	{
+		auto temp{phandle};
+		phandle=nullptr;
+		return temp;
+	}
 };
 
 
@@ -58,10 +64,6 @@ public:
 			mcf.native_handle()=nullptr;
 		}
 		return *this;
-	}
-	constexpr void detach() noexcept
-	{
-		this->native_handle()=nullptr;
 	}
 };
 
@@ -112,7 +114,7 @@ public:
 	basic_mfc_file(basic_win32_io_handle<char_type>&& hd,Args&& ...):
 		basic_mfc_io_handle<T>(new CFile(hd.native_handle()))
 	{
-		hd.detach();
+		hd.release();
 	}
 	template<open_mode om,typename... Args>
 	basic_mfc_file(std::string_view file,open_interface_t<om>,Args&& ...args):

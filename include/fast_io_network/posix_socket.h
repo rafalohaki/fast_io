@@ -2,26 +2,39 @@
 
 namespace fast_io
 {
-class gai_exception:public std::exception
+
+class gai_error:public fast_io_error
 {
-	int ec;
 public:
-	explicit gai_exception(int errorc):ec(errorc){}	
-	auto get() const
+	int ec{};
+	explicit gai_error(int errn):ec(errn){}
+	constexpr auto code() const noexcept
 	{
 		return ec;
 	}
-	char const* what() const noexcept
+#if __cpp_constexpr >= 201907L
+	//constexpr
+#endif
+	void report(error_reporter& report) const override
 	{
-		return gai_strerror(ec);
+		print(report,chvw(gai_strerror(ec)));
 	}
 };
+
+inline void throw_gai_error(int err)
+{
+#ifdef __cpp_exceptions
+	throw gai_error(err);
+#else
+	fast_terminate();
+#endif
+}
+
 }
 
 namespace fast_io::sock::details
 {
-namespace
-{
+
 template<typename Func,typename ...Args>
 inline auto call_posix(Func&& func,Args&& ...args)
 {
@@ -66,6 +79,12 @@ inline auto closesocket(Args&& ...args)
 	return call_posix(::close,std::forward<Args>(args)...);
 }
 
+template<typename ...Args>
+inline void closesocket_ignore_error(Args&& ...args)
+{
+	::close(std::forward<Args>(args)...);
+}
+
 template<typename T,std::unsigned_integral sock_type_size>
 inline auto bind(int sck,T& sock_address,sock_type_size size)
 {
@@ -89,11 +108,7 @@ inline void getaddrinfo(Args&& ...args)
 {
 	int ec(::getaddrinfo(std::forward<Args>(args)...));
 	if(ec)
-#ifdef __cpp_exceptions
-		throw gai_exception(ec);
-#else
-		fast_terminate();
-#endif
+		fast_io::details::throw_gai_error(ec);
 }
 
 template<typename ...Args>
@@ -106,5 +121,5 @@ inline void freeaddrinfo(Args&& ...args)
 using address_family = sa_family_t;
 using socket_type = int;
 inline constexpr auto invalid_socket(-1);
-}
+
 }

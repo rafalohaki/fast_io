@@ -191,6 +191,12 @@ public:
 	{
 		return handle;
 	}
+	inline constexpr native_handle_type release() noexcept
+	{
+		auto temp{handle};
+		handle=nullptr;
+		return temp;
+	}
 };
 
 template<std::integral ch_type,std::contiguous_iterator Iter>
@@ -250,10 +256,6 @@ public:
 			b.native_handle()=nullptr;
 		}
 		return *this;
-	}
-	constexpr void detach() noexcept
-	{
-		this->native_handle()=nullptr;
 	}
 };
 

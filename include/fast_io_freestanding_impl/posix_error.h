@@ -5,19 +5,19 @@ namespace fast_io
 
 class posix_error:public fast_io_error
 {
-	int ecd;
 public:
-	explicit posix_error(int errn=errno):ecd(errn){}
+	int ec{};
+	explicit posix_error(int errn=errno):ec(errn){}
 	constexpr auto code() const noexcept
 	{
-		return ecd;
+		return ec;
 	}
 #if __cpp_constexpr >= 201907L
 	//constexpr
 #endif
 	void report(error_reporter& report) const override
 	{
-		print(report,chvw(strerror(ecd)));
+		print(report,chvw(strerror(ec)));
 	}
 };
 

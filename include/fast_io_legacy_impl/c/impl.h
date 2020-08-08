@@ -268,28 +268,30 @@ public:
 	{
 		return fp;
 	}
-	explicit operator basic_posix_io_observer<char_type>() const
+	explicit operator basic_posix_io_observer<char_type>() const noexcept
 	{
-
-		auto fd(
+		return basic_posix_io_observer<char_type>{
 #if defined(__WINNT__) || defined(_MSC_VER)
-	_fileno(fp)
+			_fileno(fp)
 #elif defined(__NEWLIB__)
-	fp->_file
+			fp->_file
 #else
-	::fileno_unlocked(fp)
+			::fileno_unlocked(fp)
 #endif
-);
-		if(fd<0)
-			throw_posix_error();
-		return basic_posix_io_observer<char_type>{fd};
+		};
 	}
 #if defined(__WINNT__) || defined(_MSC_VER)
-	explicit operator basic_win32_io_observer<char_type>() const
+	explicit operator basic_win32_io_observer<char_type>() const noexcept
 	{
 		return static_cast<basic_win32_io_observer<char_type>>(static_cast<basic_posix_io_observer<char_type>>(*this));
 	}
 #endif
+	constexpr native_handle_type release() noexcept
+	{
+		auto temp{fp};
+		fp=nullptr;
+		return temp;
+	}
 };
 
 template<std::integral ch_type>
@@ -436,6 +438,12 @@ public:
 		return static_cast<basic_nt_io_observer<char_type>>(static_cast<basic_posix_io_observer<char_type>>(*this));
 	}
 #endif
+	constexpr native_handle_type release() noexcept
+	{
+		auto temp{fp};
+		fp=nullptr;
+		return temp;
+	}
 };
 
 template<std::integral T>
@@ -528,12 +536,6 @@ namespace details
 template<typename T>
 class basic_c_io_handle_impl:public T
 {
-protected:
-	void close_impl() noexcept
-	{
-		if(this->native_handle())
-			std::fclose(this->native_handle());
-	}
 public:
 	using char_type = typename T::char_type;
 	using native_handle_type = std::FILE*;
@@ -552,15 +554,17 @@ public:
 	{
 		if(b.native_handle()!=this->native_handle())
 		{
-			close_impl();
+			if(this->native_handle())[[likely]]
+				std::fclose(this->native_handle());
 			this->native_handle()=b.native_handle();
 			b.native_handle() = nullptr;
 		}
 		return *this;
 	}
-	constexpr void detach() noexcept
+	void close()
 	{
-		this->native_handle() = nullptr;
+		if(std::fclose(this->native_handle())==EOF)
+			throw_posix_error();
 	}
 };
 
@@ -602,7 +606,7 @@ public:
 	{
 		if(native_handle()==nullptr)
 			throw_posix_error();
-		posix_handle.detach();
+		posix_handle.release();
 		if constexpr(std::same_as<wchar_t,typename T::char_type>)
 		{
 			fwide(this->native_handle(),1);
@@ -716,13 +720,8 @@ public:
 	}
 	~basic_c_file_impl()
 	{
-		this->close_impl();
-	}
-	constexpr native_handle_type release() noexcept
-	{
-		auto temp{this->native_handle()};
-		this->detach();
-		return temp;
+		if(this->native_handle())[[likely]]
+			std::fclose(this->native_handle());
 	}
 };
 

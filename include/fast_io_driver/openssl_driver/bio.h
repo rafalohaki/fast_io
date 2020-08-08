@@ -200,14 +200,14 @@ public:
 		basic_bio_io_observer<char_type>(BIO_new_fp(bmv.native_handle(),details::bio_new_fp_flags<om,true>::value))
 	{
 		detect_open_failure();
-		bmv.detach();
+		bmv.release();
 	}
 
 	basic_bio_file(basic_c_io_handle<char_type>&& bmv,fast_io::open_mode om):
 		basic_bio_io_observer<char_type>(BIO_new_fp(bmv.native_handle(),details::calculate_bio_new_fp_flags<true>(om)))
 	{
 		detect_open_failure();
-		bmv.detach();
+		bmv.release();
 	}
 	basic_bio_file(basic_c_io_handle<char_type>&& bmv,std::string_view om):
 		basic_bio_file(std::move(bmv),fast_io::from_c_mode(om)){}
@@ -217,13 +217,13 @@ public:
 		basic_bio_io_observer<char_type>(BIO_new_fd(bmv.native_handle(),details::bio_new_fp_flags<om,true>::value))
 	{
 		detect_open_failure();
-		bmv.detach();
+		bmv.release();
 	}
 	basic_bio_file(basic_posix_io_handle<char_type>&& bmv,fast_io::open_mode om):
 		basic_bio_io_observer<char_type>(BIO_new_fd(bmv.native_handle(),details::calculate_bio_new_fp_flags<true>(om)))
 	{
 		detect_open_failure();
-		bmv.detach();
+		bmv.release();
 	}
 	basic_bio_file(basic_posix_io_handle<char_type>&& bmv,std::string_view mode):basic_bio_file(std::move(bmv),fast_io::from_c_mode(mode)){}
 

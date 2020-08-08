@@ -128,7 +128,7 @@ public:
 	{
 		if(this->native_handle()==nullptr)
 			throw_posix_error();
-		posix_handle.detach();
+		posix_handle.release();
 	}
 
 	basic_gz_file(basic_posix_io_handle<char_type>&& posix_handle,open_mode om):
