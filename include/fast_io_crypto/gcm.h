@@ -2,4 +2,4 @@
 
 #include "aes.h"
 #include "rc6.h"
-#include "gmac.h"
+//#include "gmac.h"
