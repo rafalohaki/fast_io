@@ -129,7 +129,10 @@ public:
 		connect(*this);
 		self.release();
 	}
-
+	constexpr basic_ssl_file(basic_ssl_file const&)=default;
+	constexpr basic_ssl_file& operator=(basic_ssl_file const&)=default;
+	constexpr basic_ssl_file(basic_ssl_file &&) noexcept=default;
+	constexpr basic_ssl_file& operator=(basic_ssl_file &&) noexcept=default;
 	~basic_ssl_file()
 	{
 		if(this->native_handle())[[likely]]

@@ -354,6 +354,10 @@ public:
 			this->base_address()={};
 		}
 	}
+	constexpr basic_win32_memory_file(basic_win32_memory_file const&)=default;
+	constexpr basic_win32_memory_file& operator=(basic_win32_memory_file const&)=default;
+	constexpr basic_win32_memory_file(basic_win32_memory_file&&) noexcept=default;
+	constexpr basic_win32_memory_file& operator=(basic_win32_memory_file&&) noexcept=default;
 	~basic_win32_memory_file()
 	{
 		if(this->native_handle())[[likely]]

@@ -553,10 +553,10 @@ public:
 
 #endif
 
-	basic_posix_file(basic_posix_file const&)=default;
-	basic_posix_file& operator=(basic_posix_file const&)=default;
-	basic_posix_file(basic_posix_file &&) noexcept=default;
-	basic_posix_file& operator=(basic_posix_file &&) noexcept=default;
+	constexpr basic_posix_file(basic_posix_file const&)=default;
+	constexpr basic_posix_file& operator=(basic_posix_file const&)=default;
+	constexpr basic_posix_file(basic_posix_file &&) noexcept=default;
+	constexpr basic_posix_file& operator=(basic_posix_file &&) noexcept=default;
 
 	~basic_posix_file()
 	{
