@@ -9,7 +9,7 @@ class basic_mfc_io_observer
 public:
 	using char_type = T;
 	using native_handle_type = CFile*;
-	native_handle_type phandle=nullptr;
+	native_handle_type phandle{};
 	explicit constexpr operator bool() const noexcept
 	{
 		return phandle;
@@ -31,6 +31,18 @@ public:
 		auto temp{phandle};
 		phandle=nullptr;
 		return temp;
+	}
+	inline constexpr void reset() noexcept
+	{
+		phandle=nullptr;
+	}
+	inline constexpr void reset(native_handle_type newhandle) noexcept
+	{
+		phandle=newhandle;
+	}
+	inline constexpr void swap(basic_mfc_io_observer& other) noexcept
+	{
+		std::swap(phandle, other.phandle);
 	}
 };
 

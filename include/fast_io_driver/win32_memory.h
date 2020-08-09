@@ -216,6 +216,16 @@ public:
 	{
 		return base_addr;
 	}
+	inline constexpr void reset(native_handle_type newhandle=nullptr, base_address_type newaddress=nullptr) noexcept
+	{
+		handle=newhandle;
+		base_addr=newaddress;
+	}
+	inline constexpr void swap(basic_win32_memory_io_observer& other) noexcept
+	{
+		std::swap(handle, other.handle);
+		std::swap(base_addr, other.base_addr);
+	}
 };
 
 template<std::integral ch_type>

@@ -236,6 +236,18 @@ public:
 		fd=-1;
 		return temp;
 	}
+	inline constexpr void reset() noexcept
+	{
+		fd=-1;
+	}
+	inline constexpr void reset(native_handle_type newfd) noexcept
+	{
+		fd=newfd;
+	}
+	inline constexpr void swap(basic_posix_io_observer& other) noexcept
+	{
+		std::swap(fd, other.fd);
+	}
 };
 
 template<std::integral ch_type>

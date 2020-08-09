@@ -270,7 +270,7 @@ public:
 	using native_handle_type = void*;
 	using char_type = ch_type;
 	using async_scheduler_type = basic_win32_io_observer<char>;
-	native_handle_type handle=nullptr;
+	native_handle_type handle{};
 	constexpr auto& native_handle() noexcept
 	{
 		return handle;
@@ -292,6 +292,18 @@ public:
 		auto temp{handle};
 		handle=nullptr;
 		return temp;
+	}
+	inline constexpr void reset() noexcept
+	{
+		handle=nullptr;
+	}
+	inline constexpr void reset(native_handle_type newhandle) noexcept
+	{
+		handle=newhandle;
+	}
+	inline constexpr void swap(basic_win32_io_observer& other) noexcept
+	{
+		std::swap(handle, other.handle);
 	}
 };
 

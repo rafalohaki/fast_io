@@ -250,9 +250,9 @@ template<std::integral ch_type>
 class basic_c_io_observer_unlocked
 {
 public:
-	std::FILE *fp=nullptr;
 	using char_type = ch_type;
 	using native_handle_type = std::FILE*;
+	native_handle_type fp{};
 #if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
 	using async_scheduler_type = io_async_observer;
 #endif
@@ -291,6 +291,18 @@ public:
 		auto temp{fp};
 		fp=nullptr;
 		return temp;
+	}
+	inline constexpr void reset() noexcept
+	{
+		fp=nullptr;
+	}
+	inline constexpr void reset(native_handle_type newfp) noexcept
+	{
+		fp=newfp;
+	}
+	inline constexpr void swap(basic_c_io_observer_unlocked& other) noexcept
+	{
+		std::swap(fp, other.fp);
 	}
 };
 
@@ -394,10 +406,10 @@ template<std::integral ch_type>
 class basic_c_io_observer
 {
 public:
-	std::FILE *fp=nullptr;
 	using lock_guard_type = c_io_lock_guard;
 	using char_type = ch_type;
 	using native_handle_type = std::FILE*;
+	native_handle_type fp{};
 #if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
 	using async_scheduler_type = io_async_observer;
 #endif
@@ -443,6 +455,18 @@ public:
 		auto temp{fp};
 		fp=nullptr;
 		return temp;
+	}
+	inline constexpr void reset() noexcept
+	{
+		fp=nullptr;
+	}
+	inline constexpr void reset(native_handle_type newfp) noexcept
+	{
+		fp=newfp;
+	}
+	inline constexpr void swap(basic_c_io_observer& other) noexcept
+	{
+		std::swap(fp, other.fp);
 	}
 };
 

@@ -138,7 +138,19 @@ public:
 		BIO_get_fp(bio,std::addressof(fp));
 		return {fp};
 	}
-
+	inline constexpr void reset() noexcept
+	{
+		bio=nullptr;
+	}
+	inline constexpr void reset(native_handle_type newhandle) noexcept
+	{
+		bio=newhandle;
+	}
+	
+	inline constexpr void swap(basic_bio_io_observer& other) noexcept
+	{
+		std::swap(bio, other.bio);
+	}
 	explicit operator basic_posix_io_observer<char_type>() const
 	{
 		int fd{};

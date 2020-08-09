@@ -28,6 +28,19 @@ public:
 		s={};
 		return temp;
 	}
+	inline constexpr void reset() noexcept
+	{
+		s=nullptr;
+	}
+	inline constexpr void reset(native_handle_type newhandle) noexcept
+	{
+		s=newhandle;
+	}
+	
+	inline constexpr void swap(basic_ssl_io_observer& other) noexcept
+	{
+		std::swap(s, other.s);
+	}
 };
 
 template<std::integral ch_type,std::integral ch_type1,std::integral ch_type2>
