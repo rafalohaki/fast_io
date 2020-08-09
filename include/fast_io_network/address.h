@@ -193,14 +193,19 @@ inline constexpr auto family(ipv6 const&)
 	return sock::family::ipv6;
 }
 
-/*
+
+inline constexpr auto valid_ipv6(st_single([](std::integral auto ch)
+{
+	return ch==u8':'||until_none_digit<16>(ch);
+}));
+
 template<buffer_output_stream output,character_input_stream input>
 inline constexpr bool scan_reserve_transmit(io_reserve_type_t<ipv6>,output& out,input& in)
 {
 	using namespace fast_io::scan_transmitter;
-	return scan_transmit(out,in,until_none_digit<16>,single_dot,until_none_digit<16>,single_dot,until_none_digit<16>,single_dot,until_none_digit<16>);
+	return scan_transmit(out,in,valid_ipv6);
 }
-*/
+
 
 // // from https://gist.github.com/njh/84125c8ededdeb74ec5cc80a4003f308
 // template<character_input_stream input>
