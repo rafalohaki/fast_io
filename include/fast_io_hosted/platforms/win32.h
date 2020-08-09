@@ -634,9 +634,7 @@ class basic_win32_pipe
 public:
 	using char_type = ch_type;
 	using native_handle_type = std::array<basic_win32_file<ch_type>,2>;
-private:
 	native_handle_type pipes;
-public:
 	template<typename ...Args>
 /*	requires requires(Args&& ...args)
 	{
