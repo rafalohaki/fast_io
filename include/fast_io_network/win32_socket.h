@@ -24,7 +24,11 @@ inline auto get_proc_address(char const* proc)
 	return bit_cast<prototype>(address);
 }
 
-inline auto get_last_error(get_proc_address<int(*)()>("WSAGetLastError"));
+inline auto get_last_error()
+{
+	auto func{get_proc_address<int(*)()>("WSAGetLastError")};
+	return func();
+}
 
 template<typename prototype>
 inline auto get_proc_address_mswsock(char const* proc)
@@ -111,6 +115,15 @@ template<typename ...Args>
 inline auto wsasend(Args&& ...args)
 {
 	return call_win32_ws2_32<decltype(::WSASend)*>("WSASend",std::forward<Args>(args)...);
+}
+
+template<typename ...Args>
+inline void closesocket_ignore_error(Args&& ...args) noexcept
+{
+	auto func{::GetProcAddress(ws2_32_dll.get(),"closesocket")};
+	if(func==nullptr)[[unlikely]]
+		fast_terminate();
+	bit_cast<int __stdcall(*)(socket_type)>(func)(std::forward<Args>(args)...);
 }
 
 template<typename ...Args>

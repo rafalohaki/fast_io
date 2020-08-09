@@ -84,6 +84,18 @@ public:
 	{
 		return {details::hack_gz_file_fd(gzfile)};
 	}
+	inline constexpr void reset() noexcept
+	{
+		gzfile=nullptr;
+	}
+	inline constexpr void reset(native_handle_type newhandle) noexcept
+	{
+		gzfile=newhandle;
+	}
+	inline constexpr void swap(basic_gz_io_observer& other) noexcept
+	{
+		std::swap(gzfile, other.gzfile);
+	}
 #if defined(__WINNT__) || defined(_MSC_VER)
 	explicit operator basic_win32_io_observer<char_type>() const
 	{
@@ -128,7 +140,7 @@ public:
 	{
 		if(this->native_handle()==nullptr)
 			throw_posix_error();
-		posix_handle.detach();
+		posix_handle.release();
 	}
 
 	basic_gz_file(basic_posix_io_handle<char_type>&& posix_handle,open_mode om):

@@ -250,9 +250,9 @@ template<std::integral ch_type>
 class basic_c_io_observer_unlocked
 {
 public:
-	std::FILE *fp=nullptr;
 	using char_type = ch_type;
 	using native_handle_type = std::FILE*;
+	native_handle_type fp{};
 #if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
 	using async_scheduler_type = io_async_observer;
 #endif
@@ -268,28 +268,42 @@ public:
 	{
 		return fp;
 	}
-	explicit operator basic_posix_io_observer<char_type>() const
+	explicit operator basic_posix_io_observer<char_type>() const noexcept
 	{
-
-		auto fd(
+		return basic_posix_io_observer<char_type>{
 #if defined(__WINNT__) || defined(_MSC_VER)
-	_fileno(fp)
+			_fileno(fp)
 #elif defined(__NEWLIB__)
-	fp->_file
+			fp->_file
 #else
-	::fileno_unlocked(fp)
+			::fileno_unlocked(fp)
 #endif
-);
-		if(fd<0)
-			throw_posix_error();
-		return basic_posix_io_observer<char_type>{fd};
+		};
 	}
 #if defined(__WINNT__) || defined(_MSC_VER)
-	explicit operator basic_win32_io_observer<char_type>() const
+	explicit operator basic_win32_io_observer<char_type>() const noexcept
 	{
 		return static_cast<basic_win32_io_observer<char_type>>(static_cast<basic_posix_io_observer<char_type>>(*this));
 	}
 #endif
+	constexpr native_handle_type release() noexcept
+	{
+		auto temp{fp};
+		fp=nullptr;
+		return temp;
+	}
+	inline constexpr void reset() noexcept
+	{
+		fp=nullptr;
+	}
+	inline constexpr void reset(native_handle_type newfp) noexcept
+	{
+		fp=newfp;
+	}
+	inline constexpr void swap(basic_c_io_observer_unlocked& other) noexcept
+	{
+		std::swap(fp, other.fp);
+	}
 };
 
 template<std::integral ch_type>
@@ -392,10 +406,10 @@ template<std::integral ch_type>
 class basic_c_io_observer
 {
 public:
-	std::FILE *fp=nullptr;
 	using lock_guard_type = c_io_lock_guard;
 	using char_type = ch_type;
 	using native_handle_type = std::FILE*;
+	native_handle_type fp{};
 #if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
 	using async_scheduler_type = io_async_observer;
 #endif
@@ -436,6 +450,24 @@ public:
 		return static_cast<basic_nt_io_observer<char_type>>(static_cast<basic_posix_io_observer<char_type>>(*this));
 	}
 #endif
+	constexpr native_handle_type release() noexcept
+	{
+		auto temp{fp};
+		fp=nullptr;
+		return temp;
+	}
+	inline constexpr void reset() noexcept
+	{
+		fp=nullptr;
+	}
+	inline constexpr void reset(native_handle_type newfp) noexcept
+	{
+		fp=newfp;
+	}
+	inline constexpr void swap(basic_c_io_observer& other) noexcept
+	{
+		std::swap(fp, other.fp);
+	}
 };
 
 template<std::integral T>
@@ -528,12 +560,6 @@ namespace details
 template<typename T>
 class basic_c_io_handle_impl:public T
 {
-protected:
-	void close_impl() noexcept
-	{
-		if(this->native_handle())
-			std::fclose(this->native_handle());
-	}
 public:
 	using char_type = typename T::char_type;
 	using native_handle_type = std::FILE*;
@@ -552,15 +578,18 @@ public:
 	{
 		if(b.native_handle()!=this->native_handle())
 		{
-			close_impl();
+			if(this->native_handle())[[likely]]
+				std::fclose(this->native_handle());
 			this->native_handle()=b.native_handle();
 			b.native_handle() = nullptr;
 		}
 		return *this;
 	}
-	constexpr void detach() noexcept
+	void close()
 	{
-		this->native_handle() = nullptr;
+		if(std::fclose(this->native_handle())==EOF)
+			throw_posix_error();
+		this->native_handle()=nullptr;
 	}
 };
 
@@ -602,7 +631,7 @@ public:
 	{
 		if(native_handle()==nullptr)
 			throw_posix_error();
-		posix_handle.detach();
+		posix_handle.release();
 		if constexpr(std::same_as<wchar_t,typename T::char_type>)
 		{
 			fwide(this->native_handle(),1);
@@ -706,23 +735,14 @@ public:
 	basic_c_file_impl(io_cookie_t,std::string_view mode,stm&& rref):basic_c_file_impl(io_cookie,mode,std::in_place_type<stm>,std::move(rref)){}
 
 
-	basic_c_file_impl(basic_c_file_impl const&)=delete;
-	basic_c_file_impl& operator=(basic_c_file_impl const&)=delete;
-	constexpr basic_c_file_impl(basic_c_file_impl&& b) noexcept :T(std::move(b)){}
-	basic_c_file_impl& operator=(basic_c_file_impl&& b) noexcept
-	{
-		static_cast<T&>(*this)=std::move(b);
-		return *this;
-	}
+	basic_c_file_impl(basic_c_file_impl const&)=default;
+	basic_c_file_impl& operator=(basic_c_file_impl const&)=default;
+	constexpr basic_c_file_impl(basic_c_file_impl&&) noexcept=default;
+	basic_c_file_impl& operator=(basic_c_file_impl&&) noexcept=default;
 	~basic_c_file_impl()
 	{
-		this->close_impl();
-	}
-	constexpr native_handle_type release() noexcept
-	{
-		auto temp{this->native_handle()};
-		this->detach();
-		return temp;
+		if(this->native_handle())[[likely]]
+			std::fclose(this->native_handle());
 	}
 };
 

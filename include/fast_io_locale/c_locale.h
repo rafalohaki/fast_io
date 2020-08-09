@@ -178,6 +178,18 @@ locale_t
 		loc=static_cast<native_handle_type>(0);
 		return d;
 	}
+	inline constexpr void reset() noexcept
+	{
+		loc={};
+	}
+	inline constexpr void reset(native_handle_type newloc) noexcept
+	{
+		loc=newloc;
+	}
+	inline constexpr void swap(c_locale_observer& other) noexcept
+	{
+		std::swap(loc, other.loc);
+	}
 };
 
 class c_locale_handle:public c_locale_observer

@@ -52,6 +52,19 @@ public:
 	{
 		return EVP_PKEY_up_ref(key);
 	}
+	inline constexpr void reset() noexcept
+	{
+		key=nullptr;
+	}
+	inline constexpr void reset(native_handle_type newhandle) noexcept
+	{
+		key=newhandle;
+	}
+	
+	inline constexpr void swap(evp_pkey_observer& other) noexcept
+	{
+		std::swap(key, other.key);
+	}
 };
 
 class evp_pkey:public evp_pkey_observer

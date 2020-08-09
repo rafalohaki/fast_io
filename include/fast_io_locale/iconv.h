@@ -33,6 +33,18 @@ public:
 		cd = -1;
 		return temp;
 	}
+	inline constexpr void reset() noexcept
+	{
+		cd=-1;
+	}
+	inline constexpr void reset(native_handle_type newcd) noexcept
+	{
+		cd=newcd;
+	}
+	inline constexpr void swap(posix_iconv_observer& other) noexcept
+	{
+		std::swap(cd, other.cd);
+	}
 };
 
 class posix_iconv:public posix_iconv_observer

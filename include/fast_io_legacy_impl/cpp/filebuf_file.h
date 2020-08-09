@@ -75,20 +75,20 @@ std::basic_filebuf<char_type,traits_type>
 	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,T&& t):
 		fb(piohd.native_handle(),details::calculate_fstream_open_value(std::forward<T>(t)),fast_io::details::cal_buffer_size<CharT,true>())
 	{
-		piohd.detach();
+		piohd.release();
 	}
 #elif defined(__LIBCPP_VERSION)
 	template<typename T>
 	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,T&& t)
 	{
 		fb.__open(piohd.native_handle(),details::calculate_fstream_open_value(std::forward<T>(t)));
-		piohd.detach();
+		piohd.release();
 	}
 #else
 	template<typename T>
 	basic_filebuf_file(basic_c_io_handle_unlocked<char_type>&& chd,T&& t):fb(chd.native_handle())
 	{
-		chd.detach();
+		chd.release();
 	}
 	template<typename T>
 	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,T&& t):

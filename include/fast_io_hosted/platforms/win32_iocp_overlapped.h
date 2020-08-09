@@ -61,6 +61,18 @@ public:
 		handle={};
 		return temp;
 	}
+	inline constexpr void reset() noexcept
+	{
+		handle=nullptr;
+	}
+	inline constexpr void reset(native_handle_type newhandle) noexcept
+	{
+		handle=newhandle;
+	}
+	inline constexpr void swap(iocp_overlapped_observer& other) noexcept
+	{
+		std::swap(handle, other.handle);
+	}
 };
 
 class iocp_overlapped:public iocp_overlapped_observer

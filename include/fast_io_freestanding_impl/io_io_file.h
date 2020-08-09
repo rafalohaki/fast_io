@@ -139,6 +139,18 @@ public:
 	{
 		return io_ptr;
 	}
+	inline constexpr void reset() noexcept
+	{
+		io_ptr=nullptr;
+	}
+	inline constexpr void reset(native_handle_type newhandle) noexcept
+	{
+		io_ptr=newhandle;
+	}
+	inline constexpr void swap(basic_io_io_observer& other) noexcept
+	{
+		std::swap(io_ptr, other.io_ptr);
+	}
 };
 #ifdef __cpp_rtti
 template<typename T,std::integral char_type>
@@ -217,6 +229,22 @@ public:
 	basic_io_file(io_cookie_t,smt&& sm):
 		basic_io_io_handle<ch_type>(new details::io_io::derv<char_type,smt>(std::in_place_type<smt>,std::move(sm)))
 	{}
+#if __cpp_constexpr >= 201907L
+	constexpr
+#endif
+	basic_io_file(basic_io_file const&)=default;
+#if __cpp_constexpr >= 201907L
+	constexpr
+#endif
+	basic_io_file& operator=(basic_io_file const&)=default;
+#if __cpp_constexpr >= 201907L
+	constexpr
+#endif
+	basic_io_file(basic_io_file&&) noexcept=default;
+#if __cpp_constexpr >= 201907L
+	constexpr
+#endif
+	basic_io_file& operator=(basic_io_file&&) noexcept=default;
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif

@@ -153,12 +153,11 @@ struct socket_address_storage
 
 
 //use memcpy is THE only way to do correct ip address punning
-template<std::integral U>
-inline constexpr auto to_socket_address_storage(ipv4 const& add,U port)
+inline constexpr auto to_socket_address_storage(ipv4 const& add,std::uint16_t port)
 {
 	sockaddr_in v4st{};
 	v4st.sin_family=static_cast<sock::details::address_family>(fast_io::sock::family::ipv4);
-	v4st.sin_port=details::big_endian(static_cast<std::uint16_t>(port));
+	v4st.sin_port=details::big_endian(port);
 	std::memcpy(std::addressof(v4st.sin_addr),add.storage.data(),sizeof(add.storage));
 	socket_address_storage stor{};
 	std::memcpy(std::addressof(stor),std::addressof(v4st),sizeof(sockaddr_in));
@@ -183,6 +182,7 @@ struct ipv6
 {
 	std::array<std::uint16_t, 8> storage{};
 };
+
 inline constexpr std::size_t native_socket_address_size(ipv6 const&)
 {
 	return sizeof(sockaddr_in6);
@@ -304,12 +304,12 @@ inline constexpr void space_scan_define(input& in,ipv6& v6)
 		std::fill(v6.storage.begin()+double_npos,std::copy_backward(v6.storage.begin()+double_npos,v6.storage.begin()+copy_mid,v6.storage.end()),0);
 }
 
-template<std::integral U>
-inline constexpr auto to_socket_address_storage(ipv6 add,U port)
+inline constexpr auto to_socket_address_storage(ipv6 add,std::uint16_t port)
 {
 	sockaddr_in6 v6st{};
 	v6st.sin6_family=static_cast<sock::details::address_family>(fast_io::sock::family::ipv6);
-	v6st.sin6_port=details::big_endian(static_cast<std::uint16_t>(port));
+	static_assert(sizeof(v6st.sin6_port)==sizeof(port));
+	v6st.sin6_port=details::big_endian(port);
 	if constexpr(std::endian::little==std::endian::native)
 		for(auto& e : add.storage)
 			e=details::byte_swap(e);
@@ -454,5 +454,12 @@ constexpr Iter print_reserve_define(io_reserve_type_t<address>,Iter it,address c
 		return print_reserve_define(io_reserve_type<std::decay_t<decltype(arg)>>,it,arg);
 	}, v.variant());
 }
+
+struct address_info
+{
+	socket_address_storage storage={};
+	socklen_t storage_size=sizeof(socket_address_storage);
+};
+
 
 }

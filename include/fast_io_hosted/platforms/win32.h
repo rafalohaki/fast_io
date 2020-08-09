@@ -270,7 +270,7 @@ public:
 	using native_handle_type = void*;
 	using char_type = ch_type;
 	using async_scheduler_type = basic_win32_io_observer<char>;
-	native_handle_type handle=nullptr;
+	native_handle_type handle{};
 	constexpr auto& native_handle() noexcept
 	{
 		return handle;
@@ -287,6 +287,24 @@ public:
 	{
 		return basic_nt_io_observer<char_type>{handle};
 	}
+	inline constexpr native_handle_type release() noexcept
+	{
+		auto temp{handle};
+		handle=nullptr;
+		return temp;
+	}
+	inline constexpr void reset() noexcept
+	{
+		handle=nullptr;
+	}
+	inline constexpr void reset(native_handle_type newhandle) noexcept
+	{
+		handle=newhandle;
+	}
+	inline constexpr void swap(basic_win32_io_observer& other) noexcept
+	{
+		std::swap(handle, other.handle);
+	}
 };
 
 template<std::integral ch_type>
@@ -296,13 +314,6 @@ public:
 	using native_handle_type = void*;
 	using char_type = ch_type;
 	using async_scheduler_type = basic_win32_io_observer<char>;
-protected:
-	void close_impl() noexcept
-	{
-		if(this->native_handle())
-			fast_io::win32::CloseHandle(this->native_handle());
-	}
-public:
 	explicit constexpr basic_win32_io_handle() noexcept =default;
 	explicit constexpr basic_win32_io_handle(native_handle_type handle) noexcept:
 		basic_win32_io_observer<ch_type>{handle}{}
@@ -320,7 +331,8 @@ public:
 		void* new_handle{};
 		if(!win32::DuplicateHandle(current_process,other.native_handle(),current_process,std::addressof(new_handle), 0, true, 2/*DUPLICATE_SAME_ACCESS*/))
 			throw_win32_error();
-		close_impl();
+		if(this->native_handle())[[likely]]
+			fast_io::win32::CloseHandle(this->native_handle());
 		this->native_handle()=new_handle;
 		return *this;
 	}
@@ -333,14 +345,17 @@ public:
 	{
 		if(std::addressof(b)!=this)
 		{
-			close_impl();
+			if(this->native_handle())[[likely]]
+				fast_io::win32::CloseHandle(this->native_handle());
 			this->native_handle() = b.native_handle();
 			b.native_handle()=nullptr;
 		}
 		return *this;
 	}
-	constexpr void detach() noexcept
+	void close()
 	{
+		if(!fast_io::win32::CloseHandle(this->native_handle()))[[unlikely]]
+			throw_win32_error();
 		this->native_handle()=nullptr;
 	}
 };
@@ -481,7 +496,7 @@ class basic_win32_file:public basic_win32_io_handle<ch_type>
 	{
 		basic_win32_file<ch_type> local{this->native_handle()};
 		seek(*this,0,seekdir::end);
-		local.detach();
+		local.release();
 	};
 public:
 	using char_type=ch_type;
@@ -575,7 +590,8 @@ public:
 	}
 	~basic_win32_file()
 	{
-		this->close_impl();
+		if(this->native_handle())[[likely]]
+			fast_io::win32::CloseHandle(this->native_handle());
 	}
 	void close()
 	{
@@ -586,10 +602,14 @@ public:
 			this->native_handle()=nullptr;
 		}
 	}
+	constexpr basic_win32_file(basic_win32_file const&)=default;
+	constexpr basic_win32_file& operator=(basic_win32_file const&)=default;
+	constexpr basic_win32_file(basic_win32_file&&) noexcept=default;
+	constexpr basic_win32_file& operator=(basic_win32_file&&) noexcept=default;
 	constexpr native_handle_type release() noexcept
 	{
 		auto temp{this->native_handle()};
-		this->detach();
+		this->native_handle()==nullptr;
 		return temp;
 	}
 };
@@ -614,9 +634,7 @@ class basic_win32_pipe
 public:
 	using char_type = ch_type;
 	using native_handle_type = std::array<basic_win32_file<ch_type>,2>;
-private:
 	native_handle_type pipes;
-public:
 	template<typename ...Args>
 /*	requires requires(Args&& ...args)
 	{

@@ -28,6 +28,19 @@ public:
 		s={};
 		return temp;
 	}
+	inline constexpr void reset() noexcept
+	{
+		s=nullptr;
+	}
+	inline constexpr void reset(native_handle_type newhandle) noexcept
+	{
+		s=newhandle;
+	}
+	
+	inline constexpr void swap(basic_ssl_io_observer& other) noexcept
+	{
+		std::swap(s, other.s);
+	}
 };
 
 template<std::integral ch_type,std::integral ch_type1,std::integral ch_type2>
@@ -129,7 +142,10 @@ public:
 		connect(*this);
 		self.release();
 	}
-
+	constexpr basic_ssl_file(basic_ssl_file const&)=default;
+	constexpr basic_ssl_file& operator=(basic_ssl_file const&)=default;
+	constexpr basic_ssl_file(basic_ssl_file &&) noexcept=default;
+	constexpr basic_ssl_file& operator=(basic_ssl_file &&) noexcept=default;
 	~basic_ssl_file()
 	{
 		if(this->native_handle())[[likely]]

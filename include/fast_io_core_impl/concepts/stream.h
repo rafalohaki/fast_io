@@ -129,6 +129,25 @@ template<typename T>
 concept redirect_stream = stream<T>&&details::redirect_stream_impl<T>;
 
 
+template<typename T>
+concept connection_stream = stream<T>&&requires(T t)
+{
+	connect(t);
+};
+
+template<typename T>
+concept listener_stream = stream<T>&&requires(T t)
+{
+	listen(t);
+};
+
+template<typename T>
+concept acceptance_stream = stream<T>&&requires(T t)
+{
+	accept(t);
+};
+
+
 /*
 status streams deal with special stream types like streams which need locale
 You can define your own behavior with it

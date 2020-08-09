@@ -10,7 +10,7 @@ try
 	for(;;)
 	try
 	{
-		fast_io::acceptor_buf accept(hd);
+		fast_io::ibuf_socket_acceptor accept(hd);
 		println(fast_io::out(),u8"a client connect to this server");
 		print_flush(accept,u8"hello world\n");
 	}

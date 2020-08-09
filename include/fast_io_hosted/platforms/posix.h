@@ -5,6 +5,7 @@
 #else
 #include<unistd.h>
 #endif
+#include"systemcall_details.h"
 #include<fcntl.h>
 #ifdef __linux__
 #include<sys/uio.h>
@@ -62,6 +63,7 @@ inline constexpr int calculate_posix_open_mode_for_win32_handle(open_mode value)
 //Destroy contents;	Error;	"wx";	Create a file for writing
 	default:
 		throw_posix_error(EINVAL);
+		return -1;
 	}
 }
 template<open_mode om>
@@ -219,39 +221,38 @@ public:
 		return fd!=-1;
 	}
 #if defined(__WINNT__) || defined(_MSC_VER)
-	explicit operator basic_win32_io_observer<char_type>() const
+	explicit operator basic_win32_io_observer<char_type>() const noexcept
 	{
-		auto os_handle(_get_osfhandle(fd));
-		if(os_handle==-1)
-			throw_posix_error();
-		return {bit_cast<void*>(os_handle)};
+		return {bit_cast<void*>(_get_osfhandle(fd))};
 	}
-	explicit operator basic_nt_io_observer<char_type>() const
+	explicit operator basic_nt_io_observer<char_type>() const noexcept
 	{
-		return static_cast<basic_nt_io_observer<char_type>>(static_cast<basic_win32_io_observer<char_type>>(*this));
+		return {bit_cast<void*>(_get_osfhandle(fd))};
 	}
 #endif
+	constexpr native_handle_type release() noexcept
+	{
+		auto temp{fd};
+		fd=-1;
+		return temp;
+	}
+	inline constexpr void reset() noexcept
+	{
+		fd=-1;
+	}
+	inline constexpr void reset(native_handle_type newfd) noexcept
+	{
+		fd=newfd;
+	}
+	inline constexpr void swap(basic_posix_io_observer& other) noexcept
+	{
+		std::swap(fd, other.fd);
+	}
 };
 
 template<std::integral ch_type>
 class basic_posix_io_handle:public basic_posix_io_observer<ch_type>
 {
-protected:
-	void close_impl() noexcept
-	{
-		if(this->native_handle()!=-1)
-#if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
-			system_call<
-#if defined(__x86_64__)
-			3
-#elif defined(__arm64__) || defined(__aarch64__) 
-			57
-#endif
-			,int>(this->native_handle());
-#else
-			close(this->native_handle());
-#endif
-	}
 public:
 	using char_type = ch_type;
 	using native_handle_type = int;
@@ -260,39 +261,12 @@ public:
 #endif
 	constexpr explicit basic_posix_io_handle()=default;
 	constexpr explicit basic_posix_io_handle(int fdd):basic_posix_io_observer<ch_type>{fdd}{}
-	basic_posix_io_handle(basic_posix_io_handle const& dp):basic_posix_io_observer<ch_type>{
-#if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
-		system_call<
-#if defined(__x86_64__)
-		32
-#elif defined(__arm64__) || defined(__aarch64__) 
-		23
-#endif
-		,int>
-#else
-		dup
-#endif
-(dp.native_handle())}
+	basic_posix_io_handle(basic_posix_io_handle const& dp):basic_posix_io_observer<ch_type>{details::sys_dup(dp.native_handle())}
 	{
-		system_call_throw_error(this->native_handle());
 	}
 	basic_posix_io_handle& operator=(basic_posix_io_handle const& dp)
 	{
-		auto newfd(
-#if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
-		system_call<
-#if defined(__x86_64__)
-		33
-#elif defined(__arm64__) || defined(__aarch64__) 
-		1041
-#endif
-		,int>
-#else
-		dup2
-#endif
-(dp.native_handle(),this->native_handle()));
-		system_call_throw_error(newfd);
-		this->native_handle()=newfd;
+		this->native_handle()=details::sys_dup2(dp.native_handle(),this->native_handle());
 		return *this;
 	}
 	constexpr basic_posix_io_handle(basic_posix_io_handle&& b) noexcept : basic_posix_io_handle(b.native_handle())
@@ -303,14 +277,16 @@ public:
 	{
 		if(b.native_handle()!=this->native_handle())
 		{
-			close_impl();
+			if(this->native_handle()!=-1)[[likely]]
+				details::sys_close(this->native_handle());
 			this->native_handle()=b.native_handle();
 			b.native_handle() = -1;
 		}
 		return *this;
 	}
-	void detach()
+	void close()
 	{
+		details::sys_close_throw_error(this->naitve_handle());
 		this->native_handle()=-1;
 	}
 };
@@ -461,7 +437,7 @@ class basic_posix_file:public basic_posix_io_handle<ch_type>
 	{
 		basic_posix_file<ch_type> local{this->native_handle()};
 		seek(*this,0,seekdir::end);
-		local.detach();
+		local.release();
 	};
 #if defined(__WINNT__) || defined(_MSC_VER)
 	using mode_t = int;
@@ -521,14 +497,14 @@ public:
 	{
 		if(native_handle()==-1)
 			throw_posix_error();
-		hd.detach();
+		hd.release();
 	}
 	basic_posix_file(basic_win32_io_handle<char_type>&& hd,open_mode m):
 		basic_posix_io_handle<char_type>(::_open_osfhandle(bit_cast<std::intptr_t>(hd.native_handle()),details::calculate_posix_open_mode_for_win32_handle(m)))
 	{
 		if(native_handle()==-1)
 			throw_posix_error();
-		hd.detach();
+		hd.release();
 	}
 	basic_posix_file(basic_win32_io_handle<char_type>&& hd,std::string_view mode):basic_posix_file(std::move(hd),from_c_mode(mode)){}
 	template<open_mode om,typename... Args>
@@ -588,9 +564,16 @@ public:
 #endif
 
 #endif
+
+	constexpr basic_posix_file(basic_posix_file const&)=default;
+	constexpr basic_posix_file& operator=(basic_posix_file const&)=default;
+	constexpr basic_posix_file(basic_posix_file &&) noexcept=default;
+	constexpr basic_posix_file& operator=(basic_posix_file &&) noexcept=default;
+
 	~basic_posix_file()
 	{
-		this->close_impl();
+		if(this->native_handle()==-1)[[likely]]
+			details::sys_close(this->native_handle());
 	}
 };
 #if !defined(__NEWLIB__)
@@ -617,9 +600,7 @@ public:
 #if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
 	using async_scheduler_type = io_async_observer;
 #endif
-private:
 	native_handle_type pipes;
-public:
 	basic_posix_pipe()
 	{
 		std::array<int,2> a2{pipes.front().native_handle(),pipes.back().native_handle()};
@@ -632,29 +613,19 @@ public:
 		pipes.front().native_handle()=a2.front();
 		pipes.back().native_handle()=a2.back();
 	}
-	auto& native_handle()
+	constexpr auto& native_handle()
 	{
 		return pipes;
 	}
-	auto& in()
+	constexpr auto& in()
 	{
 		return pipes.front();
 	}
-	auto& out()
+	constexpr auto& out()
 	{
 		return pipes.back();
 	}
-	void swap(basic_posix_pipe& o) noexcept
-	{
-		using std::swap;
-		swap(pipes,o.pipes);
-	}
 };
-template<std::integral ch_type>
-inline void swap(basic_posix_pipe<ch_type>& a,basic_posix_pipe<ch_type>& b) noexcept
-{
-	a.swap(b);
-}
 
 template<std::integral ch_type,std::contiguous_iterator Iter>
 inline Iter read(basic_posix_pipe<ch_type>& h,Iter begin,Iter end)

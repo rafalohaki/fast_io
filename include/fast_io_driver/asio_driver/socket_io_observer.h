@@ -24,6 +24,18 @@ public:
 	{
 		return handle;
 	}
+	inline constexpr void reset() noexcept
+	{
+		handle=nullptr;
+	}
+	inline constexpr void reset(native_handle_type newhandle) noexcept
+	{
+		handle=newhandle;
+	}
+	inline constexpr void swap(basic_socket_io_observer& other) noexcept
+	{
+		std::swap(handle, other.handle);
+	}
 };
 template<typename T,std::integral ch_type,std::contiguous_iterator Iter>
 inline Iter read(basic_socket_io_observer<T,ch_type> iob,Iter begin,Iter end)
