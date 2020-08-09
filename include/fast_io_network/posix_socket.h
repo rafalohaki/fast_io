@@ -108,7 +108,7 @@ inline void getaddrinfo(Args&& ...args)
 {
 	int ec(::getaddrinfo(std::forward<Args>(args)...));
 	if(ec)
-		fast_io::details::throw_gai_error(ec);
+		fast_io::throw_gai_error(ec);
 }
 
 template<typename ...Args>
