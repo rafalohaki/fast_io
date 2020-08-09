@@ -73,6 +73,18 @@ inline auto recv(Args&& ...args)
 	return call_posix(::recv,std::forward<Args>(args)...);
 }
 
+
+template<typename ...Args>
+inline auto sendmsg(Args&& ...args)
+{
+	return call_posix(::sendmsg,std::forward<Args>(args)...);
+}
+template<typename ...Args>
+inline auto recvmsg(Args&& ...args)
+{
+	return call_posix(::recvmsg,std::forward<Args>(args)...);
+}
+
 template<typename ...Args>
 inline auto closesocket(Args&& ...args)
 {

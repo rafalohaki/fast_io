@@ -39,7 +39,7 @@ public:
 	inline constexpr void swap(basic_socket_io_observer& other) noexcept
 	{
 		std::swap(soc,other.soc);
-//		std::swap(addr,other.addr);
+		std::swap(addr,other.addr);
 	}
 	inline constexpr auto& native_handle() const noexcept
 	{	
@@ -98,6 +98,18 @@ inline constexpr auto zero_copy_out_handle(basic_socket_io_observer<ch_type,cont
 }
 #endif
 
+template<std::integral ch_type,bool contain_address_info>
+inline std::size_t send_message(basic_socket_io_observer<ch_type,contain_address_info> soc,io_message_t message)
+{
+	
+}
+
+template<std::integral ch_type,bool contain_address_info>
+inline std::size_t receive_message(basic_socket_io_observer<ch_type,contain_address_info> soc,io_message_t& message)
+{
+	
+}
+
 template<std::integral ch_type,bool contain_address_info=true>
 class basic_socket_io_handle:public basic_socket_io_observer<ch_type,contain_address_info>
 {
@@ -115,22 +127,24 @@ public:
 	basic_socket_io_handle(basic_socket_io_handle const&)=delete;
 	basic_socket_io_handle& operator=(basic_socket_io_handle const&)=delete;
 #else
-	basic_socket_io_handle(basic_socket_io_handle const& other):basic_socket_io_observer<ch_type,contain_address_info>{details::sys_dup(other.native_handle())}
+	basic_socket_io_handle(basic_socket_io_handle const& other):basic_socket_io_observer<ch_type,contain_address_info>{details::sys_dup(other.native_handle()),other.addr}
 	{
 	}
 	basic_socket_io_handle& operator=(basic_socket_io_handle const& other)
 	{
-		this->native_handle()=sys_dup2(other.native_handle(),this->native_handle());
+		this->native_handle()=details::sys_dup2(other.native_handle(),this->native_handle());
+		this->addr=other.addr;
 		return *this;
 	}
 #endif
-	constexpr basic_socket_io_handle(basic_socket_io_handle&& other) noexcept:basic_socket_io_observer<ch_type,contain_address_info>{other.release()}{}
+	constexpr basic_socket_io_handle(basic_socket_io_handle&& other) noexcept:basic_socket_io_observer<ch_type,contain_address_info>{other.release(),other.addr}{}
 	basic_socket_io_handle& operator=(basic_socket_io_handle&& other) noexcept
 	{
 		if(other.native_handle()==this->native_handle())
 			return *this;
 		if(*this)[[likely]]
 			sock::details::closesocket_ignore_error(this->native_handle());
+		this->addr=other.addr;
 		this->native_handle()=other.release();
 		return *this;
 	}

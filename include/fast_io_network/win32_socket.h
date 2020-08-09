@@ -111,12 +111,25 @@ inline auto recv(SOCKET sock,mem_address* add,Args&& ...args)
 	return call_win32_ws2_32<decltype(::recv)*>("recv",sock,static_cast<char*>(static_cast<void*>(add)),std::forward<Args>(args)...);
 }
 
+
+
 template<typename ...Args>
 inline auto wsasend(Args&& ...args)
 {
 	return call_win32_ws2_32<decltype(::WSASend)*>("WSASend",std::forward<Args>(args)...);
 }
 
+template<typename ...Args>
+inline auto wsasendmsg(Args&& ...args)
+{
+	return call_win32_ws2_32<decltype(::WSASendMsg)*>("WSASendMsg",std::forward<Args>(args)...);
+}
+/*
+inline auto my_sendmsg(SOCKET sck,message_hdr const* ptr,std::uint32_t flags)
+{
+	
+}
+*/
 template<typename ...Args>
 inline void closesocket_ignore_error(Args&& ...args) noexcept
 {
