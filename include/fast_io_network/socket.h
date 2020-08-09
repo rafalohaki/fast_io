@@ -85,6 +85,19 @@ inline auto redirect_handle(basic_socket_io_observer<ch_type,contain_address_inf
 }
 #endif
 
+#if defined(__linux__)
+template<std::integral ch_type,bool contain_address_info>
+inline constexpr auto zero_copy_in_handle(basic_socket_io_observer<ch_type,contain_address_info> soc)
+{
+	return soc.soc;
+}
+template<std::integral ch_type,bool contain_address_info>
+inline constexpr auto zero_copy_out_handle(basic_socket_io_observer<ch_type,contain_address_info> soc)
+{
+	return soc.soc;
+}
+#endif
+
 template<std::integral ch_type,bool contain_address_info=true>
 class basic_socket_io_handle:public basic_socket_io_observer<ch_type,contain_address_info>
 {
