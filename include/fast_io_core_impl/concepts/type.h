@@ -28,7 +28,7 @@ struct basic_message_hdr
 	T const       *msg_control;    /* Ancillary data, see below */
 	std::size_t   msg_controllen; /* Ancillary data buffer len */
 	int           msg_flags;      /* Flags (unused) */
-	inline explicit operator basic_io_message_t<void>() const noexcept requires(!std::same_as<T,void>)
+	inline explicit operator basic_message_hdr<void>() const noexcept requires(!std::same_as<T,void>)
 	{
 		return {msg_name,msg_namelen*sizeof(T),msg_iov,msg_iovlen*sizeof(T),msg_control,msg_controllen,msg_flags};
 	}
