@@ -711,14 +711,10 @@ public:
 	basic_c_file_impl(io_cookie_t,std::string_view mode,stm&& rref):basic_c_file_impl(io_cookie,mode,std::in_place_type<stm>,std::move(rref)){}
 
 
-	basic_c_file_impl(basic_c_file_impl const&)=delete;
-	basic_c_file_impl& operator=(basic_c_file_impl const&)=delete;
-	constexpr basic_c_file_impl(basic_c_file_impl&& b) noexcept :T(std::move(b)){}
-	basic_c_file_impl& operator=(basic_c_file_impl&& b) noexcept
-	{
-		static_cast<T&>(*this)=std::move(b);
-		return *this;
-	}
+	basic_c_file_impl(basic_c_file_impl const&)=default;
+	basic_c_file_impl& operator=(basic_c_file_impl const&)=default;
+	constexpr basic_c_file_impl(basic_c_file_impl&&) noexcept=default;
+	basic_c_file_impl& operator=(basic_c_file_impl&&) noexcept=default;
 	~basic_c_file_impl()
 	{
 		if(this->native_handle())[[likely]]

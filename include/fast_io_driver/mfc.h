@@ -128,6 +128,10 @@ public:
 	basic_mfc_file(std::string_view file,std::string_view mode,Args&& ...args):
 		basic_mfc_file(basic_win32_file<char_type>(file,mode,std::forward<Args>(args)...),mode)
 	{}
+	basic_mfc_file(basic_mfc_file const&)=default;
+	basic_mfc_file& operator=(basic_mfc_file const&)=default;
+	basic_mfc_file(basic_mfc_file&&) noexcept=default;
+	basic_mfc_file& operator=(basic_mfc_file&&) noexcept=default;
 	~basic_mfc_file()
 	{
 		delete this->native_handle();

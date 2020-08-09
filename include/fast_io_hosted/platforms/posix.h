@@ -63,6 +63,7 @@ inline constexpr int calculate_posix_open_mode_for_win32_handle(open_mode value)
 //Destroy contents;	Error;	"wx";	Create a file for writing
 	default:
 		throw_posix_error(EINVAL);
+		return -1;
 	}
 }
 template<open_mode om>
@@ -270,6 +271,11 @@ public:
 			b.native_handle() = -1;
 		}
 		return *this;
+	}
+	void close()
+	{
+		details::sys_close_throw_error(this->naitve_handle());
+		this->native_handle()=-1;
 	}
 };
 
@@ -546,15 +552,16 @@ public:
 #endif
 
 #endif
+
+	basic_posix_file(basic_posix_file const&)=default;
+	basic_posix_file& operator=(basic_posix_file const&)=default;
+	basic_posix_file(basic_posix_file &&) noexcept=default;
+	basic_posix_file& operator=(basic_posix_file &&) noexcept=default;
+
 	~basic_posix_file()
 	{
 		if(this->native_handle()==-1)[[likely]]
 			details::sys_close(this->native_handle());
-	}
-	void close()
-	{
-		details::sys_close_throw_error(this->naitve_handle());
-		this->native_handle()=-1;
 	}
 };
 #if !defined(__NEWLIB__)

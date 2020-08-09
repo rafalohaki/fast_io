@@ -590,6 +590,10 @@ public:
 			this->native_handle()=nullptr;
 		}
 	}
+	basic_win32_file(basic_win32_file const&)=default;
+	basic_win32_file& operator=(basic_win32_file const&)=default;
+	basic_win32_file(basic_win32_file&&) noexcept=default;
+	basic_win32_file& operator=(basic_win32_file&&) noexcept=default;
 	constexpr native_handle_type release() noexcept
 	{
 		auto temp{this->native_handle()};

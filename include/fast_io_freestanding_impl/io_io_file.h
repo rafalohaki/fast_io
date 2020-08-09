@@ -220,6 +220,22 @@ public:
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
+	basic_io_file(basic_io_file const&)=default;
+#if __cpp_constexpr >= 201907L
+	constexpr
+#endif
+	basic_io_file& operator=(basic_io_file const&)=default;
+#if __cpp_constexpr >= 201907L
+	constexpr
+#endif
+	basic_io_file(basic_io_file&&) noexcept=default;
+#if __cpp_constexpr >= 201907L
+	constexpr
+#endif
+	basic_io_file& operator=(basic_io_file&&) noexcept=default;
+#if __cpp_constexpr >= 201907L
+	constexpr
+#endif
 	~basic_io_file()
 	{
 		delete this->io_ptr;

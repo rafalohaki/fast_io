@@ -295,6 +295,10 @@ public:
 		if(status)
 			throw_nt_error(status);
 	}
+	basic_nt_file(basic_nt_file const&)=default;
+	basic_nt_file& operator=(basic_nt_file const&)=default;
+	basic_nt_file(basic_nt_file&&) noexcept=default;
+	basic_nt_file& operator=(basic_nt_file&&) noexcept=default;
 	~basic_nt_file()
 	{
 		this->close_impl();
