@@ -66,33 +66,8 @@ private:
 	}
 public:
 	constexpr basic_buf_handler()=default;
-	constexpr basic_buf_handler(basic_buf_handler const& other):alloc(other.alloc)
-	{
-		if(other.beg==nullptr)
-			return;
-		beg=std::allocator_traits<allocator_type>::allocate(alloc,buffer_size);
-		details::non_overlapped_copy_n(other.beg,other.end-other.beg,beg);
-		curr=(other.curr-other.beg)+beg;
-		end=(other.end-other.beg)+beg;
-	}
-	constexpr basic_buf_handler& operator=(basic_buf_handler const& other)
-	{
-		alloc=other.alloc;
-		if(other.beg==nullptr)
-		{
-			cleanse();
-			end=curr=beg=nullptr;
-		}
-		else
-		{
-			auto new_beg=std::allocator_traits<allocator_type>::allocate(alloc,buffer_size);
-			details::non_overlapped_copy_n(other.beg,other.end-other.beg,new_beg);
-			cleanse();
-			beg=new_beg;
-			curr=(other.curr-other.beg)+beg;
-			end=(other.end-other.beg)+beg;
-		}
-	}
+	constexpr basic_buf_handler(basic_buf_handler const& other)=delete;
+	constexpr basic_buf_handler& operator=(basic_buf_handler const&)=delete;
 	static constexpr std::size_t size = buffer_size;
 	constexpr basic_buf_handler(basic_buf_handler&& m) noexcept:beg(m.beg),curr(m.curr),end(m.end)
 	{
@@ -154,6 +129,23 @@ public:
 	{
 		return ih;
 	}
+#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_constexpr_dynamic_alloc >= 201907L
+	constexpr
+#endif
+	~basic_ibuf()=default;
+	constexpr basic_ibuf(basic_ibuf const& other) requires(std::copyable<Ihandler>):ih(other.ih){}
+	constexpr basic_ibuf(basic_ibuf const& other) = delete;
+	constexpr basic_ibuf& operator=(basic_ibuf const& other) requires(std::copyable<Ihandler>)
+	{
+		if(std::addressof(other)==this)
+			return *this;
+		ih=other.ih;
+		ibuffer.end=ibuffer.curr=ibuffer.beg;
+		return *this;
+	}
+	constexpr basic_ibuf& operator=(basic_ibuf const& other) =delete;
+	constexpr basic_ibuf(basic_ibuf&&) noexcept=default;
+	constexpr basic_ibuf& operator=(basic_ibuf&&) noexcept=default;
 };
 template<input_stream Ihandler,typename Buf>
 inline constexpr bool underflow(basic_ibuf<Ihandler,Buf>& ib)
@@ -363,12 +355,20 @@ public:
 	{
 		close_impl();
 	}
-	constexpr basic_obuf(basic_obuf const&) requires(std::copyable<Ohandler>&&std::copyable<Buf>) =default;
+	constexpr basic_obuf(basic_obuf const& other) requires(std::copyable<Ohandler>):oh(other.oh){}
 	constexpr basic_obuf(basic_obuf const&)=delete;
-	constexpr basic_obuf& operator=(basic_obuf const&) requires(std::copyable<Ohandler>&&std::copyable<Buf>) =default;
+	constexpr basic_obuf& operator=(basic_obuf const& other) requires(std::copyable<Ohandler>)
+	{
+		if(std::addressof(other)==this)
+			return *this;
+		close_impl();
+		oh.obuffer.curr=oh.obuffer.beg;
+		oh=other.oh;
+		return *this;
+	}
 	constexpr basic_obuf& operator=(basic_obuf const&)=delete; 
-	constexpr basic_obuf(basic_obuf&& bmv) noexcept:oh(std::move(bmv.oh)),obuffer(std::move(bmv.obuffer)){}
-	constexpr basic_obuf& operator=(basic_obuf&& b) noexcept
+	constexpr basic_obuf(basic_obuf&& bmv) noexcept requires(std::movable<Ohandler>):oh(std::move(bmv.oh)),obuffer(std::move(bmv.obuffer)){}
+	constexpr basic_obuf& operator=(basic_obuf&& b) noexcept requires(std::movable<Ohandler>)
 	{
 		if(std::addressof(b)==this)[[unlikely]]
 			return *this;
@@ -377,6 +377,8 @@ public:
 		obuffer=std::move(b.obuffer);
 		return *this;
 	}
+	constexpr basic_obuf& operator=(basic_obuf&&) noexcept =delete;
+	constexpr basic_obuf(basic_obuf&&) noexcept=delete;
 	inline constexpr auto& native_handle()
 	{
 		return oh;
