@@ -183,9 +183,9 @@ struct msghdr {
 		.msg_controllen=message.controllen,
 		.msg_flags=message.flags};
 	if constexpr(enm==send_recv_message_impl_enum::send_message)
-		return sock::details::sendmsg(soc.soc,std::addressof(msg),std::addressof(message),static_cast<int>(flag));
+		return sock::details::sendmsg(soc.soc,std::addressof(msg),static_cast<int>(flag));
 	else
-		return sock::details::recvmsg(soc.soc,std::addressof(msg),std::addressof(message),static_cast<int>(flag));
+		return sock::details::recvmsg(soc.soc,std::addressof(msg),static_cast<int>(flag));
 #endif
 
 }
