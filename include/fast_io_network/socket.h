@@ -99,15 +99,15 @@ inline constexpr auto zero_copy_out_handle(basic_socket_io_observer<ch_type,cont
 #endif
 
 template<std::integral ch_type,bool contain_address_info>
-inline std::size_t send_message(basic_socket_io_observer<ch_type,contain_address_info> soc,io_message_t message)
+inline std::size_t send_message(basic_socket_io_observer<ch_type,contain_address_info> soc,message_hdr message)
 {
-	
+	return 0;
 }
 
 template<std::integral ch_type,bool contain_address_info>
-inline std::size_t receive_message(basic_socket_io_observer<ch_type,contain_address_info> soc,io_message_t& message)
+inline std::size_t receive_message(basic_socket_io_observer<ch_type,contain_address_info> soc,message_hdr& message)
 {
-	
+	return 0;
 }
 
 template<std::integral ch_type,bool contain_address_info=true>
