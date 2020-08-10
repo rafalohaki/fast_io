@@ -606,12 +606,6 @@ public:
 	constexpr basic_win32_file& operator=(basic_win32_file const&)=default;
 	constexpr basic_win32_file(basic_win32_file&&) noexcept=default;
 	constexpr basic_win32_file& operator=(basic_win32_file&&) noexcept=default;
-	constexpr native_handle_type release() noexcept
-	{
-		auto temp{this->native_handle()};
-		this->native_handle()==nullptr;
-		return temp;
-	}
 };
 
 template<std::integral ch_type>

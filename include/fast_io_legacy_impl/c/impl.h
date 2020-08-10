@@ -576,13 +576,11 @@ public:
 	}
 	basic_c_io_handle_impl& operator=(basic_c_io_handle_impl&& b) noexcept
 	{
-		if(b.native_handle()!=this->native_handle())
-		{
-			if(this->native_handle())[[likely]]
-				std::fclose(this->native_handle());
-			this->native_handle()=b.native_handle();
-			b.native_handle() = nullptr;
-		}
+		if(b.native_handle()==this->native_handle())[[unlikely]]
+			return *this;
+		if(this->native_handle())[[likely]]
+			std::fclose(this->native_handle());
+		this->native_handle()=b.release();
 		return *this;
 	}
 	void close()
