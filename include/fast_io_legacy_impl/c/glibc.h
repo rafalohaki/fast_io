@@ -141,4 +141,18 @@ inline void overflow(wc_io_observer_unlocked cio,wchar_t ch)
 		throw_posix_error();
 }
 
+template<std::integral ch_type>
+requires (std::same_as<ch_type,char>||std::same_as<ch_type,wchar_t>)
+inline constexpr void put_define(basic_c_io_observer_unlocked<ch_type> out,typename basic_c_io_observer_unlocked<ch_type>::char_type ch)
+{
+	auto ref{obuffer_curr(out)};
+	if(obuffer_end(out)<=ref)[[unlikely]]
+	{
+		overflow(out,ch);
+		return;
+	}
+	*ref=ch;
+	obuffer_set_curr(out,ref+1);
+}
+
 }

@@ -19,16 +19,23 @@ inline constexpr void orelease(output& out,typename output::char_type* ptr)
 }
 
 template<buffer_output_stream output>
-inline constexpr void put(output& out,typename output::char_type ch)
+inline constexpr void put(output& out,typename std::remove_cvref_t<output>::char_type ch)
 {
-	auto ref{obuffer_curr(out)};
-	if(ref==obuffer_end(out))[[unlikely]]
+	if constexpr(requires()
 	{
-		overflow(out,ch);
-		return;
+		put_define(out,ch);
+	})
+		put_define(out,ch);
+	else
+	{
+		auto ref{obuffer_curr(out)};
+		if(ref==obuffer_end(out))[[unlikely]]
+		{
+			overflow(out,ch);
+			return;
+		}
+		*ref=ch;
+		obuffer_set_curr(out,ref+1);
 	}
-	*ref=ch;
-	obuffer_set_curr(out,ref+1);
-//	++ref;
 }
 }
