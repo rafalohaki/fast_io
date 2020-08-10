@@ -97,7 +97,6 @@ inline constexpr void impl_svt_none_buffer(output& out,T& bg,U& ed,manip::scan_t
 template<buffer_output_stream output,input_stream input,typename... Args>
 inline constexpr bool scan_transmit(output&& out,input&& in,Args&& ...args)
 {
-	using real_output_type = std::remove_cvref_t<output>;
 	using real_input_type = std::remove_cvref_t<input>;
 	if constexpr(buffer_input_stream<real_input_type>)
 	{

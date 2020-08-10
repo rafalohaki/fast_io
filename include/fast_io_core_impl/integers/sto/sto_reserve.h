@@ -10,7 +10,6 @@ template<char8_t base,my_unsigned_integral T,std::contiguous_iterator Iter>
 inline constexpr Iter scan_raw_unsigned_integer_impl(Iter i,Iter end,T& val,T& val_last)
 {
 	using unsigned_char_type = std::make_unsigned_t<std::iter_value_t<Iter>>;
-	using unsigned_t = details::my_make_unsigned_t<std::remove_cvref_t<T>>;
 	for(;i!=end;++i)
 	{
 		if constexpr(base <= 10)
@@ -42,7 +41,6 @@ inline constexpr Iter scan_raw_unsigned_integer_impl(Iter i,Iter end,T& val,T& v
 template<char8_t base,my_integral T,std::contiguous_iterator Iter>
 inline constexpr Iter scan_integer_impl(Iter begin,Iter end,T& t)
 {
-	using unsigned_char_type = std::make_unsigned_t<std::iter_value_t<Iter>>;
 	using unsigned_t = details::my_make_unsigned_t<std::remove_cvref_t<T>>;
 	unsigned_t val{},val_last{};
 	if constexpr(my_unsigned_integral<T>)

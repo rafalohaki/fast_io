@@ -57,7 +57,6 @@ requires (general_scanable<input,T>||general_reserve_scanable<T,internal_tempora
 inline constexpr auto scan_with_space(input &in,T&& t)
 {
 	using no_cvref = std::remove_cvref_t<T>;
-	using no_cvref_input = std::remove_cvref_t<input>;
 	constexpr bool not_contiguous{!contiguous_buffer_input_stream<input>};
 	if constexpr(space_scanable<input,T>||reserve_space_scanable<T,internal_temporary_buffer<typename std::remove_cvref_t<input>::char_type>,input>)
 	{

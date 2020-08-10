@@ -109,7 +109,6 @@ inline constexpr Iter real_sto(Iter begin,Iter end,fp_type& t)
 	using mantissa_type = typename floating_trait::mantissa_type;
 	using exponent_type = typename floating_trait::exponent_type;
 	using unsigned_char_type = std::make_unsigned_t<char_type>;
-	using signed_exponent_type = std::make_signed_t<exponent_type>;
 	bool const signed_m{*begin==u8'-'};
 	if(signed_m|*begin==u8'+')
 		++begin;
