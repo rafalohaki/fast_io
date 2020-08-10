@@ -424,7 +424,7 @@ inline void async_read_callback(basic_win32_io_observer<char>,basic_win32_io_obs
 	if constexpr(4<sizeof(std::size_t))
 	{
 		callback.native_handle()->Offset=static_cast<std::size_t>(offset)&std::numeric_limits<std::uint32_t>::max();
-		callback.native_handle()->OffsetHigh=static_cast<std::size_t>(offset)>>32;
+		callback.native_handle()->OffsetHigh=static_cast<std::size_t>(offset)>>static_cast<std::size_t>(32);
 	}
 	else
 	{
@@ -463,7 +463,7 @@ inline void async_write_callback(basic_win32_io_observer<char> over,basic_win32_
 	if constexpr(4<sizeof(std::size_t))
 	{
 		callback.native_handle()->Offset=static_cast<std::size_t>(offset)&std::numeric_limits<std::uint32_t>::max();
-		callback.native_handle()->OffsetHigh=static_cast<std::size_t>(offset)>>32;
+		callback.native_handle()->OffsetHigh=static_cast<std::size_t>(offset)>>static_cast<std::size_t>(32);
 	}
 	else
 	{
