@@ -1,6 +1,6 @@
 #pragma once
 #include<ws2tcpip.h>
-#include"mswsock.h"
+#include<Mswsock.h>
 
 #undef interface			//what a joke. Who did this?
 #undef min			//what a joke. Who did this?

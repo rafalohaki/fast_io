@@ -21,16 +21,16 @@ using io_scatter_t = basic_io_scatter_t<void>;
 template<typename T>
 struct basic_message_hdr
 {
-	T const        *msg_name;       /* Optional address */
-	std::size_t     msg_namelen;    /* Size of address */
-	basic_io_scatter_t<T> *msg_iov;        /* Scatter/gather array */
-	std::size_t   msg_iovlen;     /* # elements in msg_iov */
-	T const       *msg_control;    /* Ancillary data, see below */
-	std::size_t   msg_controllen; /* Ancillary data buffer len */
-	int           msg_flags;      /* Flags (unused) */
+	T const        *name;       /* Optional address */
+	std::size_t     namelen;    /* Size of address */
+	basic_io_scatter_t<T> const* iov;        /* Scatter/gather array */
+	std::size_t   iovlen;     /* # elements in msg_iov */
+	T const       *control;    /* Ancillary data, see below */
+	std::size_t   controllen; /* Ancillary data buffer len */
+	int           flags;      /* Flags (unused) */
 	inline explicit operator basic_message_hdr<void>() const noexcept requires(!std::same_as<T,void>)
 	{
-		return {msg_name,msg_namelen*sizeof(T),msg_iov,msg_iovlen*sizeof(T),msg_control,msg_controllen,msg_flags};
+		return {name,namelen*sizeof(T),iov,iovlen*sizeof(T),control,controllen,flags};
 	}
 };
 

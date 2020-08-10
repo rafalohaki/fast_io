@@ -98,16 +98,124 @@ inline constexpr auto zero_copy_out_handle(basic_socket_io_observer<ch_type,cont
 }
 #endif
 
-template<std::integral ch_type,bool contain_address_info>
-inline std::size_t send_message(basic_socket_io_observer<ch_type,contain_address_info> soc,message_hdr message)
+namespace details
 {
-	return 0;
+
+enum class send_recv_message_impl_enum
+{
+send_message=0,
+recv_message=1
+};
+
+template<send_recv_message_impl_enum enm,std::integral ch_type,bool contain_address_info,typename T>
+requires std::same_as<message_hdr,std::remove_cvref_t<T>>
+inline std::size_t send_recv_message_impl(basic_socket_io_observer<ch_type,contain_address_info> soc,T& message,message_flag flag)
+{
+
+#ifdef _WIN32
+	using socklen_t=int;
+#endif
+	if constexpr(sizeof(socklen_t)<sizeof(std::size_t))
+	{
+		if(static_cast<std::size_t>(std::numeric_limits<socklen_t>::max())<message.namelen)
+			throw_posix_error(EIO);
+	}
+
+	if constexpr(sizeof(std::uint32_t)<sizeof(std::size_t))
+	{
+		if(static_cast<std::size_t>(std::numeric_limits<std::uint32_t>::max())<message.controllen)
+			throw_posix_error(EIO);
+	}
+#ifdef _WIN32
+	if(4096<message.iovlen)
+		throw_posix_error(EIO);
+#ifndef _MSC_VER
+	struct __attribute__((__may_alias__)) socket_address_may_alias:SOCKADDR
+	{};
+#endif
+	std::array<WSABUF,4096> wsabufs;
+	for(std::size_t i{};i!=message.iovlen;++i)
+	{
+		if constexpr(sizeof(std::uint32_t)<sizeof(std::size_t))
+		{
+			if(static_cast<std::size_t>(std::numeric_limits<std::uint32_t>::max())<message.iov[i].len)
+				throw_posix_error(EIO);
+		}
+		wsabufs[i].len=message.iov[i].len;
+		wsabufs[i].buf=reinterpret_cast<char*>(const_cast<void*>(message.iov[i].base));
+	}
+	WSAMSG msg{.name=
+#ifndef _MSC_VER
+	reinterpret_cast<socket_address_may_alias*>(const_cast<void*>(message.name)),
+#else
+	reinterpret_cast<SOCKADDR*>(message.name),
+#endif
+	.namelen=static_cast<int>(message.namelen),
+	.lpBuffers=wsabufs.data(),
+	.dwBufferCount=static_cast<std::uint32_t>(message.iovlen),
+	.Control={static_cast<std::uint32_t>(message.controllen),reinterpret_cast<char*>(const_cast<void*>(message.control))},
+	.dwFlags=static_cast<std::uint32_t>(message.flags)
+	};
+	long unsigned number_of_bytes_sent_or_received{};
+	if constexpr(enm==send_recv_message_impl_enum::send_message)
+		sock::details::wsasendmsg(soc.soc,std::addressof(msg),static_cast<std::uint32_t>(flag),std::addressof(number_of_bytes_sent_or_received),nullptr,nullptr);
+	else
+		sock::details::wsarecvmsg(soc.soc,std::addressof(msg),static_cast<std::uint32_t>(flag),std::addressof(number_of_bytes_sent_or_received),nullptr,nullptr);
+	return number_of_bytes_sent_or_received;
+#else
+
+/*
+struct msghdr {
+               void         *msg_name;        Optional address 
+               socklen_t     msg_namelen;     Size of address 
+               struct iovec *msg_iov;         Scatter/gather array 
+               size_t        msg_iovlen;      # elements in msg_iov 
+               void         *msg_control;     Ancillary data, see below 
+               size_t        msg_controllen;  Ancillary data buffer len 
+               int           msg_flags;       Flags (unused) 
+           };
+*/
+	msghdr msg{.msg_name=const_cast<void*>(message.name),.msg_namelen=static_cast<socklen_t>(message.namelen),
+		.msg_iov=reinterpret_cast<details::iovec_may_alias*>(message.iov),
+		.msg_iovlen=message.iovlen,
+		.msg_control=const_cast<void*>(message.control),
+		.msg_controllen=message.controllen,
+		.msg_flags=message.flags};
+	if constexpr(enm==send_recv_message_impl_enum::send_message)
+		return sock::details::sendmsg(soc.soc,std::addressof(msg),std::addressof(message),static_cast<int>(flag));
+	else
+		return sock::details::recvmsg(soc.soc,std::addressof(msg),std::addressof(message),static_cast<int>(flag));
+#endif
+
+}
+
+}
+
+
+template<std::integral ch_type,bool contain_address_info>
+inline std::size_t send_message(basic_socket_io_observer<ch_type,contain_address_info> soc,message_hdr const& message,message_flag flag)
+{
+	return details::send_recv_message_impl<details::send_recv_message_impl_enum::send_message>(soc,message,flag);
 }
 
 template<std::integral ch_type,bool contain_address_info>
-inline std::size_t receive_message(basic_socket_io_observer<ch_type,contain_address_info> soc,message_hdr& message)
+inline std::size_t recv_message(basic_socket_io_observer<ch_type,contain_address_info> soc,message_hdr& message,message_flag flag)
 {
-	return 0;
+	return details::send_recv_message_impl<details::send_recv_message_impl_enum::recv_message>(soc,message,flag);
+}
+
+
+template<std::integral ch_type,bool contain_address_info>
+inline std::size_t scatter_read(basic_socket_io_observer<ch_type,contain_address_info> soc,std::span<io_scatter_t const> sp)
+{
+	message_hdr hdr{nullptr,0,const_cast<io_scatter_t*>(sp.data()),sp.size(),nullptr,0,0};
+	return recv_message(soc,hdr,{});
+}
+
+template<std::integral ch_type,bool contain_address_info>
+inline std::size_t scatter_write(basic_socket_io_observer<ch_type,contain_address_info> soc,std::span<io_scatter_t const> sp)
+{
+	return send_message(soc,message_hdr{nullptr,0,const_cast<io_scatter_t*>(sp.data()),sp.size(),nullptr,0,0},{});
 }
 
 template<std::integral ch_type,bool contain_address_info=true>

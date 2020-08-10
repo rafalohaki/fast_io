@@ -124,12 +124,13 @@ inline auto wsasendmsg(Args&& ...args)
 {
 	return call_win32_ws2_32<decltype(::WSASendMsg)*>("WSASendMsg",std::forward<Args>(args)...);
 }
-/*
-inline auto my_sendmsg(SOCKET sck,message_hdr const* ptr,std::uint32_t flags)
+
+template<typename ...Args>
+inline auto wsarecvmsg(Args&& ...args)
 {
-	
+	return call_win32_ws2_32<int __stdcall (*)(SOCKET,LPWSAMSG,DWORD,LPDWORD,LPWSAOVERLAPPED,LPWSAOVERLAPPED_COMPLETION_ROUTINE)>("WSARecvMsg",std::forward<Args>(args)...);
 }
-*/
+
 template<typename ...Args>
 inline void closesocket_ignore_error(Args&& ...args) noexcept
 {
