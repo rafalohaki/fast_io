@@ -164,7 +164,18 @@ inline constexpr void print_control(output& out,T&& t)
 	if constexpr(reserve_printable<T>)
 	{
 		constexpr std::size_t size{print_reserve_size(io_reserve_type<no_cvref>)};
-		if constexpr(reserve_output_stream<output>)
+		if constexpr(buffer_output_stream<output>)
+		{
+			auto bcurr{obuffer_curr(out)};
+			if(bcurr+size<obuffer_end(out))[[likely]]
+				obuffer_set_curr(out,print_reserve_define(io_reserve_type<no_cvref>,bcurr,std::forward<T>(t)));
+			else
+			{
+				std::array<char_type,size> array;
+				write(out,array.data(),print_reserve_define(io_reserve_type<no_cvref>,array.data(),std::forward<T>(t)));
+			}
+		}
+		else if constexpr(reserve_output_stream<output>)
 		{
 			if constexpr(std::is_pointer_v<std::remove_cvref_t<decltype(oreserve(out,size))>>)
 			{
@@ -202,7 +213,24 @@ inline constexpr void print_control(output& out,manip::follow_character<T,ch_typ
 	{
 		using char_type = typename output::char_type;
 		constexpr std::size_t size{print_reserve_size(io_reserve_type<std::remove_cvref_t<T>>)+1};
-		if constexpr(reserve_output_stream<output>)
+		if constexpr(buffer_output_stream<output>)
+		{
+			auto bcurr{obuffer_curr(out)};
+			if(bcurr+size<obuffer_end(out))[[likely]]
+			{
+				auto it{print_reserve_define(io_reserve_type<std::remove_cvref_t<T>>,bcurr,std::forward<T>(t))};
+				*it=t.character;
+				obuffer_set_curr(out,++it);
+			}
+			else
+			{
+				std::array<char_type,size> array;
+				auto it{print_reserve_define(io_reserve_type<std::remove_cvref_t<T>>,array.data(),std::forward<T>(t))};
+				*it=t.character;
+				write(out,array.data(),++it);
+			}
+		}
+		else if constexpr(reserve_output_stream<output>)
 		{
 			if constexpr(std::is_pointer_v<std::remove_cvref_t<decltype(oreserve(out,size))>>)
 			{
@@ -249,7 +277,24 @@ inline constexpr void print_control_line(output& out,T&& t)
 	{
 		using char_type = typename output::char_type;
 		constexpr std::size_t size{print_reserve_size(io_reserve_type<std::remove_cvref_t<T>>)+1};
-		if constexpr(reserve_output_stream<output>)
+		if constexpr(buffer_output_stream<output>)
+		{
+			auto bcurr{obuffer_curr(out)};
+			if(bcurr+size<obuffer_end(out))[[likely]]
+			{
+				auto it{print_reserve_define(io_reserve_type<std::remove_cvref_t<T>>,bcurr,std::forward<T>(t))};
+				*it=u8'\n';
+				obuffer_set_curr(out,++it);
+			}
+			else
+			{
+				std::array<char_type,size> array;
+				auto it{print_reserve_define(io_reserve_type<std::remove_cvref_t<T>>,array.data(),std::forward<T>(t))};
+				*it=u8'\n';
+				write(out,array.data(),++it);
+			}
+		}
+		else if constexpr(reserve_output_stream<output>)
 		{
 			if constexpr(std::is_pointer_v<std::remove_cvref_t<decltype(oreserve(out,size))>>)
 			{
