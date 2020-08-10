@@ -572,7 +572,7 @@ public:
 
 	~basic_posix_file()
 	{
-		if(this->native_handle()==-1)[[likely]]
+		if(this->native_handle()!=-1)[[likely]]
 			details::sys_close(this->native_handle());
 	}
 };
