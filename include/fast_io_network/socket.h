@@ -213,7 +213,7 @@ inline std::size_t scatter_read(basic_socket_io_observer<ch_type,contain_address
 	return recv_message(soc,hdr,{});
 }
 
-template<std::integral ch_type>
+template<std::integral ch_type,bool contain_address_info>
 inline std::size_t scatter_write(basic_socket_io_observer<ch_type,contain_address_info> soc,std::span<io_scatter_t const> sp)
 {
 	
