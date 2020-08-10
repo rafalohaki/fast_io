@@ -11,7 +11,7 @@ public:
 	using char_type = ch_type;
 	using span_type = std::span<char_type,extent>;
 	span_type span;
-	using pointer = span_type::pointer;
+	using pointer = typename span_type::pointer;
 	pointer current;
 	template<typename... Args>
 	requires std::constructible_from<span_type,Args...>

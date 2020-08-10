@@ -10,7 +10,7 @@ public:
 	using char_type = ch_type;
 	using string_view_type = std::basic_string_view<char_type>;
 	string_view_type string_view;
-	using const_pointer = string_view_type::const_pointer;
+	using const_pointer = typename string_view_type::const_pointer;
 	const_pointer current;
 	template<typename... Args>
 	requires std::constructible_from<string_view_type,Args...>
