@@ -8,7 +8,7 @@ struct basic_io_scatter_t
 {
 	T const* base;
 	std::size_t len;
-	inline explicit operator basic_io_scatter_t<void>() const noexcept requires(!std::same_as<T,void>)
+	inline operator basic_io_scatter_t<void>() const noexcept requires(!std::same_as<T,void>)
 	{
 		return {base,len*sizeof(T)};
 	}
@@ -28,7 +28,7 @@ struct basic_message_hdr
 	T const       *control;    /* Ancillary data, see below */
 	std::size_t   controllen; /* Ancillary data buffer len */
 	int           flags;      /* Flags (unused) */
-	inline explicit operator basic_message_hdr<void>() const noexcept requires(!std::same_as<T,void>)
+	inline operator basic_message_hdr<void>() const noexcept requires(!std::same_as<T,void>)
 	{
 		return {name,namelen*sizeof(T),iov,iovlen*sizeof(T),control,controllen,flags};
 	}

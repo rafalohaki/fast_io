@@ -120,13 +120,12 @@ inline std::size_t send_recv_message_impl(basic_socket_io_observer<ch_type,conta
 		if(static_cast<std::size_t>(std::numeric_limits<socklen_t>::max())<message.namelen)
 			throw_posix_error(EIO);
 	}
-
+#ifdef _WIN32
 	if constexpr(sizeof(std::uint32_t)<sizeof(std::size_t))
 	{
 		if(static_cast<std::size_t>(std::numeric_limits<std::uint32_t>::max())<message.controllen)
 			throw_posix_error(EIO);
 	}
-#ifdef _WIN32
 	if(4096<message.iovlen)
 		throw_posix_error(EIO);
 #ifndef _MSC_VER
@@ -143,6 +142,8 @@ inline std::size_t send_recv_message_impl(basic_socket_io_observer<ch_type,conta
 		}
 		wsabufs[i].len=message.iov[i].len;
 		wsabufs[i].buf=reinterpret_cast<char*>(const_cast<void*>(message.iov[i].base));
+//		::debug_println(__FILE__," ",__LINE__," ",wsabufs[i].buf," ",wsabufs[i].len);
+
 	}
 	WSAMSG msg{.name=
 #ifndef _MSC_VER
@@ -204,7 +205,7 @@ inline std::size_t recv_message(basic_socket_io_observer<ch_type,contain_address
 	return details::send_recv_message_impl<details::send_recv_message_impl_enum::recv_message>(soc,message,flag);
 }
 
-
+#ifndef _WIN32
 template<std::integral ch_type,bool contain_address_info>
 inline std::size_t scatter_read(basic_socket_io_observer<ch_type,contain_address_info> soc,std::span<io_scatter_t const> sp)
 {
@@ -212,12 +213,13 @@ inline std::size_t scatter_read(basic_socket_io_observer<ch_type,contain_address
 	return recv_message(soc,hdr,{});
 }
 
-template<std::integral ch_type,bool contain_address_info>
+template<std::integral ch_type>
 inline std::size_t scatter_write(basic_socket_io_observer<ch_type,contain_address_info> soc,std::span<io_scatter_t const> sp)
 {
+	
 	return send_message(soc,message_hdr{nullptr,0,const_cast<io_scatter_t*>(sp.data()),sp.size(),nullptr,0,0},{});
 }
-
+#endif
 template<std::integral ch_type,bool contain_address_info=true>
 class basic_socket_io_handle:public basic_socket_io_observer<ch_type,contain_address_info>
 {
