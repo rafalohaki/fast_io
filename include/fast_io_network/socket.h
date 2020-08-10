@@ -177,7 +177,7 @@ struct msghdr {
            };
 */
 	msghdr msg{.msg_name=const_cast<void*>(message.name),.msg_namelen=static_cast<socklen_t>(message.namelen),
-		.msg_iov=reinterpret_cast<details::iovec_may_alias*>(message.iov),
+		.msg_iov=reinterpret_cast<details::iovec_may_alias*>(const_cast<io_scatter_t*>(message.iov)),
 		.msg_iovlen=message.iovlen,
 		.msg_control=const_cast<void*>(message.control),
 		.msg_controllen=message.controllen,
