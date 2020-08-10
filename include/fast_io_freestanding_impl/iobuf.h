@@ -49,14 +49,50 @@ template<std::integral CharT,bool need_secure_clear=false,std::size_t buffer_siz
 requires (buffer_size!=0)
 class basic_buf_handler
 {
-	Allocator alloc;
 public:
 	using char_type = CharT;
 	using allocator_type = Allocator;
 	char_type *beg{},*curr{},*end{};
+	[[no_unique_address]] Allocator alloc;
+private:
+	constexpr inline void cleanse()
+	{
+		if(beg)
+		{
+			if constexpr(need_secure_clear)
+				secure_clear(beg,buffer_size*sizeof(char_type));
+			std::allocator_traits<allocator_type>::deallocate(alloc,beg,buffer_size);
+		}
+	}
+public:
 	constexpr basic_buf_handler()=default;
-	constexpr basic_buf_handler& operator=(basic_buf_handler const&)=delete;
-	constexpr basic_buf_handler(basic_buf_handler const&)=delete;
+	constexpr basic_buf_handler(basic_buf_handler const& other):alloc(other.alloc)
+	{
+		if(other.beg==nullptr)
+			return;
+		beg=std::allocator_traits<allocator_type>::allocate(alloc,buffer_size);
+		details::non_overlapped_copy_n(other.beg,other.end-other.beg,beg);
+		curr=(other.curr-other.beg)+beg;
+		end=(other.end-other.beg)+beg;
+	}
+	constexpr basic_buf_handler& operator=(basic_buf_handler const& other)
+	{
+		alloc=other.alloc;
+		if(other.beg==nullptr)
+		{
+			cleanse();
+			end=curr=beg=nullptr;
+		}
+		else
+		{
+			auto new_beg=std::allocator_traits<allocator_type>::allocate(alloc,buffer_size);
+			details::non_overlapped_copy_n(other.beg,other.end-other.beg,new_beg);
+			cleanse();
+			beg=new_beg;
+			curr=(other.curr-other.beg)+beg;
+			end=(other.end-other.beg)+beg;
+		}
+	}
 	static constexpr std::size_t size = buffer_size;
 	constexpr basic_buf_handler(basic_buf_handler&& m) noexcept:beg(m.beg),curr(m.curr),end(m.end)
 	{
@@ -64,33 +100,22 @@ public:
 	}
 	constexpr basic_buf_handler& operator=(basic_buf_handler&& m) noexcept
 	{
-		if(std::addressof(m)!=this)[[likely]]
-		{
-			if(m.beg)
-			{
-				if constexpr(need_secure_clear)
-					secure_clear(beg,buffer_size*sizeof(char_type));
-				std::allocator_traits<allocator_type>::deallocate(alloc,beg,buffer_size);
-			}
-			beg=m.beg;
-			curr=m.curr;
-			end=m.end;
-			m.end=m.curr=m.beg=nullptr;
-		}
+		if(std::addressof(m)==this)[[unlikely]]
+			return *this;
+		cleanse();
+		beg=m.beg;
+		curr=m.curr;
+		end=m.end;
+		m.end=m.curr=m.beg=nullptr;
 		return *this;
 	}
 	constexpr inline void init_space()
 	{
 		end=curr=beg=std::allocator_traits<allocator_type>::allocate(alloc,buffer_size);
 	}
-	constexpr inline void release()
+	constexpr inline void release() const noexcept
 	{
-		if(beg)[[likely]]
-		{
-			if constexpr(need_secure_clear)
-				secure_clear(beg,buffer_size*sizeof(char_type));
-			std::allocator_traits<allocator_type>::deallocate(alloc,beg,buffer_size);
-		}
+		cleanse();
 		end=curr=beg=nullptr;
 	}
 #if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_constexpr_dynamic_alloc >= 201907L
@@ -105,7 +130,7 @@ public:
 			std::allocator_traits<allocator_type>::deallocate(alloc,beg,buffer_size);
 		}
 	}
-	Allocator get_allocator() const{ return alloc;}
+	constexpr Allocator get_allocator() const noexcept { return alloc;}
 };
 
 
@@ -113,8 +138,8 @@ template<input_stream Ihandler,typename Buf=basic_buf_handler<typename Ihandler:
 class basic_ibuf:public ocrtp<basic_ibuf<Ihandler,Buf>>
 {
 public:
-	Ihandler ih;
 	Buf ibuffer;
+	Ihandler ih;
 	constexpr auto& ocrtp_handle() requires output_stream<Ihandler>
 	{
 		return ih;
@@ -331,21 +356,25 @@ public:
 	template<typename... Args>
 	requires std::constructible_from<Ohandler,Args...>
 	constexpr basic_obuf(Args&&... args):oh(std::forward<Args>(args)...){}
+#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_constexpr_dynamic_alloc >= 201907L
+	constexpr
+#endif
 	~basic_obuf()
 	{
 		close_impl();
 	}
-	basic_obuf& operator=(basic_obuf const&)=delete;
-	basic_obuf(basic_obuf const&)=delete;
+	constexpr basic_obuf(basic_obuf const&) requires(std::copyable<Ohandler>&&std::copyable<Buf>) =default;
+	constexpr basic_obuf(basic_obuf const&)=delete;
+	constexpr basic_obuf& operator=(basic_obuf const&) requires(std::copyable<Ohandler>&&std::copyable<Buf>) =default;
+	constexpr basic_obuf& operator=(basic_obuf const&)=delete; 
 	constexpr basic_obuf(basic_obuf&& bmv) noexcept:oh(std::move(bmv.oh)),obuffer(std::move(bmv.obuffer)){}
 	constexpr basic_obuf& operator=(basic_obuf&& b) noexcept
 	{
-		if(std::addressof(b)!=this)
-		{
-			close_impl();
-			oh=std::move(b.oh);
-			obuffer=std::move(b.obuffer);
-		}
+		if(std::addressof(b)==this)[[unlikely]]
+			return *this;
+		close_impl();
+		oh=std::move(b.oh);
+		obuffer=std::move(b.obuffer);
 		return *this;
 	}
 	inline constexpr auto& native_handle()
