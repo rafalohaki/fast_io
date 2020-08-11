@@ -126,6 +126,18 @@ inline auto wsasendmsg(Args&& ...args)
 }
 
 template<typename ...Args>
+inline auto sendto(Args&& ...args)
+{
+	return call_win32_ws2_32<decltype(::sendto)*>("sendto",std::forward<Args>(args)...);
+}
+
+template<typename ...Args>
+inline auto recvfrom(Args&& ...args)
+{
+	return call_win32_ws2_32<decltype(::recvfrom)*>("recvfrom",std::forward<Args>(args)...);
+}
+
+template<typename ...Args>
 inline auto wsarecvmsg(Args&& ...args)
 {
 	return call_win32_ws2_32<int __stdcall (*)(SOCKET,LPWSAMSG,DWORD,LPDWORD,LPWSAOVERLAPPED,LPWSAOVERLAPPED_COMPLETION_ROUTINE)>("WSARecvMsg",std::forward<Args>(args)...);

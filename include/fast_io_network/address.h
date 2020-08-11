@@ -456,11 +456,22 @@ constexpr Iter print_reserve_define(io_reserve_type_t<address>,Iter it,address c
 	}, v.variant());
 }
 
-struct address_info
+struct endpoint
 {
 	socket_address_storage storage={};
 	socklen_t storage_size=sizeof(socket_address_storage);
 };
 
+struct ip_endpoint:endpoint
+{
+	template<typename T>
+	requires requires(T t)
+	{
+		{family(t)}->std::convertible_to<sock::family>;
+	}
+	constexpr ip_endpoint(T const& addr,std::uint16_t port):endpoint{to_socket_address_storage(addr,port)}{}
+	constexpr ip_endpoint(std::uint16_t port):ip_endpoint(ipv4{},port){}
+	constexpr ip_endpoint():ip_endpoint(ipv4{},0){}
+};
 
 }

@@ -300,24 +300,6 @@ inline constexpr decltype(auto) memory_map_in_handle(basic_ibuf<Ihandler,Buf>& h
 	return memory_map_in_handle(handle.native_handle());
 }
 
-template<connection_stream Ihandler,typename Buf>
-inline constexpr decltype(auto) connect(basic_ibuf<Ihandler,Buf>& ob)
-{
-	return connect(ob.native_handle());
-}
-
-template<listener_stream Ihandler,typename Buf>
-inline constexpr decltype(auto) listen(basic_ibuf<Ihandler,Buf>& ob)
-{
-	return listen(ob.native_handle());
-}
-
-template<acceptance_stream Ihandler,typename Buf>
-inline constexpr decltype(auto) accept(basic_ibuf<Ihandler,Buf>& ob)
-{
-	return accept(ob.native_handle());
-}
-
 template<output_stream Ohandler,bool forcecopy=false,typename Buf=basic_buf_handler<typename Ohandler::char_type,secure_clear_requirement_stream<Ohandler>>>
 class basic_obuf:public icrtp<basic_obuf<Ohandler,forcecopy,Buf>>
 {
@@ -609,23 +591,6 @@ inline constexpr decltype(auto) seek(basic_obuf<Ohandler,forcecopy,Buf>& ob,Args
 	return seek(ob.oh,std::forward<Args>(args)...);
 }
 
-template<connection_stream Ohandler,bool forcecopy,typename Buf>
-inline constexpr decltype(auto) connect(basic_obuf<Ohandler,forcecopy,Buf>& ob)
-{
-	return connect(ob.native_handle());
-}
-
-template<connection_stream Ohandler,bool forcecopy,typename Buf>
-inline constexpr decltype(auto) listen(basic_obuf<Ohandler,forcecopy,Buf>& ob)
-{
-	return listen(ob.native_handle());
-}
-
-template<acceptance_stream Ohandler,bool forcecopy,typename Buf>
-inline constexpr decltype(auto) accept(basic_obuf<Ohandler,forcecopy,Buf>& ob)
-{
-	return accept(ob.native_handle());
-}
 
 template<io_stream ioh,bool forcecopy=false,typename bf=basic_buf_handler<typename ioh::char_type>>
 using basic_iobuf=basic_obuf<basic_ibuf<ioh,bf>,forcecopy,bf>;

@@ -4,8 +4,9 @@
 int main()
 try
 {
-	fast_io::tcp_client hd(fast_io::ipv4{127,0,0,1},2000);
-	transmit_once(fast_io::out(),hd);
+	fast_io::ip_endpoint info{fast_io::ipv4{127,0,0,1},2001};
+	fast_io::udp hd;
+	print(fast_io::packet(hd,info),"Hello World\n");
 }
 catch(std::exception const & e)
 {

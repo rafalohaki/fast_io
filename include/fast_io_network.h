@@ -17,12 +17,9 @@
 namespace fast_io
 {
 
-using ibuf_tcp = basic_ibuf<tcp>;
-using tcp_client = basic_client<tcp>;
 using ibuf_tcp_client = basic_ibuf<tcp_client>;
-using tcp_server = basic_server<tcp>;
-
-using socket_acceptor = acceptor<socket_file>;
-using ibuf_socket_acceptor = basic_ibuf<socket_acceptor>;
+template<std::integral char_type>
+using basic_ibuf_acceptor = basic_ibuf<acceptor<char>>;
+using ibuf_acceptor = basic_ibuf_acceptor<char>;
 
 }
