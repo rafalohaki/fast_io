@@ -38,23 +38,28 @@ using message_hdr = basic_message_hdr<void>;
 //should be binary compatible with POSIX's msghdr
 
 template<typename T>
-class io_message_t
+struct io_type_t
 {
-public:
+using type = T;
+};
+template<typename T>
+inline constexpr io_type_t<T> io_type{};
+
+template<typename T>
+struct io_message_t
+{
 	using type = typename std::remove_cvref_t<decltype(io_message_type(*static_cast<T*>(nullptr)))>::type;
 };
 
 template<typename T>
-class io_async_scheduler_t
+struct io_async_scheduler_t
 {
-public:
 	using type = typename std::remove_cvref_t<decltype(async_scheduler_type(*static_cast<T*>(nullptr)))>::type;
 };
 
 template<typename T>
-class io_async_overlapped_t
+struct io_async_overlapped_t
 {
-public:
 	using type = typename std::remove_cvref_t<decltype(async_overlapped_type(*static_cast<T*>(nullptr)))>::type;
 };
 

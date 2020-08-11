@@ -165,6 +165,7 @@ inline constexpr int calculate_posix_open_mode(open_mode value)
 //Destroy contents;	Error;	"wx";	Create a file for writing
 	default:
 		throw_posix_error(EINVAL);
+		return 0;
 	}
 }
 template<open_mode om>
