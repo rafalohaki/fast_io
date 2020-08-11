@@ -88,13 +88,13 @@ inline auto recvmsg(Args&& ...args)
 template<typename ...Args>
 inline auto closesocket(Args&& ...args)
 {
-	return call_posix(::close,std::forward<Args>(args)...);
+	return fast_io::details::sys_close_throw_error(std::forward<Args>(args)...);
 }
 
 template<typename ...Args>
 inline void closesocket_ignore_error(Args&& ...args)
 {
-	::close(std::forward<Args>(args)...);
+	fast_io::details::sys_close(std::forward<Args>(args)...);
 }
 
 template<typename T,std::unsigned_integral sock_type_size>
