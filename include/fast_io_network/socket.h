@@ -312,7 +312,15 @@ inline Iter read(packet<char_type> pack,Iter begin,Iter end)
 	std::size_t size{(end-begin)*sizeof(*begin)};
 	if(std::numeric_limits<int>::max()<size)
 		size=std::numeric_limits<int>::max();
-	return begin+sock::details::sendto(pack.siob.soc,reinterpret_cast<char*>(std::to_address(begin)),static_cast<int>(size),0,std::addressof(pack.addr.storage.sock),static_cast<int>(pack.addr.storage_size))/sizeof(*begin);
+	int socksize{static_cast<int>(pack.addr.storage_size)};
+	auto ret{begin+sock::details::recvfrom(pack.siob.soc,
+		reinterpret_cast<char*>(std::to_address(begin)),
+		static_cast<int>(size),
+		0,
+		std::addressof(pack.addr.storage.sock),
+		std::addressof(socksize))/sizeof(*begin)};
+	pack.addr.storage_size=socksize;
+	return ret;
 }
 
 #else
@@ -330,7 +338,6 @@ inline Iter read(packet<char_type> pack,Iter begin,Iter end)
 	message_hdr hdr{std::addressof(pack.addr.storage.sock),static_cast<std::size_t>(pack.addr.storage_size),std::addressof(sc),1,nullptr,0,0};
 	return begin+recv_message(pack.siob,hdr,{})/sizeof(*begin);
 }
-
 
 template<std::integral char_type>
 inline std::size_t scatter_write(packet<char_type> pack,std::span<io_scatter_t const> sp)
