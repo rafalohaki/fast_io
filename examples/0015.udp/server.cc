@@ -5,8 +5,7 @@
 int main()
 try
 {
-	fast_io::udp_server server(2001);
-	for(;;)
+	for(fast_io::udp_server server(2001);;)
 	{
 		fast_io::ip_endpoint client;
 		std::array<char,100> buffer;
