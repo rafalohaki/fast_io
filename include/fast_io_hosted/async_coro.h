@@ -108,7 +108,7 @@ public:
 	internal_temporary_buffer<typename stm::char_type> buffer;
 	io_scatter_t scatter{};
 	template<typename ...Args>
-	async_print_coroutine(typename stm::async_scheduler_type& sh,std::ptrdiff_t off,stm& s,Args&& ...args):scheduler(sh),stream(s)
+	async_print_coroutine(typename io_async_scheduler_t<stm>::type& sh,std::ptrdiff_t off,stm& s,Args&& ...args):scheduler(sh),stream(s)
 	{
 		if constexpr(line)
 			println(buffer,std::forward<Args>(args)...);
