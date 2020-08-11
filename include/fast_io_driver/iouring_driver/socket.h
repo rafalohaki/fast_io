@@ -4,7 +4,7 @@ namespace fast_io
 {
 
 template<std::integral char_type>
-inline void async_connect_callback(io_uring_observer iu,basic_socket_io_observer<char_type> sio,endpoint& ep,io_uring_overlapped_observer callback)
+inline void async_connect_callback(io_uring_observer ring,basic_socket_io_observer<char_type> sio,endpoint& ep,io_uring_overlapped_observer callback)
 {
 	auto sqe{io_uring_get_sqe(ring.ring)};
 	for(;sqe==nullptr;sqe=io_uring_get_sqe(ring.ring))
@@ -14,7 +14,7 @@ inline void async_connect_callback(io_uring_observer iu,basic_socket_io_observer
 }
 
 template<std::integral char_type>
-inline void async_accept_callback(io_uring_observer iu,basic_socket_io_observer<char_type> sio,endpoint& ep,io_uring_overlapped_observer callback)
+inline void async_accept_callback(io_uring_observer ring,basic_socket_io_observer<char_type> sio,endpoint& ep,io_uring_overlapped_observer callback)
 {
 	auto sqe{io_uring_get_sqe(ring.ring)};
 	for(;sqe==nullptr;sqe=io_uring_get_sqe(ring.ring))
@@ -25,7 +25,7 @@ inline void async_accept_callback(io_uring_observer iu,basic_socket_io_observer<
 
 
 template<std::integral char_type,std::contiguous_iterator Iter>
-inline void async_write_callback(io_uring_observer iu,basic_socket_io_observer<char_type> sio,Iter begin,Iter end,io_uring_overlapped_observer callback,std::ptrdiff_t offset=0)
+inline void async_write_callback(io_uring_observer ring,basic_socket_io_observer<char_type> sio,Iter begin,Iter end,io_uring_overlapped_observer callback,std::ptrdiff_t offset=0)
 {
 	auto sqe{io_uring_get_sqe(ring.ring)};
 	for(;sqe==nullptr;sqe=io_uring_get_sqe(ring.ring))
@@ -35,7 +35,7 @@ inline void async_write_callback(io_uring_observer iu,basic_socket_io_observer<c
 }
 
 template<std::integral char_type,std::contiguous_iterator Iter>
-inline void async_read_callback(io_uring_observer iu,basic_socket_io_observer<char_type> sio,Iter begin,Iter end,io_uring_overlapped_observer callback,std::ptrdiff_t offset=0)
+inline void async_read_callback(io_uring_observer ring,basic_socket_io_observer<char_type> sio,Iter begin,Iter end,io_uring_overlapped_observer callback,std::ptrdiff_t offset=0)
 {
 	auto sqe{io_uring_get_sqe(ring.ring)};
 	for(;sqe==nullptr;sqe=io_uring_get_sqe(ring.ring))
