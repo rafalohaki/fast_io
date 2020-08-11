@@ -209,15 +209,14 @@ inline std::size_t recv_message(basic_socket_io_observer<ch_type,contain_address
 template<std::integral ch_type,bool contain_address_info>
 inline std::size_t scatter_read(basic_socket_io_observer<ch_type,contain_address_info> soc,std::span<io_scatter_t const> sp)
 {
-	message_hdr hdr{nullptr,0,const_cast<io_scatter_t*>(sp.data()),sp.size(),nullptr,0,0};
+	message_hdr hdr{nullptr,0,sp.data(),sp.size(),nullptr,0,0};
 	return recv_message(soc,hdr,{});
 }
 
 template<std::integral ch_type,bool contain_address_info>
 inline std::size_t scatter_write(basic_socket_io_observer<ch_type,contain_address_info> soc,std::span<io_scatter_t const> sp)
 {
-	
-	return send_message(soc,message_hdr{nullptr,0,const_cast<io_scatter_t*>(sp.data()),sp.size(),nullptr,0,0},{});
+	return send_message(soc,message_hdr{nullptr,0,sp.data(),sp.size(),nullptr,0,0},{});
 }
 #endif
 template<std::integral ch_type,bool contain_address_info=true>
