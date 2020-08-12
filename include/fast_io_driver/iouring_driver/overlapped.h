@@ -9,7 +9,7 @@ public:
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
-	virtual void invoke(std::size_t) noexcept = 0;
+	virtual void invoke(std::size_t,int errn) noexcept = 0;
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
@@ -27,9 +27,9 @@ public:
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
-	void invoke(std::size_t res) noexcept override
+	void invoke(std::size_t res,int errn) noexcept override
 	{
-		callback(res);
+		callback(res,errno);
 	}
 };
 
@@ -41,9 +41,9 @@ public:
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
-	void operator()(std::size_t res) noexcept
+	void operator()(std::size_t res,int errn) noexcept
 	{
-		handle->invoke(res);
+		handle->invoke(res,errn);
 	}
 	constexpr native_handle_type const& native_handle() const noexcept
 	{

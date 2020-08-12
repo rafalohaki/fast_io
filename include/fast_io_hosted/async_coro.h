@@ -27,14 +27,22 @@ public:
 	stm& stream;
 	Iter first,last;
 	std::ptrdiff_t offset{write?-1:0};
+	std::size_t transferred_bytes{};
+	int err{};
 	typename io_async_overlapped_t<stm>::type overlapped;
 	constexpr bool await_ready() const { return false; }
-	constexpr Iter await_resume() const { return first; }
+	constexpr Iter await_resume() const
+	{
+		if(err)
+			throw_posix_error(err);
+		return first+transferred_bytes/sizeof(*first);
+	}
 	void await_suspend(std::coroutine_handle<> handle)
 	{
-		overlapped=typename io_async_overlapped_t<stm>::type(std::in_place,[handle,this](std::size_t calb)
+		overlapped=typename io_async_overlapped_t<stm>::type(std::in_place,[handle,this](std::size_t calb,int errn)
 		{
-			this->first+=calb/sizeof(*first);
+			this->transferred_bytes=calb;
+			this->err=errn;
 			handle.resume();
 		});
 		if constexpr(write)
@@ -58,14 +66,21 @@ public:
 	std::span<io_scatter_t> scatters;
 	std::ptrdiff_t offset{write?-1:0};
 	typename io_async_overlapped_t<stm>::type overlapped;
-	std::size_t transferred{};
+	std::size_t transferred_bytes{};
+	int err{};
 	constexpr bool await_ready() const { return false; }
-	constexpr std::size_t await_resume() const { return transferred; }
+	constexpr std::size_t await_resume() const
+	{
+		if(err)
+			throw_posix_error(err);
+		return transferred_bytes;
+	}
 	void await_suspend(std::coroutine_handle<> handle)
 	{
-		overlapped=typename io_async_overlapped_t<stm>::type(std::in_place,[handle,this](std::size_t calb)
+		overlapped=typename io_async_overlapped_t<stm>::type(std::in_place,[handle,this](std::size_t calb,int errn)
 		{
-			this->transferred=calb;
+			this->transferred_bytes=calb;
+			this->err=errn;
 			handle.resume();
 		});
 		if constexpr(write)
@@ -85,6 +100,7 @@ public:
 	std::ptrdiff_t offset{};
 	typename io_async_overlapped_t<stm>::type overlapped;
 	std::size_t transferred_bytes{};
+	int err{};
 	internal_temporary_buffer<typename stm::char_type> buffer;
 	template<typename ...Args>
 	async_print_coroutine(typename io_async_scheduler_t<stm>::type& sh,std::ptrdiff_t off,stm& s,Args&& ...args):scheduler(sh),stream(s)
@@ -95,12 +111,18 @@ public:
 			print(buffer,std::forward<Args>(args)...);
 	}
 	constexpr bool await_ready() const { return false; }
-	constexpr std::size_t await_resume() const { return transferred_bytes/sizeof(typename stm::char_type); }
+	constexpr std::size_t await_resume() const
+	{
+		if(err)
+			throw_posix_error(err);
+		return transferred_bytes;
+	}
 	void await_suspend(std::coroutine_handle<> handle)
 	{
-		overlapped=typename io_async_overlapped_t<stm>::type(std::in_place,[handle,this](std::size_t calb)
+		overlapped=typename io_async_overlapped_t<stm>::type(std::in_place,[handle,this](std::size_t calb,int errn)
 		{
 			this->transferred_bytes=calb;
+			this->err=errn;
 			handle.resume();
 		});
 		async_write_callback(scheduler,stream,buffer.beg_ptr,buffer.end_ptr,overlapped,offset);
