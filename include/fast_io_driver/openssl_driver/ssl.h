@@ -28,11 +28,7 @@ public:
 		s={};
 		return temp;
 	}
-	inline constexpr void reset() noexcept
-	{
-		s=nullptr;
-	}
-	inline constexpr void reset(native_handle_type newhandle) noexcept
+	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
 	{
 		s=newhandle;
 	}

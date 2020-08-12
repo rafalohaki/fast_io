@@ -32,11 +32,7 @@ public:
 		phandle=nullptr;
 		return temp;
 	}
-	inline constexpr void reset() noexcept
-	{
-		phandle=nullptr;
-	}
-	inline constexpr void reset(native_handle_type newhandle) noexcept
+	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
 	{
 		phandle=newhandle;
 	}

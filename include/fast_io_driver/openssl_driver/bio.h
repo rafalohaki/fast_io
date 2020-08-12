@@ -138,9 +138,9 @@ public:
 		BIO_get_fp(bio,std::addressof(fp));
 		return {fp};
 	}
-	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
+	inline constexpr void reset(native_handle_type newbio=nullptr) noexcept
 	{
-		bio=newhandle;
+		bio=newbio;
 	}
 	
 	inline constexpr void swap(basic_bio_io_observer& other) noexcept

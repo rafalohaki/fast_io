@@ -84,11 +84,7 @@ public:
 	{
 		return {details::hack_gz_file_fd(gzfile)};
 	}
-	inline constexpr void reset() noexcept
-	{
-		gzfile=nullptr;
-	}
-	inline constexpr void reset(native_handle_type newhandle) noexcept
+	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
 	{
 		gzfile=newhandle;
 	}

@@ -33,11 +33,7 @@ public:
 		cd = -1;
 		return temp;
 	}
-	inline constexpr void reset() noexcept
-	{
-		cd=-1;
-	}
-	inline constexpr void reset(native_handle_type newcd) noexcept
+	inline constexpr void reset(native_handle_type newcd=-1) noexcept
 	{
 		cd=newcd;
 	}

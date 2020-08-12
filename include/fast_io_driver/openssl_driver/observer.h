@@ -21,6 +21,14 @@ public:
 	{
 		return handle;
 	}
+	constexpr void reset(native_handle_type newhandle=nullptr) noexcept
+	{
+		handle=newhandle;
+	}
+	constexpr void swap(observer& other) noexcept
+	{
+		std::swap(handle,other.handle);
+	}
 };
 
 }

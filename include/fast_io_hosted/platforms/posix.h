@@ -195,6 +195,14 @@ public:
 		ring=nullptr;
 		return temp;
 	}
+	constexpr void reset(native_handle_type newring=nullptr)
+	{
+		ring=newring;
+	}
+	constexpr void swap(io_uring_observer& other)
+	{
+		std::swap(ring,other.ring);
+	}
 };
 using io_async_observer=io_uring_observer;
 #endif

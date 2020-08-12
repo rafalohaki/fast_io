@@ -59,6 +59,14 @@ public:
 		handle={};
 		return temp;
 	}
+	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
+	{
+		handle=newhandle;
+	}
+	inline constexpr void swap(io_uring_overlapped_observer& other) noexcept
+	{
+		std::swap(handle,other.handle);
+	}
 };
 
 class io_uring_overlapped:public io_uring_overlapped_observer

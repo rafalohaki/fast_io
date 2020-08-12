@@ -178,11 +178,7 @@ locale_t
 		loc=static_cast<native_handle_type>(0);
 		return d;
 	}
-	inline constexpr void reset() noexcept
-	{
-		loc={};
-	}
-	inline constexpr void reset(native_handle_type newloc) noexcept
+	inline constexpr void reset(native_handle_type newloc={}) noexcept
 	{
 		loc=newloc;
 	}

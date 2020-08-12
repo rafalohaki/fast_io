@@ -52,9 +52,9 @@ public:
 	{
 		return EVP_PKEY_up_ref(key);
 	}
-	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
+	inline constexpr void reset(native_handle_type newkey=nullptr) noexcept
 	{
-		key=newhandle;
+		key=newkey;
 	}
 	
 	inline constexpr void swap(evp_pkey_observer& other) noexcept
@@ -127,6 +127,14 @@ public:
 		auto temp{ctx};
 		ctx=nullptr;
 		return temp;
+	}
+	constexpr void reset(native_handle_type newctx=nullptr) noexcept
+	{
+		ctx=newctx;
+	}
+	constexpr void swap(evp_pkey_ctx_observer& other) noexcept
+	{
+		std::swap(ctx,other.ctx);
 	}
 };
 
