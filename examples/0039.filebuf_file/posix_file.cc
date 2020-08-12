@@ -5,7 +5,7 @@ int main()
 {
 	fast_io::posix_file nfl("posix_file.txt",fast_io::open_mode::binary|fast_io::open_mode::out);
 	fast_io::filebuf_file fb(std::move(nfl),fast_io::open_mode::binary|fast_io::open_mode::out);
-	std::ostream out(fb.rdbuf());
+	std::ostream out(fb.native_handle());
 	out<<"Hello world from std::ofstream\n";
 	print(fb,"Hello World from fast_io\n");
 	out<<"Hello world from std::ofstream again\n";

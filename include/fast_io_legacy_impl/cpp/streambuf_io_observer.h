@@ -20,9 +20,6 @@ public:
 	using char_type = typename streambuf_type::char_type;
 	using traits_type = typename streambuf_type::traits_type;
 	using native_handle_type = streambuf_type*;
-#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
-	using async_scheduler_type = io_async_observer;
-#endif
 	native_handle_type rdb{};
 	inline constexpr native_handle_type& native_handle() const noexcept
 	{
@@ -32,19 +29,7 @@ public:
 	{
 		return rdb;
 	}
-	inline constexpr auto rdbuf() noexcept
-	{
-		return rdb;
-	}
-	inline constexpr auto rdbuf() const noexcept
-	{
-		return rdb;
-	}
-	inline constexpr void reset() noexcept
-	{
-		rdb=nullptr;
-	}
-	inline constexpr void reset(native_handle_type newrdb) noexcept
+	inline constexpr void reset(native_handle_type newrdb=nullptr) noexcept
 	{
 		rdb=newrdb;
 	}

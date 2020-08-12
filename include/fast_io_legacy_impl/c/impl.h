@@ -601,7 +601,9 @@ public:
 	using async_scheduler_type = io_async_observer;
 #endif
 	basic_c_file_impl()=default;
-	basic_c_file_impl(native_handle_type hd):T(hd){}
+	template<typename native_hd>
+	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
+	basic_c_file_impl(native_hd hd):T(hd){}
 /*
 	basic_c_file_impl(std::string_view name,std::string_view mode):T(std::fopen(name.data(),mode.data()))
 	{
