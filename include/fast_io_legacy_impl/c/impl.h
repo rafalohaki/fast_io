@@ -292,11 +292,7 @@ public:
 		fp=nullptr;
 		return temp;
 	}
-	inline constexpr void reset() noexcept
-	{
-		fp=nullptr;
-	}
-	inline constexpr void reset(native_handle_type newfp) noexcept
+	inline constexpr void reset(native_handle_type newfp=nullptr) noexcept
 	{
 		fp=newfp;
 	}
@@ -456,11 +452,7 @@ public:
 		fp=nullptr;
 		return temp;
 	}
-	inline constexpr void reset() noexcept
-	{
-		fp=nullptr;
-	}
-	inline constexpr void reset(native_handle_type newfp) noexcept
+	inline constexpr void reset(native_handle_type newfp=nullptr) noexcept
 	{
 		fp=newfp;
 	}
@@ -588,6 +580,12 @@ public:
 		if(std::fclose(this->native_handle())==EOF)
 			throw_posix_error();
 		this->native_handle()=nullptr;
+	}
+	inline constexpr void reset(native_handle_type newfp=nullptr) noexcept
+	{
+		if(std::fclose(this->native_handle())==EOF)
+			throw_posix_error();
+		this->native_handle()=newfp;
 	}
 };
 

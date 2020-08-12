@@ -138,11 +138,7 @@ public:
 		BIO_get_fp(bio,std::addressof(fp));
 		return {fp};
 	}
-	inline constexpr void reset() noexcept
-	{
-		bio=nullptr;
-	}
-	inline constexpr void reset(native_handle_type newhandle) noexcept
+	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
 	{
 		bio=newhandle;
 	}
@@ -290,6 +286,12 @@ public:
 	{
 	}
 
+	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
+	{
+		if(this->native_handle())[[likely]]
+			BIO_free(this->native_handle());
+		this->native_handle()=newhandle;
+	}
 
 
 	basic_bio_file(basic_bio_file const&)=delete;

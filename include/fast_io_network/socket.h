@@ -27,11 +27,7 @@ public:
 		soc=sock::details::invalid_socket;
 		return temp;
 	}
-	inline constexpr void reset() noexcept
-	{
-		soc=sock::details::invalid_socket;
-	}
-	inline constexpr void reset(native_handle_type newsoc) noexcept
+	inline constexpr void reset(native_handle_type newsoc=sock::details::invalid_socket) noexcept
 	{
 		soc=newsoc;
 	}
@@ -215,6 +211,7 @@ public:
 	{
 		if(*this)[[likely]]
 			sock::details::closesocket(this->native_handle());
+		this->native_handle()=sock::details::invalid_socket;
 	}
 #if defined(__WINNT__) || defined(_MSC_VER)
 	basic_socket_io_handle(basic_socket_io_handle const&)=delete;
@@ -229,6 +226,12 @@ public:
 		return *this;
 	}
 #endif
+	inline constexpr void reset(native_handle_type newsoc=sock::details::invalid_socket) noexcept
+	{
+		if(*this)[[likely]]
+			sock::details::closesocket_ignore_error(this->native_handle());
+		soc=newsoc;
+	}
 	constexpr basic_socket_io_handle(basic_socket_io_handle&& other) noexcept:basic_socket_io_observer<ch_type>{other.release()}{}
 	basic_socket_io_handle& operator=(basic_socket_io_handle&& other) noexcept
 	{

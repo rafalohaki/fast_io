@@ -237,11 +237,7 @@ public:
 		fd=-1;
 		return temp;
 	}
-	inline constexpr void reset() noexcept
-	{
-		fd=-1;
-	}
-	inline constexpr void reset(native_handle_type newfd) noexcept
+	inline constexpr void reset(native_handle_type newfd=-1) noexcept
 	{
 		fd=newfd;
 	}
@@ -284,6 +280,12 @@ public:
 			b.native_handle() = -1;
 		}
 		return *this;
+	}
+	inline constexpr void reset(native_handle_type newfd=-1) noexcept
+	{
+		if(this->native_handle()!=-1)[[likely]]
+			details::sys_close(this->native_handle());
+		this->native_handle()=newfd;
 	}
 	void close()
 	{
@@ -451,7 +453,9 @@ public:
 	using async_scheduler_type = io_async_observer;
 #endif
 	constexpr basic_posix_file() noexcept = default;
-	constexpr basic_posix_file(int fd) noexcept: basic_posix_io_handle<ch_type>(fd){}
+	template<typename native_hd>
+	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
+	constexpr basic_posix_file(native_hd fd) noexcept: basic_posix_io_handle<ch_type>(fd){}
 	template<typename ...Args>
 	requires requires(Args&& ...args)
 	{

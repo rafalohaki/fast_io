@@ -293,11 +293,7 @@ public:
 		handle=nullptr;
 		return temp;
 	}
-	inline constexpr void reset() noexcept
-	{
-		handle=nullptr;
-	}
-	inline constexpr void reset(native_handle_type newhandle) noexcept
+	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
 	{
 		handle=newhandle;
 	}
@@ -351,6 +347,12 @@ public:
 			b.native_handle()=nullptr;
 		}
 		return *this;
+	}
+	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
+	{
+		if(this->native_handle())[[likely]]
+			fast_io::win32::CloseHandle(this->native_handle());
+		this->native_handle()=newhandle;
 	}
 	void close()
 	{

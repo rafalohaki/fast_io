@@ -197,11 +197,7 @@ public:
 		handle=nullptr;
 		return temp;
 	}
-	inline constexpr void reset() noexcept
-	{
-		handle=nullptr;
-	}
-	inline constexpr void reset(native_handle_type newhandle) noexcept
+	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
 	{
 		handle=newhandle;
 	}
@@ -247,9 +243,10 @@ protected:
 public:
 	constexpr basic_nt_io_handle() noexcept = default;
 	constexpr basic_nt_io_handle(native_handle_type hd) noexcept:basic_nt_io_observer<ch_type>(hd){}
-	constexpr void reset() noexcept
+	constexpr void reset(native_handle_type newhandle=nullptr) noexcept
 	{
-		this->native_handle()=nullptr;
+		this->close_impl();
+		this->native_handle()=newhandle;
 	}
 	basic_nt_io_handle(basic_nt_io_handle const&)=delete;//Todo copy with ZwDuplicateObject or NtDuplicateObject??
 	basic_nt_io_handle& operator=(basic_nt_io_handle const&)=delete;
