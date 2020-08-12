@@ -104,9 +104,10 @@ public:
 			SSL_free(this->native_handle());
 		h.native_handle()=nullptr;
 	}
-	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
+	inline void reset(native_handle_type newhandle=nullptr) noexcept
 	{
-
+		if(this->native_handle())[[likely]]
+			SSL_free(this->native_handle());
 		this->native_handle()=newhandle;
 	}
 	basic_ssl_io_handle& operator=(basic_ssl_io_handle&& h) noexcept

@@ -167,7 +167,7 @@ public:
 	{
 		if(this->native_handle())[[likely]]
 			gzclose(this->native_handle());
-		this->native_handle=hd;
+		this->native_handle()=hd;
 	}
 
 	template<open_mode om,typename... Args>
