@@ -100,7 +100,14 @@ public:
 	}
 	constexpr basic_ssl_io_handle(basic_ssl_io_handle&& h) noexcept:basic_ssl_io_observer<ch_type>(h.native_handle())
 	{
+		if(this->native_handle())[[likely]]
+			SSL_free(this->native_handle());
 		h.native_handle()=nullptr;
+	}
+	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
+	{
+
+		this->native_handle()=newhandle;
 	}
 	basic_ssl_io_handle& operator=(basic_ssl_io_handle&& h) noexcept
 	{

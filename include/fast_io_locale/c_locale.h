@@ -250,6 +250,16 @@ public:
 		bmv.native_handle()=static_cast<native_handle_type>(0);
 		return *this;
 	}
+	inline void reset(native_handle_type newloc={}) noexcept
+	{
+		if(*this)[[likely]]
+#if defined(__WINNT__) || defined(_MSC_VER)
+			_free_locale(this->native_handle());
+#else
+			freelocale(this->native_handle());
+#endif
+		this->native_handle()=newloc;
+	}
 };
 
 class c_locale:public c_locale_handle
@@ -290,6 +300,10 @@ public:
 		fast_terminate();
 #endif
 }
+	c_locale(c_locale const&)=default;
+	c_locale& operator=(c_locale const&)=default;
+	c_locale(c_locale&&) noexcept=default;
+	c_locale& operator=(c_locale&&) noexcept=default;
 	~c_locale()
 	{
 	if(*this)[[likely]]

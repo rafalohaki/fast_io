@@ -27,10 +27,22 @@ public:
 	{
 		if(this->native_handle()==bmv.native_handle())[[unlikely]]
 			return *this;
-		io_uring_queue_exit(this->native_handle());
-		delete this->native_handle();
+		if(this->native_handle()) [[likely]]
+		{
+			io_uring_queue_exit(this->native_handle());
+			delete this->native_handle();
+		}
 		native_handle()=bmv.release();
 		return *this;
+	}
+	inline void reset(native_handle_type hd) noexcept
+	{
+		if(this->native_handle()) [[likely]]
+		{
+			io_uring_queue_exit(this->native_handle());
+			delete this->native_handle();
+		}
+		this->native_handle()=hd;
 	}
 	~io_uring()
 	{

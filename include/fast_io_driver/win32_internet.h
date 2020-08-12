@@ -125,10 +125,6 @@ public:
 	{
 		return handle;
 	}
-	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
-	{
-		handle=newhandle;
-	}
 	inline constexpr void swap(basic_win32_internet_io_observer& other) noexcept
 	{
 		std::swap(handle, other.handle);

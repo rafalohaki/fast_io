@@ -106,8 +106,15 @@ public:
 		this->native_handle() = bmv.release();
 		return *this;
 	}
-	
-
+	inline
+#if __cpp_constexpr_dynamic_alloc >= 201907L
+	constexpr
+#endif
+	void reset(native_handle_type newhandle=nullptr) noexcept
+	{
+		delete this->native_handle();
+		this->native_handle()=newhandle;
+	}
 #if __cpp_constexpr_dynamic_alloc >= 201907L
 	constexpr
 #endif

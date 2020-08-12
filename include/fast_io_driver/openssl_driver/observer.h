@@ -29,6 +29,12 @@ public:
 	{
 		std::swap(handle,other.handle);
 	}
+	constexpr native_handle_type release() noexcept
+	{
+		auto temp{handle};
+		handle=nullptr;
+		return temp;
+	}
 };
 
 }

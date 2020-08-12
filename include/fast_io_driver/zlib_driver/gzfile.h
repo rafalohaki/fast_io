@@ -163,6 +163,12 @@ public:
 	}
 #endif
 
+	inline void reset(native_handle_type hd) noexcept
+	{
+		if(this->native_handle())[[likely]]
+			gzclose(this->native_handle());
+		this->native_handle=hd;
+	}
 
 	template<open_mode om,typename... Args>
 	basic_gz_file(std::string_view file,open_interface_t<om>,Args&& ...args):
