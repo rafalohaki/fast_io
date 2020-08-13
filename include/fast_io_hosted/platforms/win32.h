@@ -352,9 +352,12 @@ public:
 	}
 	void close()
 	{
-		if(!fast_io::win32::CloseHandle(this->native_handle()))[[unlikely]]
-			throw_win32_error();
-		this->native_handle()=nullptr;
+		if(this->native_handle())[[likely]]
+		{
+			if(!fast_io::win32::CloseHandle(this->native_handle()))[[unlikely]]
+				throw_win32_error();
+			this->native_handle()=nullptr;
+		}
 	}
 };
 
@@ -606,15 +609,6 @@ public:
 	{
 		if(this->native_handle())[[likely]]
 			fast_io::win32::CloseHandle(this->native_handle());
-	}
-	void close()
-	{
-		if(this->native_handle())[[likely]]
-		{
-			if(win32::CloseHandle(this->native_handle()))
-				throw_win32_error();
-			this->native_handle()=nullptr;
-		}
 	}
 	constexpr basic_win32_file(basic_win32_file const&)=default;
 	constexpr basic_win32_file& operator=(basic_win32_file const&)=default;

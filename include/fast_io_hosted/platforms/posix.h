@@ -289,8 +289,11 @@ public:
 	}
 	void close()
 	{
-		details::sys_close_throw_error(this->naitve_handle());
-		this->native_handle()=-1;
+		if(*this)[[likely]]
+		{
+			details::sys_close_throw_error(this->naitve_handle());
+			this->native_handle()=-1;
+		}
 	}
 };
 

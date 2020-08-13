@@ -569,9 +569,12 @@ public:
 	}
 	void close()
 	{
-		if(std::fclose(this->native_handle())==EOF)
-			throw_posix_error();
-		this->native_handle()=nullptr;
+		if(this->native_handle())[[likely]]
+		{
+			if(std::fclose(this->native_handle())==EOF)
+				throw_posix_error();
+			this->native_handle()=nullptr;
+		}
 	}
 	inline constexpr void reset(native_handle_type newfp=nullptr) noexcept
 	{

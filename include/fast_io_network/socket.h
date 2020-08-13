@@ -206,8 +206,10 @@ public:
 	void close()
 	{
 		if(*this)[[likely]]
+		{
 			sock::details::closesocket(this->native_handle());
-		this->native_handle()=sock::details::invalid_socket;
+			this->native_handle()=sock::details::invalid_socket;
+		}
 	}
 #if defined(__WINNT__) || defined(_MSC_VER)
 	basic_socket_io_handle(basic_socket_io_handle const&)=delete;

@@ -88,7 +88,7 @@ public:
 	{
 		end=curr=beg=std::allocator_traits<allocator_type>::allocate(alloc,buffer_size);
 	}
-	constexpr inline void release() const noexcept
+	constexpr inline void release() noexcept
 	{
 		cleanse();
 		end=curr=beg=nullptr;
@@ -146,6 +146,11 @@ public:
 	constexpr basic_ibuf& operator=(basic_ibuf const& other) =delete;
 	constexpr basic_ibuf(basic_ibuf&&) noexcept=default;
 	constexpr basic_ibuf& operator=(basic_ibuf&&) noexcept=default;
+	constexpr void close() requires(closable_stream<native_handle_type>)
+	{
+		ih.close();
+		ibuffer.end=ibuffer.curr=ibuffer.beg;
+	}
 };
 template<input_stream Ihandler,typename Buf>
 inline constexpr bool underflow(basic_ibuf<Ihandler,Buf>& ib)
@@ -316,7 +321,7 @@ public:
 		try
 		{
 #endif
-			if(obuffer.beg)
+			if(obuffer.beg!=obuffer.curr)
 				write(oh,obuffer.beg,obuffer.curr);
 #ifdef __cpp_exceptions
 		}
@@ -364,6 +369,16 @@ public:
 	inline constexpr auto& native_handle()
 	{
 		return oh;
+	}
+	constexpr void close() requires(closable_stream<native_handle_type>)
+	{
+		if(obuffer.beg!=obuffer.curr)
+		{
+			write(oh,obuffer.beg,obuffer.curr);
+			obuffer.curr=obuffer.beg;
+		}
+		oh.close();
+		obuffer.release();
 	}
 };
 
