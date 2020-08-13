@@ -88,10 +88,6 @@ public:
 	{
 		gzfile=newhandle;
 	}
-	inline constexpr void swap(basic_gz_io_observer& other) noexcept
-	{
-		std::swap(gzfile, other.gzfile);
-	}
 #if defined(__WINNT__) || defined(_MSC_VER)
 	explicit operator basic_win32_io_observer<char_type>() const
 	{

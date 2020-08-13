@@ -25,10 +25,6 @@ public:
 	{
 		handle=newhandle;
 	}
-	constexpr void swap(observer& other) noexcept
-	{
-		std::swap(handle,other.handle);
-	}
 	constexpr native_handle_type release() noexcept
 	{
 		auto temp{handle};

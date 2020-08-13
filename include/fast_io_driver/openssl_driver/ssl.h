@@ -32,11 +32,6 @@ public:
 	{
 		s=newhandle;
 	}
-	
-	inline constexpr void swap(basic_ssl_io_observer& other) noexcept
-	{
-		std::swap(s, other.s);
-	}
 };
 
 template<std::integral ch_type,std::integral ch_type1,std::integral ch_type2>

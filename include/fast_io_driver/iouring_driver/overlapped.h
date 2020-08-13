@@ -63,10 +63,6 @@ public:
 	{
 		handle=newhandle;
 	}
-	inline constexpr void swap(io_uring_overlapped_observer& other) noexcept
-	{
-		std::swap(handle,other.handle);
-	}
 };
 
 class io_uring_overlapped:public io_uring_overlapped_observer

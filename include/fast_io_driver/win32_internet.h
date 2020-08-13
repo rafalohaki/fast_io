@@ -125,10 +125,6 @@ public:
 	{
 		return handle;
 	}
-	inline constexpr void swap(basic_win32_internet_io_observer& other) noexcept
-	{
-		std::swap(handle, other.handle);
-	}
 };
 
 template<std::integral ch_type>

@@ -221,11 +221,6 @@ public:
 		handle=newhandle;
 		base_addr=newaddress;
 	}
-	inline constexpr void swap(basic_win32_memory_io_observer& other) noexcept
-	{
-		std::swap(handle, other.handle);
-		std::swap(base_addr, other.base_addr);
-	}
 };
 
 template<std::integral ch_type>

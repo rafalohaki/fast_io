@@ -28,10 +28,6 @@ public:
 	{
 		handle=newhandle;
 	}
-	inline constexpr void swap(basic_socket_io_observer& other) noexcept
-	{
-		std::swap(handle, other.handle);
-	}
 	inline constexpr native_handle_type release() noexcept
 	{
 		auto temp{handle};

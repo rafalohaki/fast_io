@@ -201,10 +201,6 @@ public:
 	{
 		handle=newhandle;
 	}
-	inline constexpr void swap(basic_nt_io_observer& other) noexcept
-	{
-		std::swap(handle, other.handle);
-	}
 };
 
 template<std::integral ch_type,std::contiguous_iterator Iter>

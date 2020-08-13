@@ -296,10 +296,6 @@ public:
 	{
 		fp=newfp;
 	}
-	inline constexpr void swap(basic_c_io_observer_unlocked& other) noexcept
-	{
-		std::swap(fp, other.fp);
-	}
 };
 
 template<std::integral ch_type>
@@ -455,10 +451,6 @@ public:
 	inline constexpr void reset(native_handle_type newfp=nullptr) noexcept
 	{
 		fp=newfp;
-	}
-	inline constexpr void swap(basic_c_io_observer& other) noexcept
-	{
-		std::swap(fp, other.fp);
 	}
 };
 

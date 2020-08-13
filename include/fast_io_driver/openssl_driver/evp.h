@@ -56,11 +56,6 @@ public:
 	{
 		key=newkey;
 	}
-	
-	inline constexpr void swap(evp_pkey_observer& other) noexcept
-	{
-		std::swap(key, other.key);
-	}
 };
 
 class evp_pkey:public evp_pkey_observer
@@ -131,10 +126,6 @@ public:
 	constexpr void reset(native_handle_type newctx=nullptr) noexcept
 	{
 		ctx=newctx;
-	}
-	constexpr void swap(evp_pkey_ctx_observer& other) noexcept
-	{
-		std::swap(ctx,other.ctx);
 	}
 };
 

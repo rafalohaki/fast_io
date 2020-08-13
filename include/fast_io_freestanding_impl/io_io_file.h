@@ -143,10 +143,6 @@ public:
 	{
 		io_ptr=newptr;
 	}
-	inline constexpr void swap(basic_io_io_observer& other) noexcept
-	{
-		std::swap(io_ptr, other.io_ptr);
-	}
 };
 #ifdef __cpp_rtti
 template<typename T,std::integral char_type>

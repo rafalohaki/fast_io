@@ -31,10 +31,6 @@ public:
 	{
 		soc=newsoc;
 	}
-	inline constexpr void swap(basic_socket_io_observer& other) noexcept
-	{
-		std::swap(soc,other.soc);
-	}
 	inline constexpr auto& native_handle() const noexcept
 	{	
 		return soc;

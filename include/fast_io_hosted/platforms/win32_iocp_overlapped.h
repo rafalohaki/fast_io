@@ -65,10 +65,6 @@ public:
 	{
 		handle=newhandle;
 	}
-	inline constexpr void swap(iocp_overlapped_observer& other) noexcept
-	{
-		std::swap(handle, other.handle);
-	}
 };
 
 class iocp_overlapped:public iocp_overlapped_observer

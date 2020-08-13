@@ -36,10 +36,6 @@ public:
 	{
 		phandle=newhandle;
 	}
-	inline constexpr void swap(basic_mfc_io_observer& other) noexcept
-	{
-		std::swap(phandle, other.phandle);
-	}
 };
 
 

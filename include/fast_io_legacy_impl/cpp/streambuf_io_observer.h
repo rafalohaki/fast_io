@@ -33,10 +33,6 @@ public:
 	{
 		rdb=newrdb;
 	}
-	inline constexpr void swap(basic_general_streambuf_io_observer& other) noexcept
-	{
-		std::swap(rdb, other.rdb);
-	}
 #if defined(__GLIBCXX__) || defined(__LIBCPP_VERSION)  || defined(_MSVC_STL_UPDATE)
 	explicit operator basic_c_io_observer_unlocked<char_type>()
 	{

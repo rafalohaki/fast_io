@@ -182,10 +182,6 @@ locale_t
 	{
 		loc=newloc;
 	}
-	inline constexpr void swap(c_locale_observer& other) noexcept
-	{
-		std::swap(loc, other.loc);
-	}
 };
 
 class c_locale_handle:public c_locale_observer
