@@ -291,7 +291,7 @@ public:
 	{
 		if(*this)[[likely]]
 		{
-			details::sys_close_throw_error(this->naitve_handle());
+			details::sys_close_throw_error(this->native_handle());
 			this->native_handle()=-1;
 		}
 	}
