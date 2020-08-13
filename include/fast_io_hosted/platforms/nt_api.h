@@ -71,7 +71,7 @@ union
 	std::uint32_t Status;
 	void*    Pointer;
 } DUMMYUNIONNAME;
-std::uint32_t* Information;
+std::uintptr_t Information;
 };
 
 
