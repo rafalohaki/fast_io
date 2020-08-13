@@ -118,6 +118,11 @@ concept async_scatter_output_stream = async_stream<T>&&details::async_scatter_ou
 template<typename T>
 concept async_scatter_io_stream = async_input_stream<T>&&async_scatter_output_stream<T>;
 
+template<typename T>
+concept closable_stream = stream<T>&&requires(T t)
+{
+	{t.close()}->std::same_as<void>;
+};
 
 template<typename T>
 concept secure_clear_requirement_stream = stream<T>&&requires(T stm)

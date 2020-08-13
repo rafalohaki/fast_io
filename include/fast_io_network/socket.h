@@ -226,7 +226,7 @@ public:
 	{
 		if(*this)[[likely]]
 			sock::details::closesocket_ignore_error(this->native_handle());
-		soc=newsoc;
+		this->native_handle()=newsoc;
 	}
 	constexpr basic_socket_io_handle(basic_socket_io_handle&& other) noexcept:basic_socket_io_observer<ch_type>{other.release()}{}
 	basic_socket_io_handle& operator=(basic_socket_io_handle&& other) noexcept
