@@ -249,10 +249,6 @@ public:
 	{
 		fd=newfd;
 	}
-	inline constexpr void swap(basic_posix_io_observer& other) noexcept
-	{
-		std::swap(fd, other.fd);
-	}
 };
 
 template<std::integral ch_type>
@@ -301,12 +297,6 @@ public:
 		this->native_handle()=-1;
 	}
 };
-
-template<std::integral ch_type>
-inline bool valid(basic_posix_io_observer<ch_type> h)
-{
-	return h.native_handle()!=-1;
-}
 
 template<std::integral ch_type,std::contiguous_iterator Iter>
 inline Iter read(basic_posix_io_observer<ch_type> h,Iter begin,Iter end)
