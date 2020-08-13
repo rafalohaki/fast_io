@@ -209,9 +209,6 @@ class basic_posix_io_observer
 public:
 	using char_type = ch_type;
 	using native_handle_type = int;
-#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
-	using async_scheduler_type = io_async_observer;
-#endif
 	native_handle_type fd=-1;
 	constexpr auto& native_handle() noexcept
 	{
@@ -253,9 +250,6 @@ class basic_posix_io_handle:public basic_posix_io_observer<ch_type>
 public:
 	using char_type = ch_type;
 	using native_handle_type = int;
-#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
-	using async_scheduler_type = io_async_observer;
-#endif
 	constexpr explicit basic_posix_io_handle()=default;
 	constexpr explicit basic_posix_io_handle(int fdd):basic_posix_io_observer<ch_type>{fdd}{}
 	basic_posix_io_handle(basic_posix_io_handle const& dp):basic_posix_io_observer<ch_type>{details::sys_dup(dp.native_handle())}
@@ -446,9 +440,6 @@ public:
 	using char_type = ch_type;
 	using native_handle_type = typename basic_posix_io_handle<char_type>::native_handle_type;
 	using basic_posix_io_handle<ch_type>::native_handle;
-#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
-	using async_scheduler_type = io_async_observer;
-#endif
 	constexpr basic_posix_file() noexcept = default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
@@ -599,9 +590,6 @@ class basic_posix_pipe
 public:
 	using char_type = ch_type;
 	using native_handle_type = std::array<basic_posix_file<ch_type>,2>;
-#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
-	using async_scheduler_type = io_async_observer;
-#endif
 	native_handle_type pipes;
 	basic_posix_pipe()
 	{

@@ -253,9 +253,6 @@ public:
 	using char_type = ch_type;
 	using native_handle_type = std::FILE*;
 	native_handle_type fp{};
-#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
-	using async_scheduler_type = io_async_observer;
-#endif
 	constexpr auto& native_handle() noexcept
 	{
 		return fp;
@@ -402,9 +399,6 @@ public:
 	using char_type = ch_type;
 	using native_handle_type = std::FILE*;
 	native_handle_type fp{};
-#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
-	using async_scheduler_type = io_async_observer;
-#endif
 	constexpr auto& native_handle() const noexcept
 	{
 		return fp;
@@ -547,9 +541,6 @@ class basic_c_io_handle_impl:public T
 public:
 	using char_type = typename T::char_type;
 	using native_handle_type = std::FILE*;
-#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
-	using async_scheduler_type = io_async_observer;
-#endif
 	constexpr basic_c_io_handle_impl()=default;
 	constexpr basic_c_io_handle_impl(native_handle_type fp2) noexcept:T{fp2}{}
 	basic_c_io_handle_impl(basic_c_io_handle_impl const&)=delete;
@@ -592,9 +583,6 @@ public:
 	using T::native_handle;
 	using char_type=typename T::char_type;
 	using native_handle_type=typename T::native_handle_type;
-#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
-	using async_scheduler_type = io_async_observer;
-#endif
 	basic_c_file_impl()=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
