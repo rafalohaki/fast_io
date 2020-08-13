@@ -168,6 +168,32 @@ inline void* nt_create_file_no_directory_detail(std::string_view filename,nt_ope
 	return handle;
 }
 
+inline std::size_t nt_read_impl(void* handle,void* begin,std::size_t size)
+{
+	if constexpr(4<sizeof(std::size_t))
+		if(static_cast<std::size_t>(UINT32_MAX)<size)
+			size=static_cast<std::size_t>(UINT32_MAX);
+	win32::nt::io_status_block block{};
+	auto const status{win32::nt::nt_read_file(handle,nullptr,nullptr,nullptr,
+		std::addressof(block), begin, static_cast<std::uint32_t>(size), nullptr, nullptr)};
+	if(status)
+		throw_nt_error(status);
+	return block.Information;
+}
+
+inline std::size_t nt_write_impl(void* handle,void const* begin,std::size_t size)
+{
+	if constexpr(4<sizeof(std::size_t))
+		if(static_cast<std::size_t>(UINT32_MAX)<size)
+			size=static_cast<std::size_t>(UINT32_MAX);
+	win32::nt::io_status_block block{};
+	auto const status{win32::nt::nt_write_file(handle,nullptr,nullptr,nullptr,
+		std::addressof(block), begin, static_cast<std::uint32_t>(size), nullptr, nullptr)};
+	if(status)
+		throw_nt_error(status);
+	return block.Information;
+}
+
 }
 
 template<std::integral ch_type>
@@ -204,31 +230,13 @@ public:
 template<std::integral ch_type,std::contiguous_iterator Iter>
 inline Iter read(basic_nt_io_observer<ch_type> obs,Iter begin,Iter end)
 {
-	std::size_t to_read((end-begin)*sizeof(*begin));
-	if constexpr(4<sizeof(std::size_t))
-		if(static_cast<std::size_t>(UINT32_MAX)<to_read)
-			to_read=static_cast<std::size_t>(UINT32_MAX);
-	win32::nt::io_status_block block{};
-	auto const status{win32::nt::nt_read_file(obs.handle,nullptr,nullptr,nullptr,
-		std::addressof(block), std::to_address(begin), static_cast<std::uint32_t>(to_read), nullptr, nullptr)};
-	if(status)
-		throw_nt_error(status);
-	return begin+block.Information/sizeof(*begin);
+	return begin+details::nt::nt_read_impl(obs.handle,std::to_address(begin),(end-begin)*sizeof(*begin))/sizeof(*begin);
 }
 
 template<std::integral ch_type,std::contiguous_iterator Iter>
 inline Iter write(basic_nt_io_observer<ch_type> obs,Iter cbegin,Iter cend)
 {
-	std::size_t to_write((cend-cbegin)*sizeof(*cbegin));
-	if constexpr(4<sizeof(std::size_t))
-		if(static_cast<std::size_t>(UINT32_MAX)<to_write)
-			to_write=static_cast<std::size_t>(UINT32_MAX);
-	win32::nt::io_status_block block{};
-	auto const status{win32::nt::nt_write_file(obs.handle,nullptr,nullptr,nullptr,
-		std::addressof(block), std::to_address(cbegin), static_cast<std::uint32_t>(to_write), nullptr, nullptr)};
-	if(status)
-		throw_nt_error(status);
-	return cbegin+block.Information/sizeof(*cbegin);
+	return cbegin+details::nt::nt_write_impl(obs.handle,std::to_address(cbegin),(cend-cbegin)*sizeof(*cbegin))/sizeof(*cbegin);
 }
 
 template<std::integral ch_type>
