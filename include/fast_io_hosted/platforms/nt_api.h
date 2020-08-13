@@ -28,16 +28,12 @@ inline func* get_nt_module_handle(char const* funname) noexcept(no_exception)
 			return nullptr;
 	}
 	auto proc_addr(GetProcAddress(hd,funname));
-	if constexpr(no_exception)
-	{
-		return nullptr;
-	}
-	else
+	if constexpr(!no_exception)
 	{
 		if(proc_addr==nullptr)
 			throw_win32_error();
-		return bit_cast<func*>(proc_addr);
 	}
+	return bit_cast<func*>(proc_addr);
 }
 
 inline std::uint32_t rtl_nt_status_to_dos_error(std::uint32_t status)
@@ -45,19 +41,17 @@ inline std::uint32_t rtl_nt_status_to_dos_error(std::uint32_t status)
 	return (get_nt_module_handle<std::uint32_t __stdcall(std::uint32_t status)>("RtlNtStatusToDosError"))(status);
 }
 
-inline void nt_close(void* handle) noexcept
+inline std::uint32_t nt_close(void* handle) noexcept
 {
 	auto func_ptr{get_nt_module_handle<std::uint32_t __stdcall(void*),true>("NtClose")};
-	if(func_ptr==nullptr)
-		return;
-	func_ptr(handle);
+	return func_ptr(handle);
 }
 
 struct unicode_string
 {
 std::uint16_t Length;
 std::uint16_t MaximumLength;
-wchar_t*  Buffer;
+char16_t*  Buffer;
 };
 
 struct object_attributes
@@ -79,6 +73,8 @@ union
 } DUMMYUNIONNAME;
 std::uint32_t* Information;
 };
+
+
 
 template<typename... Args>
 requires (sizeof...(Args)==11)
@@ -166,8 +162,42 @@ requires (sizeof...(Args)==4)
 inline auto rtl_dos_path_name_to_nt_path_name_u(Args&& ...args)
 {
 //https://github.com/mirror/reactos/blob/master/rostests/apitests/ntdll/RtlDosPathNameToNtPathName_U.c
-	return (get_nt_module_handle<int __stdcall(wchar_t const*,unicode_string*,wchar_t const**,rtl_relative_name_u*)>("RtlDosPathNameToNtPathName_U"))(std::forward<Args>(args)...);
+	return (get_nt_module_handle<int __stdcall(char16_t const*,unicode_string*,char16_t const**,rtl_relative_name_u*)>("RtlDosPathNameToNtPathName_U"))(std::forward<Args>(args)...);
 }
 //RtlDosPathNameToNtPathName_U
+
+inline void rtl_free_unicode_string(unicode_string* us)
+{
+	auto func_ptr{get_nt_module_handle<void __stdcall(unicode_string*),true>("RtlFreeUnicodeString")};
+	return func_ptr(us);
+}
+
+struct rtl_unicode_string_unique_ptr
+{
+	unicode_string* heap_ptr{};
+	constexpr rtl_unicode_string_unique_ptr()=default;
+	constexpr rtl_unicode_string_unique_ptr(unicode_string* ptr):heap_ptr(ptr){}
+	rtl_unicode_string_unique_ptr(rtl_unicode_string_unique_ptr const&)=delete;
+	rtl_unicode_string_unique_ptr& operator=(rtl_unicode_string_unique_ptr const&)=delete;
+	constexpr rtl_unicode_string_unique_ptr(rtl_unicode_string_unique_ptr&& other) noexcept:heap_ptr(other.heap_ptr)
+	{
+		other.heap_ptr=nullptr;
+	}
+	rtl_unicode_string_unique_ptr& operator=(rtl_unicode_string_unique_ptr&& other) noexcept
+	{
+		if(other.heap_ptr==heap_ptr)
+			return *this;
+		if(heap_ptr)[[likely]]
+			rtl_free_unicode_string(heap_ptr);
+		heap_ptr=other.heap_ptr;
+		other.heap_ptr=nullptr;
+		return *this;
+	}
+	~rtl_unicode_string_unique_ptr()
+	{
+		if(heap_ptr)[[likely]]
+			rtl_free_unicode_string(heap_ptr);
+	}
+};
 
 }

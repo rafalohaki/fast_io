@@ -6,41 +6,6 @@ namespace fast_io
 namespace details::nt
 {
 
-/*
-template<typename... Args>
-inline void nt_create_file_impl(std::span<wchar_t> sp,void** FileHandle,std::uint32_t DesiredAccess,win32::nt::object_attributes* ObjectAttributes,Args&& ...args)
-{
-	win32::nt::unicode_string us
-	{
-		static_cast<std::uint16_t>(sp.size()<<1),
-		static_cast<std::uint16_t>(sp.size()<<1),
-		sp.data()
-	};
-	ObjectAttributes->ObjectName=std::addressof(us);
-	auto const status{fast_io::win32::nt::nt_create_file(FileHandle,DesiredAccess,ObjectAttributes,std::forward<Args>(args)...)};
-	if(status)
-		throw nt_error(status);
-};
-template<typename... Args>
-requires (sizeof...(Args)==11)
-inline void nt_create_file_impl(std::string_view path,Args&& ...args)
-{
-	if(path.size()<512)[[likely]]		//YES TO NO NULL TERMINATOR C-STYLE STRING! I ABSOLUTELY LOVE IT.
-	{
-		std::array<wchar_t,512> buffer;
-		std::span sp{buffer.data(),utf_code_convert(path.data(),path.data()+path.size(),buffer.data())};
-		nt_create_file_impl(sp,std::forward<Args>(args)...);
-	}
-	else
-	{
-		details::temp_unique_arr_ptr<wchar_t> buffer(path.size());
-		std::span sp{buffer.ptr,utf_code_convert(path.data(),path.data()+path.size(),buffer.ptr)};
-		if(32767<sp.size())
-			throw nt_error(0xC0000106);
-		nt_create_file_impl(sp,std::forward<Args>(args)...);
-	}
-}
-*/
 struct nt_open_mode
 {
 std::uint32_t DesiredAccess{};
@@ -48,8 +13,8 @@ std::uint32_t FileAttributes{};
 std::uint32_t ShareAccess{1|2};
 std::uint32_t CreateDisposition{};
 std::uint32_t CreateOptions{};
+std::uint32_t ObjAttributes{0x00000040};
 };
-
 
 /*
 https://docs.microsoft.com/en-us/windows/win32/secauthz/access-mask-format
@@ -60,11 +25,11 @@ inline constexpr nt_open_mode calculate_nt_open_mode(open_mode value)
 	value&=~open_mode::ate;
 	nt_open_mode mode;
 	if((value&open_mode::app)!=open_mode::none)
-		mode.DesiredAccess|=4;//FILE_APPEND_DATA
+		mode.DesiredAccess|=4;		//FILE_APPEND_DATA
 	else if((value&open_mode::out)!=open_mode::none)
-		mode.DesiredAccess|=0x40000000;//FILE_GENERIC_WRITE
+		mode.DesiredAccess|=0x120116;	//FILE_GENERIC_WRITE
 	if((value&open_mode::in)!=open_mode::none)
-		mode.DesiredAccess|=0x80000000;//FILE_GENERIC_READ
+		mode.DesiredAccess|=0x120089;	//FILE_GENERIC_READ
 	bool set_normal{true};
 	if((value&open_mode::archive)!=open_mode::none)
 	{
@@ -170,6 +135,39 @@ struct nt_file_openmode_single
 	inline static constexpr nt_open_mode mode = calculate_nt_open_mode(om);
 };
 
+
+inline void* nt_create_file_no_directory_detail(std::string_view filename,nt_open_mode mode)
+{
+	char16_t const* part_name{};
+	win32::nt::rtl_relative_name_u relative_name{};
+	win32::nt::unicode_string nt_name{};
+	{
+	details::temp_unique_arr_ptr<char16_t> buffer(filename.size()+1);
+	*utf_code_convert(filename.data(),filename.data()+filename.size(),buffer.data())=0;
+	if(!win32::nt::rtl_dos_path_name_to_nt_path_name_u(buffer.data(),std::addressof(nt_name),std::addressof(part_name),std::addressof(relative_name)))
+		throw_nt_error(0xC0000039);
+	}
+	win32::nt::rtl_unicode_string_unique_ptr us_ptr{std::addressof(nt_name)};
+	std::uint16_t const nt_part_name_bytes{static_cast<std::uint16_t>((nt_name.Buffer+static_cast<std::size_t>(nt_name.Length)/sizeof(char16_t)-part_name)*2)};
+	win32::nt::unicode_string nt_part_name{
+		.Length=nt_part_name_bytes,
+		.MaximumLength=nt_part_name_bytes,
+		.Buffer=const_cast<char16_t*>(part_name)};
+	win32::nt::io_status_block block{};
+	win32::nt::object_attributes obj{.Length=sizeof(win32::nt::object_attributes),
+		.RootDirectory=nullptr,
+		.ObjectName=std::addressof(nt_name),
+		.Attributes=mode.ObjAttributes	//Todo
+	};
+	void* handle{};
+	auto const status{win32::nt::nt_create_file(
+	std::addressof(handle),mode.DesiredAccess,std::addressof(obj),std::addressof(block),nullptr,mode.FileAttributes,
+	mode.ShareAccess,mode.CreateDisposition,mode.CreateOptions,nullptr,0)};
+	if(status)
+		throw_nt_error(status);
+	return handle;
+}
+
 }
 
 template<std::integral ch_type>
@@ -218,11 +216,49 @@ inline Iter write(basic_nt_io_observer<ch_type> obs,Iter cbegin,Iter cend)
 	return cbegin+(*block.Information)/sizeof(*cbegin);
 }
 
+template<std::integral ch_type,std::contiguous_iterator Iter>
+inline Iter read(basic_nt_io_observer<ch_type> obs,Iter begin,Iter end)
+{
+	std::size_t to_read((end-begin)*sizeof(*begin));
+	if constexpr(4<sizeof(std::size_t))
+		if(static_cast<std::size_t>(UINT32_MAX)<to_read)
+			to_read=static_cast<std::size_t>(UINT32_MAX);
+	win32::nt::io_status_block block{};
+	auto const status{win32::nt::nt_read_file(obs.handle,nullptr,nullptr,nullptr,
+		std::addressof(block), std::to_address(begin), static_cast<std::uint32_t>(to_read), nullptr, nullptr)};
+	if(status)
+		throw_nt_error(status);
+	return begin+(*block.Information)/sizeof(*begin);
+}
+
 template<std::integral ch_type>
 inline constexpr void flush(basic_nt_io_observer<ch_type>) noexcept
 {
 
 }
+
+/*
+Let's first borrow win32 code before I finish it.
+ReactOS provides implementation of how to do this
+https://doxygen.reactos.org/da/d02/dll_2win32_2kernel32_2client_2file_2fileinfo_8c_source.html#l00327
+*/
+
+template<std::integral ch_type,typename T,std::integral U>
+inline std::common_type_t<std::int64_t, std::size_t> seek(basic_nt_io_observer<ch_type> handle,seek_type_t<T>,U i=0,seekdir s=seekdir::cur)
+{
+	std::int64_t distance_to_move_high{};
+	std::int64_t seekposition{seek_precondition<std::int64_t,T,ch_type>(i)};
+	if(!win32::SetFilePointerEx(handle.native_handle(),seekposition,std::addressof(distance_to_move_high),static_cast<std::uint32_t>(s)))
+		throw_win32_error();
+	return distance_to_move_high;
+}
+
+template<std::integral ch_type,std::integral U>
+inline auto seek(basic_nt_io_observer<ch_type> handle,U i=0,seekdir s=seekdir::cur)
+{
+	return seek(handle,seek_type<ch_type>,i,s);
+}
+
 
 template<std::integral ch_type>
 class basic_nt_io_handle:public basic_nt_io_observer<ch_type>
@@ -230,19 +266,23 @@ class basic_nt_io_handle:public basic_nt_io_observer<ch_type>
 public:
 	using char_type = ch_type;
 	using native_handle_type = void*;
-protected:
-	void close_impl() noexcept
-	{
-		if(this->native_handle())
-			win32::nt::nt_close(this->native_handle());
-	}
-public:
 	constexpr basic_nt_io_handle() noexcept = default;
 	constexpr basic_nt_io_handle(native_handle_type hd) noexcept:basic_nt_io_observer<ch_type>(hd){}
-	constexpr void reset(native_handle_type newhandle=nullptr) noexcept
+	void reset(native_handle_type newhandle=nullptr) noexcept
 	{
-		this->close_impl();
+		if(this->native_handle())[[likely]]
+			win32::nt::nt_close(this->native_handle());
 		this->native_handle()=newhandle;
+	}
+	void close()
+	{
+		if(this->native_handle())[[likely]]
+		{
+			auto status{win32::nt::nt_close(this->native_handle())};
+			if(status)[[unlikely]]
+				throw_nt_status(status);
+			this->native_handle()=nullptr;
+		}
 	}
 	basic_nt_io_handle(basic_nt_io_handle const&)=delete;//Todo copy with ZwDuplicateObject or NtDuplicateObject??
 	basic_nt_io_handle& operator=(basic_nt_io_handle const&)=delete;
@@ -256,7 +296,8 @@ public:
 	{
 		if(std::addressof(b)!=this)
 		{
-			close_impl();
+			if(this->native_handle())[[likely]]
+				win32::nt::nt_close(this->native_handle());
 			this->native_handle() = b.native_handle();
 			b.native_handle()=nullptr;
 		}
@@ -268,100 +309,43 @@ public:
 template<std::integral ch_type>
 class basic_nt_file:public basic_nt_io_handle<ch_type>
 {
+	void seek_end_local()
+	{
+		basic_nt_file<char> local{this->native_handle()};
+		seek(*this,0,seekdir::end);
+		local.release();
+	};
 public:
 	using char_type = ch_type;
 	using native_handle_type = void*;
 	constexpr basic_nt_file()=default;
-	constexpr basic_nt_file(native_handle_type hd):basic_nt_io_handle<ch_type>(hd){}
+	template<typename native_hd>
+	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
+	constexpr basic_nt_file(native_hd hd):basic_nt_io_handle<ch_type>(hd){}
 	template<open_mode om>
-	basic_nt_file(std::string_view filename,open_interface_t<om>)
+	basic_nt_file(std::string_view filename,open_interface_t<om>):
+		basic_nt_io_handle<ch_type>(details::nt::nt_create_file_no_directory_detail(filename,details::nt::nt_file_openmode_single<om>::mode))
 	{
-		constexpr auto& mode{details::nt::nt_file_openmode_single<om>::mode};
-		wchar_t const* part_name{};
-		win32::nt::rtl_relative_name_u relative_name;
-		win32::nt::unicode_string nt_name;
-		{
-		details::temp_unique_arr_ptr<wchar_t> buffer(filename.size()+1);
-		*utf_code_convert(filename.data(),filename.data()+filename.size(),buffer.data())=0;
-		if(!win32::nt::rtl_dos_path_name_to_nt_path_name_u(buffer.data(),std::addressof(nt_name),std::addressof(part_name),std::addressof(relative_name)))
-			throw_win32_error();
-		}
-		win32::nt::io_status_block block{};
-		win32::nt::object_attributes obj{.Length=sizeof(win32::nt::object_attributes),
-			.RootDirectory=relative_name.containing_directory,
-			.ObjectName=std::addressof(relative_name.relative_name),
-			.Attributes=0x00000040	//Todo
-		};
-
-		auto const status{win32::nt::nt_create_file(
-			std::addressof(this->native_handle()),
-		mode.DesiredAccess,std::addressof(obj),std::addressof(block),nullptr,mode.FileAttributes,
-		mode.ShareAccess,mode.CreateDisposition,mode.CreateOptions,nullptr,0)};
-		if(status)
-			throw_nt_error(status);
+		if constexpr ((om&open_mode::ate)!=open_mode::none)
+			seek_end_local();
 	}
+	basic_nt_file(std::string_view filename,open_mode om):
+		basic_nt_io_handle<ch_type>(details::nt::nt_create_file_no_directory_detail(filename,details::nt::calculate_nt_open_mode(om)))
+	{
+		if((om&open_mode::ate)!=open_mode::none)
+			seek_end_local();
+	}
+	basic_nt_file(std::string_view filename,std::string_view mode):basic_nt_file(filename,fast_io::from_c_mode(mode)){}
 	basic_nt_file(basic_nt_file const&)=default;
 	basic_nt_file& operator=(basic_nt_file const&)=default;
-	basic_nt_file(basic_nt_file&&) noexcept=default;
+	constexpr basic_nt_file(basic_nt_file&&) noexcept=default;
 	basic_nt_file& operator=(basic_nt_file&&) noexcept=default;
 	~basic_nt_file()
 	{
-		this->close_impl();
+		if(this->native_handle())[[likely]]
+			win32::nt::nt_close(this->native_handle());
 	}
 };
-
-
-/*
-template<std::integral ch_type,std::contiguous_iterator Iter>
-inline Iter read(basic_nt_io_handle<ch_type>& hd,Iter begin,Iter end)
-{
-	if(::NtReadFile(hd.native_handle(),nullptr,{},{},{}))
-	{
-
-	}
-}
-
-template<std::integral ch_type,std::contiguous_iterator Iter>
-inline Iter write(basic_nt_io_handle<ch_type>& hd,Iter begin,Iter end)
-{
-	
-}
-
-template<std::integral ch_type>
-inline void flush(basic_nt_io_handle<ch_type>& hd)
-{
-	
-}
-
-template<std::integral ch_type,bool kernel=false>
-class basic_nt_file:public basic_nt_io_handle<ch_type>
-{
-public:
-	using basic_nt_io_handle<ch_type>::native_handle_type;
-	using basic_nt_io_handle<ch_type>::char_type;
-
-	template<std::size_t om,perms pm>
-	basic_nt_file(std::wstring_view filename,open::interface_t<om>,perms_interface_t<pm>)
-	{
-		UNICODE_STRING ustr{filename.size(),filename.size(),filename.data()};
-		OBJECT_ATTRIBUTES oba{sizeof(OBJECT_ATTRIBUTES),nullptr,std::addressof(ustr)};
-		if constexpr(kernel)
-			oba.Attributes = 0x00000200;	//0x00000200
-		if(::NtCreateFile(std::addressof(native_handle()),
-			details::win32_file_openmode<om,pm>::mode.dwDesiredAccess,
-			std::addressof(oba),
-			nullptr,
-			nullptr,
-			))
-		{
-
-		}
-	}
-	~basic_nt_file()
-	{
-		this->close_impl();
-	}
-};*/
 using nt_io_observer=basic_nt_io_observer<char>;
 using nt_io_handle=basic_nt_io_handle<char>;
 using nt_file=basic_nt_file<char>;

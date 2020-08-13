@@ -306,11 +306,9 @@ public:
 	using native_handle_type = void*;
 	using char_type = ch_type;
 	using async_scheduler_type = basic_win32_io_observer<char>;
-	explicit constexpr basic_win32_io_handle() noexcept =default;
-	explicit constexpr basic_win32_io_handle(native_handle_type handle) noexcept:
+	constexpr basic_win32_io_handle() noexcept =default;
+	constexpr basic_win32_io_handle(native_handle_type handle) noexcept:
 		basic_win32_io_observer<ch_type>{handle}{}
-	explicit basic_win32_io_handle(std::uint32_t dw):
-		basic_win32_io_observer<ch_type>{fast_io::win32::GetStdHandle(dw)}{}
 	basic_win32_io_handle(basic_win32_io_handle const& other)
 	{
 		auto const current_process(win32::GetCurrentProcess());
@@ -534,7 +532,6 @@ public:
 		if(native_handle()==((void*) (std::intptr_t)-1))
 			throw_win32_error();
 	}
-
 	template<open_mode om,perms pm>
 	basic_win32_file(std::string_view filename,open_interface_t<om>,perms_interface_t<pm>):
 				basic_win32_io_handle<char_type>(
@@ -598,6 +595,32 @@ public:
 		basic_win32_file(file,fast_io::from_c_mode(mode),pm){}
 	basic_win32_file(io_async_t) requires(std::same_as<char_type,char>):
 		basic_win32_io_handle<char_type>(details::create_io_completion_port(bit_cast<void*>(static_cast<std::uintptr_t>(-1)),nullptr,0,0)){}
+
+/*
+	template<std::integral dir_char_type,open_mode om>
+	basic_win32_file(basic_win32_io_observer<dir_char_type> directory,std::string_view filename,open_interface_t<om>,perms pm=static_cast<perms>(420))
+	{
+		constexpr auto& mode{details::nt::nt_file_openmode_single<om>::mode};
+		wchar_t const* part_name{};
+		win32::nt::rtl_relative_name_u relative_name;
+		win32::nt::unicode_string nt_name;
+		details::temp_unique_arr_ptr<wchar_t> buffer(filename.size());
+		auto buffer_end{utf_code_convert(filename.data(),filename.data()+filename.size(),buffer.data())};
+		win32::nt::io_status_block block{};
+		win32::nt::object_attributes obj{.Length=sizeof(win32::nt::object_attributes),
+			.RootDirectory=relative_name.containing_directory,
+			.ObjectName=std::addressof(relative_name.relative_name),
+			.Attributes=0x00000040	//Todo
+		};
+
+		auto const status{win32::nt::nt_create_file(
+			std::addressof(this->native_handle()),
+		mode.DesiredAccess,std::addressof(obj),std::addressof(block),nullptr,mode.FileAttributes,
+		mode.ShareAccess,mode.CreateDisposition,mode.CreateOptions,nullptr,0)};
+		if(status)
+			throw_nt_error(status);
+	}
+*/
 	template<typename... Args>
 	basic_win32_file(io_async_t,basic_win32_io_observer<char> iob,Args&& ...args):basic_win32_file(std::forward<Args>(args)...)
 	{
@@ -638,10 +661,6 @@ public:
 	using native_handle_type = std::array<basic_win32_file<ch_type>,2>;
 	native_handle_type pipes;
 	template<typename ...Args>
-/*	requires requires(Args&& ...args)
-	{
-		{win32::CreatePipe(static_cast<void**>(static_cast<void*>(pipes.data())),static_cast<void**>(static_cast<void*>(pipes.data()+1)),std::forward<Args>(args)...)}->std::same_as<int>;
-	}*/
 	basic_win32_pipe(fast_io::native_interface_t, Args&& ...args)
 	{
 		if(!win32::CreatePipe(
@@ -687,11 +706,6 @@ public:
 	{
 		return pipes.back();
 	}
-	void swap(basic_win32_pipe& o) noexcept
-	{
-		using std::swap;
-		swap(pipes,o.pipes);
-	}
 };
 
 template<std::integral ch_type,std::contiguous_iterator Iter>
@@ -700,7 +714,7 @@ inline Iter read(basic_win32_pipe<ch_type>& h,Iter begin,Iter end)
 	return read(h.in(),begin,end);
 }
 template<std::integral ch_type,std::contiguous_iterator Iter>
-inline auto write(basic_win32_pipe<ch_type>& h,Iter begin,Iter end)
+inline Iter write(basic_win32_pipe<ch_type>& h,Iter begin,Iter end)
 {
 	return write(h.out(),begin,end);
 }
