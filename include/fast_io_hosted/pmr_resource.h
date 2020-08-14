@@ -5,6 +5,7 @@ namespace fast_io
 
 namespace details
 {
+
 template<buffer_output_stream output>
 inline constexpr std::pair<void*,std::size_t> convert_to_pr_output(output&& outp)
 {

@@ -3,19 +3,20 @@
 #include"../../include/fast_io_device.h"
 #include<vector>
 #include"../timer.h"
-
 int main()
 {
 	fast_io::timer t("pmr");
-	fast_io::ibuf_file ibf("random_numbers.txt");
 	fast_io::obuf_file obf("result_monotonic_io_buffer_vector.txt");
+	print(obf,"Hello World\n");
+	std::size_t sum{};
+	{
 	fast_io::monotonic_io_buffer_resource obf_resource(obf);
-	std::pmr::vector<std::size_t> vec(std::addressof(obf_resource));
-	for(std::size_t value{};scan<true>(ibf,value);vec.emplace_back(value));
-	std::size_t val{};
-	scan(ibf,val);
-	fast_io::monotonic_io_buffer_resource ibf_resource(ibf);
-	std::pmr::vector<std::size_t> vec2(std::move(vec),std::addressof(ibf_resource));
-	for(auto const & e : vec2)
-		println(obf,e);
+	std::pmr::unsynchronized_pool_resource up_resource(std::addressof(obf_resource));
+	for(std::size_t i{};i!=10000000;++i)
+	{
+		std::pmr::vector<std::size_t> vec({1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10},std::addressof(up_resource));
+		sum+=vec.size();
+	}
+	}
+	println(obf,"sum is: ",sum);
 }

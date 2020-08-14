@@ -7,10 +7,13 @@
 int main()
 {
 	fast_io::timer t("vector");
-	fast_io::ibuf_file ibf("random_numbers.txt");
 	fast_io::obuf_file obf("vector.txt");
-	std::vector<std::size_t> vec;
-	for(std::size_t value{};scan<true>(ibf,value);vec.emplace_back(value));
-	for(auto const & e : vec)
-		println(obf,e);
+	print(obf,"Hello World\n");
+	std::size_t sum{};
+	for(std::size_t i{};i!=10000000;++i)
+	{
+		std::vector<std::size_t> vec{1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10};
+		sum+=vec.size();
+	}
+	println(obf,"sum is: ",sum);
 }

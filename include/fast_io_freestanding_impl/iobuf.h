@@ -426,7 +426,10 @@ template<output_stream Ohandler,bool forcecopy,typename Buf>
 inline constexpr void obuffer_initialize(basic_obuf<Ohandler,forcecopy,Buf>& ob)
 {
 	if(ob.obuffer.end==nullptr)
+	{
 		ob.obuffer.init_space();
+		ob.obuffer.end=ob.obuffer.beg+Buf::size;
+	}
 }
 
 template<stream Ohandler,bool forcecopy,typename Buf>
