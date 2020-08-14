@@ -64,6 +64,13 @@ constexpr decltype(auto) ibuffer_end(icrtp<input>& in)
 	return ibuffer_end(icrtp_handle(in));
 }
 
+template<typename input>
+requires capacity_available_buffer_input_stream<icrtp_handle_type<input>>
+constexpr decltype(auto) ibuffer_cap(icrtp<input>& in)
+{
+	return ibuffer_cap(icrtp_handle(in));
+}
+
 template<typename input,typename... Args>
 requires buffer_input_stream<icrtp_handle_type<input>>
 constexpr decltype(auto) ibuffer_set_curr(icrtp<input>& in,Args&& ...args)
@@ -97,4 +104,16 @@ constexpr decltype(auto) scatter_read(icrtp<input>& in,Args&& ...args)
 {
 	return scatter_read(icrtp_handle(in),std::forward<Args>(args)...);
 }
+
+template<typename input>
+requires requires(input inp)
+{
+	ibuffer_initialize(inp);
+}
+constexpr void ibuffer_initialize(icrtp<input>& inp)
+{
+	ibuffer_initialize(inp);
+}
+
+
 }

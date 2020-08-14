@@ -133,6 +133,11 @@ concept secure_clear_requirement_stream = stream<T>&&requires(T stm)
 template<typename T>
 concept redirect_stream = stream<T>&&details::redirect_stream_impl<T>;
 
+template<typename T>
+concept capacity_available_buffer_input_stream = buffer_input_stream<T>&&requires(T stm)
+{
+	{ibuffer_cap(stm)}->std::convertible_to<typename std::remove_cvref_t<T>::char_type*>;
+};
 
 /*
 status streams deal with special stream types like streams which need locale

@@ -119,4 +119,14 @@ constexpr decltype(auto) scatter_write(ocrtp<output>& out,Args&& ...args)
 	return scatter_write(ocrtp_handle(out),std::forward<Args>(args)...);
 }
 
+template<typename output>
+requires requires(output outp)
+{
+	obuffer_initialize(outp);
+}
+constexpr void obuffer_initialize(ocrtp<output>& out)
+{
+	obuffer_initialize(out);
+}
+
 }

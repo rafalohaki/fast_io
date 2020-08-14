@@ -191,9 +191,24 @@ template<input_stream Ihandler,typename Buf>
 }
 
 template<input_stream Ihandler,typename Buf>
+[[nodiscard]] inline constexpr auto ibuffer_cap(basic_ibuf<Ihandler,Buf>& ib)
+{
+	if(ib.ibuffer.beg==nullptr)[[unlikely]]
+		return static_cast<decltype(ib.ibuffer.beg)>(nullptr);
+	return ib.ibuffer.beg+Buf::size;
+}
+
+template<input_stream Ihandler,typename Buf>
 inline constexpr void ibuffer_set_curr(basic_ibuf<Ihandler,Buf>& ib,typename Ihandler::char_type* ptr)
 {
 	ib.ibuffer.curr=ptr;
+}
+
+template<input_stream Ihandler,typename Buf>
+inline constexpr void ibuffer_initialize(basic_ibuf<Ihandler,Buf>& ib)
+{
+	if(ib.ibuffer.end==nullptr)
+		ib.ibuffer.init_space();
 }
 
 template<redirect_stream Ihandler,typename Buf>
@@ -407,6 +422,13 @@ inline constexpr void obuffer_set_curr(basic_obuf<Ohandler,forcecopy,Buf>& ob,ty
 	ob.obuffer.curr=ptr;
 }
 
+template<output_stream Ohandler,bool forcecopy,typename Buf>
+inline constexpr void obuffer_initialize(basic_obuf<Ohandler,forcecopy,Buf>& ob)
+{
+	if(ob.obuffer.end==nullptr)
+		ob.obuffer.init_space();
+}
+
 template<stream Ohandler,bool forcecopy,typename Buf>
 requires secure_clear_requirement_stream<Ohandler>
 inline constexpr void require_secure_clear(basic_obuf<Ohandler,forcecopy,Buf>&){}
@@ -591,7 +613,6 @@ inline constexpr void flush(basic_obuf<Ohandler,forcecopy,Buf>& ob)
 		return;
 	write(ob.oh,ob.obuffer.beg,ob.obuffer.curr);
 	ob.obuffer.curr=ob.obuffer.beg;
-//	flush(oh.native_handle());
 }
 
 template<output_stream Ohandler,bool forcecopy,typename Buf,typename... Args>
