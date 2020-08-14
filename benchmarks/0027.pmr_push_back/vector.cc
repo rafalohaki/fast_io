@@ -13,7 +13,9 @@ int main()
 	for(std::size_t i{};i!=10000000;++i)
 	{
 		std::vector<std::size_t> vec{1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10};
+		std::vector<std::size_t> vec2{1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10};
 		sum+=vec.size();
+		sum+=vec2.size();
 	}
 	println(obf,"sum is: ",sum);
 }
