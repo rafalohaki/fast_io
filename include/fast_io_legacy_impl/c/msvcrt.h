@@ -19,6 +19,7 @@ char *_tmpfname;
 
 */
 
+
 inline constexpr char* ibuffer_begin(c_io_observer_unlocked cio)
 {
 	return cio.fp->_base;

@@ -124,7 +124,7 @@ inline constexpr auto scan_with_space(input &in,T&& t)
 		}
 	}
 }
-/*
+
 template<character_input_stream input,typename T>
 inline constexpr void scan_with_ex(input &in,T&& t)
 {
@@ -140,7 +140,7 @@ inline constexpr void scan_with_ex(input &in,T&& t)
 #endif
 	}
 }
-*/
+
 template<bool report_eof,character_input_stream input,typename ...Args>
 requires((general_scanable<input,Args>||
 	general_reserve_scanable<Args,internal_temporary_buffer<typename input::char_type>,input>)&&...)
@@ -149,7 +149,7 @@ inline constexpr auto normal_scan(input &ip,Args&& ...args)
 	if constexpr(report_eof)
 		return (static_cast<std::size_t>(scan_with_space(ip,std::forward<Args>(args)))+...);
 	else
-		(scan_with_space(ip,std::forward<Args>(args)),...);
+		(scan_with_ex(ip,std::forward<Args>(args)),...);
 }
 
 
