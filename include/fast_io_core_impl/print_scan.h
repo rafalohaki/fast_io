@@ -132,7 +132,7 @@ inline constexpr void scan_with_ex(input &in,T&& t)
 		scan_with_space(in,std::forward<T>(t));
 	else
 	{
-		if(!scan_with_space(in,t))
+		if(!scan_with_space(in,t))[[unlikely]]
 #ifdef __cpp_exceptions
 			throw eof();
 #else

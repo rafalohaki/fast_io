@@ -4,7 +4,13 @@
 
 int main()
 {
-	constexpr std::size_t N{100000000};
+	constexpr std::size_t N{
+#ifdef FAST_IO_BENCHMARK_DATA_SIZE
+FAST_IO_BENCHMARK_DATA_SIZE
+#else
+100000000
+#endif
+};
 	{
 	fast_io::timer tm("filebuf_file");
 	fast_io::filebuf_file cfl("filebuf_file.txt","wb");
