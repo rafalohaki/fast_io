@@ -2,15 +2,14 @@
 #include"../../timer.h"
 #include<fstream>
 
-int main()
+int main(int argc,char** argv)
 {
-	constexpr std::size_t N{
-#ifdef FAST_IO_BENCHMARK_DATA_SIZE
-FAST_IO_BENCHMARK_DATA_SIZE
-#else
-100000000
-#endif
-};
+	if(argc<2)
+	{
+		perr("Usage: ",fast_io::chvw(*argv)," N\n");
+		return 1;
+	}
+	auto const N{fast_io::to<std::size_t>(std::string_view(argv[1]))};
 	fast_io::timer tm("fstream");
 	constexpr std::string_view view("Hello World\n");
 	std::ofstream fout("fstream.txt",std::ofstream::binary);
