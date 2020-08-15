@@ -2,6 +2,12 @@
 #include<cstdio>
 #include<cwchar>
 
+#ifdef _WIN32
+#if defined(_MSC_VER)||defined(_UCRT)
+#else
+#include"msvcrt_lock.h"
+#endif
+#endif
 namespace fast_io
 {
 
@@ -454,7 +460,7 @@ inline auto mutex(basic_c_io_observer<T> h)
 	return h.native_handle();
 }
 template<std::integral T>
-inline basic_c_io_observer_unlocked<T> unlocked_handle(basic_c_io_observer<T>& h)
+inline basic_c_io_observer_unlocked<T> unlocked_handle(basic_c_io_observer<T> h)
 {
 	return {h.native_handle()};
 }
@@ -465,8 +471,10 @@ class c_io_lock_guard
 public:
 	c_io_lock_guard(std::FILE* f):fp(f)
 	{
-#if defined(__WINNT__) || defined(_MSC_VER)
+#if defined(_MSC_VER)||defined(_UCRT)
 		_lock_file(fp);
+#elif defined(_WIN32)
+		win32::my_msvcrt_lock_file(fp);
 #elif defined(__NEWLIB__)
 #ifndef __SINGLE_THREAD__
 //		flockfile(fp);	//TO FIX
@@ -479,8 +487,10 @@ public:
 	c_io_lock_guard& operator=(c_io_lock_guard const&) = delete;
 	~c_io_lock_guard()
 	{
-#if defined(__WINNT__) || defined(_MSC_VER)
+#if defined(_MSC_VER)||defined(_UCRT)
 		_unlock_file(fp);
+#elif defined(_WIN32)
+		win32::my_msvcrt_lock_file(fp);
 #elif defined(__NEWLIB__)
 #ifndef __SINGLE_THREAD__
 //		_funlockfile(fp); //TO FIX
@@ -503,11 +513,11 @@ inline Iter read(basic_c_io_observer<T> cfhd,Iter begin,Iter end)
 }
 
 template<std::integral T,std::contiguous_iterator Iter>
-inline void write(basic_c_io_observer<T> cfhd,Iter begin,Iter end)
+inline decltype(auto) write(basic_c_io_observer<T> cfhd,Iter begin,Iter end)
 {
-	std::size_t const count(end-begin);
-	if(std::fwrite(std::to_address(begin),sizeof(*begin),count,cfhd.native_handle())<count)
-		throw_posix_error();
+	c_io_lock_guard lg{cfhd.fp};
+	basic_c_io_observer_unlocked<T> cfhd_unlocked{cfhd.fp};
+	return write(cfhd_unlocked,begin,end);
 }
 
 template<std::integral T>
@@ -569,8 +579,8 @@ public:
 	}
 	inline constexpr void reset(native_handle_type newfp=nullptr) noexcept
 	{
-		if(std::fclose(this->native_handle())==EOF)
-			throw_posix_error();
+		if(this->native_handle())[[likely]]
+			std::fclose(this->native_handle());
 		this->native_handle()=newfp;
 	}
 };
