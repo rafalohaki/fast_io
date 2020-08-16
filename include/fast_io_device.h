@@ -25,9 +25,7 @@ using basic_iobuf_file = basic_iobuf<basic_ionative_file<char_type>>;
 using inative_file = input_file_wrapper<native_file>;
 using onative_file = output_file_wrapper<native_file>;
 using ionative_file = io_file_wrapper<native_file>;
-#if !defined(__NEWLIB__)
-using omap_file = basic_omap<basic_file_wrapper<native_file,open_mode::trunc|open_mode::out|open_mode::binary>,native_file_map>;
-#endif
+
 template<output_stream output>
 using basic_obuf_text = basic_obuf<basic_indirect_obuffer_constructor_source_type<typename output::char_type,output,transforms::binary_to_text<>>,true>;
 
