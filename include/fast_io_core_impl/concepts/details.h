@@ -63,6 +63,12 @@ concept contiguous_buffer_input_stream_impl = requires(T&& in)
 };
 
 template<typename T>
+concept contiguous_buffer_output_stream_impl = requires(T&& out)
+{
+	overflow_never(out);
+};
+
+template<typename T>
 concept refill_buffer_input_stream_impl = requires(T&& in)
 {
 	{irefill(in)}->std::convertible_to<bool>;

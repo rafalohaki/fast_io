@@ -58,6 +58,9 @@ template<typename T>
 concept buffer_output_stream = output_stream<T>&&details::buffer_output_stream_impl<T>;
 
 template<typename T>
+concept contiguous_buffer_output_stream = buffer_output_stream<T>&&details::contiguous_buffer_output_stream_impl<T>;
+
+template<typename T>
 concept fill_nc_output_stream = output_stream<T>&&details::fill_nc_output_stream_impl<T>;
 
 //Unfortunately, FILE* is a mess here. We have to support this to prevent the operating system not buffering anything

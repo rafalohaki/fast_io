@@ -164,7 +164,9 @@ inline constexpr void print_control(output& out,T&& t)
 	if constexpr(reserve_printable<T>)
 	{
 		constexpr std::size_t size{print_reserve_size(io_reserve_type<no_cvref>)};
-		if constexpr(buffer_output_stream<output>)
+		if constexpr(contiguous_buffer_output_stream<output>)
+			obuffer_set_curr(out,print_reserve_define(io_reserve_type<no_cvref>,obuffer_curr(out),std::forward<T>(t)));
+		else if constexpr(buffer_output_stream<output>)
 		{
 			auto bcurr{obuffer_curr(out)};
 			if(bcurr+size<obuffer_end(out))[[likely]]
@@ -213,7 +215,13 @@ inline constexpr void print_control(output& out,manip::follow_character<T,ch_typ
 	{
 		using char_type = typename output::char_type;
 		constexpr std::size_t size{print_reserve_size(io_reserve_type<std::remove_cvref_t<T>>)+1};
-		if constexpr(buffer_output_stream<output>)
+		if constexpr(contiguous_buffer_output_stream<output>)
+		{
+			auto it{print_reserve_define(io_reserve_type<std::remove_cvref_t<T>>,obuffer_curr(out),std::forward<T>(t))};
+			*it=t.character;
+			obuffer_set_curr(out,++it);
+		}
+		else if constexpr(buffer_output_stream<output>)
 		{
 			auto bcurr{obuffer_curr(out)};
 			if(bcurr+size<obuffer_end(out))[[likely]]
@@ -277,7 +285,13 @@ inline constexpr void print_control_line(output& out,T&& t)
 	{
 		using char_type = typename output::char_type;
 		constexpr std::size_t size{print_reserve_size(io_reserve_type<std::remove_cvref_t<T>>)+1};
-		if constexpr(buffer_output_stream<output>)
+		if constexpr(contiguous_buffer_output_stream<output>)
+		{
+			auto it{print_reserve_define(io_reserve_type<std::remove_cvref_t<T>>,obuffer_curr(out),std::forward<T>(t))};
+			*it=u8'\n';
+			obuffer_set_curr(out,++it);
+		}
+		else if constexpr(buffer_output_stream<output>)
 		{
 			auto bcurr{obuffer_curr(out)};
 			if(bcurr+size<obuffer_end(out))[[likely]]

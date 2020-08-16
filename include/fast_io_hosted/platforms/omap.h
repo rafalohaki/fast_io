@@ -64,6 +64,9 @@ constexpr void obuffer_set_curr(basic_omemory_map<char_type>& bomp,char_type* pt
 	bomp.curr_ptr=ptr;
 }
 
+template<std::integral char_type>
+constexpr void overflow_never(basic_omemory_map<char_type>& bomp) noexcept{}
+
 using omemory_map = basic_omemory_map<char>;
 
 
