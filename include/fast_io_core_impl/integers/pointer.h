@@ -145,5 +145,17 @@ inline constexpr void print_define(output& out,std::basic_string_view<typename o
 	write(out,str.data(),str.data()+str.size());
 }
 
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<std::nullptr_t>)
+{
+	constexpr std::size_t sz{9};
+	return sz;
+}
+
+template<std::contiguous_iterator caiter>
+inline caiter print_reserve_define(io_reserve_type_t<std::nullptr_t>,caiter iter,std::nullptr_t)
+{
+	details::my_copy_n(u8"(nullptr)",9,iter);
+	return iter+9;
+}
 
 }
