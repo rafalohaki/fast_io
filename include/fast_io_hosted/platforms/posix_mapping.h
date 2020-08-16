@@ -60,65 +60,65 @@ inline constexpr posix_file_map_attribute to_posix_file_map_attribute(file_map_a
 	};
 }
 
-class posix_file_map
+class posix_memory_map_io_observer
 {
-	std::span<std::byte> rg;
-	void close_impl() noexcept
-	{
-		if(rg.data())
-			munmap(rg.data(), rg.size());
-	}
 public:
-	template<std::integral ch_type>
-	posix_file_map(basic_posix_io_observer<ch_type> bf,file_map_attribute attr,std::size_t bytes,std::size_t start_address=0)
+	using native_handle_type = void*;
+	std::byte *address_begin{},*address_end{};
+	constexpr std::size_t bytes() const noexcept
 	{
-        struct stat file_stat;
-        auto fstat_ret(fstat(bf.native_handle(), std::addressof(file_stat)));
-        if (fstat_ret == -1)
-                throw_posix_error();
-        std::size_t file_size_in_bytes(file_stat.st_size);
-        if (bytes > file_size_in_bytes)
-        {
-            // allocate more space for this file
-            auto fallocate_ret(fallocate(bf.native_handle(), 0, file_size_in_bytes, bytes - file_size_in_bytes));
-            if (fallocate_ret == -1)
-                throw_posix_error();
-        }
-        auto ret(static_cast<std::byte*>(mmap(nullptr, bytes, static_cast<int>(to_posix_file_map_attribute(attr)), MAP_SHARED, bf.native_handle(), start_address)));
-        if (ret == MAP_FAILED)
-                throw_posix_error();
-        rg = {ret, bytes};
+		return address_end-address_begin;
 	}
-	//auto native_handle() const {return wfm.native_handle();}
-	auto& region()
+};
+
+class posix_memory_map_file:public posix_memory_map_io_observer
+{
+public:
+	using native_handle_type = void*;
+	constexpr posix_memory_map_file()=default;
+	constexpr posix_memory_map_file(std::byte* addbg,std::byte* added):posix_memory_map_io_observer{addbg,added}
+	{}
+	template<std::integral char_type>
+	posix_memory_map_file(basic_posix_io_observer<char_type> bf,file_map_attribute attr,std::size_t bytes,std::size_t start_address=0)
+		:posix_memory_map_io_observer{reinterpret_cast<std::byte*>(mmap(nullptr,bytes,static_cast<int>(to_posix_file_map_attribute(attr)),MAP_SHARED,bf.native_handle(),start_address))}
 	{
-		return rg;
+		if(this->address_begin==MAP_FAILED)[[unlikely]]
+			throw_posix_error();
 	}
-	posix_file_map(posix_file_map const&)=delete;
-	posix_file_map& operator=(posix_file_map const&)=delete;
-	posix_file_map(posix_file_map&& pm) noexcept:rg(pm.rg)
+	posix_memory_map_file(posix_memory_map_file const&)=delete;
+	posix_memory_map_file& operator=(posix_memory_map_file const&)=delete;
+	posix_memory_map_file(posix_memory_map_file&& other) noexcept:posix_memory_map_io_observer{other.address_begin,other.address_end}
 	{
-		pm.rg={};
+		other.address_end=other.address_begin=reinterpret_cast<std::byte*>(MAP_FAILED);
 	}
-	posix_file_map& operator=(posix_file_map&& pm) noexcept
+	posix_memory_map_file& operator=(posix_memory_map_file&& other) noexcept
 	{
-		if(std::addressof(pm)!=this)
-		{
-			close_impl();
-			rg=pm.rg;
-			pm.rg={};
-		}
+		if(std::addressof(other)==this)
+			return *this;
+		if(this->address_begin!=reinterpret_cast<std::byte*>(MAP_FAILED))[[likely]]
+			munmap(this->address_begin,this->bytes());
+		this->address_begin=other.address_begin;
+		this->address_end=other.address_end;
+		other.address_begin=reinterpret_cast<std::byte*>(MAP_FAILED);
+		other.address_end=reinterpret_cast<std::byte*>(MAP_FAILED);
 		return *this;
 	}
 	void close() noexcept
 	{
-		close_impl();
-		rg={};
+		if(this->address_begin!=MAP_FAILED)[[likely]]
+		{
+			munmap(this->address_begin,this->bytes());
+			this->address_begin=nullptr;
+		}
 	}
-	~posix_file_map()
+	~posix_memory_map_file()
 	{
-		close_impl();
+		if(this->address_begin!=MAP_FAILED)[[likely]]
+			munmap(this->address_begin,this->bytes());
 	}
 };
+
+using native_memory_map_io_observer = posix_memory_map_io_observer;
+using native_memory_map_file = posix_memory_map_file;
 
 }
