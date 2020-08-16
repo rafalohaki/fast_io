@@ -90,8 +90,11 @@ inline constexpr win32_open_mode calculate_win32_open_mode(open_mode value)
 	else if((value&open_mode::out)!=open_mode::none)
 		mode.dwDesiredAccess|=0x40000000;//GENERIC_WRITE
 	if((value&open_mode::in)!=open_mode::none)
+	{
 		mode.dwDesiredAccess|=0x80000000;//GENERIC_READ
-
+		if((value&open_mode::out)!=open_mode::none&&((value&open_mode::app)!=open_mode::none&&(value&open_mode::trunc)!=open_mode::none))
+			mode.dwDesiredAccess|=0x40000000;//GENERIC_WRITE
+	}
 /*
 Referenced partially from ReactOS
 https://github.com/changloong/msvcrt/blob/master/io/wopen.c
@@ -150,30 +153,27 @@ does not exist
 "w+"	write extended	Create a file for read/write	destroy contents	create new
 "a+"	append extended	Open a file for read/write	write to end	create new
 */
-	if((value&open_mode::excl)!=open_mode::none)
+	if ((value&open_mode::trunc)!=open_mode::none)
 	{
-		mode.dwCreationDisposition=1;//	CREATE_NEW
-		if((value&open_mode::trunc)!=open_mode::none)
-			throw_posix_error(EINVAL);
-	}
-	else if ((value&open_mode::trunc)!=open_mode::none)
-	{
-		if((value&open_mode::creat)!=open_mode::none)
-			mode.dwCreationDisposition=2;// CREATE_ALWAYS
-		else if((value&open_mode::in)!=open_mode::none)
-			mode.dwCreationDisposition=5;//TRUNCATE_EXISTING
+		if((value&open_mode::excl)!=open_mode::none)
+			mode.dwCreationDisposition=1;// CREATE_NEW
 		else
-		{
-			throw_posix_error(EINVAL);
-		}
+			mode.dwCreationDisposition=2;// CREATE_ALWAYS
 	}
 	else if((value&open_mode::in)==open_mode::none)
 	{
 		if((value&open_mode::app)!=open_mode::none)
 			mode.dwCreationDisposition=4;//OPEN_ALWAYS
-		else
-			mode.dwCreationDisposition=2;//CREATE_ALWAYS
+		else if((value&open_mode::out)!=open_mode::none)
+		{
+			if((value&open_mode::excl)!=open_mode::none)
+				mode.dwCreationDisposition=1;// CREATE_NEW
+			else
+				mode.dwCreationDisposition=2;// CREATE_ALWAYS
+		}
 	}
+	else if((value&open_mode::app)!=open_mode::none)
+		mode.dwCreationDisposition=4;//OPEN_ALWAYS
 	else
 		mode.dwCreationDisposition=3;//OPEN_EXISTING
 	if((value&open_mode::direct)!=open_mode::none)
@@ -234,6 +234,8 @@ does not exist
 		mode.dwFlagsAndAttributes|=0x01000000;					//FILE_FLAG_POSIX_SEMANTICS
 	if((value&open_mode::session_aware)!=open_mode::none)
 		mode.dwFlagsAndAttributes|=0x00800000;					//FILE_FLAG_SESSION_AWARE
+	if((value&open_mode::temporary)!=open_mode::none)
+		mode.dwFlagsAndAttributes|=0x04000000;					//FILE_FLAG_DELETE_ON_CLOSE
 	return mode;
 }
 

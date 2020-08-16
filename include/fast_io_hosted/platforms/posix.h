@@ -131,7 +131,7 @@ inline constexpr int calculate_posix_open_mode(open_mode value)
 #endif
 
 #ifdef _O_TEMPORARY
-	if((value&open_mode::temprorary)!=open_mode::none)
+	if((value&open_mode::temporary)!=open_mode::none)
 		mode |= _O_TEMPORARY;
 #endif
 #ifdef _O_SEQUENTIAL
@@ -144,6 +144,24 @@ inline constexpr int calculate_posix_open_mode(open_mode value)
 	constexpr auto supported_values{static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::in)};
 	switch(static_cast<utype>(value)&static_cast<utype>(supported_values))
 	{
+/*
+https://en.cppreference.com/w/cpp/io/basic_filebuf/open
+
+mode	openmode & ~ate	Action if file already exists	Action if file does not exist
+"r"	in	Read from start	Failure to open
+"w"	out, out|trunc	Destroy contents	Create new
+"a"	app, out|app	Append to file	Create new
+"r+"	out|in	Read from start	Error
+"w+"	out|in|trunc	Destroy contents	Create new
+"a+"	out|in|app, in|app	Write to end	Create new
+"rb"	binary|in	Read from start	Failure to open
+"wb"	binary|out, binary|out|trunc	Destroy contents	Create new
+"ab"	binary|app, binary|out|app	Write to end	Create new
+"r+b"	binary|out|in	Read from start	Error
+"w+b"	binary|out|in|trunc	Destroy contents	Create new
+"a+b"	binary|out|in|app, binary|in|app	Write to end	Create new
+
+*/
 //Action if file already exists;	Action if file does not exist;	c-style mode;	Explanation
 //Read from start;	Failure to open;	"r";	Open a file for reading
 	case static_cast<utype>(open_mode::in):
