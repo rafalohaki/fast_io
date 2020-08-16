@@ -152,7 +152,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<std::nullptr_t
 }
 
 template<std::contiguous_iterator caiter>
-inline caiter print_reserve_define(io_reserve_type_t<std::nullptr_t>,caiter iter,std::nullptr_t)
+inline constexpr caiter print_reserve_define(io_reserve_type_t<std::nullptr_t>,caiter iter,std::nullptr_t)
 {
 	details::my_copy_n(u8"(nullptr)",9,iter);
 	return iter+9;
