@@ -134,6 +134,10 @@ inline constexpr int calculate_posix_open_mode(open_mode value)
 	if((value&open_mode::temporary)!=open_mode::none)
 		mode |= _O_TEMPORARY;
 #endif
+#ifdef O_TEMPORARY
+	if((value&open_mode::temporary)!=open_mode::none)
+		mode |= O_TEMPORARY;
+#endif
 #ifdef _O_SEQUENTIAL
 	if((value&open_mode::random_access)!=open_mode::none)
 		mode |= _O_SEQUENTIAL;
