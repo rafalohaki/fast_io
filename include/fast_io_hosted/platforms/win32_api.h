@@ -144,6 +144,8 @@ int __stdcall DeviceIoControl(void*,std::uint32_t,void*,std::uint32_t,void*,std:
 void* __stdcall CreateIoCompletionPort(void*,void*,std::uintptr_t,std::uint32_t) noexcept;
 
 int __stdcall GetQueuedCompletionStatus(void*,std::uint32_t*,std::uintptr_t*,overlapped**,std::uint32_t) noexcept;
+
+int __stdcall SetFileValidData(void*,std::int64_t);
 }
 
 

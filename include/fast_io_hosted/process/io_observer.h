@@ -22,7 +22,7 @@ int*
 ,2>>;
 	variant_type variant;
 	template<redirect_stream T>
-	io_observer(T& hd):variant(redirect_handle(hd)){}
+	io_observer(T&& hd):variant(redirect_handle(hd)){}
 	io_observer()=default;
 };
 

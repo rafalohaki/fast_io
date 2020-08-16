@@ -20,8 +20,117 @@ std::uint32_t ObjAttributes{0x00000040};
 https://docs.microsoft.com/en-us/windows/win32/secauthz/access-mask-format
 */
 
-inline constexpr nt_open_mode calculate_nt_open_mode(open_mode value,perms pm);
+inline constexpr nt_open_mode calculate_nt_open_mode(open_mode value,perms pm)
+{
+	value&=~open_mode::ate;
+	nt_open_mode mode;
+	if((value&open_mode::app)!=open_mode::none)
+		mode.DesiredAccess|=4;		//FILE_APPEND_DATA
+	else if((value&open_mode::out)!=open_mode::none)
+		mode.DesiredAccess|=0x120116;	//FILE_GENERIC_WRITE
+	if((value&open_mode::in)!=open_mode::none)
+		mode.DesiredAccess|=0x120089;	//FILE_GENERIC_READ
+	bool set_normal{true};
+	if((value&open_mode::archive)!=open_mode::none)
+	{
+		mode.FileAttributes|=0x20;		//FILE_ATTRIBUTE_ARCHIVE
+		set_normal={};
+	}
+	if((value&open_mode::encrypted)!=open_mode::none)
+	{
+		mode.FileAttributes|=0x4000;		//FILE_ATTRIBUTE_ENCRYPTED
+		set_normal={};
+	}
+	if((value&open_mode::hidden)!=open_mode::none)
+	{
+		mode.FileAttributes|=0x2;			//FILE_ATTRIBUTE_HIDDEN
+		set_normal={};
+	}
+	if((value&open_mode::compressed)!=open_mode::none)
+	{
+		mode.FileAttributes|=0x800;		//FILE_ATTRIBUTE_COMPRESSED
+		set_normal={};
+	}
+	if((value&open_mode::system)!=open_mode::none)
+	{
+		mode.FileAttributes|=0x4;						//FILE_ATTRIBUTE_SYSTEM
+		set_normal={};
+	}
+	if((value&open_mode::offline)!=open_mode::none)
+	{
+		mode.FileAttributes|=0x1000;						//FILE_ATTRIBUTE_OFFLINE
+		set_normal={};
+	}
+	if((value&open_mode::directory)!=open_mode::none)
+	{
+		mode.FileAttributes|=0x10;						//FILE_ATTRIBUTE_DIRECTORY
+		mode.CreateOptions|=0x00000001;						//FILE_DIRECTORY_FILE
+		set_normal={};
+	}
+	if(set_normal)[[likely]]
+		mode.FileAttributes|=0x80;						//FILE_ATTRIBUTE_NORMAL
 
+
+/*
+
+https://doxygen.reactos.org/d6/d0e/ndk_2iotypes_8h.html
+#define 	FILE_SUPERSEDE   0x00000000
+#define 	FILE_OPEN   0x00000001
+#define 	FILE_CREATE   0x00000002
+#define 	FILE_OPEN_IF   0x00000003
+#define 	FILE_OVERWRITE   0x00000004
+#define 	FILE_OVERWRITE_IF   0x00000005
+
+https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-ntcreatefile
+CreateDisposition value	Action if file exists	Action if file does not exist
+FILE_SUPERSEDE	Replace the file.	Create the file. 0x00000000
+FILE_OPEN	Open the file.	Return an error. 0x00000001
+FILE_CREATE	Return an error.	Create the file. 0x00000002
+FILE_OPEN_IF	Open the file.	Create the file. 0x00000003
+FILE_OVERWRITE	Open the file, and overwrite it.	Return an error. 0x00000004
+FILE_OVERWRITE_IF	Open the file, and overwrite it.	Create the file. 0x00000005
+
+*/
+	if((value&open_mode::excl)!=open_mode::none)
+	{
+		mode.CreateDisposition=1;		//FILE_OPEN
+		if((value&open_mode::trunc)!=open_mode::none)
+			throw_posix_error(EINVAL);
+	}
+	else if ((value&open_mode::trunc)!=open_mode::none)
+	{
+		if((value&open_mode::creat)!=open_mode::none)
+			mode.CreateDisposition=2;	//FILE_CREATE
+		else if((value&open_mode::in)!=open_mode::none)
+			mode.CreateDisposition=0;	//FILE_SUPERSEDE
+		else
+			throw_posix_error(EINVAL);
+	}
+	else if((value&open_mode::in)==open_mode::none)
+	{
+		if((value&open_mode::app)!=open_mode::none)
+			mode.CreateDisposition=3;	//FILE_OPEN_IF
+		else
+			mode.CreateDisposition=5; 	//FILE_OVERWRITE_IF
+	}
+	else
+		mode.CreateDisposition=1;		//FILE_OPEN
+	if((value&open_mode::directory)==open_mode::none)
+		mode.CreateOptions|=0x00000040;	//FILE_NON_DIRECTORY_FILE 0x00000040
+	else
+		mode.CreateOptions|=0x00000001;	//FILE_DIRECTORY_FILE 0x00000001
+	if((value&open_mode::no_block)==open_mode::none)
+		mode.CreateOptions|=0x00000020;	//FILE_SYNCHRONOUS_IO_NONALERT 0x00000020
+	else
+		mode.CreateOptions|=0x00000010;	//FILE_SYNCHRONOUS_IO_ALERT 0x00000010
+	if((value&open_mode::random_access)==open_mode::none)
+		mode.CreateOptions|=0x00000004;	//FILE_SEQUENTIAL_ONLY 0x00000004
+	else
+		mode.CreateOptions|=0x00000800;
+	if((pm&perms::owner_write)==perms::none)
+		mode.FileAttributes!=0x00000001;  //FILE_ATTRIBUTE_READONLY
+	return mode;
+}
 template<open_mode om,perms pm=static_cast<perms>(420)>
 struct nt_file_openmode
 {

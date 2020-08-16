@@ -102,7 +102,7 @@ public:
 	}*/
 	basic_win32_process(std::string_view path,
 				std::vector<std::string_view> args,
-				process_io io)
+				process_io io,char const* directory_folder=nullptr)
 	{
 		std::string pth(path.data(),path.data()+path.size());
 		if(pth.starts_with("./"))
@@ -130,7 +130,7 @@ public:
 			pth.c_str(),cmdline.data(),
 			nullptr,nullptr,true,
 			0x00000080,
-			nullptr,nullptr,std::addressof(sup),std::addressof(pinfo)))
+			nullptr,directory_folder,std::addressof(sup),std::addressof(pinfo)))
 			throw_win32_error();
 	}
 	void detach()

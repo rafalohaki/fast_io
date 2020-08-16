@@ -51,16 +51,12 @@ inline void* nt_fork()
 	if(v==0/*RTL_CLONE_PARENT*/)
 	{
 		if(int w=NtResumeProcess(process_info.process))
-			throw nt_error(w);
+			throw_nt_error(w);
 		if(win32::ResumeThread(process_info.thread)==static_cast<std::uint32_t>(-1))
 		{
-#ifdef __cpp_exceptions
 			win32::CloseHandle(process_info.thread);
 			win32::CloseHandle(process_info.process);
-			throw win32_error();
-#else
-			fast_terminate();
-#endif
+			throw_win32_error();
 		}
 		win32::CloseHandle(process_info.thread);
 		return process_info.process;
