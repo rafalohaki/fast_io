@@ -226,9 +226,9 @@ inline auto constexpr from_c_mode(std::basic_string_view<ch_type> csm)
 }
 struct native_interface_t
 {
-	explicit constexpr native_interface_t() = default;
+explicit constexpr native_interface_t() = default;
 };
-inline native_interface_t constexpr native_interface;
+inline constexpr native_interface_t native_interface;
 
 struct io_cookie_t
 {
@@ -242,5 +242,10 @@ explicit constexpr io_async_t()=default;
 };
 inline constexpr io_async_t io_async{};
 
+struct io_temp_t
+{
+explicit constexpr io_temp_t()=default;
+};
+inline constexpr io_temp_t io_temp{};
 
 }

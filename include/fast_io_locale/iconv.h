@@ -75,7 +75,7 @@ public:
 	{
 		if(this->native_handle()!=-1)[[likely]]
 		{
-			if(iconv_close(this->get())==-1)[un[likely]]
+			if(iconv_close(this->get())==-1)[[unlikely]]
 				throw_posix_error();
 			this->native_handle()=-1;
 		}

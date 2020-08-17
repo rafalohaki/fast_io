@@ -134,9 +134,9 @@ inline constexpr int calculate_posix_open_mode(open_mode value)
 	if((value&open_mode::temporary)!=open_mode::none)
 		mode |= _O_TEMPORARY;
 #endif
-#ifdef O_TEMPORARY
+#ifdef O_TMPFILE
 	if((value&open_mode::temporary)!=open_mode::none)
-		mode |= O_TEMPORARY;
+		mode |= O_TMPFILE;
 #endif
 #ifdef _O_SEQUENTIAL
 	if((value&open_mode::random_access)!=open_mode::none)
@@ -190,11 +190,7 @@ mode	openmode & ~ate	Action if file already exists	Action if file does not exist
 		return 0;
 	}
 }
-template<open_mode om>
-struct posix_file_openmode
-{
-	static int constexpr mode = calculate_posix_open_mode(om);
-};
+
 }
 
 #ifdef __linux__
