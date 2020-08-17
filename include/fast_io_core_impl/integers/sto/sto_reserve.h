@@ -106,8 +106,8 @@ inline constexpr std::size_t scan_reserve_size(io_reserve_type_t<intg>)
 	}
 }
 
-template<char8_t base,bool uppercase,details::my_integral intg,bool end_test,std::contiguous_iterator Iter>
-inline constexpr auto space_scan_reserve_define(io_reserve_type_t<manip::base_t<base,uppercase,intg>,end_test>,Iter begin,Iter end,auto t)
+template<char8_t base,bool uppercase,details::my_integral intg,bool end_test,std::contiguous_iterator Iter,typename T>
+inline constexpr auto space_scan_reserve_define(io_reserve_type_t<manip::base_t<base,uppercase,intg>,end_test>,Iter begin,Iter end,T t)
 {
 	return details::scan_integer_impl<base>(begin,end,t.reference);
 }
@@ -140,8 +140,8 @@ inline constexpr bool scan_reserve_transmit(io_reserve_type_t<std::byte>,output&
 }
 
 
-template<char8_t base,bool uppercase,bool end_test,std::contiguous_iterator Iter>
-inline constexpr auto space_scan_reserve_define(io_reserve_type_t<manip::base_t<base,uppercase,std::byte>,end_test>,Iter begin,Iter end,auto t)
+template<char8_t base,bool uppercase,bool end_test,std::contiguous_iterator Iter,typename T>
+inline constexpr auto space_scan_reserve_define(io_reserve_type_t<manip::base_t<base,uppercase,std::byte>,end_test>,Iter begin,Iter end,T t)
 {
 	char8_t val{};
 	auto ret{details::scan_integer_impl<base,char8_t>(begin,end)};

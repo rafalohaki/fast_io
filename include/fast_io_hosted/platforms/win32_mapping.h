@@ -99,7 +99,7 @@ public:
 	constexpr win32_memory_map_file()=default;
 	win32_memory_map_file(void* handle,std::byte* address_begin,std::byte* address_end):win32_memory_map_io_observer{handle,address_begin,address_end}{}
 	template<std::integral char_type>
-	win32_memory_map_file(basic_win32_io_observer<char_type> bf,file_map_attribute attr,std::size_t bytes,std::size_t start_address=0):
+	win32_memory_map_file(basic_win32_io_observer<char_type> bf,file_map_attribute attr,std::size_t bytes,std::common_type_t<std::size_t,std::uint64_t> start_address=0):
 		win32_memory_map_io_observer{win32::details::create_file_mapping_impl(bf.native_handle(),attr)}
 	{
 		void *base_ptr{win32::MapViewOfFile(this->native_handle(),static_cast<std::uint32_t>(to_win32_file_map_attribute(attr)),start_address>>32,static_cast<std::uint32_t>(start_address),bytes)};

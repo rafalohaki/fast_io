@@ -11,7 +11,8 @@ single,until
 namespace manip
 {
 
-template<std::invocable<char8_t> Func,scan_transmit_operation operation>
+template<typename Func,scan_transmit_operation operation>
+requires (std::invocable<Func,char8_t>)
 struct scan_transmitter
 {
 	using function_type = Func;
@@ -20,13 +21,15 @@ struct scan_transmitter
 
 }
 
-template<std::invocable<char8_t> Func>
+template<typename Func>
+requires (std::invocable<Func,char8_t>)
 inline constexpr manip::scan_transmitter<Func,scan_transmit_operation::single> st_single(Func func)
 {
 	return {func};
 }
 
-template<std::invocable<char8_t> Func>
+template<typename Func>
+requires (std::invocable<Func,char8_t>)
 inline constexpr manip::scan_transmitter<Func,scan_transmit_operation::until> st_until(Func func)
 {
 	return {func};
@@ -34,7 +37,8 @@ inline constexpr manip::scan_transmitter<Func,scan_transmit_operation::until> st
 
 namespace details
 {
-template<buffer_output_stream output,buffer_input_stream input,std::invocable<char8_t> Func,scan_transmit_operation operation>
+template<buffer_output_stream output,buffer_input_stream input,typename Func,scan_transmit_operation operation>
+requires (std::invocable<char8_t>)
 inline constexpr void impl_svt(output& out,input& in,manip::scan_transmitter<Func,operation> func)
 {
 	static_assert(operation==scan_transmit_operation::until||operation==scan_transmit_operation::single);

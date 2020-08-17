@@ -128,7 +128,7 @@ FILE_OVERWRITE_IF	Open the file, and overwrite it.	Create the file. 0x00000005
 	else
 		mode.CreateOptions|=0x00000800;
 	if((pm&perms::owner_write)==perms::none)
-		mode.FileAttributes!=0x00000001;  //FILE_ATTRIBUTE_READONLY
+		mode.FileAttributes|=0x00000001;  //FILE_ATTRIBUTE_READONLY
 	return mode;
 }
 template<open_mode om,perms pm=static_cast<perms>(420)>
