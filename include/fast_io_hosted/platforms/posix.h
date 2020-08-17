@@ -190,6 +190,11 @@ mode	openmode & ~ate	Action if file already exists	Action if file does not exist
 		return 0;
 	}
 }
+template<open_mode om>
+struct posix_file_openmode
+{
+	static int constexpr mode = calculate_posix_open_mode(om);
+};
 
 }
 
