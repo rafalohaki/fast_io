@@ -71,6 +71,15 @@ public:
 		if(this->native_handle()!=-1)[[likely]]
 			iconv_close(this->get());
 	}
+	inline void close()
+	{
+		if(this->native_handle()!=-1)[[likely]]
+		{
+			if(iconv_close(this->get())==-1)[un[likely]]
+				throw_posix_error();
+			this->native_handle()=-1;
+		}
+	}
 	inline void reset(std::uintptr_t newcd=-1) noexcept
 	{
 		if(this->native_handle()!=-1)[[likely]]
