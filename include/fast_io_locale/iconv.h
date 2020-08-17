@@ -71,7 +71,7 @@ public:
 		if(this->native_handle()!=-1)[[likely]]
 			iconv_close(this->get());
 	}
-	inline void reset(native_handle_type newcd=-1) noexcept
+	inline void reset(std::uintptr_t newcd=-1) noexcept
 	{
 		if(this->native_handle()!=-1)[[likely]]
 			iconv_close(this->get());
