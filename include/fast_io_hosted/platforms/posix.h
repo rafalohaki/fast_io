@@ -577,8 +577,23 @@ public:
 #ifdef __linux__
 	template<typename ...Args>
 	basic_posix_file(io_async_t,io_uring_observer,std::string_view file,Args&& ...args):basic_posix_file(file,std::forward<Args>(args)...){}
-#endif
 
+/*
+To verify whether O_TMPFILE is a thing on FreeBSD. https://github.com/FreeRDP/FreeRDP/pull/6268
+*/
+	basic_posix_file(io_temp_t):basic_posix_file(
+#if defined(__x86_64__)
+		system_call<257,int>
+#elif defined(__arm64__) || defined(__aarch64__)
+		system_call<56,int>
+#else
+		::openat
+#endif
+		(AT_FDCWD,"/tmp",O_EXCL|O_RDWR|O_TMPFILE|O_APPEND|O_NOATIME,S_IRUSR | S_IWUSR))
+	{
+		system_call_throw_error(native_handle());
+	}
+#endif
 #endif
 
 	constexpr basic_posix_file(basic_posix_file const&)=default;
@@ -877,6 +892,7 @@ inline std::size_t scatter_write(basic_posix_io_observer<ch_type> h,std::span<io
 #ifndef __NEWLIB__
 namespace details
 {
+
 struct __attribute__((__may_alias__)) iovec_may_alias:iovec
 {};
 
