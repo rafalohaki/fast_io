@@ -2,9 +2,48 @@
 
 namespace fast_io
 {
-
 namespace details
 {
+inline void* create_win32_temp_file()
+{
+	std::array<wchar_t,512> arr;
+	std::uint32_t temp_path_size{win32::GetTempPathW(300,arr.data())};
+	if(temp_path_size==0)
+		throw_win32_error();
+	for(std::size_t i{};i!=128;++i)
+	{
+		std::array<char,512> buffer1;
+		secure_clear_guard<char> guard(buffer1.data(),buffer1.size());
+		if(!win32::SystemFunction036(buffer1.data(),buffer1.size()))[[unlikely]]
+			continue;
+		fast_io::sha256 sha;
+		fast_io::hash_processor processor(sha);
+		write(processor,buffer1.begin(),buffer1.end());
+		processor.do_final();
+		ospan osp(arr);
+		obuffer_set_curr(osp,arr.data()+temp_path_size);
+		print(osp,sha,L".tmp");
+		put(osp,0);
+		void* handle = win32::CreateFileW(arr.data(),
+		0x40000000|0x80000000,	//GENERIC_READ|GENERIC_WRITE
+		0,		//Prevents other processes from opening a file or device if they request delete, read, or write access.
+		nullptr,
+		1,		//CREATE_NEW
+		0x100|0x04000000|0x01000000|0x08000000,	//FILE_ATTRIBUTE_TEMPORARY|FILE_FLAG_DELETE_ON_CLOSE|FILE_FLAG_POSIX_SEMANTICS|FILE_FLAG_SEQUENTIAL_SCAN
+		nullptr);
+		if(handle==(void*) (std::intptr_t)-1)[[unlikely]]
+		{
+			auto last_error{win32::GetLastError()};
+			if(last_error==80)	//ERROR_FILE_EXISTS
+				continue;
+			throw_win32_error();
+		}
+		return handle;
+	}
+	throw_win32_error();
+	return nullptr;
+}
+
 template<typename... Args>
 requires (sizeof...(Args)==4)
 inline auto create_io_completion_port(Args&&... args)
@@ -597,7 +636,7 @@ public:
 		basic_win32_file(file,fast_io::from_c_mode(mode),pm){}
 	basic_win32_file(io_async_t) requires(std::same_as<char_type,char>):
 		basic_win32_io_handle<char_type>(details::create_io_completion_port(bit_cast<void*>(static_cast<std::uintptr_t>(-1)),nullptr,0,0)){}
-
+	basic_win32_file(io_temp_t):basic_win32_io_handle<char_type>(details::create_win32_temp_file()){}
 /*
 	template<std::integral dir_char_type,open_mode om>
 	basic_win32_file(basic_win32_io_observer<dir_char_type> directory,std::string_view filename,open_interface_t<om>,perms pm=static_cast<perms>(420))

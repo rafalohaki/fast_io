@@ -8,12 +8,14 @@ class basic_rtl_gen_random
 {
 public:
 	using char_type = ch_type;
+	constexpr void close() noexcept{}
 };
+
+namespace win32
+{
 
 namespace details
 {
-
-extern "C" int __stdcall SystemFunction036(void*,std::uint32_t);
 inline void rtl_gen_random_read(void* ptr,std::size_t sz)
 {
 	if constexpr(sizeof(std::uint32_t)<sizeof(std::size_t))
@@ -32,13 +34,13 @@ inline void rtl_gen_random_read(void* ptr,std::size_t sz)
 			throw_win32_error();
 	}
 }
-
+}
 }
 
 template<std::integral char_type,std::contiguous_iterator Iter>
 inline Iter read(basic_rtl_gen_random<char_type>,Iter bg,Iter ed)
 {
-	details::rtl_gen_random_read(std::to_address(bg),(ed-bg)*sizeof(*bg));
+	win32::details::rtl_gen_random_read(std::to_address(bg),(ed-bg)*sizeof(*bg));
 	return ed;
 }
 
@@ -48,7 +50,7 @@ inline std::size_t scatter_read(basic_rtl_gen_random<char_type>,std::span<io_sca
 	std::size_t total_bytes{};
 	for(auto const& e : sp)
 	{
-		details::rtl_gen_random_read(const_cast<void*>(e.base),e.len);
+		win32::details::rtl_gen_random_read(const_cast<void*>(e.base),e.len);
 		total_bytes+=e.len;
 	}
 	return total_bytes;

@@ -1,5 +1,8 @@
 #pragma once
-#include"native_base.h"
+
+#include"../../fast_io_crypto/hash/hash_processor.h"
+#include"../../fast_io_crypto/hash/sha.h"
+
 #if defined(__WINNT__) || defined(_MSC_VER)
 #include"win32_api.h"
 #include"win32_error.h"

@@ -35,6 +35,13 @@ public:
 		else
 			function.digest();
 	}
+	constexpr basic_hash_processor(basic_hash_processor const&)=default;
+	constexpr basic_hash_processor& operator=(basic_hash_processor const&)=default;
+	constexpr ~basic_hash_processor()
+	{
+		secure_clear(temporary_buffer.data(),block_size);
+		secure_clear(std::addressof(current_position),sizeof(current_position));
+	}
 };
 
 namespace details::hash_processor
@@ -77,11 +84,10 @@ inline void write(basic_hash_processor<ch_type,Func>& out,Iter begin,Iter end)
 		{
 		std::size_t const bytes(end-begin);
 		std::size_t to_copy{Func::block_size-out.current_position};
-		if(bytes<to_copy)
+		if(bytes<to_copy)[[likely]]
 		{
-			to_copy=bytes;
-			memcpy(out.temporary_buffer.data()+out.current_position,std::to_address(begin),to_copy);
-			out.current_position+=to_copy;
+			memcpy(out.temporary_buffer.data()+out.current_position,std::to_address(begin),bytes);
+			out.current_position+=bytes;
 			return;
 		}
 		details::hash_processor::write_cold_path(out,begin,end);

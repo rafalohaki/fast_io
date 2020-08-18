@@ -40,8 +40,10 @@ inline constexpr bool scan_with_space_temporary_buffer(input& in,T&& t)
 	}
 	else if constexpr(reserve_size_scanable<no_cvref>)
 	{
-		std::array<typename std::remove_cvref_t<input>::char_type,scan_reserve_size(io_reserve_type<std::remove_cvref_t<T>>)> array;
-		ospan osp(array);
+		using char_type = typename std::remove_cvref_t<input>::char_type;
+		constexpr std::size_t reserve_size{scan_reserve_size(io_reserve_type<std::remove_cvref_t<T>>)};
+		std::array<char_type,reserve_size> array;
+		fast_io::ospan<char_type,reserve_size,true> osp(array);
 		return scan_with_space_temporary_buffer_impl<space>(osp,in,std::forward<T>(t));
 	}
 	else

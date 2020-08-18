@@ -22,6 +22,10 @@ public:
 	{
 		return device;
 	}
+	constexpr void close() requires(closable_stream<T>)
+	{
+		device.close();
+	}
 };
 
 template<input_stream T,std::contiguous_iterator Iter>

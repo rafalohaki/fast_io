@@ -53,7 +53,7 @@ constexpr char_type* obuffer_end(basic_omemory_map<char_type>& bomp) noexcept
 }
 
 template<std::integral char_type>
-constexpr void overflow(basic_omemory_map<char_type>& bomp,char_type) noexcept
+constexpr void overflow(basic_omemory_map<char_type>&,char_type) noexcept
 {
 //ub for overflow
 }
@@ -65,7 +65,7 @@ constexpr void obuffer_set_curr(basic_omemory_map<char_type>& bomp,char_type* pt
 }
 
 template<std::integral char_type>
-constexpr void overflow_never(basic_omemory_map<char_type>& bomp) noexcept{}
+constexpr void overflow_never(basic_omemory_map<char_type>&) noexcept{}
 
 using omemory_map = basic_omemory_map<char>;
 
