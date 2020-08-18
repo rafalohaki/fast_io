@@ -276,7 +276,7 @@ does not exist
 	if((value&open_mode::temporary)!=open_mode::none)
 	{
 		mode.dwFlagsAndAttributes|=0x04000000;					//FILE_FLAG_DELETE_ON_CLOSE
-//		mode.dwFlagsAndAttributes|=0x2;						To verify: FILE_FLAG_TEMPORARY
+		mode.dwFlagsAndAttributes|=0x100;					//FILE_ATTRIBUTE_TEMPORARY
 	}
 	return mode;
 }
