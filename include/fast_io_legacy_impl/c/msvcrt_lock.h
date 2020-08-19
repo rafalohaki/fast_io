@@ -12,8 +12,9 @@ https://github.com/Alexpux/mingw-w64/blob/d0d7f784833bbb0b2d279310ddc6afb52fe47a
 
 extern "C" void __stdcall EnterCriticalSection(void*) noexcept;
 extern "C" void __stdcall LeaveCriticalSection(void*) noexcept;
-extern "C" void __stdcall _lock(int) noexcept;
-extern "C" void __stdcall _unlock(int) noexcept;
+extern "C" void __cdecl _lock(int) noexcept;
+extern "C" void __cdecl _unlock(int) noexcept;
+
 
 inline void my_msvcrt_lock_file(std::FILE* fp) noexcept
 {

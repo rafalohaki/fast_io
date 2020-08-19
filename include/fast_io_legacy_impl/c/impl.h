@@ -490,7 +490,7 @@ public:
 #if defined(_MSC_VER)||defined(_UCRT)
 		_unlock_file(fp);
 #elif defined(_WIN32)
-		win32::my_msvcrt_lock_file(fp);
+		win32::my_msvcrt_unlock_file(fp);
 #elif defined(__NEWLIB__)
 #ifndef __SINGLE_THREAD__
 //		_funlockfile(fp); //TO FIX
