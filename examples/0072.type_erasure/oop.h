@@ -35,7 +35,7 @@ public:
 	circle(double r):radius(r){}
 	double area() const override
 	{
-		return std::atan(1.0)*4*radius*radius;
+		return std::numbers::pi*radius*radius;
 	}
 	double get_radius() const
 	{
@@ -45,7 +45,7 @@ public:
 
 class square : public shape
 {
-	double length{};
+	double length;
 public:
 	square(double l):length(l){}
 	double area() const override

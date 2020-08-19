@@ -126,7 +126,7 @@ struct circle
 
 inline constexpr double area(circle c)
 {
-	return std::atan(1.0)*4*c.radius*c.radius;
+	return std::numbers::pi*c.radius*c.radius;
 }
 
 struct square
