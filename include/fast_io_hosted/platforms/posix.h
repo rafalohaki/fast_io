@@ -10,12 +10,14 @@
 #ifdef __linux__
 #include<sys/uio.h>
 #include<sys/sendfile.h>
+#include<sys/stat.h>
 struct io_uring;
 #endif
 #ifdef __BSD_VISIBLE
 #ifndef __NEWLIB__
 #include <sys/uio.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/socket.h>
 #endif
 #endif
