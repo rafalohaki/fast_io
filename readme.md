@@ -68,6 +68,7 @@ A general purpose I/O library to replace stdio.h and iostream
 - Providing RAII for C FILE\*&POSIX fd&win32 HANDLE
 - No dual error reporting mechanism. Exception as the ONLY error reporting mechanism.
 - No std::error_code and std::system_error
+- No useless bounds checking
 
 ### Easy to use
 

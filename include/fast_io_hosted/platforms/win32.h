@@ -409,51 +409,62 @@ inline constexpr auto redirect_handle(basic_win32_io_observer<ch_type> hd)
 	return hd.native_handle();
 }
 
-template<std::integral ch_type,typename T,std::integral U>
-inline std::common_type_t<std::int64_t, std::size_t> seek(basic_win32_io_observer<ch_type> handle,seek_type_t<T>,U i=0,seekdir s=seekdir::cur)
+namespace win32::details
+{
+
+inline std::size_t read_impl(void* handle,void* begin,std::size_t to_read)
+{
+	std::uint32_t number_of_bytes_read{};
+	if constexpr(4<sizeof(std::size_t))
+		if(static_cast<std::size_t>(UINT32_MAX)<to_read)
+			to_read=static_cast<std::size_t>(UINT32_MAX);
+	if(!win32::ReadFile(handle,begin,static_cast<std::uint32_t>(to_read),std::addressof(number_of_bytes_read),nullptr))
+	{
+		auto err(win32::GetLastError());
+		if(err==109)
+			return 0;
+		throw_win32_error(err);
+	}
+	return number_of_bytes_read;
+}
+
+inline std::size_t write_impl(void* handle,void const* cbegin,std::size_t to_write)
+{
+	std::uint32_t number_of_bytes_written{};
+	if constexpr(4<sizeof(std::size_t))
+		if(static_cast<std::size_t>(UINT32_MAX)<to_write)
+			to_write=static_cast<std::size_t>(UINT32_MAX);
+	if(!win32::WriteFile(handle,cbegin,static_cast<std::uint32_t>(to_write),std::addressof(number_of_bytes_written),nullptr))
+		throw_win32_error();
+	return number_of_bytes_written;
+}
+
+inline std::common_type_t<std::size_t,std::uint64_t> seek_impl(void* handle,std::common_type_t<std::ptrdiff_t,std::int64_t> offset,seekdir s)
 {
 	std::int64_t distance_to_move_high{};
-	std::int64_t seekposition{seek_precondition<std::int64_t,T,ch_type>(i)};
-	if(!win32::SetFilePointerEx(handle.native_handle(),seekposition,std::addressof(distance_to_move_high),static_cast<std::uint32_t>(s)))
+	if(!win32::SetFilePointerEx(handle,offset,std::addressof(distance_to_move_high),static_cast<std::uint32_t>(s)))
 		throw_win32_error();
 	return distance_to_move_high;
 }
 
-template<std::integral ch_type,std::integral U>
-inline auto seek(basic_win32_io_observer<ch_type> handle,U i=0,seekdir s=seekdir::cur)
+}
+
+template<std::integral ch_type>
+inline std::common_type_t<std::size_t,std::uint64_t> seek(basic_win32_io_observer<ch_type> handle,std::common_type_t<std::ptrdiff_t,std::int64_t> offset=0,seekdir s=seekdir::cur)
 {
-	return seek(handle,seek_type<ch_type>,i,s);
+	return win32::details::seek_impl(handle.handle,seek_type<ch_type>,offset,s);
 }
 
 template<std::integral ch_type,std::contiguous_iterator Iter>
 inline Iter read(basic_win32_io_observer<ch_type> handle,Iter begin,Iter end)
 {
-	std::uint32_t numberOfBytesRead{};
-	std::size_t to_read((end-begin)*sizeof(*begin));
-	if constexpr(4<sizeof(std::size_t))
-		if(static_cast<std::size_t>(UINT32_MAX)<to_read)
-			to_read=static_cast<std::size_t>(UINT32_MAX);
-	if(!win32::ReadFile(handle.native_handle(),std::to_address(begin),static_cast<std::uint32_t>(to_read),std::addressof(numberOfBytesRead),nullptr))
-	{
-		auto err(win32::GetLastError());
-		if(err==109)
-			return begin;
-		throw_win32_error(err);
-	}
-	return begin+(numberOfBytesRead/sizeof(*begin));
+	return begin+win32::details::read_impl(handle.handle,std::to_address(begin),(end-begin)*sizeof(*begin))/sizeof(*begin);
 }
 
 template<std::integral ch_type,std::contiguous_iterator Iter>
 inline Iter write(basic_win32_io_observer<ch_type> handle,Iter cbegin,Iter cend)
 {
-	std::size_t to_write((cend-cbegin)*sizeof(*cbegin));
-	if constexpr(4<sizeof(std::size_t))
-		if(static_cast<std::size_t>(UINT32_MAX)<to_write)
-			to_write=static_cast<std::size_t>(UINT32_MAX);
-	std::uint32_t numberOfBytesWritten;
-	if(!win32::WriteFile(handle.native_handle(),std::to_address(cbegin),static_cast<std::uint32_t>(to_write),std::addressof(numberOfBytesWritten),nullptr))
-		throw_win32_error();
-	return cbegin+numberOfBytesWritten/sizeof(*cbegin);
+	return cbegin+win32::details::write_impl(handle.handle,std::to_address(cbegin),(cend-cbegin)*sizeof(*cbegin))/sizeof(*cbegin);
 }
 
 template<std::integral ch_type,std::contiguous_iterator Iter>

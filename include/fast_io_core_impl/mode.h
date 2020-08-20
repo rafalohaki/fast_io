@@ -3,6 +3,18 @@
 namespace fast_io
 {
 
+/*
+https://github.com/gcc-mirror/gcc/blob/41d6b10e96a1de98e90a7c0378437c3255814b16/libstdc%2B%2B-v3/include/bits/fs_fwd.h#L73
+
+Being binary compatible with libstdc++'s file_type
+*/
+enum class file_type : signed char
+{
+none = 0, not_found = -1, regular = 1, directory = 2, symlink = 3,
+block = 4, character = 5, fifo = 6, socket = 7, unknown = 8
+};
+
+
 enum class open_mode:std::uint32_t
 {
 none = 0,

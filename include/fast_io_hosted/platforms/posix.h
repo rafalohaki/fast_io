@@ -314,9 +314,16 @@ public:
 	}
 };
 
-template<std::integral ch_type,std::contiguous_iterator Iter>
-inline Iter read(basic_posix_io_observer<ch_type> h,Iter begin,Iter end)
+namespace details
 {
+
+inline std::size_t posix_read_impl(int fd,void* address,std::size_t bytes_to_read)
+{
+#ifdef _WIN32
+	if constexpr(4<sizeof(std::size_t))
+		if(static_cast<std::size_t>(UINT32_MAX)<bytes_to_read)
+			bytes_to_read=static_cast<std::size_t>(UINT32_MAX);
+#endif
 	auto read_bytes(
 #if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
 		system_call<
@@ -329,13 +336,18 @@ inline Iter read(basic_posix_io_observer<ch_type> h,Iter begin,Iter end)
 #else
 		::read
 #endif
-	(h.native_handle(),std::to_address(begin),(end-begin)*sizeof(*begin)));
+	(fd,address,bytes_to_read));
 	system_call_throw_error(read_bytes);
-	return begin+(read_bytes/sizeof(*begin));
+	return read_bytes;
 }
-template<std::integral ch_type,std::contiguous_iterator Iter>
-inline Iter write(basic_posix_io_observer<ch_type> h,Iter begin,Iter end)
+
+inline std::size_t posix_write_impl(int fd,void const* address,std::size_t bytes_to_write)
 {
+#ifdef _WIN32
+	if constexpr(4<sizeof(std::size_t))
+		if(static_cast<std::size_t>(UINT32_MAX)<bytes_to_write)
+			bytes_to_write=static_cast<std::size_t>(UINT32_MAX);
+#endif
 	auto write_bytes(
 #if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
 		system_call<
@@ -348,13 +360,12 @@ inline Iter write(basic_posix_io_observer<ch_type> h,Iter begin,Iter end)
 #else
 		::write
 #endif
-(h.native_handle(),std::to_address(begin),(end-begin)*sizeof(*begin)));
+	(fd,address,bytes_to_write));
 	system_call_throw_error(write_bytes);
-	return begin+(write_bytes/sizeof(*begin));
+	return write_bytes;
 }
 
-template<std::integral ch_type,typename T,std::integral R>
-inline std::common_type_t<std::int64_t, std::size_t> seek(basic_posix_io_observer<ch_type> h,seek_type_t<T>,R i=0,seekdir s=seekdir::cur)
+inline std::common_type_t<std::size_t,std::uint64_t> posix_seek_impl(int fd,std::common_type_t<std::ptrdiff_t,std::int64_t> offset,seekdir s)
 {
 	auto ret(
 #if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
@@ -372,14 +383,28 @@ inline std::common_type_t<std::int64_t, std::size_t> seek(basic_posix_io_observe
 #else
 		::lseek
 #endif
-		(h.native_handle(),seek_precondition<std::int64_t,T,ch_type>(i),static_cast<int>(s)));
-	system_call_throw_error(ret);
+		(fd,offset,static_cast<int>(s)));
+	system_call_throw_error(ret);	
 	return ret;
 }
-template<std::integral ch_type,std::integral R>
-inline auto seek(basic_posix_io_observer<ch_type> h,R i=0,seekdir s=seekdir::cur)
+
+}
+
+template<std::integral ch_type,std::contiguous_iterator Iter>
+inline Iter read(basic_posix_io_observer<ch_type> h,Iter begin,Iter end)
 {
-	return seek(h,seek_type<ch_type>,i,s);
+	return begin+details::posix_read_impl(h.fd,std::to_address(begin),(end-begin)*sizeof(*begin))/sizeof(*begin);
+}
+template<std::integral ch_type,std::contiguous_iterator Iter>
+inline Iter write(basic_posix_io_observer<ch_type> h,Iter cbegin,Iter cend)
+{
+	return cbegin+details::posix_write_impl(h.fd,std::to_address(cbegin),(cend-cbegin)*sizeof(*cbegin))/sizeof(*cbegin);
+}
+
+template<std::integral ch_type>
+inline std::common_type_t<std::size_t,std::uint64_t> seek(basic_posix_io_observer<ch_type> h,std::common_type_t<std::ptrdiff_t,std::int64_t> i=0,seekdir s=seekdir::cur)
+{
+	return details::posix_seek_impl(h.fd,i,s);
 }
 /*
 template<std::integral ch_type>
