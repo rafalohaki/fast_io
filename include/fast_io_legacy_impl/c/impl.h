@@ -745,6 +745,45 @@ using basic_c_io_handle_unlocked=details::basic_c_io_handle_impl<basic_c_io_obse
 template<std::integral ch_type>
 using basic_c_file_unlocked=details::basic_c_file_impl<basic_c_io_handle_unlocked<ch_type>>;
 
+template<std::integral ch_type>
+requires requires(basic_posix_io_observer<ch_type> piob)
+{
+	size(piob);
+}
+inline constexpr auto size(basic_c_io_observer<ch_type> ciob)
+{
+	return size(static_cast<basic_posix_io_observer<ch_type>>(ciob));
+}
+
+template<std::integral ch_type>
+requires requires(basic_posix_io_observer<ch_type> piob)
+{
+	type(piob);
+}
+inline constexpr auto type(basic_c_io_observer<ch_type> ciob)
+{
+	return type(static_cast<basic_posix_io_observer<ch_type>>(ciob));
+}
+
+template<std::integral ch_type>
+requires requires(basic_posix_io_observer<ch_type> piob)
+{
+	size(piob);
+}
+inline constexpr auto size(basic_c_io_observer_unlocked<ch_type> ciob)
+{
+	return size(static_cast<basic_posix_io_observer<ch_type>>(ciob));
+}
+
+template<std::integral ch_type>
+requires requires(basic_posix_io_observer<ch_type> piob)
+{
+	type(piob);
+}
+inline constexpr auto type(basic_c_io_observer_unlocked<ch_type> ciob)
+{
+	return type(static_cast<basic_posix_io_observer<ch_type>>(ciob));
+}
 
 template<std::integral ch_type>
 inline auto redirect_handle(basic_c_io_observer<ch_type> h)
