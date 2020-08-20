@@ -434,22 +434,22 @@ inline auto size(basic_posix_io_observer<ch_type> piob)
 namespace details
 {
 
-inline void fstat_impl(int fd,stat64* s)
+inline void fstat_impl(int fd,struct stat64* st)
 {
-	if(fstat64(fd,s)<0)
+	if(fstat64(fd,st)<0)
 		throw_posix_error();
 }
 
 inline std::common_type_t<std::size_t,std::uint32_t> posix_file_size_impl(int fd)
 {
-	stat64 st;
+	struct stat64 st;
 	fstat_impl(fd,std::addressof(st));
 	return st.st_size;
 }
 
 inline file_type posix_file_type_impl(int fd)
 {
-	stat64 st;
+	struct stat64 st;
 	fstat_impl(fd,std::addressof(st));
 	auto m{st.st_mode};
 /*
