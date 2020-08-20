@@ -145,11 +145,58 @@ void* __stdcall CreateIoCompletionPort(void*,void*,std::uintptr_t,std::uint32_t)
 
 int __stdcall GetQueuedCompletionStatus(void*,std::uint32_t*,std::uintptr_t*,overlapped**,std::uint32_t) noexcept;
 
-int __stdcall SetFileValidData(void*,std::int64_t);
+int __stdcall SetFileValidData(void*,std::int64_t) noexcept;
 
-std::uint32_t __stdcall GetTempPathW(std::uint32_t,wchar_t* buffer);
+std::uint32_t __stdcall GetTempPathW(std::uint32_t,wchar_t* buffer) noexcept;
 
-int __stdcall SystemFunction036(void*,std::uint32_t);
+int __stdcall SystemFunction036(void*,std::uint32_t) noexcept;
+
+/*
+https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getfileinformationbyhandleex
+*/
+struct file_standard_info
+{
+	std::int64_t AllocationSize;
+	std::int64_t EndOfFile;
+	std::uint32_t NumberOfLinks;
+	int DeletePending;
+	int Directory;
+};
+
+enum class file_info_by_handle_class
+{
+FileBasicInfo,
+FileStandardInfo,
+FileNameInfo,
+FileRenameInfo,
+FileDispositionInfo,
+FileAllocationInfo,
+FileEndOfFileInfo,
+FileStreamInfo,
+FileCompressionInfo,
+FileAttributeTagInfo,
+FileIdBothDirectoryInfo,
+FileIdBothDirectoryRestartInfo,
+FileIoPriorityHintInfo,
+FileRemoteProtocolInfo,
+FileFullDirectoryInfo,
+FileFullDirectoryRestartInfo,
+FileStorageInfo,
+FileAlignmentInfo,
+FileIdInfo,
+FileIdExtdDirectoryInfo,
+FileIdExtdDirectoryRestartInfo,
+FileDispositionInfoEx,
+FileRenameInfoEx,
+FileCaseSensitiveInfo,
+FileNormalizedNameInfo,
+MaximumFileInfoByHandleClass
+};
+
+int __stdcall GetFileInformationByHandleEx(void*,file_info_by_handle_class,void*,std::uint32_t) noexcept;
+
+std::uint32_t __stdcall GetFileType(void*) noexcept;
+
 }
 
 

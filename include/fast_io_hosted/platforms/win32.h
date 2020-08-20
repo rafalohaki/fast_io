@@ -704,8 +704,67 @@ template<std::integral ch_type>
 inline void truncate(basic_win32_io_observer<ch_type> handle,std::size_t size)
 {
 	seek(handle,size,seekdir::beg);
-	if(!win32::SetEndOfFile(handle.native_handle()))
+	if(!win32::SetEndOfFile(handle.handle))
 		throw_win32_error();
+}
+
+namespace win32::details
+{
+
+inline std::common_type_t<std::size_t,std::uint64_t> file_size_impl(void* handle)
+{
+/*
+Microsoft's Document said 
+https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfilesizeex
+Windows Store apps:  GetFileSizeEx is not supported. Use GetFileInformationByHandleEx.
+*/
+	file_standard_info finfo{};
+	if(!GetFileInformationByHandleEx(handle,file_info_by_handle_class::FileStandardInfo,std::addressof(finfo),sizeof(finfo)))
+		throw_win32_error();
+	return finfo.EndOfFile;
+}
+
+inline file_type file_type_impl(void* handle)
+{
+/*
+https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfiletype
+*/
+	std::uint32_t ftvalue{GetFileType(handle)};
+	switch(ftvalue)
+	{
+	case 0x0002:
+		return file_type::character;
+	case 0x0001:
+		return file_type::disk;
+	case 0x0003:
+		return file_type::fifo;
+	case 0x8000:
+		return file_type::remote;
+	case 0x0000:
+	{
+		auto errcd=GetLastError();
+		if(errcd==0)
+			return file_type::unknown;
+		throw_win32_error(errcd);
+		[[fallthrough]];
+	}
+	default:
+		return file_type::unknown;
+	};
+}
+
+}
+
+template<std::integral ch_type>
+inline std::common_type_t<std::size_t,std::uint64_t> size(basic_win32_io_observer<ch_type> handle)
+{
+	return win32::details::file_size_impl(handle.handle);
+}
+
+template<std::integral ch_type>
+inline file_type type(basic_win32_io_observer<ch_type> handle)
+{
+	return win32::details::file_type_impl(handle.handle);
 }
 
 template<std::integral ch_type>

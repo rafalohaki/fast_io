@@ -416,6 +416,104 @@ inline void flush(basic_posix_io_observer<ch_type>)
 }
 */
 
+#if defined(_WIN32)
+template<std::integral ch_type>
+inline auto type(basic_posix_io_observer<ch_type> piob)
+{
+	return type(static_cast<basic_win32_io_observer<ch_type>>(piob));
+}
+template<std::integral ch_type>
+inline auto size(basic_posix_io_observer<ch_type> piob)
+{
+	return size(static_cast<basic_win32_io_observer<ch_type>>(piob));
+}
+#elif !defined(__NEWLIB__)
+
+namespace details
+{
+
+inline void fstat_impl(int fd,stat64* s)
+{
+	if(fstat64(fd,s)<0)
+		throw_posix_error();
+}
+
+inline std::common_type_t<std::size_t,std::uint32_t> posix_file_size_impl(int fd)
+{
+	stat64 st;
+	fstat_impl(fd,std::addressof(st));
+	return st.st_size;
+}
+
+inline file_type posix_file_type_impl(int fd)
+{
+	stat64 st;
+	fstat_impl(fd,std::addressof(st));
+	auto m{st.st_mode};
+/*
+https://linux.die.net/man/2/fstat64
+The following POSIX macros are defined to check the file type using the st_mode field:
+
+S_ISREG(m)
+is it a regular file?
+
+S_ISDIR(m)
+
+directory?
+
+S_ISCHR(m)
+
+character device?
+
+S_ISBLK(m)
+
+block device?
+
+S_ISFIFO(m)
+
+FIFO (named pipe)?
+
+S_ISLNK(m)
+
+symbolic link? (Not in POSIX.1-1996.)
+
+S_ISSOCK(m)
+
+socket? (Not in POSIX.1-1996.)
+*/
+	if(S_ISREG(m))
+		return file_type::regular;
+	else if(S_ISDIR(m))
+		return file_type::directory;
+	else if(S_ISCHR(m))
+		return file_type::character;
+	else if(S_ISBLK(m))
+		return file_type::block;
+	else if(S_ISFIFO(m))
+		return file_type::fifo;
+	else if(S_ISLNK(m))
+		return file_type::symlink;
+	else if(S_ISSOCK(m))
+		return file_type::socket;
+	else
+		return file_type::unknown;
+}
+
+}
+
+template<std::integral ch_type>
+inline std::common_type_t<std::size_t,std::uint32_t> size(basic_posix_io_observer<ch_type> piob)
+{
+	return details::posix_file_size_impl(piob.fd);
+}
+
+template<std::integral ch_type>
+inline auto type(basic_posix_io_observer<ch_type> piob)
+{
+	return details::posix_file_type_impl(piob.fd);
+}
+#endif
+
 #if defined(__linux__) || defined(__BSD_VISIBLE)
 template<std::integral ch_type>
 inline auto zero_copy_in_handle(basic_posix_io_observer<ch_type> h)
@@ -431,14 +529,14 @@ inline auto zero_copy_out_handle(basic_posix_io_observer<ch_type> h)
 template<std::integral ch_type>
 inline auto redirect_handle(basic_posix_io_observer<ch_type> h)
 {
-#if defined(__WINNT__) || defined(_MSC_VER)
+#if defined(_WIN32)
 	return bit_cast<void*>(_get_osfhandle(h.native_handle()));
 #else
 	return h.native_handle();
 #endif
 }
 
-#if defined(__WINNT__) || defined(_MSC_VER)
+#if defined(_WIN32)
 template<std::integral ch_type,typename... Args>
 requires io_controllable<basic_win32_io_observer<ch_type>,Args...>
 inline decltype(auto) io_control(basic_posix_io_observer<ch_type> h,Args&& ...args)
