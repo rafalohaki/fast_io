@@ -735,7 +735,7 @@ https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfiletyp
 	case 0x0002:
 		return file_type::character;
 	case 0x0001:
-		return file_type::disk;
+		return file_type::regular;
 	case 0x0003:
 		return file_type::fifo;
 	case 0x8000:

@@ -206,6 +206,15 @@ std::signed_integral<T>
 template<typename T>
 concept my_unsigned_integral = my_integral<T>&&!my_signed_integral<T>;
 
+
+template<std::integral char_type,std::size_t n,std::random_access_iterator output_iter>
+requires(n!=0)
+inline constexpr output_iter copy_string_literal(char_type const(&s)[n],output_iter result)
+{
+	details::non_overlapped_copy_n(s,n-1,result);
+	return result+(n-1);
+}
+
 }
 
 }

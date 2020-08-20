@@ -11,9 +11,43 @@ Being binary compatible with libstdc++'s file_type
 enum class file_type : signed char
 {
 none = 0, not_found = -1, regular = 1, directory = 2, symlink = 3,
-block = 4, character = 5, fifo = 6, socket = 7, unknown = 8, disk =9, remote = 10
+block = 4, character = 5, fifo = 6, socket = 7, unknown = 8, remote = 9
 };
 
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<file_type>) noexcept
+{
+	return 20;
+}
+
+template<std::contiguous_iterator caiter>
+inline constexpr caiter print_reserve_define(io_reserve_type_t<file_type>,caiter it,file_type f) noexcept
+{
+	switch(f)
+	{
+	case file_type::none:
+		return details::copy_string_literal(u8"none",it); 
+	case file_type::not_found:
+		return details::copy_string_literal(u8"not_found",it); 
+	case file_type::regular:
+		return details::copy_string_literal(u8"regular",it); 
+	case file_type::directory:
+		return details::copy_string_literal(u8"directory",it); 
+	case file_type::symlink:
+		return details::copy_string_literal(u8"symlink",it);
+	case file_type::block:
+		return details::copy_string_literal(u8"block",it);
+	case file_type::character:
+		return details::copy_string_literal(u8"character",it);
+	case file_type::fifo:
+		return details::copy_string_literal(u8"fifo",it);
+	case file_type::socket:
+		return details::copy_string_literal(u8"socket",it);
+	case file_type::remote:
+		return details::copy_string_literal(u8"remote",it);
+	default:
+		return details::copy_string_literal(u8"unknown",it);
+	}
+}
 
 enum class open_mode:std::uint32_t
 {
