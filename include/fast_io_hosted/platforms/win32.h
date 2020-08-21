@@ -452,7 +452,7 @@ inline std::common_type_t<std::size_t,std::uint64_t> seek_impl(void* handle,std:
 template<std::integral ch_type>
 inline std::common_type_t<std::size_t,std::uint64_t> seek(basic_win32_io_observer<ch_type> handle,std::common_type_t<std::ptrdiff_t,std::int64_t> offset=0,seekdir s=seekdir::cur)
 {
-	return win32::details::seek_impl(handle.handle,seek_type<ch_type>,offset,s);
+	return win32::details::seek_impl(handle.handle,offset,s);
 }
 
 template<std::integral ch_type,std::contiguous_iterator Iter>

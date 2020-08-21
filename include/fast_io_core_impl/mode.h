@@ -49,6 +49,8 @@ inline constexpr caiter print_reserve_define(io_reserve_type_t<file_type>,caiter
 	}
 }
 
+enum class shut{in,out,io};
+
 enum class open_mode:std::uint32_t
 {
 none = 0,

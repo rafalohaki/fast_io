@@ -281,6 +281,11 @@ inline void listen(basic_socket_io_observer<char_type> siob)
 	sock::details::listen(siob.soc,10);
 }
 
+template<std::integral char_type>
+inline void shutdown(basic_socket_io_observer<char_type> siob,shut s)
+{
+	sock::details::shutdown(siob.soc,static_cast<int>(s));
+}
 
 using socket_io_observer=basic_socket_io_observer<char>;
 using socket_io_handle=basic_socket_io_handle<char>;

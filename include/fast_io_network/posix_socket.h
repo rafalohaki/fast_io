@@ -129,6 +129,11 @@ inline void freeaddrinfo(Args&& ...args)
 	::freeaddrinfo(std::forward<Args>(args)...);
 }
 
+template<typename ...Args>
+inline auto shutdown(Args&& ...args)
+{
+	return call_posix(::shutdown,std::forward<Args>(args)...);
+}
 
 using address_family = sa_family_t;
 using socket_type = int;
