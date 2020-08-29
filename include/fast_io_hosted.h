@@ -16,6 +16,5 @@ For hosted implementations the set of standard library headers required by the C
 #include"fast_io_hosted/chrono.h"
 #include"fast_io_hosted/process/native.h"
 #include"fast_io_hosted/white_hole/white_hole.h"
-#include"fast_io_hosted/secure_clear.h"
 #include<memory_resource>
 #include"fast_io_hosted/pmr_resource.h"

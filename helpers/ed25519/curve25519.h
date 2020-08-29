@@ -6,11 +6,11 @@ namespace fast_io::details::curve25519
 struct field_element
 {
 	std::uint64_t element[5];
-	inline constexpr std::uint64_t& operator[](std::size_t position) noexcept
+	inline constexpr auto& operator[](std::size_t position) noexcept
 	{
 		return element[position];
 	}
-	inline constexpr std::uint64_t const& operator[](std::size_t position) const noexcept
+	inline constexpr auto& operator[](std::size_t position) const noexcept
 	{
 		return element[position];
 	}
@@ -40,7 +40,6 @@ inline constexpr field_element sub_after_basic(field_element const& a,field_elem
 {
 	return subtraction<0x1fffffffffffb4,0x1ffffffffffffc>(a,b); 
 }
-
 
 inline constexpr field_element add_reduce(field_element const& a,field_element const& b) noexcept
 {
@@ -198,6 +197,8 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<field_element>,Iter
 	for(std::size_t i{};i!=4;++i)
 	{
 		std::uint64_t f{(t[i]>>(13*i))|(t[i+1]<<(51-13*i))};
+		if constexpr(std::endian::big==std::endian::native)
+			f=byte_swap(f);
 		if constexpr(std::contiguous_iterator<Iter>&&sizeof(*iter)==1)
 			memcpy(std::to_address(iter),std::addressof(f),sizeof(f));
 		else
@@ -211,5 +212,46 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<field_element>,Iter
 	return iter;
 }
 
+struct curve_point
+{
+	field_element x,y,z,t;
+};
+
+struct niels
+{
+	field_element y_sub_x,x_add_y,t_2d;
+};
+
+struct pniels
+{
+	field_element y_sub_x,x_add_y,z,t_2d;
+};
+
+namespace constants
+{
+inline constexpr curve_point base_point
+{
+{{0x00062d608f25d51a,0x000412a4b4f6592a,0x00075b7171a4b31d,0x0001ff60527118fe,0x000216936d3cd6e5}},
+{{0x0006666666666658,0x0004cccccccccccc,0x0001999999999999,0x0003333333333333,0x0006666666666666}},
+{{0x0000000000000001,0x0000000000000000,0x0000000000000000,0x0000000000000000,0x0000000000000000}},
+{{0x00068ab3a5b7dda3,0x00000eea2a5eadbb,0x0002af8df483c27e,0x000332b375274732,0x00067875f0fd78b7}}
+};
+
+inline constexpr field_element ecd
+{
+{0x00034dca135978a3,0x0001a8283b156ebd,0x0005e7a26001c029,0x000739c663a03cbb,0x00052036cee2b6ff}
+};
+
+inline constexpr field_element ec2d
+{
+{0x00069b9426b2f159,0x00035050762add7a,0x0003cf44c0038052,0x0006738cc7407977,0x0002406d9dc56dff}
+};
+
+inline constexpr field_element sqrtneg1
+{
+{0x00061b274a0ea0b0,0x0000d5a5fc8f189d,0x0007ef5e9cbd0c60,0x00078595a6804c9e,0x0002b8324804fc1d}
+};
+
+}
 
 }

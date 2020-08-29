@@ -3,7 +3,26 @@
 namespace fast_io
 {
 
-inline void secure_clear(void*,std::size_t);
+namespace win32
+{
+#if defined(_MSC_VER)
+extern "C" void __stdcall RtlSecureZeroMemory(void*,std::size_t);
+#endif
+}
+
+inline void secure_clear(void* data,std::size_t size)
+{
+#if defined(_MSC_VER)
+	win32::RtlSecureZeroMemory(data, size);
+#else
+/*
+https://github.com/bminor/glibc/blob/master/string/explicit_bzero.c
+Referenced from glibc
+*/
+	std::memset(data,0,size);
+	__asm__ __volatile__("" ::: "memory");
+#endif
+}
 
 template<typename T>
 class secure_clear_guard

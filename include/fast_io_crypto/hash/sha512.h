@@ -76,11 +76,6 @@ inline constexpr auto Maj(auto x,auto y,auto z)
 	return (x&y)^(x&z)^(y&z);
 }
 
-inline constexpr uint64_t B2U64(std::byte val, uint8_t sh)
-{
-    return (std::to_integer<uint64_t>(val)) << sh;
-}
-
 }
 class sha512_function
 {
@@ -105,8 +100,9 @@ public:
 		std::uint32_t i{};
 		for (; i < 16; ++i)
 		{
-			X[i] = B2U64(data[0], 56) | B2U64(data[1], 48) | B2U64(data[2], 40) | B2U64(data[3], 32) |
-				B2U64(data[4], 24) | B2U64(data[5], 16) | B2U64(data[6], 8) | B2U64(data[7], 0);
+			std::uint64_t value;
+			memcpy(std::addressof(value),data,8);
+			X[i] = details::big_endian(value);
 			data += 8;
 
 			T1 = h;
@@ -176,8 +172,9 @@ public:
 			std::uint32_t i{};
 			for (; i < 16; ++i)
 			{
-				X[i] = B2U64(data[0], 56) | B2U64(data[1], 48) | B2U64(data[2], 40) | B2U64(data[3], 32) |
-					B2U64(data[4], 24) | B2U64(data[5], 16) | B2U64(data[6], 8) | B2U64(data[7], 0);
+				std::uint64_t value;
+				memcpy(std::addressof(value),data,8);
+				X[i] = details::big_endian(value);
 				data += 8;
 
 				T1 = h;

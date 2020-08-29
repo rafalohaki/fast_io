@@ -314,7 +314,7 @@ public:
 	using native_handle_type = void*;
 	using char_type = ch_type;
 	using async_scheduler_type = basic_win32_io_observer<char>;
-	native_handle_type handle{};
+	native_handle_type handle{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
 	constexpr auto& native_handle() noexcept
 	{
 		return handle;
@@ -323,21 +323,21 @@ public:
 	{
 		return handle;
 	}
-	explicit constexpr operator bool() const noexcept
+	explicit operator bool() const noexcept
 	{
-		return handle;
+		return handle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
 	}
 	explicit constexpr operator basic_nt_io_observer<char_type>() const noexcept
 	{
 		return basic_nt_io_observer<char_type>{handle};
 	}
-	inline constexpr native_handle_type release() noexcept
+	inline native_handle_type release() noexcept
 	{
 		auto temp{handle};
-		handle=nullptr;
+		handle=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
 		return temp;
 	}
-	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
+	inline constexpr void reset(native_handle_type newhandle=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))) noexcept
 	{
 		handle=newhandle;
 	}
@@ -365,36 +365,36 @@ public:
 		void* new_handle{};
 		if(!win32::DuplicateHandle(current_process,other.native_handle(),current_process,std::addressof(new_handle), 0, true, 2/*DUPLICATE_SAME_ACCESS*/))
 			throw_win32_error();
-		if(this->native_handle())[[likely]]
+		if(*this)[[likely]]
 			fast_io::win32::CloseHandle(this->native_handle());
 		this->native_handle()=new_handle;
 		return *this;
 	}
-	constexpr basic_win32_io_handle(basic_win32_io_handle&& b) noexcept:
+	basic_win32_io_handle(basic_win32_io_handle&& b) noexcept:
 		basic_win32_io_observer<ch_type>(b.native_handle())
 	{
-		b.native_handle()=nullptr;
+		b.native_handle()=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
 	}
 	basic_win32_io_handle& operator=(basic_win32_io_handle&& b) noexcept
 	{
 		if(std::addressof(b)!=this)
 		{
-			if(this->native_handle())[[likely]]
+			if(*this)[[likely]]
 				fast_io::win32::CloseHandle(this->native_handle());
 			this->native_handle() = b.native_handle();
-			b.native_handle()=nullptr;
+			b.native_handle()=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
 		}
 		return *this;
 	}
-	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
+	void reset(native_handle_type newhandle=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))) noexcept
 	{
-		if(this->native_handle())[[likely]]
+		if(*this)[[likely]]
 			fast_io::win32::CloseHandle(this->native_handle());
 		this->native_handle()=newhandle;
 	}
 	void close()
 	{
-		if(this->native_handle())[[likely]]
+		if(*this)[[likely]]
 		{
 			if(!fast_io::win32::CloseHandle(this->native_handle()))[[unlikely]]
 				throw_win32_error();
@@ -685,7 +685,7 @@ public:
 	}
 	~basic_win32_file()
 	{
-		if(this->native_handle())[[likely]]
+		if(*this)[[likely]]
 			fast_io::win32::CloseHandle(this->native_handle());
 	}
 	constexpr basic_win32_file(basic_win32_file const&)=default;

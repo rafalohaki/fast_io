@@ -32,5 +32,4 @@ public:
 	constexpr basic_indirect_obuffer_constructor_source_type(Args&&...args):basic_indirect_obuffer<ch_type,dest,func>{.destination={std::forward<Args>(args)...},.function={}}{}
 };
 
-
 }

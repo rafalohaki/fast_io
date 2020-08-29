@@ -110,10 +110,7 @@ inline constexpr Iter read_cold(T& in,Iter begin,Iter end)
 		std::size_t to_read{end-begin};
 		std::size_t available_in_buffer{ed-curr};
 		std::size_t read_this_round(std::min(to_read,available_in_buffer));
-		if(std::is_constant_evaluated())
-			std::copy_n(curr,read_this_round,begin);
-		else
-			memcpy(std::to_address(begin),curr,read_this_round*sizeof(*begin));
+		non_overlapped_copy_n(curr,read_this_round,begin);
 		begin+=read_this_round;
 		if(to_read<=available_in_buffer)[[likely]]
 		{
@@ -138,16 +135,8 @@ inline constexpr Iter read(basic_indirect_ibuffer<src,indire,function>& in,Iter 
 		std::size_t to_read{end-begin};
 		if(ed<curr+to_read)[[unlikely]]
 			return details::indirect_ibuffer::read_cold(in,begin,end);
-		if (std::is_constant_evaluated())
-		{
-			std::copy_n(curr,to_read,begin);
-			return end;
-		}
-		else
-		{
-			memcpy(std::to_address(begin),curr,to_read*sizeof(*begin));
-			return end;
-		}
+		details::non_overlapped_copy_n(curr,to_read,begin);
+		return end;
 	}
 	else
 	{
