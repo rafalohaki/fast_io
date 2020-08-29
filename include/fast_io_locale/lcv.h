@@ -30,22 +30,14 @@ inline constexpr auto process_lcv_grouping(std::basic_string_view<char_type> con
 		{
 			if(str_last-gp<str_first)[[unlikely]]
 				break;
-			if(std::is_constant_evaluated())
-				std::copy_n(str_last-=gp,gp,buffer_iter-=gp);
-			else
-				memcpy(buffer_iter-=gp,str_last-=gp,gp*sizeof(char_type));
+			non_overlapped_copy_n(str_last-=gp,gp,buffer_iter-=gp);
 			*--buffer_iter=seperator;
 		}
 		if(iter!=gp_cendm1)[[likely]]
 			++iter;
 	}
 	if(std::size_t const sz(str_last-str_first);sz)
-	{
-		if(std::is_constant_evaluated())
-			std::copy_n(str_first,sz,buffer_iter-=sz);
-		else
-			memcpy(buffer_iter-=sz,str_first,sz*sizeof(char_type));
-	}
+		non_overlapped_copy_n(str_first,sz,buffer_iter-=sz);
 	else
 		++buffer_iter;
 	return buffer_iter;
@@ -76,12 +68,9 @@ constexpr std::size_t cal_lcv_floating_len()
 	});
 }
 
-template<std::integral char_type,char8_t base,bool uppercase,std::contiguous_iterator caiter,typename T,my_integral int_type>
-inline constexpr auto process_lcv_integer_output(caiter outiter,T const& storage,int_type value)
+template<std::integral char_type,char8_t base,bool uppercase,std::contiguous_iterator caiter,typename T,my_integral int_type,typename U>
+inline constexpr auto process_lcv_integer_output_cold(caiter outiter,T const& storage,int_type value,U grouping)
 {
-	auto grouping{storage.grouping()};
-	if(grouping.empty())
-		return process_integer_output<base,uppercase>(outiter,value);
 	std::array<char_type,cal_max_int_size<my_make_unsigned_t<int_type>,base>()> str;
 	auto str_iter(details::process_integer_output<base,uppercase,true>(str.data(),value));
 	constexpr std::size_t buffer_size{cal_lcv_integer_output_size<int_type,base>()};
@@ -92,6 +81,15 @@ inline constexpr auto process_lcv_integer_output(caiter outiter,T const& storage
 			*--buffer_iter=u8'-';
 	}
 	return details::my_copy(buffer_iter,outiter+buffer_size,outiter);
+}
+
+template<std::integral char_type,char8_t base,bool uppercase,std::contiguous_iterator caiter,typename T,my_integral int_type>
+inline constexpr auto process_lcv_integer_output(caiter outiter,T const& storage,int_type value)
+{
+	auto grouping{storage.grouping()};
+	if(grouping.empty())[[likely]]
+		return process_integer_output<base,uppercase>(outiter,value);
+	return process_lcv_integer_output_cold<char_type,base,uppercase>(outiter,storage,value,grouping);
 }
 
 template<std::size_t buffer_size,std::integral char_type,std::contiguous_iterator caiter,typename T,typename Func>
