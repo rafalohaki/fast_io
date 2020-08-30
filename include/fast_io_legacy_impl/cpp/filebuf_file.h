@@ -184,6 +184,7 @@ public:
 			if(this->native_handle()->bad())[[unlikely]]
 				throw_posix_error();
 			delete this->native_handle();
+			this->native_handle()=nullptr;
 		}
 	}
 	void reset(native_handle_type rdb=nullptr) noexcept
