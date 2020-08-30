@@ -21,6 +21,7 @@ inline constexpr void orelease(output& out,typename output::char_type* ptr)
 template<buffer_output_stream output>
 inline constexpr void put(output& out,typename std::remove_cvref_t<output>::char_type ch)
 {
+#ifndef _MSC_VER
 	if constexpr(requires()
 	{
 		put_define(out,ch);
@@ -28,6 +29,7 @@ inline constexpr void put(output& out,typename std::remove_cvref_t<output>::char
 		put_define(out,ch);
 	else
 	{
+#endif
 		auto ref{obuffer_curr(out)};
 		if(ref==obuffer_end(out))[[unlikely]]
 		{
@@ -36,6 +38,8 @@ inline constexpr void put(output& out,typename std::remove_cvref_t<output>::char
 		}
 		*ref=ch;
 		obuffer_set_curr(out,ref+1);
+#ifndef _MSC_VER
 	}
+#endif
 }
 }

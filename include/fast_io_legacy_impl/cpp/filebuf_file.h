@@ -82,7 +82,7 @@ This function never fails. but what if fdopen fails?
 #elif defined(__LIBCPP_VERSION)
 	template<typename T>
 	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,T&& t):
-		basic_filebuf_io_observer<CharT,Traits>{new native_handle_type}
+		basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>}
 	{
 		fb.__open(piohd.native_handle(),details::calculate_fstream_open_value(std::forward<T>(t)));
 		if(!this->native_handle()->is_open())
@@ -94,7 +94,7 @@ This function never fails. but what if fdopen fails?
 	}
 #else
 	template<typename T>
-	basic_filebuf_file(basic_c_io_handle_unlocked<char_type>&& chd,T&& t):basic_filebuf_io_observer<CharT,Traits>{new native_handle_type(chd.native_handle())}
+	basic_filebuf_file(basic_c_io_handle_unlocked<char_type>&& chd,T&& t):basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>(chd.native_handle())}
 	{
 		if(!this->native_handle()->is_open())
 		{

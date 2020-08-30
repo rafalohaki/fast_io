@@ -26,7 +26,7 @@ inline constexpr auto single_comma(st_single([](std::integral auto ch)
 }));
 
 using single_comma_t = decltype(single_comma);
-
+#ifndef _MSC_VER
 template<char8_t base>
 requires (2<=base&&base<=36)
 inline constexpr auto until_none_digit(st_until([](std::integral auto ch)
@@ -48,7 +48,7 @@ inline constexpr auto until_none_digit(st_until([](std::integral auto ch)
 
 template<char8_t base>
 using until_none_digit_t = decltype(until_none_digit<base>);
-
+#endif
 }
 
 }

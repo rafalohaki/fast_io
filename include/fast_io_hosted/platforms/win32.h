@@ -4,6 +4,7 @@ namespace fast_io
 {
 namespace details
 {
+#ifndef _MSC_VER
 inline void* create_win32_temp_file()
 {
 	std::array<wchar_t,512> arr;
@@ -43,7 +44,7 @@ inline void* create_win32_temp_file()
 	throw_win32_error();
 	return nullptr;
 }
-
+#endif
 template<typename... Args>
 requires (sizeof...(Args)==4)
 inline auto create_io_completion_port(Args&&... args)
@@ -351,7 +352,10 @@ public:
 	using char_type = ch_type;
 	using async_scheduler_type = basic_win32_io_observer<char>;
 	constexpr basic_win32_io_handle() noexcept =default;
-	constexpr basic_win32_io_handle(native_handle_type handle) noexcept:
+
+	template<typename native_hd>
+	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
+	explicit constexpr basic_win32_io_handle(native_hd handle) noexcept:
 		basic_win32_io_observer<ch_type>{handle}{}
 	basic_win32_io_handle(basic_win32_io_handle const& other)
 	{
@@ -582,13 +586,13 @@ public:
 	{
 		{win32::CreateFileW(std::forward<Args>(args)...)}->std::same_as<native_handle_type>;
 	}
-	basic_win32_file(fast_io::native_interface_t,Args&& ...args):basic_win32_io_handle<char_type>(win32::CreateFileW(std::forward<Args>(args)...))
+	explicit basic_win32_file(fast_io::native_interface_t,Args&& ...args):basic_win32_io_handle<char_type>(win32::CreateFileW(std::forward<Args>(args)...))
 	{
 		if(native_handle()==((void*) (std::intptr_t)-1))
 			throw_win32_error();
 	}
 	template<open_mode om,perms pm>
-	basic_win32_file(std::string_view filename,open_interface_t<om>,perms_interface_t<pm>):
+	explicit basic_win32_file(std::string_view filename,open_interface_t<om>,perms_interface_t<pm>):
 				basic_win32_io_handle<char_type>(
 				details::create_file_a_impl<(om&open_mode::inherit)!=open_mode::none>(filename,
 				details::win32_file_openmode<om,pm>::mode.dwDesiredAccess,
@@ -601,7 +605,7 @@ public:
 			seek_end_local();
 	}
 	template<open_mode om>
-	basic_win32_file(std::string_view filename,open_interface_t<om>):basic_win32_io_handle<char_type>(
+	explicit basic_win32_file(std::string_view filename,open_interface_t<om>):basic_win32_io_handle<char_type>(
 				details::create_file_a_impl<(om&open_mode::inherit)!=open_mode::none>(filename,
 				details::win32_file_openmode_single<om>::mode.dwDesiredAccess,
 				details::win32_file_openmode_single<om>::mode.dwShareMode,
@@ -612,7 +616,7 @@ public:
 			seek_end_local();
 	}
 	template<open_mode om>
-	basic_win32_file(std::string_view filename,open_interface_t<om>,perms p):basic_win32_io_handle<char_type>(
+	explicit basic_win32_file(std::string_view filename,open_interface_t<om>,perms p):basic_win32_io_handle<char_type>(
 				details::create_file_a_impl<(om&open_mode::inherit)!=open_mode::none>(filename,
 				details::win32_file_openmode_single<om>::mode.dwDesiredAccess,
 				details::win32_file_openmode_single<om>::mode.dwShareMode,
@@ -622,7 +626,7 @@ public:
 		if constexpr ((om&open_mode::ate)!=open_mode::none)
 			seek_end_local();
 	}
-	basic_win32_file(std::string_view filename,open_mode om,perms pm=static_cast<perms>(420)):basic_win32_io_handle<char_type>(nullptr)
+	explicit basic_win32_file(std::string_view filename,open_mode om,perms pm=static_cast<perms>(420)):basic_win32_io_handle<char_type>(nullptr)
 	{
 		auto const mode(details::calculate_win32_open_mode_with_perms(om,pm));
 		if((om&open_mode::inherit)==open_mode::none)
@@ -646,11 +650,13 @@ public:
 		if ((om&open_mode::ate)!=open_mode::none)
 			seek_end_local();
 	}
-	basic_win32_file(std::string_view file,std::string_view mode,perms pm=static_cast<perms>(420)):
+	explicit basic_win32_file(std::string_view file,std::string_view mode,perms pm=static_cast<perms>(420)):
 		basic_win32_file(file,fast_io::from_c_mode(mode),pm){}
-	basic_win32_file(io_async_t) requires(std::same_as<char_type,char>):
+	explicit basic_win32_file(io_async_t) requires(std::same_as<char_type,char>):
 		basic_win32_io_handle<char_type>(details::create_io_completion_port(bit_cast<void*>(static_cast<std::uintptr_t>(-1)),nullptr,0,0)){}
-	basic_win32_file(io_temp_t):basic_win32_io_handle<char_type>(details::create_win32_temp_file()){}
+#ifndef _MSC_VER
+	explicit basic_win32_file(io_temp_t):basic_win32_io_handle<char_type>(details::create_win32_temp_file()){}
+#endif
 /*
 	template<std::integral dir_char_type,open_mode om>
 	basic_win32_file(basic_win32_io_observer<dir_char_type> directory,std::string_view filename,open_interface_t<om>,perms pm=static_cast<perms>(420))

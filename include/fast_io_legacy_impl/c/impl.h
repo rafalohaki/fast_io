@@ -546,7 +546,9 @@ public:
 	using char_type = typename T::char_type;
 	using native_handle_type = std::FILE*;
 	constexpr basic_c_io_handle_impl()=default;
-	constexpr basic_c_io_handle_impl(native_handle_type fp2) noexcept:T{fp2}{}
+	template<typename native_hd>
+	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
+	constexpr basic_c_io_handle_impl(native_hd fp2) noexcept:T{fp2}{}
 	basic_c_io_handle_impl(basic_c_io_handle_impl const&)=delete;
 	basic_c_io_handle_impl& operator=(basic_c_io_handle_impl const&)=delete;
 	constexpr basic_c_io_handle_impl(basic_c_io_handle_impl&& b) noexcept : T{b.native_handle()}
@@ -587,10 +589,10 @@ public:
 	using T::native_handle;
 	using char_type=typename T::char_type;
 	using native_handle_type=typename T::native_handle_type;
-	basic_c_file_impl()=default;
+	constexpr basic_c_file_impl()=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	basic_c_file_impl(native_hd hd):T(hd){}
+	explicit constexpr basic_c_file_impl(native_hd hd):T(hd){}
 /*
 	basic_c_file_impl(std::string_view name,std::string_view mode):T(std::fopen(name.data(),mode.data()))
 	{
@@ -639,7 +641,7 @@ public:
 		basic_c_file_impl(native_interface,std::move(posix_handle),details::c_open_mode<om>::value.data()){}
 	basic_c_file_impl(basic_posix_io_handle<char_type>&& posix_handle,std::string_view mode):
 		basic_c_file_impl(native_interface,std::move(posix_handle),to_c_mode(from_c_mode(mode)).data()){}
-#if defined(__WINNT__) || defined(_MSC_VER)
+#if defined(_WIN32)
 //windows specific. open posix file from win32 io handle
 	basic_c_file_impl(basic_win32_io_handle<char_type>&& win32_handle,std::string_view mode):
 		basic_c_file_impl(basic_posix_file<char_type>(std::move(win32_handle),mode),mode)

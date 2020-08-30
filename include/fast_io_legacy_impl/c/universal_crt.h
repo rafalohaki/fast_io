@@ -41,6 +41,19 @@ namespace details::ucrt_hack
 static_assert(sizeof(FILE)==sizeof(char*));
 
 
+struct ucrt_stdio_stream_data_model
+{
+    char* ptr;
+    char*            base;
+    int              cnt;
+    long             flags;
+    long             file;
+    int              charbuf;
+    int              bufsiz;
+    char*            tmpfname;
+};
+
+
 template<std::integral T=char>
 inline [[gnu::may_alias]] T* get_fp_ptr(FILE* fp) noexcept
 {

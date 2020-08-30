@@ -372,6 +372,14 @@ inline constexpr raiter print_reserve_define(io_reserve_type_t<manip::line<T>>,r
 	*it=u8'\n';
 	return ++it;
 }
+namespace details
+{
+template<bool report_eof,typename T,typename... Args>
+concept test_normal_scan = requires(T t,Args&& ...args)
+{
+	details::normal_scan<report_eof>(t,std::forward<Args>(args)...);
+};
+}
 
 template<bool report_eof=false,input_stream input,typename ...Args>
 inline constexpr auto scan(input &&in,Args&& ...args)
@@ -389,10 +397,7 @@ inline constexpr auto scan(input &&in,Args&& ...args)
 		single_character_input_buffer<std::remove_cvref_t<input>> scib{in};
 		return scan<report_eof>(scib,std::forward<Args>(args)...);
 	}
-	else if constexpr(!requires()
-	{
-		details::normal_scan<report_eof>(in,std::forward<Args>(args)...);
-	})
+	else if constexpr(!details::test_normal_scan<report_eof,std::remove_cvref_t<input>,Args&&...>)
 	{
 		static_assert(!character_input_stream<input>,
 		"\n\n\tThe type is not defined for scanning. Please consider defining as with scan_define or space_scan_define.\n");
@@ -512,6 +517,15 @@ inline constexpr void scatter_print_with_reserve_recursive(char_type* ptr,
 	scatter_print_with_reserve_recursive(ptr,arr+1,std::forward<Args>(args)...);
 }
 
+
+
+
+template<typename T,typename... Args>
+concept test_print_control_line = requires(T t,Args&& ...args)
+{
+	((details::print_control_line(t,std::forward<Args>(args))),...);
+};
+
 template<bool line,output_stream output,typename ...Args>
 inline constexpr void print_fallback(output &out,Args&& ...args)
 {
@@ -548,10 +562,7 @@ inline constexpr void print_fallback(output &out,Args&& ...args)
 	{
 		using internal_buffer_type = internal_temporary_buffer<typename output::char_type>;
 		internal_buffer_type buffer;
-		if constexpr(requires(Args&& ...args)
-		{
-			((details::print_control_line(buffer,std::forward<Args>(args))),...);
-		})
+		if constexpr(test_print_control_line<internal_buffer_type,Args&&...>)
 		{
 			if constexpr(line)
 			{

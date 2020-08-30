@@ -304,7 +304,9 @@ public:
 	using char_type = ch_type;
 	using native_handle_type = void*;
 	constexpr basic_nt_io_handle() noexcept = default;
-	constexpr basic_nt_io_handle(native_handle_type hd) noexcept:basic_nt_io_observer<ch_type>(hd){}
+	template<typename native_hd>
+	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
+	constexpr basic_nt_io_handle(native_hd hd) noexcept:basic_nt_io_observer<ch_type>(hd){}
 	void reset(native_handle_type newhandle=nullptr) noexcept
 	{
 		if(this->native_handle())[[likely]]

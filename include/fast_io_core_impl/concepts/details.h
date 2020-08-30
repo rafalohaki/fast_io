@@ -133,21 +133,21 @@ concept redirect_stream_impl = requires(T& h)
 };
 
 template<typename T>
-concept memory_map_input_stream_impl = requires(T& in)
+concept memory_map_input_stream_impl = requires(T in)
 {
 	memory_map_in_handle(in);
 };
 
 template<typename T>
-concept memory_map_output_stream_impl = requires(T& out)
+concept memory_map_output_stream_impl = requires(T out)
 {
 	memory_map_out_handle(out);
 };
 
 template<typename T>
-concept status_stream_impl = requires(T&& stm)
+concept status_stream_impl = requires(T stm)
 {
-	typename std::remove_cvref_t<T>::char_type::status_type;
+	typename std::remove_cvref_t<T>::status_type;
 };
 
 
