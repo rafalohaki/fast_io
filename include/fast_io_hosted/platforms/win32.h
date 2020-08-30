@@ -626,7 +626,7 @@ public:
 		if constexpr ((om&open_mode::ate)!=open_mode::none)
 			seek_end_local();
 	}
-	explicit basic_win32_file(std::string_view filename,open_mode om,perms pm=static_cast<perms>(420)):basic_win32_io_handle<char_type>(nullptr)
+	explicit basic_win32_file(std::string_view filename,open_mode om,perms pm=static_cast<perms>(420))
 	{
 		auto const mode(details::calculate_win32_open_mode_with_perms(om,pm));
 		if((om&open_mode::inherit)==open_mode::none)
