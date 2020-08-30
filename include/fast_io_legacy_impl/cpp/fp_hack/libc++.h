@@ -66,8 +66,10 @@ inline FILE* fp_hack(T* stdbuf) noexcept
 {
 	using char_type = typename T::char_type;
 	using traits_type = typename T::traits_type;
+#ifdef __cpp_exceptions
 	try
 	{
+#endif
 		std::string_view stdin_type{typeid(std::__stdinbuf<char_type>).name()};
 		std::string_view my_type{typeid(*stdbuf).name()};
 		if(my_type==stdin_type)
@@ -78,8 +80,10 @@ inline FILE* fp_hack(T* stdbuf) noexcept
 		auto fbf{dynamic_cast<std::basic_filebuf<char_type,traits_type>*>(stdbuf)};
 		if(fbf)
 			return fp_hack(stdbuf);
+#ifdef __cpp_exceptions
 	}
 	catch(...){}
+#endif
 	errno=EBADF;
 	return nullptr;
 
