@@ -27,7 +27,7 @@ inline FILE* fp_hack(std::basic_filebuf<char_type,traits_type>* fbuf) noexcept
 #ifdef __cpp_rtti
 template<typename T>
 requires (std::same_as<T,std::basic_streambuf<typename T::char_type,typename T::traits_type>>)
-inline FILE* fp_hack(T* cio)
+inline FILE* fp_hack(T* cio) noexcept
 {
 	using filebuf_type = std::basic_filebuf<typename T::char_type,typename T::traits_type>;
 	auto fptr{dynamic_cast<filebuf_type*>(cio)};
