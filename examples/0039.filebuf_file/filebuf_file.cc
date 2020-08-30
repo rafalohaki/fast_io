@@ -1,5 +1,5 @@
 #include"../../include/fast_io.h"
-#include"../../include/fast_io_legacy_impl/cpp/filebuf_file.h"
+#include"../../include/fast_io_legacy.h"
 
 int main()
 {

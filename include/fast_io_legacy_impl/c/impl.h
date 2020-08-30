@@ -273,6 +273,11 @@ public:
 	}
 	explicit operator basic_posix_io_observer<char_type>() const noexcept
 	{
+		if(fp==nullptr)
+		{
+			errno=EBADF;
+			return {-1};
+		}
 		return basic_posix_io_observer<char_type>{
 #if defined(__WINNT__) || defined(_MSC_VER)
 			_fileno(fp)
@@ -423,27 +428,29 @@ public:
 	{
 		return fp;
 	}
-	explicit operator basic_posix_io_observer<char_type>() const
+	explicit operator basic_posix_io_observer<char_type>() const noexcept
 	{
-		auto fd(
+		if(fp==nullptr)
+		{
+			errno=EBADF;
+			return {-1};
+		}
+		return basic_posix_io_observer<char_type>{
 #if defined(__WINNT__) || defined(_MSC_VER)
-	_fileno(fp)
+			_fileno(fp)
 #elif defined(__NEWLIB__)
-	fp->_file
+			fp->_file
 #else
-	::fileno(fp)
+			::fileno(fp)
 #endif
-);
-		if(fd<0)
-			throw_posix_error();
-		return basic_posix_io_observer<char_type>{fd};
+		};
 	}
 #if defined(__WINNT__) || defined(_MSC_VER)
-	explicit operator basic_win32_io_observer<char_type>() const
+	explicit operator basic_win32_io_observer<char_type>() const noexcept
 	{
 		return static_cast<basic_win32_io_observer<char_type>>(static_cast<basic_posix_io_observer<char_type>>(*this));
 	}
-	explicit operator basic_nt_io_observer<char_type>() const
+	explicit operator basic_nt_io_observer<char_type>() const noexcept
 	{
 		return static_cast<basic_nt_io_observer<char_type>>(static_cast<basic_posix_io_observer<char_type>>(*this));
 	}

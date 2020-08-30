@@ -19,14 +19,18 @@ inline FILE* fp_hack(std::basic_filebuf<char_type,traits_type>* fbuf) noexcept
 #ifdef __cpp_rtti
 template<typename T>
 requires (std::same_as<T,std::basic_streambuf<typename T::char_type,typename T::traits_type>>)
-inline FILE* fp_hack(T* cio)
+inline FILE* fp_hack(T* cio) noexcept
 {
 	using char_type = typename T::char_type;
 	using traits_type = typename T::traits_type;
 	auto fbuf{dynamic_cast<std::basic_filebuf<char_type,traits_type>*>(cio)};
 	if(fbuf)
 		return fp_hack(fbuf);
-	return dynamic_cast<__gnu_cxx::stdio_sync_filebuf<char_type, traits_type>&>(*cio).file();
+	auto sync_fbuf=dynamic_cast<__gnu_cxx::stdio_sync_filebuf<char_type, traits_type>*>(cio);
+	if(sync_fbuf)
+		return sync_fbuf->file();
+	errno=EBADF;
+	return nullptr;
 }
 #endif
 }

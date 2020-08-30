@@ -62,18 +62,27 @@ inline FILE* fp_hack(std::basic_filebuf<char_type,traits_type>* fbuf) noexcept
 #ifdef __cpp_rtti
 template<typename T>
 requires (std::same_as<T,std::basic_streambuf<typename T::char_type,typename T::traits_type>>)
-inline FILE* fp_hack(T* cio)
+inline FILE* fp_hack(T* stdbuf) noexcept
 {
 	using char_type = typename T::char_type;
 	using traits_type = typename T::traits_type;
-	std::string_view stdin_type{typeid(std::__stdinbuf<char_type>).name()};
-	std::string_view my_type{typeid(*stdbuf).name()};
-	if(my_type==stdin_type)
-		return stdinbuf_stdoutbuf_fp_hack(stdbuf);
-	std::string_view stdout_type{typeid(std::__stdoutbuf<char_type>).name()};
-	if(my_type==stdout_type)
-		return stdinbuf_stdoutbuf_fp_hack(stdbuf);
-	return fp_hack(std::addressof(dynamic_cast<std::basic_filebuf<char_type,traits_type>&>(*stdbuf)));
+	try
+	{
+		std::string_view stdin_type{typeid(std::__stdinbuf<char_type>).name()};
+		std::string_view my_type{typeid(*stdbuf).name()};
+		if(my_type==stdin_type)
+			return stdinbuf_stdoutbuf_fp_hack(stdbuf);
+		std::string_view stdout_type{typeid(std::__stdoutbuf<char_type>).name()};
+		if(my_type==stdout_type)
+			return stdinbuf_stdoutbuf_fp_hack(stdbuf);
+		auto fbf{dynamic_cast<std::basic_filebuf<char_type,traits_type>*>(stdbuf)};
+		if(fbf)
+			return fp_hack(stdbuf);
+	}
+	catch(...){}
+	errno=EBADF;
+	return nullptr;
+
 }
 #endif
 }

@@ -34,25 +34,25 @@ public:
 		rdb=newrdb;
 	}
 #if defined(__GLIBCXX__) || defined(__LIBCPP_VERSION)  || defined(_MSVC_STL_UPDATE)
-	explicit operator basic_c_io_observer_unlocked<char_type>()
+	explicit operator basic_c_io_observer_unlocked<char_type>() const noexcept
 	{
 		return basic_c_io_observer_unlocked<char_type>{details::streambuf_hack::fp_hack(rdb)};
 	}
-	explicit operator basic_c_io_observer<char_type>()
+	explicit operator basic_c_io_observer<char_type>() const noexcept
 	{
 		return basic_c_io_observer<char_type>{details::streambuf_hack::fp_hack(rdb)};
 	}
-	explicit operator basic_posix_io_observer<char_type>()
+	explicit operator basic_posix_io_observer<char_type>() const noexcept
 	{
 		return static_cast<basic_posix_io_observer<char_type>>(static_cast<basic_c_io_observer<char_type>>(*this));
 	}
-#if defined(__WINNT__) || defined(_MSC_VER)
-	explicit operator basic_win32_io_observer<char_type>()
+#if defined(_WIN32)
+	explicit operator basic_win32_io_observer<char_type>() const noexcept
 	{
 		return static_cast<basic_win32_io_observer<char_type>>
 		(static_cast<basic_posix_io_observer<char_type>>(*this));
 	}
-	explicit operator basic_nt_io_observer<char_type>()
+	explicit operator basic_nt_io_observer<char_type>() const noexcept
 	{
 		return static_cast<basic_nt_io_observer<char_type>>
 		(static_cast<basic_posix_io_observer<char_type>>(*this));
