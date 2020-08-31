@@ -15,6 +15,8 @@ using basic_onative_file = output_file_wrapper<basic_native_file<char_type>>;
 template<std::integral char_type>
 using basic_ionative_file = io_file_wrapper<basic_native_file<char_type>>;
 
+using dir_file = io_dir_file_wrapper<basic_native_file<char>>;
+
 template<std::integral char_type>
 using basic_ibuf_file = basic_ibuf<basic_inative_file<char_type>>;
 template<std::integral char_type>

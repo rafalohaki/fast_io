@@ -696,7 +696,7 @@ public:
 	{}
 
 
-#if defined (__linux__)
+#if defined (__linux__) || defined(_WIN32)
 	template<open_mode om,typename... Args>
 	basic_c_file_impl(io_async_t,io_async_observer ioa,std::string_view file,open_interface_t<om>,Args&& ...args):
 		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_async,ioa,file,open_interface<om>,std::forward<Args>(args)...),
