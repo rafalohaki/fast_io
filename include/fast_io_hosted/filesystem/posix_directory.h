@@ -117,7 +117,7 @@ public:
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	constexpr posix_directory_file(native_hd dirp):posix_directory_io_handle(dirp){}
-	posix_directory_file(posix_directory_file&& pioh):posix_directory_io_handle(fdopendir(pioh.fd))
+	posix_directory_file(posix_io_handle&& pioh):posix_directory_io_handle(fdopendir(pioh.native_handle()))
 	{
 		if(this->native_handle()==nullptr)
 			throw_posix_error();
