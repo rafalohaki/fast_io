@@ -68,20 +68,21 @@ follow = 1 << 10,
 hidden = 1 << 11,
 in = 1 << 12,
 inherit = 1 << 13,
-no_atime = 1 << 14,
-no_block = 1 << 15,
-no_ctty = 1 << 16,
-no_recall = 1 << 17,
-normal = 1 << 18,
-offline = 1 << 19,
-out = 1 << 20,
-posix_semantics = 1 << 21,
-random_access = 1 << 22,
-session_aware = 1 << 23,
-sync = 1 << 24,
-system = 1 << 25,
-temporary = 1 << 26,
-trunc = 1 << 27
+large_file = 1 << 14,
+no_atime = 1 << 15,
+no_block = 1 << 16,
+no_ctty = 1 << 17,
+no_recall = 1 << 18,
+normal = 1 << 19,
+offline = 1 << 20,
+out = 1 << 21,
+posix_semantics = 1 << 22,
+random_access = 1 << 23,
+session_aware = 1 << 24,
+sync = 1 << 25,
+system = 1 << 26,
+temporary = 1 << 27,
+trunc = 1 << 28
 };
 
 constexpr open_mode operator&(open_mode x, open_mode y) noexcept
@@ -295,5 +296,11 @@ struct io_temp_t
 explicit constexpr io_temp_t()=default;
 };
 inline constexpr io_temp_t io_temp{};
+
+struct io_at_t
+{
+explicit constexpr io_at_t()=default;
+};
+inline constexpr io_at_t io_at{};
 
 }

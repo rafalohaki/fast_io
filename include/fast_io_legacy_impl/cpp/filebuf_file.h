@@ -133,7 +133,21 @@ This function never fails. but what if fdopen fails?
 		basic_filebuf_file(basic_posix_file<char_type>(file,mode,std::forward<Args>(args)...),mode)
 	{}
 
-#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
+	template<open_mode om,typename... Args>
+	basic_filebuf_file(io_at_t,native_io_observer niob,std::string_view file,open_interface_t<om>,Args&& ...args):
+		basic_filebuf_file(basic_posix_file<char_type>(io_at,niob,file,open_interface<om>,std::forward<Args>(args)...),
+			open_interface<om>)
+	{}
+	template<typename... Args>
+	basic_filebuf_file(io_at_t,native_io_observer niob,std::string_view file,open_mode om,Args&& ...args):
+		basic_filebuf_file(basic_posix_file<char_type>(io_at,niob,file,om,std::forward<Args>(args)...),om)
+	{}
+	template<typename... Args>
+	basic_filebuf_file(io_at_t,native_io_observer niob,std::string_view file,std::string_view mode,Args&& ...args):
+		basic_filebuf_file(basic_posix_file<char_type>(io_at,niob,file,mode,std::forward<Args>(args)...),mode)
+	{}
+
+#if defined (__linux__)
 	template<open_mode om,typename... Args>
 	basic_filebuf_file(io_async_t,io_async_observer ioa,std::string_view file,open_interface_t<om>,Args&& ...args):
 		basic_filebuf_file(basic_posix_file<char_type>(io_async,ioa,file,open_interface<om>,std::forward<Args>(args)...),
@@ -146,6 +160,20 @@ This function never fails. but what if fdopen fails?
 	template<typename... Args>
 	basic_filebuf_file(io_async_t,io_async_observer ioa,std::string_view file,std::string_view mode,Args&& ...args):
 		basic_filebuf_file(basic_posix_file<char_type>(io_async,ioa,file,mode,std::forward<Args>(args)...),mode)
+	{}
+
+	template<open_mode om,typename... Args>
+	basic_filebuf_file(io_async_t,io_async_observer ioa,io_at_t,native_io_observer niob,std::string_view file,open_interface_t<om>,Args&& ...args):
+		basic_filebuf_file(basic_posix_file<char_type>(io_async,ioa,io_at,niob,file,open_interface<om>,std::forward<Args>(args)...),
+			open_interface<om>)
+	{}
+	template<typename... Args>
+	basic_filebuf_file(io_async_t,io_async_observer ioa,io_at_t,native_io_observer niob,std::string_view file,open_mode om,Args&& ...args):
+		basic_filebuf_file(basic_posix_file<char_type>(io_async,ioa,io_at,niob,file,om,std::forward<Args>(args)...),om)
+	{}
+	template<typename... Args>
+	basic_filebuf_file(io_async_t,io_async_observer ioa,io_at_t,native_io_observer niob,std::string_view file,std::string_view mode,Args&& ...args):
+		basic_filebuf_file(basic_posix_file<char_type>(io_async,ioa,io_at,niob,file,mode,std::forward<Args>(args)...),mode)
 	{}
 #endif
 

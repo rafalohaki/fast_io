@@ -267,7 +267,7 @@ public:
 	{
 		return fp;
 	}
-	explicit operator bool() const noexcept
+	explicit constexpr operator bool() const noexcept
 	{
 		return fp;
 	}
@@ -680,19 +680,49 @@ public:
 		basic_c_file_impl(basic_posix_file<typename T::char_type>(file,mode,std::forward<Args>(args)...),mode)
 	{}
 
-#if defined (__linux__) || defined(__WINNT__) || defined(_MSC_VER)
+
 	template<open_mode om,typename... Args>
-	basic_c_file_impl(io_async_t,io_async_observer ioa,std::string_view file,open_interface_t<om>,Args&& ...args):
-		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_async,ioa,file,open_interface<om>,std::forward<Args>(args)...),
+	basic_c_file_impl(io_at_t,native_io_observer niob,std::string_view file,open_interface_t<om>,Args&& ...args):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_at,niob,file,open_interface<om>,std::forward<Args>(args)...),
 			open_interface<om>)
 	{}
 	template<typename... Args>
-	basic_c_file_impl(io_async_t,io_async_observer ioa,std::string_view file,open_mode om,Args&& ...args):
-		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_async,ioa,file,om,std::forward<Args>(args)...),om)
+	basic_c_file_impl(io_at_t,native_io_observer niob,std::string_view file,open_mode om,Args&& ...args):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_at,niob,file,om,std::forward<Args>(args)...),om)
 	{}
 	template<typename... Args>
-	basic_c_file_impl(io_async_t,io_async_observer ioa,std::string_view file,std::string_view mode,Args&& ...args):
-		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_async,ioa,file,mode,std::forward<Args>(args)...),mode)
+	basic_c_file_impl(io_at_t,native_io_observer niob,std::string_view file,std::string_view mode,Args&& ...args):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_at,niob,file,mode,std::forward<Args>(args)...),mode)
+	{}
+
+
+#if defined (__linux__)
+	template<open_mode om,typename... Args>
+	basic_c_file_impl(io_async_t,io_async_observer ioa,io_at_t,native_io_observer niob,std::string_view file,open_interface_t<om>,Args&& ...args):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_async,ioa,io_at,niob,file,open_interface<om>,std::forward<Args>(args)...),
+			open_interface<om>)
+	{}
+	template<typename... Args>
+	basic_c_file_impl(io_async_t,io_async_observer ioa,io_at_t,native_io_observer niob,std::string_view file,open_mode om,Args&& ...args):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_async,ioa,io_at,niob,file,om,std::forward<Args>(args)...),om)
+	{}
+	template<typename... Args>
+	basic_c_file_impl(io_async_t,io_async_observer ioa,io_at_t,native_io_observer niob,std::string_view file,std::string_view mode,Args&& ...args):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_async,ioa,io_at,niob,file,mode,std::forward<Args>(args)...),mode)
+	{}
+
+	template<open_mode om,typename... Args>
+	basic_c_file_impl(io_async_t,io_async_observer ioa,io_at_t,native_io_observer niob,std::string_view file,open_interface_t<om>,Args&& ...args):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_async,ioa,io_at,niob,file,open_interface<om>,std::forward<Args>(args)...),
+			open_interface<om>)
+	{}
+	template<typename... Args>
+	basic_c_file_impl(io_async_t,io_async_observer ioa,io_at_t,native_io_observer niob,std::string_view file,open_mode om,Args&& ...args):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_async,ioa,io_at,niob,file,om,std::forward<Args>(args)...),om)
+	{}
+	template<typename... Args>
+	basic_c_file_impl(io_async_t,io_async_observer ioa,io_at_t,native_io_observer niob,std::string_view file,std::string_view mode,Args&& ...args):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_async,ioa,io_at,niob,file,mode,std::forward<Args>(args)...),mode)
 	{}
 #endif
 

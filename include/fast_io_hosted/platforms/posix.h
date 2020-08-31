@@ -146,6 +146,10 @@ inline constexpr int calculate_posix_open_mode(open_mode value)
 	else
 		mode |= _O_RANDOM;
 #endif
+#ifdef O_LARGEFILE
+	if((value&open_mode::large_file)!=open_mode::none)
+		mode |= O_LARGEFILE;
+#endif
 	using utype = typename std::underlying_type<open_mode>::type;
 	constexpr auto supported_values{static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::in)};
 	switch(static_cast<utype>(value)&static_cast<utype>(supported_values))
@@ -594,6 +598,31 @@ public:
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	constexpr basic_posix_file(native_hd fd) noexcept: basic_posix_io_handle<ch_type>(fd){}
+
+
+#if !defined(_WIN32)&&!defined(__NEWLIB__)
+	template<typename ...Args>
+	requires requires(Args&& ...args)
+	{
+		{::openat(std::forward<Args>(args)...)}->std::same_as<int>;
+	}
+	basic_posix_file(io_at_t,native_interface_t,Args&& ...args):basic_posix_io_handle<ch_type>(
+#if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
+		system_call<
+#if defined(__x86_64__)
+		257
+#elif defined(__arm64__) || defined(__aarch64__)
+		56
+#endif
+		,int>
+#else
+		::openat
+#endif
+		(std::forward<Args>(args)...))
+	{
+		system_call_throw_error(native_handle());
+	}
+#endif
 	template<typename ...Args>
 	requires requires(Args&& ...args)
 	{
@@ -627,12 +656,9 @@ public:
 #endif
 	std::forward<Args>(args)...))
 	{
-/*	if(native_handle()<0)
-		throw_posix_error();
-*/
 		system_call_throw_error(native_handle());
 	}
-#if defined(__WINNT__) || defined(_MSC_VER)
+#if defined(_WIN32)
 //windows specific. open posix file from win32 io handle
 	template<open_mode om>
 	basic_posix_file(basic_win32_io_handle<char_type>&& hd,open_interface_t<om>):
@@ -700,10 +726,42 @@ public:
 		if((om&open_mode::ate)!=open_mode::none)
 			seek_end_local();
 	}
-	basic_posix_file(std::string_view file,std::string_view mode,perms pm=static_cast<perms>(436)):basic_posix_file(file,from_c_mode(mode),pm){}
+	basic_posix_file(std::string_view file,std::string_view mode,perms pm=static_cast<perms>(436)):basic_posix_file(file.data(),from_c_mode(mode),pm){}
+
+#ifndef __NEWLIB__
+	template<open_mode om,perms pm>
+	basic_posix_file(io_at_t,basic_posix_io_observer<char> diriob,std::string_view file,open_interface_t<om>,perms_interface_t<pm>):basic_posix_file(io_at,native_interface,diriob.fd,file.data(),details::posix_file_openmode<om>::mode,static_cast<mode_t>(pm))
+	{
+		if constexpr ((om&open_mode::ate)!=open_mode::none)
+			seek_end_local();
+	}
+	template<open_mode om>
+	basic_posix_file(io_at_t,basic_posix_io_observer<char> diriob,std::string_view file,open_interface_t<om>):basic_posix_file(io_at,native_interface,diriob.fd,file.data(),details::posix_file_openmode<om>::mode,static_cast<mode_t>(436))
+	{
+		if constexpr ((om&open_mode::ate)!=open_mode::none)
+			seek_end_local();
+	}
+	template<open_mode om>
+	basic_posix_file(io_at_t,basic_posix_io_observer<char> diriob,std::string_view file,open_interface_t<om>,perms pm):basic_posix_file(io_at,native_interface,diriob.fd,file.data(),details::posix_file_openmode<om>::mode,static_cast<mode_t>(pm))
+	{
+		if constexpr ((om&open_mode::ate)!=open_mode::none)
+			seek_end_local();
+	}
+	//potential support modification prv in the future
+	basic_posix_file(io_at_t,basic_posix_io_observer<char> diriob,std::string_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(io_at,native_interface,diriob.fd,file.data(),details::calculate_posix_open_mode(om),static_cast<mode_t>(pm))
+	{
+		if((om&open_mode::ate)!=open_mode::none)
+			seek_end_local();
+	}
+	basic_posix_file(io_at_t,basic_posix_io_observer<char> diriob,std::string_view file,std::string_view mode,perms pm=static_cast<perms>(436)):basic_posix_file(io_at,native_interface,diriob.fd,file.data(),from_c_mode(mode),pm){}
+#endif
+
 #ifdef __linux__
 	template<typename ...Args>
 	basic_posix_file(io_async_t,io_uring_observer,std::string_view file,Args&& ...args):basic_posix_file(file,std::forward<Args>(args)...){}
+
+	template<typename ...Args>
+	basic_posix_file(io_async_t,io_uring_observer,io_at,basic_posix_io_observer<char> diriob,std::string_view file,Args&& ...args):basic_posix_file(io_at,diriob,file,std::forward<Args>(args)...){}
 
 /*
 To verify whether O_TMPFILE is a thing on FreeBSD. https://github.com/FreeRDP/FreeRDP/pull/6268
