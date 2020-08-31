@@ -104,7 +104,7 @@ public:
 		{
 			if(::closedir(this->native_handle())==-1)
 				throw_posix_error();
-			this->native_handle()=-1;
+			this->native_handle()=nullptr;
 		}
 	}
 };
@@ -149,7 +149,7 @@ enum {
 
 inline void rewind(posix_directory_io_observer pdiob) noexcept
 {
-	rewinddir(piob.dirp);	
+	rewinddir(pdiob.dirp);	
 }
 
 inline void seek(posix_directory_io_observer pdiob,std::common_type_t<std::int64_t,std::ptrdiff_t> offset)
@@ -164,8 +164,7 @@ inline void seek(posix_directory_io_observer pdiob,std::common_type_t<std::int64
 
 inline std::common_type_t<std::uint64_t,std::size_t> tell(posix_directory_io_observer pdiob)
 {
-	static_assert(sizeof(long)<=sizeof(std::common_type_t<std::uint64_t,std::size_t>));
-	auto ret{telldir(piob.dirp)};
+	auto ret{telldir(pdiob.dirp)};
 	if(ret==-1)
 		throw_posix_error();
 	return ret;
