@@ -149,7 +149,7 @@ enum {
 
 inline void rewind(posix_directory_io_observer pdiob) noexcept
 {
-	rewinddir(pdiob.dirp);	
+	::rewinddir(pdiob.dirp);	
 }
 
 inline void seek(posix_directory_io_observer pdiob,std::common_type_t<std::int64_t,std::ptrdiff_t> offset)
@@ -159,12 +159,12 @@ inline void seek(posix_directory_io_observer pdiob,std::common_type_t<std::int64
 		if(static_cast<std::common_type_t<std::int64_t,std::ptrdiff_t>>(std::numeric_limits<long>::max())<offset)
 			throw_posix_error(EFBIG);
 	}
-	seekdir(pdiob.dirp,static_cast<long>(offset));	
+	::seekdir(pdiob.dirp,static_cast<long>(offset));	
 }
 
 inline std::common_type_t<std::uint64_t,std::size_t> tell(posix_directory_io_observer pdiob)
 {
-	auto ret{telldir(pdiob.dirp)};
+	auto ret{::telldir(pdiob.dirp)};
 	if(ret==-1)
 		throw_posix_error();
 	return ret;
