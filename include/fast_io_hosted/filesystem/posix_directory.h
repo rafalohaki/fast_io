@@ -7,7 +7,7 @@ namespace fast_io
 class posix_directory_io_observer
 {
 public:
-	using native_handle_type = struct DIR*;
+	using native_handle_type = DIR*;
 	native_handle_type dirp{};
 	constexpr auto& native_handle() noexcept
 	{
