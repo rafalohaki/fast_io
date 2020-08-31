@@ -7,7 +7,7 @@ namespace fast_io
 class posix_directory_io_observer
 {
 public:
-	using native_handle_type = struct ::dirent*;
+	using native_handle_type = struct DIR*;
 	native_handle_type dirp{};
 	constexpr auto& native_handle() noexcept
 	{
@@ -45,7 +45,7 @@ public:
 namespace details
 {
 
-inline struct ::dirent* sys_dup_dir(struct ::dirent* dirp)
+inline DIR* sys_dup_dir(DIR* dirp)
 {
 	if(dirfd==nullptr)
 		throw_posix_error(EBADF);
@@ -67,7 +67,7 @@ inline struct ::dirent* sys_dup_dir(struct ::dirent* dirp)
 class posix_directory_io_handle:public posix_directory_io_observer
 {
 public:
-	using native_handle_type = struct ::dirent*;
+	using native_handle_type = DIR*;
 	constexpr posix_directory_io_handle()=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
@@ -112,7 +112,7 @@ public:
 class posix_directory_file:public posix_directory_io_handle
 {
 public:
-	using native_handle_type = struct ::dirent*;
+	using native_handle_type = DIR*;
 	constexpr posix_directory_file()=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
