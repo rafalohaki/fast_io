@@ -153,7 +153,7 @@ struct socket_address_storage
 
 
 //use memcpy is THE only way to do correct ip address punning
-inline constexpr auto to_socket_address_storage(ipv4 const& add,std::uint16_t port)
+inline auto to_socket_address_storage(ipv4 const& add,std::uint16_t port)
 {
 	sockaddr_in v4st{};
 	v4st.sin_family=static_cast<sock::details::address_family>(fast_io::sock::family::ipv4);
@@ -305,7 +305,7 @@ inline constexpr void space_scan_define(input& in,ipv6& v6)
 		std::fill(v6.storage.begin()+double_npos,std::copy_backward(v6.storage.begin()+double_npos,v6.storage.begin()+copy_mid,v6.storage.end()),0);
 }
 
-inline constexpr auto to_socket_address_storage(ipv6 add,std::uint16_t port)
+inline auto to_socket_address_storage(ipv6 add,std::uint16_t port)
 {
 	sockaddr_in6 v6st{};
 	v6st.sin6_family=static_cast<sock::details::address_family>(fast_io::sock::family::ipv6);

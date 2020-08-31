@@ -153,7 +153,7 @@ inline void closesocket_ignore_error(Args&& ...args) noexcept
 	auto func{::GetProcAddress(ws2_32_dll.get(),"closesocket")};
 	if(func==nullptr)[[unlikely]]
 		fast_terminate();
-	bit_cast<int __stdcall(*)(socket_type)>(func)(std::forward<Args>(args)...);
+	bit_cast<decltype(::closesocket)*>(func)(std::forward<Args>(args)...);
 }
 
 template<typename ...Args>
