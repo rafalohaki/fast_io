@@ -761,7 +761,7 @@ public:
 	basic_posix_file(io_async_t,io_uring_observer,std::string_view file,Args&& ...args):basic_posix_file(file,std::forward<Args>(args)...){}
 
 	template<typename ...Args>
-	basic_posix_file(io_async_t,io_uring_observer,io_at,basic_posix_io_observer<char> diriob,std::string_view file,Args&& ...args):basic_posix_file(io_at,diriob,file,std::forward<Args>(args)...){}
+	basic_posix_file(io_async_t,io_uring_observer,io_at_t,basic_posix_io_observer<char> diriob,std::string_view file,Args&& ...args):basic_posix_file(io_at,diriob,file,std::forward<Args>(args)...){}
 
 /*
 To verify whether O_TMPFILE is a thing on FreeBSD. https://github.com/FreeRDP/FreeRDP/pull/6268
