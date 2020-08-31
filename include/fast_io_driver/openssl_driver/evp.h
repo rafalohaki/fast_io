@@ -52,10 +52,6 @@ public:
 	{
 		return EVP_PKEY_up_ref(key);
 	}
-	inline constexpr void reset(native_handle_type newkey=nullptr) noexcept
-	{
-		key=newkey;
-	}
 };
 
 class evp_pkey:public evp_pkey_observer
@@ -123,10 +119,6 @@ public:
 		ctx=nullptr;
 		return temp;
 	}
-	constexpr void reset(native_handle_type newctx=nullptr) noexcept
-	{
-		ctx=newctx;
-	}
 };
 
 class evp_pkey_ctx:public evp_pkey_ctx_observer
@@ -173,6 +165,12 @@ public:
 		this->native_handle()=other.native_handle();
 		other.native_handle()=nullptr;
 		return *this;
+	}
+	void reset(native_handle_type newctx=nullptr) noexcept
+	{
+		if(this->native_handle())[[likely]]
+			EVP_PKEY_CTX_free(this->native_handle());
+		this->native_handle()=newctx;
 	}
 	~evp_pkey_ctx()
 	{

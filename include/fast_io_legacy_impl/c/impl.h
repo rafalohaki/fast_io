@@ -300,10 +300,6 @@ public:
 		fp=nullptr;
 		return temp;
 	}
-	inline constexpr void reset(native_handle_type newfp=nullptr) noexcept
-	{
-		fp=newfp;
-	}
 };
 
 template<std::integral ch_type>
@@ -460,10 +456,6 @@ public:
 		auto temp{fp};
 		fp=nullptr;
 		return temp;
-	}
-	inline constexpr void reset(native_handle_type newfp=nullptr) noexcept
-	{
-		fp=newfp;
 	}
 };
 

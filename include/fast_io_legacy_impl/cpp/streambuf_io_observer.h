@@ -29,10 +29,6 @@ public:
 	{
 		return rdb;
 	}
-	inline constexpr void reset(native_handle_type newrdb=nullptr) noexcept
-	{
-		rdb=newrdb;
-	}
 #if defined(__GLIBCXX__) || defined(__LIBCPP_VERSION)  || defined(_MSVC_STL_UPDATE)
 	explicit operator basic_c_io_observer_unlocked<char_type>() const noexcept
 	{

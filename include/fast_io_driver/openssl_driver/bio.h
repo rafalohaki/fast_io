@@ -136,12 +136,7 @@ public:
 	{
 		std::FILE* fp{};
 		BIO_get_fp(bio,std::addressof(fp));
-		return {fp};
-	}
-	inline constexpr void reset(native_handle_type newbio=nullptr) noexcept
-	{
-		bio=newbio;
-	}
+		retu
 	explicit operator basic_posix_io_observer<char_type>() const
 	{
 		int fd{};

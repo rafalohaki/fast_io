@@ -338,10 +338,6 @@ public:
 		handle=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
 		return temp;
 	}
-	inline constexpr void reset(native_handle_type newhandle=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))) noexcept
-	{
-		handle=newhandle;
-	}
 };
 
 template<std::integral ch_type>

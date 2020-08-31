@@ -178,10 +178,6 @@ locale_t
 		loc=static_cast<native_handle_type>(0);
 		return d;
 	}
-	inline constexpr void reset(native_handle_type newloc={}) noexcept
-	{
-		loc=newloc;
-	}
 };
 
 class c_locale_handle:public c_locale_observer

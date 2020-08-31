@@ -139,10 +139,6 @@ public:
 	{
 		return io_ptr;
 	}
-	inline constexpr void reset(native_handle_type newptr=nullptr) noexcept
-	{
-		io_ptr=newptr;
-	}
 };
 #ifdef __cpp_rtti
 template<typename T,std::integral char_type>

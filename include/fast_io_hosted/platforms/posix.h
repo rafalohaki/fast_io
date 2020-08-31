@@ -224,10 +224,6 @@ public:
 		ring=nullptr;
 		return temp;
 	}
-	constexpr void reset(native_handle_type newring=nullptr)
-	{
-		ring=newring;
-	}
 };
 using io_async_observer=io_uring_observer;
 #endif
@@ -266,10 +262,6 @@ public:
 		auto temp{fd};
 		fd=-1;
 		return temp;
-	}
-	inline constexpr void reset(native_handle_type newfd=-1) noexcept
-	{
-		fd=newfd;
 	}
 };
 

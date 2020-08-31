@@ -36,10 +36,6 @@ public:
 		dirp=nullptr;
 		return temp;
 	}
-	inline constexpr void reset(native_handle_type newdirp=nullptr) noexcept
-	{
-		dirp=newdirp;
-	}
 };
 
 namespace details
@@ -92,7 +88,7 @@ public:
 		this->native_handle()=other.release();
 		return *this;
 	}
-	inline constexpr void reset(native_handle_type dirp=nullptr) noexcept
+	inline void reset(native_handle_type dirp=nullptr) noexcept
 	{
 		if(this->native_handle())[[likely]]
 			::closedir(this->native_handle());
@@ -168,6 +164,104 @@ inline std::common_type_t<std::uint64_t,std::size_t> tell(posix_directory_io_obs
 	if(ret==-1)
 		throw_posix_error();
 	return ret;
+}
+
+struct posix_directory_entry
+{
+	struct dirent* entry{};
+};
+
+inline constexpr std::string_view filename(posix_directory_entry pioe) noexcept
+{
+	return pioe.entry->d_name;
+}
+
+inline constexpr std::common_type_t<std::size_t,std::uint64_t> inode(posix_directory_entry pioe) noexcept
+{
+	return pioe.entry->d_ino;
+}
+
+inline constexpr file_type type(posix_directory_entry pioe) noexcept
+{
+	switch(pioe.entry->d_type)
+	{
+	case DT_BLK:
+		return file_type::block;
+	case DT_CHR:
+		return file_type::character;
+	case DT_DIR:
+		return file_type::directory;
+	case DT_FIFO:
+		return file_type::fifo;
+	case DT_LNK:
+		return file_type::symlink:
+	case DT_REG:
+		return file_type::regular;
+	case DT_SOCK:
+		return file_type::socket;
+	case DT_UNKNOWN:
+		return file_type::unknown;
+	default:
+		return file_type::not_found;
+	};
+}
+
+struct posix_directory_iterator
+{
+	DIR* dirp{};
+	struct dirent* entry{};
+};
+
+struct posix_directory_generator
+{
+	DIR* dirp{};
+};
+
+inline posix_directory_entry operator*(posix_directory_iterator pdit) noexcept
+{
+	return {pdit.entry};
+}
+
+inline posix_directory_iterator& operator++(posix_directory_iterator& pdit)
+{
+	errno=0;
+	pdit.entry=readdir(pdit.dirp);
+	if(pdit.entry==nullptr&&errno)
+		throw_posix_error();
+	return *this;
+}
+
+inline constexpr posix_directory_iterator cbegin(posix_directory_generator pdg)
+{
+	posix_directory_iterator pdit{pdg};
+	++pdit;
+	return pdit;
+}
+
+inline constexpr std::default_sentinal_t cend(posix_directory_generator) noexcept
+{
+	return {};
+}
+
+inline constexpr bool operator==(std::default_sentinel_t, posix_directory_iterator const& b) noexcept
+{
+	return b.entry == nullptr;
+}
+inline constexpr bool operator==(posix_directory_iterator const& b, std::default_sentinel_t) noexcept
+{
+	return b.entry == nullptr;
+}
+inline constexpr bool operator!=(std::default_sentinel_t, posix_directory_iterator const& b) noexcept
+{
+	return b.entry;
+}
+inline constexpr bool operator!=(posix_directory_iterator const& b, std::default_sentinel_t) noexcept
+{
+	return b.entry;
+}
+inline constexpr posix_directory_generator generator(posix_directory_io_observer piob) noexcept
+{
+	return {piob};
 }
 
 }

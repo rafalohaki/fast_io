@@ -61,10 +61,6 @@ public:
 		handle={};
 		return temp;
 	}
-	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
-	{
-		handle=newhandle;
-	}
 };
 
 class iocp_overlapped:public iocp_overlapped_observer

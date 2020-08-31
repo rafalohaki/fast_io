@@ -216,11 +216,6 @@ public:
 	{
 		return base_addr;
 	}
-	inline constexpr void reset(native_handle_type newhandle=nullptr, base_address_type newaddress=nullptr) noexcept
-	{
-		handle=newhandle;
-		base_addr=newaddress;
-	}
 };
 
 template<std::integral ch_type>

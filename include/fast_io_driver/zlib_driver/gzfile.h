@@ -84,10 +84,6 @@ public:
 	{
 		return {details::hack_gz_file_fd(gzfile)};
 	}
-	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
-	{
-		gzfile=newhandle;
-	}
 #if defined(__WINNT__) || defined(_MSC_VER)
 	explicit operator basic_win32_io_observer<char_type>() const
 	{

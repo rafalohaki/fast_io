@@ -32,10 +32,6 @@ public:
 		phandle=nullptr;
 		return temp;
 	}
-	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
-	{
-		phandle=newhandle;
-	}
 };
 
 
@@ -68,6 +64,12 @@ public:
 			mcf.native_handle()=nullptr;
 		}
 		return *this;
+	}
+
+	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
+	{
+		delete this->native_handle();
+		this->native_handle()=newhandle;
 	}
 };
 

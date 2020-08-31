@@ -27,10 +27,6 @@ public:
 		soc=sock::details::invalid_socket;
 		return temp;
 	}
-	inline constexpr void reset(native_handle_type newsoc=sock::details::invalid_socket) noexcept
-	{
-		soc=newsoc;
-	}
 	inline constexpr auto& native_handle() const noexcept
 	{	
 		return soc;

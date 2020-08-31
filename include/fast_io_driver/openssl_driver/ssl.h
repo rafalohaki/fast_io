@@ -28,10 +28,6 @@ public:
 		s={};
 		return temp;
 	}
-	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
-	{
-		s=newhandle;
-	}
 };
 
 template<std::integral ch_type,std::integral ch_type1,std::integral ch_type2>

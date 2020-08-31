@@ -59,10 +59,6 @@ public:
 		handle={};
 		return temp;
 	}
-	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
-	{
-		handle=newhandle;
-	}
 };
 
 class io_uring_overlapped:public io_uring_overlapped_observer

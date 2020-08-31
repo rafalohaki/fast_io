@@ -250,10 +250,6 @@ public:
 		handle=nullptr;
 		return temp;
 	}
-	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
-	{
-		handle=newhandle;
-	}
 };
 
 template<std::integral ch_type,std::contiguous_iterator Iter>

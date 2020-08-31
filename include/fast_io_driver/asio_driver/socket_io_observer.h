@@ -24,10 +24,6 @@ public:
 	{
 		return handle;
 	}
-	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
-	{
-		handle=newhandle;
-	}
 	inline constexpr native_handle_type release() noexcept
 	{
 		auto temp{handle};
