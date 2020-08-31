@@ -21,7 +21,7 @@ public:
 	{
 		return dirp;
 	}
-	explicit operator basic_posix_io_observer<char>() const noexcept
+	operator basic_posix_io_observer<char>() const noexcept
 	{
 		if(dirfd==nullptr)
 		{
@@ -123,7 +123,7 @@ public:
 			throw_posix_error();
 		pioh.release();
 	}
-	posix_directory_file(std::string_view filename):posix_directory_file(posix_file(filename,open_interface<open_mode::in|open_mode::no_block|open_mode::directory|open_mode::large_file>))
+	posix_directory_file(std::string_view filename):posix_directory_file(posix_file(filename,open_interface<open_mode::in|open_mode::no_block|open_mode::directory|open_mode::binary|open_mode::large_file>))
 	{
 /*
 https://code.woboq.org/userspace/glibc/sysdeps/posix/opendir.c.html
@@ -132,6 +132,9 @@ enum {
   opendir_oflags = O_RDONLY|O_NDELAY|O_DIRECTORY|O_LARGEFILE|O_CLOEXEC
 };
 */
+	}
+	posix_directory_file(io_at_t,native_io_observer niob,std::string_view filename):posix_directory_file(posix_file(io_at,niob,filename,open_interface<open_mode::in|open_mode::no_block|open_mode::directory|open_mode::binary|open_mode::large_file>))
+	{
 	}
 	posix_directory_file(posix_directory_file const&) = default;
 	posix_directory_file& operator=(posix_directory_file const&) = default;
