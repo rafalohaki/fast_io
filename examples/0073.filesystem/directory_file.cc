@@ -6,5 +6,10 @@ int main()
 {
 	fast_io::directory dir(".");
 	for(auto const& e: recursive(dir))
-		println("inode:",inode(e),"\tfilename:",filename(e),"\ttype:",type(e));
+	{
+		if(type(e)==fast_io::file_type::regular&&extension(e)==".cc")
+		{
+			println("inode:",inode(e),"\tfilename:",filename(e),"\ttype:",type(e));
+		}
+	}
 }

@@ -190,6 +190,18 @@ inline constexpr std::string_view filename(posix_directory_entry pioe) noexcept
 	return pioe.entry->d_name;
 }
 
+inline constexpr std::string_view extension(posix_directory_entry pioe) noexcept
+{
+	std::string_view fname{pioe.entry->d_name};
+	using namespace std::string_view_literals;
+	if(fname=="."sv||fname==".."sv)
+		return {};
+	auto start{fname.rfind('.')};
+	if(start==std::string_view::npos)
+		return {};
+	return fname.substr(start);
+}
+
 inline constexpr std::common_type_t<std::size_t,std::uint64_t> inode(posix_directory_entry pioe) noexcept
 {
 	return pioe.entry->d_ino;
