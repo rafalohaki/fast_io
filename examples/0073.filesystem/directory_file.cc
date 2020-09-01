@@ -9,7 +9,8 @@ int main()
 	{
 		if(type(e)==fast_io::file_type::regular&&extension(e)==".cc")
 		{
-			println("inode:",inode(e),"\tfilename:",filename(e),"\ttype:",type(e));
+			fast_io::inative_file infl(fast_io::at,e,filename(e));
+			transmit(fast_io::out(),infl);
 		}
 	}
 }
