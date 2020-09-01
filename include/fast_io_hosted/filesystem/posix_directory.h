@@ -194,7 +194,7 @@ inline constexpr file_type type(posix_directory_entry pioe) noexcept
 	case DT_FIFO:
 		return file_type::fifo;
 	case DT_LNK:
-		return file_type::symlink:
+		return file_type::symlink;
 	case DT_REG:
 		return file_type::regular;
 	case DT_SOCK:
@@ -228,7 +228,7 @@ inline posix_directory_iterator& operator++(posix_directory_iterator& pdit)
 	pdit.entry=readdir(pdit.dirp);
 	if(pdit.entry==nullptr&&errno)
 		throw_posix_error();
-	return *this;
+	return pdit;
 }
 
 inline constexpr posix_directory_iterator cbegin(posix_directory_generator pdg)
