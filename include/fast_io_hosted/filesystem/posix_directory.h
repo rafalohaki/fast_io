@@ -231,7 +231,7 @@ inline posix_directory_iterator& operator++(posix_directory_iterator& pdit)
 	return pdit;
 }
 
-inline constexpr posix_directory_iterator cbegin(posix_directory_generator pdg)
+inline posix_directory_iterator cbegin(posix_directory_generator pdg)
 {
 	posix_directory_iterator pdit{pdg.dirp};
 	++pdit;
@@ -261,7 +261,7 @@ inline constexpr bool operator!=(posix_directory_iterator const& b, std::default
 }
 inline constexpr posix_directory_generator generator(posix_directory_io_observer piob) noexcept
 {
-	return {piob};
+	return {piob.dirp};
 }
 
 }
