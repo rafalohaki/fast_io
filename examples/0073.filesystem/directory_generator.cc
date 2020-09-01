@@ -5,5 +5,5 @@ int main()
 {
 	fast_io::directory dir(".");
 	for(auto const& e : generator(dir))
-		println(filename(e));
+		println("inode:",inode(e),"\tfilename:",filename(e),"\ttype:",type(e));
 }
