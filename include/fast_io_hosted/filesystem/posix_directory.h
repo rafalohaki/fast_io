@@ -231,14 +231,14 @@ inline posix_directory_iterator& operator++(posix_directory_iterator& pdit)
 	return pdit;
 }
 
-inline posix_directory_iterator cbegin(posix_directory_generator pdg)
+inline posix_directory_iterator begin(posix_directory_generator pdg)
 {
 	posix_directory_iterator pdit{pdg.dirp};
 	++pdit;
 	return pdit;
 }
 
-inline constexpr std::default_sentinel_t cend(posix_directory_generator) noexcept
+inline constexpr std::default_sentinel_t end(posix_directory_generator) noexcept
 {
 	return {};
 }
