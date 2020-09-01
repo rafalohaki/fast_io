@@ -148,14 +148,14 @@ inline void rewind(posix_directory_io_observer pdiob) noexcept
 	::rewinddir(pdiob.dirp);	
 }
 
-inline void seek(posix_directory_io_observer pdiob,std::common_type_t<std::int64_t,std::ptrdiff_t> offset)
+inline void seek(posix_directory_io_observer pdiob,std::common_type_t<std::int64_t,std::ptrdiff_t> offset) noexcept
 {
 	if constexpr(sizeof(long)<sizeof(offset))
 	{
 		if(static_cast<std::common_type_t<std::int64_t,std::ptrdiff_t>>(std::numeric_limits<long>::max())<offset)
-			throw_posix_error(EFBIG);
+			fast_terminate();
 	}
-	::seekdir(pdiob.dirp,static_cast<long>(offset));	
+	::seekdir(pdiob.dirp,static_cast<long>(offset));
 }
 
 inline std::common_type_t<std::uint64_t,std::size_t> tell(posix_directory_io_observer pdiob)
@@ -168,7 +168,21 @@ inline std::common_type_t<std::uint64_t,std::size_t> tell(posix_directory_io_obs
 
 struct posix_directory_entry
 {
+	DIR* dirp{};
 	struct dirent* entry{};
+	operator basic_posix_io_observer<char>() const noexcept
+	{
+		if(dirfd==nullptr)
+		{
+			errno=EBADF;
+			return {-1};
+		}
+		return {::dirfd(dirp)};
+	}
+	constexpr operator posix_directory_io_observer() const noexcept
+	{
+		return {dirp};
+	}
 };
 
 inline constexpr std::string_view filename(posix_directory_entry pioe) noexcept
@@ -219,16 +233,24 @@ struct posix_directory_generator
 
 inline posix_directory_entry operator*(posix_directory_iterator pdit) noexcept
 {
-	return {pdit.entry};
+	return {pdit.dirp,pdit.entry};
 }
 
 inline posix_directory_iterator& operator++(posix_directory_iterator& pdit)
 {
 	errno=0;
-	pdit.entry=readdir(pdit.dirp);
-	if(pdit.entry==nullptr&&errno)
+	auto entry{readdir(pdit.dirp)};
+	if(entry==nullptr&&errno)
 		throw_posix_error();
+	pdit.entry=entry;
 	return pdit;
+}
+
+
+inline void refresh(posix_directory_iterator& pdit)
+{
+	::seekdir(pdit.dirp,-1);
+	++pdit;
 }
 
 inline posix_directory_iterator begin(posix_directory_generator pdg)
@@ -259,9 +281,122 @@ inline constexpr bool operator!=(posix_directory_iterator const& b, std::default
 {
 	return b.entry;
 }
-inline constexpr posix_directory_generator generator(posix_directory_io_observer piob) noexcept
+inline posix_directory_generator current(posix_directory_io_observer pdiob) noexcept
 {
-	return {piob.dirp};
+	::rewinddir(pdiob.dirp);
+	return {pdiob.dirp};
+}
+
+struct posix_recursive_directory_iterator
+{
+	DIR* dirp{};
+	struct dirent* entry{};
+	std::vector<posix_directory_file> stack;
+	posix_recursive_directory_iterator()=default;
+	posix_recursive_directory_iterator(DIR* dp):dirp(dp){}
+	posix_recursive_directory_iterator(posix_recursive_directory_iterator const&)=delete;
+	posix_recursive_directory_iterator& operator=(posix_recursive_directory_iterator const&)=delete;
+	posix_recursive_directory_iterator(posix_recursive_directory_iterator&&) noexcept=default;
+	posix_recursive_directory_iterator& operator=(posix_recursive_directory_iterator&&) noexcept=default;
+};
+
+struct posix_recursive_directory_generator
+{
+	DIR* dirp{};
+};
+
+inline std::size_t depth(posix_recursive_directory_iterator const& prdit) noexcept
+{
+	return prdit.stack.size();
+}
+
+inline posix_recursive_directory_iterator& operator++(posix_recursive_directory_iterator& prdit)
+{
+	for(;;)
+	{
+		errno=0;
+		if(prdit.stack.empty())
+		{
+			auto entry{readdir(prdit.dirp)};
+			if(entry==nullptr)
+			{
+				if(errno)
+					throw_posix_error();
+				prdit.entry=nullptr;
+				return prdit;
+			}
+			prdit.entry=entry;
+		}
+		else
+		{
+			auto entry=readdir(prdit.stack.back().dirp);
+			if(entry==nullptr)
+			{
+				if(errno)
+					throw_posix_error();
+				prdit.stack.pop_back();
+				continue;
+			}
+			prdit.entry=entry;
+		}
+		if(prdit.entry->d_type==DT_DIR)
+		{
+			auto name{prdit.entry->d_name};
+			if((*name==u8'.'&&name[1]==0)||(*name==u8'.'&&name[1]==u8'.'&&name[2]==0))
+				continue;
+			prdit.stack.emplace_back(at,posix_directory_io_observer{prdit.stack.empty()?prdit.dirp:prdit.stack.back().dirp},name);
+		}
+		return prdit;
+	}
+}
+
+inline void pop(posix_recursive_directory_iterator& prdit)
+{
+	prdit.stack.pop_back();
+	++prdit;
+}
+
+inline posix_recursive_directory_iterator begin(posix_recursive_directory_generator pdg)
+{
+	posix_recursive_directory_iterator pdit{pdg.dirp};
+	++pdit;
+	return pdit;
+}
+
+inline constexpr std::default_sentinel_t end(posix_recursive_directory_generator) noexcept
+{
+	return {};
+}
+
+inline posix_directory_entry operator*(posix_recursive_directory_iterator const& prdit) noexcept
+{
+	return {prdit.stack.empty()?prdit.dirp:prdit.stack.back().dirp,prdit.entry};
+}
+
+inline bool operator==(std::default_sentinel_t, posix_recursive_directory_iterator const& b) noexcept
+{
+	return b.stack.empty()&&b.entry == nullptr;
+}
+
+inline bool operator==(posix_recursive_directory_iterator const& b, std::default_sentinel_t sntnl) noexcept
+{
+	return sntnl==b;
+}
+
+inline bool operator!=(std::default_sentinel_t sntnl, posix_recursive_directory_iterator const& b) noexcept
+{
+	return !(sntnl==b);
+}
+
+inline bool operator!=(posix_recursive_directory_iterator const& b, std::default_sentinel_t sntnl) noexcept
+{
+	return sntnl!=b;
+}
+
+inline posix_recursive_directory_generator recursive(posix_directory_io_observer pdiob) noexcept
+{
+	::rewinddir(pdiob.dirp);
+	return {pdiob.dirp};
 }
 
 }
