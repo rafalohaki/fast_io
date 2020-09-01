@@ -352,8 +352,13 @@ inline posix_recursive_directory_iterator& operator++(posix_recursive_directory_
 
 inline void pop(posix_recursive_directory_iterator& prdit)
 {
-	prdit.stack.pop_back();
-	++prdit;
+	if(prdit.stack.empty())
+		prdit.entry=nullptr;
+	else
+	{
+		prdit.stack.pop_back();
+		++prdit;
+	}
 }
 
 inline posix_recursive_directory_iterator begin(posix_recursive_directory_generator pdg)
