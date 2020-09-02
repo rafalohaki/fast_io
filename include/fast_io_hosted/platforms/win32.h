@@ -216,6 +216,7 @@ does not exist
 		mode.dwCreationDisposition=4;//OPEN_ALWAYS
 	else
 		mode.dwCreationDisposition=3;//OPEN_EXISTING
+
 	if((value&open_mode::direct)!=open_mode::none)
 		mode.dwFlagsAndAttributes|=0x20000000;//FILE_FLAG_NO_BUFFERING
 	if((value&open_mode::sync)!=open_mode::none)

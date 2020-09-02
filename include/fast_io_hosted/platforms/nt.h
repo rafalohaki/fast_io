@@ -13,7 +13,7 @@ std::uint32_t FileAttributes{};
 std::uint32_t ShareAccess{1|2};
 std::uint32_t CreateDisposition{};
 std::uint32_t CreateOptions{};
-std::uint32_t ObjAttributes{0x00000040};
+std::uint32_t ObjAttributes{};
 };
 
 /*
@@ -24,16 +24,99 @@ inline constexpr nt_open_mode calculate_nt_open_mode(open_mode value,perms pm)
 {
 	value&=~open_mode::ate;
 	nt_open_mode mode;
+	bool generic_write{};
+	bool generic_read{};
 	if((value&open_mode::app)!=open_mode::none)
 		mode.DesiredAccess|=4;		//FILE_APPEND_DATA
 	else if((value&open_mode::out)!=open_mode::none)
+	{
 		mode.DesiredAccess|=0x120116;	//FILE_GENERIC_WRITE
+		generic_write=true;
+	}
 	if((value&open_mode::in)!=open_mode::none)
 	{
 		mode.DesiredAccess|=0x120089;	//FILE_GENERIC_READ
+		generic_read=true;
 		if((value&open_mode::out)!=open_mode::none&&((value&open_mode::app)!=open_mode::none&&(value&open_mode::trunc)!=open_mode::none))
+		{
 			mode.DesiredAccess|=0x120116;
+			generic_write=true;
+		}
 	}
+
+
+
+/*
+
+https://doxygen.reactos.org/d6/d0e/ndk_2iotypes_8h.html
+#define 	FILE_SUPERSEDE   0x00000000
+#define 	FILE_OPEN   0x00000001
+#define 	FILE_CREATE   0x00000002
+#define 	FILE_OPEN_IF   0x00000003
+#define 	FILE_OVERWRITE   0x00000004
+#define 	FILE_OVERWRITE_IF   0x00000005
+
+https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-ntcreatefile
+CreateDisposition value	Action if file exists	Action if file does not exist
+FILE_SUPERSEDE	Replace the file.	Create the file. 0x00000000
+FILE_OPEN	Open the file.	Return an error. 0x00000001
+FILE_CREATE	Return an error.	Create the file. 0x00000002
+FILE_OPEN_IF	Open the file.	Create the file. 0x00000003
+FILE_OVERWRITE	Open the file, and overwrite it.	Return an error. 0x00000004
+FILE_OVERWRITE_IF	Open the file, and overwrite it.	Create the file. 0x00000005
+
+
+https://doxygen.reactos.org/dd/d83/dll_2win32_2kernel32_2client_2file_2create_8c_source.html
+Line 88:
+
+win32		=>	nt
+CREATE_NEW	=>	FILE_CREATE		(0x00000002)
+CREATE_ALWAYS	=>	FILE_OVERWRITE_IF	(0x00000005)
+OPEN_EXISITNG	=>	FILE_OPEN		(0x00000001)
+OPEN_ALWAYS	=>	FILE_OPEN_IF		(0x00000003)
+TRUNCATING_EXISITING=>	FILE_OVERWRITE		(0x00000004)
+
+File access
+mode string	Meaning	Explanation	Action if file
+already exists	Action if file
+does not exist
+"r"	read	Open a file for reading	read from start	failure to open
+"w"	write	Create a file for writing	destroy contents	create new
+"a"	append	Append to a file	write to end	create new
+"r+"	read extended	Open a file for read/write	read from start	error
+"w+"	write extended	Create a file for read/write	destroy contents	create new
+"a+"	append extended	Open a file for read/write	write to end	create new
+*/
+	if ((value&open_mode::trunc)!=open_mode::none)
+	{
+		if((value&open_mode::excl)!=open_mode::none)
+			mode.CreateDisposition=0x00000002;// CREATE_NEW	=>	FILE_CREATE		(0x00000002)
+		else
+			mode.CreateDisposition=0x00000005;// CREATE_ALWAYS	=>	FILE_OVERWRITE_IF	(0x00000005)
+	}
+	else if((value&open_mode::in)==open_mode::none)
+	{
+		if((value&open_mode::app)!=open_mode::none)
+			mode.CreateDisposition=0x00000003;//OPEN_ALWAYS	=>	FILE_OPEN_IF		(0x00000003)
+		else if((value&open_mode::out)!=open_mode::none)
+		{
+			if((value&open_mode::excl)!=open_mode::none)
+				mode.CreateDisposition=0x00000002;// CREATE_NEW	=>	FILE_CREATE		(0x00000002)
+			else
+				mode.CreateDisposition=0x00000005;// CREATE_ALWAYS	=>	FILE_OVERWRITE_IF	(0x00000005)
+		}
+	}
+	else if((value&open_mode::app)!=open_mode::none)
+		mode.CreateDisposition=0x00000003;//OPEN_ALWAYS		=>	FILE_OPEN_IF		(0x00000003)
+	else
+		mode.CreateDisposition=0x00000001;//OPEN_EXISTING	=>	FILE_OPEN		(0x00000001)
+
+
+	if((value&open_mode::direct)!=open_mode::none)
+		mode.CreateOptions |= 0x00000008;//FILE_NO_INTERMEDIATE_BUFFERING
+	if((value&open_mode::sync)!=open_mode::none)
+		mode.CreateOptions |= 0x00000002;//FILE_WRITE_THROUGH
+
 	bool set_normal{true};
 	if((value&open_mode::archive)!=open_mode::none)
 	{
@@ -65,64 +148,18 @@ inline constexpr nt_open_mode calculate_nt_open_mode(open_mode value,perms pm)
 		mode.FileAttributes|=0x1000;						//FILE_ATTRIBUTE_OFFLINE
 		set_normal={};
 	}
-	if((value&open_mode::directory)!=open_mode::none)
-	{
-		mode.FileAttributes|=0x10;						//FILE_ATTRIBUTE_DIRECTORY
-		mode.CreateOptions|=0x00000001;						//FILE_DIRECTORY_FILE
-		set_normal={};
-	}
 	if(set_normal)[[likely]]
 		mode.FileAttributes|=0x80;						//FILE_ATTRIBUTE_NORMAL
 
-
-/*
-
-https://doxygen.reactos.org/d6/d0e/ndk_2iotypes_8h.html
-#define 	FILE_SUPERSEDE   0x00000000
-#define 	FILE_OPEN   0x00000001
-#define 	FILE_CREATE   0x00000002
-#define 	FILE_OPEN_IF   0x00000003
-#define 	FILE_OVERWRITE   0x00000004
-#define 	FILE_OVERWRITE_IF   0x00000005
-
-https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-ntcreatefile
-CreateDisposition value	Action if file exists	Action if file does not exist
-FILE_SUPERSEDE	Replace the file.	Create the file. 0x00000000
-FILE_OPEN	Open the file.	Return an error. 0x00000001
-FILE_CREATE	Return an error.	Create the file. 0x00000002
-FILE_OPEN_IF	Open the file.	Create the file. 0x00000003
-FILE_OVERWRITE	Open the file, and overwrite it.	Return an error. 0x00000004
-FILE_OVERWRITE_IF	Open the file, and overwrite it.	Create the file. 0x00000005
-
-*/
-	if((value&open_mode::excl)!=open_mode::none)
-	{
-		mode.CreateDisposition=1;		//FILE_OPEN
-		if((value&open_mode::trunc)!=open_mode::none)
-			throw_posix_error(EINVAL);
-	}
-	else if ((value&open_mode::trunc)!=open_mode::none)
-	{
-		if((value&open_mode::creat)!=open_mode::none)
-			mode.CreateDisposition=2;	//FILE_CREATE
-		else if((value&open_mode::in)!=open_mode::none)
-			mode.CreateDisposition=0;	//FILE_SUPERSEDE
-		else
-			throw_posix_error(EINVAL);
-	}
-	else if((value&open_mode::in)==open_mode::none)
-	{
-		if((value&open_mode::app)!=open_mode::none)
-			mode.CreateDisposition=3;	//FILE_OPEN_IF
-		else
-			mode.CreateDisposition=5; 	//FILE_OVERWRITE_IF
-	}
-	else
-		mode.CreateDisposition=1;		//FILE_OPEN
 	if((value&open_mode::directory)==open_mode::none)
 		mode.CreateOptions|=0x00000040;	//FILE_NON_DIRECTORY_FILE 0x00000040
 	else
-		mode.CreateOptions|=0x00000001;	//FILE_DIRECTORY_FILE 0x00000001
+	{
+		if(generic_read)
+			mode.CreateOptions |= 0x00004000;		//FILE_OPEN_FOR_BACKUP_INTENT
+		if(generic_write)
+			mode.CreateOptions |= 0x00000400;		//FILE_OPEN_REMOTE_INSTANCE
+	}
 	if((value&open_mode::no_block)==open_mode::none)
 		mode.CreateOptions|=0x00000020;	//FILE_SYNCHRONOUS_IO_NONALERT 0x00000020
 	else
@@ -131,6 +168,19 @@ FILE_OVERWRITE_IF	Open the file, and overwrite it.	Create the file. 0x00000005
 		mode.CreateOptions|=0x00000004;	//FILE_SEQUENTIAL_ONLY 0x00000004
 	else
 		mode.CreateOptions|=0x00000800;
+	if((value&open_mode::no_recall)!=open_mode::none)
+		mode.CreateOptions|=0x00400000;	//FILE_OPEN_NO_RECALL 0x00400000
+
+	if((value&open_mode::posix_semantics)==open_mode::none)
+		mode.ObjAttributes|=0x00000040;	//OBJ_CASE_INSENSITIVE
+
+	if((value&open_mode::session_aware)!=open_mode::none)
+		mode.CreateOptions|=0x00040000;	//FILE_SESSION_AWARE
+	if((value&open_mode::temporary)!=open_mode::none)
+	{
+		mode.CreateOptions|=0x00001000;					//FILE_DELETE_ON_CLOSE
+		mode.FileAttributes|=0x100;				//FILE_ATTRIBUTE_TEMPORARY??
+	}
 	if((pm&perms::owner_write)==perms::none)
 		mode.FileAttributes|=0x00000001;  //FILE_ATTRIBUTE_READONLY
 	return mode;
