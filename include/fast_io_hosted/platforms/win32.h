@@ -257,11 +257,6 @@ does not exist
 		mode.dwFlagsAndAttributes|=0x1000;						//FILE_ATTRIBUTE_OFFLINE
 		set_normal={};
 	}
-	if((value&open_mode::directory)!=open_mode::none)
-	{
-		mode.dwFlagsAndAttributes|=0x10;						//FILE_ATTRIBUTE_DIRECTORY
-		set_normal={};
-	}
 	if(set_normal)[[likely]]
 		mode.dwFlagsAndAttributes|=0x80;						//FILE_ATTRIBUTE_NORMAL
 	if((value&open_mode::random_access)==open_mode::none)

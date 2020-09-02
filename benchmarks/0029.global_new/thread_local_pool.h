@@ -74,7 +74,7 @@ inline void buc_deallocate(bucket& buc,std::byte* ptr) noexcept
 	buc.flist=ptr;
 }
 
-inline thread_local constinit std::array<bucket,sizeof(std::byte*)*8-5> buckets;
+inline constinit std::array<bucket,sizeof(std::byte*)*8-5> buckets;
 
 inline std::byte* real_allocate(std::size_t sz) noexcept
 {

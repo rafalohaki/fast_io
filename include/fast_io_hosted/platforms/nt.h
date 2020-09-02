@@ -29,7 +29,11 @@ inline constexpr nt_open_mode calculate_nt_open_mode(open_mode value,perms pm)
 	else if((value&open_mode::out)!=open_mode::none)
 		mode.DesiredAccess|=0x120116;	//FILE_GENERIC_WRITE
 	if((value&open_mode::in)!=open_mode::none)
+	{
 		mode.DesiredAccess|=0x120089;	//FILE_GENERIC_READ
+		if((value&open_mode::out)!=open_mode::none&&((value&open_mode::app)!=open_mode::none&&(value&open_mode::trunc)!=open_mode::none))
+			mode.DesiredAccess|=0x120116;
+	}
 	bool set_normal{true};
 	if((value&open_mode::archive)!=open_mode::none)
 	{
@@ -144,8 +148,6 @@ inline void nt_write_file_rtl_path(std::string_view filename,char16_t* buffer_da
 		throw_nt_error(0xC0000039);
 }
 
-//inline void* nt_create_file_common_impl(void* directory,win32::nt::unicode_string* relative_path,nt_open_mode const& mode);
-
 inline void* nt_create_file_common_impl(void* directory,win32::nt::unicode_string* relative_path,nt_open_mode const& mode)
 {
 	win32::nt::object_attributes obj{.Length=sizeof(win32::nt::object_attributes),
@@ -165,6 +167,7 @@ inline void* nt_create_file_common_impl(void* directory,win32::nt::unicode_strin
 
 inline std::uint16_t filename_bytes(std::size_t sz)
 {
+	sz<<=1;
 	if constexpr(sizeof(sz)<=sizeof(std::uint16_t))
 		return static_cast<std::uint16_t>(sz);
 	if(static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max())<sz)
@@ -226,6 +229,9 @@ inline std::size_t nt_write_impl(void* handle,void const* begin,std::size_t size
 }
 
 template<std::integral ch_type>
+class basic_win32_io_observer;
+
+template<std::integral ch_type>
 class basic_nt_io_observer
 {
 public:
@@ -243,6 +249,10 @@ public:
 	explicit constexpr operator bool() const noexcept
 	{
 		return handle;
+	}
+	explicit constexpr operator basic_win32_io_observer<char_type>() const noexcept
+	{
+		return basic_win32_io_observer<char_type>{handle};
 	}
 	inline constexpr native_handle_type release() noexcept
 	{
@@ -364,8 +374,7 @@ public:
 			seek_end_local();
 	}
 
-	template<std::integral dir_char_type>
-	basic_nt_file(basic_nt_io_observer<dir_char_type> diob,std::string_view filename,open_mode om,perms pm=static_cast<perms>(420)):
+	basic_nt_file(fast_io::io_at_t,basic_nt_io_observer<char> diob,std::string_view filename,open_mode om,perms pm=static_cast<perms>(420)):
 		basic_nt_io_handle<char_type>(details::nt::nt_create_file_directory_impl(diob.handle,filename,details::nt::calculate_nt_open_mode(om,pm)))
 	{
 		if((om&open_mode::ate)!=open_mode::none)
