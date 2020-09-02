@@ -591,6 +591,8 @@ public:
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	constexpr basic_posix_file(native_hd fd) noexcept: basic_posix_io_handle<ch_type>(fd){}
 
+	basic_posix_file(io_dup_t,basic_posix_io_observer<ch_type> piob):basic_posix_io_handle<ch_type>(details::sys_dup(piob.native_handle()))
+	{}
 
 #if !defined(_WIN32)&&!defined(__NEWLIB__)
 	template<typename ...Args>

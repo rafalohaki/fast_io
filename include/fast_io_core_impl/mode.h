@@ -303,4 +303,10 @@ explicit constexpr io_at_t()=default;
 };
 inline constexpr io_at_t io_at{},at{};
 
+struct io_dup_t
+{
+explicit constexpr io_dup_t()=default;
+};
+inline constexpr io_dup_t io_dup{};
+
 }

@@ -336,6 +336,20 @@ public:
 	}
 };
 
+namespace win32::details
+{
+
+inline void* win32_dup(void* handle)
+{
+	auto const current_process(GetCurrentProcess());
+	void* new_handle{};
+	if(!DuplicateHandle(current_process,handle,current_process,std::addressof(new_handle), 0, true, 2/*DUPLICATE_SAME_ACCESS*/))
+		throw_win32_error();
+	return handle;
+}
+
+}
+
 template<std::integral ch_type>
 class basic_win32_io_handle:public basic_win32_io_observer<ch_type>
 {
@@ -349,12 +363,7 @@ public:
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	explicit constexpr basic_win32_io_handle(native_hd handle) noexcept:
 		basic_win32_io_observer<ch_type>{handle}{}
-	basic_win32_io_handle(basic_win32_io_handle const& other)
-	{
-		auto const current_process(win32::GetCurrentProcess());
-		if(!win32::DuplicateHandle(current_process,other.native_handle(),current_process,std::addressof(this->native_handle()), 0, true, 2/*DUPLICATE_SAME_ACCESS*/))
-			throw_win32_error();
-	}
+	basic_win32_io_handle(basic_win32_io_handle const& other):basic_win32_io_observer<ch_type>{win32::details::win32_dup(other.native_handle())}{}
 	basic_win32_io_handle& operator=(basic_win32_io_handle const& other)
 	{
 		auto const current_process(win32::GetCurrentProcess());
@@ -573,6 +582,10 @@ public:
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	explicit constexpr basic_win32_file(native_hd handle) noexcept:basic_win32_io_handle<ch_type>(handle){}
+
+	basic_win32_file(io_dup_t,basic_win32_io_observer<ch_type> wiob):basic_win32_io_handle<ch_type>(win32::details::win32_dup(wiob.native_handle()))
+	{}
+
 	template<typename ...Args>
 	requires requires(Args&& ...args)
 	{
