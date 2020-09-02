@@ -300,7 +300,7 @@ inline posix_directory_generator current(posix_directory_io_observer pdiob) noex
 	return {pdiob.dirp};
 }
 */
-inline posix_directory_generator current(posix_io_observer piob) noexcept
+inline posix_directory_generator current(posix_io_observer piob)
 {
 	return {.dir_fl=posix_directory_file(posix_file(io_dup,pdiob))};
 }
@@ -416,7 +416,7 @@ inline bool operator!=(posix_recursive_directory_iterator const& b, std::default
 	return sntnl!=b;
 }
 
-inline posix_recursive_directory_generator recursive(posix_directory_io_observer pdiob) noexcept
+inline posix_recursive_directory_generator recursive(posix_io_observer pdiob)
 {
 	return {.dir_fl=posix_directory_file(posix_file(io_dup,pdiob))};
 }
