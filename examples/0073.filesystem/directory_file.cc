@@ -3,7 +3,7 @@
 
 int main()
 {
-	fast_io::directory dir(".");
+	fast_io::dir_file dir(".");
 	for(auto const& e: recursive(dir))
 	{
 		if(type(e)==fast_io::file_type::regular&&extension(e)==".cc")

@@ -4,7 +4,7 @@
 
 int main()
 {
-	fast_io::directory dir(".");
+	fast_io::dir_file dir(".");
 	fast_io::obuf_file obf(fast_io::at,dir,"hello_directory.txt");
 	print(obf,"Hello World\n");
 }

@@ -240,7 +240,7 @@ struct posix_directory_iterator
 
 struct posix_directory_generator
 {
-	DIR* dirp{};
+	posix_directory_file dir_fl;
 };
 
 inline posix_directory_entry operator*(posix_directory_iterator pdit) noexcept
@@ -267,7 +267,7 @@ inline void refresh(posix_directory_iterator& pdit)
 
 inline posix_directory_iterator begin(posix_directory_generator pdg)
 {
-	posix_directory_iterator pdit{pdg.dirp};
+	posix_directory_iterator pdit{pdg.dir_fl.dirp};
 	++pdit;
 	return pdit;
 }
@@ -293,10 +293,20 @@ inline constexpr bool operator!=(posix_directory_iterator const& b, std::default
 {
 	return b.entry;
 }
+/*
 inline posix_directory_generator current(posix_directory_io_observer pdiob) noexcept
 {
 	::rewinddir(pdiob.dirp);
 	return {pdiob.dirp};
+}
+*/
+inline posix_directory_generator current(posix_io_observer piob) noexcept
+{
+	posix_io_handle pioh{piob.native_handle()};
+	posix_file pf(pioh);
+	posix_directory_file pdfl(std::move(pf));
+	::rewinddir(pdfl.dirp);
+	return {.dir_fl=std::move(pdfl)};
 }
 
 struct posix_recursive_directory_iterator
@@ -314,7 +324,7 @@ struct posix_recursive_directory_iterator
 
 struct posix_recursive_directory_generator
 {
-	DIR* dirp{};
+	posix_directory_file dir_fl;
 };
 
 inline std::size_t depth(posix_recursive_directory_iterator const& prdit) noexcept
@@ -412,8 +422,11 @@ inline bool operator!=(posix_recursive_directory_iterator const& b, std::default
 
 inline posix_recursive_directory_generator recursive(posix_directory_io_observer pdiob) noexcept
 {
-	::rewinddir(pdiob.dirp);
-	return {pdiob.dirp};
+	posix_io_handle pioh{piob.native_handle()};
+	posix_file pf(pioh);
+	posix_directory_file pdfl(std::move(pf));
+	::rewinddir(pdfl.dirp);
+	return {.dir_fl=std::move(pdfl)};
 }
 
 }

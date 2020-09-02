@@ -3,7 +3,7 @@
 
 int main()
 {
-	fast_io::directory dir(".");
+	fast_io::dir_file dir(".");
 	for(auto const& e : current(dir))
 		println("inode:",inode(e),"\tfilename:",filename(e),"\ttype:",type(e));
 }
