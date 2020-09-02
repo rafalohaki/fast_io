@@ -265,14 +265,14 @@ inline void refresh(posix_directory_iterator& pdit)
 	++pdit;
 }
 
-inline posix_directory_iterator begin(posix_directory_generator pdg)
+inline posix_directory_iterator begin(posix_directory_generator const& pdg)
 {
 	posix_directory_iterator pdit{pdg.dir_fl.dirp};
 	++pdit;
 	return pdit;
 }
 
-inline constexpr std::default_sentinel_t end(posix_directory_generator) noexcept
+inline std::default_sentinel_t end(posix_directory_generator const&) noexcept
 {
 	return {};
 }
@@ -302,7 +302,7 @@ inline posix_directory_generator current(posix_directory_io_observer pdiob) noex
 */
 inline posix_directory_generator current(posix_io_observer piob)
 {
-	return {.dir_fl=posix_directory_file(posix_file(io_dup,pdiob))};
+	return {.dir_fl=posix_directory_file(posix_file(io_dup,piob))};
 }
 
 struct posix_recursive_directory_iterator
@@ -379,14 +379,14 @@ inline void pop(posix_recursive_directory_iterator& prdit)
 	}
 }
 
-inline posix_recursive_directory_iterator begin(posix_recursive_directory_generator pdg)
+inline posix_recursive_directory_iterator begin(posix_recursive_directory_generator const& pdg)
 {
 	posix_recursive_directory_iterator pdit{pdg.dirp};
 	++pdit;
 	return pdit;
 }
 
-inline constexpr std::default_sentinel_t end(posix_recursive_directory_generator) noexcept
+inline std::default_sentinel_t end(posix_recursive_directory_generator const&) noexcept
 {
 	return {};
 }
@@ -416,9 +416,9 @@ inline bool operator!=(posix_recursive_directory_iterator const& b, std::default
 	return sntnl!=b;
 }
 
-inline posix_recursive_directory_generator recursive(posix_io_observer pdiob)
+inline posix_recursive_directory_generator recursive(posix_io_observer piob)
 {
-	return {.dir_fl=posix_directory_file(posix_file(io_dup,pdiob))};
+	return {.dir_fl=posix_directory_file(posix_file(io_dup,piob))};
 }
 
 }
