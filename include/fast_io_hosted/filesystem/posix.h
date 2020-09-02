@@ -302,7 +302,9 @@ inline posix_directory_generator current(posix_directory_io_observer pdiob) noex
 */
 inline posix_directory_generator current(posix_io_observer piob)
 {
-	return {.dir_fl=posix_directory_file(posix_file(io_dup,piob))};
+	posix_directory_file pdf(posix_file(io_dup,piob));
+	::rewinddir(pdf.dirp);
+	return {.dir_fl=std::move(pdf)};
 }
 
 struct posix_recursive_directory_iterator
@@ -418,7 +420,9 @@ inline bool operator!=(posix_recursive_directory_iterator const& b, std::default
 
 inline posix_recursive_directory_generator recursive(posix_io_observer piob)
 {
-	return {.dir_fl=posix_directory_file(posix_file(io_dup,piob))};
+	posix_directory_file pdf(posix_file(io_dup,piob));
+	::rewinddir(pdf.dirp);
+	return {.dir_fl=std::move(pdf)};
 }
 
 }
