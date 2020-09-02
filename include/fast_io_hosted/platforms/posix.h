@@ -693,6 +693,34 @@ public:
 	basic_posix_file(io_async_t,io_async_observer ioa,std::string_view file,std::string_view mode,Args&& ...args):
 		basic_posix_file(basic_win32_file<char_type>(io_async,ioa,file,mode,std::forward<Args>(args)...),mode)
 	{}
+
+
+
+	template<open_mode om,typename... Args>
+	basic_posix_file(io_at_t,win32_io_observer wiob,std::string_view file,open_interface_t<om>,Args&& ...args):
+		basic_posix_file(basic_win32_file<char_type>(io_at,wiob,file,open_interface<om>,std::forward<Args>(args)...),open_interface<om>)
+	{}
+	template<typename... Args>
+	basic_posix_file(io_at_t,win32_io_observer wiob,std::string_view file,open_mode om,Args&& ...args):
+		basic_posix_file(basic_win32_file<char_type>(io_at,wiob,file,om,std::forward<Args>(args)...),om)
+	{}
+	template<typename... Args>
+	basic_posix_file(io_at_t,win32_io_observer wiob,std::string_view file,std::string_view mode,Args&& ...args):
+		basic_posix_file(basic_win32_file<char_type>(io_at,wiob,file,mode,std::forward<Args>(args)...),mode)
+	{}
+
+	template<open_mode om,typename... Args>
+	basic_posix_file(io_async_t,io_async_observer ioa,io_at_t,win32_io_observer wiob,std::string_view file,open_interface_t<om>,Args&& ...args):
+		basic_posix_file(basic_win32_file<char_type>(io_async,ioa,at,wiob,file,open_interface<om>,std::forward<Args>(args)...),open_interface<om>)
+	{}
+	template<typename... Args>
+	basic_posix_file(io_async_t,io_async_observer ioa,io_at_t,win32_io_observer wiob,std::string_view file,open_mode om,Args&& ...args):
+		basic_posix_file(basic_win32_file<char_type>(io_async,ioa,at,wiob,file,om,std::forward<Args>(args)...),om)
+	{}
+	template<typename... Args>
+	basic_posix_file(io_async_t,io_async_observer ioa,io_at_t,win32_io_observer wiob,std::string_view file,std::string_view mode,Args&& ...args):
+		basic_posix_file(basic_win32_file<char_type>(io_async,ioa,at,wiob,file,mode,std::forward<Args>(args)...),mode)
+	{}
 #else
 	template<open_mode om,perms pm>
 	basic_posix_file(std::string_view file,open_interface_t<om>,perms_interface_t<pm>):basic_posix_file(native_interface,file.data(),details::posix_file_openmode<om>::mode,static_cast<mode_t>(pm))

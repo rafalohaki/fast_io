@@ -173,6 +173,8 @@ does not exist
 
 	if((value&open_mode::posix_semantics)==open_mode::none)
 		mode.ObjAttributes|=0x00000040;	//OBJ_CASE_INSENSITIVE
+	if((value&open_mode::inherit)!=open_mode::none)
+		mode.ObjAttributes|=0x00000002;	//OBJ_INHERIT
 
 	if((value&open_mode::session_aware)!=open_mode::none)
 		mode.CreateOptions|=0x00040000;	//FILE_SESSION_AWARE
@@ -200,10 +202,16 @@ inline void nt_write_file_rtl_path(std::string_view filename,char16_t* buffer_da
 
 inline void* nt_create_file_common_impl(void* directory,win32::nt::unicode_string* relative_path,nt_open_mode const& mode)
 {
+	win32::security_attributes sec_attr
+	{
+		.nLength=sizeof(win32::security_attributes),
+		.bInheritHandle = true
+	};
 	win32::nt::object_attributes obj{.Length=sizeof(win32::nt::object_attributes),
 		.RootDirectory=directory,
 		.ObjectName=relative_path,
-		.Attributes=mode.ObjAttributes	//Todo
+		.Attributes=mode.ObjAttributes,
+		.SecurityDescriptor=mode.ObjAttributes&0x00000002?std::addressof(sec_attr):nullptr,
 	};
 	void* handle{};
 	win32::nt::io_status_block block{};

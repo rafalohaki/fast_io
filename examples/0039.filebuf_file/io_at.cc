@@ -5,7 +5,7 @@
 int main()
 {
 	fast_io::dir_file dnf(".");
-	fast_io::filebuf_file fb(fast_io::io_at,dnf,"io_at_filebuf_file.txt",fast_io::open_mode::binary|fast_io::open_mode::out);
+	fast_io::filebuf_file fb(fast_io::at,dnf,"io_at_filebuf_file.txt",fast_io::open_mode::binary|fast_io::open_mode::out);
 	std::ofstream out;
 	*out.rdbuf()=std::move(*fb.native_handle());
 	fast_io::filebuf_io_observer fiob{out.rdbuf()};
