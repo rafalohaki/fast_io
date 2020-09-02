@@ -381,7 +381,7 @@ inline void pop(posix_recursive_directory_iterator& prdit)
 
 inline posix_recursive_directory_iterator begin(posix_recursive_directory_generator const& pdg)
 {
-	posix_recursive_directory_iterator pdit{pdg.dirp};
+	posix_recursive_directory_iterator pdit{pdg.dir_fl.dirp};
 	++pdit;
 	return pdit;
 }
