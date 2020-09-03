@@ -44,7 +44,7 @@ inline nt_dirent* set_nt_dirent(nt_dirent* entry,bool start)
 	}
 	auto ful_dir_info{d_info.FullDirInfo};
 	std::u16string_view u16_view(ful_dir_info->FileName,ful_dir_info->FileNameLength/sizeof(char16_t));
-	fast_io::ostring_ref ostrf(entry->d_name);
+	fast_io::ostring_ref ostrf{entry->d_name};
 	obuffer_set_curr(ostrf,obuffer_begin(ostrf));
 	print(ostrf,code_cvt(u16_view));
 /*

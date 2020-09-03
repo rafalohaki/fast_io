@@ -376,10 +376,8 @@ public:
 		return *this;
 	}
 	basic_win32_io_handle(basic_win32_io_handle&& b) noexcept:
-		basic_win32_io_observer<ch_type>(b.native_handle())
-	{
-		b.native_handle()=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
-	}
+		basic_win32_io_observer<ch_type>{b.release()}
+	{}
 	basic_win32_io_handle& operator=(basic_win32_io_handle&& b) noexcept
 	{
 		if(std::addressof(b)!=this)
