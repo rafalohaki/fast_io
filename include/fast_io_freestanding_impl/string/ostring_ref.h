@@ -42,9 +42,13 @@ template<std::integral char_type,typename traits_type,typename allocator_type>
 inline constexpr void otakeover(ostring_ref<char_type,traits_type,allocator_type> ob,char_type* beg_ptr,char_type* end_ptr,char_type* cap_ptr)
 {
 	traits_type::assign(*end_ptr, char_type());
+#if defined(_MSVC_STL_UPDATE)
+	details::string_hack::set_begin_end_cap_ptrs(ob.reference,beg_ptr,end_ptr,cap_ptr-1);
+#else
 	details::string_hack::set_begin_ptr(ob.reference,beg_ptr);
 	details::string_hack::set_end_ptr(ob.reference,end_ptr);
 	details::string_hack::set_cap_ptr(ob.reference,cap_ptr-1);
+#endif
 }
 
 template<std::integral char_type,typename traits_type,typename allocator_type>

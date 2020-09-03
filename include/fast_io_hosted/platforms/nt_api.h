@@ -61,7 +61,7 @@ void*          RootDirectory;
 unicode_string *ObjectName;
 std::uint32_t   Attributes;
 void*           SecurityDescriptor;
-void*           SecurityQualityOfService;
+void*           SecurityQualityOfService{};
 };
 
 struct io_status_block

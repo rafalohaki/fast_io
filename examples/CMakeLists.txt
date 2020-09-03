@@ -89,3 +89,6 @@ add_executable(0044.sha256 "./0044.sha/sha256.cc")
 add_executable(0044.hmac_sha256 "./0044.sha/hmac_sha256.cc")
 
 add_executable(0022.utf8_file "./0022.utf/utf8_file.cc")
+
+
+add_executable(0073.fast_io_lines "./0073.filesystem/fast_io_lines.cc")

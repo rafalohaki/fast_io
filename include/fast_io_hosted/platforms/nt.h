@@ -202,11 +202,7 @@ inline void nt_write_file_rtl_path(std::string_view filename,char16_t* buffer_da
 
 inline void* nt_create_file_common_impl(void* directory,win32::nt::unicode_string* relative_path,nt_open_mode const& mode)
 {
-	win32::security_attributes sec_attr
-	{
-		.nLength=sizeof(win32::security_attributes),
-		.bInheritHandle = true
-	};
+	win32::security_attributes sec_attr{sizeof(win32::security_attributes),nullptr,true};
 	win32::nt::object_attributes obj{.Length=sizeof(win32::nt::object_attributes),
 		.RootDirectory=directory,
 		.ObjectName=relative_path,

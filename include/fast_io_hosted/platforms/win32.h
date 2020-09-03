@@ -64,11 +64,7 @@ std::uint32_t dwFlagsAndAttributes)
 {
 	if constexpr(inherit)
 	{
-		win32::security_attributes sec_attr
-		{
-			.nLength=sizeof(win32::security_attributes),
-			.bInheritHandle = true
-		};
+		win32::security_attributes sec_attr{sizeof(win32::security_attributes),nullptr,true};
 		auto handle(win32::CreateFileW(lpFileName,
 		dwDesiredAccess,
 		dwShareMode,
@@ -814,12 +810,7 @@ public:
 	}
 	basic_win32_pipe()
 	{
-		win32::security_attributes sec_attr
-		{
-			.nLength=sizeof(win32::security_attributes),
-			.bInheritHandle = true
-		};
-		
+		win32::security_attributes sec_attr{sizeof(win32::security_attributes),nullptr,true};
 		if(!win32::CreatePipe(
 			std::addressof(pipes.front().native_handle()),
 			std::addressof(pipes.back().native_handle()),

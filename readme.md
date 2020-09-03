@@ -102,6 +102,7 @@ A general purpose I/O library to replace stdio.h and iostream
 - zlib compression/decompression support
 - Non crypto hash algorithms support. Jenkins Hash
 - fmtlib support
+- Filesystem
 
 ## Post C++20 Plan
   1. Module support

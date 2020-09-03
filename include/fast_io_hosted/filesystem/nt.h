@@ -102,7 +102,7 @@ inline std::string_view filename(nt_directory_entry pioe) noexcept
 	return pioe.entry->d_name;
 }
 
-inline constexpr std::common_type_t<std::size_t,std::uint64_t> inode(nt_directory_entry pioe) noexcept
+inline constexpr std::common_type_t<std::size_t,std::uint64_t> inode(nt_directory_entry)  noexcept
 {
 	return 0;
 }
@@ -164,8 +164,7 @@ struct nt_directory_generator
 
 inline nt_directory_iterator begin(nt_directory_generator const& pdg)
 {
-	win32::nt::details::set_nt_dirent_first(pdg.entry.get());
-	return {pdg.entry.get()};
+	return {win32::nt::details::set_nt_dirent_first(pdg.entry.get())};
 }
 
 inline std::default_sentinel_t end(nt_directory_generator const&) noexcept

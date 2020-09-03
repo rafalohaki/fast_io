@@ -47,6 +47,7 @@ inline constexpr void set_end_ptr(T& str,typename T::value_type* ptr)
 {
 	decltype(auto) scv{hack_scary_val(str)};
 	scv._Mysize=ptr-str.data();
+
 }
 
 template<typename T>
@@ -55,6 +56,16 @@ inline constexpr void set_cap_ptr(T& str,typename T::value_type* ptr)
 	decltype(auto) scv{hack_scary_val(str)};
 	scv._Myres=ptr-str.data();
 }
+
+template<typename T>
+inline constexpr void set_begin_end_cap_ptrs(T& str,typename T::value_type* beg,typename T::value_type* end,typename T::value_type* cap)
+{
+	decltype(auto) scv{hack_scary_val(str)};
+	scv._Bx._Ptr=beg;
+	scv._Mysize=end-beg;
+	scv._Myres=cap-beg;
+}
+
 template<typename T>
 inline constexpr std::size_t local_capacity()
 {
