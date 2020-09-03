@@ -3,6 +3,7 @@
 namespace fast_io
 {
 
+
 class posix_error:public fast_io_error
 {
 public:
@@ -18,8 +19,12 @@ public:
 	void report(error_reporter& report) const override
 	{
 #ifdef _WIN32
-		// TODO: 
-		print(report, ec);
+		std::array<char,256> buffer;
+		int fail{::strerror_s(buffer.data(),buffer.size(),ec)};
+		if(fail)
+			print(report,"strerror_s() failed, errno:",ec,"\tstrerros_s errno:",fail);
+		else
+			print(report,fast_io::chvw(buffer.data()));
 #else
 		print(report,chvw(strerror(ec)));
 #endif
