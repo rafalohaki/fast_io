@@ -209,16 +209,19 @@ inline nt_recursive_directory_iterator& operator++(nt_recursive_directory_iterat
 		if(prdit.stack.empty())
 		{
 			prdit.entry->d_handle=prdit.root_handle;
-			prdit.entry=win32::nt::details::nt_dirent_next(prdit.entry);
+			if(!(prdit.entry=win32::nt::details::nt_dirent_next(prdit.entry)))
+				return prdit;
 		}
 		else
 		{
-			prdit.entry=win32::nt::details::nt_dirent_next(prdit.entry);
-			if(prdit.entry==nullptr)
+			prdit.entry->d_handle=prdit.stack.back().handle;
+			auto entry=win32::nt::details::nt_dirent_next(prdit.entry);
+			if(entry==nullptr)
 			{
 				prdit.stack.pop_back();
 				continue;
 			}
+			prdit.entry=entry;
 		}
 		if(prdit.entry->d_type==file_type::directory)
 		{
