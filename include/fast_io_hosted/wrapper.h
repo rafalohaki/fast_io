@@ -65,7 +65,7 @@ template<io_stream T>
 using io_file_wrapper = basic_file_wrapper<T,open_mode::in|open_mode::out|open_mode::binary>;
 
 template<stream T>
-using io_dir_file_wrapper = basic_file_wrapper<T,open_mode::in|open_mode::no_block|open_mode::directory|open_mode::large_file|open_mode::binary>;
+using io_dir_file_wrapper = basic_file_wrapper<T,open_mode::in|open_mode::directory|open_mode::large_file|open_mode::binary>;
 
 template<stream T,open_mode interface_mode>
 class basic_wrapper:public T

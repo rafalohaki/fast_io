@@ -289,7 +289,8 @@ inline constexpr void print_define(output& out,manip::code_cvt<std::basic_string
 	constexpr std::size_t coff{sizeof(typename output::char_type)<sizeof(ch_type)?2:0};
 	reserve_write(out,view.reference.size()<<coff,[&](auto ptr)
 	{
-		return details::utf::utf_code_convert_details<false>(view.reference.data(),view.reference.data()+view.reference.size(),ptr);
+		auto refbegin{view.reference.data()};
+		return details::utf::utf_code_convert_details<false>(refbegin,view.reference.data()+view.reference.size(),ptr);
 	});
 }
 

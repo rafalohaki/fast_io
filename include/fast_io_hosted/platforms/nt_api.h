@@ -243,6 +243,49 @@ enum class file_information_class
     FileMaximumInformation
 };
 
+
+struct file_full_dir_information
+{
+std::uint32_t NextEntryOffset;
+std::uint32_t FileIndex;
+std::int64_t CreationTime;
+std::int64_t LastAccessTime;
+std::int64_t LastWriteTime;
+std::int64_t ChangeTime;
+std::int64_t EndOfFile;
+std::int64_t AllocationSize;
+std::uint32_t FileAttributes;
+std::uint32_t FileNameLength;
+std::uint32_t EaSize;
+char16_t FileName[1];
+};
+
+struct file_both_dir_information
+{
+std::uint32_t         NextEntryOffset;
+std::uint32_t         FileIndex;
+std::int64_t CreationTime;
+std::int64_t LastAccessTime;
+std::int64_t LastWriteTime;
+std::int64_t ChangeTime;
+std::int64_t EndOfFile;
+std::int64_t AllocationSize;
+std::uint32_t         FileAttributes;
+std::uint32_t         FileNameLength;
+std::uint32_t         EaSize;
+char         ShortNameLength;
+char16_t         ShortName[12];
+char16_t         FileName[1];
+};
+
+
+union dir_information
+{
+void* DirInfo;
+file_full_dir_information* FullDirInfo;
+file_both_dir_information* BothDirInfo;
+};
+
 template<typename... Args>
 requires (sizeof...(Args)==11)
 inline auto nt_query_directory_file(Args&& ...args)

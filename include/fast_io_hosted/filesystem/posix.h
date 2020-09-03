@@ -185,21 +185,9 @@ struct posix_directory_entry
 	}
 };
 
-inline constexpr std::string_view filename(posix_directory_entry pioe) noexcept
+inline std::string_view filename(posix_directory_entry pioe) noexcept
 {
 	return pioe.entry->d_name;
-}
-
-inline constexpr std::string_view extension(posix_directory_entry pioe) noexcept
-{
-	std::string_view fname{pioe.entry->d_name};
-	using namespace std::string_view_literals;
-	if(fname=="."sv||fname==".."sv)
-		return {};
-	auto start{fname.rfind('.')};
-	if(start==std::string_view::npos)
-		return {};
-	return fname.substr(start);
 }
 
 inline constexpr std::common_type_t<std::size_t,std::uint64_t> inode(posix_directory_entry pioe) noexcept
@@ -267,7 +255,9 @@ inline void refresh(posix_directory_iterator& pdit)
 
 inline posix_directory_iterator begin(posix_directory_generator const& pdg)
 {
-	posix_directory_iterator pdit{pdg.dir_fl.dirp};
+	auto dirp{pdg.dir_fl.dirp};
+	::rewinddir(dirp);
+	posix_directory_iterator pdit{dirp};
 	++pdit;
 	return pdit;
 }
@@ -302,9 +292,7 @@ inline posix_directory_generator current(posix_directory_io_observer pdiob) noex
 */
 inline posix_directory_generator current(posix_io_observer piob)
 {
-	posix_directory_file pdf(posix_file(io_dup,piob));
-	::rewinddir(pdf.dirp);
-	return {.dir_fl=std::move(pdf)};
+	return {.dir_fl=posix_directory_file(posix_file(io_dup,piob))};
 }
 
 struct posix_recursive_directory_iterator
@@ -383,7 +371,9 @@ inline void pop(posix_recursive_directory_iterator& prdit)
 
 inline posix_recursive_directory_iterator begin(posix_recursive_directory_generator const& pdg)
 {
-	posix_recursive_directory_iterator pdit{pdg.dir_fl.dirp};
+	auto dirp{pdg.dir_fl.dirp};
+	::rewinddir(dirp);
+	posix_recursive_directory_iterator pdit{dirp};
 	++pdit;
 	return pdit;
 }
@@ -420,9 +410,9 @@ inline bool operator!=(posix_recursive_directory_iterator const& b, std::default
 
 inline posix_recursive_directory_generator recursive(posix_io_observer piob)
 {
-	posix_directory_file pdf(posix_file(io_dup,piob));
-	::rewinddir(pdf.dirp);
-	return {.dir_fl=std::move(pdf)};
+	return {.dir_fl=posix_directory_file(posix_file(io_dup,piob))};
 }
+
+using directory_entry = posix_directory_entry;
 
 }
