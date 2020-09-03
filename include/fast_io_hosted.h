@@ -11,7 +11,9 @@ For hosted implementations the set of standard library headers required by the C
 #include"fast_io_hosted/platforms/native.h"
 #if !defined(__NEWLIB__)||defined(_GLIBCXX_HAS_GTHREADS)
 #include"fast_io_hosted/iomutex.h"
+#if __cpp_lib_jthread>=201911L
 #include"fast_io_hosted/parallel.h"
+#endif
 #endif
 #include"fast_io_hosted/wrapper.h"
 #include"fast_io_hosted/filesystem/native.h"

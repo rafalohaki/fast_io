@@ -14,6 +14,8 @@ inline int sys_dup(int old_fd)
 		23
 #endif
 		,int>
+#elif _WIN32
+		_dup
 #else
 		dup
 #endif
@@ -33,6 +35,8 @@ inline int sys_dup2(int old_fd,int new_fd)
 		1041
 #endif
 		,int>
+#elif _WIN32
+		_dup2
 #else
 		dup2
 #endif
@@ -52,6 +56,8 @@ inline int sys_close(int fd) noexcept
 		57
 #endif
 		,int>
+#elif _WIN32
+		_close
 #else
 		close
 #endif

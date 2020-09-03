@@ -17,7 +17,12 @@ public:
 #endif
 	void report(error_reporter& report) const override
 	{
+#ifdef _WIN32
+		// TODO: 
+		print(report, ec);
+#else
 		print(report,chvw(strerror(ec)));
+#endif
 	}
 };
 

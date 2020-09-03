@@ -333,6 +333,8 @@ inline std::size_t posix_read_impl(int fd,void* address,std::size_t bytes_to_rea
 		63
 #endif
 		,std::ptrdiff_t>
+#elif _WIN32
+		::_read
 #else
 		::read
 #endif
@@ -357,6 +359,8 @@ inline std::size_t posix_write_impl(int fd,void const* address,std::size_t bytes
 		64
 #endif
 		,std::ptrdiff_t>
+#elif _WIN32
+		::_write
 #else
 		::write
 #endif
