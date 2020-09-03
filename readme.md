@@ -367,3 +367,5 @@ This project is made possible by referencing from other open-source projects. (I
 |UTF-utils| https://github.com/BobSteagall/utf_utils|
 |jenkins-hash-java|https://github.com/vkandy/jenkins-hash-java |
 |md5|https://github.com/JieweiWei/md5 |
+|ReactOS|https://github.com/reactos/reactos |
+|dirent_h|https://github.com/win32ports/dirent_h|
