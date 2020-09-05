@@ -76,7 +76,8 @@ inline constexpr output_iter non_overlapped_copy_n(input_iter first,count_type c
 	(std::integral<input_value_type>&&std::integral<output_value_type>&&
 	sizeof(input_value_type)==sizeof(output_value_type))))
 	{
-		std::memcpy(std::to_address(result),std::to_address(first),sizeof(typename std::iterator_traits<input_iter>::value_type)*count);
+		if(count)	//to avoid nullptr UB
+			std::memcpy(std::to_address(result),std::to_address(first),sizeof(typename std::iterator_traits<input_iter>::value_type)*count);
 		return result+=count;
 	}
 	else
@@ -106,7 +107,8 @@ inline constexpr output_iter my_copy_n(input_iter first,count_type count,output_
 	(std::integral<input_value_type>&&std::integral<output_value_type>&&
 	sizeof(input_value_type)==sizeof(output_value_type))))
 	{
-		std::memmove(std::to_address(result),std::to_address(first),sizeof(typename std::iterator_traits<input_iter>::value_type)*count);
+		if(count)	//to avoid nullptr UB
+			std::memmove(std::to_address(result),std::to_address(first),sizeof(typename std::iterator_traits<input_iter>::value_type)*count);
 		return result+=count;
 	}
 	else

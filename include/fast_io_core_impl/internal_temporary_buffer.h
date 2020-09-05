@@ -146,14 +146,7 @@ inline constexpr void write_impl(T& ob,Iter cbegin,Iter cend)
 			details::internal_temporary_buffer_impl::write_bad_case<vector_buf>(ob,cbegin,cend,to_write_chars);
 			return;
 		}
-		if(std::is_constant_evaluated())
-			ob.end_ptr=std::copy(cbegin,cend,ob.end_ptr);
-		else
-		{
-			std::size_t const csz(cend-cbegin);
-			memcpy(ob.end_ptr,std::to_address(cbegin),csz*sizeof(*cbegin));
-			ob.end_ptr+=csz;
-		}
+		ob.end_ptr=details::non_overlapped_copy_n(cbegin,cend-cbegin,ob.end_ptr);
 	}
 	else
 		write_impl<vector_buf>(ob,reinterpret_cast<char const*>(std::to_address(cbegin)),reinterpret_cast<char const*>(std::to_address(cend)));
