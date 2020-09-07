@@ -216,7 +216,7 @@ namespace fast_io::details
 {
 //zero copy IO for win32
 template<bool rac=false, zero_copy_output_stream output,zero_copy_input_stream input>
-inline std::uintmax_t zero_copy_transmit_once(output& outp,input& inp,std::uintmax_t bytes,std::int64_t offset)
+inline std::common_type_t<std::size_t,std::uint64_t> zero_copy_transmit_once(output& outp,input& inp,std::common_type_t<std::size_t,std::uint64_t> bytes,std::int64_t offset)
 {
 	if constexpr(rac)
 	{
@@ -237,16 +237,16 @@ inline std::uintmax_t zero_copy_transmit_once(output& outp,input& inp,std::uintm
 
 
 template<bool rac=false,zero_copy_output_stream output,zero_copy_input_stream input>
-inline std::uintmax_t zero_copy_transmit(output& outp,input& inp,std::int64_t offset,std::uintmax_t bytes)
+inline std::common_type_t<std::size_t,std::uint64_t> zero_copy_transmit(output& outp,input& inp,std::int64_t offset,std::common_type_t<std::size_t,std::uint64_t> bytes)
 {
-	constexpr std::uintmax_t maximum_transmit_bytes(2147483646);
-	std::uintmax_t transmitted{};
+	constexpr std::common_type_t<std::size_t,std::uint64_t> maximum_transmit_bytes(2147483646);
+	std::common_type_t<std::size_t,std::uint64_t> transmitted{};
 	for(;bytes;)
 	{
-		std::uintmax_t should_transfer(maximum_transmit_bytes);
+		std::common_type_t<std::size_t,std::uint64_t> should_transfer(maximum_transmit_bytes);
 		if(bytes<should_transfer)
 			should_transfer=bytes;
-		std::uintmax_t transferred_this_round(details::zero_copy_transmit_once<rac>(outp,inp,should_transfer,offset));
+		std::common_type_t<std::size_t,std::uint64_t> transferred_this_round(details::zero_copy_transmit_once<rac>(outp,inp,should_transfer,offset));
 		transmitted+=transferred_this_round;
 		if(transferred_this_round!=should_transfer)
 			return transmitted;
@@ -256,12 +256,12 @@ inline std::uintmax_t zero_copy_transmit(output& outp,input& inp,std::int64_t of
 	
 }
 template<bool rac=false,zero_copy_output_stream output,zero_copy_input_stream input>
-inline std::uintmax_t zero_copy_transmit(output& outp,input& inp,std::int64_t offset)
+inline std::common_type_t<std::size_t,std::uint64_t> zero_copy_transmit(output& outp,input& inp,std::int64_t offset)
 {
-	constexpr std::uintmax_t maximum_transmit_bytes(2147483646);
-	for(std::uintmax_t transmitted{};;)
+	constexpr std::common_type_t<std::size_t,std::uint64_t> maximum_transmit_bytes(2147483646);
+	for(std::common_type_t<std::size_t,std::uint64_t> transmitted{};;)
 	{
-		std::uintmax_t transferred_this_round(details::zero_copy_transmit_once<rac>(outp,inp,maximum_transmit_bytes,offset));
+		std::common_type_t<std::size_t,std::uint64_t> transferred_this_round(details::zero_copy_transmit_once<rac>(outp,inp,maximum_transmit_bytes,offset));
 		transmitted+=transferred_this_round;
 		if(transferred_this_round!=maximum_transmit_bytes)
 			return transmitted;

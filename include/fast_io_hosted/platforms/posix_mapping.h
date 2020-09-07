@@ -84,6 +84,7 @@ public:
 	{
 		if(this->address_begin==MAP_FAILED)[[unlikely]]
 			throw_posix_error();
+		this->address_end=this->address_begin+bytes;
 	}
 	posix_memory_map_file(posix_memory_map_file const&)=delete;
 	posix_memory_map_file& operator=(posix_memory_map_file const&)=delete;
@@ -108,7 +109,7 @@ public:
 		if(this->address_begin!=MAP_FAILED)[[likely]]
 		{
 			munmap(this->address_begin,this->bytes());
-			this->address_begin=nullptr;
+			this->address_begin=reinterpret_cast<std::byte*>(MAP_FAILED);
 		}
 	}
 	~posix_memory_map_file()

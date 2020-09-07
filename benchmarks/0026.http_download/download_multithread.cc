@@ -1,5 +1,6 @@
 #include"../../include/fast_io.h"
 #include"../../include/fast_io_device.h"
+#include"../../include/fast_io_async.h"
 #include"../../include/fast_io_network.h"
 #include<thread>
 

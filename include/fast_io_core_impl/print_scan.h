@@ -59,7 +59,7 @@ requires (general_scanable<input,T>||general_reserve_scanable<T,internal_tempora
 inline constexpr auto scan_with_space(input &in,T&& t)
 {
 	using no_cvref = std::remove_cvref_t<T>;
-	constexpr bool not_contiguous{!contiguous_buffer_input_stream<input>};
+	constexpr bool not_contiguous{!contiguous_input_stream<input>};
 	if constexpr(space_scanable<input,T>||reserve_space_scanable<T,internal_temporary_buffer<typename std::remove_cvref_t<input>::char_type>,input>)
 	{
 		if(!skip_space(in))
@@ -161,12 +161,10 @@ inline constexpr void print_control(output& out,T&& t)
 {
 	using char_type = typename output::char_type;
 	using no_cvref = std::remove_cvref_t<T>;
-//	static_assert(printable<std::remove_cvref_t<output>,no_cvref>);
-
 	if constexpr(reserve_printable<T>)
 	{
 		constexpr std::size_t size{print_reserve_size(io_reserve_type<no_cvref>)};
-		if constexpr(contiguous_buffer_output_stream<output>)
+		if constexpr(contiguous_output_stream<output>)
 			obuffer_set_curr(out,print_reserve_define(io_reserve_type<no_cvref>,obuffer_curr(out),std::forward<T>(t)));
 		else if constexpr(buffer_output_stream<output>)
 		{
@@ -217,7 +215,7 @@ inline constexpr void print_control(output& out,manip::follow_character<T,ch_typ
 	{
 		using char_type = typename output::char_type;
 		constexpr std::size_t size{print_reserve_size(io_reserve_type<std::remove_cvref_t<T>>)+1};
-		if constexpr(contiguous_buffer_output_stream<output>)
+		if constexpr(contiguous_output_stream<output>)
 		{
 			auto it{print_reserve_define(io_reserve_type<std::remove_cvref_t<T>>,obuffer_curr(out),std::forward<T>(t))};
 			*it=t.character;
@@ -287,7 +285,7 @@ inline constexpr void print_control_line(output& out,T&& t)
 	{
 		using char_type = typename output::char_type;
 		constexpr std::size_t size{print_reserve_size(io_reserve_type<std::remove_cvref_t<T>>)+1};
-		if constexpr(contiguous_buffer_output_stream<output>)
+		if constexpr(contiguous_output_stream<output>)
 		{
 			auto it{print_reserve_define(io_reserve_type<std::remove_cvref_t<T>>,obuffer_curr(out),std::forward<T>(t))};
 			*it=u8'\n';
@@ -384,10 +382,10 @@ concept test_normal_scan = requires(T t,Args&& ...args)
 template<bool report_eof=false,input_stream input,typename ...Args>
 inline constexpr auto scan(input &&in,Args&& ...args)
 {
-	if constexpr(mutex_input_stream<input>)
+	if constexpr(mutex_stream<input>)
 	{
-		typename std::remove_cvref_t<input>::lock_guard_type lg{mutex(in)};
-		decltype(auto) uh(unlocked_handle(in));
+		details::lock_guard lg{in};
+		decltype(auto) uh{in.unlocked_handle()};
 		return scan<report_eof>(uh,std::forward<Args>(args)...);
 	}
 	else if constexpr(status_input_stream<input>)
@@ -600,11 +598,10 @@ inline constexpr auto extract_one_scatter(T&& t)
 
 }
 
-
 template<output_stream output,typename callback>
 inline constexpr void print_transaction(output &&out,callback func)
 {
-	internal_temporary_buffer<typename output::char_type> buffer;
+	internal_temporary_buffer<typename std::remove_cvref_t<output>::char_type> buffer;
 	func(buffer);
 	write(out,buffer.beg_ptr,buffer.end_ptr);
 }
@@ -612,10 +609,10 @@ inline constexpr void print_transaction(output &&out,callback func)
 template<output_stream output,typename ...Args>
 inline constexpr void print(output &&out,Args&& ...args)
 {
-	if constexpr(mutex_output_stream<output>)
+	if constexpr(mutex_stream<output>)
 	{
-		typename std::remove_cvref_t<output>::lock_guard_type lg{mutex(out)};
-		decltype(auto) uh(unlocked_handle(out));
+		details::lock_guard lg{out};
+		decltype(auto) uh{out.unlocked_handle()};
 		print(uh,std::forward<Args>(args)...);
 	}
 	else if constexpr(status_output_stream<output>)
@@ -647,10 +644,10 @@ inline constexpr void print(output &&out,Args&& ...args)
 template<output_stream output,typename ...Args>
 inline constexpr void println(output &&out,Args&& ...args)
 {
-	if constexpr(mutex_output_stream<output>)
+	if constexpr(mutex_stream<output>)
 	{
-		typename std::remove_cvref_t<output>::lock_guard_type lg{mutex(out)};
-		decltype(auto) uh(unlocked_handle(out));
+		details::lock_guard lg{out};
+		decltype(auto) uh{out.unlocked_handle()};
 		println(uh,std::forward<Args>(args)...);
 	}
 	else if constexpr(status_output_stream<output>)
@@ -715,73 +712,5 @@ inline constexpr void debug_println(Args&& ...args)
 }
 
 #endif
-/*
-inline namespace print_scan_details
-{
-template<output_stream os,typename ch_type,typename ...Args>
-inline void fprint_impl(os &out,std::basic_string_view<ch_type> format)
-{
-	std::size_t percent_pos;
-	for(;(percent_pos=format.find(0x25))!=std::string_view::npos&&percent_pos+1!=format.size()&&format[percent_pos+1]==0X25;format.remove_prefix(percent_pos+2))
-		write(out,format.cbegin(),format.cbegin()+percent_pos+1);
-	if(percent_pos!=std::string_view::npos)
-		fast_terminate();
-	write(out,format.cbegin(),format.cend());
-}
-
-template<output_stream os,typename ch_type,typename T,typename ...Args>
-inline void fprint_impl(os &out,std::basic_string_view<ch_type> format,T&& cr,Args&& ...args)
-{
-	std::size_t percent_pos;
-	for(;(percent_pos=format.find(0x25))!=std::string_view::npos&&percent_pos+1!=format.size()&&format[percent_pos+1]==0x25;format.remove_prefix(percent_pos+2))
-		write(out,format.cbegin(),format.cbegin()+percent_pos+1);
-	if(percent_pos==std::string_view::npos)
-	{
-		write(out,format.cbegin(),format.cend());
-		return;
-	}
-	else
-	{
-		write(out,format.cbegin(),format.cbegin()+percent_pos);
-		format.remove_prefix(percent_pos+1);
-	}
-	print(out,std::forward<T>(cr));
-	fprint_impl(out,format,std::forward<Args>(args)...);
-}
-
-template<output_stream output,typename ...Args>
-requires(printable<output,Args>&&...)
-inline constexpr void normal_fprint(output &out,std::basic_string_view<typename output::char_type> mv,Args&& ...args)
-{
-	fprint_impl(out,mv,std::forward<Args>(args)...);
-}
-
-template<output_stream output,typename ...Args>
-requires(std::same_as<typename output::char_type,char>&&(printable<output,Args>&&...))
-inline constexpr void normal_fprint(output &out,std::basic_string_view<char8_t> mv,Args&& ...args)
-{
-	fprint_impl(out,mv,std::forward<Args>(args)...);
-}
-
-}
-
-template<output_stream output,typename ...Args>
-requires (sizeof...(Args)!=0)
-inline constexpr void fprint(output &out,Args&& ...args)
-{
-	using namespace print_scan_details;
-	if constexpr(mutex_output_stream<output>)
-	{
-		typename output::lock_guard_type lg{mutex(out)};
-		decltype(auto) uh(unlocked_handle(out));
-		fprint(uh,std::forward<Args>(args)...);
-	}
-	else if constexpr((printable<output,Args>&&...)&&(sizeof...(Args)==1||(buffer_output_stream<output>&&character_output_stream<output>)))
-		normal_fprint(out,std::forward<Args>(args)...);
-	else if constexpr(true)
-		buffer_fprint(out,std::forward<Args>(args)...);
-}
-
-*/
 
 }

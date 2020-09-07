@@ -2,7 +2,6 @@
 
 int main()
 {
-	fast_io::ibuf_file ibf("lines.txt");
-	for(auto const& line: line_generator(ibf))
+	for(auto const& line: line_generator(fast_io::c_stdin()))
 		println(line);
 }

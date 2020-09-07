@@ -22,11 +22,11 @@ concept output_stream_impl = stream_char_type_requirement<T>&&requires(T&& out,t
 };
 
 template<typename T>
-concept mutex_stream_impl = requires(T&& t)
+concept mutex_stream_impl = requires(T t)
 {
-	typename std::remove_cvref_t<T>::lock_guard_type;
-	mutex(t);
-	unlocked_handle(t);
+	t.lock();
+	t.unlock();
+	t.unlocked_handle();
 };
 
 template<typename T>
@@ -57,13 +57,13 @@ concept buffer_input_stream_impl = requires(T&& in)
 };
 
 template<typename T>
-concept contiguous_buffer_input_stream_impl = requires(T&& in)
+concept contiguous_input_stream_impl = requires(T&& in)
 {
 	underflow_forever_false(in);
 };
 
 template<typename T>
-concept contiguous_buffer_output_stream_impl = requires(T&& out)
+concept contiguous_output_stream_impl = requires(T&& out)
 {
 	overflow_never(out);
 };

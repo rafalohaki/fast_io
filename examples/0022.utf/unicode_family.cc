@@ -14,6 +14,6 @@ using iunicode_family_file = basic_u32ibuf_unicode_family<inative_file>;
 int main()
 {
 	fast_io::iunicode_family_file ibf("w.txt");
-    fast_io::obuf_utf8_file<char32_t> obf("result_utf8.txt");
-    transmit(obf,ibf);
+	fast_io::obuf_utf8_file<char32_t> obf("result_utf8.txt");
+	transmit(obf,ibf);
 }

@@ -13,7 +13,7 @@ struct input_buffer_line_iterator
 {
 	using char_type = typename input::char_type;
 	input *ptr;
-	[[no_unique_address]] std::conditional_t<contiguous_buffer_input_stream<input>,empty,internal_temporary_buffer<typename input::char_type>*> pbuffer;
+	[[no_unique_address]] std::conditional_t<contiguous_input_stream<input>,empty,internal_temporary_buffer<typename input::char_type>*> pbuffer;
 	std::basic_string_view<char_type> data;
 };
 
@@ -21,7 +21,7 @@ template<buffer_input_stream input>
 struct input_buffer_line_generator
 {
 	input *ptr;
-	[[no_unique_address]] std::conditional_t<contiguous_buffer_input_stream<input>,empty,internal_temporary_buffer<typename input::char_type>> buffer;
+	[[no_unique_address]] std::conditional_t<contiguous_input_stream<input>,empty,internal_temporary_buffer<typename input::char_type>> buffer;
 	constexpr explicit input_buffer_line_generator(input* pt):ptr(pt){}
 	input_buffer_line_generator(input_buffer_line_generator const&)=delete;
 	input_buffer_line_generator& operator=(input_buffer_line_generator const&)=delete;
@@ -63,13 +63,13 @@ inline constexpr input_buffer_line_iterator<input>& operator++(input_buffer_line
 	auto bg{ibuffer_curr(*line_it.ptr)};
 	auto ed{ibuffer_end(*line_it.ptr)};
 	auto it{std::find(bg,ed,ch)};
-	if constexpr(!contiguous_buffer_input_stream<input>)
+	if constexpr(!contiguous_input_stream<input>)
 	{
 		if(it==ed)[[unlikely]]
 			return next_line_transmit(line_it,bg,ed);
 	}
 	line_it.data=std::basic_string_view<typename input::char_type>(bg,it);
-	if constexpr(contiguous_buffer_input_stream<input>)
+	if constexpr(contiguous_input_stream<input>)
 	{
 		if(it==ed)
 		{
@@ -122,7 +122,7 @@ inline constexpr bool operator==(std::default_sentinel_t,input_buffer_line_itera
 template<buffer_input_stream input>
 inline constexpr input_buffer_line_iterator<input> begin(input_buffer_line_generator<input>& a)
 {
-	if constexpr(contiguous_buffer_input_stream<input>)
+	if constexpr(contiguous_input_stream<input>)
 	{
 		input_buffer_line_iterator<input> in{a.ptr};
 		++in;

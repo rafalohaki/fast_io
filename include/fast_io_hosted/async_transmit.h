@@ -15,13 +15,13 @@ public:
 	input& in;
 	using char_type = typename std::remove_cvref_t<input>::char_type;
 	static inline constexpr std::size_t buffer_size{details::cal_buffer_size<char_type>()};
-	std::uintmax_t transferred{};
+	std::common_type_t<std::size_t,std::uint64_t> transferred{};
 	std::unique_ptr<char_type[]> uptr{new char_type[buffer_size]};
 	typename io_async_overlapped_t<output>::type output_overlapped;
 	typename io_async_overlapped_t<input>::type input_overlapped;
 	
 	constexpr bool await_ready() const { return false; }
-	constexpr std::uintmax_t await_resume() const { return transferred; }
+	constexpr std::common_type_t<std::size_t,std::uint64_t> await_resume() const { return transferred; }
 	void await_suspend(std::coroutine_handle<> handle)
 	{
 		output_overlapped=typename io_async_overlapped_t<output>::type(std::in_place,[this](std::size_t calb)
@@ -49,12 +49,12 @@ public:
 	input& in;
 	using char_type = typename std::remove_cvref_t<input>::char_type;
 	static inline constexpr std::size_t buffer_size{details::cal_buffer_size<char_type>()};
-	std::uintmax_t transferred{};
+	std::common_type_t<std::size_t,std::uint64_t> transferred{};
 	std::unique_ptr<char_type[]> uptr{new char_type[buffer_size]};
 	typename io_async_overlapped_t<output>::type output_overlapped;
 	
 	constexpr bool await_ready() const { return false; }
-	constexpr std::uintmax_t await_resume() const { return transferred; }
+	constexpr std::common_type_t<std::size_t,std::uint64_t> await_resume() const { return transferred; }
 	void await_suspend(std::coroutine_handle<> handle)
 	{
 		output_overlapped=typename io_async_overlapped_t<output>::type(std::in_place,[handle,this](std::size_t)
@@ -88,11 +88,11 @@ public:
 	input& in;
 	using char_type = typename std::remove_cvref_t<input>::char_type;
 	static inline constexpr std::size_t buffer_size{details::cal_buffer_size<char_type>()};
-	std::uintmax_t transferred{};
+	std::common_type_t<std::size_t,std::uint64_t> transferred{};
 	typename io_async_overlapped_t<output>::type output_overlapped;
 	
 	constexpr bool await_ready() const { return false; }
-	constexpr std::uintmax_t await_resume() const { return transferred; }
+	constexpr std::common_type_t<std::size_t,std::uint64_t> await_resume() const { return transferred; }
 	void await_suspend(std::coroutine_handle<> handle)
 	{
 		output_overlapped=typename io_async_overlapped_t<output>::type(std::in_place,[handle,this](std::size_t)
@@ -135,12 +135,12 @@ public:
 	input& in;
 	using char_type = typename std::remove_cvref_t<input>::char_type;
 	static inline constexpr std::size_t buffer_size{details::cal_buffer_size<char_type>()};
-	std::uintmax_t transferred{};
+	std::common_type_t<std::size_t,std::uint64_t> transferred{};
 	std::unique_ptr<char_type[]> uptr{new char_type[buffer_size]};
 	typename io_async_overlapped_t<input>::type input_overlapped;
 
 	constexpr bool await_ready() const { return false; }
-	constexpr std::uintmax_t await_resume() const { return transferred; }
+	constexpr std::common_type_t<std::size_t,std::uint64_t> await_resume() const { return transferred; }
 	void await_suspend(std::coroutine_handle<> handle)
 	{
 		input_overlapped=typename io_async_overlapped_t<input>::type(std::in_place,[handle,this](std::size_t calb)

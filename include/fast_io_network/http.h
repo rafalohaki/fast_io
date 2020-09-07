@@ -100,13 +100,13 @@ inline void print_define(output& out,basic_http_request_status<typename output::
 #if __cpp_lib_coroutine >= 201707L
 
 template<input_stream input>
-requires (buffer_input_stream<input>||mutex_input_stream<input>)
+requires (buffer_input_stream<input>||mutex_stream<input>)
 inline generator<http_header_line<typename input::char_type>> scan_http_header(input& in)
 {
-	if constexpr(mutex_input_stream<input>)
+	if constexpr(mutex_stream<input>)
 	{
-		typename input::lock_guard_type lg{mutex(in)};
-		decltype(auto) uh{unlocked_handle(in)};
+		details::lock_guard lg{in};
+		decltype(auto) uh{in.unlocked_handle()};
 		return scan_http_header(uh);
 	}
 	else

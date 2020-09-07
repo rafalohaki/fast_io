@@ -16,12 +16,6 @@ template<typename T>
 concept mutex_stream = stream<T>&&details::mutex_stream_impl<T>;
 
 template<typename T>
-concept mutex_input_stream = mutex_stream<T>&&input_stream<T>;
-
-template<typename T>
-concept mutex_output_stream = mutex_stream<T>&&output_stream<T>;
-
-template<typename T>
 concept random_access_stream = stream<T>&&details::random_access_stream_impl<T>;
 
 template<typename T>
@@ -39,8 +33,6 @@ concept character_io_stream = character_input_stream<T>&&character_output_stream
 template<typename T>
 concept flush_output_stream = output_stream<T>&&details::flush_output_stream_impl<T>;
 
-template<typename T>
-concept mutex_io_stream = mutex_input_stream<T>&&mutex_output_stream<T>;
 
 template<typename T>
 concept reserve_output_stream = output_stream<T>&&details::reserve_output_stream_impl<T>;
@@ -52,13 +44,13 @@ template<typename T>
 concept refill_buffer_input_stream = buffer_input_stream<T>&&details::refill_buffer_input_stream_impl<T>;
 
 template<typename T>
-concept contiguous_buffer_input_stream = buffer_input_stream<T>&&details::contiguous_buffer_input_stream_impl<T>;
+concept contiguous_input_stream = buffer_input_stream<T>&&details::contiguous_input_stream_impl<T>;
 
 template<typename T>
 concept buffer_output_stream = output_stream<T>&&details::buffer_output_stream_impl<T>;
 
 template<typename T>
-concept contiguous_buffer_output_stream = buffer_output_stream<T>&&details::contiguous_buffer_output_stream_impl<T>;
+concept contiguous_output_stream = buffer_output_stream<T>&&details::contiguous_output_stream_impl<T>;
 
 template<typename T>
 concept fill_nc_output_stream = output_stream<T>&&details::fill_nc_output_stream_impl<T>;
@@ -140,6 +132,12 @@ template<typename T>
 concept capacity_available_buffer_input_stream = buffer_input_stream<T>&&requires(T stm)
 {
 	{ibuffer_cap(stm)}->std::convertible_to<typename std::remove_cvref_t<T>::char_type*>;
+};
+
+template<typename T>
+concept value_based_stream = requires(T t)
+{
+	io_value_handle(t);
 };
 
 /*

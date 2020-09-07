@@ -217,6 +217,31 @@ inline constexpr output_iter copy_string_literal(char_type const(&s)[n],output_i
 	return result+(n-1);
 }
 
+/*
+Since many toolchains do not provide lock_guard. Let's implement it by ourselves based on libstdc++'s lock_guard
+https://github.com/gcc-mirror/gcc/blob/53046f072c6e92aa4ba4594c992fe31d89e223ed/libstdc%2B%2B-v3/include/bits/std_mutex.h#L152
+*/
+
+template<typename mutex_type>
+struct lock_guard
+{
+mutex_type& device;
+
+explicit constexpr lock_guard(mutex_type& m) : device(m)
+{ device.lock(); }
+
+#if __cpp_constexpr >= 201907L
+constexpr
+#endif
+~lock_guard()
+{ device.unlock(); }
+
+lock_guard(lock_guard const&) = delete;
+lock_guard& operator=(lock_guard const&) = delete;
+
+};
+
+
 }
 
 }

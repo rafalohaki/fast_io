@@ -21,14 +21,13 @@
 #include<algorithm>		//std::fill std::fill_n std::copy std::copy_n
 #include<cstring>		//for memcpy
 #include<bit>			//for std::endian, std::rotl and std::bit_cast etc
-#include<atomic>		//std::atomic
 
 //fast_io core
 #include"fast_io_core_impl/utils.h"
 
 #include"fast_io_core_impl/overflow.h"
-#include"fast_io_core_impl/io_ref.h"
 #include"fast_io_core_impl/terminate.h"
+#include"fast_io_core_impl/io_ref.h"
 
 #include"fast_io_core_impl/memptr.h"
 #include"fast_io_core_impl/internal_temporary_buffer.h"
@@ -48,36 +47,6 @@
 #include"fast_io_core_impl/print_scan.h"
 #include"fast_io_core_impl/print_reserver.h"
 #include"fast_io_core_impl/scan_transmit/scan_transmit.h"
-
-
-#ifndef NDEBUG
-#ifdef FAST_IO_BOOTSTRAP
-#include"fast_io_freestanding_impl/reserve_read_write.h"
-#include"fast_io_freestanding_impl/code_cvt/utf.h"
-#include"fast_io_freestanding_impl/posix_error.h"
-//Unfortunately we need to debug fast_io itself with fast_io. We have to put some bootstrap layer here
-#include"fast_io_hosted/platforms/native_base.h"
-
-template<typename T,typename... Args>
-inline constexpr void debug_print(T&& t,Args&& ...args)
-{
-	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>)
-		fast_io::print(std::forward<T>(t),std::forward<Args>(args)...);
-	else
-		fast_io::println(fast_io::native_stdout(),std::forward<T>(t),std::forward<Args>(args)...);
-}
-
-template<typename T,typename... Args>
-inline constexpr void debug_println(T&& t,Args&& ...args)
-{
-	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>)
-		fast_io::println(std::forward<T>(t),std::forward<Args>(args)...);
-	else
-		fast_io::println(fast_io::native_stdout(),std::forward<T>(t),std::forward<Args>(args)...);
-}
-
-#endif
-#endif
 
 // This should provide an option macro to disable any generation for table in freestanding environments.
 #include"fast_io_core_impl/integers/integer.h"

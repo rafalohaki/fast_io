@@ -332,6 +332,12 @@ public:
 	}
 };
 
+template<std::integral ch_type>
+inline constexpr basic_win32_io_observer<ch_type> io_value_handle(basic_win32_io_observer<ch_type> other)
+{
+	return other;
+}
+
 namespace win32::details
 {
 

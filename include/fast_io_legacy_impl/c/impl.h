@@ -267,7 +267,7 @@ public:
 	{
 		return fp;
 	}
-	explicit constexpr operator bool() const noexcept
+	constexpr operator bool() const noexcept
 	{
 		return fp;
 	}
@@ -408,7 +408,6 @@ template<std::integral ch_type>
 class basic_c_io_observer
 {
 public:
-	using lock_guard_type = c_io_lock_guard;
 	using char_type = ch_type;
 	using native_handle_type = std::FILE*;
 	native_handle_type fp{};
@@ -420,7 +419,7 @@ public:
 	{
 		return fp;
 	}
-	explicit operator bool() const noexcept
+	constexpr operator bool() const noexcept
 	{
 		return fp;
 	}
@@ -457,60 +456,56 @@ public:
 		fp=nullptr;
 		return temp;
 	}
-};
-
-template<std::integral T>
-inline auto mutex(basic_c_io_observer<T> h)
-{
-	return h.native_handle();
-}
-template<std::integral T>
-inline basic_c_io_observer_unlocked<T> unlocked_handle(basic_c_io_observer<T> h)
-{
-	return {h.native_handle()};
-}
-
-class c_io_lock_guard
-{
-	std::FILE* const fp;
-public:
-	c_io_lock_guard(std::FILE* f):fp(f)
+	inline void lock() const
 	{
 #if defined(_MSC_VER)||defined(_UCRT)
-		_lock_file(fp);
+	_lock_file(fp);
 #elif defined(_WIN32)
-		win32::my_msvcrt_lock_file(fp);
+	win32::my_msvcrt_lock_file(fp);
 #elif defined(__NEWLIB__)
 #ifndef __SINGLE_THREAD__
-//		flockfile(fp);	//TO FIX
+//	flockfile(fp);	//TO FIX
 #endif
 #else
-		flockfile(fp);
+	flockfile(fp);
 #endif
 	}
-	c_io_lock_guard(c_io_lock_guard const&) = delete;
-	c_io_lock_guard& operator=(c_io_lock_guard const&) = delete;
-	~c_io_lock_guard()
+	inline void unlock() const
 	{
 #if defined(_MSC_VER)||defined(_UCRT)
-		_unlock_file(fp);
+	_unlock_file(fp);
 #elif defined(_WIN32)
-		win32::my_msvcrt_unlock_file(fp);
+	win32::my_msvcrt_unlock_file(fp);
 #elif defined(__NEWLIB__)
 #ifndef __SINGLE_THREAD__
 //		_funlockfile(fp); //TO FIX
 #endif
 #else
-		funlockfile(fp);
+	funlockfile(fp);
 #endif
+	}
+	inline constexpr basic_c_io_observer_unlocked<ch_type> unlocked_handle() const noexcept
+	{
+		return {fp};
 	}
 };
 
+template<std::integral T>
+inline constexpr basic_c_io_observer<T> io_value_handle(basic_c_io_observer<T> other)
+{
+	return other;
+}
+
+template<std::integral T>
+inline constexpr basic_c_io_observer_unlocked<T> io_value_handle(basic_c_io_observer_unlocked<T> other)
+{
+	return other;
+}
 
 template<std::integral T,std::contiguous_iterator Iter>
 inline Iter read(basic_c_io_observer<T> cfhd,Iter begin,Iter end)
 {
-	c_io_lock_guard lg{cfhd.fp};
+	details::lock_guard lg{cfhd};
 	basic_c_io_observer_unlocked<T> cfhd_unlocked{cfhd.fp};
 	return read(cfhd_unlocked,begin,end);
 }
@@ -518,7 +513,7 @@ inline Iter read(basic_c_io_observer<T> cfhd,Iter begin,Iter end)
 template<std::integral T,std::contiguous_iterator Iter>
 inline decltype(auto) write(basic_c_io_observer<T> cfhd,Iter begin,Iter end)
 {
-	c_io_lock_guard lg{cfhd.fp};
+	details::lock_guard lg{cfhd};
 	basic_c_io_observer_unlocked<T> cfhd_unlocked{cfhd.fp};
 	return write(cfhd_unlocked,begin,end);
 }

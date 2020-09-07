@@ -316,6 +316,13 @@ public:
 	}
 };
 
+template<std::integral ch_type>
+inline constexpr basic_nt_io_observer<ch_type> io_value_handle(basic_nt_io_observer<ch_type> other)
+{
+	return other;
+}
+
+
 template<std::integral ch_type,std::contiguous_iterator Iter>
 inline Iter read(basic_nt_io_observer<ch_type> obs,Iter begin,Iter end)
 {

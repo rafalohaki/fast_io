@@ -330,6 +330,12 @@ inline Iter write(basic_bio_io_observer<ch_type> iob,Iter begin,Iter end)
 	return begin+written_bytes/sizeof(*begin);
 }
 
+template<std::integral ch_type>
+inline constexpr basic_bio_io_observer<ch_type> io_value_handle(basic_bio_io_observer<ch_type> other)
+{
+	return other;
+}
+
 static_assert(input_stream<bio_file>);
 static_assert(output_stream<bio_file>);
 

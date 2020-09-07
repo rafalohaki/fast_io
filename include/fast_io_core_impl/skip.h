@@ -29,7 +29,7 @@ template<character_input_stream input,typename UnaryPredicate>
 			ibuffer_set_curr(in,b);
 			if(b==e)[[unlikely]]
 			{
-				if constexpr(!contiguous_buffer_input_stream<input>)
+				if constexpr(!contiguous_input_stream<input>)
 				if(underflow(in))[[likely]]
 					continue;
 				return false;
@@ -59,7 +59,7 @@ template<character_input_stream input,typename UnaryPredicate>
 			ibuffer_set_curr(in,b);
 			if(b==e)[[unlikely]]
 			{
-				if constexpr(!contiguous_buffer_input_stream<input>)
+				if constexpr(!contiguous_input_stream<input>)
 				if(underflow(in))[[likely]]
 					continue;
 				return false;
@@ -124,7 +124,7 @@ inline constexpr std::size_t discard(input& in,std::size_t n)
 			if(e-b<n)
 			{
 				discarded+=e-b;
-				if constexpr(!contiguous_buffer_input_stream<input>)
+				if constexpr(!contiguous_input_stream<input>)
 				if(!underflow(in))[[unlikely]]
 					return discarded;
 			}
