@@ -21,20 +21,20 @@ namespace details
 
 
 template<std::unsigned_integral U>
-requires (std::same_as<U,std::uint16_t>||std::same_as<U,std::uint32_t>||std::same_as<U,std::uint64_t>)
+requires (sizeof(U)==2||sizeof(U)==4||sizeof(U)==8)
 inline U byte_swap(U a)
 {
 #ifdef _MSC_VER
-	if constexpr(std::same_as<U,std::uint64_t>)
+	if constexpr(sizeof(U)==8)
 		return _byteswap_uint64(a);
-	else if constexpr(std::same_as<U,std::uint32_t>)
+	else if constexpr(sizeof(U)==4)
 		return _byteswap_ulong(a);
 	else
 		return _byteswap_ushort(a);
 #elif (defined(__GNUG__) || defined(__clang__))
-	if constexpr(std::same_as<U,std::uint64_t>)
+	if constexpr(sizeof(U)==8)
 		return __builtin_bswap64(a);
-	else if constexpr(std::same_as<U,std::uint32_t>)
+	else if constexpr(sizeof(U)==4)
 		return __builtin_bswap32(a);
 	else
 		return __builtin_bswap16(a);
