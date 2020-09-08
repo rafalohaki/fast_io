@@ -188,9 +188,9 @@ inline constexpr auto line_generator(input&& in)
 {
 	using no_cvref = std::remove_cvref_t<input>;
 	if constexpr((std::is_trivially_copyable_v<no_cvref>||std::is_lvalue_reference_v<input>)&&value_based_stream<no_cvref>)
-		return scan_generator<decltype(io_value_handle(in)),scan_line_seperator<typename input::char_type,u8'\n'>>{io_value_handle(in)};
+		return scan_generator<decltype(io_value_handle(in)),scan_line_seperator<typename no_cvref::char_type,u8'\n'>>{io_value_handle(in)};
 	else if constexpr(std::is_lvalue_reference_v<input>)
-		return scan_generator<input,scan_line_seperator<typename input::char_type,u8'\n'>>{in};
+		return scan_generator<no_cvref,scan_line_seperator<typename no_cvref::char_type,u8'\n'>>{in};
 	else
 		static_assert(std::is_lvalue_reference_v<input>,"should not be rvalue reference");
 }

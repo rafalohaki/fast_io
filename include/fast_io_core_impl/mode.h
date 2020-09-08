@@ -275,38 +275,47 @@ inline auto constexpr from_c_mode(std::basic_string_view<ch_type> csm)
 }
 struct native_interface_t
 {
-explicit constexpr native_interface_t() = default;
+explicit constexpr native_interface_t() noexcept=default;
 };
 inline constexpr native_interface_t native_interface;
 
 struct io_cookie_t
 {
-explicit constexpr io_cookie_t()=default;
+explicit constexpr io_cookie_t() noexcept=default;
 };
 inline constexpr io_cookie_t io_cookie{};
 
 struct io_async_t
 {
-explicit constexpr io_async_t()=default;
+explicit constexpr io_async_t() noexcept=default;
 };
 inline constexpr io_async_t io_async{};
 
 struct io_temp_t
 {
-explicit constexpr io_temp_t()=default;
+explicit constexpr io_temp_t() noexcept=default;
 };
 inline constexpr io_temp_t io_temp{};
 
 struct io_at_t
 {
-explicit constexpr io_at_t()=default;
+explicit constexpr io_at_t() noexcept=default;
 };
 inline constexpr io_at_t io_at{},at{};
 
 struct io_dup_t
 {
-explicit constexpr io_dup_t()=default;
+explicit constexpr io_dup_t() noexcept=default;
 };
 inline constexpr io_dup_t io_dup{};
+/*
+template<open_mode,perms>
+struct io_open_mode_t
+{
+};
+
+template<open_mode,perms>
+inline constexpr io_open_mode_t io_open_mode{};
+*/
 
 }
