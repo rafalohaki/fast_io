@@ -136,7 +136,7 @@ public:
 	{
 		std::FILE* fp{};
 		BIO_get_fp(bio,std::addressof(fp));
-		return fp;
+		return {fp};
 	}
 	explicit operator basic_posix_io_observer<char_type>() const
 	{
