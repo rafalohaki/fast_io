@@ -402,8 +402,6 @@ inline decltype(auto) io_control(basic_c_io_observer_unlocked<ch_type> h,Args&& 
 	return io_control(static_cast<basic_posix_io_observer<ch_type>>(h),std::forward<Args>(args)...);
 }
 
-class c_io_lock_guard;
-
 template<std::integral ch_type>
 class basic_c_io_observer
 {

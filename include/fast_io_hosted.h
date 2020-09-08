@@ -7,6 +7,7 @@ For hosted implementations the set of standard library headers required by the C
 */
 //fast_io_hosted defines what we could use in a hosted environment.
 #include"fast_io_freestanding.h"
+#include"fast_io_hosted/cstring_view.h"
 #include"fast_io_hosted/mmap.h"
 #include"fast_io_hosted/platforms/native.h"
 #if !defined(__NEWLIB__)||defined(_GLIBCXX_HAS_GTHREADS)

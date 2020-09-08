@@ -27,7 +27,6 @@
 
 #include"fast_io_core_impl/overflow.h"
 #include"fast_io_core_impl/terminate.h"
-#include"fast_io_core_impl/io_ref.h"
 
 #include"fast_io_core_impl/memptr.h"
 #include"fast_io_core_impl/internal_temporary_buffer.h"

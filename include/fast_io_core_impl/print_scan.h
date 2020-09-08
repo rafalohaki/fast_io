@@ -385,8 +385,7 @@ inline constexpr auto scan(input &&in,Args&& ...args)
 	if constexpr(mutex_stream<input>)
 	{
 		details::lock_guard lg{in};
-		decltype(auto) uh{in.unlocked_handle()};
-		return scan<report_eof>(uh,std::forward<Args>(args)...);
+		return scan<report_eof>(in.unlocked_handle(),std::forward<Args>(args)...);
 	}
 	else if constexpr(status_input_stream<input>)
 		return scan_status_define<report_eof>(in,std::forward<Args>(args)...);
@@ -612,8 +611,7 @@ inline constexpr void print(output &&out,Args&& ...args)
 	if constexpr(mutex_stream<output>)
 	{
 		details::lock_guard lg{out};
-		decltype(auto) uh{out.unlocked_handle()};
-		print(uh,std::forward<Args>(args)...);
+		print(out.unlocked_handle(),std::forward<Args>(args)...);
 	}
 	else if constexpr(status_output_stream<output>)
 		print_status_define(out,std::forward<Args>(args)...);
@@ -647,8 +645,7 @@ inline constexpr void println(output &&out,Args&& ...args)
 	if constexpr(mutex_stream<output>)
 	{
 		details::lock_guard lg{out};
-		decltype(auto) uh{out.unlocked_handle()};
-		println(uh,std::forward<Args>(args)...);
+		println(out.unlocked_handle(),std::forward<Args>(args)...);
 	}
 	else if constexpr(status_output_stream<output>)
 		println_status_define(out,std::forward<Args>(args)...);

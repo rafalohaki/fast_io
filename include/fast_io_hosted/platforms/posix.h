@@ -930,29 +930,6 @@ inline int constexpr posix_stdin_number = 0;
 inline int constexpr posix_stdout_number = 1;
 inline int constexpr posix_stderr_number = 2;
 
-#if _XOPEN_SOURCE >= 700 || _POSIX_C_SOURCE >= 200809L
-
-inline void remove_at(posix_io_observer dir_iob,std::string_view relative_path)
-{
-	if(::unlinkat(dir_iob.fd,relative_path.data(),0)<0)
-		throw_posix_error();
-}
-
-inline void remove_directory_at(posix_io_observer dir_iob,std::string_view relative_path)
-{
-	if(::unlinkat(dir_iob.fd,relative_path.data(),AT_REMOVEDIR)<0)
-		throw_posix_error();
-}
-
-inline void rename_at(posix_io_observer old_dir_iob,std::string_view old_relative_path,
-			posix_io_observer new_dir_iob,std::string_view new_relative_path)
-{
-	if(::renameat(old_dir_iob.fd,old_relative_path.data(),new_dir_iob.fd,new_relative_path.data())<0)
-		throw_posix_error();
-}
-
-#endif
-
 #if defined(__linux__)||(defined(__BSD_VISIBLE)&&!defined(__NEWLIB__))
 
 //zero copy IO for linux

@@ -137,7 +137,7 @@ concept capacity_available_buffer_input_stream = buffer_input_stream<T>&&require
 template<typename T>
 concept value_based_stream = requires(T t)
 {
-	io_value_handle(t);
+	{io_value_handle(t)};
 };
 
 /*
