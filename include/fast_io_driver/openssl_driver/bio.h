@@ -140,11 +140,11 @@ public:
 	}
 	explicit operator basic_posix_io_observer<char_type>() const noexcept
 	{
-		std::FILE* fp{};
-		BIO_get_fp(bio,std::addressof(fp));
+		auto c_iob{static_cast<basic_c_io_observer<char_type>>(*this)};
+		if(c_iob)
+			return static_cast<basic_posix_io_observer<char_type>>(c_iob);
 		int fd{-1};
-		if(fp==nullptr)
-			BIO_get_fd(bio,std::addressof(fd));
+		BIO_get_fd(bio,std::addressof(fd));
 		return {fd};
 	}
 #if defined(_WIN32)
@@ -159,6 +159,11 @@ public:
 #endif
 
 };
+template<std::integral ch_type>
+inline constexpr basic_bio_io_observer<ch_type> io_value_handle(basic_bio_io_observer<ch_type> biob) noexcept
+{
+	return biob;
+}
 
 template<std::integral ch_type>
 class basic_bio_file:public basic_bio_io_observer<ch_type>
