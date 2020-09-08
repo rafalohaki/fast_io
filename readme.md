@@ -92,7 +92,6 @@ A general purpose I/O library to replace stdio.h and iostream
 - Dynamic Type Support
 - Multi Process
 - Memory map
-- Cryptography (Under construction) to replace openssl
 - debugging IO
 - GUI debugging IO
 - Freestanding mode

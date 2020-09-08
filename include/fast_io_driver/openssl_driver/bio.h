@@ -132,28 +132,29 @@ public:
 		bio=nullptr;
 		return temp;
 	}
-	explicit operator basic_c_io_observer<char_type>() const
+	explicit operator basic_c_io_observer<char_type>() const noexcept
 	{
 		std::FILE* fp{};
 		BIO_get_fp(bio,std::addressof(fp));
 		return {fp};
 	}
-	explicit operator basic_posix_io_observer<char_type>() const
+	explicit operator basic_posix_io_observer<char_type>() const noexcept
 	{
-		int fd{};
-		BIO_get_fd(bio,std::addressof(fd));
-		if(fd==0)
-		{
-			basic_c_io_observer<char_type> ciob(*this);
-			if(ciob)[[likely]]
-				return static_cast<basic_posix_io_observer<char_type>>(ciob);
-		}
+		std::FILE* fp{};
+		BIO_get_fp(bio,std::addressof(fp));
+		int fd{-1};
+		if(fp==nullptr)
+			BIO_get_fd(bio,std::addressof(fd));
 		return {fd};
 	}
-#if defined(__WINNT__) || defined(_MSC_VER)
-	explicit operator basic_win32_io_observer<char_type>() const
+#if defined(_WIN32)
+	explicit operator basic_win32_io_observer<char_type>() const noexcept
 	{
 		return basic_win32_io_observer<char_type>(static_cast<basic_posix_io_observer<char_type>>(*this));
+	}
+	explicit operator basic_nt_io_observer<char_type>() const noexcept
+	{
+		return basic_nt_io_observer<char_type>(static_cast<basic_posix_io_observer<char_type>>(*this));
 	}
 #endif
 
@@ -208,8 +209,6 @@ public:
 		detect_open_failure();
 		bmv.release();
 	}
-	basic_bio_file(basic_c_io_handle<char_type>&& bmv,cstring_view om):
-		basic_bio_file(std::move(bmv),fast_io::from_c_mode(om)){}
 
 	template<fast_io::open_mode om>
 	basic_bio_file(basic_posix_io_handle<char_type>&& bmv,open_interface_t<om>):
