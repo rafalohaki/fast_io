@@ -95,12 +95,12 @@ inline void win32_http_send_request(win32_internet_handle& handle)
 		throw fast_io::win32_error();
 }
 
-inline void win32_http_send_request(win32_internet_handle& handle,std::string_view sview)
+inline void win32_http_send_request(win32_internet_handle& handle,cstring_view sview)
 {
 	if(!HttpSendRequestA(handle.handle,sview.data(),sview.size(),nullptr,0))
 		throw fast_io::win32_error();
 }
-inline void win32_http_send_request(win32_internet_handle& handle,std::string_view sview,std::span<std::byte> extra)
+inline void win32_http_send_request(win32_internet_handle& handle,cstring_view sview,std::span<std::byte> extra)
 {
 	if(!HttpSendRequestA(handle.handle,sview.data(),sview.size(),extra.data(),extra.size()))
 		throw fast_io::win32_error();
@@ -137,7 +137,7 @@ public:
 	win32_internet_handle connection;
 	win32_internet_handle request;
 	constexpr basic_win32_internet_https_client()=default;
-	basic_win32_internet_https_client(std::string_view host,std::string_view method,std::string_view object_name,std::uint32_t port=443):
+	basic_win32_internet_https_client(cstring_view host,cstring_view method,cstring_view object_name,std::uint32_t port=443):
 		session(win32_internet_open("Microsoft Internet Explorer",INTERNET_OPEN_TYPE_PRECONFIG,nullptr,nullptr,0)),
 		connection(win32_internet_connect(session,host.data(),port,nullptr,nullptr,INTERNET_SERVICE_HTTP,0,0)),
 		request(win32_http_open_request(connection,method.data(),object_name.data(),HTTP_VERSION,nullptr,nullptr,

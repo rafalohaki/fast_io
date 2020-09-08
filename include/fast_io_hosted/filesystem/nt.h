@@ -97,7 +97,7 @@ struct nt_directory_entry
 	}
 };
 
-inline std::string_view filename(nt_directory_entry pioe) noexcept
+inline cstring_view filename(nt_directory_entry pioe) noexcept
 {
 	return pioe.entry->d_name;
 }
@@ -224,7 +224,7 @@ inline nt_recursive_directory_iterator& operator++(nt_recursive_directory_iterat
 		}
 		if(prdit.entry->d_type==file_type::directory)
 		{
-			std::string_view name{prdit.entry->d_name};
+			cstring_view name{prdit.entry->d_name};
 			if((name.size()==1&&name.front()==u8'.')||(name.size()==2&&name.front()==u8'.'&&name[1]==u8'.'))
 				continue;
 			prdit.stack.emplace_back(at,win32_io_observer{prdit.stack.empty()?prdit.root_handle:prdit.stack.back().handle},name,
@@ -253,7 +253,7 @@ inline nt_recursive_directory_iterator begin(nt_recursive_directory_generator co
 	prdit.entry=win32::nt::details::set_nt_dirent_first(prdit.entry);
 	if(prdit.entry&&prdit.entry->d_type==file_type::directory)
 	{
-		std::string_view name{prdit.entry->d_name};
+		cstring_view name{prdit.entry->d_name};
 		if((name.size()==1&&name.front()==u8'.')||(name.size()==2&&name.front()==u8'.'&&name[1]==u8'.'))
 			++prdit;
 		else

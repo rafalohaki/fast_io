@@ -10,7 +10,7 @@ namespace details
 inline void report_com_error(error_reporter& report, auto hresult) requires(std::same_as<TCHAR,char>)
 {
 	_com_error ce(hresult);
-	print(report,std::string_view{ce.ErrorMessage()});
+	print(report,cstring_view{ce.ErrorMessage()});
 }
 
 inline void report_com_error(error_reporter& report, auto hresult) requires(std::same_as<TCHAR,wchar_t>&&sizeof(wchar_t)==2)

@@ -92,7 +92,7 @@ inline void posix_exec(std::string path,std::array<std::string,n> args)
 }
 
 /*
-inline void posix_exec(std::string_view path,std::ranges::sized_range auto& parameters,std::ranges::sized_range auto& environment)
+inline void posix_exec(cstring_view path,std::ranges::sized_range auto& parameters,std::ranges::sized_range auto& environment)
 {
 	if(std::ranges::size(parameters)<127)[[likely]]
 	{

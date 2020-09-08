@@ -317,7 +317,7 @@ inline constexpr win32_desired_access& operator|=(win32_desired_access& x, win32
 
 inline constexpr win32_desired_access& operator^=(win32_desired_access& x, win32_desired_access y) noexcept{return x=x^y;}
 
-inline std::uint32_t get_process_id_from_window_name(std::string_view name)
+inline std::uint32_t get_process_id_from_window_name(cstring_view name)
 {
 	void* hwnd {win32::FindWindowA(nullptr,name.data())};
 	if(hwnd==nullptr)

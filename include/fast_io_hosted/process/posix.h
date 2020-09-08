@@ -88,8 +88,8 @@ inline void redirect(io_observer& ob)
 }
 
 template<bool is_child>
-inline void prepare_for_exec(std::string_view& path,
-				std::vector<std::string_view>& args,
+inline void prepare_for_exec(cstring_view& path,
+				std::vector<cstring_view>& args,
 				process_io& io)
 {
 if constexpr(is_child)
@@ -134,8 +134,8 @@ public:
 	{
 		system_call_throw_error(pid);
 	}
-	posix_process(std::string_view path,
-				std::vector<std::string_view> args,
+	posix_process(cstring_view path,
+				std::vector<cstring_view> args,
 				process_io io):posix_process(native_interface)
 	{
 		if(!pid)
@@ -225,8 +225,8 @@ public:
 	{
 		system_call_throw_error(pid);
 	}
-	posix_jprocess(std::string_view path,
-				std::vector<std::string_view> args,
+	posix_jprocess(cstring_view path,
+				std::vector<cstring_view> args,
 				process_io io):posix_jprocess(native_interface)
 	{
 		if(!pid)

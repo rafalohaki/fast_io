@@ -120,7 +120,7 @@ struct gmac
 		}
 	}
 
-	gmac(std::string_view key):gmac(std::as_bytes(std::span{key.data(),key.size()})){}
+	gmac(cstring_view key):gmac(std::as_bytes(std::span{key.data(),key.size()})){}
 
 	// std::size_t block_init(std::span<std::byte,block_size> sp)
 	// {

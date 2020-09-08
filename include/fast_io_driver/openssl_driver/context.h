@@ -42,7 +42,7 @@ inline SSL_METHOD const* get_method(tls_method m)
 class ssl_context:public ssl_context_observer
 {
 public:
-	ssl_context(openssl_context_observer ocob,std::string_view view,tls_method m):ssl_context_observer(SSL_CTX_new_with_libctx(ocob.native_handle(),view.data(),details::get_method(m)))
+	ssl_context(openssl_context_observer ocob,cstring_view view,tls_method m):ssl_context_observer(SSL_CTX_new_with_libctx(ocob.native_handle(),view.data(),details::get_method(m)))
 	{
 		if(this->native_handle()==nullptr)
 			throw_openssl_error();

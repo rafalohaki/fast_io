@@ -207,7 +207,7 @@ public:
 		detect_open_failure();
 		bmv.release();
 	}
-	basic_bio_file(basic_c_io_handle<char_type>&& bmv,std::string_view om):
+	basic_bio_file(basic_c_io_handle<char_type>&& bmv,cstring_view om):
 		basic_bio_file(std::move(bmv),fast_io::from_c_mode(om)){}
 
 	template<fast_io::open_mode om>
@@ -223,7 +223,6 @@ public:
 		detect_open_failure();
 		bmv.release();
 	}
-	basic_bio_file(basic_posix_io_handle<char_type>&& bmv,std::string_view mode):basic_bio_file(std::move(bmv),fast_io::from_c_mode(mode)){}
 
 	template<fast_io::open_mode om>
 	basic_bio_file(basic_c_io_observer<char_type>& bmv,open_interface_t<om>):
@@ -237,7 +236,7 @@ public:
 	{
 		detect_open_failure();
 	}
-	basic_bio_file(basic_c_io_observer<char_type>& bmv,std::string_view om):
+	basic_bio_file(basic_c_io_observer<char_type>& bmv,cstring_view om):
 		basic_bio_file(bmv,fast_io::from_c_mode(om)){}
 
 	template<fast_io::open_mode om>
@@ -251,7 +250,6 @@ public:
 	{
 		detect_open_failure();
 	}
-	basic_bio_file(basic_posix_io_observer<char_type>& bmv,std::string_view mode):basic_bio_file(bmv,fast_io::from_c_mode(mode)){}
 
 
 
@@ -263,18 +261,13 @@ public:
 	}
 #endif
 	template<open_mode om,typename... Args>
-	basic_bio_file(std::string_view file,open_interface_t<om>,Args&& ...args):
+	basic_bio_file(cstring_view file,open_interface_t<om>,Args&& ...args):
 		basic_bio_file(basic_c_file<char_type>(file,open_interface<om>,std::forward<Args>(args)...),open_interface<om>)
 	{}
 	template<typename... Args>
-	basic_bio_file(std::string_view file,open_mode om,Args&& ...args):
+	basic_bio_file(cstring_view file,open_mode om,Args&& ...args):
 		basic_bio_file(basic_c_file<char_type>(file,om,std::forward<Args>(args)...),om)
 	{}
-	template<typename... Args>
-	basic_bio_file(std::string_view file,std::string_view mode,Args&& ...args):
-		basic_bio_file(basic_c_file<char_type>(file,mode,std::forward<Args>(args)...),mode)
-	{
-	}
 
 	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
 	{

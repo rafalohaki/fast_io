@@ -10,7 +10,7 @@ inline std::string_view extension(directory_entry pioe) noexcept
 	if(fname=="."sv||fname==".."sv)
 		return {};
 	auto start{fname.rfind('.')};
-	if(start==std::string_view::npos)
+	if(start==cstring_view::npos)
 		return {};
 	return fname.substr(start);
 }

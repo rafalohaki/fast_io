@@ -260,7 +260,7 @@ public:
 	using native_handle_type = c_locale_handle::native_handle_type;
 	constexpr c_locale()=default;
 	constexpr c_locale(native_handle_type hd):c_locale_handle(hd){}
-	c_locale(c_locale_category catg,std::string_view loc):
+	c_locale(c_locale_category catg,cstring_view loc):
 		c_locale_handle(
 #if defined(__WINNT__) || defined(_MSC_VER)
 	_create_locale(static_cast<int>(catg),loc=="POSIX"?"C":loc.data())

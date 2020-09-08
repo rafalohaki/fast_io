@@ -6,7 +6,7 @@ namespace fast_io
 namespace details
 {
 
-inline void append_to_cmdline(std::string& cmdline,std::string_view str)
+inline void append_to_cmdline(std::string& cmdline,cstring_view str)
 {
 	bool has_space{};
 	for(auto const& e : str)
@@ -89,7 +89,7 @@ class basic_win32_process
 public:
 	using native_handle_type = win32::process_information;
 /*
-	basic_win32_process(native_interface_t,std::string_view path,
+	basic_win32_process(native_interface_t,cstring_view path,
 		std::string cmdline,
 		process_io io)
 	{
@@ -100,8 +100,8 @@ public:
 			nullptr,nullptr,std::addressof(sup),std::addressof(pinfo)))
 			throw_win32_error();
 	}*/
-	basic_win32_process(std::string_view path,
-				std::vector<std::string_view> args,
+	basic_win32_process(cstring_view path,
+				std::vector<cstring_view> args,
 				process_io io,char const* directory_folder=nullptr)
 	{
 		std::string pth(path.data(),path.data()+path.size());

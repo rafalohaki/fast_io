@@ -152,7 +152,7 @@ inline constexpr std::default_sentinel_t cend(basic_dns<fam> const&)
 }
 
 template<fast_io::sock::family fam=fast_io::sock::family::unspec>
-inline constexpr auto dns_once(std::string_view host)
+inline constexpr auto dns_once(cstring_view host)
 {
 	return *cbegin(basic_dns<fam>(host));
 }

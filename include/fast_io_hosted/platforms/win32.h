@@ -93,7 +93,7 @@ std::uint32_t dwFlagsAndAttributes)
 
 template<bool inherit=false,typename... Args>
 requires (sizeof...(Args)==4)
-inline void* create_file_a_impl(std::string_view path,Args&& ...args)
+inline void* create_file_a_impl(cstring_view path,Args&& ...args)
 {
 	if(path.size()<511)[[likely]]
 	{
@@ -597,7 +597,7 @@ public:
 			throw_win32_error();
 	}
 	template<open_mode om,perms pm>
-	explicit basic_win32_file(std::string_view filename,open_interface_t<om>,perms_interface_t<pm>):
+	explicit basic_win32_file(cstring_view filename,open_interface_t<om>,perms_interface_t<pm>):
 				basic_win32_io_handle<char_type>(
 				details::create_file_a_impl<(om&open_mode::inherit)!=open_mode::none>(filename,
 				details::win32_file_openmode<om,pm>::mode.dwDesiredAccess,
@@ -610,7 +610,7 @@ public:
 			seek_end_local();
 	}
 	template<open_mode om>
-	explicit basic_win32_file(std::string_view filename,open_interface_t<om>):basic_win32_io_handle<char_type>(
+	explicit basic_win32_file(cstring_view filename,open_interface_t<om>):basic_win32_io_handle<char_type>(
 				details::create_file_a_impl<(om&open_mode::inherit)!=open_mode::none>(filename,
 				details::win32_file_openmode_single<om>::mode.dwDesiredAccess,
 				details::win32_file_openmode_single<om>::mode.dwShareMode,
@@ -622,7 +622,7 @@ public:
 	}
 
 	template<open_mode om>
-	explicit basic_win32_file(std::string_view filename,open_interface_t<om>,perms p):basic_win32_io_handle<char_type>(
+	explicit basic_win32_file(cstring_view filename,open_interface_t<om>,perms p):basic_win32_io_handle<char_type>(
 				details::create_file_a_impl<(om&open_mode::inherit)!=open_mode::none>(filename,
 				details::win32_file_openmode_single<om>::mode.dwDesiredAccess,
 				details::win32_file_openmode_single<om>::mode.dwShareMode,
@@ -632,7 +632,7 @@ public:
 		if constexpr ((om&open_mode::ate)!=open_mode::none)
 			seek_end_local();
 	}
-	explicit basic_win32_file(std::string_view filename,open_mode om,perms pm=static_cast<perms>(420))
+	explicit basic_win32_file(cstring_view filename,open_mode om,perms pm=static_cast<perms>(420))
 	{
 		auto const mode(details::calculate_win32_open_mode_with_perms(om,pm));
 		if((om&open_mode::inherit)==open_mode::none)
@@ -656,8 +656,6 @@ public:
 		if ((om&open_mode::ate)!=open_mode::none)
 			seek_end_local();
 	}
-	explicit basic_win32_file(std::string_view file,std::string_view mode,perms pm=static_cast<perms>(420)):
-		basic_win32_file(file,fast_io::from_c_mode(mode),pm){}
 	explicit basic_win32_file(io_async_t) requires(std::same_as<char_type,char>):
 		basic_win32_io_handle<char_type>(details::create_io_completion_port(bit_cast<void*>(static_cast<std::uintptr_t>(-1)),nullptr,0,0)){}
 #ifndef _MSC_VER
@@ -665,7 +663,7 @@ public:
 #endif
 
 	template<open_mode om,perms pm>
-	explicit basic_win32_file(io_at_t,basic_win32_io_observer<char> wiob,std::string_view filename,open_interface_t<om>,perms_interface_t<pm>):
+	explicit basic_win32_file(io_at_t,basic_win32_io_observer<char> wiob,cstring_view filename,open_interface_t<om>,perms_interface_t<pm>):
 				basic_win32_io_handle<char_type>(details::nt::nt_create_file_directory_impl(wiob.handle,filename,details::nt::nt_file_openmode<om,pm>::mode))
 	{
 		if constexpr ((om&open_mode::ate)!=open_mode::none)
@@ -673,7 +671,7 @@ public:
 	}
 
 	template<open_mode om>
-	explicit basic_win32_file(io_at_t,basic_win32_io_observer<char> wiob,std::string_view filename,open_interface_t<om>):
+	explicit basic_win32_file(io_at_t,basic_win32_io_observer<char> wiob,cstring_view filename,open_interface_t<om>):
 				basic_win32_io_handle<char_type>(details::nt::nt_create_file_directory_impl(wiob.handle,filename,details::nt::nt_file_openmode<om>::mode))
 	{
 		if constexpr ((om&open_mode::ate)!=open_mode::none)
@@ -681,33 +679,30 @@ public:
 	}
 
 	template<open_mode om>
-	explicit basic_win32_file(io_at_t,basic_win32_io_observer<char> wiob,std::string_view filename,open_interface_t<om>,perms pm):
+	explicit basic_win32_file(io_at_t,basic_win32_io_observer<char> wiob,cstring_view filename,open_interface_t<om>,perms pm):
 				basic_win32_io_handle<char_type>(details::nt::nt_create_file_directory_impl(wiob.handle,filename,details::nt::calculate_nt_open_mode(om,pm)))
 	{
 		if constexpr ((om&open_mode::ate)!=open_mode::none)
 			seek_end_local();
 	}
 
-	explicit basic_win32_file(io_at_t,basic_win32_io_observer<char> wiob,std::string_view filename,open_mode om,perms pm=static_cast<perms>(420)):
+	explicit basic_win32_file(io_at_t,basic_win32_io_observer<char> wiob,cstring_view filename,open_mode om,perms pm=static_cast<perms>(420)):
 				basic_win32_io_handle<char_type>(details::nt::nt_create_file_directory_impl(wiob.handle,filename,details::nt::calculate_nt_open_mode(om,pm)))
 	{
 		if((om&open_mode::ate)!=open_mode::none)
 			seek_end_local();
 	}
 
-	explicit basic_win32_file(io_at_t,basic_win32_io_observer<char> wiob,std::string_view filename,std::string_view mode,perms pm=static_cast<perms>(420)):
-				basic_win32_file(at,wiob,filename,from_c_mode(mode),pm){}
-
 
 	template<typename... Args>
-	basic_win32_file(io_async_t,basic_win32_io_observer<char> iob,std::string_view filename,Args&& ...args):basic_win32_file(std::forward<Args>(args)...)
+	basic_win32_file(io_async_t,basic_win32_io_observer<char> iob,cstring_view filename,Args&& ...args):basic_win32_file(std::forward<Args>(args)...)
 	{
 		basic_win32_file<ch_type> guard(this->native_handle());
 		details::create_io_completion_port(this->native_handle(),iob.native_handle(),bit_cast<std::uintptr_t>(this->native_handle()),0);
 		guard.release();
 	}
 	template<typename... Args>
-	basic_win32_file(io_async_t,basic_win32_io_observer<char> iob,io_at_t,basic_win32_io_observer<char> wiob,std::string_view filename,Args&& ...args):basic_win32_file(at,wiob,filename,std::forward<Args>(args)...)
+	basic_win32_file(io_async_t,basic_win32_io_observer<char> iob,io_at_t,basic_win32_io_observer<char> wiob,cstring_view filename,Args&& ...args):basic_win32_file(at,wiob,filename,std::forward<Args>(args)...)
 	{
 		basic_win32_file<ch_type> guard(this->native_handle());
 		details::create_io_completion_port(this->native_handle(),iob.native_handle(),bit_cast<std::uintptr_t>(this->native_handle()),0);

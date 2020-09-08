@@ -70,11 +70,11 @@ inline FILE* fp_hack(T* stdbuf) noexcept
 	try
 	{
 #endif
-		std::string_view stdin_type{typeid(std::__stdinbuf<char_type>).name()};
-		std::string_view my_type{typeid(*stdbuf).name()};
+		cstring_view stdin_type{typeid(std::__stdinbuf<char_type>).name()};
+		cstring_view my_type{typeid(*stdbuf).name()};
 		if(my_type==stdin_type)
 			return stdinbuf_stdoutbuf_fp_hack(stdbuf);
-		std::string_view stdout_type{typeid(std::__stdoutbuf<char_type>).name()};
+		cstring_view stdout_type{typeid(std::__stdoutbuf<char_type>).name()};
 		if(my_type==stdout_type)
 			return stdinbuf_stdoutbuf_fp_hack(stdbuf);
 		auto fbf{dynamic_cast<std::basic_filebuf<char_type,traits_type>*>(stdbuf)};

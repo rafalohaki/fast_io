@@ -106,7 +106,7 @@ struct poly1305
 		st->leftover = 0;
 		st->final = 0;
 	}
-	poly1305(std::string_view key):poly1305(std::as_bytes(std::span{key.data(),key.size()})){}
+	poly1305(cstring_view key):poly1305(std::as_bytes(std::span{key.data(),key.size()})){}
 	std::size_t block_init(std::span<std::byte,block_size> sp)
 	{
 		return 0;

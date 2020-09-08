@@ -193,7 +193,7 @@ struct nt_file_openmode
 	inline static constexpr nt_open_mode mode = calculate_nt_open_mode(om,pm);
 };
 
-inline void nt_write_file_rtl_path(std::string_view filename,char16_t* buffer_data,win32::nt::unicode_string& nt_name,char16_t const*& part_name,win32::nt::rtl_relative_name_u& relative_name)
+inline void nt_write_file_rtl_path(cstring_view filename,char16_t* buffer_data,win32::nt::unicode_string& nt_name,char16_t const*& part_name,win32::nt::rtl_relative_name_u& relative_name)
 {
 	*utf_code_convert(filename.data(),filename.data()+filename.size(),buffer_data)=0;
 	if(!win32::nt::rtl_dos_path_name_to_nt_path_name_u(buffer_data,std::addressof(nt_name),std::addressof(part_name),std::addressof(relative_name)))
@@ -229,7 +229,7 @@ inline std::uint16_t filename_bytes(std::size_t sz)
 	return static_cast<std::uint16_t>(sz);
 }
 
-inline void* nt_create_file_directory_impl(void* directory,std::string_view filename,nt_open_mode const& mode)
+inline void* nt_create_file_directory_impl(void* directory,cstring_view filename,nt_open_mode const& mode)
 {
 	details::temp_unique_arr_ptr<char16_t> buffer(filename.size());
 	auto buffer_data_end=utf_code_convert(filename.data(),filename.data()+filename.size(),buffer.data());
@@ -241,7 +241,7 @@ inline void* nt_create_file_directory_impl(void* directory,std::string_view file
 	return nt_create_file_common_impl(directory,std::addressof(relative_path),mode);
 }
 
-inline void* nt_create_file_impl(std::string_view filename,nt_open_mode const& mode)
+inline void* nt_create_file_impl(cstring_view filename,nt_open_mode const& mode)
 {
 	char16_t const* part_name{};
 	win32::nt::rtl_relative_name_u relative_name{};
@@ -428,14 +428,14 @@ public:
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	constexpr basic_nt_file(native_hd hd):basic_nt_io_handle<ch_type>(hd){}
-	basic_nt_file(std::string_view filename,open_mode om,perms pm=static_cast<perms>(420)):
+	basic_nt_file(cstring_view filename,open_mode om,perms pm=static_cast<perms>(420)):
 		basic_nt_io_handle<ch_type>(details::nt::nt_create_file_impl(filename,details::nt::calculate_nt_open_mode(om,pm)))
 	{
 		if((om&open_mode::ate)!=open_mode::none)
 			seek_end_local();
 	}
 
-	basic_nt_file(fast_io::io_at_t,basic_nt_io_observer<char> diob,std::string_view filename,open_mode om,perms pm=static_cast<perms>(420)):
+	basic_nt_file(fast_io::io_at_t,basic_nt_io_observer<char> diob,cstring_view filename,open_mode om,perms pm=static_cast<perms>(420)):
 		basic_nt_io_handle<char_type>(details::nt::nt_create_file_directory_impl(diob.handle,filename,details::nt::calculate_nt_open_mode(om,pm)))
 	{
 		if((om&open_mode::ate)!=open_mode::none)

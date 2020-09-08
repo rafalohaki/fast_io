@@ -30,7 +30,7 @@ struct hmac
 		for(std::size_t i{};i!=inner_key.size();++i)
 			inner_key[i]=outer_key[i]^std::byte{0x36};
 	}
-	hmac(std::string_view key):hmac(std::as_bytes(std::span{key.data(),key.size()})){}
+	hmac(cstring_view key):hmac(std::as_bytes(std::span{key.data(),key.size()})){}
 	std::size_t block_init(std::span<std::byte,block_size> sp)
 	{
 		memcpy(sp.data(),inner_key.data(),sizeof(key_type));

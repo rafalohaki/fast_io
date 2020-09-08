@@ -136,49 +136,48 @@ constexpr auto c_supported_values{static_cast<utype>(open_mode::binary)|
 return static_cast<open_mode>(static_cast<utype>(m)&c_supported_values);
 }
 
-inline auto constexpr to_c_mode(open_mode const& m)
+inline constexpr char const* to_c_mode(open_mode const& m)
 {
-	using namespace std::string_view_literals;
 	using utype = typename std::underlying_type<open_mode>::type;
 	switch(static_cast<utype>(c_supported(m)))
 	{
 //Action if file already exists;	Action if file does not exist;	c-style mode;	Explanation
 //Read from start;	Failure to open;	"r";	Open a file for reading
 	case static_cast<utype>(open_mode::in):
-		return "r"sv;
+		return "r";
 //Destroy contents;	Create new;	"w";	Create a file for writing
 	case static_cast<utype>(open_mode::out):
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::trunc):
-		return "w"sv;
+		return "w";
 //Append to file;	Create new;	"a";	Append to a file
 	case static_cast<utype>(open_mode::app):
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app):
-		return "a"sv;
+		return "a";
 //Read from start;	Error;	"r+";		Open a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in):
-		return "r+"sv;
+		return "r+";
 //Destroy contents;	Create new;	"w+";	Create a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::trunc):
-		return "w+"sv;
+		return "w+";
 //Write to end;	Create new;	"a+";	Open a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app):
 	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app):
-		return "a+"sv;
+		return "a+";
 //Destroy contents;	Error;	"wx";	Create a file for writing
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::excl):
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::excl):
-		return "wx"sv;
+		return "wx";
 //Append to file;	Error;	"ax";	Append to a file
 	case static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl):
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl):
-		return "ax"sv;
+		return "ax";
 //Destroy contents;	Error;	"w+x";	Create a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::excl):
-		return "w+x"sv;
+		return "w+x";
 //Write to end;	Error;	"a+x";	Open a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl):
 	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl):
-		return "a+x"sv;
+		return "a+x";
 	break;
 	
 //binary support
@@ -186,40 +185,40 @@ inline auto constexpr to_c_mode(open_mode const& m)
 //Action if file already exists;	Action if file does not exist;	c-style mode;	Explanation
 //Read from start;	Failure to open;	"rb";	Open a file for reading
 	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::binary):
-		return "rb"sv;
+		return "rb";
 //Destroy contents;	Create new;	"wb";	Create a file for writing
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::binary):
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::binary):
-		return "wb"sv;
+		return "wb";
 //Append to file;	Create new;	"ab";	Append to a file
 	case static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::binary):
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::binary):
-		return "ab"sv;
+		return "ab";
 //Read from start;	Error;	"r+b";		Open a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::binary):
-		return "r+b"sv;
+		return "r+b";
 //Destroy contents;	Create new;	"w+b";	Create a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::binary):
-		return "w+b"sv;
+		return "w+b";
 //Write to end;	Create new;	"a+b";	Open a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::binary):
 	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::binary):
-		return "a+b"sv;
+		return "a+b";
 //Destroy contents;	Error;	"wxb";	Create a file for writing
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::binary):
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::binary):
-		return "wxb"sv;
+		return "wxb";
 //Append to file;	Error;	"axb";	Append to a file
 	case static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::binary):
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::binary):
-		return "axb"sv;
+		return "axb";
 //Destroy contents;	Error;	"w+xb";	Create a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::binary):
-		return "w+xb"sv;
+		return "w+xb";
 //Write to end;	Error;	"a+xb";	Open a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::binary):
 	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::binary):
-		return "a+xb"sv;
+		return "a+xb";
 	break;
 	default:
 #ifdef __cpp_exceptions

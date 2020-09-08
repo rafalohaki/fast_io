@@ -45,7 +45,7 @@ public:
 	using native_handle_type = iconv_t;
 	constexpr posix_iconv()=default;
 	constexpr posix_iconv(std::uintptr_t cd):posix_iconv_observer{cd}{}
-	posix_iconv(std::string_view to_code,std::string_view from_code):posix_iconv(bit_cast<std::uintptr_t>(iconv_open(to_code.data(),from_code.data())))
+	posix_iconv(cstring_view to_code,cstring_view from_code):posix_iconv(bit_cast<std::uintptr_t>(iconv_open(to_code.data(),from_code.data())))
 	{
 		if(this->native_handle()==std::uintptr_t(-1))
 			throw_posix_error();
