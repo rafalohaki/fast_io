@@ -139,11 +139,17 @@ struct scan_generator
 	}
 	scan_generator(scan_generator const&)=delete;
 	scan_generator& operator=(scan_generator const&)=delete;
-	constexpr ~scan_generator() requires(mutex_stream<input>)
+#if __cpp_constexpr >= 201907L
+	constexpr 
+#endif
+	~scan_generator() requires(mutex_stream<input>)
 	{
 		reference.unlock();
 	}
-	constexpr ~scan_generator() = default;
+#if __cpp_constexpr >= 201907L
+	constexpr 
+#endif
+	~scan_generator() = default;
 };
 
 template<input_stream input,typename Func>
@@ -170,11 +176,9 @@ struct scan_line_seperator
 	{
 		return std::find(bg,ed,seperator);
 	}
-	template<std::contiguous_iterator Iter>
-	requires std::same_as<std::iter_value_t<Iter>,char_type>
-	constexpr void set_data(Iter bg,Iter ed) noexcept
+	constexpr void set_data(char_type const* bg,char_type const* ed) noexcept
 	{
-		data=std::basic_string_view<char_type>(bg,ed);
+		data=std::basic_string_view<char_type>(bg,static_cast<std::size_t>(ed-bg));
 	}
 	constexpr std::basic_string_view<char_type> const& get_data() const noexcept
 	{
