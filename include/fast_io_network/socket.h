@@ -4,12 +4,6 @@ namespace fast_io
 {
 
 
-namespace details
-{
-struct empty
-{};
-}
-
 template<std::integral ch_type>
 class basic_socket_io_observer
 {
