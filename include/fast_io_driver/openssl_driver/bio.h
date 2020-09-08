@@ -224,7 +224,7 @@ public:
 
 
 
-#if defined(__WINNT__) || defined(_MSC_VER)
+#if defined(_WIN32)
 	template<typename... Args>
 	basic_bio_file(basic_win32_io_handle<char_type>&& bmv,Args&& ...args):
 		basic_bio_file(basic_posix_file(std::move(bmv),std::forward<Args>(args)...),std::forward<Args>(args)...)
@@ -239,6 +239,16 @@ public:
 	basic_bio_file(cstring_view file,open_mode om,Args&& ...args):
 		basic_bio_file(basic_c_file<char_type>(file,om,std::forward<Args>(args)...),om)
 	{}
+
+	template<open_mode om,typename... Args>
+	basic_bio_file(io_at_t,native_io_observer niob,cstring_view file,open_interface_t<om>,Args&& ...args):
+		basic_bio_file(basic_c_file<char_type>(at,niob,file,open_interface<om>,std::forward<Args>(args)...),open_interface<om>)
+	{}
+	template<typename... Args>
+	basic_bio_file(io_at_t,native_io_observer niob,cstring_view file,open_mode om,Args&& ...args):
+		basic_bio_file(basic_c_file<char_type>(at,niob,file,om,std::forward<Args>(args)...),om)
+	{}
+
 
 	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
 	{
