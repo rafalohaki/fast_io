@@ -157,14 +157,7 @@ public:
 		return basic_nt_io_observer<char_type>(static_cast<basic_posix_io_observer<char_type>>(*this));
 	}
 #endif
-
 };
-template<std::integral ch_type>
-inline constexpr basic_bio_io_observer<ch_type> io_value_handle(basic_bio_io_observer<ch_type> biob) noexcept
-{
-	return biob;
-}
-
 template<std::integral ch_type>
 class basic_bio_file:public basic_bio_io_observer<ch_type>
 {
@@ -302,7 +295,7 @@ inline Iter write(basic_bio_io_observer<ch_type> iob,Iter begin,Iter end)
 }
 
 template<std::integral ch_type>
-inline constexpr basic_bio_io_observer<ch_type> io_value_handle(basic_bio_io_observer<ch_type> other)
+inline constexpr basic_bio_io_observer<ch_type> io_value_handle(basic_bio_io_observer<ch_type> other) noexcept
 {
 	return other;
 }
