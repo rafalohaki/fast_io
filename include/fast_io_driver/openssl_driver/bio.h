@@ -136,7 +136,8 @@ public:
 	{
 		std::FILE* fp{};
 		BIO_get_fp(bio,std::addressof(fp));
-		retu
+		return fp;
+	}
 	explicit operator basic_posix_io_observer<char_type>() const
 	{
 		int fd{};
@@ -222,33 +223,6 @@ public:
 	{
 		detect_open_failure();
 		bmv.release();
-	}
-
-	template<fast_io::open_mode om>
-	basic_bio_file(basic_c_io_observer<char_type>& bmv,open_interface_t<om>):
-		basic_bio_io_observer<char_type>(BIO_new_fp(bmv.native_handle(),details::bio_new_fp_flags<om,false>::value))
-	{
-		detect_open_failure();
-	}
-
-	basic_bio_file(basic_c_io_observer<char_type>& bmv,fast_io::open_mode om):
-		basic_bio_io_observer<char_type>(BIO_new_fp(bmv.native_handle(),details::calculate_bio_new_fp_flags<false>(om)))
-	{
-		detect_open_failure();
-	}
-	basic_bio_file(basic_c_io_observer<char_type>& bmv,cstring_view om):
-		basic_bio_file(bmv,fast_io::from_c_mode(om)){}
-
-	template<fast_io::open_mode om>
-	basic_bio_file(basic_posix_io_observer<char_type>& bmv,open_interface_t<om>):
-		basic_bio_io_observer<char_type>(BIO_new_fd(bmv.native_handle(),details::bio_new_fp_flags<om,false>::value))
-	{
-		detect_open_failure();
-	}
-	basic_bio_file(basic_posix_io_observer<char_type>& bmv,fast_io::open_mode om):
-		basic_bio_io_observer<char_type>(BIO_new_fd(bmv.native_handle(),details::calculate_bio_new_fp_flags<false>(om)))
-	{
-		detect_open_failure();
 	}
 
 
