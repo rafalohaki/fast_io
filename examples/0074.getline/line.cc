@@ -4,5 +4,5 @@
 int main()
 {
 	fast_io::ibuf_file ibf("lines.txt");
-	for(std::string str;scan<true>(ibf,str);println(str));
+	for(std::string str;scan<true>(ibf,fast_io::line(str));println(str));
 }
