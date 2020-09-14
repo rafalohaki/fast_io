@@ -18,11 +18,11 @@ public:
 #endif
 	void report(error_reporter& report) const override
 	{
-#ifdef _WIN32
+#ifdef _MSC_VER
 		std::array<char,256> buffer;
 		int fail{::strerror_s(buffer.data(),buffer.size(),ec)};
 		if(fail)
-			print(report,"strerror_s() failed, errno:",ec,"\tstrerros_s errno:",fail);
+			print(report,"strerror_s() failed\n");
 		else
 			print(report,fast_io::chvw(buffer.data()));
 #else
