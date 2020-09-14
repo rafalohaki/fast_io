@@ -6,7 +6,7 @@ namespace fast_io
 namespace win32
 {
 #if defined(_MSC_VER)
-extern "C" void __stdcall RtlSecureZeroMemory(void*,std::size_t);
+extern "C" void __stdcall RtlSecureZeroMemory(void*,std::size_t) noexcept;
 #endif
 }
 
@@ -20,7 +20,7 @@ https://github.com/bminor/glibc/blob/master/string/explicit_bzero.c
 Referenced from glibc
 */
 	std::memset(data,0,size);
-	__asm__ __volatile__("" ::: "memory");
+	__asm__ __volatile__("" ::"r"(data): "memory");
 #endif
 }
 
