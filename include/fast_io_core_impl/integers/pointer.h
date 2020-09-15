@@ -17,16 +17,14 @@ std::vector<std::size_t> vec(100,2);
 println("vec.begin():",vec.begin()," vec.end()",vec.end());
 */
 
-template<typename Iter>
-requires (std::contiguous_iterator<Iter>||std::is_pointer_v<std::remove_cvref_t<Iter>>||std::same_as<std::remove_cvref_t<Iter>,void*>)
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<Iter>)
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<void const*>)
 {
 	constexpr std::size_t sz{sizeof(std::uintptr_t)*2+4};
 	return sz;
 }
 
 template<std::contiguous_iterator caiter>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<void*>,caiter iter,void* v)
+inline constexpr caiter print_reserve_define(io_reserve_type_t<void const*>,caiter iter,void const* v)
 {
 	constexpr std::size_t uisz{sizeof(std::uintptr_t)*2+2};
 	constexpr std::size_t uisz1{uisz+2};
@@ -64,7 +62,7 @@ inline constexpr basic_io_scatter_t<char_type> print_scatter_define(output out,b
 
 template<std::integral char_type,std::size_t n>
 requires(n!=0)
-inline constexpr auto print_alias_define(io_alias_type_t<char_type[n]>,char_type const(&s)[n])
+inline constexpr auto print_alias_define(io_alias_t,char_type const(&s)[n])
 {
 	if constexpr(n==1||n==2)
 		return chvw(*s);
@@ -73,28 +71,26 @@ inline constexpr auto print_alias_define(io_alias_type_t<char_type[n]>,char_type
 }
 
 template<std::integral char_type>
-inline constexpr auto print_alias_define(io_alias_type_t<std::basic_string_view<char_type>>,std::basic_string_view<char_type> svw)
+inline constexpr basic_io_scatter_t<char_type> print_alias_define(io_alias_t,std::basic_string_view<char_type> svw)
 {
-	return basic_io_scatter_t<char_type>{svw.data(),svw.size()};
-}
-
-template<std::integral char_type,typename T>
-inline constexpr auto print_alias_define(io_alias_type_t<manip::chvw<T*>>,manip::chvw<T*> svw)
-{
-	std::basic_string_view<std::remove_cvref_t<T>> bsv{svw.reference};
-	return basic_io_scatter_t<char_type>{bsv.data(),bsv.size()};
-}
-
-template<std::contiguous_iterator Iter>
-inline constexpr void* print_alias_define(io_alias_type_t<Iter>,Iter it)
-{
-	return std::to_address(it);
+	return {svw.data(),svw.size()};
 }
 
 template<typename T>
-inline constexpr void* print_alias_define(io_alias_type_t<T*>,T* ptr)
+inline constexpr auto print_alias_define(io_alias_t,manip::chvw<T*> svw)
 {
-	return ptr;
+	std::basic_string_view<std::remove_cvref_t<T>> bsv{svw.reference};
+	return basic_io_scatter_t<std::remove_cvref_t<T>>{bsv.data(),bsv.size()};
+}
+
+template<typename Iter>
+requires (std::contiguous_iterator<Iter>||std::is_pointer_v<Iter>)
+inline constexpr void const* print_alias_define(io_alias_t,Iter it)
+{
+	if constexpr(std::is_pointer_v<std::remove_cvref_t<Iter>>)
+		return it;
+	else
+		return std::to_address(it);
 }
 
 

@@ -90,13 +90,13 @@ concept general_printable=reserve_printable<T>||printable<output,T>;
 template<typename T>
 concept alias_scanable=requires(T&& t)
 {
-	scan_alias_define(std::forward<T>(t));
+	scan_alias_define(io_alias,std::forward<T>(t));
 };
 
 template<typename T>
 concept alias_printable=requires(T&& t)
 {
-	print_alias_define(io_alias_type<std::remove_cvref_t<T>>,std::forward<T>(t));
+	print_alias_define(io_alias,std::forward<T>(t));
 };
 
 template<typename io_device,typename... Args>

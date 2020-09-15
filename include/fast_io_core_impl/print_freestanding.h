@@ -319,7 +319,7 @@ template<typename T>
 inline constexpr decltype(auto) io_print_alias(T&& t)
 {
 	if constexpr(alias_printable<std::remove_cvref_t<T>>)
-		return print_alias_define(io_alias_type<std::remove_cvref_t<T>>,std::forward<T>(t));
+		return print_alias_define(io_alias,std::forward<T>(t));
 	else
 		return std::forward<T>(t);
 }

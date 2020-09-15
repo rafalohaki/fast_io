@@ -874,13 +874,13 @@ inline decltype(auto) zero_copy_out_handle(basic_c_io_observer_unlocked<ch_type>
 
 
 template<std::integral char_type>
-inline constexpr void* print_alias_define(io_alias_type_t<basic_c_io_observer_unlocked<char_type>>,basic_c_io_observer_unlocked<char_type> v)
+inline constexpr void const* print_alias_define(io_alias_t,basic_c_io_observer_unlocked<char_type> v)
 {
 	return v.fp;
 }
 
 template<std::integral char_type>
-inline constexpr void* print_alias_define(io_alias_type_t<basic_c_io_observer<char_type>>,basic_c_io_observer<char_type> v)
+inline constexpr void const* print_alias_define(io_alias_t,basic_c_io_observer<char_type> v)
 {
 	return v.fp;
 }

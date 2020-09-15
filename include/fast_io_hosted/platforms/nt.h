@@ -461,7 +461,7 @@ using u8nt_io_handle=basic_nt_io_handle<char8_t>;
 using u8nt_file=basic_nt_file<char8_t>;
 
 template<std::integral char_type>
-inline constexpr void* print_alias_define(io_alias_type_t<basic_nt_io_observer<char_type>>,basic_nt_io_observer<char_type> v)
+inline constexpr void const* print_alias_define(io_alias_t,basic_nt_io_observer<char_type> v)
 {
 	return v.handle;
 }

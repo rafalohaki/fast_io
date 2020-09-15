@@ -206,7 +206,7 @@ inline constexpr auto type(basic_filebuf_io_observer<ch_type> ciob)
 #endif
 
 template<typename T>
-inline constexpr void* print_alias_define(io_alias_type_t<basic_general_streambuf_io_observer<T>>,basic_general_streambuf_io_observer<T> v)
+inline constexpr void const* print_alias_define(io_alias_t,basic_general_streambuf_io_observer<T> v)
 {
 	return v.rdb;
 }

@@ -78,12 +78,10 @@ struct print_scatter_type_t
 template<typename T>
 inline constexpr print_scatter_type_t<T> print_scatter_type{};
 
-template<typename T>
-struct io_alias_type_t
+struct io_alias_t
 {
 };
 
-template<typename T>
-inline constexpr io_alias_type_t<T> io_alias_type{};
+inline constexpr io_alias_t io_alias{};
 
 }
