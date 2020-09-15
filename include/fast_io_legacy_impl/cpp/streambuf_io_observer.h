@@ -206,17 +206,10 @@ inline constexpr auto type(basic_filebuf_io_observer<ch_type> ciob)
 #endif
 
 template<typename T>
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<basic_general_streambuf_io_observer<T>>)
+inline constexpr void* print_alias_define(io_alias_type_t<basic_general_streambuf_io_observer<T>>,basic_general_streambuf_io_observer<T> v)
 {
-	return print_reserve_size(io_reserve_type<void*>);
+	return v.rdb;
 }
-
-template<typename T,std::contiguous_iterator caiter,typename U>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<basic_general_streambuf_io_observer<T>>,caiter iter,U&& v)
-{
-	return print_reserve_define(io_reserve_type<void*>,iter,v.rdb);
-}
-
 }
 
 

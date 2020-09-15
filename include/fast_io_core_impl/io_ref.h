@@ -74,12 +74,6 @@ constexpr decltype(auto) write(io_reference_wrapper<output> out,Args&& ...args)
 }
 
 template<character_output_stream output,typename... Args>
-constexpr decltype(auto) put(io_reference_wrapper<output> out,Args&& ...args)
-{
-	return put(*out.ptr,std::forward<Args>(args)...);
-}
-
-template<character_output_stream output,typename... Args>
 constexpr decltype(auto) overflow(io_reference_wrapper<output> out,Args&& ...args)
 {
 	return overflow(*out.ptr,std::forward<Args>(args)...);

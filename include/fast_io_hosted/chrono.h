@@ -6,12 +6,19 @@ namespace fast_io
 
 //We use seconds since seconds is the standard unit of SI
 //Use my own tweaked ryu algorithm for counting seconds
-template<character_output_stream output,typename Rep,typename Period>
-inline constexpr void print_define(output& out, std::chrono::duration<Rep,Period> const& duration)
+template<typename Rep,typename Period>
+constexpr std::size_t print_reserve_size(io_reserve_type_t<std::chrono::duration<Rep,Period>>)
 {
-	print_freestanding(out,std::chrono::duration_cast<std::chrono::duration<double>>(duration).count());
-	put(out,u8's');
+	return print_reserve_size(io_reserve_type<double>)+1;
 }
+
+template<std::random_access_iterator Iter,typename Rep,typename Period>
+constexpr Iter print_reserve_define(io_reserve_type_t<std::chrono::duration<Rep,Period>>,Iter it,std::chrono::duration<Rep,Period> duration)
+{
+	*(it=print_reserve_define(io_reserve_type<double>,it,std::chrono::duration_cast<std::chrono::duration<double>>(duration).count()))=u8's';
+	return ++it;
+}
+
 
 /*
 

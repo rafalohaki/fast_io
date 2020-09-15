@@ -872,28 +872,17 @@ inline decltype(auto) zero_copy_out_handle(basic_c_io_observer_unlocked<ch_type>
 	return zero_copy_out_handle(static_cast<basic_posix_io_observer<ch_type>>(h));
 }
 
-template<std::integral char_type>
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<basic_c_io_observer_unlocked<char_type>>)
-{
-	return print_reserve_size(io_reserve_type<void*>);
-}
 
-template<std::integral char_type,std::contiguous_iterator caiter,typename U>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<basic_c_io_observer_unlocked<char_type>>,caiter iter,U&& v)
+template<std::integral char_type>
+inline constexpr void* print_alias_define(io_alias_type_t<basic_c_io_observer_unlocked<char_type>>,basic_c_io_observer_unlocked<char_type> v)
 {
-	return print_reserve_define(io_reserve_type<void*>,iter,v.fp);
+	return v.fp;
 }
 
 template<std::integral char_type>
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<basic_c_io_observer<char_type>>)
+inline constexpr void* print_alias_define(io_alias_type_t<basic_c_io_observer<char_type>>,basic_c_io_observer<char_type> v)
 {
-	return print_reserve_size(io_reserve_type<void*>);
-}
-
-template<std::integral char_type,std::contiguous_iterator caiter,typename U>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<basic_c_io_observer<char_type>>,caiter iter,U&& v)
-{
-	return print_reserve_define(io_reserve_type<void*>,iter,v.fp);
+	return v.fp;
 }
 
 }

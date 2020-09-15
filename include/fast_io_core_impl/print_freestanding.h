@@ -194,9 +194,14 @@ inline constexpr void print_control(output out,T t)
 	}
 	else if constexpr(printable<output,value_type>)
 	{
+//		static_assert(character_output_stream<std::remove_cvref_t<output>>);
 		print_define(out,*t);
 		if constexpr(line)
 			put(out,u8'\n');
+	}
+	else
+	{
+		static_assert(!printable<output,value_type>,"type not printable");
 	}
 }
 
