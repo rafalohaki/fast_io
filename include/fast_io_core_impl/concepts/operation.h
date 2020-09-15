@@ -68,7 +68,6 @@ concept printable=output_stream<output>&&requires(output& out,T&& t)
 {
 	print_define(out,std::forward<T>(t));
 };
-
 template<typename char_type,typename T>
 concept scatter_printable=requires(char_type ch,T&& t)
 {
@@ -86,6 +85,19 @@ concept general_scanable=space_scanable<input,T>||scanable<input,T>;
 
 template<typename output,typename T>
 concept general_printable=reserve_printable<T>||printable<output,T>;
+
+
+template<typename T>
+concept alias_scanable=requires(T&& t)
+{
+	scan_alias_define(std::forward<T>(t));
+};
+
+template<typename T>
+concept alias_printable=requires(T&& t)
+{
+	print_alias_define(io_alias_type<std::remove_cvref_t<T>>,std::forward<T>(t));
+};
 
 template<typename io_device,typename... Args>
 concept io_controllable=requires(io_device& device,Args&& ...args)

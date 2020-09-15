@@ -66,7 +66,6 @@ struct io_async_overlapped_t
 template<typename T,bool end_test=false>
 struct io_reserve_type_t
 {
-	explicit constexpr io_reserve_type_t() = default;
 };
 template<typename T,bool end_test=false>
 inline constexpr io_reserve_type_t<T,end_test> io_reserve_type{};
@@ -74,10 +73,17 @@ inline constexpr io_reserve_type_t<T,end_test> io_reserve_type{};
 template<typename T>
 struct print_scatter_type_t
 {
-	explicit constexpr print_scatter_type_t() = default;
 };
 
 template<typename T>
 inline constexpr print_scatter_type_t<T> print_scatter_type{};
+
+template<typename T>
+struct io_alias_type_t
+{
+};
+
+template<typename T>
+inline constexpr io_alias_type_t<T> io_alias_type{};
 
 }

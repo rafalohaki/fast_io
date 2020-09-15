@@ -3,20 +3,6 @@
 namespace fast_io
 {
 
-template<output_stream output,std::integral array_value_type,std::size_t n>
-requires (std::same_as<typename output::char_type,std::remove_cvref_t<array_value_type>>||
-(std::same_as<typename output::char_type,char>&&std::same_as<std::remove_cvref_t<array_value_type>,char8_t>)
-&&n!=0)	//array cannot be zero size. but we do the check too
-constexpr void print_define(output& out,array_value_type (&s)[n])
-{
-	if constexpr(1<n)
-	{
-		if constexpr(n==2&&character_output_stream<output>)
-			put(out,static_cast<typename output::char_type>(*s));
-		else
-			write(out,s,s+(n-1));
-	}
-}
 
 /*
 we do not accept char const* since we never know whether it has null terminator.
@@ -156,6 +142,30 @@ inline constexpr caiter print_reserve_define(io_reserve_type_t<std::nullptr_t>,c
 {
 	details::copy_string_literal(u8"(nullptr)",iter);
 	return iter+9;
+}
+
+template<output_stream output,std::integral char_type>
+requires (std::same_as<typename output::char_type,char_type>)
+inline constexpr void print_define(output out,basic_io_scatter_t<char_type> iosc)
+{
+	write(out,iosc.base,iosc.base+iosc.len);
+}
+
+template<output_stream output,std::integral char_type>
+requires (std::same_as<typename output::char_type,char_type>)
+inline constexpr basic_io_scatter_t<char_type> print_scatter_define(output out,basic_io_scatter_t<char_type> iosc)
+{
+	return iosc;
+}
+
+template<std::integral char_type,std::size_t n>
+requires(n!=0)
+inline constexpr auto print_alias_define(io_alias_type_t<char_type[n]>,char_type const(&s)[n])
+{
+	if constexpr(n==1||n==2)
+		return chvw(*s);
+	else
+		return basic_io_scatter_t<char_type>{s,n-1};
 }
 
 }

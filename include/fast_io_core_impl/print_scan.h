@@ -514,9 +514,6 @@ inline constexpr void scatter_print_with_reserve_recursive(char_type* ptr,
 	scatter_print_with_reserve_recursive(ptr,arr+1,std::forward<Args>(args)...);
 }
 
-
-
-
 template<typename T,typename... Args>
 concept test_print_control_line = requires(T t,Args&& ...args)
 {

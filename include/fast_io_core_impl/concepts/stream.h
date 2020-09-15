@@ -146,14 +146,14 @@ You can define your own behavior with it
 */
 
 template<typename T>
-concept status_output_stream = output_stream<T>&&details::status_stream_impl<T>&&requires(T out)
+concept status_output_stream = output_stream<T>&&requires(T out)
 {
 	print_status_define(out);
 	println_status_define(out);
 };
 
 template<typename T>
-concept status_input_stream = input_stream<T>&&details::status_stream_impl<T>&&requires(T in)
+concept status_input_stream = input_stream<T>&&requires(T in)
 {
 	scan_status_define<false>(in);
 };
