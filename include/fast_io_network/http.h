@@ -88,13 +88,13 @@ inline void scan_define(input& in,basic_http_request_status<typename input::char
 template<buffer_output_stream output>
 inline void print_define(output& out,basic_http_status<typename output::char_type> const& s)
 {
-	print(out,s.version,u8" ",s.code);
+	print_freestanding(out,s.version,u8" ",s.code);
 }
 
 template<buffer_output_stream output>
 inline void print_define(output& out,basic_http_request_status<typename output::char_type> const& s)
 {
-	print(out,s.method,u8" ",s.path,u8" ",s.version);
+	print_freestanding(out,s.method,u8" ",s.path,u8" ",s.version);
 }
 
 #if __cpp_lib_coroutine >= 201707L

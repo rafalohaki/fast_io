@@ -176,23 +176,23 @@ template<character_output_stream output,std::size_t indent_width,bool left,char8
 inline constexpr void print_define(output& out,manip::width<indent_width,left,ch,T const> a)
 {
 	basic_ostring<std::basic_string<typename output::char_type>> bas;
-	print(bas,a.reference);
+	print_freestanding(bas,a.reference);
 	std::size_t const size(bas.str().size());
 	if(size<indent_width)
 	{
 		if constexpr(left)
 		{
-			print(out,bas.str());
+			print_freestanding(out,bas.str());
 			fill_nc(out,indent_width-size,ch);
 		}	
 		else
 		{
 			fill_nc(out,indent_width-size,ch);
-			print(out,bas.str());
+			print_freestanding(out,bas.str());
 		}
 	}
 	else
-		print(out,bas.str());
+		print_freestanding(out,bas.str());
 }
 */
 template<output_stream output>
@@ -201,13 +201,13 @@ inline constexpr void print_define(output& out,std::endian e)
 	switch(e)
 	{
 	case std::endian::little:
-		print(out,u8"little");
+		print_freestanding(out,u8"little");
 	break;
 	case std::endian::big:
-		print(out,u8"big");
+		print_freestanding(out,u8"big");
 	break;
 	default:
-		print(out,u8"unknown");
+		print_freestanding(out,u8"unknown");
 	}
 }
 

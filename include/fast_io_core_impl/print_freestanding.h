@@ -22,7 +22,7 @@ inline constexpr void scatter_print_recursive(io_scatter_t* arr,T t, Args ...arg
 template<typename T>
 inline constexpr std::size_t calculate_scatter_reserve_size_unit()
 {
-	using real_type = std::remove_cvref_t<T>;
+	using real_type = std::remove_cvref_t<typename T::value_type>;
 	if constexpr(reserve_printable<real_type>)
 	{
 		constexpr std::size_t sz{print_reserve_size(io_reserve_type<real_type>)};

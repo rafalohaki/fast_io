@@ -9,7 +9,7 @@ namespace fast_io
 template<character_output_stream output,typename Rep,typename Period>
 inline constexpr void print_define(output& out, std::chrono::duration<Rep,Period> const& duration)
 {
-	print(out,std::chrono::duration_cast<std::chrono::duration<double>>(duration).count());
+	print_freestanding(out,std::chrono::duration_cast<std::chrono::duration<double>>(duration).count());
 	put(out,u8's');
 }
 
@@ -33,25 +33,25 @@ template<character_output_stream output>
 inline constexpr void print_define(output& out,std::tm t)
 //due to std::tm is often not thread safe. We make a copy
 {
-	print(out,1900+t.tm_year,u8"✝️");
+	print_freestanding(out,1900+t.tm_year,u8"✝️");
 	if(t.tm_mon<9)
 		put(out,u8'0');
-	print(out,1+t.tm_mon,u8"🌙");
+	print_freestanding(out,1+t.tm_mon,u8"🌙");
 	if(t.tm_mday<9)
 		put(out,u8'0');
-	print(out,1+t.tm_mday,u8"☀️ ⛪",t.tm_wday);
+	print_freestanding(out,1+t.tm_mday,u8"☀️ ⛪",t.tm_wday);
 	put(out,u8' ');
 	if(t.tm_hour<10)
 		put(out,u8'0');
-	print(out,t.tm_hour);
+	print_freestanding(out,t.tm_hour);
 	put(out,u8':');
 	if(t.tm_min<10)
 		put(out,u8'0');
-	print(out,t.tm_min);
+	print_freestanding(out,t.tm_min);
 	put(out,u8':');
 	if(t.tm_sec<10)
 		put(out,u8'0');
-	print(out,t.tm_sec);
+	print_freestanding(out,t.tm_sec);
 }
 
 template<character_output_stream output>
@@ -59,13 +59,13 @@ inline constexpr void print_define(output& out,manip::chinese<std::tm const> ref
 //due to std::tm is often not thread safe. We make a copy
 {
 	std::tm t(ref.reference);
-	print(out,1900+t.tm_year,u8"年");
+	print_freestanding(out,1900+t.tm_year,u8"年");
 	if(t.tm_mon<9)
 		put(out,u8'0');
-	print(out,1+t.tm_mon,u8"月");
+	print_freestanding(out,1+t.tm_mon,u8"月");
 	if(t.tm_mday<9)
 		put(out,u8'0');
-	print(out,1+t.tm_mday,u8"日 星期");
+	print_freestanding(out,1+t.tm_mday,u8"日 星期");
 /*
 Unfortunately Chinese encoding in Unicode is not contiguous
 t.tm_wday
@@ -85,25 +85,25 @@ https://en.wikibooks.org/wiki/Written_Chinese/Numbers
 	switch(t.tm_wday)
 	{
 	case 0:
-		print(out,u8"日");
+		print_freestanding(out,u8"日");
 	break;
 	case 1:
-		print(out,u8"一");
+		print_freestanding(out,u8"一");
 	break;
 	case 2:
-		print(out,u8"二");
+		print_freestanding(out,u8"二");
 	break;
 	case 3:
-		print(out,u8"三");
+		print_freestanding(out,u8"三");
 	break;
 	case 4:
-		print(out,u8"四");
+		print_freestanding(out,u8"四");
 	break;
 	case 5:
-		print(out,u8"五");
+		print_freestanding(out,u8"五");
 	break;
 	case 6:
-		print(out,u8"六");
+		print_freestanding(out,u8"六");
 	break;
 	default:
 		put(out,u8'?');
@@ -111,13 +111,13 @@ https://en.wikibooks.org/wiki/Written_Chinese/Numbers
 	put(out,u8' ');
 	if(t.tm_hour<10)
 		put(out,u8'0');
-	print(out,t.tm_hour,u8"时");
+	print_freestanding(out,t.tm_hour,u8"时");
 	if(t.tm_min<10)
 		put(out,u8'0');
-	print(out,t.tm_min,u8"分");
+	print_freestanding(out,t.tm_min,u8"分");
 	if(t.tm_sec<10)
 		put(out,u8'0');
-	print(out,t.tm_sec,u8"秒");
+	print_freestanding(out,t.tm_sec,u8"秒");
 }
 
 template<character_output_stream output,typename Clock,typename Duration>
@@ -166,7 +166,7 @@ inline constexpr void print_define(output& out, manip::utc_chinese<std::chrono::
 template<output_stream output>
 inline constexpr void print_define(output& out, std::chrono::time_zone const& tmp)
 {
-	print(out,tmp.name());
+	print_freestanding(out,tmp.name());
 }
 */
 

@@ -10,13 +10,13 @@ namespace details
 inline void report_com_error(error_reporter& report, auto hresult) requires(std::same_as<TCHAR,char>)
 {
 	_com_error ce(hresult);
-	print(report,cstring_view{ce.ErrorMessage()});
+	print_freestanding(report,cstring_view{ce.ErrorMessage()});
 }
 
 inline void report_com_error(error_reporter& report, auto hresult) requires(std::same_as<TCHAR,wchar_t>&&sizeof(wchar_t)==2)
 {
 	_com_error ce(hresult);
-	print(report,fast_io::code_cvt(std::wstring_view{ce.ErrorMessage()}));
+	print_freestanding(report,fast_io::code_cvt(std::wstring_view{ce.ErrorMessage()}));
 }
 }
 

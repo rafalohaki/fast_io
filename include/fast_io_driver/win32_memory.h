@@ -40,79 +40,79 @@ constexpr void print_define(output& out,win32_memory_page_protect info)
 	switch(info)
 	{
 	case win32_memory_page_protect::executed:
-		print(out,"executed");
+		print_freestanding(out,"executed");
 	break;
 	case win32_memory_page_protect::executed_read:
-		print(out,"executed_read");
+		print_freestanding(out,"executed_read");
 	break;
 	case win32_memory_page_protect::executed_readwrite:
-		print(out,"executed_readwrite");
+		print_freestanding(out,"executed_readwrite");
 	break;
 	case win32_memory_page_protect::executed_writecopy:
-		print(out,"executed_writecopy");
+		print_freestanding(out,"executed_writecopy");
 	break;
 	case win32_memory_page_protect::noaccess:
-		print(out,"noaccess");
+		print_freestanding(out,"noaccess");
 	break;
 	case win32_memory_page_protect::readonly:
-		print(out,"readonly");
+		print_freestanding(out,"readonly");
 	break;
 	case win32_memory_page_protect::readwrite:
-		print(out,"readwrite");
+		print_freestanding(out,"readwrite");
 	break;
 	case win32_memory_page_protect::writecopy:
-		print(out,"writecopy");
+		print_freestanding(out,"writecopy");
 	break;
 
 	case win32_memory_page_protect::graphics_noaccess:
-		print(out,"graphics_noaccess");
+		print_freestanding(out,"graphics_noaccess");
 	break;
 	case win32_memory_page_protect::graphics_readonly:
-		print(out,"graphics_readonly");
+		print_freestanding(out,"graphics_readonly");
 	break;
 	case win32_memory_page_protect::graphics_readwrite:
-		print(out,"graphics_readwrite");
+		print_freestanding(out,"graphics_readwrite");
 	break;
 //	case win32_memory_page_protect::graphics_writecopy:
-//		print(out,"graphics_writecopy");
+//		print_freestanding(out,"graphics_writecopy");
 //	break;
 	case win32_memory_page_protect::graphics_execute:
-		print(out,"graphics_execute");
+		print_freestanding(out,"graphics_execute");
 	break;
 	case win32_memory_page_protect::graphics_execute_read:
-		print(out,"graphics_execute_read");
+		print_freestanding(out,"graphics_execute_read");
 	break;
 	case win32_memory_page_protect::graphics_execute_readwrite:
-		print(out,"graphics_execute_readwrite");
+		print_freestanding(out,"graphics_execute_readwrite");
 	break;
 	case win32_memory_page_protect::graphics_coherent:
-		print(out,"graphics_coherent");
+		print_freestanding(out,"graphics_coherent");
 	break;
 
 	case win32_memory_page_protect::targets_invalid:
-		print(out,"targets_invalid/targets_no_update");
+		print_freestanding(out,"targets_invalid/targets_no_update");
 	break;
 
 	case win32_memory_page_protect::guard:
-		print(out,"guard");
+		print_freestanding(out,"guard");
 	break;
 	case win32_memory_page_protect::nocache:
-		print(out,"nocache");
+		print_freestanding(out,"nocache");
 	break;
 
 	case win32_memory_page_protect::writecombine:
-		print(out,"writecombine");
+		print_freestanding(out,"writecombine");
 	break;
 
 	case win32_memory_page_protect::enclave_thread_control:
-		print(out,"enclave_thread_control/revert_to_file_map/enclave_unvalidated");
+		print_freestanding(out,"enclave_thread_control/revert_to_file_map/enclave_unvalidated");
 	break;
 
 	case win32_memory_page_protect::enclave_no_change:
-		print(out,"enclave_no_change/enclave_nodecommit");
+		print_freestanding(out,"enclave_no_change/enclave_nodecommit");
 	break;
 	default:
-		print(out,"unknown(",static_cast<std::uint32_t>(info),")");
+		print_freestanding(out,"unknown(",static_cast<std::uint32_t>(info),")");
 	}
 }
 
@@ -160,7 +160,7 @@ struct win32_memory_basic_information
 template<reserve_output_stream output>
 constexpr void print_define(output& out,win32_memory_basic_information const& info)
 {
-	print(out,"win32_memory_basic_information:"
+	print_freestanding(out,"win32_memory_basic_information:"
 	"\nbase address:",info.base_address,
 	"\nallocation base:",info.allocation_base,
 	"\nallocation protect:",info.allocation_protect,

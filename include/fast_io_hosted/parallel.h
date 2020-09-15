@@ -197,7 +197,7 @@ inline constexpr void print_define(stm& output,manip::parallel<R,Func> ref)
 		{
 			auto ed{be+stop_number};
 			for(auto iter{be+start_number};iter!=ed;++iter)
-				print(output,*iter);
+				print_freestanding(output,*iter);
 		});
 	}
 	else
@@ -210,7 +210,7 @@ inline constexpr void print_define(stm& output,manip::parallel<R,Func> ref)
 		{
 			auto ed{be+stop_number};
 			for(auto iter{be+start_number};iter!=ed;++iter)
-				print(output,ref.callback(*iter));
+				print_freestanding(output,ref.callback(*iter));
 		});
 	}
 }
@@ -225,7 +225,7 @@ inline constexpr void print_define(stm& output,manip::parallel_unit<Func> ref)
 		[&ref](reserve_output_stream auto& output,std::size_t start_number,std::size_t stop_number)
 	{
 		for(;start_number!=stop_number;++start_number)
-			print(output,ref.callback(start_number));
+			print_freestanding(output,ref.callback(start_number));
 	});
 }
 

@@ -20,7 +20,7 @@ constexpr void print_define(dest_type& dest,manip::drainage<source_type&> source
 template<output_stream dest_type,output_stream source_type>
 inline constexpr void drain(dest_type&& dest,source_type&& source)
 {
-	print(std::forward<dest_type>(dest),drainage(source));
+	print_freestanding(std::forward<dest_type>(dest),drainage(source));
 }
 
 

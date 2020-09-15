@@ -6,7 +6,7 @@
 #include<stdexcept>
 #include<string>
 #include<bitset>
-#include<system_error>
+//#include<system_error>
 //#include<cmath>
 #include"fast_io_freestanding_impl/string/impl.h"
 #include"fast_io_freestanding_impl/concat.h"

@@ -99,7 +99,7 @@ requires fast_io::random_access_stream<input>
 inline constexpr std::common_type_t<std::size_t,std::uint64_t> random_access_transmit(output&& outp,offset_type offset,input&& in)
 {
 	std::common_type_t<std::size_t,std::uint64_t> transmitted{};
-	print(outp,manip::random_access_transmission<input,offset_type,std::common_type_t<std::size_t,std::uint64_t>>(transmitted,offset,in));
+	print_freestanding(std::forward<output>(outp),manip::random_access_transmission<input,offset_type,std::common_type_t<std::size_t,std::uint64_t>>(transmitted,offset,in));
 	return transmitted;
 }
 
@@ -108,7 +108,7 @@ requires fast_io::random_access_stream<input>
 inline constexpr sz_type random_access_transmit(output&& outp,offset_type offset,input&& in,sz_type bytes)
 {
 	sz_type transmitted{};
-	print(outp,manip::random_access_transmission_with_size<input,offset_type,std::common_type_t<std::size_t,std::uint64_t>>(transmitted,offset,in,bytes));
+	print_freestanding(std::forward<output>(outp),manip::random_access_transmission_with_size<input,offset_type,std::common_type_t<std::size_t,std::uint64_t>>(transmitted,offset,in,bytes));
 	return transmitted;
 }
 

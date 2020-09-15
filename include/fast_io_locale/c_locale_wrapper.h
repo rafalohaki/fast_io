@@ -53,13 +53,13 @@ constexpr decltype(auto) construct_isp([[maybe_unused]]S&& s,U&& u)
 template<output_stream stm,typename... Args>
 constexpr void print_status_define(c_locale_wrapper<stm>& sm,Args&& ...args)
 {
-	print(static_cast<stm&>(sm),details::construct_lcv<stm>(sm.locale_collection.lconv,args)...);
+//	print_freestanding(static_cast<stm&>(sm),details::construct_lcv<stm>(sm.locale_collection.lconv,args)...);
 }
 
 template<output_stream stm,typename... Args>
 constexpr void println_status_define(c_locale_wrapper<stm>& sm,Args&& ...args)
 {
-	println(static_cast<stm&>(sm),details::construct_lcv<stm>(sm.locale_collection.lconv,args)...);
+//	println(static_cast<stm&>(sm),details::construct_lcv<stm>(sm.locale_collection.lconv,args)...);
 }
 
 

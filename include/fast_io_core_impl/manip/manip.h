@@ -313,20 +313,5 @@ inline void print_define(output& out,manip::chvw<T> a)
 	put(out,static_cast<typename output::char_type>(a.reference));
 }
 
-template<output_stream output,std::integral T>
-requires (std::same_as<typename output::char_type,std::remove_cvref_t<T>>||
-(std::same_as<typename output::char_type,char>&&std::same_as<std::remove_cvref_t<T>,char8_t>))
-inline constexpr void print_define(output& out,manip::chvw<T*> a)
-{
-	print(out,std::basic_string_view<std::remove_cvref_t<T>>(a.reference));
-}
-
-template<output_stream output>
-requires (std::same_as<typename output::char_type,char>)
-inline void print_define(output& out,std::u8string_view u8vw)
-{
-	write(out,u8vw);
-}
-
 
 }

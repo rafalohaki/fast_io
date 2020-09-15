@@ -12,7 +12,7 @@ public:
 #endif
 	void report(error_reporter& err) const override
 	{
-		print(err,"malformed input");
+		print_freestanding(err,"malformed input");
 	}
 };
 inline void throw_malformed_input()
@@ -33,7 +33,7 @@ public:
 #endif
 	void report(error_reporter& err) const override
 	{
-		print(err,"input overflow");
+		print_freestanding(err,"input overflow");
 	}
 };
 

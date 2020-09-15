@@ -64,7 +64,7 @@ template<fast_io::output_stream output,typename T,std::integral ch_type>
 inline constexpr void width_unhappy_case(output& out,manip::width<T,ch_type> wdt)
 {
 	internal_temporary_buffer<typename output::char_type> buffer;
-	print(buffer,wdt.reference);
+	print_freestanding(buffer,wdt.reference);
 	std::size_t const real_width(buffer.end_ptr-buffer.beg_ptr);
 	if(real_width<wdt.width)
 	{
@@ -73,11 +73,11 @@ inline constexpr void width_unhappy_case(output& out,manip::width<T,ch_type> wdt
 			if constexpr(buffer_output_stream<output>)
 			{
 				write(out,buffer.beg_ptr,buffer.end_ptr);
-				print(out,fill_nc(wdt.width-real_width,wdt.indent_character));
+				print_freestanding(out,fill_nc(wdt.width-real_width,wdt.indent_character));
 			}
 			else
 			{
-				print(buffer,fill_nc(wdt.width-real_width,wdt.indent_character));
+				print_freestanding(buffer,fill_nc(wdt.width-real_width,wdt.indent_character));
 				write(out,buffer.beg_ptr,buffer.end_ptr);
 			}
 		}
@@ -85,13 +85,13 @@ inline constexpr void width_unhappy_case(output& out,manip::width<T,ch_type> wdt
 		{
 			if constexpr(buffer_output_stream<output>)
 			{
-				print(out,fill_nc(wdt.width-real_width,wdt.indent_character));
+				print_freestanding(out,fill_nc(wdt.width-real_width,wdt.indent_character));
 				write(out,buffer.beg_ptr,buffer.end_ptr);
 			}
 			else
 			{
 				internal_temporary_buffer<typename output::char_type> buffer2;
-				print(buffer2,fill_nc(wdt.width-real_width,wdt.indent_character));
+				print_freestanding(buffer2,fill_nc(wdt.width-real_width,wdt.indent_character));
 				write(buffer2,buffer.beg_ptr,buffer.end_ptr);
 				write(out,buffer2.beg_ptr,buffer2.end_ptr);
 			}

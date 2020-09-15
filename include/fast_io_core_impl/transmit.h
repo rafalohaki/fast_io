@@ -310,7 +310,7 @@ template<output_stream output,input_stream input,std::integral sz_type>
 inline constexpr sz_type transmit(output&& outp,input&& in,sz_type s)
 {
 	sz_type transmitted{};
-	print(outp,manip::transmission_with_size<input,sz_type>{transmitted,in,s});
+	print_freestanding(std::forward<output>(outp),manip::transmission_with_size<input,sz_type>{transmitted,in,s});
 	return transmitted;
 }
 
@@ -318,7 +318,7 @@ template<output_stream output,input_stream input>
 inline constexpr std::common_type_t<std::size_t,std::uint64_t> transmit(output&& outp,input&& in)
 {
 	std::common_type_t<std::size_t,std::uint64_t> transmitted{};
-	print(outp,manip::transmission<input,std::common_type_t<std::size_t,std::uint64_t>>{transmitted,in});
+	print_freestanding(std::forward<output>(outp),manip::transmission<input,std::common_type_t<std::size_t,std::uint64_t>>{transmitted,in});
 	return transmitted;
 }
 

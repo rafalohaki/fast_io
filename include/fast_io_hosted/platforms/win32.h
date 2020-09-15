@@ -23,7 +23,7 @@ inline void* create_win32_temp_file()
 		processor.do_final();
 		ospan osp(arr);
 		obuffer_set_curr(osp,arr.data()+temp_path_size);
-		print(osp,sha,L".tmp");
+		print_freestanding(osp,sha,L".tmp");
 		put(osp,0);
 		void* handle = win32::CreateFileW(arr.data(),
 		0x40000000|0x80000000,	//GENERIC_READ|GENERIC_WRITE

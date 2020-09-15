@@ -22,11 +22,11 @@ public:
 		std::array<char,256> buffer;
 		int fail{::strerror_s(buffer.data(),buffer.size(),ec)};
 		if(fail)
-			print(report,"strerror_s() failed\n");
+			print_freestanding(report,"strerror_s() failed\n");
 		else
-			print(report,fast_io::chvw(buffer.data()));
+			print_freestanding(report,fast_io::chvw(buffer.data()));
 #else
-		print(report,chvw(strerror(ec)));
+		print_freestanding(report,chvw(strerror(ec)));
 #endif
 	}
 };

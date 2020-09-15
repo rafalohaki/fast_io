@@ -88,30 +88,30 @@ template<typename T,typename... Args>
 inline constexpr void print(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>)
-		fast_io::print(std::forward<T>(t),std::forward<Args>(args)...);
+		fast_io::print_freestanding_decay(fast_io::io_ref(t),fast_io::io_forward(fast_io::io_print_alias(args))...);
 	else
-		fast_io::print(fast_io::c_io_observer{stdout},std::forward<T>(t),std::forward<Args>(args)...);
+		fast_io::print_freestanding_decay(fast_io::c_io_observer{stdout},fast_io::io_forward(fast_io::io_print_alias(args))...);
 }
 
 template<typename T,typename... Args>
 inline constexpr void println(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>)
-		fast_io::println(std::forward<T>(t),std::forward<Args>(args)...);
+		fast_io::println_freestanding_decay(fast_io::io_ref(t),fast_io::io_forward(fast_io::io_print_alias(args))...);
 	else
-		fast_io::println(fast_io::c_io_observer{stdout},std::forward<T>(t),std::forward<Args>(args)...);
+		fast_io::println_freestanding_decay(fast_io::c_io_observer{stdout},fast_io::io_forward(fast_io::io_print_alias(args))...);
 }
 
 template<typename... Args>
 inline constexpr void perr(Args&&... args)
 {
-	fast_io::print(fast_io::err(),std::forward<Args>(args)...);
+	fast_io::print_freestanding_decay(fast_io::err(),fast_io::io_forward(fast_io::io_print_alias(args))...);
 }
 
 template<typename... Args>
 inline constexpr void perrln(Args&&... args)
 {
-	fast_io::println(fast_io::err(),std::forward<Args>(args)...);
+	fast_io::println_freestanding_decay(fast_io::err(),fast_io::io_forward(fast_io::io_print_alias(args))...);
 }
 
 template<typename... Args>
@@ -123,7 +123,7 @@ inline constexpr void panic(Args&&... args) noexcept
 	try
 	{
 #endif
-		fast_io::print(fast_io::err(),std::forward<Args>(args)...);
+		fast_io::print_freestanding_decay(fast_io::err(),fast_io::io_forward(fast_io::io_print_alias(args))...);
 #ifdef __cpp_exceptions
 	}
 	catch(...){}
@@ -139,7 +139,7 @@ inline constexpr void panicln(Args&&... args) noexcept
 	try
 	{
 #endif
-		fast_io::println(fast_io::err(),std::forward<Args>(args)...);
+		fast_io::println_freestanding_decay(fast_io::err(),fast_io::io_forward(fast_io::io_print_alias(args))...);
 #ifdef __cpp_exceptions
 	}
 	catch(...){}
@@ -149,28 +149,26 @@ inline constexpr void panicln(Args&&... args) noexcept
 
 //Allow debug print
 #ifndef NDEBUG
-#ifndef FAST_IO_BOOTSTRAP
-//bootstrap mode will automatically enable this since we need to use fast_io to debug fast_io. It requires bootstrap
 //With debugging. We output to POSIX fd or Win32 Handle directly instead of C's stdout.
 template<typename T,typename... Args>
 inline constexpr void debug_print(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>)
-		fast_io::print(std::forward<T>(t),std::forward<Args>(args)...);
+		fast_io::print_freestanding_decay(io_ref(t),fast_io::io_forward(fast_io::io_print_alias(args))...);
 	else
-		fast_io::println(fast_io::native_stdout(),std::forward<T>(t),std::forward<Args>(args)...);
+		fast_io::print_freestanding_decay(fast_io::native_stdout(),fast_io::io_forward(fast_io::io_print_alias(args))...);
 }
 
 template<typename T,typename... Args>
 inline constexpr void debug_println(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>)
-		fast_io::println(std::forward<T>(t),std::forward<Args>(args)...);
+		fast_io::println_freestanding_decay(io_ref(t),fast_io::io_forward(fast_io::io_print_alias(args))...);
 	else
-		fast_io::println(fast_io::native_stdout(),std::forward<T>(t),std::forward<Args>(args)...);
+
+		fast_io::println_freestanding_decay(fast_io::native_stdout(),fast_io::io_forward(fast_io::io_print_alias(args))...);
 }
 
-#endif
 template<typename... Args>
 inline constexpr void debug_perr(Args&&... args)
 {
