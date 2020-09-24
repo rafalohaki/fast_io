@@ -262,7 +262,7 @@ public:
 	constexpr c_locale(native_handle_type hd):c_locale_handle(hd){}
 	c_locale(c_locale_category catg,cstring_view loc):
 		c_locale_handle(
-#if defined(__WINNT__) || defined(_MSC_VER)
+#ifdef _WIN32
 	_create_locale(static_cast<int>(catg),loc=="POSIX"?"C":loc.data())
 #else
 	newlocale(static_cast<int>(catg),loc.data(),static_cast<locale_t>(0))
@@ -270,26 +270,26 @@ public:
 )
 {
 	if(!*this)
-#ifdef __cpp_exceptions
-		throw fast_io_text_error("unknown locale");
+#ifdef _WIN32
+		throw_posix_error(ENOENT);
 #else
-		fast_terminate();
+		throw_posix_error();
 #endif
+
 }
 	c_locale(c_locale_category catg):
 		c_locale_handle(
-#if defined(__WINNT__) || defined(_MSC_VER)
+#ifdef _WIN32
 	_create_locale(static_cast<int>(catg),"")
 #else
 	newlocale(static_cast<int>(catg),"",static_cast<locale_t>(0))
 #endif
 )
 {
-	if(!*this)
-#ifdef __cpp_exceptions
-		throw fast_io_text_error("unknown locale");
+#ifdef _WIN32
+		throw_posix_error(ENOENT);
 #else
-		fast_terminate();
+		throw_posix_error();
 #endif
 }
 	c_locale(c_locale const&)=default;
