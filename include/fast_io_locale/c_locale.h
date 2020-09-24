@@ -286,6 +286,7 @@ public:
 #endif
 )
 {
+	if(!*this)
 #ifdef _WIN32
 		throw_posix_error(ENOENT);
 #else
