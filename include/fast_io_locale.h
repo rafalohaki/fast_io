@@ -2,7 +2,9 @@
 #include"fast_io_freestanding.h"
 #include<locale.h>
 #include"fast_io_locale/c_locale.h"
-#include"fast_io_locale/c_locale_mbstowcs.h"
+#ifdef _WIN32
+#include"fast_io_locale/ucrt.h"
+#endif
 #include"fast_io_locale/c_locale_thread_locale_guard.h"
 #include"fast_io_locale/lconv_storage.h"
 #include"fast_io_locale/c_lconv_storage.h"

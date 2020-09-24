@@ -180,12 +180,80 @@ locale_t
 	}
 };
 
+//MSCVRT https://doxygen.reactos.org/d6/d9e/lib_2crt_2include_2internal_2locale_8h_source.html
+
+
+namespace manip
+{
+
+struct c_locale_name
+{
+	c_locale_observer value{};
+};
+
+}
+
+inline constexpr manip::c_locale_name name(c_locale_observer ciob) noexcept
+{
+	return {ciob};
+}
+
+template<buffer_output_stream output>
+inline constexpr void print_define(output& out,manip::c_locale_name nm)
+{
+#ifdef _MSC_VER
+	auto& info{*(reinterpret_cast<win32::__crt_locale_data*>(nm.value.loc->locinfo))};
+	wchar_t const* ptr{info.locale_name[1]};
+	if(ptr==nullptr)
+		put(out,u8'*');
+	else if constexpr(std::same_as<typename output::char_type,wchar_t>)
+		print(out,chvw(ptr));
+	else
+	{
+		std::wstring_view wsv=ptr;
+		print(out,code_cvt(wsv));
+	}
+#elif defined(_WIN32)
+	put(out,u8'*');
+#else
+	c_locale_thread_local_guard guard(clob);
+	char const* ptr{setlocale (LC_ALL, nullptr)};
+	if(ptr==nullptr)
+	{
+		put(out,u8'*');
+		return;
+	}
+	struct c_set_locale_guard
+	{
+		char const* old_locale{};
+		constexpr c_set_locale_guard(char const* loc):old_locale(loc){}
+		c_set_locale_guard(c_set_locale_guard const&)=delete;
+		c_set_locale_guard& operator=(c_set_locale_guard&)=delete;
+		~c_set_locale_guard()
+		{
+			setlocale(LC_ALL,old_locale);
+		}
+	};
+	c_set_locale_guard gd(ptr);
+	std::size_t size{strlen(ptr)};
+	temp_unique_arr_ptr<char> dupped_loc(size+1);
+	memcpy(dupped_loc.data(),ptr,size);
+	dupped_loc.ptr[size]=0;
+	gd.old_locale=dupped_loc.data();
+	std::string_view str(dupped_loc.data(),size);
+	if constexpr(std::same_as<typename output::char_type,char>)
+		print(out,str);
+	else
+		print(out,code_cvt(str));
+#endif
+}
+
 class c_locale_handle:public c_locale_observer
 {
 public:
-	using native_handle_type = c_locale_observer::native_handle_type;
+	using native_handle_type = typename c_locale_observer::native_handle_type;
 	constexpr c_locale_handle()=default;
-	constexpr c_locale_handle(native_handle_type hd):c_locale_observer(hd){}
+	constexpr c_locale_handle(native_handle_type hd):c_locale_observer{hd}{}
 	void close()
 	{
 	if(*this)[[likely]]
@@ -223,7 +291,7 @@ public:
 	}
 #endif
 
-	constexpr c_locale_handle(c_locale_handle&& bmv) noexcept:c_locale_observer(bmv.native_handle())
+	constexpr c_locale_handle(c_locale_handle&& bmv) noexcept:c_locale_observer{bmv.native_handle()}
 	{
 		bmv.native_handle()=static_cast<native_handle_type>(0);
 	}

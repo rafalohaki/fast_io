@@ -21,7 +21,7 @@ class c_locale_wrapper:public stm
 {
 public:
 	using handle_type = stm;
-	using char_type = stm::char_type;
+	using char_type = typename stm::char_type;
 	using locale_collection_type = collectionType;
 	using status_type = collectionType;
 	locale_collection_type locale_collection;
@@ -53,13 +53,13 @@ constexpr decltype(auto) construct_isp([[maybe_unused]]S&& s,U&& u)
 template<output_stream stm,typename... Args>
 constexpr void print_status_define(c_locale_wrapper<stm>& sm,Args&& ...args)
 {
-//	print_freestanding(static_cast<stm&>(sm),details::construct_lcv<stm>(sm.locale_collection.lconv,args)...);
+	print(static_cast<stm&>(sm),details::construct_lcv<stm>(sm.locale_collection.lconv,args)...);
 }
 
 template<output_stream stm,typename... Args>
 constexpr void println_status_define(c_locale_wrapper<stm>& sm,Args&& ...args)
 {
-//	println(static_cast<stm&>(sm),details::construct_lcv<stm>(sm.locale_collection.lconv,args)...);
+	println(static_cast<stm&>(sm),details::construct_lcv<stm>(sm.locale_collection.lconv,args)...);
 }
 
 

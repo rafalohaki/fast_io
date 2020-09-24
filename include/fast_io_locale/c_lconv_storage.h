@@ -8,12 +8,14 @@ struct basic_c_lconv_storage:public basic_lconv_storage<ch_type,stg_type>
 {
 	using char_type = ch_type;
 	using storage_type = stg_type;
-	using iterator = storage_type::iterator;
+	using iterator = typename storage_type::iterator;
 	using string_view_type = std::basic_string_view<char_type>;
 	constexpr basic_c_lconv_storage()=default;
 	basic_c_lconv_storage(c_locale_observer clob)
 	{
-#if defined(__WINNT__) || defined(_MSC_VER)
+#ifdef _MSC_VER
+		auto& lcv{*(reinterpret_cast<win32::__crt_locale_data*>(clob.native_handle()->locinfo)->lconv)};
+#elif defined(_WIN32)
 		auto& lcv{*(clob.native_handle()->locinfo->lconv)};
 #else
 		c_locale_thread_local_guard guard(clob);
@@ -35,7 +37,7 @@ struct basic_c_lconv_storage:public basic_lconv_storage<ch_type,stg_type>
 		this->n_sign_posn=lcv.n_sign_posn;
 
 		this->int_frac_digits=lcv.int_frac_digits;
-#if !defined(__WINNT__) && !defined(_MSC_VER)
+#ifndef _WIN32
 		this->int_p_cs_precedes=lcv.int_p_cs_precedes;
 		this->int_n_cs_precedes=lcv.int_n_cs_precedes;
 		this->int_p_sep_by_space=lcv.int_p_sep_by_space;

@@ -8,7 +8,7 @@ struct basic_lconv_storage
 {
 	using char_type = ch_type;
 	using storage_type = stg_type;
-	using size_type = storage_type::size_type;
+	using size_type = typename storage_type::size_type;
 	using string_view_type = std::basic_string_view<char_type>;
 	storage_type storage;
 
@@ -40,27 +40,27 @@ struct basic_lconv_storage
 	size_type int_curr_symbol_start{};
 	constexpr string_view_type grouping() const noexcept
 	{
-		return string_view_type(storage.data(),storage.data()+mon_grouping_start);
+		return string_view_type(storage.data(),mon_grouping_start);
 	}
 	constexpr string_view_type mon_grouping() const noexcept
 	{
-		return string_view_type(storage.data()+mon_grouping_start,storage.data()+positive_sign_start);
+		return string_view_type(storage.data()+mon_grouping_start,positive_sign_start-mon_grouping_start);
 	}
 	constexpr string_view_type positive_sign() const noexcept
 	{
-		return string_view_type(storage.data()+positive_sign_start,storage.data()+negative_sign_start);
+		return string_view_type(storage.data()+positive_sign_start,negative_sign_start-positive_sign_start);
 	}
 	constexpr string_view_type negative_sign() const noexcept
 	{
-		return string_view_type(storage.data()+negative_sign_start,storage.data()+currency_symbol_start);
+		return string_view_type(storage.data()+negative_sign_start,currency_symbol_start-negative_sign_start);
 	}
 	constexpr string_view_type currency_symbol() const noexcept
 	{
-		return string_view_type(storage.data()+currency_symbol_start,storage.data()+int_curr_symbol_start);
+		return string_view_type(storage.data()+currency_symbol_start,int_curr_symbol_start-currency_symbol_start);
 	}
 	constexpr string_view_type int_curr_symbol() const noexcept
 	{
-		return string_view_type(storage.data()+int_curr_symbol_start,storage.data()+storage.size());
+		return string_view_type(storage.data()+int_curr_symbol_start,storage.size()-int_curr_symbol_start);
 	}
 };
 

@@ -37,15 +37,5 @@ inline std::size_t c_mbstowcs_s_l(Args&& ...args)
 #endif
 }
 }
-template<output_stream output>
-requires std::same_as<typename output::char_type,wchar_t>
-void print_define(output& out,c_locale_multi_to_wide ref)
-{
-	fast_io::internal_temporary_buffer<wchar_t> buffer;
-/*	for(;;)
-	{
-		details::c_mbstowcs_s_l(nullptr,)
-	}*/
-}
 
 }

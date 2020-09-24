@@ -133,8 +133,8 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<manip::lcv<ch_
 	return details::cal_lcv_integer_output_size<int_type,10>();
 }
 
-template<std::contiguous_iterator caiter,std::integral char_type,details::my_integral int_type>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<manip::lcv<char_type,int_type&>>,caiter outiter,auto ref)
+template<std::contiguous_iterator caiter,std::integral char_type,details::my_integral int_type,typename T>
+inline constexpr caiter print_reserve_define(io_reserve_type_t<manip::lcv<char_type,int_type&>>,caiter outiter,T ref)
 {
 	return details::process_lcv_integer_output<char_type,10,false>(outiter,ref.storage,ref.reference);
 }
@@ -145,8 +145,8 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<manip::lcv<ch_
 	return details::cal_lcv_integer_output_size<int_type,base>();
 }
 
-template<std::contiguous_iterator caiter,std::integral char_type,char8_t base,bool uppercase,details::my_integral int_type>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<manip::lcv<char_type,manip::base_t<base,uppercase,int_type>&>>,caiter outiter,auto ref)
+template<std::contiguous_iterator caiter,std::integral char_type,char8_t base,bool uppercase,details::my_integral int_type,typename T>
+inline constexpr caiter print_reserve_define(io_reserve_type_t<manip::lcv<char_type,manip::base_t<base,uppercase,int_type>&>>,caiter outiter,T ref)
 {
 	return details::process_lcv_integer_output<char_type,base,uppercase>(outiter,ref.storage,ref.reference.reference);
 }
@@ -158,8 +158,8 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<manip::lcv<cha
 	return details::cal_lcv_floating_len<fp_type,manip::floating_formats::general>();
 }
 
-template<std::contiguous_iterator caiter,std::integral char_type,std::floating_point fp_type>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<manip::lcv<char_type,fp_type&>>,caiter outiter,auto ref)
+template<std::contiguous_iterator caiter,std::integral char_type,std::floating_point fp_type,typename T>
+inline constexpr caiter print_reserve_define(io_reserve_type_t<manip::lcv<char_type,fp_type&>>,caiter outiter,T ref)
 {
 	return details::process_lcv_floating_output<details::cal_floating_len<fp_type,manip::floating_formats::general>(),char_type>(outiter,ref.storage,[value=ref.reference](auto dec,auto iter)
 	{
