@@ -81,7 +81,7 @@ inline constexpr void scatter_print_with_reserve_recursive(char_type* ptr,
 }
 
 template<std::integral char_type,typename T>
-requires scatter_type_printable<char_type,T>
+requires scatter_type_printable<char_type,typename T::value_type>
 inline constexpr auto extract_one_scatter(T t)
 {
 	return print_scatter_define(print_scatter_type<char_type>,*t);
@@ -377,6 +377,7 @@ inline constexpr void println_freestanding_decay(output out,Args ...args)
 			}
 			else
 			{
+				puts("here382\n");
 				((details::decay::print_control(out,args)),...);
 				put(out,u8'\n');
 			}

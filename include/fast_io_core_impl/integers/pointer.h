@@ -53,19 +53,18 @@ inline constexpr void print_define(output out,basic_io_scatter_t<char_type> iosc
 	write(out,iosc.base,iosc.base+iosc.len);
 }
 
-template<output_stream output,std::integral char_type>
-requires (std::same_as<typename output::char_type,char_type>)
-inline constexpr basic_io_scatter_t<char_type> print_scatter_define(output out,basic_io_scatter_t<char_type> iosc)
+
+template<std::integral char_type>
+inline constexpr basic_io_scatter_t<char_type> print_scatter_define(print_scatter_type_t<char_type>,basic_io_scatter_t<char_type> iosc)
 {
 	return iosc;
 }
 
 template<std::integral char_type,std::size_t n>
-requires(n!=0)
 inline constexpr auto print_alias_define(io_alias_t,char_type const(&s)[n])
 {
-	if constexpr(n==1||n==2)
-		return chvw(*s);
+	if constexpr(n==2)
+		return manip::chvw<char_type>(*s);
 	else
 		return basic_io_scatter_t<char_type>{s,n-1};
 }
@@ -93,5 +92,17 @@ inline constexpr void const* print_alias_define(io_alias_t,Iter it)
 		return std::to_address(it);
 }
 
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<manip::chvw<char_type>>)
+{
+	return 1;
+}
+
+template<std::integral char_type,std::contiguous_iterator caiter>
+inline constexpr caiter print_reserve_define(io_reserve_type_t<manip::chvw<char_type>>,caiter iter,auto ch)
+{
+	*iter=static_cast<char_type>(ch.reference);
+	return ++iter;
+}
 
 }
