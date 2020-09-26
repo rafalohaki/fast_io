@@ -24,6 +24,9 @@ int main()
 }
 ```
 
+## Examples
+https://github.com/expnkx/fast_io_examples
+
 ## Compiler Support
 - GCC 11.
 You can download the latest GCC compiler for windows here. https://bitbucket.org/ejsvifq_mabmip/mingw-gcc/src/master/ 
