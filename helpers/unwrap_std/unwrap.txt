@@ -1,3 +1,0 @@
-g++ -c znsosei.cc -Ofast -std=c++20 -Wall -Wextra
-g++ -c fstream.cc -Ofast -std=c++20 -Wall -Wextra
-g++ -Wall -Wl,--wrap,_ZNSolsEs -Wl,--wrap,_ZNSolsEi -Wl,--wrap,_ZNSo9_M_insertIyEERSoT_ -Wl,--wrap,_ZNSo9_M_insertImEERSoT_ -Wl,--wrap,_ZNSo9_M_insertIlEERSoT_ -Wl,--wrap,_ZNSo9_M_insertIxEERSoT_ -Wl,--wrap,_ZNSo9_M_insertIyEERSoT_ -Wl,--wrap,_ZNSo9_M_insertIdEERSoT_ -Wl,--wrap,_ZNSo9_M_insertIeEERSoT_ -Wl,--wrap,_ZNSirsERi -Wl,--wrap,_ZNSi10_M_extractIjEERSiRT_ -Wl,--wrap,_ZNSi10_M_extractIlEERSiRT_ -Wl,--wrap,_ZNSi10_M_extractImEERSiRT_ -Wl,--wrap,_ZNSi10_M_extractIxEERSiRT_ -Wl,--wrap,_ZNSi10_M_extractIyEERSiRT_ -Wl,--wrap,_ZNSi10_M_extractIdEERSiRT_ -Wl,--wrap,_ZNSi10_M_extractIfEERSiRT_ -Wl,--wrap,_ZNSo5flushEv -o fstream fstream.o znsosei.o -s

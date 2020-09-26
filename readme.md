@@ -100,7 +100,6 @@ A general purpose I/O library to replace stdio.h and iostream
 - Intrinsic SHA-1, Intrinsic HMAC-SHA1, Intrinsic SHA-256, Intrinsic HMAC-SHA256, SHA-512, HMAC-SHA512
 - zlib compression/decompression support
 - Non crypto hash algorithms support. Jenkins Hash
-- fmtlib support
 - Filesystem
 
 ## Post C++20 Plan
@@ -368,3 +367,4 @@ This project is made possible by referencing from other open-source projects. (I
 |md5|https://github.com/JieweiWei/md5 |
 |ReactOS|https://github.com/reactos/reactos |
 |dirent_h|https://github.com/win32ports/dirent_h|
+|GNU C library|https://www.gnu.org/software/libc/|
