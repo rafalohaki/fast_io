@@ -5,3 +5,5 @@ benchmarks/*/*.txt
 *.app
 /include/.vscode
 /include/fast_io_network/.vscode/settings.json
+.tmp
+.vscode

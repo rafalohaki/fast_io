@@ -38,7 +38,7 @@ inline wc_io_observer wc_stderr() noexcept
 }
 
 inline
-#if !defined(__WINNT__) && !defined(_MSC_VER)
+#ifndef _WIN32
 constexpr
 #endif
 decltype(auto) in() noexcept
@@ -47,7 +47,7 @@ decltype(auto) in() noexcept
 }
 
 inline
-#if !defined(__WINNT__) && !defined(_MSC_VER)
+#ifndef _WIN32
 constexpr
 #endif
 decltype(auto) out() noexcept
@@ -56,7 +56,7 @@ decltype(auto) out() noexcept
 }
 
 inline
-#if !defined(__WINNT__) && !defined(_MSC_VER)
+#ifndef _WIN32
 constexpr
 #endif
 decltype(auto) err() noexcept

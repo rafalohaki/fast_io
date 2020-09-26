@@ -43,7 +43,7 @@ used in memzero_explicit):
 
 */
 
-inline void secure_clear(void* data,std::size_t size)
+inline void secure_clear(void* data,std::size_t size) noexcept
 {
 #if defined(_MSC_VER)
 	win32::RtlSecureZeroMemory(data, size);
