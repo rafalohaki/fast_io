@@ -324,7 +324,13 @@ inline constexpr decltype(auto) io_print_alias(T&& t)
 }
 
 template<output_stream output,typename ...Args>
-inline constexpr void print_freestanding(output&& out,Args&& ...args)
+inline
+#ifdef _MSC_VER
+__forceinline
+#elif defined(__GNUG__) || defined(__clang__)
+__attribute__((always_inline))
+#endif
+constexpr void print_freestanding(output&& out,Args&& ...args)
 {
 	print_freestanding_decay(io_ref(out),io_forward(io_print_alias(args))...);
 }
@@ -387,7 +393,13 @@ inline constexpr void println_freestanding_decay(output out,Args ...args)
 }
 
 template<output_stream output,typename ...Args>
-inline constexpr void println_freestanding(output&& out,Args&& ...args)
+inline
+#ifdef _MSC_VER
+__forceinline
+#elif defined(__GNUG__) || defined(__clang__)
+__attribute__((always_inline))
+#endif
+constexpr void println_freestanding(output&& out,Args&& ...args)
 {
 	println_freestanding_decay(io_ref(out),io_forward(io_print_alias(args))...);
 }

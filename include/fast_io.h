@@ -85,7 +85,13 @@ inline auto err_buf()
 }
 
 template<typename T,typename... Args>
-inline constexpr void print(T&& t,Args&& ...args)
+inline
+#ifdef _MSC_VER
+__forceinline
+#elif defined(__GNUG__) || defined(__clang__)
+__attribute__((always_inline))
+#endif
+constexpr void print(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>)
 		fast_io::print_freestanding_decay(fast_io::io_ref(t),fast_io::io_forward(fast_io::io_print_alias(args))...);
@@ -94,7 +100,13 @@ inline constexpr void print(T&& t,Args&& ...args)
 }
 
 template<typename T,typename... Args>
-inline constexpr void println(T&& t,Args&& ...args)
+inline
+#ifdef _MSC_VER
+__forceinline
+#elif defined(__GNUG__) || defined(__clang__)
+__attribute__((always_inline))
+#endif
+constexpr void println(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>)
 		fast_io::println_freestanding_decay(fast_io::io_ref(t),fast_io::io_forward(fast_io::io_print_alias(args))...);
@@ -103,19 +115,37 @@ inline constexpr void println(T&& t,Args&& ...args)
 }
 
 template<typename... Args>
-inline constexpr void perr(Args&&... args)
+inline
+#ifdef _MSC_VER
+__forceinline
+#elif defined(__GNUG__) || defined(__clang__)
+__attribute__((always_inline))
+#endif
+constexpr void perr(Args&&... args)
 {
 	fast_io::print_freestanding_decay(fast_io::err(),fast_io::io_forward(fast_io::io_print_alias(args))...);
 }
 
 template<typename... Args>
-inline constexpr void perrln(Args&&... args)
+inline
+#ifdef _MSC_VER
+__forceinline
+#elif defined(__GNUG__) || defined(__clang__)
+__attribute__((always_inline))
+#endif
+constexpr void perrln(Args&&... args)
 {
 	fast_io::println_freestanding_decay(fast_io::err(),fast_io::io_forward(fast_io::io_print_alias(args))...);
 }
 
 template<typename... Args>
-inline constexpr void panic(Args&&... args) noexcept
+inline
+#ifdef _MSC_VER
+__forceinline
+#elif defined(__GNUG__) || defined(__clang__)
+__attribute__((always_inline))
+#endif
+constexpr void panic(Args&&... args) noexcept
 {
 	if constexpr(sizeof...(Args)!=0)
 	{
@@ -133,7 +163,13 @@ inline constexpr void panic(Args&&... args) noexcept
 }
 
 template<typename... Args>
-inline constexpr void panicln(Args&&... args) noexcept
+inline
+#ifdef _MSC_VER
+__forceinline
+#elif defined(__GNUG__) || defined(__clang__)
+__attribute__((always_inline))
+#endif
+constexpr void panicln(Args&&... args) noexcept
 {
 #ifdef __cpp_exceptions
 	try
@@ -151,7 +187,13 @@ inline constexpr void panicln(Args&&... args) noexcept
 #ifndef NDEBUG
 //With debugging. We output to POSIX fd or Win32 Handle directly instead of C's stdout.
 template<typename T,typename... Args>
-inline constexpr void debug_print(T&& t,Args&& ...args)
+inline
+#ifdef _MSC_VER
+__forceinline
+#elif defined(__GNUG__) || defined(__clang__)
+__attribute__((always_inline))
+#endif
+constexpr void debug_print(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>)
 		fast_io::print_freestanding_decay(io_ref(t),fast_io::io_forward(fast_io::io_print_alias(args))...);
@@ -160,7 +202,13 @@ inline constexpr void debug_print(T&& t,Args&& ...args)
 }
 
 template<typename T,typename... Args>
-inline constexpr void debug_println(T&& t,Args&& ...args)
+inline
+#ifdef _MSC_VER
+__forceinline
+#elif defined(__GNUG__) || defined(__clang__)
+__attribute__((always_inline))
+#endif
+constexpr void debug_println(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>)
 		fast_io::println_freestanding_decay(io_ref(t),fast_io::io_forward(fast_io::io_print_alias(args))...);
@@ -170,25 +218,49 @@ inline constexpr void debug_println(T&& t,Args&& ...args)
 }
 
 template<typename... Args>
-inline constexpr void debug_perr(Args&&... args)
+inline
+#ifdef _MSC_VER
+__forceinline
+#elif defined(__GNUG__) || defined(__clang__)
+__attribute__((always_inline))
+#endif
+constexpr void debug_perr(Args&&... args)
 {
 	::perr(std::forward<Args>(args)...);
 }
 
 template<typename... Args>
-inline constexpr void debug_perrln(Args&&... args)
+inline
+#ifdef _MSC_VER
+__forceinline
+#elif defined(__GNUG__) || defined(__clang__)
+__attribute__((always_inline))
+#endif
+constexpr void debug_perrln(Args&&... args)
 {
 	::perrln(std::forward<Args>(args)...);
 }
 
 template<typename... Args>
-inline constexpr void debug_panic(Args&&... args) noexcept
+inline
+#ifdef _MSC_VER
+__forceinline
+#elif defined(__GNUG__) || defined(__clang__)
+__attribute__((always_inline))
+#endif
+constexpr void debug_panic(Args&&... args) noexcept
 {
 	::panic(std::forward<Args>(args)...);
 }
 
 template<typename... Args>
-inline constexpr void debug_panicln(Args&&... args) noexcept
+inline
+#ifdef _MSC_VER
+__forceinline
+#elif defined(__GNUG__) || defined(__clang__)
+__attribute__((always_inline))
+#endif
+constexpr void debug_panicln(Args&&... args) noexcept
 {
 	::panicln(std::forward<Args>(args)...);
 }
