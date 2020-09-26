@@ -377,7 +377,6 @@ inline constexpr void println_freestanding_decay(output out,Args ...args)
 			}
 			else
 			{
-				puts("here382\n");
 				((details::decay::print_control(out,args)),...);
 				put(out,u8'\n');
 			}
