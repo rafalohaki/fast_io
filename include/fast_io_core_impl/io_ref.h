@@ -3,34 +3,13 @@
 namespace fast_io
 {
 
-template<bool pass_by_value,typename T>
-struct io_print_define_rv_wrapper
-{
-	using value_type = T;
-	[[no_unique_address]] std::conditional_t<pass_by_value,T,T const*> value;
-	inline constexpr auto& operator*() noexcept
-	{
-		if constexpr(pass_by_value)
-			return value;
-		else
-			return *value;
-	}
-	inline constexpr auto& operator*() const noexcept
-	{
-		if constexpr(pass_by_value)
-			return value;
-		else
-			return *value;
-	}
-};
-
 template<typename T>
 inline constexpr auto io_forward(T const& t) noexcept
 {
 	if constexpr(std::is_trivially_copyable_v<T>&&sizeof(t)<=(sizeof(std::size_t)<<1))		//predict the cost of passing by value
-		return io_print_define_rv_wrapper<true,std::remove_reference_t<T>>{t};
+		return std::remove_cvref_t<T>(t);
 	else
-		return io_print_define_rv_wrapper<false,std::remove_reference_t<T>>{std::addressof(t)};
+		return parameter<std::remove_reference_t<T>>{t};
 }
 
 template<stream stm>
@@ -53,7 +32,7 @@ struct io_reference_wrapper
 	}
 };
 template<stream strm>
-inline constexpr auto io_ref(strm& stm)
+inline constexpr auto io_ref(strm& stm) noexcept
 {
 	if constexpr(value_based_stream<std::remove_cvref_t<strm>>)
 		return io_value_handle(stm);

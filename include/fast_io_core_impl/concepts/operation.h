@@ -52,6 +52,13 @@ concept reserve_printable=requires(T&& t,char8_t* ptr)
 };
 
 template<typename T>
+concept dynamic_reserve_printable=requires(T&& t,char8_t* ptr)
+{
+	{print_reserve_size(io_reserve_type<std::remove_cvref_t<T>>,t)}->std::convertible_to<std::size_t>;
+	{print_reserve_define(io_reserve_type<std::remove_cvref_t<T>>,ptr,t)}->std::convertible_to<char8_t*>;
+};
+
+template<typename T>
 concept reverse_reserve_printable=reserve_printable<T>&&requires(T&& t,char8_t* ptr)
 {
 	{print_reverse_reserve_define(io_reserve_type<std::remove_cvref_t<T>>,ptr,t)}->std::convertible_to<char8_t*>;
@@ -112,5 +119,46 @@ concept manipulator = std::same_as<typename T::manip_tag,manip_tag_t>&&requires(
 {
 	{t.reference};
 };
+
+template<typename T>
+struct parameter
+{
+	T reference;
+};
+
+template<typename output,typename value_type>
+requires printable<output,value_type>
+constexpr void print_define(output out, parameter<value_type> wrapper)
+{
+	print_define(out,wrapper.reference);
+}
+
+template<typename value_type>
+requires reserve_printable<value_type>
+constexpr std::size_t print_reserve_size(io_reserve_type_t<parameter<value_type>>)
+{
+	return print_reserve_size(io_reserve_type<std::remove_cvref_t<value_type>>);
+}
+
+template<typename value_type>
+requires dynamic_reserve_printable<value_type>
+constexpr std::size_t print_reserve_size(io_reserve_type_t<parameter<value_type>>,parameter<value_type> para)
+{
+	return print_reserve_size(io_reserve_type<std::remove_cvref_t<value_type>>,para.reference);
+}
+
+template<typename value_type,typename Iter>
+requires (reserve_printable<value_type>||dynamic_reserve_printable<value_type>)
+constexpr auto print_reserve_define(io_reserve_type_t<parameter<value_type>>,Iter begin,parameter<value_type> para)
+{
+	return print_reserve_define(io_reserve_type<std::remove_cvref_t<value_type>>,begin,para.reference);
+}
+
+template<std::integral char_type,typename value_type>
+requires scatter_printable<char_type,value_type>
+constexpr auto print_scatter_define(print_scatter_type_t<char_type>,parameter<value_type> para)
+{
+	return print_scatter_define(print_scatter_type<char_type>,para.reference);
+}
 
 }
