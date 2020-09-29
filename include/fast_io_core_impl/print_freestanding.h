@@ -50,13 +50,13 @@ template<std::integral char_type,typename T>
 inline constexpr void scatter_print_with_reserve_recursive_unit(char_type*& start_ptr,
 		io_scatter_t* arr,T t)
 {
-	if constexpr(scatter_printable<char_type,T>)
+	using real_type = std::remove_cvref_t<typename T::value_type>;
+	if constexpr(scatter_printable<char_type,real_type>)
 	{
 		*arr=print_scatter_define(print_scatter_type<char_type>,*t);
 	}
 	else
 	{
-		using real_type = std::remove_cvref_t<typename T::value_type>;
 		auto end_ptr = print_reserve_define(io_reserve_type<real_type>,start_ptr,*t);
 		*arr={start_ptr,(end_ptr-start_ptr)*sizeof(*start_ptr)};
 		start_ptr=end_ptr;
