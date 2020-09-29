@@ -153,7 +153,15 @@ inline constexpr void panic(Args&&... args) noexcept
 {
 	if constexpr(sizeof...(Args)!=0)
 	{
+#ifdef __cpp_exceptions
+	try
+	{
+#endif
 		perr(std::forward<Args>(args)...);
+#ifdef __cpp_exceptions
+	}
+	catch(...){}
+#endif
 	}
 	fast_io::fast_terminate();
 }
@@ -164,7 +172,9 @@ inline constexpr void panicln(Args&&... args) noexcept
 #ifdef __cpp_exceptions
 	try
 	{
+#endif
 		perrln(std::forward<Args>(args)...);
+#ifdef __cpp_exceptions
 	}
 	catch(...){}
 #endif
