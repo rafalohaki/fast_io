@@ -66,10 +66,7 @@ inline constexpr void ogrow_impl(T& ob,std::size_t new_capacity)
 	std::allocator<char_type> alloc;
 	using allocator_traits = std::allocator_traits<std::allocator<char_type>>;
 	auto newp{allocator_traits::allocate(alloc,new_capacity)};
-	if(std::is_constant_evaluated())
-		std::copy(ob.beg_ptr,ob.end_ptr,newp);
-	else
-		memcpy(newp,ob.beg_ptr,(ob.end_ptr-ob.beg_ptr)*sizeof(char_type));
+	details::non_overlapped_copy_n(ob.beg_ptr,static_cast<std::size_t>(ob.end_ptr-ob.beg_ptr),newp);
 	std::size_t const current_size(ob.end_ptr-ob.beg_ptr);
 	if constexpr(!vector_buf)
 	{
