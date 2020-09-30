@@ -48,6 +48,15 @@ inline void my_msvcrt_unlock_file(std::FILE* fp) noexcept
 		LeaveCriticalSection(fp+1);
 }
 
+/*
+Referenced from ReactOS
+https://doxygen.reactos.org/d2/d1b/sdk_2lib_2crt_2stdio_2file_8c_source.html
+
+Line 3075
+
+MSVCRT
+https://github.com/changloong/msvcrt/blob/master/stdio/fwrite.c
+*/
 
 }
 

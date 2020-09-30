@@ -15,7 +15,7 @@ namespace fast_io
 namespace details
 {
 template<char8_t base,bool uppercase,bool ignore_sign=false,std::contiguous_iterator Iter,my_integral int_type>
-inline constexpr Iter process_integer_output(Iter iter,int_type i)
+constexpr Iter process_integer_output(Iter iter,int_type i)
 {
 	if (std::is_constant_evaluated())
 	{
@@ -99,7 +99,7 @@ inline constexpr Iter process_integer_output(Iter iter,int_type i)
 }
 
 template<details::my_integral int_type>
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<int_type>)
+constexpr std::size_t print_reserve_size(io_reserve_type_t<int_type>)
 {
 	if constexpr(std::same_as<std::remove_cvref_t<int_type>,bool>)
 		return 1;
@@ -110,7 +110,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<int_type>)
 }
 
 template<std::random_access_iterator caiter,details::my_integral int_type,typename U>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<int_type>,caiter iter,U i)
+constexpr caiter print_reserve_define(io_reserve_type_t<int_type>,caiter iter,U i)
 {
 	if constexpr(std::same_as<std::remove_cvref_t<int_type>,bool>)
 	{
@@ -122,7 +122,7 @@ inline constexpr caiter print_reserve_define(io_reserve_type_t<int_type>,caiter 
 }
 
 template<char8_t base,bool uppercase,details::my_integral int_type>
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<manip::base_t<base,uppercase,int_type>>)
+constexpr std::size_t print_reserve_size(io_reserve_type_t<manip::base_t<base,uppercase,int_type>>)
 {
 	if constexpr(details::my_unsigned_integral<int_type>)
 		return details::cal_max_int_size<int_type,base>();
@@ -131,32 +131,32 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<manip::base_t<
 }
 
 template<std::random_access_iterator caiter,char8_t base,bool uppercase,details::my_integral int_type,typename P>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<manip::base_t<base,uppercase,int_type>>,caiter iter,P ref)
+constexpr caiter print_reserve_define(io_reserve_type_t<manip::base_t<base,uppercase,int_type>>,caiter iter,P ref)
 {
 	return details::process_integer_output<base,uppercase>(iter,ref.reference);
 }
 
 
 
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<std::byte>)
+constexpr std::size_t print_reserve_size(io_reserve_type_t<std::byte>)
 {
 	return details::cal_max_int_size<details::my_make_unsigned_t<std::uint8_t>>();
 }
 
 template<std::random_access_iterator caiter,typename U>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<std::byte>,caiter iter,U i)
+constexpr caiter print_reserve_define(io_reserve_type_t<std::byte>,caiter iter,U i)
 {
 	return details::process_integer_output<10,false>(iter,std::to_integer<std::uint8_t>(i));
 }
 
 template<char8_t base,bool uppercase>
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<manip::base_t<base,uppercase,std::byte>>)
+constexpr std::size_t print_reserve_size(io_reserve_type_t<manip::base_t<base,uppercase,std::byte>>)
 {
 	return details::cal_max_int_size<std::uint8_t,base>();
 }
 
 template<std::random_access_iterator caiter,char8_t base,bool uppercase,typename P>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<manip::base_t<base,uppercase,std::byte>>,caiter iter,P ref)
+constexpr caiter print_reserve_define(io_reserve_type_t<manip::base_t<base,uppercase,std::byte>>,caiter iter,P ref)
 {
 	return details::process_integer_output<base,uppercase>(iter,std::to_integer<std::uint8_t>(ref.reference));
 }

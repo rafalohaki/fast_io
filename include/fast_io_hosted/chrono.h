@@ -4,6 +4,37 @@
 namespace fast_io
 {
 
+constexpr std::size_t print_reserve_size(io_reserve_type_t<struct timespec>)
+{
+	return print_reserve_size(io_reserve_type<std::time_t>)+1+print_reserve_size(io_reserve_type<long>);
+}
+
+template<std::random_access_iterator Iter>
+constexpr Iter print_reserve_define(io_reserve_type_t<struct timespec>,Iter it,struct timespec spc)
+{
+	it=print_reserve_define(io_reserve_type<std::time_t>,it,spc.tv_sec);
+	unsigned long nsec{static_cast<unsigned long>(spc.tv_nsec)};
+	if(nsec==0UL||999999999UL<nsec)
+		return it;
+	*it=u8'.';
+	++it;
+	std::size_t sz{};
+	for(;nsec%10==0;++sz)
+		nsec/=10;
+	sz=9-sz;
+	auto res{it+sz};
+	it=res;
+	using char_type = std::iter_value_t<Iter>;
+	for(std::size_t i{};i!=sz;++i)
+	{
+		unsigned long const temp(nsec/10);
+		*it=static_cast<char8_t>(static_cast<char8_t>(nsec%10)+u8'0');
+		nsec=temp;
+	}
+	return res;
+}
+
+
 //We use seconds since seconds is the standard unit of SI
 //Use my own tweaked ryu algorithm for counting seconds
 template<typename Rep,typename Period>

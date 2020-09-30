@@ -2,6 +2,8 @@
 
 #if defined(__WINNT__) || defined(_MSC_VER)
 #include<io.h>
+#include<sys/stat.h>
+#include<sys/types.h>
 #else
 #include<unistd.h>
 #endif
@@ -426,40 +428,17 @@ inline void flush(basic_posix_io_observer<ch_type>)
 }
 */
 
-#if defined(_WIN32)
-template<std::integral ch_type>
-inline auto type(basic_posix_io_observer<ch_type> piob)
-{
-	return type(static_cast<basic_win32_io_observer<ch_type>>(piob));
-}
-template<std::integral ch_type>
-inline auto size(basic_posix_io_observer<ch_type> piob)
-{
-	return size(static_cast<basic_win32_io_observer<ch_type>>(piob));
-}
-#elif !defined(__NEWLIB__)
-
+#ifndef __NEWLIB__
 namespace details
 {
 
-inline void fstat_impl(int fd,struct stat64* st)
+inline constexpr perms st_mode_to_perms(mode_t m)
 {
-	if(fstat64(fd,st)<0)
-		throw_posix_error();
+	return static_cast<perms>(m);
 }
 
-inline std::common_type_t<std::size_t,std::uint32_t> posix_file_size_impl(int fd)
+inline constexpr file_type st_mode_to_file_type(mode_t m)
 {
-	struct stat64 st;
-	fstat_impl(fd,std::addressof(st));
-	return st.st_size;
-}
-
-inline file_type posix_file_type_impl(int fd)
-{
-	struct stat64 st;
-	fstat_impl(fd,std::addressof(st));
-	auto m{st.st_mode};
 /*
 https://linux.die.net/man/2/fstat64
 The following POSIX macros are defined to check the file type using the st_mode field:
@@ -501,28 +480,68 @@ socket? (Not in POSIX.1-1996.)
 		return file_type::block;
 	else if(S_ISFIFO(m))
 		return file_type::fifo;
+#ifdef S_ISLNK
 	else if(S_ISLNK(m))
 		return file_type::symlink;
+#endif
+#ifdef S_ISSOCK
 	else if(S_ISSOCK(m))
 		return file_type::socket;
+#endif
 	else
 		return file_type::unknown;
 }
 
-}
-
-template<std::integral ch_type>
-inline std::common_type_t<std::size_t,std::uint32_t> size(basic_posix_io_observer<ch_type> piob)
+inline posix_file_status fstat_impl(int fd)
 {
-	return details::posix_file_size_impl(piob.fd);
-}
-
-template<std::integral ch_type>
-inline auto type(basic_posix_io_observer<ch_type> piob)
-{
-	return details::posix_file_type_impl(piob.fd);
-}
+#ifdef _WIN32
+	struct __stat64 st;
+#else
+	struct stat64 st;
 #endif
+	if(
+#ifdef _WIN32
+_fstat64
+#else
+fstat64
+#endif
+(fd,std::addressof(st))<0)
+		throw_posix_error();
+
+	return {st.st_dev,
+	st.st_ino,
+	st_mode_to_perms(st.st_mode),
+	st_mode_to_file_type(st.st_mode),
+	static_cast<std::common_type_t<std::uint64_t,std::size_t>>(st.st_nlink),
+	static_cast<std::common_type_t<std::uint64_t,std::size_t>>(st.st_uid),
+	static_cast<std::common_type_t<std::uint64_t,std::size_t>>(st.st_gid),
+	static_cast<std::common_type_t<std::uint64_t,std::size_t>>(st.st_rdev),
+	static_cast<std::common_type_t<std::int64_t,std::ptrdiff_t>>(st.st_size),
+#ifdef _WIN32
+	65536,
+	static_cast<std::common_type_t<std::uint64_t,std::size_t>>(st.st_size/512),
+	{st.st_atime},{st.st_mtime},{st.st_ctime},
+#else
+	st.st_atim,st.st_mtim,st.st_ctim,
+#endif
+#ifdef __BSD_VISIBLE
+	st.st_st_flags,st.st_gen
+#else
+	0,0
+#endif
+};
+}
+
+}
+
+template<std::integral ch_type>
+inline posix_file_status status(basic_posix_io_observer<ch_type> piob)
+{
+	return details::fstat_impl(piob.fd);
+}
+
+#endif
+
 
 #if defined(__linux__) || defined(__BSD_VISIBLE)
 template<std::integral ch_type>
