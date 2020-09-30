@@ -71,29 +71,34 @@ inline constexpr perms_interface_t<pm> perms_interface{};
 
 namespace details::perm
 {
-template<char8_t fillch,character_output_stream output>
-inline constexpr void print_perm_per_check(output& out,perms p,perms checked)
+template<char8_t fillch,std::random_access_iterator raiter>
+inline constexpr void print_perm_per_check(raiter i,perms p,perms checked)
 {
 	if((p&checked)==perms::none)
-		put(out,0x2d);
+		*i=0x2d;
 	else
-		put(out,fillch);
+		*i=fillch;
 }
 }
 
-
-template<character_output_stream output>
-inline constexpr void print_define(output& out,perms p)
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<perms>)
 {
-	details::perm::print_perm_per_check<0x72>(out,p,perms::owner_read);
-	details::perm::print_perm_per_check<0x77>(out,p,perms::owner_write);
-	details::perm::print_perm_per_check<0x78>(out,p,perms::owner_exec);
-	details::perm::print_perm_per_check<0x72>(out,p,perms::group_read);
-	details::perm::print_perm_per_check<0x77>(out,p,perms::group_write);
-	details::perm::print_perm_per_check<0x78>(out,p,perms::group_exec);
-	details::perm::print_perm_per_check<0x72>(out,p,perms::others_read);
-	details::perm::print_perm_per_check<0x77>(out,p,perms::others_write);
-	details::perm::print_perm_per_check<0x78>(out,p,perms::others_exec);
+	return 9;
+}
+
+template<std::random_access_iterator raiter>
+inline constexpr raiter print_reserve_define(io_reserve_type_t<perms>,raiter iter,perms p)
+{
+	details::perm::print_perm_per_check<0x72>(iter,p,perms::owner_read);
+	details::perm::print_perm_per_check<0x77>(++iter,p,perms::owner_write);
+	details::perm::print_perm_per_check<0x78>(++iter,p,perms::owner_exec);
+	details::perm::print_perm_per_check<0x72>(++iter,p,perms::group_read);
+	details::perm::print_perm_per_check<0x77>(++iter,p,perms::group_write);
+	details::perm::print_perm_per_check<0x78>(++iter,p,perms::group_exec);
+	details::perm::print_perm_per_check<0x72>(++iter,p,perms::others_read);
+	details::perm::print_perm_per_check<0x77>(++iter,p,perms::others_write);
+	details::perm::print_perm_per_check<0x78>(++iter,p,perms::others_exec);
+	return iter;
 }
 
 }

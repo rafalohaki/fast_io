@@ -19,7 +19,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<file_type>) no
 	return 20;
 }
 
-template<std::contiguous_iterator caiter>
+template<std::random_access_iterator caiter>
 inline constexpr caiter print_reserve_define(io_reserve_type_t<file_type>,caiter it,file_type f) noexcept
 {
 	switch(f)
