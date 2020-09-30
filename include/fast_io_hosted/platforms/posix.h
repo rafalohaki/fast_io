@@ -516,7 +516,7 @@ fstat64
 	static_cast<std::common_type_t<std::uint64_t,std::size_t>>(st.st_uid),
 	static_cast<std::common_type_t<std::uint64_t,std::size_t>>(st.st_gid),
 	static_cast<std::common_type_t<std::uint64_t,std::size_t>>(st.st_rdev),
-	static_cast<std::common_type_t<std::int64_t,std::ptrdiff_t>>(st.st_size),
+	static_cast<std::common_type_t<std::uint64_t,std::size_t>>(st.st_size),
 #ifdef _WIN32
 	65536,
 	static_cast<std::common_type_t<std::uint64_t,std::size_t>>(st.st_size/512),

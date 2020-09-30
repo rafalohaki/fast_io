@@ -17,7 +17,7 @@ struct posix_file_status
 	std::common_type_t<std::uint64_t,std::size_t> uid;     // User ID of owner
 	std::common_type_t<std::uint64_t,std::size_t> gid;     // Group ID of owner
 	std::common_type_t<std::uint64_t,std::size_t> rdev;    // Device ID (if special file)
-	std::common_type_t<std::int64_t,std::ptrdiff_t> size;    // Total size, in bytes 
+	std::common_type_t<std::uint64_t,std::size_t> size;    // Total size, in bytes 
 	std::common_type_t<std::uint64_t,std::size_t> blksize; // Block size for filesystem I/O
 	std::common_type_t<std::uint64_t,std::size_t> blocks;  // Number of 512B blocks allocated
 
