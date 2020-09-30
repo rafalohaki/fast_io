@@ -522,7 +522,7 @@ fstat64
 	static_cast<std::common_type_t<std::uint64_t,std::size_t>>(st.st_size/512),
 	{st.st_atime},{st.st_mtime},{st.st_ctime},
 #else
-	st.st_atim,st.st_mtim,st.st_ctim,
+	st.st_blksize,st.st_blocks,st.st_atim,st.st_mtim,st.st_ctim,
 #endif
 #ifdef __BSD_VISIBLE
 	st.st_st_flags,st.st_gen
