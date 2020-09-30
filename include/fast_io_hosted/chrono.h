@@ -14,7 +14,6 @@ constexpr Iter print_reserve_define(io_reserve_type_t<struct timespec>,Iter it,s
 {
 	it=print_reserve_define(io_reserve_type<std::time_t>,it,spc.tv_sec);
 	unsigned long nsec{static_cast<unsigned long>(spc.tv_nsec)};
-	nsec=900000000UL;
 	if(nsec==0UL||999999999UL<nsec)
 		return it;
 	*it=u8'.';
