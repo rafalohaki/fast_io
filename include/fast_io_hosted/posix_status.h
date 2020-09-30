@@ -47,8 +47,6 @@ inline constexpr void print_define(fast_io::buffer_output_stream auto bop,fast_i
 
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<fast_io::posix_file_status>)
 {
-	
-	
 	constexpr std::size_t res{
 	print_reserve_size(io_reserve_type<std::common_type_t<std::uint64_t,std::size_t>>)*11+
 	sizeof(u8"dev:")+sizeof(u8"\nino:")+sizeof(u8"\nperm:")+sizeof(u8"\ntype:")+
