@@ -98,7 +98,7 @@ inline constexpr raiter print_reserve_define(io_reserve_type_t<perms>,raiter ite
 	details::perm::print_perm_per_check<0x72>(++iter,p,perms::others_read);
 	details::perm::print_perm_per_check<0x77>(++iter,p,perms::others_write);
 	details::perm::print_perm_per_check<0x78>(++iter,p,perms::others_exec);
-	return iter;
+	return ++iter;
 }
 
 }
