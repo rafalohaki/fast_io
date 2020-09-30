@@ -14,6 +14,7 @@ constexpr Iter print_reserve_define(io_reserve_type_t<struct timespec>,Iter it,s
 {
 	it=print_reserve_define(io_reserve_type<std::time_t>,it,spc.tv_sec);
 	unsigned long nsec{static_cast<unsigned long>(spc.tv_nsec)};
+	nsec=900000000UL;
 	if(nsec==0UL||999999999UL<nsec)
 		return it;
 	*it=u8'.';
@@ -24,16 +25,17 @@ constexpr Iter print_reserve_define(io_reserve_type_t<struct timespec>,Iter it,s
 	sz=9-sz;
 	auto res{it+sz};
 	it=res;
+	--it;
 	using char_type = std::iter_value_t<Iter>;
 	for(std::size_t i{};i!=sz;++i)
 	{
 		unsigned long const temp(nsec/10);
 		*it=static_cast<char8_t>(static_cast<char8_t>(nsec%10)+u8'0');
+		--it;
 		nsec=temp;
 	}
 	return res;
 }
-
 
 //We use seconds since seconds is the standard unit of SI
 //Use my own tweaked ryu algorithm for counting seconds
