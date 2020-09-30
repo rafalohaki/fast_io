@@ -86,7 +86,6 @@ namespace details
 {
 
 template<bool line,typename... Args>
-__attribute__((always_inline))
 inline constexpr void print_after_io_forward(Args ...args)
 {
 	if constexpr(line)
