@@ -27,6 +27,11 @@ int main()
 ## Examples
 https://github.com/expnkx/fast_io_examples
 
+Deprecated examples are in
+https://bitbucket.org/ejsvifq_mabmip/fast_io_deprecated
+
+However, they might not work current fast_io since fast_io keeps changing.
+
 ## Compiler Support
 - GCC 11.
 You can download the latest GCC compiler for windows here. https://bitbucket.org/ejsvifq_mabmip/mingw-gcc/src/master/ 
