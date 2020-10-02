@@ -94,10 +94,6 @@ inline nt_dirent* nt_dirent_next(nt_dirent* entry)
 struct nt_directory_entry
 {
 	nt_dirent* entry{};
-	constexpr operator nt_at_entry() const noexcept
-	{
-		return nt_at_entry{entry->d_handle};
-	}
 	explicit constexpr operator nt_io_observer() const noexcept
 	{
 		return {entry->d_handle};
@@ -107,6 +103,11 @@ struct nt_directory_entry
 		return {entry->d_handle};
 	}
 };
+
+inline constexpr nt_at_entry at(nt_directory_entry ndet) noexcept
+{
+	return nt_at_entry{ndet.entry->d_handle};
+}
 
 inline constexpr wcstring_view filename(nt_directory_entry pioe) noexcept
 {
