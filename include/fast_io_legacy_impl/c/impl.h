@@ -252,6 +252,47 @@ cookie,readfn,writefn,seekfn,closefn)};
 }
 #endif
 
+namespace details
+{
+
+inline int fp_unlocked_to_fd(FILE* fp) noexcept
+{
+	if(fp==nullptr)
+	{
+		errno=EBADF;
+		return {-1};
+	}
+	return 
+#if defined(__WINNT__) || defined(_MSC_VER)
+		_fileno(fp)
+#elif defined(__NEWLIB__)
+		fp->_file
+#else
+		::fileno_unlocked(fp)
+#endif
+	;
+}
+
+inline int fp_to_fd(FILE* fp) noexcept
+{
+	if(fp==nullptr)
+	{
+		errno=EBADF;
+		return {-1};
+	}
+	return 
+#if defined(__WINNT__) || defined(_MSC_VER)
+		_fileno(fp)
+#elif defined(__NEWLIB__)
+		fp->_file
+#else
+		::fileno(fp)
+#endif
+	;
+}
+
+}
+
 template<std::integral ch_type>
 class basic_c_io_observer_unlocked
 {
@@ -273,20 +314,7 @@ public:
 	}
 	explicit operator basic_posix_io_observer<char_type>() const noexcept
 	{
-		if(fp==nullptr)
-		{
-			errno=EBADF;
-			return {-1};
-		}
-		return basic_posix_io_observer<char_type>{
-#if defined(__WINNT__) || defined(_MSC_VER)
-			_fileno(fp)
-#elif defined(__NEWLIB__)
-			fp->_file
-#else
-			::fileno_unlocked(fp)
-#endif
-		};
+		return basic_posix_io_observer<char_type>{details::fp_unlocked_to_fd(fp)};
 	}
 #if defined(__WINNT__) || defined(_MSC_VER)
 	explicit operator basic_win32_io_observer<char_type>() const noexcept
@@ -301,6 +329,12 @@ public:
 		return temp;
 	}
 };
+
+template<std::integral ch_type>
+inline constexpr posix_at_entry at(basic_c_io_observer_unlocked<ch_type> other) noexcept
+{
+	return {details::fp_unlocked_to_fd(other.fp)};
+}
 
 template<std::integral ch_type>
 inline auto redirect_handle(basic_c_io_observer_unlocked<ch_type> h)
@@ -341,7 +375,7 @@ inline void flush(basic_c_io_observer_unlocked<T> cfhd)
 namespace details
 {
 
-inline std::common_type_t<std::size_t,std::uint64_t> c_io_seek_impl(std::FILE* fp,std::common_type_t<std::ptrdiff_t,std::int64_t> offset,seekdir s)
+inline std::uintmax_t c_io_seek_impl(std::FILE* fp,std::intmax_t offset,seekdir s)
 {
 /*
 We avoid standard C functions since they cannot deal with large file on 32 bits platforms
@@ -373,7 +407,7 @@ https://www.gnu.org/software/libc/manual/html_node/File-Positioning.html
 	return val;
 }
 #if defined(_WIN32)
-inline std::common_type_t<std::size_t,std::uint64_t> c_io_seek_no_lock_impl(std::FILE* fp,std::common_type_t<std::ptrdiff_t,std::int64_t> offset,seekdir s)
+inline std::uintmax_t c_io_seek_no_lock_impl(std::FILE* fp,std::intmax_t offset,seekdir s)
 {
 	if(_fseeki64_nolock(fp,offset,static_cast<int>(s)))
 		throw_posix_error();
@@ -383,10 +417,10 @@ inline std::common_type_t<std::size_t,std::uint64_t> c_io_seek_no_lock_impl(std:
 	return val;
 }
 #endif
-
 }
+
 template<std::integral ch_type,std::integral U>
-inline std::common_type_t<std::size_t,std::uint64_t> seek(basic_c_io_observer_unlocked<ch_type> cfhd,std::common_type_t<std::ptrdiff_t,std::int64_t> offset=0,seekdir s=seekdir::cur)
+inline std::uintmax_t seek(basic_c_io_observer_unlocked<ch_type> cfhd,std::intmax_t offset=0,seekdir s=seekdir::cur)
 {
 #if defined(_WIN32)
 	return details::c_io_seek_no_lock_impl(cfhd.fp,offset,s);
@@ -423,20 +457,7 @@ public:
 	}
 	explicit operator basic_posix_io_observer<char_type>() const noexcept
 	{
-		if(fp==nullptr)
-		{
-			errno=EBADF;
-			return {-1};
-		}
-		return basic_posix_io_observer<char_type>{
-#if defined(__WINNT__) || defined(_MSC_VER)
-			_fileno(fp)
-#elif defined(__NEWLIB__)
-			fp->_file
-#else
-			::fileno(fp)
-#endif
-		};
+		return {details::fp_to_fd(fp)};
 	}
 #if defined(__WINNT__) || defined(_MSC_VER)
 	explicit operator basic_win32_io_observer<char_type>() const noexcept
@@ -489,6 +510,12 @@ public:
 };
 
 template<std::integral T>
+inline constexpr posix_at_entry at(basic_c_io_observer<T> other) noexcept
+{
+	return {details::fp_to_fd(other.fp)};
+}
+
+template<std::integral T>
 inline constexpr basic_c_io_observer<T> io_value_handle(basic_c_io_observer<T> other)
 {
 	return other;
@@ -524,7 +551,7 @@ inline void flush(basic_c_io_observer<T> cfhd)
 }
 
 template<std::integral ch_type,std::integral U>
-inline std::common_type_t<std::size_t,std::uint64_t> seek(basic_c_io_observer<ch_type> cfhd,std::common_type_t<std::ptrdiff_t,std::int64_t> offset=0,seekdir s=seekdir::cur)
+inline std::uintmax_t seek(basic_c_io_observer<ch_type> cfhd,std::intmax_t offset=0,seekdir s=seekdir::cur)
 {
 	return details::c_io_seek_impl(cfhd.fp,offset,s);
 }
@@ -648,13 +675,13 @@ public:
 	{}
 
 	template<open_mode om,typename... Args>
-	basic_c_file_impl(io_at_t,native_io_observer niob,cstring_view file,open_interface_t<om>,Args&& ...args):
-		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_at,niob,file,open_interface<om>,std::forward<Args>(args)...),
+	basic_c_file_impl(native_at_entry nate,cstring_view file,open_interface_t<om>,Args&& ...args):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(nate,file,open_interface<om>,std::forward<Args>(args)...),
 			open_interface<om>)
 	{}
 	template<typename... Args>
-	basic_c_file_impl(io_at_t,native_io_observer niob,cstring_view file,open_mode om,Args&& ...args):
-		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_at,niob,file,om,std::forward<Args>(args)...),om)
+	basic_c_file_impl(native_at_entry nate,cstring_view file,open_mode om,Args&& ...args):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(nate,file,om,std::forward<Args>(args)...),om)
 	{}
 
 
@@ -670,13 +697,13 @@ public:
 	{}
 
 	template<open_mode om,typename... Args>
-	basic_c_file_impl(io_async_t,io_async_observer ioa,io_at_t,native_io_observer niob,cstring_view file,open_interface_t<om>,Args&& ...args):
-		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_async,ioa,io_at,niob,file,open_interface<om>,std::forward<Args>(args)...),
+	basic_c_file_impl(io_async_t,io_async_observer ioa,native_at_entry nate,cstring_view file,open_interface_t<om>,Args&& ...args):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_async,ioa,nate,file,open_interface<om>,std::forward<Args>(args)...),
 			open_interface<om>)
 	{}
 	template<typename... Args>
-	basic_c_file_impl(io_async_t,io_async_observer ioa,io_at_t,native_io_observer niob,cstring_view file,open_mode om,Args&& ...args):
-		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_async,ioa,io_at,niob,file,om,std::forward<Args>(args)...),om)
+	basic_c_file_impl(io_async_t,io_async_observer ioa,native_at_entry nate,cstring_view file,open_mode om,Args&& ...args):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_async,ioa,nate,file,om,std::forward<Args>(args)...),om)
 	{}
 #endif
 

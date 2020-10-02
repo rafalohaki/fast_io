@@ -5,7 +5,7 @@
 #include"../../fast_io_crypto/hash/sha.h"
 #endif
 
-#if defined(__WINNT__) || defined(_MSC_VER)
+#ifdef _WIN32
 #include"win32_api.h"
 #include"win32_error.h"
 #include"nt_api.h"
@@ -26,10 +26,12 @@
 namespace fast_io
 {
 
-#if defined(__WINNT__) || defined(_MSC_VER)
+#ifdef _WIN32
 inline constexpr auto native_stdin_number(win32_stdin_number);
 inline constexpr auto native_stdout_number(win32_stdout_number);
 inline constexpr auto native_stderr_number(win32_stderr_number);
+
+using native_at_entry = nt_at_entry;
 using native_io_observer = win32_io_observer;
 using native_io_handle = win32_io_handle;
 using native_file = win32_file;
@@ -51,12 +53,12 @@ using basic_native_file = basic_win32_file<ch_type>;
 template<std::integral ch_type>
 using basic_native_pipe = basic_win32_pipe<ch_type>;
 
-
 #else
 inline constexpr auto native_stdin_number(posix_stdin_number);
 inline constexpr auto native_stdout_number(posix_stdout_number);
 inline constexpr auto native_stderr_number(posix_stderr_number);
 
+using native_at_entry = posix_at_entry;
 using native_io_observer = posix_io_observer;
 using native_io_handle = posix_io_handle;
 using native_file = posix_file;

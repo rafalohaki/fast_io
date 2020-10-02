@@ -333,6 +333,12 @@ public:
 };
 
 template<std::integral ch_type>
+inline constexpr nt_at_entry at(basic_win32_io_observer<ch_type> wiob) noexcept
+{
+	return {wiob.handle};
+}
+
+template<std::integral ch_type>
 inline constexpr basic_win32_io_observer<ch_type> io_value_handle(basic_win32_io_observer<ch_type> other)
 {
 	return other;
@@ -444,7 +450,7 @@ inline std::size_t write_impl(void* handle,void const* cbegin,std::size_t to_wri
 	return number_of_bytes_written;
 }
 
-inline std::common_type_t<std::size_t,std::uint64_t> seek_impl(void* handle,std::common_type_t<std::ptrdiff_t,std::int64_t> offset,seekdir s)
+inline std::uintmax_t seek_impl(void* handle,std::intmax_t offset,seekdir s)
 {
 	std::int64_t distance_to_move_high{};
 	if(!win32::SetFilePointerEx(handle,offset,std::addressof(distance_to_move_high),static_cast<std::uint32_t>(s)))
@@ -455,7 +461,7 @@ inline std::common_type_t<std::size_t,std::uint64_t> seek_impl(void* handle,std:
 }
 
 template<std::integral ch_type>
-inline std::common_type_t<std::size_t,std::uint64_t> seek(basic_win32_io_observer<ch_type> handle,std::common_type_t<std::ptrdiff_t,std::int64_t> offset=0,seekdir s=seekdir::cur)
+inline std::uintmax_t seek(basic_win32_io_observer<ch_type> handle,std::intmax_t offset=0,seekdir s=seekdir::cur)
 {
 	return win32::details::seek_impl(handle.handle,offset,s);
 }
@@ -663,31 +669,31 @@ public:
 #endif
 
 	template<open_mode om,perms pm>
-	explicit basic_win32_file(io_at_t,basic_win32_io_observer<char> wiob,cstring_view filename,open_interface_t<om>,perms_interface_t<pm>):
-				basic_win32_io_handle<char_type>(details::nt::nt_create_file_directory_impl(wiob.handle,filename,details::nt::nt_file_openmode<om,pm>::mode))
+	explicit basic_win32_file(nt_at_entry nate,cstring_view filename,open_interface_t<om>,perms_interface_t<pm>):
+				basic_win32_io_handle<char_type>(details::nt::nt_create_file_directory_impl(nate.handle,filename,details::nt::nt_file_openmode<om,pm>::mode))
 	{
 		if constexpr ((om&open_mode::ate)!=open_mode::none)
 			seek_end_local();
 	}
 
 	template<open_mode om>
-	explicit basic_win32_file(io_at_t,basic_win32_io_observer<char> wiob,cstring_view filename,open_interface_t<om>):
-				basic_win32_io_handle<char_type>(details::nt::nt_create_file_directory_impl(wiob.handle,filename,details::nt::nt_file_openmode<om>::mode))
+	explicit basic_win32_file(nt_at_entry nate,cstring_view filename,open_interface_t<om>):
+				basic_win32_io_handle<char_type>(details::nt::nt_create_file_directory_impl(nate.handle,filename,details::nt::nt_file_openmode<om>::mode))
 	{
 		if constexpr ((om&open_mode::ate)!=open_mode::none)
 			seek_end_local();
 	}
 
 	template<open_mode om>
-	explicit basic_win32_file(io_at_t,basic_win32_io_observer<char> wiob,cstring_view filename,open_interface_t<om>,perms pm):
-				basic_win32_io_handle<char_type>(details::nt::nt_create_file_directory_impl(wiob.handle,filename,details::nt::calculate_nt_open_mode(om,pm)))
+	explicit basic_win32_file(nt_at_entry nate,cstring_view filename,open_interface_t<om>,perms pm):
+				basic_win32_io_handle<char_type>(details::nt::nt_create_file_directory_impl(nate.handle,filename,details::nt::calculate_nt_open_mode(om,pm)))
 	{
 		if constexpr ((om&open_mode::ate)!=open_mode::none)
 			seek_end_local();
 	}
 
-	explicit basic_win32_file(io_at_t,basic_win32_io_observer<char> wiob,cstring_view filename,open_mode om,perms pm=static_cast<perms>(420)):
-				basic_win32_io_handle<char_type>(details::nt::nt_create_file_directory_impl(wiob.handle,filename,details::nt::calculate_nt_open_mode(om,pm)))
+	explicit basic_win32_file(nt_at_entry nate,cstring_view filename,open_mode om,perms pm=static_cast<perms>(420)):
+				basic_win32_io_handle<char_type>(details::nt::nt_create_file_directory_impl(nate.handle,filename,details::nt::calculate_nt_open_mode(om,pm)))
 	{
 		if((om&open_mode::ate)!=open_mode::none)
 			seek_end_local();
@@ -702,7 +708,7 @@ public:
 		guard.release();
 	}
 	template<typename... Args>
-	basic_win32_file(io_async_t,basic_win32_io_observer<char> iob,io_at_t,basic_win32_io_observer<char> wiob,cstring_view filename,Args&& ...args):basic_win32_file(at,wiob,filename,std::forward<Args>(args)...)
+	basic_win32_file(io_async_t,basic_win32_io_observer<char> iob,nt_at_entry nate,cstring_view filename,Args&& ...args):basic_win32_file(nate,filename,std::forward<Args>(args)...)
 	{
 		basic_win32_file<ch_type> guard(this->native_handle());
 		details::create_io_completion_port(this->native_handle(),iob.native_handle(),bit_cast<std::uintptr_t>(this->native_handle()),0);
@@ -737,7 +743,7 @@ inline void truncate(basic_win32_io_observer<ch_type> handle,std::size_t size)
 namespace win32::details
 {
 
-inline std::common_type_t<std::size_t,std::uint64_t> file_size_impl(void* handle)
+inline std::uintmax_t file_size_impl(void* handle)
 {
 /*
 Microsoft's Document said 
@@ -782,7 +788,7 @@ https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfiletyp
 }
 
 template<std::integral ch_type>
-inline std::common_type_t<std::size_t,std::uint64_t> size(basic_win32_io_observer<ch_type> handle)
+inline std::uintmax_t size(basic_win32_io_observer<ch_type> handle)
 {
 	return win32::details::file_size_impl(handle.handle);
 }

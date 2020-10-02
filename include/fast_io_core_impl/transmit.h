@@ -46,7 +46,7 @@ inline constexpr std::size_t cal_buffer_size()
 }
 
 template<output_stream output,input_stream input>
-inline constexpr std::common_type_t<std::size_t,std::uint64_t> bufferred_transmit_impl(output& outp,input& inp)
+inline constexpr std::uintmax_t bufferred_transmit_impl(output& outp,input& inp)
 {
 	if constexpr(contiguous_output_stream<output>)
 	{
@@ -89,7 +89,7 @@ inline constexpr std::common_type_t<std::size_t,std::uint64_t> bufferred_transmi
 	}
 	else if constexpr(buffer_input_stream<input>)
 	{
-		std::common_type_t<std::size_t,std::uint64_t> transmitted_chars{};
+		std::uintmax_t transmitted_chars{};
 		do
 		{
 			auto b{ibuffer_curr(inp)};
@@ -106,7 +106,7 @@ inline constexpr std::common_type_t<std::size_t,std::uint64_t> bufferred_transmi
 	}
 	else
 	{
-		std::common_type_t<std::size_t,std::uint64_t> transmitted_chars{};
+		std::uintmax_t transmitted_chars{};
 		using char_type = typename std::remove_cvref_t<input>::char_type;
 		constexpr std::size_t buffer_size{cal_buffer_size<char_type>()};
 #ifdef FAST_IO_TRANSMIT_ON_STACK
@@ -132,7 +132,7 @@ inline constexpr std::common_type_t<std::size_t,std::uint64_t> bufferred_transmi
 }
 
 template<output_stream output,input_stream input>
-inline constexpr std::common_type_t<std::size_t,std::uint64_t> bufferred_transmit_impl(output& outp,input& inp,std::common_type_t<std::size_t,std::uint64_t> chars)
+inline constexpr std::uintmax_t bufferred_transmit_impl(output& outp,input& inp,std::uintmax_t chars)
 {
 	if constexpr(contiguous_output_stream<output>)
 	{
@@ -179,7 +179,7 @@ inline constexpr std::common_type_t<std::size_t,std::uint64_t> bufferred_transmi
 	}
 	else if constexpr(buffer_input_stream<input>)
 	{
-		std::common_type_t<std::size_t,std::uint64_t> transmitted_chars{};
+		std::uintmax_t transmitted_chars{};
 		do
 		{
 			auto b(ibuffer_curr(inp));
@@ -205,7 +205,7 @@ inline constexpr std::common_type_t<std::size_t,std::uint64_t> bufferred_transmi
 	}
 	else
 	{
-		std::common_type_t<std::size_t,std::uint64_t> transmitted_chars{};
+		std::uintmax_t transmitted_chars{};
 		using char_type = typename std::remove_cvref_t<input>::char_type;
 		constexpr std::size_t buffer_size{cal_buffer_size<char_type>()};
 #ifdef FAST_IO_TRANSMIT_ON_STACK
@@ -236,7 +236,7 @@ inline constexpr std::common_type_t<std::size_t,std::uint64_t> bufferred_transmi
 }
 #if defined(__linux__)||defined(__BSD_VISIBLE)
 template<output_stream output,input_stream input>
-inline constexpr std::common_type_t<std::size_t,std::uint64_t> zero_copy_transmit_impl(output& outp,input& inp)
+inline constexpr std::uintmax_t zero_copy_transmit_impl(output& outp,input& inp)
 {
 	auto ret(zero_copy_transmit<false,true>(outp,inp,0));
 	if(ret.second)
@@ -245,7 +245,7 @@ inline constexpr std::common_type_t<std::size_t,std::uint64_t> zero_copy_transmi
 }
 
 template<output_stream output,input_stream input>
-inline constexpr std::common_type_t<std::size_t,std::uint64_t> zero_copy_transmit_impl(output& outp,input& inp,std::common_type_t<std::size_t,std::uint64_t> sz)
+inline constexpr std::uintmax_t zero_copy_transmit_impl(output& outp,input& inp,std::uintmax_t sz)
 {
 	auto ret(zero_copy_transmit<false,true>(outp,inp,sz,0)); 
 	if(ret.second)
@@ -315,10 +315,10 @@ inline constexpr sz_type transmit(output&& outp,input&& in,sz_type s)
 }
 
 template<output_stream output,input_stream input>
-inline constexpr std::common_type_t<std::size_t,std::uint64_t> transmit(output&& outp,input&& in)
+inline constexpr std::uintmax_t transmit(output&& outp,input&& in)
 {
-	std::common_type_t<std::size_t,std::uint64_t> transmitted{};
-	print_freestanding(std::forward<output>(outp),manip::transmission<input,std::common_type_t<std::size_t,std::uint64_t>>{transmitted,in});
+	std::uintmax_t transmitted{};
+	print_freestanding(std::forward<output>(outp),manip::transmission<input,std::uintmax_t>{transmitted,in});
 	return transmitted;
 }
 

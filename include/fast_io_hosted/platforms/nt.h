@@ -282,6 +282,14 @@ inline std::size_t nt_write_impl(void* handle,void const* begin,std::size_t size
 
 }
 
+struct nt_at_entry
+{
+	using native_handle_type = void*;
+	void* handle{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
+	explicit constexpr nt_at_entry() noexcept=default;
+	explicit constexpr nt_at_entry(void* mhandle) noexcept:handle(mhandle){}
+};
+
 template<std::integral ch_type>
 class basic_win32_io_observer;
 
@@ -291,7 +299,7 @@ class basic_nt_io_observer
 public:
 	using native_handle_type = void*;
 	using char_type = ch_type;
-	native_handle_type handle{};
+	native_handle_type handle{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
 	constexpr auto& native_handle() noexcept
 	{
 		return handle;
@@ -308,13 +316,19 @@ public:
 	{
 		return basic_win32_io_observer<char_type>{handle};
 	}
-	inline constexpr native_handle_type release() noexcept
+	inline native_handle_type release() noexcept
 	{
 		auto temp{handle};
-		handle=nullptr;
+		handle=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
 		return temp;
 	}
 };
+
+template<std::integral ch_type>
+inline constexpr nt_at_entry at(basic_nt_io_observer<ch_type> niob) noexcept
+{
+	return {niob.handle};
+}
 
 template<std::integral ch_type>
 inline constexpr basic_nt_io_observer<ch_type> io_value_handle(basic_nt_io_observer<ch_type> other)
@@ -363,7 +377,6 @@ inline auto seek(basic_nt_io_observer<ch_type> handle,U i=0,seekdir s=seekdir::c
 	return seek(handle,seek_type<ch_type>,i,s);
 }
 
-
 template<std::integral ch_type>
 class basic_nt_io_handle:public basic_nt_io_observer<ch_type>
 {
@@ -376,18 +389,18 @@ public:
 	constexpr basic_nt_io_handle(native_hd hd) noexcept:basic_nt_io_observer<ch_type>(hd){}
 	void reset(native_handle_type newhandle=nullptr) noexcept
 	{
-		if(this->native_handle())[[likely]]
+		if(this->native_handle()!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))[[likely]]
 			win32::nt::nt_close(this->native_handle());
 		this->native_handle()=newhandle;
 	}
 	void close()
 	{
-		if(this->native_handle())[[likely]]
+		if(this->native_handle()!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))[[likely]]
 		{
 			auto status{win32::nt::nt_close(this->native_handle())};
 			if(status)[[unlikely]]
 				throw_nt_status(status);
-			this->native_handle()=nullptr;
+			this->native_handle()=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
 		}
 	}
 	basic_nt_io_handle(basic_nt_io_handle const&)=delete;//Todo copy with ZwDuplicateObject or NtDuplicateObject??
@@ -396,16 +409,16 @@ public:
 	constexpr basic_nt_io_handle(basic_nt_io_handle&& b) noexcept:
 		basic_nt_io_handle<ch_type>(b.native_handle())
 	{
-		b.native_handle()=nullptr;
+		b.native_handle()=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
 	}
 	basic_nt_io_handle& operator=(basic_nt_io_handle&& b) noexcept
 	{
 		if(std::addressof(b)!=this)
 		{
-			if(this->native_handle())[[likely]]
+			if(this->native_handle()!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))[[likely]]
 				win32::nt::nt_close(this->native_handle());
 			this->native_handle() = b.native_handle();
-			b.native_handle()=nullptr;
+			b.native_handle()=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
 		}
 		return *this;
 	}
@@ -435,8 +448,8 @@ public:
 			seek_end_local();
 	}
 
-	basic_nt_file(fast_io::io_at_t,basic_nt_io_observer<char> diob,cstring_view filename,open_mode om,perms pm=static_cast<perms>(420)):
-		basic_nt_io_handle<char_type>(details::nt::nt_create_file_directory_impl(diob.handle,filename,details::nt::calculate_nt_open_mode(om,pm)))
+	basic_nt_file(nt_at_entry nate,cstring_view filename,open_mode om,perms pm=static_cast<perms>(420)):
+		basic_nt_io_handle<char_type>(details::nt::nt_create_file_directory_impl(nate.handle,filename,details::nt::calculate_nt_open_mode(om,pm)))
 	{
 		if((om&open_mode::ate)!=open_mode::none)
 			seek_end_local();
@@ -448,7 +461,7 @@ public:
 	basic_nt_file& operator=(basic_nt_file&&) noexcept=default;
 	~basic_nt_file()
 	{
-		if(this->native_handle())[[likely]]
+		if(this->native_handle()!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))[[likely]]
 			win32::nt::nt_close(this->native_handle());
 	}
 };

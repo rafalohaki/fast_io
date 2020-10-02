@@ -288,9 +288,9 @@ inline constexpr Iter read(basic_ibuf<Ihandler,Buf>& ib,Iter begin,Iter end)
 
 template<input_stream Ihandler,std::integral ch_type,typename Buf>
 requires random_access_stream<Ihandler>
-inline constexpr auto seek(basic_ibuf<Ihandler,Buf>& ib,seek_type_t<ch_type>,std::common_type_t<std::ptrdiff_t,std::int64_t> u=0,seekdir s=seekdir::cur)
+inline constexpr auto seek(basic_ibuf<Ihandler,Buf>& ib,seek_type_t<ch_type>,std::intmax_t u=0,seekdir s=seekdir::cur)
 {
-	std::common_type_t<std::ptrdiff_t,std::int64_t> val(u-(ib.end-ib.curr));
+	std::intmax_t val(u-(ib.end-ib.curr));
 	ib.ibuffer.curr=ib.ibuffer.end;
 	return seek(ib.native_handle(),seek_type<ch_type>,val,s);
 }

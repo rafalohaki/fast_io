@@ -28,7 +28,7 @@ public:
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
-	std::common_type_t<std::size_t,std::uint64_t> seek_impl(std::common_type_t<std::ptrdiff_t,std::int64_t>,seekdir) = 0;
+	std::uintmax_t seek_impl(std::intmax_t,seekdir) = 0;
 	virtual
 #if __cpp_constexpr >= 201907L
 	constexpr
@@ -97,7 +97,7 @@ public:
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
-	std::common_type_t<std::size_t,std::uint64_t> seek_impl(std::common_type_t<std::ptrdiff_t,std::int64_t> off,seekdir dir) override
+	std::uintmax_t seek_impl(std::intmax_t off,seekdir dir) override
 	{
 		if constexpr(random_access_stream<value_type>)
 			return seek(io,seek_type<char_type>,off,dir);
@@ -279,9 +279,9 @@ constexpr void flush(basic_io_io_observer<ch_type> iob)
 	iob.io_ptr->flush_impl();
 }
 template<std::integral ch_type,typename T,std::integral U>
-constexpr std::common_type_t<std::size_t,std::uint64_t> seek(basic_io_io_observer<ch_type> iob,seek_type_t<T>,U i=0,seekdir s=seekdir::cur)
+constexpr std::uintmax_t seek(basic_io_io_observer<ch_type> iob,seek_type_t<T>,U i=0,seekdir s=seekdir::cur)
 {
-	return iob.io_ptr->seek_impl(seek_precondition<std::common_type_t<std::ptrdiff_t,std::int64_t>,T,ch_type>(i),s);
+	return iob.io_ptr->seek_impl(seek_precondition<std::intmax_t,T,ch_type>(i),s);
 }
 
 template<std::integral ch_type,std::integral U>

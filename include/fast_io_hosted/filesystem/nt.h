@@ -102,7 +102,7 @@ inline cstring_view filename(nt_directory_entry pioe) noexcept
 	return pioe.entry->d_name;
 }
 
-inline constexpr std::common_type_t<std::size_t,std::uint64_t> inode(nt_directory_entry)  noexcept
+inline constexpr std::uintmax_t inode(nt_directory_entry)  noexcept
 {
 	return 0;
 }
@@ -227,7 +227,7 @@ inline nt_recursive_directory_iterator& operator++(nt_recursive_directory_iterat
 			cstring_view name{prdit.entry->d_name};
 			if((name.size()==1&&name.front()==u8'.')||(name.size()==2&&name.front()==u8'.'&&name[1]==u8'.'))
 				continue;
-			prdit.stack.emplace_back(at,win32_io_observer{prdit.stack.empty()?prdit.root_handle:prdit.stack.back().handle},name,
+			prdit.stack.emplace_back(nt_at_entry{prdit.stack.empty()?prdit.root_handle:prdit.stack.back().handle},name,
 				open_interface<open_mode::in|open_mode::directory|open_mode::large_file|open_mode::binary>);
 		}
 		return prdit;
@@ -257,7 +257,7 @@ inline nt_recursive_directory_iterator begin(nt_recursive_directory_generator co
 		if((name.size()==1&&name.front()==u8'.')||(name.size()==2&&name.front()==u8'.'&&name[1]==u8'.'))
 			++prdit;
 		else
-			prdit.stack.emplace_back(at,win32_io_observer{prdit.root_handle},name,
+			prdit.stack.emplace_back(nt_at_entry{prdit.root_handle},name,
 				open_interface<open_mode::in|open_mode::directory|open_mode::large_file|open_mode::binary>);
 	}
 	return prdit;

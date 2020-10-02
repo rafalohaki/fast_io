@@ -79,7 +79,7 @@ public:
 	constexpr posix_memory_map_file(std::byte* addbg,std::byte* added):posix_memory_map_io_observer{addbg,added}
 	{}
 	template<std::integral char_type>
-	posix_memory_map_file(basic_posix_io_observer<char_type> bf,file_map_attribute attr,std::size_t bytes,std::common_type_t<std::size_t,std::uint64_t> start_address=0)
+	posix_memory_map_file(basic_posix_io_observer<char_type> bf,file_map_attribute attr,std::size_t bytes,std::uintmax_t start_address=0)
 		:posix_memory_map_io_observer{reinterpret_cast<std::byte*>(mmap64(nullptr,bytes,static_cast<int>(to_posix_file_map_attribute(attr)),MAP_SHARED,bf.native_handle(),start_address))}
 	{
 		if(this->address_begin==MAP_FAILED)[[unlikely]]

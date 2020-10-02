@@ -203,6 +203,12 @@ inline constexpr auto type(basic_filebuf_io_observer<ch_type> ciob)
 	return type(static_cast<basic_c_io_observer_unlocked<ch_type>>(ciob));
 }
 
+template<std::integral char_type>
+inline constexpr posix_at_entry at(basic_filebuf_io_observer<char_type> other) noexcept
+{
+	return {details::fp_to_fd(details::streambuf_hack::fp_hack(other.rdb))};
+}
+
 #endif
 
 template<typename T>

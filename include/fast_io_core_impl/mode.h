@@ -296,25 +296,10 @@ explicit constexpr io_temp_t() noexcept=default;
 };
 inline constexpr io_temp_t io_temp{};
 
-struct io_at_t
-{
-explicit constexpr io_at_t() noexcept=default;
-};
-inline constexpr io_at_t io_at{},at{};
-
 struct io_dup_t
 {
 explicit constexpr io_dup_t() noexcept=default;
 };
 inline constexpr io_dup_t io_dup{};
-/*
-template<open_mode,perms>
-struct io_open_mode_t
-{
-};
-
-template<open_mode,perms>
-inline constexpr io_open_mode_t io_open_mode{};
-*/
 
 }

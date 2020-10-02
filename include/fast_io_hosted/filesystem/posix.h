@@ -4,6 +4,20 @@
 namespace fast_io
 {
 
+namespace details
+{
+inline int dirp_to_fd(DIR* dirp) noexcept
+{
+	if(dirfd==nullptr)
+	{
+		errno=EBADF;
+		return -1;
+	}
+	return ::dirfd(dirp);
+}
+
+}
+
 class posix_directory_io_observer
 {
 public:
@@ -23,12 +37,7 @@ public:
 	}
 	operator basic_posix_io_observer<char>() const noexcept
 	{
-		if(dirfd==nullptr)
-		{
-			errno=EBADF;
-			return {-1};
-		}
-		return {::dirfd(dirp)};
+		return {details::dirp_to_fd(dirp)};
 	}
 	constexpr native_handle_type release() noexcept
 	{
@@ -129,7 +138,7 @@ enum {
 };
 */
 	}
-	posix_directory_file(io_at_t,native_io_observer niob,cstring_view filename):posix_directory_file(posix_file(io_at,niob,filename,open_interface<open_mode::in|open_mode::no_block|open_mode::directory|open_mode::binary|open_mode::large_file>))
+	posix_directory_file(posix_at_entry pate,cstring_view filename):posix_directory_file(posix_file(pate,filename,open_interface<open_mode::in|open_mode::no_block|open_mode::directory|open_mode::binary|open_mode::large_file>))
 	{
 	}
 	posix_directory_file(posix_directory_file const&) = default;
@@ -148,17 +157,17 @@ inline void rewind(posix_directory_io_observer pdiob) noexcept
 	::rewinddir(pdiob.dirp);	
 }
 
-inline void seek(posix_directory_io_observer pdiob,std::common_type_t<std::int64_t,std::ptrdiff_t> offset) noexcept
+inline void seek(posix_directory_io_observer pdiob,intmax_t offset) noexcept
 {
 	if constexpr(sizeof(long)<sizeof(offset))
 	{
-		if(static_cast<std::common_type_t<std::int64_t,std::ptrdiff_t>>(std::numeric_limits<long>::max())<offset)
+		if(static_cast<intmax_t>(std::numeric_limits<long>::max())<offset)
 			fast_terminate();
 	}
 	::seekdir(pdiob.dirp,static_cast<long>(offset));
 }
 
-inline std::common_type_t<std::uint64_t,std::size_t> tell(posix_directory_io_observer pdiob)
+inline std::uintmax_t tell(posix_directory_io_observer pdiob)
 {
 	auto ret{::telldir(pdiob.dirp)};
 	if(ret==-1)
@@ -190,7 +199,7 @@ inline cstring_view filename(posix_directory_entry pioe) noexcept
 	return pioe.entry->d_name;
 }
 
-inline constexpr std::common_type_t<std::size_t,std::uint64_t> inode(posix_directory_entry pioe) noexcept
+inline constexpr std::uintmax_t inode(posix_directory_entry pioe) noexcept
 {
 	return pioe.entry->d_ino;
 }
@@ -352,7 +361,7 @@ inline posix_recursive_directory_iterator& operator++(posix_recursive_directory_
 			auto name{prdit.entry->d_name};
 			if((*name==u8'.'&&name[1]==0)||(*name==u8'.'&&name[1]==u8'.'&&name[2]==0))
 				continue;
-			prdit.stack.emplace_back(at,posix_directory_io_observer{prdit.stack.empty()?prdit.dirp:prdit.stack.back().dirp},name);
+			prdit.stack.emplace_back(posix_at_entry{details::dirp_to_fd(prdit.stack.empty()?prdit.dirp:prdit.stack.back().dirp)},name);
 		}
 		return prdit;
 	}

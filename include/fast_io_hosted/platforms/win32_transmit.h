@@ -89,7 +89,7 @@ inline constexpr std::uint64_t parse_transmit_args(std::uint64_t,std::uint64_t b
 
 
 template<output_stream output,memory_map_input_stream input,typename... Args>
-inline std::pair<bool,std::common_type_t<std::size_t,std::uint64_t>> memory_map_transmit_impl(output& outp,input& inp,Args&& ...args)
+inline std::pair<bool,std::uintmax_t> memory_map_transmit_impl(output& outp,input& inp,Args&& ...args)
 {
 	void* inp_handle{};
 	if constexpr(std::same_as<decltype(memory_map_in_handle(inp)),int>)

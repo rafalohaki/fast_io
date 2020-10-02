@@ -30,9 +30,9 @@ concept boost_iostreams_flushable_device=boost_iostreams_any_device<src_type>&&r
 };
 
 template<typename src_type>
-concept boost_iostream_seekable_device=boost_iostreams_any_device<src_type>&&requires(src_type& src,std::common_type_t<std::ptrdiff_t,std::int64_t> offset,std::ios::seekdir dir)
+concept boost_iostream_seekable_device=boost_iostreams_any_device<src_type>&&requires(src_type& src,std::intmax_t offset,std::ios::seekdir dir)
 {
-	{src.seek(offset,dir)}->std::convertible_to<std::common_type_t<std::ptrdiff_t,std::int64_t>>;
+	{src.seek(offset,dir)}->std::convertible_to<std::intmax_t>;
 };
 
 template<std::integral ch_type, boost_iostreams_any_device src_type>
@@ -70,7 +70,7 @@ inline void flush(basic_boost_iostreams<ch_type,src_type>& out_device)
 template<std::integral ch_type, boost_iostream_seekable_device src_type,std::contiguous_iterator Iter,typename T,std::integral U>
 inline auto seek(basic_boost_iostreams<ch_type,src_type>& dev,seek_type_t<T>,U i,seekdir s=seekdir::beg)
 {
-	return dev.seek(seek_precondition<std::common_type_t<std::ptrdiff_t,std::int64_t>,T,ch_type>(i),static_cast<std::ios::seekdir>(static_cast<int>(s)));
+	return dev.seek(seek_precondition<std::intmax_t,T,ch_type>(i),static_cast<std::ios::seekdir>(static_cast<int>(s)));
 }
 
 template<std::integral ch_type, boost_iostream_seekable_device src_type,std::integral U>
