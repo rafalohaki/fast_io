@@ -181,16 +181,15 @@ struct posix_directory_entry
 	struct dirent* entry{};
 	operator posix_at_entry() const noexcept
 	{
-		if(dirfd==nullptr)
-		{
-			errno=EBADF;
-			return posix_at_entry{-1};
-		}
-		return posix_at_entry{::dirfd(dirp)};
+		return posix_at_entry{details::dirp_to_fd(dirp)};
+	}
+	explicit constexpr operator posix_io_observer() const noexcept
+	{
+		return {details::dirp_to_fd(dirp)};
 	}
 };
 
-inline cstring_view filename(posix_directory_entry pioe) noexcept
+inline constexpr cstring_view filename(posix_directory_entry pioe) noexcept
 {
 	return pioe.entry->d_name;
 }

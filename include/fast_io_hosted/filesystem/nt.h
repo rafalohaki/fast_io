@@ -90,9 +90,17 @@ struct nt_directory_entry
 	{
 		return nt_at_entry{entry->d_handle};
 	}
+	explicit constexpr operator nt_io_observer() const noexcept
+	{
+		return {entry->d_handle};
+	}
+	explicit constexpr operator win32_io_observer() const noexcept
+	{
+		return {entry->d_handle};
+	}
 };
 
-inline wcstring_view filename(nt_directory_entry pioe) noexcept
+inline constexpr wcstring_view filename(nt_directory_entry pioe) noexcept
 {
 	return pioe.entry->d_name;
 }
