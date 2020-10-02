@@ -128,7 +128,7 @@ public:
 			throw_posix_error();
 		pioh.release();
 	}
-	posix_directory_file(cstring_view filename):posix_directory_file(posix_file(filename,open_interface<open_mode::in|open_mode::no_block|open_mode::directory|open_mode::binary|open_mode::large_file>))
+	posix_directory_file(cstring_view filename):posix_directory_file(posix_file(filename,open_mode::in|open_mode::no_block|open_mode::directory|open_mode::binary|open_mode::large_file))
 	{
 /*
 https://code.woboq.org/userspace/glibc/sysdeps/posix/opendir.c.html
@@ -138,7 +138,7 @@ enum {
 };
 */
 	}
-	posix_directory_file(posix_at_entry pate,cstring_view filename):posix_directory_file(posix_file(pate,filename,open_interface<open_mode::in|open_mode::no_block|open_mode::directory|open_mode::binary|open_mode::large_file>))
+	posix_directory_file(posix_at_entry pate,cstring_view filename):posix_directory_file(posix_file(pate,filename,open_mode::in|open_mode::no_block|open_mode::directory|open_mode::binary|open_mode::large_file))
 	{
 	}
 	posix_directory_file(posix_directory_file const&) = default;
