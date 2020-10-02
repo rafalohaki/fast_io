@@ -16,7 +16,8 @@ namespace fast_io
 inline std::filesystem::path to_path(directory_entry de)
 {
 	auto nfm{filename(de)};
-	return std::filesystem::path(nfm.begin(),nfm.end());
+	std::basic_string_view<native_char_type> bsv{nfm};
+	return std::filesystem::path(bsv);
 }
 
 template<std::integral char_type>
