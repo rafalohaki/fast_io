@@ -238,7 +238,8 @@ inline Iter write(basic_general_streambuf_io_observer<T> t,Iter begin,Iter end)
 	auto ed{obuffer_end(t)};
 	if(curr+total_count<ed)[[likely]]
 	{
-		memcpy(curr,std::to_address(begin),total_bytes_to_write);
+		if(total_bytes_to_write)
+			memcpy(curr,std::to_address(begin),total_bytes_to_write);
 		obuffer_set_curr(t,curr+total_count);
 		return end;
 	}
