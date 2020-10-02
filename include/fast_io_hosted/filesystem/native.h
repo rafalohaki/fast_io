@@ -10,6 +10,16 @@
 
 namespace fast_io
 {
+template<std::integral char_type>
+requires std::same_as<char_type,char>||std::same_as<char_type,native_char_type>
+inline constexpr auto print_alias_define(io_alias_t<char_type> ch_type,directory_entry dir) noexcept
+{
+	auto nfm{filename(dir)};
+	if constexpr(std::same_as<char_type,native_char_type>)
+		return basic_io_scatter_t<native_char_type>{nfm.data(),nfm.size()};
+	else
+		return manip::code_cvt<basic_io_scatter_t<native_char_type>>{{nfm.data(),nfm.size()}};
+}
 
 #if __cpp_lib_filesystem >= 201703L
 
@@ -29,8 +39,6 @@ inline auto print_alias_define(io_alias_t<char_type> ch_type,std::filesystem::pa
 	else
 		return manip::code_cvt<basic_io_scatter_t<native_char_type>>{{pth.native().data(),pth.native().size()}};
 }
-
-
 #endif
 
 }

@@ -175,9 +175,9 @@ inline std::default_sentinel_t end(nt_directory_generator const&) noexcept
 	return {};
 }
 
-inline nt_directory_generator current(win32_io_observer wiob)
+inline nt_directory_generator current(nt_at_entry nate)
 {
-	return {details::make_nt_dirent(wiob.handle)};
+	return {details::make_nt_dirent(nate.handle)};
 }
 
 struct nt_recursive_directory_iterator

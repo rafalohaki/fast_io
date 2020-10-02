@@ -288,9 +288,9 @@ inline constexpr bool operator!=(posix_directory_iterator const& b, std::default
 	return b.entry;
 }
 
-inline posix_directory_generator current(posix_io_observer piob)
+inline posix_directory_generator current(posix_at_entry pate)
 {
-	return {.dir_fl=posix_directory_file(posix_file(io_dup,piob))};
+	return {.dir_fl=posix_directory_file(posix_file(details::sys_dup(pate.fd)))};
 }
 
 struct posix_recursive_directory_iterator
