@@ -179,13 +179,13 @@ struct posix_directory_entry
 {
 	DIR* dirp{};
 	struct dirent* entry{};
-	explicit constexpr operator posix_io_observer() const noexcept
+	explicit operator posix_io_observer() const noexcept
 	{
 		return {details::dirp_to_fd(dirp)};
 	}
 };
 
-inline constexpr posix_at_entry at(posix_directory_entry ndet) noexcept
+inline posix_at_entry at(posix_directory_entry ndet) noexcept
 {
 	return posix_at_entry{details::dirp_to_fd(ndet.dirp)};
 }

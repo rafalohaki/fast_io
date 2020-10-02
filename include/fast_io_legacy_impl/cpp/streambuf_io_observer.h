@@ -29,6 +29,10 @@ public:
 	{
 		return rdb;
 	}
+	constexpr operator bool() const noexcept
+	{
+		return rdb;
+	}
 #if defined(__GLIBCXX__) || defined(__LIBCPP_VERSION)  || defined(_MSVC_STL_UPDATE)
 	explicit operator basic_c_io_observer_unlocked<char_type>() const noexcept
 	{
@@ -107,7 +111,7 @@ inline void async_read_callback(io_async_observer ioa,basic_general_streambuf_io
 }
 
 template<typename T>
-inline constexpr basic_general_streambuf_io_observer<T> io_value_handle(basic_general_streambuf_io_observer<T> other)
+inline constexpr basic_general_streambuf_io_observer<T> io_value_handle(basic_general_streambuf_io_observer<T> other) noexcept
 {
 	return other;
 }
