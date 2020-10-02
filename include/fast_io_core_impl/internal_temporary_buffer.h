@@ -66,8 +66,8 @@ inline constexpr void ogrow_impl(T& ob,std::size_t new_capacity)
 	std::allocator<char_type> alloc;
 	using allocator_traits = std::allocator_traits<std::allocator<char_type>>;
 	auto newp{allocator_traits::allocate(alloc,new_capacity)};
-	details::non_overlapped_copy_n(ob.beg_ptr,static_cast<std::size_t>(ob.end_ptr-ob.beg_ptr),newp);
 	std::size_t const current_size(ob.end_ptr-ob.beg_ptr);
+	details::non_overlapped_copy_n(ob.beg_ptr,current_size,newp);
 	if constexpr(!vector_buf)
 	{
 		if(ob.beg_ptr!=ob.static_buffer.data())
@@ -120,14 +120,9 @@ inline constexpr void write_bad_case(T& ob,Iter cbegin,Iter cend,std::size_t to_
 	if(new_capacity<to_write_chars)
 		new_capacity=to_write_chars;
 	ogrow_impl<vector_buf>(ob,new_capacity);
-	if(std::is_constant_evaluated())
-		ob.end_ptr=std::copy(cbegin,cend,ob.end_ptr);
-	else
-	{
-		std::size_t const csz(cend-cbegin);
-		memcpy(ob.end_ptr,std::to_address(cbegin),csz*sizeof(*cbegin));
-		ob.end_ptr+=csz;
-	}
+	std::size_t const csz(cend-cbegin);
+	details::non_overlapped_copy_n(cbegin,csz,ob.end_ptr);
+	ob.end_ptr+=csz;
 }
 
 template<bool vector_buf,typename T,std::contiguous_iterator Iter>
@@ -143,7 +138,8 @@ inline constexpr void write_impl(T& ob,Iter cbegin,Iter cend)
 			details::internal_temporary_buffer_impl::write_bad_case<vector_buf>(ob,cbegin,cend,to_write_chars);
 			return;
 		}
-		ob.end_ptr=details::non_overlapped_copy_n(cbegin,cend-cbegin,ob.end_ptr);
+		details::non_overlapped_copy_n(cbegin,to_write_chars,ob.end_ptr);
+		ob.end_ptr+=to_write_chars;
 	}
 	else
 		write_impl<vector_buf>(ob,reinterpret_cast<char const*>(std::to_address(cbegin)),reinterpret_cast<char const*>(std::to_address(cend)));
