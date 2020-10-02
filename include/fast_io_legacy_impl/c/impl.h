@@ -333,7 +333,7 @@ public:
 template<std::integral ch_type>
 inline constexpr posix_at_entry at(basic_c_io_observer_unlocked<ch_type> other) noexcept
 {
-	return {details::fp_unlocked_to_fd(other.fp)};
+	return posix_at_entry{details::fp_unlocked_to_fd(other.fp)};
 }
 
 template<std::integral ch_type>
@@ -512,7 +512,7 @@ public:
 template<std::integral T>
 inline constexpr posix_at_entry at(basic_c_io_observer<T> other) noexcept
 {
-	return {details::fp_to_fd(other.fp)};
+	return posix_at_entry{details::fp_to_fd(other.fp)};
 }
 
 template<std::integral T>

@@ -302,4 +302,11 @@ explicit constexpr io_dup_t() noexcept=default;
 };
 inline constexpr io_dup_t io_dup{};
 
+struct posix_at_entry
+{
+	int fd{-1};
+	explicit constexpr posix_at_entry() noexcept=default;
+	explicit constexpr posix_at_entry(int mfd) noexcept:fd(mfd){}
+};
+
 }

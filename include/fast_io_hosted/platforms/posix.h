@@ -230,16 +230,6 @@ public:
 using io_async_observer=io_uring_observer;
 #endif
 
-namespace details
-{
-#ifdef _WIN32
-inline void* fd_to_handle(int fd) noexcept
-{
-	return reinterpret_cast<void*>(_get_osfhandle(fd));
-}
-#endif
-}
-
 template<std::integral ch_type>
 class basic_posix_io_observer
 {
@@ -262,11 +252,11 @@ public:
 #ifdef _WIN32
 	explicit operator basic_win32_io_observer<char_type>() const noexcept
 	{
-		return {details::fd_to_handle(fd)};
+		return {details::_get_osfhandle(fd)};
 	}
 	explicit operator basic_nt_io_observer<char_type>() const noexcept
 	{
-		return {details::fd_to_handle(fd)};
+		return {details::_get_osfhandle(fd)};
 	}
 #endif
 	constexpr native_handle_type release() noexcept
@@ -275,19 +265,6 @@ public:
 		fd=-1;
 		return temp;
 	}
-};
-
-struct posix_at_entry
-{
-	int fd{-1};
-	explicit constexpr posix_at_entry() noexcept=default;
-	explicit constexpr posix_at_entry(int mfd) noexcept:fd(mfd){}
-#ifdef _WIN32
-	operator nt_at_entry() const noexcept
-	{
-		return nt_at_entry{details::fd_to_handle(fd)};
-	}
-#endif
 };
 
 template<std::integral ch_type>
@@ -433,14 +410,6 @@ inline std::uintmax_t posix_seek_impl(int fd,std::intmax_t offset,seekdir s)
 
 }
 
-#ifdef _WIN32
-template<std::integral ch_type>
-inline constexpr nt_at_entry at(basic_posix_io_observer<ch_type> wiob) noexcept
-{
-	return {details::fd_to_handle(wiob.fd)};
-}
-
-#endif
 template<std::integral ch_type,std::contiguous_iterator Iter>
 inline Iter read(basic_posix_io_observer<ch_type> h,Iter begin,Iter end)
 {
@@ -786,13 +755,13 @@ public:
 			seek_end_local();
 	}
 	template<open_mode om>
-	basic_posix_file(posix_at_entry pate,cstring_view file,open_interface_t<om>):basic_posix_file(details::my_posix_openat(diriob.fd,file.data(),details::posix_file_openmode<om>::mode,static_cast<mode_t>(436)))
+	basic_posix_file(posix_at_entry pate,cstring_view file,open_interface_t<om>):basic_posix_file(details::my_posix_openat(pate.fd,file.data(),details::posix_file_openmode<om>::mode,static_cast<mode_t>(436)))
 	{
 		if constexpr ((om&open_mode::ate)!=open_mode::none)
 			seek_end_local();
 	}
 	template<open_mode om>
-	basic_posix_file(posix_at_entry pate,cstring_view file,open_interface_t<om>,perms pm):basic_posix_file(details::my_posix_openat(diriob.fd,file.data(),details::posix_file_openmode<om>::mode,static_cast<mode_t>(pm)))
+	basic_posix_file(posix_at_entry pate,cstring_view file,open_interface_t<om>,perms pm):basic_posix_file(details::my_posix_openat(pate.fd,file.data(),details::posix_file_openmode<om>::mode,static_cast<mode_t>(pm)))
 	{
 		if constexpr ((om&open_mode::ate)!=open_mode::none)
 			seek_end_local();

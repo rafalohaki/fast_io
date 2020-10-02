@@ -282,12 +282,18 @@ inline std::size_t nt_write_impl(void* handle,void const* begin,std::size_t size
 
 }
 
+namespace details
+{
+extern "C" std::intptr_t _get_osfhandle(int fd) noexcept;
+}
+
 struct nt_at_entry
 {
 	using native_handle_type = void*;
 	void* handle{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
 	explicit constexpr nt_at_entry() noexcept=default;
 	explicit constexpr nt_at_entry(void* mhandle) noexcept:handle(mhandle){}
+	nt_at_entry(posix_at_entry pate) noexcept:handle(reinterpret_cast<void*>(details::_get_osfhandle(pate.fd))){}
 };
 
 template<std::integral ch_type>
