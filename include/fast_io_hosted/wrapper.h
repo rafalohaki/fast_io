@@ -15,14 +15,14 @@ struct basic_file_wrapper:public T
 	constexpr basic_file_wrapper(io_temp_t):T(io_temp){}
 
 #ifdef _WIN32
-	constexpr basic_file_wrapper(wcstring_view file,open_mode m,perms p=static_cast<perms>(436)):
+	constexpr basic_file_wrapper(wcstring_view file,open_mode m=interface_mode,perms p=static_cast<perms>(436)):
 		T(file,m|interface_mode,p){}
-	constexpr basic_file_wrapper(native_at_entry nate,wcstring_view file,open_mode m,perms p=static_cast<perms>(436)):
+	constexpr basic_file_wrapper(native_at_entry nate,wcstring_view file,open_mode m=interface_mode,perms p=static_cast<perms>(436)):
 		T(nate,file,m|interface_mode,p){}
 #endif
-	constexpr basic_file_wrapper(cstring_view file,open_mode m,perms p=static_cast<perms>(436)):
+	constexpr basic_file_wrapper(cstring_view file,open_mode m=interface_mode,perms p=static_cast<perms>(436)):
 		T(file,m|interface_mode,p){}
-	constexpr basic_file_wrapper(native_at_entry nate,cstring_view file,open_mode m,perms p=static_cast<perms>(436)):
+	constexpr basic_file_wrapper(native_at_entry nate,cstring_view file,open_mode m=interface_mode,perms p=static_cast<perms>(436)):
 		T(nate,file,m|interface_mode,p){}
 };
 

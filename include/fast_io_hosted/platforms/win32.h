@@ -321,7 +321,7 @@ public:
 template<std::integral ch_type>
 inline constexpr nt_at_entry at(basic_win32_io_observer<ch_type> wiob) noexcept
 {
-	return {wiob.handle};
+	return nt_at_entry{wiob.handle};
 }
 
 template<std::integral ch_type>

@@ -357,7 +357,7 @@ public:
 template<std::integral ch_type>
 inline constexpr nt_at_entry at(basic_nt_io_observer<ch_type> niob) noexcept
 {
-	return {niob.handle};
+	return nt_at_entry{niob.handle};
 }
 
 template<std::integral ch_type>
