@@ -3,7 +3,9 @@
 namespace fast_io
 {
 struct null_terminated_t
-{};
+{
+explicit inline constexpr null_terminated_t() noexcept = default;
+};
 inline constexpr null_terminated_t null_terminated{};
 
 template<typename ch_type,typename tr_type = std::char_traits<ch_type>>

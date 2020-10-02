@@ -21,7 +21,12 @@ struct nt_dirent
 {
 	void* d_handle{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
 	file_type d_type{};
-	std::wstring d_name;
+	std::array<wchar_t,0x2001> d_name_array{};
+	std::size_t d_name_size{};
+	inline constexpr wcstring_view d_name() const noexcept
+	{
+		return wcstring_view(null_terminated,d_name_array.data(),d_name_size);
+	}
 };
 
 namespace win32::nt::details
@@ -43,7 +48,10 @@ inline nt_dirent* set_nt_dirent(nt_dirent* entry,bool start)
 		throw_nt_error(status);
 	}
 	auto ful_dir_info{d_info.FullDirInfo};
-	entry->d_name.assign(ful_dir_info->FileName,ful_dir_info->FileNameLength/sizeof(char16_t));
+	entry->d_name_size=ful_dir_info->FileNameLength/sizeof(wchar_t);
+	if(ful_dir_info->FileNameLength)
+		memcpy(entry->d_name_array.data(),ful_dir_info->FileName,ful_dir_info->FileNameLength);
+	entry->d_name_array[entry->d_name_size]=0;
 /*
 Referenced from win32 port dirent.h
 https://github.com/win32ports/dirent_h/blob/5a40afce928f1780058f44e0dda37553c662a8a7/dirent.h#L249
@@ -102,7 +110,7 @@ struct nt_directory_entry
 
 inline constexpr wcstring_view filename(nt_directory_entry pioe) noexcept
 {
-	return pioe.entry->d_name;
+	return pioe.entry->d_name();
 }
 
 inline constexpr std::uintmax_t inode(nt_directory_entry)  noexcept
@@ -227,7 +235,7 @@ inline nt_recursive_directory_iterator& operator++(nt_recursive_directory_iterat
 		}
 		if(prdit.entry->d_type==file_type::directory)
 		{
-			wcstring_view name{prdit.entry->d_name};
+			wcstring_view name{prdit.entry->d_name()};
 			if((name.size()==1&&name.front()==L'.')||(name.size()==2&&name.front()==L'.'&&name[1]==L'.'))
 				continue;
 			prdit.stack.emplace_back(nt_at_entry{prdit.stack.empty()?prdit.root_handle:prdit.stack.back().handle},name,
@@ -256,7 +264,7 @@ inline nt_recursive_directory_iterator begin(nt_recursive_directory_generator co
 	prdit.entry=win32::nt::details::set_nt_dirent_first(prdit.entry);
 	if(prdit.entry&&prdit.entry->d_type==file_type::directory)
 	{
-		wcstring_view name{prdit.entry->d_name};
+		wcstring_view name{prdit.entry->d_name()};
 		if((name.size()==1&&name.front()==L'.')||(name.size()==2&&name.front()==L'.'&&name[1]==L'.'))
 			++prdit;
 		else
