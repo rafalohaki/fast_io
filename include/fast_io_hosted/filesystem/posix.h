@@ -409,7 +409,7 @@ inline bool operator!=(posix_recursive_directory_iterator const& b, std::default
 
 inline posix_recursive_directory_generator recursive(posix_at_entry pate)
 {
-	return {.dir_fl=posix_directory_file(posix_file(details::sys_dup(pate.fd))};
+	return {.dir_fl=posix_directory_file(posix_file(details::sys_dup(pate.fd)))};
 }
 
 using directory_entry = posix_directory_entry;
