@@ -184,7 +184,7 @@ struct posix_directory_entry
 		if(dirfd==nullptr)
 		{
 			errno=EBADF;
-			return {-1};
+			return posix_at_entry{-1};
 		}
 		return posix_at_entry{::dirfd(dirp)};
 	}
