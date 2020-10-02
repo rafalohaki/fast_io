@@ -122,30 +122,30 @@ template<typename T,typename... Args>
 inline constexpr void print(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>)
-		fast_io::print_freestanding_decay(fast_io::io_ref(t),fast_io::io_forward(fast_io::io_print_alias(args))...);
+		fast_io::print_freestanding_decay(fast_io::io_ref(t),fast_io::io_forward(fast_io::io_print_alias<typename std::remove_cvref_t<T>::char_type>(args))...);
 	else
-		fast_io::details::print_after_io_forward<false>(fast_io::io_forward(fast_io::io_print_alias(t)),fast_io::io_forward(fast_io::io_print_alias(args))...);
+		fast_io::details::print_after_io_forward<false>(fast_io::io_forward(fast_io::io_print_alias<char>(t)),fast_io::io_forward(fast_io::io_print_alias<typename std::remove_cvref_t<T>::char_type>(args))...);
 }
 
 template<typename T,typename... Args>
 inline constexpr void println(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>)
-		fast_io::println_freestanding_decay(fast_io::io_ref(t),fast_io::io_forward(fast_io::io_print_alias(args))...);
+		fast_io::println_freestanding_decay(fast_io::io_ref(t),fast_io::io_forward(fast_io::io_print_alias<typename std::remove_cvref_t<T>::char_type>(args))...);
 	else
-		fast_io::details::print_after_io_forward<true>(fast_io::io_forward(fast_io::io_print_alias(t)),fast_io::io_forward(fast_io::io_print_alias(args))...);
+		fast_io::details::print_after_io_forward<true>(fast_io::io_forward(fast_io::io_print_alias<char>(t)),fast_io::io_forward(fast_io::io_print_alias<typename std::remove_cvref_t<T>::char_type>(args))...);
 }
 
 template<typename... Args>
 inline constexpr void perr(Args&&... args)
 {
-	fast_io::details::perr_after_io_forward<false>(fast_io::io_forward(fast_io::io_print_alias(args))...);
+	fast_io::details::perr_after_io_forward<false>(fast_io::io_forward(fast_io::io_print_alias<char>(args))...);
 }
 
 template<typename... Args>
 inline constexpr void perrln(Args&&... args)
 {
-	fast_io::details::perr_after_io_forward<true>(fast_io::io_forward(fast_io::io_print_alias(args))...);
+	fast_io::details::perr_after_io_forward<true>(fast_io::io_forward(fast_io::io_print_alias<char>(args))...);
 }
 
 template<typename... Args>
@@ -188,18 +188,18 @@ template<typename T,typename... Args>
 inline constexpr void debug_print(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>)
-		fast_io::print_freestanding_decay(io_ref(t),fast_io::io_forward(fast_io::io_print_alias(args))...);
+		fast_io::print_freestanding_decay(io_ref(t),fast_io::io_forward(fast_io::io_print_alias<char>(args))...);
 	else
-		fast_io::details::debug_print_after_io_forward<false>(fast_io::io_forward(fast_io::io_print_alias(t)),fast_io::io_forward(fast_io::io_print_alias(args))...);
+		fast_io::details::debug_print_after_io_forward<false>(fast_io::io_forward(fast_io::io_print_alias<char>(t)),fast_io::io_forward(fast_io::io_print_alias<typename std::remove_cvref_t<T>::char_type>(args))...);
 }
 
 template<typename T,typename... Args>
 inline constexpr void debug_println(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>)
-		fast_io::println_freestanding_decay(io_ref(t),fast_io::io_forward(fast_io::io_print_alias(args))...);
+		fast_io::println_freestanding_decay(io_ref(t),fast_io::io_forward(fast_io::io_print_alias<char>(args))...);
 	else
-		fast_io::details::debug_print_after_io_forward<true>(fast_io::io_forward(fast_io::io_print_alias(t)),fast_io::io_forward(fast_io::io_print_alias(args))...);
+		fast_io::details::debug_print_after_io_forward<true>(fast_io::io_forward(fast_io::io_print_alias<char>(t)),fast_io::io_forward(fast_io::io_print_alias<typename std::remove_cvref_t<T>::char_type>(args))...);
 }
 
 template<typename... Args>

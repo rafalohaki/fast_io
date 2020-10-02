@@ -314,11 +314,11 @@ inline constexpr void print_freestanding_decay(output out,Args ...args)
 }
 
 
-template<typename T>
+template<std::integral char_type,typename T>
 inline constexpr decltype(auto) io_print_alias(T&& t)
 {
-	if constexpr(alias_printable<std::remove_cvref_t<T>>)
-		return print_alias_define(io_alias,std::forward<T>(t));
+	if constexpr(alias_printable<char_type,std::remove_cvref_t<T>>)
+		return print_alias_define(io_alias<char_type>,std::forward<T>(t));
 	else
 		return std::forward<T>(t);
 }
@@ -326,7 +326,7 @@ inline constexpr decltype(auto) io_print_alias(T&& t)
 template<output_stream output,typename ...Args>
 inline constexpr void print_freestanding(output&& out,Args&& ...args)
 {
-	print_freestanding_decay(io_ref(out),io_forward(io_print_alias(args))...);
+	print_freestanding_decay(io_ref(out),io_forward(io_print_alias<typename std::remove_cvref_t<output>::char_type>(args))...);
 }
 
 
@@ -389,7 +389,7 @@ inline constexpr void println_freestanding_decay(output out,Args ...args)
 template<output_stream output,typename ...Args>
 inline constexpr void println_freestanding(output&& out,Args&& ...args)
 {
-	println_freestanding_decay(io_ref(out),io_forward(io_print_alias(args))...);
+	println_freestanding_decay(io_ref(out),io_forward(io_print_alias<typename std::remove_cvref_t<output>::char_type>(args))...);
 }
 
 

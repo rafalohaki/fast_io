@@ -179,18 +179,14 @@ struct posix_directory_entry
 {
 	DIR* dirp{};
 	struct dirent* entry{};
-	operator basic_posix_io_observer<char>() const noexcept
+	operator posix_at_entry() const noexcept
 	{
 		if(dirfd==nullptr)
 		{
 			errno=EBADF;
 			return {-1};
 		}
-		return {::dirfd(dirp)};
-	}
-	constexpr operator posix_directory_io_observer() const noexcept
-	{
-		return {dirp};
+		return posix_at_entry{::dirfd(dirp)};
 	}
 };
 
@@ -292,13 +288,7 @@ inline constexpr bool operator!=(posix_directory_iterator const& b, std::default
 {
 	return b.entry;
 }
-/*
-inline posix_directory_generator current(posix_directory_io_observer pdiob) noexcept
-{
-	::rewinddir(pdiob.dirp);
-	return {pdiob.dirp};
-}
-*/
+
 inline posix_directory_generator current(posix_io_observer piob)
 {
 	return {.dir_fl=posix_directory_file(posix_file(io_dup,piob))};
@@ -417,9 +407,9 @@ inline bool operator!=(posix_recursive_directory_iterator const& b, std::default
 	return sntnl!=b;
 }
 
-inline posix_recursive_directory_generator recursive(posix_io_observer piob)
+inline posix_recursive_directory_generator recursive(posix_at_entry pate)
 {
-	return {.dir_fl=posix_directory_file(posix_file(io_dup,piob))};
+	return {.dir_fl=posix_directory_file(posix_file(io_dup,pate.fd))};
 }
 
 using directory_entry = posix_directory_entry;

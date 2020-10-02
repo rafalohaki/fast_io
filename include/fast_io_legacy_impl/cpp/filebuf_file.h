@@ -22,8 +22,6 @@ inline constexpr std::ios::openmode calculate_fstream_file_open_mode(open_mode o
 		ios_om=ios_om|std::ios::out;
 	if((om&open_mode::trunc)!=open_mode::none)
 		ios_om=ios_om|std::ios::trunc;
-	if((om&open_mode::ate)!=open_mode::none)
-		ios_om=ios_om|std::ios::ate;
 	return ios_om;
 }
 
@@ -117,49 +115,20 @@ This function never fails. but what if fdopen fails?
 		basic_filebuf_file(basic_posix_file<char_type>(std::move(win32_handle),std::forward<T>(t)),std::forward<T>(t))
 	{
 	}
-#endif
-
-	template<open_mode om,typename... Args>
-	basic_filebuf_file(cstring_view file,open_interface_t<om>,Args&& ...args):
-		basic_filebuf_file(basic_posix_file<char_type>(file,open_interface<om>,std::forward<Args>(args)...),
-			open_interface<om>)
+	basic_filebuf_file(wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_filebuf_file(basic_posix_file<char_type>(file,om,pm),om)
 	{}
-	template<typename... Args>
-	basic_filebuf_file(cstring_view file,open_mode om,Args&& ...args):
-		basic_filebuf_file(basic_posix_file<char_type>(file,om,std::forward<Args>(args)...),om)
-	{}
-
-	template<open_mode om,typename... Args>
-	basic_filebuf_file(native_at_entry nate,cstring_view file,open_interface_t<om>,Args&& ...args):
-		basic_filebuf_file(basic_posix_file<char_type>(nate,file,open_interface<om>,std::forward<Args>(args)...),
-			open_interface<om>)
-	{}
-	template<typename... Args>
-	basic_filebuf_file(native_at_entry nate,cstring_view file,open_mode om,Args&& ...args):
-		basic_filebuf_file(basic_posix_file<char_type>(nate,file,om,std::forward<Args>(args)...),om)
-	{}
-
-#if defined (__linux__) || defined(_WIN32)
-	template<open_mode om,typename... Args>
-	basic_filebuf_file(io_async_t,io_async_observer ioa,cstring_view file,open_interface_t<om>,Args&& ...args):
-		basic_filebuf_file(basic_posix_file<char_type>(io_async,ioa,file,open_interface<om>,std::forward<Args>(args)...),
-			open_interface<om>)
-	{}
-	template<typename... Args>
-	basic_filebuf_file(io_async_t,io_async_observer ioa,cstring_view file,open_mode om,Args&& ...args):
-		basic_filebuf_file(basic_posix_file<char_type>(io_async,ioa,file,om,std::forward<Args>(args)...),om)
-	{}
-
-	template<open_mode om,typename... Args>
-	basic_filebuf_file(io_async_t,io_async_observer ioa,native_at_entry nate,cstring_view file,open_interface_t<om>,Args&& ...args):
-		basic_filebuf_file(basic_posix_file<char_type>(io_async,ioa,nate,file,open_interface<om>,std::forward<Args>(args)...),
-			open_interface<om>)
-	{}
-	template<typename... Args>
-	basic_filebuf_file(io_async_t,io_async_observer ioa,native_at_entry nate,cstring_view file,open_mode om,Args&& ...args):
-		basic_filebuf_file(basic_posix_file<char_type>(io_async,ioa,nate,file,om,std::forward<Args>(args)...),om)
+	basic_filebuf_file(native_at_entry nate,wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_filebuf_file(basic_posix_file<char_type>(nate,file,om,pm),om)
 	{}
 #endif
+	basic_filebuf_file(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_filebuf_file(basic_posix_file<char_type>(file,om,pm),om)
+	{}
+	basic_filebuf_file(native_at_entry nate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_filebuf_file(basic_posix_file<char_type>(nate,file,om,pm),om)
+	{}
+
 
 	basic_filebuf_file& operator=(basic_filebuf_file const&)=delete;
 	basic_filebuf_file(basic_filebuf_file const&)=delete;

@@ -612,17 +612,6 @@ public:
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	explicit constexpr basic_c_file_impl(native_hd hd):T(hd){}
-/*
-	basic_c_file_impl(cstring_view name,cstring_view mode):T(std::fopen(name.data(),mode.data()))
-	{
-		if(native_handle()==nullptr)
-			throw_posix_error();
-	}
-	basic_c_file_impl(cstring_view file,open_mode const& m):basic_c_file_impl(file,c_style(m))
-	{
-		if(with_ate(m))
-			seek(*this,0,seekdir::end);
-	}*/
 //fdopen interface
 	basic_c_file_impl(native_interface_t,int fd,char const* mode):T(
 #if defined(__WINNT__) || defined(_MSC_VER)
@@ -644,68 +633,28 @@ public:
 	{
 		posix_handle.release();
 	}
-	template<open_mode om>
-	basic_c_file_impl(basic_posix_io_handle<char_type>&& posix_handle,open_interface_t<om>):
-		basic_c_file_impl(native_interface,posix_handle.fd,details::c_open_mode<om>::value)
-	{
-		posix_handle.release();
-	}
 #if defined(_WIN32)
 //windows specific. open posix file from win32 io handle
 	basic_c_file_impl(basic_win32_io_handle<char_type>&& win32_handle,open_mode om):
 		basic_c_file_impl(basic_posix_file<char_type>(std::move(win32_handle),om),to_c_mode(om))
 	{
 	}
-	template<open_mode om>
-	basic_c_file_impl(basic_win32_io_handle<char_type>&& win32_handle,open_interface_t<om>):
-		basic_c_file_impl(basic_posix_file<char_type>(std::move(win32_handle),open_interface<om>),
-			details::c_open_mode<om>::value)//open::c_style_interface_t<om>::mode)
-	{
-	}
 #endif
 
-	template<open_mode om,typename... Args>
-	basic_c_file_impl(cstring_view file,open_interface_t<om>,Args&& ...args):
-		basic_c_file_impl(basic_posix_file<typename T::char_type>(file,open_interface<om>,std::forward<Args>(args)...),
-			open_interface<om>)
+#ifdef _WIN32
+	basic_c_file_impl(wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(file,om,pm),om)
 	{}
-	template<typename... Args>
-	basic_c_file_impl(cstring_view file,open_mode om,Args&& ...args):
-		basic_c_file_impl(basic_posix_file<typename T::char_type>(file,om,std::forward<Args>(args)...),om)
-	{}
-
-	template<open_mode om,typename... Args>
-	basic_c_file_impl(native_at_entry nate,cstring_view file,open_interface_t<om>,Args&& ...args):
-		basic_c_file_impl(basic_posix_file<typename T::char_type>(nate,file,open_interface<om>,std::forward<Args>(args)...),
-			open_interface<om>)
-	{}
-	template<typename... Args>
-	basic_c_file_impl(native_at_entry nate,cstring_view file,open_mode om,Args&& ...args):
-		basic_c_file_impl(basic_posix_file<typename T::char_type>(nate,file,om,std::forward<Args>(args)...),om)
-	{}
-
-
-#if defined (__linux__) || defined(_WIN32)
-	template<open_mode om,typename... Args>
-	basic_c_file_impl(io_async_t,io_async_observer ioa,cstring_view file,open_interface_t<om>,Args&& ...args):
-		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_async,ioa,file,open_interface<om>,std::forward<Args>(args)...),
-			open_interface<om>)
-	{}
-	template<typename... Args>
-	basic_c_file_impl(io_async_t,io_async_observer ioa,cstring_view file,open_mode om,Args&& ...args):
-		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_async,ioa,file,om,std::forward<Args>(args)...),om)
-	{}
-
-	template<open_mode om,typename... Args>
-	basic_c_file_impl(io_async_t,io_async_observer ioa,native_at_entry nate,cstring_view file,open_interface_t<om>,Args&& ...args):
-		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_async,ioa,nate,file,open_interface<om>,std::forward<Args>(args)...),
-			open_interface<om>)
-	{}
-	template<typename... Args>
-	basic_c_file_impl(io_async_t,io_async_observer ioa,native_at_entry nate,cstring_view file,open_mode om,Args&& ...args):
-		basic_c_file_impl(basic_posix_file<typename T::char_type>(io_async,ioa,nate,file,om,std::forward<Args>(args)...),om)
+	basic_c_file_impl(native_at_entry nate,wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(nate,file,om,pm),om)
 	{}
 #endif
+	basic_c_file_impl(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(file,om,pm),om)
+	{}
+	basic_c_file_impl(native_at_entry nate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(nate,file,om,pm),om)
+	{}
 
 	template<stream stm,typename... Args>
 	basic_c_file_impl(io_cookie_t,cstring_view mode,std::in_place_type_t<stm>,Args&& ...args)
@@ -900,14 +849,14 @@ inline decltype(auto) zero_copy_out_handle(basic_c_io_observer_unlocked<ch_type>
 }
 
 
-template<std::integral char_type>
-inline constexpr void const* print_alias_define(io_alias_t,basic_c_io_observer_unlocked<char_type> v)
+template<std::integral alias_char_type,std::integral char_type>
+inline constexpr void const* print_alias_define(io_alias_t<alias_char_type>,basic_c_io_observer_unlocked<char_type> v)
 {
 	return v.fp;
 }
 
-template<std::integral char_type>
-inline constexpr void const* print_alias_define(io_alias_t,basic_c_io_observer<char_type> v)
+template<std::integral alias_char_type,std::integral char_type>
+inline constexpr void const* print_alias_define(io_alias_t<alias_char_type>,basic_c_io_observer<char_type> v)
 {
 	return v.fp;
 }

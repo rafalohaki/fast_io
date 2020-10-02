@@ -56,7 +56,7 @@ enum class open_mode:std::uint32_t
 none = 0,
 app = 1 << 0,
 archive = 1 << 1,
-ate = 1 << 2,
+//ate = 1 << 2,
 binary = 1 << 3,
 compressed = 1 << 4,
 creat = 1 << 5,

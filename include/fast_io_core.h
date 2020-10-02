@@ -2,11 +2,11 @@
 
 //fast_io_core.h is required to be usable in freestanding environment with EVEN dynamic memory allocation and exceptions are disabled.
 #include<cstddef>
+#include<version>
 #include"fast_io_concept.h"
 #include<memory>
 #include<limits>
 #include<cstdint>
-
 //I know functions like memcpy would probably not be provided in freestanding environment. However, you can implement them on these platforms.
 
 

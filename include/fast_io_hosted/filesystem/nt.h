@@ -21,7 +21,7 @@ struct nt_dirent
 {
 	void* d_handle{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
 	file_type d_type{};
-	std::string d_name;
+	std::wstring d_name;
 };
 
 namespace win32::nt::details
@@ -43,10 +43,7 @@ inline nt_dirent* set_nt_dirent(nt_dirent* entry,bool start)
 		throw_nt_error(status);
 	}
 	auto ful_dir_info{d_info.FullDirInfo};
-	std::u16string_view u16_view(ful_dir_info->FileName,ful_dir_info->FileNameLength/sizeof(char16_t));
-	fast_io::ostring_ref ostrf{entry->d_name};
-	obuffer_set_curr(ostrf,obuffer_begin(ostrf));
-	print_freestanding(ostrf,code_cvt(u16_view));
+	entry->d_name.assign(ful_dir_info->FileName,ful_dir_info->FileNameLength/sizeof(char16_t));
 /*
 Referenced from win32 port dirent.h
 https://github.com/win32ports/dirent_h/blob/5a40afce928f1780058f44e0dda37553c662a8a7/dirent.h#L249
@@ -89,15 +86,13 @@ inline nt_dirent* nt_dirent_next(nt_dirent* entry)
 struct nt_directory_entry
 {
 	nt_dirent* entry{};
-	constexpr operator win32_io_observer() const noexcept
+	constexpr operator nt_at_entry() const noexcept
 	{
-		if(entry==nullptr)
-			return {};
-		return {entry->d_handle};
+		return nt_at_entry{entry->d_handle};
 	}
 };
 
-inline cstring_view filename(nt_directory_entry pioe) noexcept
+inline wcstring_view filename(nt_directory_entry pioe) noexcept
 {
 	return pioe.entry->d_name;
 }
@@ -224,11 +219,11 @@ inline nt_recursive_directory_iterator& operator++(nt_recursive_directory_iterat
 		}
 		if(prdit.entry->d_type==file_type::directory)
 		{
-			cstring_view name{prdit.entry->d_name};
-			if((name.size()==1&&name.front()==u8'.')||(name.size()==2&&name.front()==u8'.'&&name[1]==u8'.'))
+			wcstring_view name{prdit.entry->d_name};
+			if((name.size()==1&&name.front()==L'.')||(name.size()==2&&name.front()==L'.'&&name[1]==L'.'))
 				continue;
 			prdit.stack.emplace_back(nt_at_entry{prdit.stack.empty()?prdit.root_handle:prdit.stack.back().handle},name,
-				open_interface<open_mode::in|open_mode::directory|open_mode::large_file|open_mode::binary>);
+				open_mode::in|open_mode::directory|open_mode::large_file|open_mode::binary);
 		}
 		return prdit;
 	}
@@ -253,12 +248,12 @@ inline nt_recursive_directory_iterator begin(nt_recursive_directory_generator co
 	prdit.entry=win32::nt::details::set_nt_dirent_first(prdit.entry);
 	if(prdit.entry&&prdit.entry->d_type==file_type::directory)
 	{
-		cstring_view name{prdit.entry->d_name};
-		if((name.size()==1&&name.front()==u8'.')||(name.size()==2&&name.front()==u8'.'&&name[1]==u8'.'))
+		wcstring_view name{prdit.entry->d_name};
+		if((name.size()==1&&name.front()==L'.')||(name.size()==2&&name.front()==L'.'&&name[1]==L'.'))
 			++prdit;
 		else
 			prdit.stack.emplace_back(nt_at_entry{prdit.root_handle},name,
-				open_interface<open_mode::in|open_mode::directory|open_mode::large_file|open_mode::binary>);
+				open_mode::in|open_mode::directory|open_mode::large_file|open_mode::binary);
 	}
 	return prdit;
 }
@@ -293,9 +288,9 @@ inline bool operator!=(nt_recursive_directory_iterator const& b, std::default_se
 	return sntnl!=b;
 }
 
-inline nt_recursive_directory_generator recursive(win32_io_observer wiob)
+inline nt_recursive_directory_generator recursive(nt_at_entry nate)
 {
-	return {wiob.handle,std::unique_ptr<nt_dirent>(new nt_dirent)};
+	return {nate.handle,std::unique_ptr<nt_dirent>(new nt_dirent)};
 }
 
 using directory_entry = nt_directory_entry;

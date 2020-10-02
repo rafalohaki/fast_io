@@ -46,7 +46,7 @@ using obuf_file_mutex = basic_iomutex<obuf_file>;
 using iobuf_file_mutex = basic_iomutex<iobuf_file>;
 #endif
 // utf-8
-using u8pipe = io_wrapper<u8native_pipe>;
+using u8pipe = u8native_pipe;
 
 using u8inative_file = input_file_wrapper<u8native_file>;
 using u8onative_file = output_file_wrapper<u8native_file>;
@@ -61,7 +61,7 @@ using u8ibuf_file_mutex = basic_iomutex<u8ibuf_file>;
 using u8obuf_file_mutex = basic_iomutex<u8obuf_file>;
 using u8iobuf_file_mutex = basic_iomutex<u8iobuf_file>;
 #endif
-using wpipe = io_wrapper<wnative_pipe>;
+using wpipe = wnative_pipe;
 
 using winative_file = input_file_wrapper<wnative_file>;
 using wonative_file = output_file_wrapper<wnative_file>;

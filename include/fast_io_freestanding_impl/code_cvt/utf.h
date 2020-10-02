@@ -279,18 +279,33 @@ inline constexpr to_iter utf_code_convert(from_iter p_src_begin_iter,from_iter p
 	return details::utf::utf_code_convert_details<false>(p_src_begin_iter,p_src_end_iter,p_dst_iter);
 }
 
-template<std::ranges::contiguous_range rg>
-requires (std::integral<std::ranges::range_value_t<rg>>&&std::convertible_to<rg,std::basic_string_view<std::ranges::range_value_t<rg>>>)
-inline constexpr manip::code_cvt<std::basic_string_view<std::ranges::range_value_t<rg>>> code_cvt(rg&& f){return {{std::forward<rg>(f)}};}
+template<std::integral char_type>
+inline constexpr manip::code_cvt<basic_io_scatter_t<char_type>> code_cvt(basic_io_scatter_t<char_type> b) noexcept
+{
+	return {b};
+}
+
+
+template<std::integral char_type,std::size_t n>
+inline constexpr manip::code_cvt<basic_io_scatter_t<char_type>> code_cvt(char_type const(&s)[n]) noexcept
+{
+	return {{s,n-1}};
+}
+
+template<std::integral char_type>
+inline constexpr manip::code_cvt<basic_io_scatter_t<char_type>> code_cvt(std::basic_string_view<char_type> sv) noexcept
+{
+	return {{sv.data(),sv.size()}};
+}
 
 template<output_stream output,std::integral ch_type>
-inline constexpr void print_define(output& out,manip::code_cvt<std::basic_string_view<ch_type>> view)
+inline constexpr void print_define(output out,manip::code_cvt<basic_io_scatter_t<ch_type>> view)
 {
 	constexpr std::size_t coff{sizeof(typename output::char_type)<sizeof(ch_type)?2:0};
-	reserve_write(out,view.reference.size()<<coff,[&](auto ptr)
+	reserve_write(out,view.reference.len<<coff,[&](auto ptr)
 	{
-		auto refbegin{view.reference.data()};
-		return details::utf::utf_code_convert_details<false>(refbegin,view.reference.data()+view.reference.size(),ptr);
+		auto refbegin{view.reference.base};
+		return details::utf::utf_code_convert_details<false>(refbegin,view.reference.base+view.reference.len,ptr);
 	});
 }
 

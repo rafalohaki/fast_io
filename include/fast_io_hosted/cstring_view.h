@@ -35,14 +35,19 @@ public:
 	})
 	constexpr basic_cstring_view(crg const& cont):string_view_type(std::ranges::data(cont),std::ranges::size(cont)){}
 
-#if __cplusplus > 201703L && __cpp_lib_concepts
+#if __cplusplus >= 201703L && __cpp_lib_concepts >= 202002L
       template<std::contiguous_iterator It, std::sized_sentinel_for<It> End>
 	requires std::same_as<std::iter_value_t<It>, ch_type>
 	  && (!std::convertible_to<End, size_type>)
 	constexpr basic_cstring_view(null_terminated_t, It first, End last): string_view_type(first,last){}
 #endif
 
-	constexpr string_view_type substr(size_type pos=0, size_type n=std::basic_string_view<ch_type,tr_type>::npos) const = delete;
+	constexpr string_view_type substr(size_type pos, size_type n=std::basic_string_view<ch_type,tr_type>::npos) const = delete;
+	constexpr basic_cstring_view substr(size_type pos=0) const = delete;
+#if __cpp_lib_filesystem >= 201703L
+	basic_cstring_view(std::filesystem::path const& pth) noexcept requires(std::same_as<std::filesystem::path::value_type,ch_type>):
+		string_view_type(pth.native()){}
+#endif
 
 	constexpr void remove_suffix(size_type n)=delete;
 
@@ -54,5 +59,11 @@ public:
 
 using cstring_view = basic_cstring_view<char>;
 using wcstring_view = basic_cstring_view<wchar_t>;
+
+#ifdef _WIN32
+using native_char_type = wchar_t;
+#else
+using native_char_type = char;
+#endif
 
 }

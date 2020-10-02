@@ -22,7 +22,6 @@ https://docs.microsoft.com/en-us/windows/win32/secauthz/access-mask-format
 
 inline constexpr nt_open_mode calculate_nt_open_mode(open_mode value,perms pm)
 {
-	value&=~open_mode::ate;
 	nt_open_mode mode;
 	bool generic_write{};
 	bool generic_read{};
@@ -43,8 +42,6 @@ inline constexpr nt_open_mode calculate_nt_open_mode(open_mode value,perms pm)
 			generic_write=true;
 		}
 	}
-
-
 
 /*
 
@@ -193,7 +190,13 @@ struct nt_file_openmode
 	inline static constexpr nt_open_mode mode = calculate_nt_open_mode(om,pm);
 };
 
-inline void nt_write_file_rtl_path(cstring_view filename,char16_t* buffer_data,win32::nt::unicode_string& nt_name,char16_t const*& part_name,win32::nt::rtl_relative_name_u& relative_name)
+inline void nt_file_rtl_path(wcstring_view filename,win32::nt::unicode_string& nt_name,wchar_t const*& part_name,win32::nt::rtl_relative_name_u& relative_name)
+{
+	if(!win32::nt::rtl_dos_path_name_to_nt_path_name_u(filename.c_str(),std::addressof(nt_name),std::addressof(part_name),std::addressof(relative_name)))
+		throw_nt_error(0xC0000039);
+}
+
+inline void nt_file_rtl_path(cstring_view filename,wchar_t* buffer_data,win32::nt::unicode_string& nt_name,wchar_t const*& part_name,win32::nt::rtl_relative_name_u& relative_name)
 {
 	*utf_code_convert(filename.data(),filename.data()+filename.size(),buffer_data)=0;
 	if(!win32::nt::rtl_dos_path_name_to_nt_path_name_u(buffer_data,std::addressof(nt_name),std::addressof(part_name),std::addressof(relative_name)))
@@ -229,26 +232,47 @@ inline std::uint16_t filename_bytes(std::size_t sz)
 	return static_cast<std::uint16_t>(sz);
 }
 
-inline void* nt_create_file_directory_impl(void* directory,cstring_view filename,nt_open_mode const& mode)
+template<std::integral char_type>
+requires (std::same_as<char_type,char>||std::same_as<char_type,wchar_t>)
+inline void* nt_create_file_directory_impl(void* directory,basic_cstring_view<char_type> filename,nt_open_mode const& mode)
 {
-	details::temp_unique_arr_ptr<char16_t> buffer(filename.size());
-	auto buffer_data_end=utf_code_convert(filename.data(),filename.data()+filename.size(),buffer.data());
-	std::uint16_t const bytes(filename_bytes(buffer_data_end-buffer.data()));
-	win32::nt::unicode_string relative_path{
-		.Length=bytes,
-		.MaximumLength=bytes,
-		.Buffer=buffer.data()};
-	return nt_create_file_common_impl(directory,std::addressof(relative_path),mode);
+	if constexpr(std::same_as<char_type,char>)
+	{
+		details::temp_unique_arr_ptr<wchar_t> buffer(filename.size());
+		auto buffer_data_end=utf_code_convert(filename.data(),filename.data()+filename.size(),buffer.data());
+		std::uint16_t const bytes(filename_bytes(buffer_data_end-buffer.data()));
+		win32::nt::unicode_string relative_path{
+			.Length=bytes,
+			.MaximumLength=bytes,
+			.Buffer=buffer.data()};
+		return nt_create_file_common_impl(directory,std::addressof(relative_path),mode);
+	}
+	else
+	{
+		std::uint16_t const bytes(filename_bytes(filename.size()));
+		win32::nt::unicode_string relative_path{
+			.Length=bytes,
+			.MaximumLength=bytes,
+			.Buffer=const_cast<wchar_t*>(filename.c_str())};
+		return nt_create_file_common_impl(directory,std::addressof(relative_path),mode);
+	}
 }
 
-inline void* nt_create_file_impl(cstring_view filename,nt_open_mode const& mode)
+template<std::integral char_type>
+requires (std::same_as<char_type,char>||std::same_as<char_type,wchar_t>)
+inline void* nt_create_file_impl(basic_cstring_view<char_type> filename,nt_open_mode const& mode)
 {
-	char16_t const* part_name{};
+	wchar_t const* part_name{};
 	win32::nt::rtl_relative_name_u relative_name{};
 	win32::nt::unicode_string nt_name{};
+	if constexpr(std::same_as<char_type,char>)
 	{
-		details::temp_unique_arr_ptr<char16_t> buffer(filename.size()+1);
-		nt_write_file_rtl_path(filename,buffer.data(),nt_name,part_name,relative_name);
+		details::temp_unique_arr_ptr<wchar_t> buffer(filename.size()+1);
+		nt_file_rtl_path(filename,buffer.data(),nt_name,part_name,relative_name);
+	}
+	else
+	{
+		nt_file_rtl_path(filename,nt_name,part_name,relative_name);
 	}
 	win32::nt::rtl_unicode_string_unique_ptr us_ptr{std::addressof(nt_name)};
 	return nt_create_file_common_impl(nullptr,std::addressof(nt_name),mode);
@@ -434,12 +458,6 @@ public:
 template<std::integral ch_type>
 class basic_nt_file:public basic_nt_io_handle<ch_type>
 {
-	void seek_end_local()
-	{
-		basic_nt_file<char> local{this->native_handle()};
-		seek(*this,0,seekdir::end);
-		local.release();
-	};
 public:
 	using char_type = ch_type;
 	using native_handle_type = void*;
@@ -450,17 +468,19 @@ public:
 	basic_nt_file(cstring_view filename,open_mode om,perms pm=static_cast<perms>(420)):
 		basic_nt_io_handle<ch_type>(details::nt::nt_create_file_impl(filename,details::nt::calculate_nt_open_mode(om,pm)))
 	{
-		if((om&open_mode::ate)!=open_mode::none)
-			seek_end_local();
 	}
-
 	basic_nt_file(nt_at_entry nate,cstring_view filename,open_mode om,perms pm=static_cast<perms>(420)):
 		basic_nt_io_handle<char_type>(details::nt::nt_create_file_directory_impl(nate.handle,filename,details::nt::calculate_nt_open_mode(om,pm)))
 	{
-		if((om&open_mode::ate)!=open_mode::none)
-			seek_end_local();
 	}
-
+	basic_nt_file(wcstring_view filename,open_mode om,perms pm=static_cast<perms>(420)):
+		basic_nt_io_handle<ch_type>(details::nt::nt_create_file_impl(filename,details::nt::calculate_nt_open_mode(om,pm)))
+	{
+	}
+	basic_nt_file(nt_at_entry nate,wcstring_view filename,open_mode om,perms pm=static_cast<perms>(420)):
+		basic_nt_io_handle<char_type>(details::nt::nt_create_file_directory_impl(nate.handle,filename,details::nt::calculate_nt_open_mode(om,pm)))
+	{
+	}
  	basic_nt_file(basic_nt_file const&)=default;
 	basic_nt_file& operator=(basic_nt_file const&)=default;
 	constexpr basic_nt_file(basic_nt_file&&) noexcept=default;
@@ -479,8 +499,8 @@ using u8nt_io_observer=basic_nt_io_observer<char8_t>;
 using u8nt_io_handle=basic_nt_io_handle<char8_t>;
 using u8nt_file=basic_nt_file<char8_t>;
 
-template<std::integral char_type>
-inline constexpr void const* print_alias_define(io_alias_t,basic_nt_io_observer<char_type> v)
+template<std::integral alias_char_type,std::integral char_type>
+inline constexpr void const* print_alias_define(io_alias_t<alias_char_type>,basic_nt_io_observer<char_type> v)
 {
 	return v.handle;
 }

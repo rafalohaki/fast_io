@@ -51,7 +51,7 @@ struct unicode_string
 {
 std::uint16_t Length;
 std::uint16_t MaximumLength;
-char16_t*  Buffer;
+wchar_t*  Buffer;
 };
 
 struct object_attributes
@@ -257,7 +257,7 @@ std::int64_t AllocationSize;
 std::uint32_t FileAttributes;
 std::uint32_t FileNameLength;
 std::uint32_t EaSize;
-char16_t FileName[1];
+wchar_t FileName[1];
 };
 
 struct file_both_dir_information
@@ -274,8 +274,8 @@ std::uint32_t         FileAttributes;
 std::uint32_t         FileNameLength;
 std::uint32_t         EaSize;
 char         ShortNameLength;
-char16_t         ShortName[12];
-char16_t         FileName[1];
+wchar_t         ShortName[12];
+wchar_t         FileName[1];
 };
 
 
@@ -327,7 +327,7 @@ requires (sizeof...(Args)==4)
 inline auto rtl_dos_path_name_to_nt_path_name_u(Args&& ...args)
 {
 //https://github.com/mirror/reactos/blob/master/rostests/apitests/ntdll/RtlDosPathNameToNtPathName_U.c
-	return (get_nt_module_handle<int __stdcall(char16_t const*,unicode_string*,char16_t const**,rtl_relative_name_u*)>("RtlDosPathNameToNtPathName_U"))(std::forward<Args>(args)...);
+	return (get_nt_module_handle<int __stdcall(wchar_t const*,unicode_string*,wchar_t const**,rtl_relative_name_u*)>("RtlDosPathNameToNtPathName_U"))(std::forward<Args>(args)...);
 }
 //RtlDosPathNameToNtPathName_U
 
