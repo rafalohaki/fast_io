@@ -767,7 +767,7 @@ public:
 			seek_end_local();
 	}
 	//potential support modification prv in the future
-	basic_posix_file(posix_at_entry pate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_openat(file.data(),details::calculate_posix_open_mode(om),static_cast<mode_t>(pm)))
+	basic_posix_file(posix_at_entry pate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_openat(pate.fd,file.data(),details::calculate_posix_open_mode(om),static_cast<mode_t>(pm)))
 	{
 		if((om&open_mode::ate)!=open_mode::none)
 			seek_end_local();
