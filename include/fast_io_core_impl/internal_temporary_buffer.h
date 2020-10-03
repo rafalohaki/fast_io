@@ -116,7 +116,8 @@ namespace details::internal_temporary_buffer_impl
 template<bool vector_buf,typename T,std::contiguous_iterator Iter>
 inline constexpr void write_bad_case(T& ob,Iter cbegin,Iter cend,std::size_t to_write_chars)
 {
-	std::size_t new_capacity((ob.capacity_ptr-ob.beg_ptr)<<1);
+	std::size_t new_capacity(static_cast<std::size_t>(ob.capacity_ptr-ob.beg_ptr)<<1);
+	to_write_chars+=ob.end_ptr-ob.beg_ptr;
 	if(new_capacity<to_write_chars)
 		new_capacity=to_write_chars;
 	ogrow_impl<vector_buf>(ob,new_capacity);
