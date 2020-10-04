@@ -3,8 +3,8 @@
 namespace fast_io
 {
 
-template<std::floating_point fp_type,buffer_output_stream output,character_input_stream input>
-inline constexpr bool scan_reserve_transmit(io_reserve_type_t<fp_type>,output& out,input& in)
+template<std::integral char_type,std::floating_point fp_type,buffer_output_stream output,character_input_stream input>
+inline constexpr bool scan_reserve_transmit(io_reserve_type_t<char_type,fp_type>,output& out,input& in)
 {
 	constexpr auto sgn{st_single([](char8_t ch)
 	{
@@ -283,8 +283,8 @@ inline constexpr Iter real_sto(Iter begin,Iter end,fp_type& t)
 }
 }
 
-template<std::floating_point fp_type,bool end_test,std::contiguous_iterator Iter,typename T>
-inline constexpr auto space_scan_reserve_define(io_reserve_type_t<fp_type,end_test>,Iter begin,Iter end,T& t)
+template<std::integral char_type,std::floating_point fp_type,bool end_test,std::contiguous_iterator Iter,typename T>
+inline constexpr auto space_scan_reserve_define(io_reserve_type_t<char_type,fp_type,end_test>,Iter begin,Iter end,T& t)
 {
 	if constexpr(std::same_as<std::remove_cvref_t<fp_type>,long double>)
 	{

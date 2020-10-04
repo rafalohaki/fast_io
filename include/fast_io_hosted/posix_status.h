@@ -44,59 +44,59 @@ inline constexpr void print_define(fast_io::buffer_output_stream auto bop,fast_i
 	status.blksize,"\nblocks:",status.blocks,"\natim:",status.atim,"\nmtim:",status.mtim,"\nctim:",status.ctim,"\nflags:",status.flags,"\ngen:",status.gen);
 }
 #endif
-
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<fast_io::posix_file_status>)
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,fast_io::posix_file_status>)
 {
 	constexpr std::size_t res{
-	print_reserve_size(io_reserve_type<std::common_type_t<std::uint64_t,std::size_t>>)*11+
+	print_reserve_size(io_reserve_type<char_type,std::common_type_t<std::uint64_t,std::size_t>>)*11+
 	sizeof(u8"dev:")+sizeof(u8"\nino:")+sizeof(u8"\nperm:")+sizeof(u8"\ntype:")+
 	sizeof(u8"\nnlink:")+sizeof(u8"\nuid:")+sizeof(u8"\ngid:")+sizeof(u8"\nrdev:")+
 	sizeof(u8"\nsize:")+sizeof(u8"\nblksize:")+sizeof(u8"\nblocks:")+sizeof(u8"\natim:")+
 	sizeof(u8"\nmtim:")+sizeof(u8"\nctim:")+sizeof(u8"\nflags:")+sizeof(u8"\ngen:")-16+
-	print_reserve_size(io_reserve_type<perms>)+
-	print_reserve_size(io_reserve_type<file_type>)+
-	print_reserve_size(io_reserve_type<struct timespec>)*3};
+	print_reserve_size(io_reserve_type<char_type,char_type,perms>)+
+	print_reserve_size(io_reserve_type<char_type,file_type>)+
+	print_reserve_size(io_reserve_type<char_type,struct timespec>)*3};
 	return res;
 }
 
-template<std::random_access_iterator raiter>
-inline constexpr raiter print_reserve_define(io_reserve_type_t<fast_io::posix_file_status>,raiter iter,fast_io::posix_file_status const& status)
+template<std::integral char_type,std::random_access_iterator raiter>
+inline constexpr raiter print_reserve_define(io_reserve_type_t<char_type,fast_io::posix_file_status>,raiter iter,fast_io::posix_file_status const& status)
 {
 	iter=details::copy_string_literal(u8"dev:",iter);
-	iter=print_reserve_define(io_reserve_type<std::common_type_t<std::uint64_t,std::size_t>>,iter,status.dev);
+	iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<std::uint64_t,std::size_t>>,iter,status.dev);
 	iter=details::copy_string_literal(u8"\nino:",iter);
-	iter=print_reserve_define(io_reserve_type<std::common_type_t<std::uint64_t,std::size_t>>,iter,status.ino);
+	iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<std::uint64_t,std::size_t>>,iter,status.ino);
 	iter=details::copy_string_literal(u8"\nperm:",iter);
-	iter=print_reserve_define(io_reserve_type<std::common_type_t<perms>>,iter,status.perm);
+	iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<perms>>,iter,status.perm);
 	iter=details::copy_string_literal(u8"\ntype:",iter);
-	iter=print_reserve_define(io_reserve_type<std::common_type_t<file_type>>,iter,status.type);
+	iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<file_type>>,iter,status.type);
 	iter=details::copy_string_literal(u8"\nnlink:",iter);
-	iter=print_reserve_define(io_reserve_type<std::common_type_t<std::uint64_t,std::size_t>>,iter,status.nlink);
+	iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<std::uint64_t,std::size_t>>,iter,status.nlink);
 	iter=details::copy_string_literal(u8"\nuid:",iter);
-	iter=print_reserve_define(io_reserve_type<std::common_type_t<std::uint64_t,std::size_t>>,iter,status.uid);
+	iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<std::uint64_t,std::size_t>>,iter,status.uid);
 	iter=details::copy_string_literal(u8"\ngid:",iter);
-	iter=print_reserve_define(io_reserve_type<std::common_type_t<std::uint64_t,std::size_t>>,iter,status.gid);
+	iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<std::uint64_t,std::size_t>>,iter,status.gid);
 	iter=details::copy_string_literal(u8"\nrdev:",iter);
-	iter=print_reserve_define(io_reserve_type<std::common_type_t<std::uint64_t,std::size_t>>,iter,status.rdev);
+	iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<std::uint64_t,std::size_t>>,iter,status.rdev);
 	iter=details::copy_string_literal(u8"\nsize:",iter);
-	iter=print_reserve_define(io_reserve_type<std::common_type_t<std::uint64_t,std::size_t>>,iter,status.size);
+	iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<std::uint64_t,std::size_t>>,iter,status.size);
 	iter=details::copy_string_literal(u8"\nblksize:",iter);
-	iter=print_reserve_define(io_reserve_type<std::common_type_t<std::uint64_t,std::size_t>>,iter,status.blksize);
+	iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<std::uint64_t,std::size_t>>,iter,status.blksize);
 	iter=details::copy_string_literal(u8"\nblocks:",iter);
-	iter=print_reserve_define(io_reserve_type<std::common_type_t<std::uint64_t,std::size_t>>,iter,status.blocks);
+	iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<std::uint64_t,std::size_t>>,iter,status.blocks);
 
 
 	iter=details::copy_string_literal(u8"\natim:",iter);
-	iter=print_reserve_define(io_reserve_type<struct timespec>,iter,status.atim);
+	iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.atim);
 	iter=details::copy_string_literal(u8"\nmtim:",iter);
-	iter=print_reserve_define(io_reserve_type<struct timespec>,iter,status.mtim);
+	iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.mtim);
 	iter=details::copy_string_literal(u8"\nctim:",iter);
-	iter=print_reserve_define(io_reserve_type<struct timespec>,iter,status.ctim);
+	iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.ctim);
 
 	iter=details::copy_string_literal(u8"\nflags:",iter);
-	iter=print_reserve_define(io_reserve_type<std::common_type_t<std::uint64_t,std::size_t>>,iter,status.flags);
+	iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<std::uint64_t,std::size_t>>,iter,status.flags);
 	iter=details::copy_string_literal(u8"\ngen:",iter);
-	return print_reserve_define(io_reserve_type<std::common_type_t<std::uint64_t,std::size_t>>,iter,status.gen);
+	return print_reserve_define(io_reserve_type<char_type,std::common_type_t<std::uint64_t,std::size_t>>,iter,status.gen);
 }
 
 }

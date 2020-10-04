@@ -51,9 +51,9 @@ inline constexpr void space_scan_define(input& in,manip::decimal_point<T&,dec> t
 		t.value=details::ryu::input_floating<dec,std::remove_cvref_t<T>>(begin(igen),end(igen));
 }
 */
-template<manip::floating_formats fm,bool uppercase,std::floating_point T,char32_t dec>
+template<std::integral char_type,manip::floating_formats fm,bool uppercase,std::floating_point T,char32_t dec>
 inline constexpr std::size_t print_reserve_size
-	(io_reserve_type_t<manip::decimal_point<manip::floating_manip_precision<fm,uppercase,T const>,dec>>)
+	(io_reserve_type_t<char_type,manip::decimal_point<manip::floating_manip_precision<fm,uppercase,T const>,dec>>)
 {
 	if constexpr(fm==manip::floating_formats::general||fm==manip::floating_formats::fixed)
 		return 2048;
@@ -61,9 +61,9 @@ inline constexpr std::size_t print_reserve_size
 		return 1024;
 }
 
-template<std::random_access_iterator raiter,manip::floating_formats fm,std::floating_point T,bool uppercase,char32_t dec,typename U>
+template<std::integral char_type,std::random_access_iterator raiter,manip::floating_formats fm,std::floating_point T,bool uppercase,char32_t dec,typename U>
 requires (dec<std::numeric_limits<std::iter_value_t<raiter>>::max())
-inline raiter print_reserve_define(io_reserve_type_t<manip::decimal_point<manip::floating_manip_precision<fm,uppercase,T const>,dec>>,raiter start,U a)
+inline raiter print_reserve_define(io_reserve_type_t<char_type,manip::decimal_point<manip::floating_manip_precision<fm,uppercase,T const>,dec>>,raiter start,U a)
 {
 	if constexpr(fm==manip::floating_formats::fixed)
 	{
@@ -105,14 +105,14 @@ inline raiter print_reserve_define(io_reserve_type_t<manip::decimal_point<manip:
 	}
 }
 
-template<std::floating_point T>
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<T>)
+template<std::integral char_type,std::floating_point T>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,T>)
 {
 	return details::cal_floating_len<T,manip::floating_formats::general>();
 }
 
-template<std::random_access_iterator raiter,std::floating_point T,typename U>
-inline raiter print_reserve_define(io_reserve_type_t<T>,raiter start,U a)
+template<std::integral char_type,std::random_access_iterator raiter,std::floating_point T,typename U>
+inline raiter print_reserve_define(io_reserve_type_t<char_type,T>,raiter start,U a)
 {
 	if constexpr(std::same_as<std::remove_cvref_t<T>,long double>&&sizeof(long double)!=16)
 		return details::ryu::output_shortest<false,0,true>(details::compile_time_floating_v<u8'.'>,start,static_cast<double>(a));	
@@ -120,16 +120,16 @@ inline raiter print_reserve_define(io_reserve_type_t<T>,raiter start,U a)
 		return details::ryu::output_shortest<false,0,true>(details::compile_time_floating_v<u8'.'>,start,a);
 }
 
-template<manip::floating_formats fm,bool uppercase,std::floating_point T,char32_t dec>
+template<std::integral char_type,manip::floating_formats fm,bool uppercase,std::floating_point T,char32_t dec>
 inline constexpr std::size_t print_reserve_size
-	(io_reserve_type_t<manip::decimal_point<manip::floating_manip<fm,uppercase,T const>,dec>>)
+	(io_reserve_type_t<char_type,manip::decimal_point<manip::floating_manip<fm,uppercase,T const>,dec>>)
 {
 	return details::cal_floating_len<T,fm>();
 }
 
-template<std::random_access_iterator raiter,manip::floating_formats fm,std::floating_point T,bool uppercase,char32_t dec,typename U>
+template<std::integral char_type,std::random_access_iterator raiter,manip::floating_formats fm,std::floating_point T,bool uppercase,char32_t dec,typename U>
 requires (dec<std::numeric_limits<std::iter_value_t<raiter>>::max())
-inline raiter print_reserve_define(io_reserve_type_t<manip::decimal_point<manip::floating_manip<fm,uppercase,T const>,dec>>,raiter start,U a)
+inline raiter print_reserve_define(io_reserve_type_t<char_type,manip::decimal_point<manip::floating_manip<fm,uppercase,T const>,dec>>,raiter start,U a)
 {
 	if constexpr(std::same_as<std::remove_cvref_t<T>,long double>&&sizeof(long double)!=16)
 	{
@@ -151,16 +151,16 @@ inline raiter print_reserve_define(io_reserve_type_t<manip::decimal_point<manip:
 	}
 }
 
-template<std::floating_point T,char32_t dec>
+template<std::integral char_type,std::floating_point T,char32_t dec>
 inline constexpr std::size_t print_reserve_size
-	(io_reserve_type_t<manip::decimal_point<T&,dec>>)
+	(io_reserve_type_t<char_type,manip::decimal_point<T&,dec>>)
 {
 	return details::cal_floating_len<T,manip::floating_formats::general>();
 }
 
-template<std::random_access_iterator raiter,std::floating_point T,char32_t dec,typename U>
+template<std::integral char_type,std::random_access_iterator raiter,std::floating_point T,char32_t dec,typename U>
 requires (dec<std::numeric_limits<std::iter_value_t<raiter>>::max())
-inline raiter print_reserve_define(io_reserve_type_t<manip::decimal_point<T&,dec>>,raiter start,U a)
+inline raiter print_reserve_define(io_reserve_type_t<char_type,manip::decimal_point<T&,dec>>,raiter start,U a)
 {
 	if constexpr(std::same_as<std::remove_cvref_t<T>,long double>&&sizeof(long double)!=16)
 	{

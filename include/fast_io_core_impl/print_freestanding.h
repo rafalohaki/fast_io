@@ -19,13 +19,13 @@ inline constexpr void scatter_print_recursive(io_scatter_t* arr,T t, Args ...arg
 	scatter_print_recursive<char_type>(arr+1,args...);
 }
 
-template<typename T>
+template<std::integral char_type,typename T>
 inline constexpr std::size_t calculate_scatter_reserve_size_unit()
 {
 	using real_type = std::remove_cvref_t<T>;
-	if constexpr(reserve_printable<real_type>)
+	if constexpr(reserve_printable<char_type,real_type>)
 	{
-		constexpr std::size_t sz{print_reserve_size(io_reserve_type<real_type>)};
+		constexpr std::size_t sz{print_reserve_size(io_reserve_type<char_type,real_type>)};
 		return sz;
 	}
 	else
@@ -93,20 +93,20 @@ inline constexpr void print_control(output out,T t)
 {
 	using char_type = typename output::char_type;
 	using value_type = std::remove_cvref_t<T>;
-	if constexpr(reserve_printable<value_type>)
+	if constexpr(reserve_printable<char_type,value_type>)
 	{
-		constexpr std::size_t size{print_reserve_size(io_reserve_type<value_type>)+static_cast<std::size_t>(line)};
+		constexpr std::size_t size{print_reserve_size(io_reserve_type<char_type,value_type>)+static_cast<std::size_t>(line)};
 		if constexpr(contiguous_output_stream<output>)
 		{
 			if constexpr(line)
 			{
-				auto it{print_reserve_define(io_reserve_type<value_type>,obuffer_curr(out),t)};
+				auto it{print_reserve_define(io_reserve_type<char_type,value_type>,obuffer_curr(out),t)};
 				*it=u8'\n';
 				obuffer_set_curr(out,++it);
 			}
 			else
 			{
-				obuffer_set_curr(out,print_reserve_define(io_reserve_type<value_type>,obuffer_curr(out),t));
+				obuffer_set_curr(out,print_reserve_define(io_reserve_type<char_type,value_type>,obuffer_curr(out),t));
 			}
 		}
 		else if constexpr(buffer_output_stream<output>)
@@ -116,13 +116,13 @@ inline constexpr void print_control(output out,T t)
 			{
 				if constexpr(line)
 				{
-					auto it{print_reserve_define(io_reserve_type<value_type>,obuffer_curr(out),t)};
+					auto it{print_reserve_define(io_reserve_type<char_type,value_type>,obuffer_curr(out),t)};
 					*it=u8'\n';
 					obuffer_set_curr(out,++it);
 				}
 				else
 				{
-					obuffer_set_curr(out,print_reserve_define(io_reserve_type<value_type>,bcurr,t));
+					obuffer_set_curr(out,print_reserve_define(io_reserve_type<char_type,value_type>,bcurr,t));
 				}
 			}
 			else
@@ -130,12 +130,12 @@ inline constexpr void print_control(output out,T t)
 				std::array<char_type,size> array;
 				if constexpr(line)
 				{
-					auto it{print_reserve_define(io_reserve_type<value_type>,array.data(),t)};
+					auto it{print_reserve_define(io_reserve_type<char_type,value_type>,array.data(),t)};
 					*it=u8'\n';
 					write(out,array.data(),++it);
 				}
 				else
-					write(out,array.data(),print_reserve_define(io_reserve_type<value_type>,array.data(),t));
+					write(out,array.data(),print_reserve_define(io_reserve_type<char_type,value_type>,array.data(),t));
 			}
 		}
 		else if constexpr(reserve_output_stream<output>)
@@ -148,35 +148,35 @@ inline constexpr void print_control(output out,T t)
 					std::array<char_type,size> array;
 					if constexpr(line)
 					{
-						auto it{print_reserve_define(io_reserve_type<value_type>,array.data(),t)};
+						auto it{print_reserve_define(io_reserve_type<char_type,value_type>,array.data(),t)};
 						*it=u8'\n';
 						write(out,array.data(),++it);
 					}
 					else
 					{
-						write(out,array.data(),print_reserve_define(io_reserve_type<value_type>,array.data(),t));
+						write(out,array.data(),print_reserve_define(io_reserve_type<char_type,value_type>,array.data(),t));
 					}
 					return;
 				}
 				if constexpr(line)
 				{
-					auto it{print_reserve_define(io_reserve_type<value_type>,ptr,t)};
+					auto it{print_reserve_define(io_reserve_type<char_type,value_type>,ptr,t)};
 					*it=u8'\n';
 					orelease(out,++it);
 				}
 				else
-					orelease(out,print_reserve_define(io_reserve_type<value_type>,ptr,t));
+					orelease(out,print_reserve_define(io_reserve_type<char_type,value_type>,ptr,t));
 			}
 			else
 			{
 				if constexpr(line)
 				{
-					auto it{print_reserve_define(io_reserve_type<value_type>,oreserve(out,size),t)};
+					auto it{print_reserve_define(io_reserve_type<char_type,value_type>,oreserve(out,size),t)};
 					*it=u8'\n';
 					orelease(out,++it);
 				}
 				else
-					orelease(out,print_reserve_define(io_reserve_type<value_type>,oreserve(out,size),t));
+					orelease(out,print_reserve_define(io_reserve_type<char_type,value_type>,oreserve(out,size),t));
 			}
 		}
 		else
@@ -184,12 +184,12 @@ inline constexpr void print_control(output out,T t)
 			std::array<char_type,size> array;
 			if constexpr(line)
 			{
-				auto it{print_reserve_define(io_reserve_type<value_type>,array.data(),t)};
+				auto it{print_reserve_define(io_reserve_type<char_type,value_type>,array.data(),t)};
 				*it=u8'\n';
 				write(out,array.data(),++it);
 			}
 			else
-				write(out,array.data(),print_reserve_define(io_reserve_type<value_type>,array.data(),t));
+				write(out,array.data(),print_reserve_define(io_reserve_type<char_type,value_type>,array.data(),t));
 		}
 	}
 	else if constexpr(printable<output,value_type>)
@@ -213,7 +213,7 @@ concept test_print_control = requires(T t,U arg)
 template<bool line,output_stream output,typename ...Args>
 inline constexpr void print_fallback(output out,Args ...args)
 {
-	if constexpr(scatter_output_stream<output>&&((scatter_printable<typename output::char_type,Args>||reserve_printable<Args>)&&...))
+	if constexpr(scatter_output_stream<output>&&((scatter_printable<typename output::char_type,Args>||reserve_printable<typename output::char_type,Args>)&&...))
 	{
 		std::array<io_scatter_t,(sizeof...(Args))+static_cast<std::size_t>(line)> scatters;
 		if constexpr((scatter_printable<typename output::char_type,Args>&&...))
@@ -251,7 +251,7 @@ inline constexpr void print_fallback(output out,Args ...args)
 		{
 			if constexpr(line)
 			{
-				if constexpr((sizeof...(Args)==1)&&(reserve_printable<Args>&&...))
+				if constexpr((sizeof...(Args)==1)&&(reserve_printable<typename output::char_type,Args>&&...))
 				{
 					((print_control<true>(ref,args)),...);
 				}
@@ -290,7 +290,7 @@ inline constexpr void print_freestanding_decay(output out,Args ...args)
 	}
 	else if constexpr(status_output_stream<output>)
 		print_status_define(out,args...);
-	else if constexpr(((printable<output,Args>||reserve_printable<Args>)&&...)&&(sizeof...(Args)==1||buffer_output_stream<output>))
+	else if constexpr(((printable<output,Args>||reserve_printable<typename output::char_type,Args>)&&...)&&(sizeof...(Args)==1||buffer_output_stream<output>))
 	{
 		if constexpr(sizeof...(Args)==1||(!maybe_buffer_output_stream<output>))
 		{
@@ -341,11 +341,11 @@ inline constexpr void println_freestanding_decay(output out,Args ...args)
 	}
 	else if constexpr(status_output_stream<output>)
 		println_status_define(out,args...);
-	else if constexpr((sizeof...(Args)==1&&(reserve_printable<Args>&&...))||
+	else if constexpr((sizeof...(Args)==1&&(reserve_printable<typename output::char_type,Args>&&...))||
 	((printable<output,Args>&&...)&&buffer_output_stream<output>))
 	{
 		using char_type = typename std::remove_cvref_t<output>::char_type;
-		if constexpr((sizeof...(Args)==1)&&(reserve_printable<Args>&&...))
+		if constexpr((sizeof...(Args)==1)&&(reserve_printable<typename output::char_type,Args>&&...))
 			((details::decay::print_control<true>(out,args)),...);
 		else
 		{

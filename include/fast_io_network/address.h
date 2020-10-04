@@ -9,8 +9,8 @@ struct ipv4
 	std::array<unsigned char, 4> storage{};
 };
 
-template<buffer_output_stream output,character_input_stream input>
-inline constexpr bool scan_reserve_transmit(io_reserve_type_t<ipv4>,output& out,input& in)
+template<std::integral char_type,buffer_output_stream output,character_input_stream input>
+inline constexpr bool scan_reserve_transmit(io_reserve_type_t<char_type,ipv4>,output& out,input& in)
 {
 	using namespace fast_io::scan_transmitter;
 	return scan_transmit(out,in,until_none_digit<10>,single_dot,until_none_digit<10>,single_dot,until_none_digit<10>,single_dot,until_none_digit<10>);
@@ -71,7 +71,7 @@ inline constexpr v6_sep_result ipv6_scan_sep(input& in)
 
 }
 
-template<character_input_stream input>
+template<std::integral char_type,character_input_stream input>
 inline constexpr void space_scan_define(input& in,ipv4& v4)
 {
 	space_scan_define(in,v4.storage[0]);
@@ -83,8 +83,8 @@ inline constexpr void space_scan_define(input& in,ipv4& v4)
 	space_scan_define(in,v4.storage[3]);
 }
 
-template<bool end_test,std::contiguous_iterator Iter>
-inline constexpr auto space_scan_reserve_define(io_reserve_type_t<ipv4,end_test>,Iter begin,Iter end,ipv4& t)
+template<std::integral char_type,bool end_test,std::contiguous_iterator Iter>
+inline constexpr auto space_scan_reserve_define(io_reserve_type_t<char_type,ipv4,end_test>,Iter begin,Iter end,ipv4& t)
 {
 	using unsigned_char_type = std::make_unsigned_t<std::iter_value_t<Iter>>;
 	for(std::size_t part{};part!=4;++part)
@@ -163,19 +163,19 @@ inline auto to_socket_address_storage(ipv4 const& add,std::uint16_t port)
 	std::memcpy(std::addressof(stor),std::addressof(v4st),sizeof(sockaddr_in));
 	return stor;
 }
-
-constexpr std::size_t print_reserve_size(io_reserve_type_t<ipv4>)
+template<std::integral char_type>
+constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,ipv4>)
 {
 	return 15;
 }
 
-template<std::random_access_iterator Iter>
-constexpr Iter print_reserve_define(io_reserve_type_t<ipv4>,Iter it,ipv4 const& v4)
+template<std::integral char_type,std::random_access_iterator Iter>
+constexpr Iter print_reserve_define(io_reserve_type_t<char_type,ipv4>,Iter it,ipv4 const& v4)
 {
-	*(it=print_reserve_define(io_reserve_type<char unsigned>,it,v4.storage.front()))=u8'.';
-	*(it=print_reserve_define(io_reserve_type<char unsigned>,++it,v4.storage[1]))=u8'.';
-	*(it=print_reserve_define(io_reserve_type<char unsigned>,++it,v4.storage[2]))=u8'.';
-	return print_reserve_define(io_reserve_type<char unsigned>,++it,v4.storage[3]);
+	*(it=print_reserve_define(io_reserve_type<char_type,char unsigned>,it,v4.storage.front()))=u8'.';
+	*(it=print_reserve_define(io_reserve_type<char_type,char unsigned>,++it,v4.storage[1]))=u8'.';
+	*(it=print_reserve_define(io_reserve_type<char_type,char unsigned>,++it,v4.storage[2]))=u8'.';
+	return print_reserve_define(io_reserve_type<char_type,char unsigned>,++it,v4.storage[3]);
 }
 
 struct ipv6
@@ -319,8 +319,8 @@ inline auto to_socket_address_storage(ipv6 add,std::uint16_t port)
 	std::memcpy(std::addressof(stor),std::addressof(v6st),sizeof(sockaddr_in6));
 	return stor;
 }
-
-constexpr std::size_t print_reserve_size(io_reserve_type_t<ipv6>)
+template<std::integral char_type>
+constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,ipv6>)
 {
 	return 39;
 }
@@ -399,8 +399,8 @@ constexpr Iter print_ipv6(Iter it,ipv6 const& v6)
 
 }
 
-template<std::random_access_iterator Iter>
-constexpr Iter print_reserve_define(io_reserve_type_t<ipv6>,Iter it,ipv6 const& v6)
+template<std::integral char_type,std::random_access_iterator Iter>
+constexpr Iter print_reserve_define(io_reserve_type_t<char_type,ipv6>,Iter it,ipv6 const& v6)
 {
 	return details::print_ipv6(it,v6);
 }
@@ -441,18 +441,18 @@ inline constexpr auto family(address const& v)
 		return family(arg);
 	}, v.variant());
 }
-
-constexpr std::size_t print_reserve_size(io_reserve_type_t<address>)
+template<std::integral char_type>
+constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,address>)
 {
 	return 39;
 }
 
 
-template<std::random_access_iterator Iter>
-constexpr Iter print_reserve_define(io_reserve_type_t<address>,Iter it,address const& v)
+template<std::integral char_type,std::random_access_iterator Iter>
+constexpr Iter print_reserve_define(io_reserve_type_t<char_type,address>,Iter it,address const& v)
 {
 	return std::visit([&](auto&& arg) {
-		return print_reserve_define(io_reserve_type<std::decay_t<decltype(arg)>>,it,arg);
+		return print_reserve_define(io_reserve_type<char_type,std::decay_t<decltype(arg)>>,it,arg);
 	}, v.variant());
 }
 

@@ -101,9 +101,9 @@ inline constexpr void width_unhappy_case(output& out,manip::width<T,ch_type> wdt
 		write(out,buffer.beg_ptr,buffer.end_ptr);
 }
 }
-
+#if 0
 template<fast_io::output_stream output,typename T,std::integral ch_type>
-inline constexpr void print_define(output& out,manip::width<T,ch_type> wdt)
+inline constexpr void print_define(output out,manip::width<T,ch_type> wdt)
 {
 	if constexpr(reserve_output_stream<output>&&reserve_printable<T>)
 	{
@@ -145,5 +145,5 @@ inline constexpr void print_define(output& out,manip::width<T,ch_type> wdt)
 	else
 		details::width_unhappy_case(out,wdt);
 }
-
+#endif
 }

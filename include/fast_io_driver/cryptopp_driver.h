@@ -30,14 +30,14 @@ public:
 	digest_type digest_block;
 };
 
-template<std::size_t N>
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<digest_result<N>>)
+template<std::integral char_type,std::size_t N>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,digest_result<N>>)
 {
 	return N*2;
 }
 
-template<std::random_access_iterator caiter,std::size_t N>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<digest_result<N>>,caiter iter,auto const& i)
+template<std::integral char_type,std::random_access_iterator caiter,std::size_t N>
+inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,digest_result<N>>,caiter iter,auto const& i)
 {
 	for(auto e : i.digest_block)
 	{

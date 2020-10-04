@@ -25,11 +25,11 @@ template<bool ln,typename T,typename U,typename... Args>
 inline constexpr bool test_one()
 {
 	using no_cvref = std::remove_cvref_t<U>;
-	if constexpr(!reserve_printable<no_cvref>)
+	if constexpr(!reserve_printable<typename T::value_type,no_cvref>)
 		return false;
 	else
 	{
-		constexpr auto size{print_reserve_size(io_reserve_type<no_cvref>)+static_cast<std::size_t>(ln)};
+		constexpr auto size{print_reserve_size(io_reserve_type<typename T::value_type,typename T::value_type>)+static_cast<std::size_t>(ln)};
 		return string_hack::local_capacity<T>()<size;
 	}
 }
@@ -40,18 +40,18 @@ inline constexpr T deal_with_one(U t)
 	using value_type = typename T::value_type;
 	using no_cvref = std::remove_cvref_t<U>;
 
-	constexpr auto size{print_reserve_size(io_reserve_type<no_cvref>)+static_cast<std::size_t>(ln)};
+	constexpr auto size{print_reserve_size(io_reserve_type<typename T::value_type,no_cvref>)+static_cast<std::size_t>(ln)};
 	std::array<value_type,size> array;
 	if constexpr(ln)
 	{
-		auto p {print_reserve_define(io_reserve_type<no_cvref>,array.data(),t)};
+		auto p {print_reserve_define(io_reserve_type<typename T::value_type,no_cvref>,array.data(),t)};
 		*p=u8'\n';
 		return T(array.data(),++p);
 	}
 	else
 	{
 		return T(array.data(),
-		print_reserve_define(io_reserve_type<no_cvref>,array.data(),t));
+		print_reserve_define(io_reserve_type<typename T::value_type,no_cvref>,array.data(),t));
 	}
 }
 
@@ -93,7 +93,7 @@ inline constexpr std::size_t scatter_concat_with_reserve_recursive_unit(char_typ
 		*arr=print_scatter_define(print_scatter_type<char_type>,t);
 	else
 	{
-		auto end_ptr = print_reserve_define(io_reserve_type<real_type>,start_ptr,t);
+		auto end_ptr = print_reserve_define(io_reserve_type<char_type,real_type>,start_ptr,t);
 		*arr={start_ptr,(end_ptr-start_ptr)*sizeof(*start_ptr)};
 		start_ptr=end_ptr;
 	}
@@ -166,7 +166,7 @@ inline constexpr void deal_with_scatters_string(std::basic_string<char_type>& st
 template<bool line,std::integral char_type,typename ...Args>
 inline constexpr auto concat_fallback(Args ...args)
 {
-	if constexpr(((scatter_printable<char_type,Args>||reserve_printable<Args>)&&...))
+	if constexpr(((scatter_printable<char_type,Args>||reserve_printable<char_type,Args>)&&...))
 	{
 		std::array<io_scatter_t,sizeof...(Args)> scatters;
 		if constexpr(((scatter_printable<char_type,Args>)&&...))
@@ -196,7 +196,7 @@ inline constexpr auto concat_fallback(Args ...args)
 template<bool line,std::integral char_type,typename U,typename... Args>
 inline constexpr decltype(auto) deal_with_first_is_string_rvalue_reference_decay(U&& u,Args ...args)
 {
-	if constexpr(((scatter_printable<char_type,Args>||reserve_printable<Args>)&&...))
+	if constexpr(((scatter_printable<char_type,Args>||reserve_printable<char_type,Args>)&&...))
 	{
 		std::array<io_scatter_t,sizeof...(Args)> scatters;
 		if constexpr(((scatter_printable<char_type,Args>)&&...))

@@ -14,13 +14,14 @@ none = 0, not_found = -1, regular = 1, directory = 2, symlink = 3,
 block = 4, character = 5, fifo = 6, socket = 7, unknown = 8, remote = 9
 };
 
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<file_type>) noexcept
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,file_type>) noexcept
 {
 	return 20;
 }
 
-template<std::random_access_iterator caiter>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<file_type>,caiter it,file_type f) noexcept
+template<std::integral char_type,std::random_access_iterator caiter>
+inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,file_type>,caiter it,file_type f) noexcept
 {
 	switch(f)
 	{

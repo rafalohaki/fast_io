@@ -38,7 +38,7 @@ inline constexpr bool scan_with_space_temporary_buffer(input& in,T&& t)
 	{
 		return scan_define(in,std::forward<T>(t));
 	}
-	else if constexpr(reserve_size_scanable<no_cvref>)
+	else if constexpr(reserve_size_scanable<typename no_cvref_input::char_type,no_cvref>)
 	{
 		using char_type = typename std::remove_cvref_t<input>::char_type;
 		constexpr std::size_t reserve_size{scan_reserve_size(io_reserve_type<std::remove_cvref_t<T>>)};
@@ -156,15 +156,17 @@ inline constexpr auto normal_scan(input &ip,Args&& ...args)
 
 }
 
-template<reserve_printable T>
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<manip::line<T>>)
+template<std::integral char_type,typename T>
+requires reserve_printable<char_type,T>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manip::line<T>>)
 {
 	constexpr std::size_t sz{print_reserve_size(io_reserve_type<std::remove_cvref_t<T>>)+1};
 	return sz;
 }
 
-template<std::random_access_iterator raiter,reserve_printable T,typename U>
-inline constexpr raiter print_reserve_define(io_reserve_type_t<manip::line<T>>,raiter start,U a)
+template<std::integral char_type,std::random_access_iterator raiter,typename T,typename U>
+requires reserve_printable<char_type,T>
+inline constexpr raiter print_reserve_define(io_reserve_type_t<char_type,manip::line<T>>,raiter start,U a)
 {
 	auto it{print_reserve_define(io_reserve_type<std::remove_cvref_t<T>>,start,a.reference)};
 	*it=u8'\n';

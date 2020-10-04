@@ -3,16 +3,16 @@
 
 namespace fast_io
 {
-
-constexpr std::size_t print_reserve_size(io_reserve_type_t<struct timespec>)
+template<std::integral char_type>
+constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,struct timespec>)
 {
-	return print_reserve_size(io_reserve_type<std::time_t>)+1+print_reserve_size(io_reserve_type<long>);
+	return print_reserve_size(io_reserve_type<char_type,std::time_t>)+1+print_reserve_size(io_reserve_type<char_type,long>);
 }
 
-template<std::random_access_iterator Iter>
-constexpr Iter print_reserve_define(io_reserve_type_t<struct timespec>,Iter it,struct timespec spc)
+template<std::integral char_type,std::random_access_iterator Iter>
+constexpr Iter print_reserve_define(io_reserve_type_t<char_type,struct timespec>,Iter it,struct timespec spc)
 {
-	it=print_reserve_define(io_reserve_type<std::time_t>,it,spc.tv_sec);
+	it=print_reserve_define(io_reserve_type<char_type,std::time_t>,it,spc.tv_sec);
 	unsigned long nsec{static_cast<unsigned long>(spc.tv_nsec)};
 	if(nsec==0UL||999999999UL<nsec)
 		return it;
@@ -25,7 +25,6 @@ constexpr Iter print_reserve_define(io_reserve_type_t<struct timespec>,Iter it,s
 	auto res{it+sz};
 	it=res;
 	--it;
-	using char_type = std::iter_value_t<Iter>;
 	for(std::size_t i{};i!=sz;++i)
 	{
 		unsigned long const temp(nsec/10);
@@ -38,16 +37,16 @@ constexpr Iter print_reserve_define(io_reserve_type_t<struct timespec>,Iter it,s
 
 //We use seconds since seconds is the standard unit of SI
 //Use my own tweaked ryu algorithm for counting seconds
-template<typename Rep,typename Period>
-constexpr std::size_t print_reserve_size(io_reserve_type_t<std::chrono::duration<Rep,Period>>)
+template<std::integral char_type,typename Rep,typename Period>
+constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std::chrono::duration<Rep,Period>>)
 {
-	return print_reserve_size(io_reserve_type<double>)+1;
+	return print_reserve_size(io_reserve_type<char_type,double>)+1;
 }
 
-template<std::random_access_iterator Iter,typename Rep,typename Period>
-constexpr Iter print_reserve_define(io_reserve_type_t<std::chrono::duration<Rep,Period>>,Iter it,std::chrono::duration<Rep,Period> duration)
+template<std::integral char_type,std::random_access_iterator Iter,typename Rep,typename Period>
+constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chrono::duration<Rep,Period>>,Iter it,std::chrono::duration<Rep,Period> duration)
 {
-	*(it=print_reserve_define(io_reserve_type<double>,it,std::chrono::duration_cast<std::chrono::duration<double>>(duration).count()))=u8's';
+	*(it=print_reserve_define(io_reserve_type<char_type,double>,it,std::chrono::duration_cast<std::chrono::duration<double>>(duration).count()))=u8's';
 	return ++it;
 }
 

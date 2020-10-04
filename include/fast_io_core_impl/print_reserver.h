@@ -45,14 +45,14 @@ public:
 };
 
 template<reserve_printable type,std::integral char_type>
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<print_reserver<type,char_type>>)
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,print_reserver<type,char_type>>)
 {
 	return print_reserver<type,char_type>::reserve_size();
 }
 
 template<reserve_printable type,std::integral char_type,std::contiguous_iterator Iter,typename T>
 requires (std::same_as<char_type,std::iter_value_t<Iter>>||(std::same_as<std::iter_value_t<Iter>,char>&&std::same_as<char_type,char8_t>))
-inline constexpr Iter print_reserve_define(io_reserve_type_t<print_reserver<type,char_type>>,Iter beg,T&& ref)
+inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,print_reserver<type,char_type>>,Iter beg,T&& ref)
 {
 #ifdef __cpp_lib_is_constant_evaluated
 	if(std::is_constant_evaluated())
@@ -108,7 +108,7 @@ inline constexpr print_reserver<type,char_type> print_reserve(type const& t)
 {
 	return {t};
 }
-
+#if 0
 template<std::integral char_type=char,reverse_reserve_printable type>
 inline constexpr reverse_print_reserver<type,char_type> reverse_print_reserve(type const& t)
 {
@@ -117,14 +117,14 @@ inline constexpr reverse_print_reserver<type,char_type> reverse_print_reserve(ty
 
 
 template<reserve_printable type,std::integral char_type>
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<reverse_print_reserver<type,char_type>>)
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,reverse_print_reserver<type,char_type>>)
 {
 	return reverse_print_reserver<type,char_type>::reserve_size();
 }
 
 template<reserve_printable type,std::integral char_type,std::contiguous_iterator Iter,typename T>
 requires (std::same_as<char_type,std::iter_value_t<Iter>>||(std::same_as<std::iter_value_t<Iter>,char>&&std::same_as<char_type,char8_t>))
-inline constexpr Iter print_reserve_define(io_reserve_type_t<reverse_print_reserver<type,char_type>>,Iter beg,T&& ref)
+inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,reverse_print_reserver<type,char_type>>,Iter beg,T&& ref)
 {
 #ifdef __cpp_lib_is_constant_evaluated
 	if(std::is_constant_evaluated())
@@ -138,5 +138,5 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<reverse_print_reser
 #endif
 	return beg+ref.size();
 }
-
+#endif
 }

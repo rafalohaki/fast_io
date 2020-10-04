@@ -80,14 +80,14 @@ inline constexpr void print_perm_per_check(raiter i,perms p,perms checked)
 		*i=fillch;
 }
 }
-
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<perms>)
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,perms>)
 {
 	return 9;
 }
 
-template<std::random_access_iterator raiter>
-inline constexpr raiter print_reserve_define(io_reserve_type_t<perms>,raiter iter,perms p)
+template<std::integral char_type,std::random_access_iterator raiter>
+inline constexpr raiter print_reserve_define(io_reserve_type_t<char_type,perms>,raiter iter,perms p)
 {
 	details::perm::print_perm_per_check<0x72>(iter,p,perms::owner_read);
 	details::perm::print_perm_per_check<0x77>(++iter,p,perms::owner_write);

@@ -17,14 +17,15 @@ std::vector<std::size_t> vec(100,2);
 println("vec.begin():",vec.begin()," vec.end()",vec.end());
 */
 
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<void const*>)
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,void const*>)
 {
 	constexpr std::size_t sz{sizeof(std::uintptr_t)*2+4};
 	return sz;
 }
 
-template<std::contiguous_iterator caiter>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<void const*>,caiter iter,void const* v)
+template<std::integral char_type,std::contiguous_iterator caiter>
+inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,void const*>,caiter iter,void const* v)
 {
 	constexpr std::size_t uisz{sizeof(std::uintptr_t)*2+2};
 	constexpr std::size_t uisz1{uisz+2};
@@ -32,15 +33,15 @@ inline constexpr caiter print_reserve_define(io_reserve_type_t<void const*>,cait
 	details::optimize_size::output_unsigned_dummy<uisz,16>(iter+2,bit_cast<std::uintptr_t>(v));	
 	return iter+uisz1;
 }
-
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<std::nullptr_t>)
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std::nullptr_t>)
 {
 	constexpr std::size_t sz{9};
 	return sz;
 }
 
-template<std::contiguous_iterator caiter>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<std::nullptr_t>,caiter iter,std::nullptr_t)
+template<std::integral char_type,std::contiguous_iterator caiter>
+inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,std::nullptr_t>,caiter iter,std::nullptr_t)
 {
 	details::copy_string_literal(u8"(nullptr)",iter);
 	return iter+9;
@@ -94,16 +95,16 @@ inline constexpr void const* print_alias_define(io_alias_t<alias_char_type>,Iter
 		return std::to_address(it);
 }
 
-template<std::integral char_type>
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<manip::chvw<char_type>>)
+template<std::integral char_type,std::integral pchar_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manip::chvw<pchar_type>>)
 {
 	return 1;
 }
 
-template<std::integral char_type,std::contiguous_iterator caiter>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<manip::chvw<char_type>>,caiter iter,auto ch)
+template<std::integral char_type,std::integral pchar_type,std::contiguous_iterator caiter>
+inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manip::chvw<pchar_type>>,caiter iter,auto ch)
 {
-	*iter=static_cast<char_type>(ch.reference);
+	*iter=static_cast<pchar_type>(ch.reference);
 	return ++iter;
 }
 
