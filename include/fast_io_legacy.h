@@ -13,4 +13,3 @@
 #include"fast_io_legacy_impl/c/impl.h"
 #include"fast_io_legacy_impl/cpp/streambuf_io_observer.h"
 #include"fast_io_legacy_impl/cpp/filebuf_file.h"
-#include"fast_io_legacy_impl/fast_io_streambuf.h"

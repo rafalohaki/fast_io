@@ -93,13 +93,11 @@ concept general_scanable=space_scanable<input,T>||scanable<input,T>;
 template<typename output,typename T>
 concept general_printable=reserve_printable<typename output::char_type,T>||printable<output,T>;
 
-#if 0
-template<std::integral char_type,typename T>
+template<typename char_type,typename T>
 concept alias_scanable=std::integral<char_type>&&requires(T&& t)
 {
 	scan_alias_define(io_alias<char_type>,std::forward<T>(t));
 };
-#endif
 
 template<typename char_type,typename T>
 concept alias_printable=std::integral<char_type>&&requires(T&& t)

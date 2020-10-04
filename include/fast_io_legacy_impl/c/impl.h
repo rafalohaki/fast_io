@@ -20,7 +20,7 @@ inline static constexpr char const* value=to_c_mode(om);
 };
 
 }
-#if defined(_GNU_SOURCE) || defined(__MUSL__)
+#if defined(_GNU_SOURCE) || defined(__MUSL__) || defined(__NEED___isoc_va_list)
 template<typename stm>
 requires stream<std::remove_reference_t<stm>>
 class c_io_cookie_functions_t
@@ -659,7 +659,7 @@ public:
 	template<stream stm,typename... Args>
 	basic_c_file_impl(io_cookie_t,cstring_view mode,std::in_place_type_t<stm>,Args&& ...args)
 	{
-#if defined(_GNU_SOURCE) || defined(__MUSL__)
+#if defined(_GNU_SOURCE) || defined(__MUSL__) || defined(__NEED___isoc_va_list)
 		std::unique_ptr<stm> up{std::make_unique<std::remove_cvref_t<stm>>(std::forward<std::remove_cvref_t<stm>>(args)...)};
 		if(!(this->native_handle()=fopencookie(up.get(),mode.c_str(),c_io_cookie_functions<std::remove_cvref_t<stm>>.native_functions)))[[unlikely]]
                			throw_posix_error();
@@ -676,7 +676,7 @@ public:
 	template<stream stm>
 	basic_c_file_impl(io_cookie_t,cstring_view mode,stm& reff)
 	{
-#if defined(_GNU_SOURCE) || defined(__MUSL__)
+#if defined(_GNU_SOURCE) || defined(__MUSL__) || defined(__NEED___isoc_va_list)
 		if(!(this->native_handle()=fopencookie(std::addressof(reff),mode.c_str(),c_io_cookie_functions<stm&>.native_functions)))[[unlikely]]
                			throw_posix_error();
 #elif defined(__BSD_VISIBLE) || defined(__BIONIC__) || defined(__NEWLIB__)
@@ -868,7 +868,7 @@ inline constexpr void const* print_alias_define(io_alias_t<alias_char_type>,basi
 #include"msvcrt.h"
 #elif defined(__GLIBC__)
 #include"glibc.h"
-#elif defined(__MUSL__)
+#elif defined(__MUSL__) || defined(__NEED___isoc_va_list)
 #include"musl.h"
 #elif defined(__BSD_VISIBLE)
 #if defined(__NEWLIB__)
