@@ -59,7 +59,7 @@ public:
 	constexpr basic_filebuf_file()=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	constexpr basic_filebuf_file(native_hd rdb):basic_filebuf_io_observer<CharT,Traits>{rdb}{}
+	constexpr basic_filebuf_file(native_hd fb):basic_filebuf_io_observer<CharT,Traits>{fb}{}
 #if defined(__GLIBCXX__)
 	template<typename T>
 	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,T&& t):
@@ -168,10 +168,10 @@ public:
 			this->native_handle()=nullptr;
 		}
 	}
-	void reset(native_handle_type rdb=nullptr) noexcept
+	void reset(native_handle_type fb=nullptr) noexcept
 	{
 		close_impl();
-		this->native_handle()=rdb;
+		this->native_handle()=fb;
 	}
 	~basic_filebuf_file()
 	{

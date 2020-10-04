@@ -20,27 +20,27 @@ public:
 	using char_type = typename streambuf_type::char_type;
 	using traits_type = typename streambuf_type::traits_type;
 	using native_handle_type = streambuf_type*;
-	native_handle_type rdb{};
+	native_handle_type fb{};
 	inline constexpr native_handle_type& native_handle() const noexcept
 	{
-		return rdb;
+		return fb;
 	}
 	inline constexpr native_handle_type& native_handle() noexcept
 	{
-		return rdb;
+		return fb;
 	}
 	constexpr operator bool() const noexcept
 	{
-		return rdb;
+		return fb;
 	}
 #if defined(__GLIBCXX__) || defined(__LIBCPP_VERSION)  || defined(_MSVC_STL_UPDATE)
 	explicit operator basic_c_io_observer_unlocked<char_type>() const noexcept
 	{
-		return basic_c_io_observer_unlocked<char_type>{details::streambuf_hack::fp_hack(rdb)};
+		return basic_c_io_observer_unlocked<char_type>{details::streambuf_hack::fp_hack(fb)};
 	}
 	explicit operator basic_c_io_observer<char_type>() const noexcept
 	{
-		return basic_c_io_observer<char_type>{details::streambuf_hack::fp_hack(rdb)};
+		return basic_c_io_observer<char_type>{details::streambuf_hack::fp_hack(fb)};
 	}
 	explicit operator basic_posix_io_observer<char_type>() const noexcept
 	{
@@ -65,7 +65,7 @@ template<typename T,std::contiguous_iterator Iter>
 inline Iter read(basic_general_streambuf_io_observer<T> t,Iter begin,Iter end)
 {
 	using char_type = typename T::char_type;
-	return begin+(t.rdb->sgetn(static_cast<char_type*>(static_cast<void*>(std::to_address(begin))),(end-begin)*sizeof(*begin)/sizeof(char_type))*sizeof(char_type)/sizeof(*begin));
+	return begin+(t.fb->sgetn(static_cast<char_type*>(static_cast<void*>(std::to_address(begin))),(end-begin)*sizeof(*begin)/sizeof(char_type))*sizeof(char_type)/sizeof(*begin));
 }
 
 template<typename T,std::contiguous_iterator Iter>
@@ -155,8 +155,8 @@ inline constexpr decltype(auto) zero_copy_out_handle(basic_filebuf_io_observer<c
 template<std::integral ch_type,typename Traits,typename... Args>
 inline auto seek(basic_filebuf_io_observer<ch_type,Traits> h,Args&& ...args)
 {
-	h.rdb->flush();
-	h.rdb->clear();
+	h.fb->flush();
+	h.fb->clear();
 	return seek(static_cast<basic_c_io_observer_unlocked<ch_type>>(h),std::forward<Args>(args)...);
 }
 
@@ -210,7 +210,7 @@ inline constexpr auto type(basic_filebuf_io_observer<ch_type> ciob)
 template<std::integral char_type>
 inline constexpr posix_at_entry at(basic_filebuf_io_observer<char_type> other) noexcept
 {
-	return posix_at_entry{details::fp_to_fd(details::streambuf_hack::fp_hack(other.rdb))};
+	return posix_at_entry{details::fp_to_fd(details::streambuf_hack::fp_hack(other.fb))};
 }
 
 #endif
@@ -218,7 +218,7 @@ inline constexpr posix_at_entry at(basic_filebuf_io_observer<char_type> other) n
 template<std::integral char_type,typename T>
 inline constexpr void const* print_alias_define(io_alias_t<char_type>,basic_general_streambuf_io_observer<T> v)
 {
-	return v.rdb;
+	return v.fb;
 }
 }
 
@@ -247,7 +247,7 @@ inline Iter write(basic_general_streambuf_io_observer<T> t,Iter begin,Iter end)
 		obuffer_set_curr(t,curr+total_count);
 		return end;
 	}
-	return begin+(t.rdb->sputn(static_cast<char_type const*>(static_cast<void const*>(std::to_address(begin))),(end-begin)*sizeof(*begin)/sizeof(char_type)))*sizeof(char_type)/sizeof(*begin);
+	return begin+(t.fb->sputn(static_cast<char_type const*>(static_cast<void const*>(std::to_address(begin))),(end-begin)*sizeof(*begin)/sizeof(char_type)))*sizeof(char_type)/sizeof(*begin);
 }
 
 }
