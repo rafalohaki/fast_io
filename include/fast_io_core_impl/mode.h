@@ -222,7 +222,7 @@ inline constexpr char const* to_c_mode(open_mode m)
 	}
 }
 
-inline constexpr open_mode from_c_mode(std::string_view csm)
+inline constexpr open_mode c_mode(std::string_view csm)
 {
 	open_mode v{};
 	bool extended{};
