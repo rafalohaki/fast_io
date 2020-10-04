@@ -29,18 +29,18 @@ namespace details::streambuf_hack
 {
 
 template<std::size_t pos,typename T>
-inline typename T::char_type*& hack_first_next(T* rdb)
+inline typename T::char_type*& hack_first_next(T* fb)
 {
 	constexpr std::size_t offset(sizeof(std::uintptr_t)	//vptr
 	+sizeof(std::uintptr_t)*2		//_Gfirst,_Pfirst. Why do they set these useless fields??? OOP just encourages bad code tbh
 	+sizeof(std::uintptr_t)*pos);	//Yes to C with concepts. No to C with classes.
 	typename T::char_type** value;
-	memcpy(std::addressof(value),reinterpret_cast<std::byte*>(rdb)+offset,sizeof(typename T::char_type**));
+	memcpy(std::addressof(value),reinterpret_cast<std::byte*>(fb)+offset,sizeof(typename T::char_type**));
 	return *value;
 }
 
 template<std::size_t pos,typename T>
-inline int& hack_last(T* rdb)
+inline int& hack_last(T* fb)
 {
 	constexpr std::size_t offset(sizeof(std::uintptr_t)	//vptr
 	+sizeof(std::uintptr_t)*8		//pass those 8 pointers
@@ -48,33 +48,33 @@ inline int& hack_last(T* rdb)
 	+sizeof(std::uintptr_t)*pos);
 //	printf("offset : %zu\n",offset);
 	int* value;
-	memcpy(std::addressof(value),reinterpret_cast<std::byte*>(rdb)+offset,sizeof(int*));
+	memcpy(std::addressof(value),reinterpret_cast<std::byte*>(fb)+offset,sizeof(int*));
 	return *value;
 }
 
 template<std::size_t position,typename T>
 requires (position<6)
-inline typename T::char_type* hack_buffer_ptr(T* rdb) noexcept
+inline typename T::char_type* hack_buffer_ptr(T* fb) noexcept
 {
 	if constexpr(position==0)
-		return hack_first_next<0>(rdb);
+		return hack_first_next<0>(fb);
 	else if constexpr(position==1)
-		return hack_first_next<4>(rdb);
+		return hack_first_next<4>(fb);
 	else if constexpr(position==2)
-		return hack_first_next<4>(rdb)+hack_last<0>(rdb);
+		return hack_first_next<4>(fb)+hack_last<0>(fb);
 	else if constexpr(position==3)
-		return hack_first_next<1>(rdb);
+		return hack_first_next<1>(fb);
 	else if constexpr(position==4)
-		return hack_first_next<5>(rdb);
+		return hack_first_next<5>(fb);
 	else if constexpr(position==5)
-		return hack_first_next<5>(rdb)+hack_last<1>(rdb);
+		return hack_first_next<5>(fb)+hack_last<1>(fb);
 }
 template<std::size_t position,typename T>
 requires (position==1||position==4)
-inline void hack_set_buffer_curr(T* rdb,typename T::char_type* ptr) noexcept
+inline void hack_set_buffer_curr(T* fb,typename T::char_type* ptr) noexcept
 {
-	auto& pptr{hack_first_next<4+static_cast<std::size_t>(position==4)>(rdb)};
-	hack_last<static_cast<std::size_t>(position==4)>(rdb)-=ptr-pptr;
+	auto& pptr{hack_first_next<4+static_cast<std::size_t>(position==4)>(fb)};
+	hack_last<static_cast<std::size_t>(position==4)>(fb)-=ptr-pptr;
 	pptr=ptr;
 }
 }

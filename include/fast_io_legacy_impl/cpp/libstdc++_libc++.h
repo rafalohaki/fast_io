@@ -39,7 +39,7 @@ namespace details::streambuf_hack
 {
 template<std::size_t position,typename T>
 requires (position<6)
-inline typename T::char_type* hack_buffer_ptr(T* rdb) noexcept
+inline typename T::char_type* hack_buffer_ptr(T* fb) noexcept
 {
 	constexpr std::size_t offset(
 	sizeof(std::uintptr_t)	//vptr
@@ -51,19 +51,19 @@ inline typename T::char_type* hack_buffer_ptr(T* rdb) noexcept
 
 	typename T::char_type* value;
 	memcpy(std::addressof(value),
-	reinterpret_cast<std::byte*>(rdb)+offset,
+	reinterpret_cast<std::byte*>(fb)+offset,
 	sizeof(std::uintptr_t));
 	return value;
 }
 template<std::size_t position,typename T>
-inline void hack_set_buffer_curr(T* rdb,typename T::char_type* ptr) noexcept
+inline void hack_set_buffer_curr(T* fb,typename T::char_type* ptr) noexcept
 {
 	constexpr std::size_t offset(sizeof(std::uintptr_t)
 #ifdef _LIBCPP_VERSION
 	+sizeof(std::locale)
 #endif
 	+position*sizeof(std::uintptr_t));
-	memcpy(reinterpret_cast<std::byte*>(rdb)+offset,std::addressof(ptr),sizeof(std::uintptr_t));
+	memcpy(reinterpret_cast<std::byte*>(fb)+offset,std::addressof(ptr),sizeof(std::uintptr_t));
 }
 }
 
