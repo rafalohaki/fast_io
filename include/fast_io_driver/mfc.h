@@ -115,9 +115,7 @@ public:
 	basic_mfc_file()=default;
 	basic_mfc_file(native_handle_type hd):basic_mfc_io_handle<T>(hd){}
 	basic_mfc_file(native_interface_t,native_handle_type val):basic_mfc_io_handle<T>(val){}
-	template<typename... Args>
-	requires(sizeof...(Args)!=0)
-	basic_mfc_file(basic_win32_io_handle<char_type>&& hd,Args&& ...):
+	basic_mfc_file(basic_win32_io_handle<char_type>&& hd,open_mode om):
 		basic_mfc_io_handle<T>(new CFile(hd.native_handle()))
 	{
 		hd.release();
