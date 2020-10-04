@@ -92,7 +92,7 @@ From microsoft's document. _fdopen only supports
 	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::binary):
 		return "a+b";
 	default:
-		throw_posix_error(EINVAL);
+		throw_posix_error(ENOTSUP);
 	}
 #else
 	return to_c_mode(m);

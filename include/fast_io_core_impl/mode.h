@@ -84,6 +84,7 @@ sync = 1 << 25,
 system = 1 << 26,
 temporary = 1 << 27,
 trunc = 1 << 28
+
 };
 
 constexpr open_mode operator&(open_mode x, open_mode y) noexcept
@@ -116,14 +117,7 @@ inline constexpr open_mode& operator|=(open_mode& x, open_mode y) noexcept{retur
 
 inline constexpr open_mode& operator^=(open_mode& x, open_mode y) noexcept{return x=x^y;}
 
-template<open_mode pm>
-struct open_interface_t
-{
-inline constexpr static open_mode value{pm};
-};
 
-template<open_mode pm>
-inline constexpr open_interface_t<pm> open_interface{};
 
 inline constexpr open_mode c_supported(open_mode m) noexcept
 {
@@ -224,7 +218,7 @@ inline constexpr char const* to_c_mode(open_mode m)
 		return "a+xb";
 	break;
 	default:
-		throw_posix_error(EINVAL);
+		throw_posix_error(ENOTSUP);
 	}
 }
 
@@ -262,7 +256,7 @@ inline constexpr open_mode from_c_mode(std::string_view csm)
 			case 0x2b:
 			break;
 			default:
-				throw_posix_error(EINVAL);
+				throw_posix_error(ENOTSUP);
 		}
 	return v;
 }

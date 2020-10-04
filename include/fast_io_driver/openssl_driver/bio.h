@@ -193,24 +193,8 @@ public:
 	basic_bio_file(io_cookie_t,stm&& sm):basic_bio_file<char_type>(io_cookie,std::in_place_type<stm>,std::move(sm)){}
 
 
-	template<fast_io::open_mode om>
-	basic_bio_file(basic_c_io_handle<char_type>&& bmv,open_interface_t<om>):
-		basic_bio_io_observer<char_type>(BIO_new_fp(bmv.native_handle(),details::bio_new_fp_flags<om,true>::value))
-	{
-		detect_open_failure();
-		bmv.release();
-	}
-
 	basic_bio_file(basic_c_io_handle<char_type>&& bmv,fast_io::open_mode om):
 		basic_bio_io_observer<char_type>(BIO_new_fp(bmv.native_handle(),details::calculate_bio_new_fp_flags<true>(om)))
-	{
-		detect_open_failure();
-		bmv.release();
-	}
-
-	template<fast_io::open_mode om>
-	basic_bio_file(basic_posix_io_handle<char_type>&& bmv,open_interface_t<om>):
-		basic_bio_io_observer<char_type>(BIO_new_fd(bmv.native_handle(),details::bio_new_fp_flags<om,true>::value))
 	{
 		detect_open_failure();
 		bmv.release();
@@ -226,27 +210,18 @@ public:
 
 #if defined(_WIN32)
 	template<typename... Args>
-	basic_bio_file(basic_win32_io_handle<char_type>&& bmv,Args&& ...args):
-		basic_bio_file(basic_posix_file(std::move(bmv),std::forward<Args>(args)...),std::forward<Args>(args)...)
+	basic_bio_file(basic_win32_io_handle<char_type>&& bmv,fast_io::open_mode om):
+		basic_bio_file(basic_posix_file(std::move(bmv),om),om)
 	{
 	}
 #endif
-	template<open_mode om,typename... Args>
-	basic_bio_file(cstring_view file,open_interface_t<om>,Args&& ...args):
-		basic_bio_file(basic_c_file<char_type>(file,open_interface<om>,std::forward<Args>(args)...),open_interface<om>)
-	{}
 	template<typename... Args>
-	basic_bio_file(cstring_view file,open_mode om,Args&& ...args):
-		basic_bio_file(basic_c_file<char_type>(file,om,std::forward<Args>(args)...),om)
+	basic_bio_file(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_bio_file(basic_c_file<char_type>(file,om,pm),om)
 	{}
 
-	template<open_mode om,typename... Args>
-	basic_bio_file(io_at_t,native_io_observer niob,cstring_view file,open_interface_t<om>,Args&& ...args):
-		basic_bio_file(basic_c_file<char_type>(at,niob,file,open_interface<om>,std::forward<Args>(args)...),open_interface<om>)
-	{}
-	template<typename... Args>
-	basic_bio_file(io_at_t,native_io_observer niob,cstring_view file,open_mode om,Args&& ...args):
-		basic_bio_file(basic_c_file<char_type>(at,niob,file,om,std::forward<Args>(args)...),om)
+	basic_bio_file(native_at_entry nate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_bio_file(basic_c_file<char_type>(nate,file,om,pm),om)
 	{}
 
 

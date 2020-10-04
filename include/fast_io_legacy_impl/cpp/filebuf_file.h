@@ -31,12 +31,6 @@ struct fstream_open_mode
 	inline static constexpr auto value=calculate_fstream_file_open_mode(om);
 };
 
-template<open_mode om>
-inline constexpr std::ios::openmode calculate_fstream_open_value(open_interface_t<om>)
-{
-	return details::fstream_open_mode<om>::value;
-}
-
 inline constexpr std::ios::openmode calculate_fstream_open_value(open_mode om)
 {
 	return calculate_fstream_file_open_mode(om);

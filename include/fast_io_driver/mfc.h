@@ -122,13 +122,11 @@ public:
 	{
 		hd.release();
 	}
-	template<open_mode om,typename... Args>
-	basic_mfc_file(cstring_view file,open_interface_t<om>,Args&& ...args):
-		basic_mfc_file(basic_win32_file<char_type>(file,open_interface<om>,std::forward<Args>(args)...),open_interface<om>)
-	{}
-	template<typename... Args>
-	basic_mfc_file(cstring_view file,open_mode om,Args&& ...args):
+	basic_mfc_file(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_mfc_file(basic_win32_file<char_type>(file,om,std::forward<Args>(args)...),om)
+	{}
+	basic_mfc_file(native_at_entry nate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_mfc_file(basic_win32_file<char_type>(nate,file,om,std::forward<Args>(args)...),om)
 	{}
 	basic_mfc_file(basic_mfc_file const&)=default;
 	basic_mfc_file& operator=(basic_mfc_file const&)=default;
