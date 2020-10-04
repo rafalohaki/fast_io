@@ -12,7 +12,7 @@ namespace details
 
 template<std::unsigned_integral return_type>
 requires (std::same_as<return_type,std::uint32_t>||std::same_as<return_type,std::uint64_t>)
-inline constexpr return_type jenkins_hash_impl(cstring_view k,std::uint32_t pc,[[maybe_unused]] std::uint32_t pb)
+inline constexpr return_type jenkins_hash_impl(std::string_view k,std::uint32_t pc,[[maybe_unused]] std::uint32_t pb)
 {
 	std::uint32_t a{0xdeadbeef + static_cast<std::uint32_t>(k.size()) + pc};
 	std::uint32_t b{a},c{a};
@@ -133,22 +133,22 @@ inline constexpr return_type jenkins_hash_impl(cstring_view k,std::uint32_t pc,[
 
 }
 
-inline constexpr std::uint32_t jenkins_hash(cstring_view k,std::uint32_t pc)
+inline constexpr std::uint32_t jenkins_hash(std::string_view k,std::uint32_t pc)
 {
 	return details::jenkins_hash_impl<std::uint32_t>(k,pc,0);
 }
 
-inline constexpr std::uint64_t jenkins_hash(cstring_view k,std::uint32_t pc,std::uint32_t pb)
+inline constexpr std::uint64_t jenkins_hash(std::string_view k,std::uint32_t pc,std::uint32_t pb)
 {
 	return details::jenkins_hash_impl<std::uint64_t>(k,pc,pb);
 }
 
-inline constexpr std::uint32_t jenkins_hash32(cstring_view k)
+inline constexpr std::uint32_t jenkins_hash32(std::string_view k)
 {
 	return details::jenkins_hash_impl<std::uint32_t>(k,0,0);
 }
 
-inline constexpr std::uint64_t jenkins_hash64(cstring_view k)
+inline constexpr std::uint64_t jenkins_hash64(std::string_view k)
 {
 	return details::jenkins_hash_impl<std::uint64_t>(k,0,0);
 }

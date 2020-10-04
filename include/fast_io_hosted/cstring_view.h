@@ -26,7 +26,17 @@ public:
 	using typename std::basic_string_view<ch_type,tr_type>::size_type;
 	using typename std::basic_string_view<ch_type,tr_type>::difference_type;
 	constexpr basic_cstring_view() noexcept=default;
-	constexpr basic_cstring_view(const_pointer cstr) noexcept:string_view_type(cstr){}
+	template<std::size_t len>
+	requires (len!=0)
+	constexpr basic_cstring_view(ch_type const (&cstr)[len]) noexcept:string_view_type(cstr,len-1)
+	{
+		assert(cstr[len-1]==0);
+	}
+	template<typename T>
+	requires (std::convertible_to<T,const_pointer>&&!std::is_array_v<T>)
+	constexpr basic_cstring_view(T const& cstr) noexcept:string_view_type(cstr)
+	{
+	}
 	constexpr basic_cstring_view(null_terminated_t, const_pointer c, size_type len) noexcept:string_view_type(c,len){}
 	constexpr basic_cstring_view(null_terminated_t, string_view_type sv) noexcept:string_view_type(sv){}
 
