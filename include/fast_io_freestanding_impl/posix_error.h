@@ -31,7 +31,7 @@ public:
 	}
 };
 
-inline void throw_posix_error()
+[[noreturn]] inline void throw_posix_error()
 {
 #ifdef __cpp_exceptions
 	throw posix_error();
@@ -39,7 +39,7 @@ inline void throw_posix_error()
 	fast_terminate();
 #endif
 }
-inline void throw_posix_error(int err)
+[[noreturn]] inline void throw_posix_error(int err)
 {
 #ifdef __cpp_exceptions
 	throw posix_error(err);

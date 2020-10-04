@@ -11,15 +11,94 @@
 namespace fast_io
 {
 
-namespace details
+inline constexpr open_mode native_c_supported(open_mode m) noexcept
 {
-template<open_mode om>
-struct c_open_mode
-{
-inline static constexpr char const* value=to_c_mode(om);
-};
-
+#ifdef _WIN32
+using utype = typename std::underlying_type<open_mode>::type;
+constexpr auto c_supported_values{static_cast<utype>(open_mode::binary)|
+	static_cast<utype>(open_mode::out)|
+	static_cast<utype>(open_mode::app)|
+	static_cast<utype>(open_mode::in)|
+	static_cast<utype>(open_mode::trunc)};
+return static_cast<open_mode>(static_cast<utype>(m)&c_supported_values);
+#else
+return c_supported(m);
+#endif
 }
+inline constexpr char const* to_native_c_mode(open_mode m)
+{
+#ifdef _WIN32
+/*
+https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/fdopen-wfdopen?view=vs-2019
+From microsoft's document. _fdopen only supports
+
+"r"	Opens for reading. If the file does not exist or cannot be found, the fopen call fails.
+"w"	Opens an empty file for writing. If the given file exists, its contents are destroyed.
+"a"	Opens for writing at the end of the file (appending). Creates the file if it does not exist.
+"r+"	Opens for both reading and writing. The file must exist.
+"w+"	Opens an empty file for both reading and writing. If the file exists, its contents are destroyed.
+"a+"	Opens for reading and appending. Creates the file if it does not exist.
+
+"x" or "b" will throw EINVAL which is does not satisfy POSIX, C11 and C++17 standard.
+*/
+	using utype = typename std::underlying_type<open_mode>::type;
+	switch(static_cast<utype>(native_c_supported(m)))
+	{
+//Action if file already exists;	Action if file does not exist;	c-style mode;	Explanation
+//Read from start;	Failure to open;	"r";	Open a file for reading
+	case static_cast<utype>(open_mode::in):
+		return "r";
+//Destroy contents;	Create new;	"w";	Create a file for writing
+	case static_cast<utype>(open_mode::out):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::trunc):
+		return "w";
+//Append to file;	Create new;	"a";	Append to a file
+	case static_cast<utype>(open_mode::app):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app):
+		return "a";
+//Read from start;	Error;	"r+";		Open a file for read/write
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in):
+		return "r+";
+//Destroy contents;	Create new;	"w+";	Create a file for read/write
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::trunc):
+		return "w+";
+//Write to end;	Create new;	"a+";	Open a file for read/write
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app):
+	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app):
+		return "a+";
+
+//binary support
+
+//Action if file already exists;	Action if file does not exist;	c-style mode;	Explanation
+//Read from start;	Failure to open;	"rb";	Open a file for reading
+	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::binary):
+		return "rb";
+//Destroy contents;	Create new;	"wb";	Create a file for writing
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::binary):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::binary):
+		return "wb";
+//Append to file;	Create new;	"ab";	Append to a file
+	case static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::binary):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::binary):
+		return "ab";
+//Read from start;	Error;	"r+b";		Open a file for read/write
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::binary):
+		return "r+b";
+//Destroy contents;	Create new;	"w+b";	Create a file for read/write
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::binary):
+		return "w+b";
+//Write to end;	Create new;	"a+b";	Open a file for read/write
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::binary):
+	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::binary):
+		return "a+b";
+	default:
+		throw_posix_error(EINVAL);
+	}
+#else
+	return to_c_mode(m);
+#endif
+}
+
 #if defined(_GNU_SOURCE) || defined(__MUSL__) || defined(__NEED___isoc_va_list)
 template<typename stm>
 requires stream<std::remove_reference_t<stm>>
@@ -629,14 +708,14 @@ public:
 	}
 
 	basic_c_file_impl(basic_posix_io_handle<char_type>&& posix_handle,open_mode om):
-		basic_c_file_impl(native_interface,posix_handle.fd,to_c_mode(om))
+		basic_c_file_impl(native_interface,posix_handle.fd,to_native_c_mode(om))
 	{
 		posix_handle.release();
 	}
 #if defined(_WIN32)
 //windows specific. open posix file from win32 io handle
 	basic_c_file_impl(basic_win32_io_handle<char_type>&& win32_handle,open_mode om):
-		basic_c_file_impl(basic_posix_file<char_type>(std::move(win32_handle),om),to_c_mode(om))
+		basic_c_file_impl(basic_posix_file<char_type>(std::move(win32_handle),om),to_native_c_mode(om))
 	{
 	}
 #endif

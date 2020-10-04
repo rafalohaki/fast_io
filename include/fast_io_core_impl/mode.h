@@ -137,7 +137,9 @@ constexpr auto c_supported_values{static_cast<utype>(open_mode::binary)|
 return static_cast<open_mode>(static_cast<utype>(m)&c_supported_values);
 }
 
-inline constexpr char const* to_c_mode(open_mode const& m)
+[[noreturn]] inline void throw_posix_error(int);
+
+inline constexpr char const* to_c_mode(open_mode m)
 {
 	using utype = typename std::underlying_type<open_mode>::type;
 	switch(static_cast<utype>(c_supported(m)))
@@ -222,16 +224,11 @@ inline constexpr char const* to_c_mode(open_mode const& m)
 		return "a+xb";
 	break;
 	default:
-#ifdef __cpp_exceptions
-		throw fast_io_text_error("unknown open mode");
-#else
-		fast_terminate();
-#endif
+		throw_posix_error(EINVAL);
 	}
 }
 
-template<std::integral ch_type>
-inline auto constexpr from_c_mode(std::basic_string_view<ch_type> csm)
+inline constexpr open_mode from_c_mode(std::string_view csm)
 {
 	open_mode v{};
 	bool extended{};
@@ -265,11 +262,7 @@ inline auto constexpr from_c_mode(std::basic_string_view<ch_type> csm)
 			case 0x2b:
 			break;
 			default:
-#ifdef __cpp_exceptions
-				throw fast_io_text_error("unknown C-style open mode");
-#else
-				fast_terminate();
-#endif
+				throw_posix_error(EINVAL);
 		}
 	return v;
 }

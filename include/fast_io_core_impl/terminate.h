@@ -4,7 +4,7 @@ namespace fast_io
 {
 
 
-inline void fast_terminate()
+[[noreturn]] inline void fast_terminate() noexcept
 {
 #ifndef FAST_IO_NOT_TERMINATE
 //https://llvm.org/doxygen/Compiler_8h_source.html
