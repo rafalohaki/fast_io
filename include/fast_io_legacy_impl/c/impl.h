@@ -473,6 +473,8 @@ https://www.gnu.org/software/libc/manual/html_node/File-Positioning.html
 	if(
 #if defined(_WIN32)
 		_fseeki64
+#elif defined(__NEWLIB__)
+		fseek
 #else
 		fseeko64
 #endif
@@ -481,6 +483,8 @@ https://www.gnu.org/software/libc/manual/html_node/File-Positioning.html
 	auto val{
 #if defined(_WIN32)
 		_ftelli64
+#elif defined(__NEWLIB__)
+		ftell
 #else
 		ftello64 
 #endif
@@ -874,7 +878,7 @@ inline constexpr io_async_overlapped_t<basic_posix_io_observer<char_type>> async
 {
 	return {};
 }
-
+#if defined(_WIN32) || defined(__linux__)
 template<std::integral char_type,typename... Args>
 requires async_output_stream<basic_posix_io_observer<char_type>>
 inline void async_write_callback(io_async_observer ioa,basic_c_io_observer<char_type> h,Args&& ...args)
@@ -902,7 +906,7 @@ inline void async_read_callback(io_async_observer ioa,basic_c_io_observer_unlock
 {
 	async_read_callback(ioa,static_cast<basic_posix_io_observer<char_type>>(h),std::forward<Args>(args)...);
 }
-
+#endif
 using c_io_observer_unlocked=basic_c_io_observer_unlocked<char>;
 using c_io_observer=basic_c_io_observer<char>;
 using c_io_handle_unlocked = basic_c_io_handle_unlocked<char>;
@@ -955,7 +959,7 @@ inline constexpr void const* print_alias_define(io_alias_t<alias_char_type>,basi
 #include"musl.h"
 #elif defined(__BSD_VISIBLE)
 #if defined(__NEWLIB__)
-#ifndef (__CUSTOM_FILE_IO__)
+#ifndef __CUSTOM_FILE_IO__
 #include"newlib.h"
 #endif
 #else

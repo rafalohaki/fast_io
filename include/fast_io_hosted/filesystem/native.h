@@ -10,6 +10,7 @@
 
 namespace fast_io
 {
+#ifndef __NEWLIB__
 template<std::integral char_type>
 requires std::same_as<char_type,char>||std::same_as<char_type,native_char_type>
 inline constexpr auto print_alias_define(io_alias_t<char_type> ch_type,directory_entry dir) noexcept
@@ -41,4 +42,5 @@ inline auto print_alias_define(io_alias_t<char_type> ch_type,std::filesystem::pa
 }
 #endif
 
+#endif
 }
