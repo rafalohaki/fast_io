@@ -27,14 +27,14 @@ struct basic_file_wrapper:public T
 };
 
 template<input_stream T>
-using input_file_wrapper = basic_file_wrapper<T,open_mode::in|open_mode::binary>;
+using input_file_wrapper = basic_file_wrapper<T,open_mode::in>;
 template<output_stream T>
-using output_file_wrapper = basic_file_wrapper<T,open_mode::out|open_mode::binary>;
+using output_file_wrapper = basic_file_wrapper<T,open_mode::out>;
 template<io_stream T>
-using io_file_wrapper = basic_file_wrapper<T,open_mode::in|open_mode::out|open_mode::binary>;
+using io_file_wrapper = basic_file_wrapper<T,open_mode::in|open_mode::out>;
 
 template<stream T>
-using io_dir_file_wrapper = basic_file_wrapper<T,open_mode::in|open_mode::directory|open_mode::large_file|open_mode::binary>;
+using io_dir_file_wrapper = basic_file_wrapper<T,open_mode::in|open_mode::directory>;
 
 
 }

@@ -98,30 +98,37 @@ inline constexpr int calculate_posix_open_mode(open_mode value)
 	if((value&open_mode::binary)!=open_mode::none)
 		mode |= O_BINARY;
 #endif
+	if((value&open_mode::creat)!=open_mode::none)
+		mode |= O_CREAT;
 	if((value&open_mode::excl)!=open_mode::none)
-		mode |= O_CREAT | O_EXCL;
+		mode |= O_EXCL;
 	if((value&open_mode::trunc)!=open_mode::none)
 		mode |= O_TRUNC;
 #ifdef O_DIRECT
 	if((value&open_mode::direct)!=open_mode::none)
 		mode |= O_DIRECT;
 #endif
-
 #ifdef O_SYNC
 	if((value&open_mode::sync)!=open_mode::none)
 		mode |= O_SYNC;
 #endif
-/*
 	if((value&open_mode::directory)!=open_mode::none)
 #ifdef O_DIRECTORY
 		mode |= O_DIRECTORY;
 #else
-		throw_posix_error(EOPNOTSUPP);
+		throw_posix_error(ENOTSUP);
 #endif
-*/
+#ifdef O_TTY_INIT
+	if((value&open_mode::tty_init)!=open_mode::none)
+		mode != O_TTY_INIT;
+#endif
 #ifdef O_NOCTTY
 	if((value&open_mode::no_ctty)!=open_mode::none)
 		mode |= O_NOCTTY;
+#endif
+#ifdef O_PATH
+	if((value&open_mode::path)!=open_mode::none)
+		mode |= O_PATH;
 #endif
 #ifdef O_NOATIME
 	if((value&open_mode::no_atime)!=open_mode::none)
@@ -131,9 +138,8 @@ inline constexpr int calculate_posix_open_mode(open_mode value)
 #ifdef O_NONBLOCK
 		mode |= O_NONBLOCK;
 #else
-		throw_posix_error(EOPNOTSUPP);
+		throw_posix_error(ENOTSUP);
 #endif
-
 #ifdef _O_TEMPORARY
 	if((value&open_mode::temporary)!=open_mode::none)
 		mode |= _O_TEMPORARY;
@@ -149,8 +155,7 @@ inline constexpr int calculate_posix_open_mode(open_mode value)
 		mode |= _O_RANDOM;
 #endif
 #ifdef O_LARGEFILE
-	if((value&open_mode::large_file)!=open_mode::none)
-		mode |= O_LARGEFILE;
+	mode |= O_LARGEFILE;
 #endif
 	using utype = typename std::underlying_type<open_mode>::type;
 	constexpr auto supported_values{static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::in)};
@@ -194,8 +199,7 @@ mode	openmode & ~ate	Action if file already exists	Action if file does not exist
 		return mode | O_RDWR | O_CREAT | O_APPEND;
 //Destroy contents;	Error;	"wx";	Create a file for writing
 	default:
-		throw_posix_error(EINVAL);
-		return 0;
+		throw_posix_error(ENOTSUP);
 	}
 }
 template<open_mode om>

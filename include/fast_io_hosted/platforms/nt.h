@@ -108,6 +108,13 @@ does not exist
 	else
 		mode.CreateDisposition=0x00000001;//OPEN_EXISTING	=>	FILE_OPEN		(0x00000001)
 
+	if((value&open_mode::creat)!=open_mode::none)
+	{
+		if((value&open_mode::excl)!=open_mode::none)
+			mode.CreateDisposition=0x00000002;//CREATE_NEW	=>	FILE_CREATE		(0x00000002)
+		else
+			mode.CreateDisposition=0x00000003;//OPEN_ALWAYS	=>	FILE_OPEN_IF		(0x00000003)
+	}
 
 	if((value&open_mode::direct)!=open_mode::none)
 		mode.CreateOptions |= 0x00000008;//FILE_NO_INTERMEDIATE_BUFFERING
@@ -168,7 +175,7 @@ does not exist
 	if((value&open_mode::no_recall)!=open_mode::none)
 		mode.CreateOptions|=0x00400000;	//FILE_OPEN_NO_RECALL 0x00400000
 
-	if((value&open_mode::posix_semantics)==open_mode::none)
+	if((value&open_mode::case_insensitive)==open_mode::none)
 		mode.ObjAttributes|=0x00000040;	//OBJ_CASE_INSENSITIVE
 	if((value&open_mode::inherit)!=open_mode::none)
 		mode.ObjAttributes|=0x00000002;	//OBJ_INHERIT

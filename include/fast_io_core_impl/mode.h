@@ -54,37 +54,69 @@ enum class shut{in,out,io};
 
 enum class open_mode:std::uint32_t
 {
-none = 0,
-app = 1 << 0,
-archive = 1 << 1,
-//ate = 1 << 2,
-binary = 1 << 3,
-compressed = 1 << 4,
-creat = 1 << 5,
-direct = 1 << 6,
-directory = 1 << 7,
-encrypted = 1 << 8,
-excl = 1 << 9,
-follow = 1 << 10,
-hidden = 1 << 11,
-in = 1 << 12,
-inherit = 1 << 13,
-large_file = 1 << 14,
-no_atime = 1 << 15,
-no_block = 1 << 16,
-no_ctty = 1 << 17,
-no_recall = 1 << 18,
-normal = 1 << 19,
-offline = 1 << 20,
-out = 1 << 21,
-posix_semantics = 1 << 22,
-random_access = 1 << 23,
-session_aware = 1 << 24,
-sync = 1 << 25,
-system = 1 << 26,
-temporary = 1 << 27,
-trunc = 1 << 28
-
+none=0,
+//	indicates that the open mode has not been evaluated yet
+app=1<<0,
+//	*["a"]seek to the end of stream before each write.
+archive=1<<1,
+//	[Windows]FILE_ATTRIBUTE_ARCHIVE 0x20
+binary=1<<2,
+//	["b"]open in binary mode. native_file is always binary.
+//	The text mode is provided by the POSIX layer, while native_file is win32_file or nt_file, which ignores this toggle.
+case_insensitive=1<<3,
+//	[Windows]NT OBJ_CASE_INSENSITIVE 0x00000040L
+compressed=1<<4,
+//	[Windows]FILE_ATTRIBUTE_COMPRESSED 0x800
+creat=1<<5,
+//	*POSIX O_CREAT
+direct=1<<6,
+//	*POSIX O_DIRECT
+directory=1<<7,
+//	*POSIX O_DIRECTORY.
+encrypted=1<<8,
+//	[Windows]FILE_ATTRIBUTE_ENCRYPTED 0x4000
+excl=1<<9,
+//	*["x"]POSIX O_EXCL
+follow=1<<10,
+//	*Inverse of POSIX O_NOFOLLOW.
+hidden=1<<11,
+//	[Windows]FILE_ATTRIBUTE_HIDDEN 0x2
+in=1<<12,
+//	*["r"]open for reading.
+inherit=1<<13,
+//	*Inverse of POSIX O_CLOEXEC.
+no_atime=1<<14,
+//	[Linux]O_NOATIME
+no_block=1<<15,
+//	*POSIX O_NONBLOCK
+no_ctty=1<<16,
+//	[Linux]O_NOCTTY
+no_recall=1<<17,
+//	[Windows]FILE_FLAG_OPEN_NO_RECALL 0x00100000
+normal=1<<18,
+//	[Windows]FILE_ATTRIBUTE_NORMAL 0x80
+offline=1<<19,
+//	[Windows]FILE_ATTRIBUTE_OFFLINE 0x1000
+out=1<<20,
+//	*["w"]open for writing.
+path=1<<21,
+//	[Linux]O_PATH
+random_access=1<<22,
+//	[Windows]FILE_FLAG_RANDOM_ACCESS 0x10000000
+search=1<<23,
+//	POSIX O_SEARCH
+session_aware=1<<24,
+//	[Windows]FILE_FLAG_SESSION_AWARE 0x00800000
+sync=1<<25,
+//	*POSIX O_SYNC
+system=1<<26,
+//	[Windows]FILE_ATTRIBUTE_SYSTEM 0x4
+temporary=1<<27,
+//	*[Linux]O_TMPFILE. [Windows]FILE_ATTRIBUTE_TEMPORARY 0x100 + FILE_FLAG_DELETE_ON_CLOSE 0x04000000
+trunc=1<<28,
+//	*POSIX O_TRUNC
+tty_init=1<<29,
+//	POSIX O_TTY_INIT
 };
 
 constexpr open_mode operator&(open_mode x, open_mode y) noexcept

@@ -198,7 +198,13 @@ does not exist
 		mode.dwCreationDisposition=4;//OPEN_ALWAYS
 	else
 		mode.dwCreationDisposition=3;//OPEN_EXISTING
-
+	if((value&open_mode::creat)!=open_mode::none)
+	{
+		if((value&open_mode::excl)!=open_mode::none)
+			mode.dwCreationDisposition=1;//CREATE_NEW
+		else
+			mode.dwCreationDisposition=4;//OPEN_ALWAYS
+	}
 	if((value&open_mode::direct)!=open_mode::none)
 		mode.dwFlagsAndAttributes|=0x20000000;//FILE_FLAG_NO_BUFFERING
 	if((value&open_mode::sync)!=open_mode::none)
@@ -248,7 +254,7 @@ does not exist
 		mode.dwFlagsAndAttributes|=0x08000000;		//FILE_FLAG_RANDOM_ACCESS
 	if((value&open_mode::no_recall)!=open_mode::none)
 		mode.dwFlagsAndAttributes|=0x00100000;					//FILE_FLAG_OPEN_NO_RECALL
-	if((value&open_mode::posix_semantics)!=open_mode::none)
+	if((value&open_mode::case_insensitive)==open_mode::none)
 		mode.dwFlagsAndAttributes|=0x01000000;					//FILE_FLAG_POSIX_SEMANTICS
 	if((value&open_mode::session_aware)!=open_mode::none)
 		mode.dwFlagsAndAttributes|=0x00800000;					//FILE_FLAG_SESSION_AWARE
