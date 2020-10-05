@@ -249,6 +249,10 @@ inline constexpr char const* to_c_mode(open_mode m) noexcept
 	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::binary):
 		return "a+xb";
 	break;
+	case 0:
+		if((m&open_mode::directory)!=open_mode::none)
+			return "r";
+		[[fallthrough]];
 	default:
 		return "";
 	}
