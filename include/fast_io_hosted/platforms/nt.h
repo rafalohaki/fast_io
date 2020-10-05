@@ -24,7 +24,6 @@ inline constexpr nt_open_mode calculate_nt_open_mode(open_mode value,perms pm)
 {
 	nt_open_mode mode;
 	bool generic_write{};
-	bool generic_read{};
 	if((value&open_mode::app)!=open_mode::none)
 		mode.DesiredAccess|=4;		//FILE_APPEND_DATA
 	else if((value&open_mode::out)!=open_mode::none)
@@ -35,7 +34,6 @@ inline constexpr nt_open_mode calculate_nt_open_mode(open_mode value,perms pm)
 	if((value&open_mode::in)!=open_mode::none)
 	{
 		mode.DesiredAccess|=0x120089;	//FILE_GENERIC_READ
-		generic_read=true;
 		if((value&open_mode::out)!=open_mode::none&&((value&open_mode::app)!=open_mode::none&&(value&open_mode::trunc)!=open_mode::none))
 		{
 			mode.DesiredAccess|=0x120116;
@@ -115,7 +113,6 @@ does not exist
 		else
 			mode.CreateDisposition=0x00000003;//OPEN_ALWAYS	=>	FILE_OPEN_IF		(0x00000003)
 	}
-
 	if((value&open_mode::direct)!=open_mode::none)
 		mode.CreateOptions |= 0x00000008;//FILE_NO_INTERMEDIATE_BUFFERING
 	if((value&open_mode::sync)!=open_mode::none)
@@ -159,8 +156,12 @@ does not exist
 		mode.CreateOptions|=0x00000040;	//FILE_NON_DIRECTORY_FILE 0x00000040
 	else
 	{
-		if(generic_read)
-			mode.CreateOptions |= 0x00004000;		//FILE_OPEN_FOR_BACKUP_INTENT
+		if(mode.CreateDisposition==0)
+		{
+			mode.DesiredAccess|=0x120089;	//FILE_GENERIC_READ
+			mode.CreateDisposition=0x00000001;	//OPEN_EXISTING
+		}
+		mode.CreateOptions |= 0x00004000;		//FILE_OPEN_FOR_BACKUP_INTENT
 		if(generic_write)
 			mode.CreateOptions |= 0x00000400;		//FILE_OPEN_REMOTE_INSTANCE
 	}

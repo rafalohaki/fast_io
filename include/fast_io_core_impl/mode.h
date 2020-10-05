@@ -165,7 +165,7 @@ return static_cast<open_mode>(static_cast<utype>(m)&c_supported_values);
 
 [[noreturn]] inline void throw_posix_error(int);
 
-inline constexpr char const* to_c_mode(open_mode m)
+inline constexpr char const* to_c_mode(open_mode m) noexcept
 {
 	using utype = typename std::underlying_type<open_mode>::type;
 	switch(static_cast<utype>(c_supported(m)))
@@ -250,11 +250,11 @@ inline constexpr char const* to_c_mode(open_mode m)
 		return "a+xb";
 	break;
 	default:
-		throw_posix_error(ENOTSUP);
+		return "";
 	}
 }
 
-inline constexpr open_mode c_mode(std::string_view csm)
+inline constexpr open_mode c_mode(std::string_view csm) noexcept
 {
 	open_mode v{};
 	bool extended{};
@@ -287,8 +287,6 @@ inline constexpr open_mode c_mode(std::string_view csm)
 			break;
 			case 0x2b:
 			break;
-			default:
-				throw_posix_error(ENOTSUP);
 		}
 	return v;
 }

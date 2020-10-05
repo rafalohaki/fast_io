@@ -22,6 +22,8 @@ inline constexpr std::ios::openmode calculate_fstream_file_open_mode(open_mode o
 		ios_om=ios_om|std::ios::out;
 	if((om&open_mode::trunc)!=open_mode::none)
 		ios_om=ios_om|std::ios::trunc;
+	if(((om&open_mode::directory)!=open_mode::none)&&ios_om==std::ios::openmode{})
+		ios_om=ios_om|std::ios::in;
 	return ios_om;
 }
 

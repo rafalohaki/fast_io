@@ -25,7 +25,7 @@ return static_cast<open_mode>(static_cast<utype>(m)&c_supported_values);
 return c_supported(m);
 #endif
 }
-inline constexpr char const* to_native_c_mode(open_mode m)
+inline constexpr char const* to_native_c_mode(open_mode m) noexcept
 {
 #ifdef _WIN32
 /*
@@ -91,8 +91,12 @@ From microsoft's document. _fdopen only supports
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::binary):
 	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::binary):
 		return "a+b";
+	case 0:
+		if((m&open_mode::directory)!=open_mode::none)
+			return "r";
+		[[fallthrough]];
 	default:
-		throw_posix_error(ENOTSUP);
+		return "";
 	}
 #else
 	return to_c_mode(m);

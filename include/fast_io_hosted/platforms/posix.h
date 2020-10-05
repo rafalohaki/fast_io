@@ -31,7 +31,7 @@ namespace details
 {
 #if defined(__WINNT__) || defined(_MSC_VER)
 template<bool wide_char=false>
-inline constexpr int calculate_posix_open_mode_for_win32_handle(open_mode value)
+inline constexpr int calculate_posix_open_mode_for_win32_handle(open_mode value) noexcept
 {
 	int mode{};
 	if((value&open_mode::binary)!=open_mode::none)
@@ -66,8 +66,7 @@ inline constexpr int calculate_posix_open_mode_for_win32_handle(open_mode value)
 		return mode | O_APPEND;
 //Destroy contents;	Error;	"wx";	Create a file for writing
 	default:
-		throw_posix_error(EINVAL);
-		return -1;
+		return mode;
 	}
 }
 template<open_mode om>
@@ -112,12 +111,6 @@ inline constexpr int calculate_posix_open_mode(open_mode value)
 	if((value&open_mode::sync)!=open_mode::none)
 		mode |= O_SYNC;
 #endif
-	if((value&open_mode::directory)!=open_mode::none)
-#ifdef O_DIRECTORY
-		mode |= O_DIRECTORY;
-#else
-		throw_posix_error(ENOTSUP);
-#endif
 #ifdef O_TTY_INIT
 	if((value&open_mode::tty_init)!=open_mode::none)
 		mode != O_TTY_INIT;
@@ -157,6 +150,14 @@ inline constexpr int calculate_posix_open_mode(open_mode value)
 #ifdef O_LARGEFILE
 	mode |= O_LARGEFILE;
 #endif
+
+	if((value&open_mode::directory)!=open_mode::none)
+#ifdef O_DIRECTORY
+		mode |= O_DIRECTORY;
+#else
+		throw_posix_error(ENOTSUP);
+#endif
+
 	using utype = typename std::underlying_type<open_mode>::type;
 	constexpr auto supported_values{static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::in)};
 	switch(static_cast<utype>(value)&static_cast<utype>(supported_values))
@@ -199,7 +200,7 @@ mode	openmode & ~ate	Action if file already exists	Action if file does not exist
 		return mode | O_RDWR | O_CREAT | O_APPEND;
 //Destroy contents;	Error;	"wx";	Create a file for writing
 	default:
-		throw_posix_error(ENOTSUP);
+		return mode;
 	}
 }
 template<open_mode om>
@@ -274,7 +275,7 @@ public:
 template<std::integral ch_type>
 inline constexpr posix_at_entry at(basic_posix_io_observer<ch_type> piob) noexcept
 {
-	return {piob.fd};
+	return posix_at_entry{piob.fd};
 }
 
 template<std::integral ch_type>

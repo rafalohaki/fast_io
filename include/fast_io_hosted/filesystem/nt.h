@@ -240,7 +240,7 @@ inline nt_recursive_directory_iterator& operator++(nt_recursive_directory_iterat
 			if((name.size()==1&&name.front()==L'.')||(name.size()==2&&name.front()==L'.'&&name[1]==L'.'))
 				continue;
 			prdit.stack.emplace_back(nt_at_entry{prdit.stack.empty()?prdit.root_handle:prdit.stack.back().handle},name,
-				open_mode::in|open_mode::directory);
+				open_mode::directory);
 		}
 		return prdit;
 	}
@@ -270,7 +270,7 @@ inline nt_recursive_directory_iterator begin(nt_recursive_directory_generator co
 			++prdit;
 		else
 			prdit.stack.emplace_back(nt_at_entry{prdit.root_handle},name,
-				open_mode::in|open_mode::directory);
+				open_mode::directory);
 	}
 	return prdit;
 }
