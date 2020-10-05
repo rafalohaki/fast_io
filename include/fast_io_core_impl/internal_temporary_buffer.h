@@ -5,17 +5,126 @@
 namespace fast_io
 {
 
+namespace details
+{
+#ifdef _WIN32
+extern "C" void* __stdcall GetProcessHeap() noexcept;
+extern "C" void* __stdcall HeapAlloc(void*,std::uint32_t,std::size_t) noexcept;
+extern "C" int __stdcall HeapFree(void*,std::uint32_t,void*) noexcept;
+extern "C" void* __stdcall HeapReAlloc(void*,std::uint32_t,void*,std::size_t) noexcept;
+#else
+extern "C" void* malloc(std::size_t) noexcept;
+extern "C" void* free(void*) noexcept;
+extern "C" void* realloc(void*,std::size_t) noexcept;
+#endif
+inline void* sys_allocate(std::size_t n) noexcept
+{
+	auto ptr
+#ifdef _WIN32
+	{HeapAlloc(GetProcessHeap(),0,n)};
+#else
+	{malloc(n)};
+#endif
+	if(ptr==nullptr)[[unlikely]]
+		fast_terminate();
+	return ptr;
+}
+
+inline void sys_deallocate(void* ptr,[[maybe_unused]] std::size_t n) noexcept
+{
+	if(ptr)[[likely]]
+	{
+#ifdef _WIN32
+		if(!HeapFree(GetProcessHeap(),0,ptr))[[unlikely]]
+			fast_terminate();
+#else
+		free(ptr);
+#endif
+	}
+}
+
+inline void* sys_reallocate(std::size_t n,void const* ptr) noexcept
+{
+#ifdef _WIN32
+	if(ptr)
+	{
+		auto new_ptr{HeapReAlloc(GetProcessHeap(),0,const_cast<void*>(ptr),n)};
+		if(new_ptr==nullptr)[[unlikely]]
+			fast_terminate();
+		return new_ptr;
+	}
+	else
+		return sys_allocate(n);
+#else
+	auto new_ptr{realloc(const_cast<void*>(ptr),n)};
+	if(new_ptr==nullptr)[[unlikely]]
+		fast_terminate();
+	return new_ptr;
+#endif
+}
+
+
+}
+
+template<typename T>
+struct noexcept_allocator
+{
+	using value_type = T;
+	using size_type = std::size_t;
+	using difference_type = std::ptrdiff_t;
+	[[nodiscard]] inline
+	#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_constexpr_dynamic_alloc >= 201907L
+		constexpr
+	#endif
+	T* allocate(std::size_t n) noexcept
+	{
+	#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_constexpr_dynamic_alloc >= 201907L
+		if(std::is_constant_evaluated())
+			return new T[n];
+		else
+	#endif
+			return reinterpret_cast<T*>(details::sys_allocate(n*sizeof(T)));
+	}
+
+	[[nodiscard]] inline
+	#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_constexpr_dynamic_alloc >= 201907L
+		constexpr
+	#endif
+	T* allocate(std::size_t n,void const* hint) noexcept
+	{
+	#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_constexpr_dynamic_alloc >= 201907L
+		if(std::is_constant_evaluated())
+			return new T[n];
+		else
+	#endif
+			return reinterpret_cast<T*>(details::sys_reallocate(n*sizeof(T),hint));
+	}
+	inline
+	#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_constexpr_dynamic_alloc >= 201907L
+		constexpr
+	#endif
+	void deallocate(T* p, [[maybe_unused]] std::size_t n) noexcept
+	{
+	#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_constexpr_dynamic_alloc >= 201907L
+		if(std::is_constant_evaluated())
+			delete[] p;
+		else
+	#endif
+			return details::sys_deallocate(p,n*sizeof(T));
+	}
+};
+
 template<std::integral ch_type>
 class internal_temporary_buffer
 {
 public:
 	using char_type = ch_type;
-	using pointer = char_type;
+	using pointer = char_type*;
 	using iterator = pointer;
 	using const_iterator = pointer;
-	using allocator_type = std::allocator<char_type>;
-	std::array<char_type,4096> static_buffer;
-	pointer *beg_ptr=static_buffer.data(),*end_ptr=static_buffer.data(),*capacity_ptr=static_buffer.data()+4096;
+	using allocator_type = noexcept_allocator<char_type>;
+	std::array<char_type,2> static_buffer;
+	pointer beg_ptr=static_buffer.data(),end_ptr=static_buffer.data(),capacity_ptr=static_buffer.data()+2;
 	constexpr internal_temporary_buffer()=default;
 	internal_temporary_buffer(internal_temporary_buffer const&)=delete;
 	internal_temporary_buffer& operator=(internal_temporary_buffer const&)=delete;
@@ -27,7 +136,8 @@ public:
 		if(beg_ptr!=static_buffer.data())
 		{
 			allocator_type alloc;
-			std::allocator_traits<allocator_type>::deallocate(alloc,beg_ptr,capacity_ptr-beg_ptr);
+			using allocator_traits = std::allocator_traits<noexcept_allocator<char_type>>;
+			allocator_traits::deallocate(alloc,beg_ptr,capacity_ptr-beg_ptr);
 		}
 	}
 };
@@ -63,29 +173,39 @@ template<bool vector_buf,typename T>
 inline constexpr void ogrow_impl(T& ob,std::size_t new_capacity)
 {
 	using char_type = typename T::char_type;
-	std::allocator<char_type> alloc;
-	using allocator_traits = std::allocator_traits<std::allocator<char_type>>;
-	auto newp{allocator_traits::allocate(alloc,new_capacity)};
-	std::size_t const current_size(ob.end_ptr-ob.beg_ptr);
-	details::non_overlapped_copy_n(ob.beg_ptr,current_size,newp);
 	if constexpr(!vector_buf)
 	{
-		if(ob.beg_ptr!=ob.static_buffer.data())
+		noexcept_allocator<char_type> alloc;
+		using allocator_traits = std::allocator_traits<noexcept_allocator<char_type>>;
+		std::size_t const current_size(ob.end_ptr-ob.beg_ptr);
+		if(ob.beg_ptr==ob.static_buffer.data())
 		{
-			std::allocator<char_type> alloc;
-			allocator_traits::deallocate(alloc,ob.beg_ptr,ob.capacity_ptr-ob.beg_ptr);
+			auto newp{allocator_traits::allocate(alloc,new_capacity)};
+			details::non_overlapped_copy_n(ob.beg_ptr,current_size,newp);
+			ob.beg_ptr=newp;
 		}
+		else
+		{
+			ob.beg_ptr=allocator_traits::allocate(alloc,new_capacity,ob.beg_ptr);
+		}
+		ob.end_ptr=ob.beg_ptr+current_size;
+		ob.capacity_ptr=ob.beg_ptr+new_capacity;
 	}
 	else
 	{
+		std::allocator<char_type> alloc;
+		using allocator_traits = std::allocator_traits<std::allocator<char_type>>;
+		auto newp{allocator_traits::allocate(alloc,new_capacity)};
+		std::size_t const current_size(ob.end_ptr-ob.beg_ptr);
+		details::non_overlapped_copy_n(ob.beg_ptr,current_size,newp);
 		if(ob.beg_ptr)[[likely]]
 		{
 			std::allocator<char_type> alloc;
 			allocator_traits::deallocate(alloc,ob.beg_ptr,ob.capacity_ptr-ob.beg_ptr);
 		}
+		ob.end_ptr=(ob.beg_ptr=newp)+current_size;
+		ob.capacity_ptr=ob.beg_ptr+new_capacity;
 	}
-	ob.end_ptr=(ob.beg_ptr=newp)+current_size;
-	ob.capacity_ptr=ob.beg_ptr+new_capacity;
 }
 
 }
@@ -157,7 +277,7 @@ inline constexpr void overflow_impl(T& ob,ch_type ch)
 }
 
 template<std::integral ch_type>
-inline constexpr void overflow(internal_temporary_buffer<ch_type>& ob,ch_type ch)
+inline constexpr void overflow(internal_temporary_buffer<ch_type>& ob,ch_type ch) noexcept
 {
 	details::internal_temporary_buffer_impl::overflow_impl<false>(ob,ch);
 }
@@ -165,18 +285,18 @@ inline constexpr void overflow(internal_temporary_buffer<ch_type>& ob,ch_type ch
 template<std::integral ch_type,std::contiguous_iterator Iter>
 requires (std::same_as<ch_type,char>||
 	std::same_as<ch_type,typename std::iterator_traits<Iter>::value_type>)
-inline constexpr void write(internal_temporary_buffer<ch_type>& ob,Iter cbegin,Iter cend)
+inline constexpr void write(internal_temporary_buffer<ch_type>& ob,Iter cbegin,Iter cend) noexcept
 {
 	details::internal_temporary_buffer_impl::write_impl<false>(ob,cbegin,cend);
 }
 
 template<std::integral ch_type>
-inline constexpr void flush(internal_temporary_buffer<ch_type>&){}
+inline constexpr void flush(internal_temporary_buffer<ch_type>&) noexcept{}
 
 template<std::integral ch_type>
-inline constexpr auto oallocator(internal_temporary_buffer<ch_type>&)
+inline constexpr auto oallocator(internal_temporary_buffer<ch_type>&) noexcept
 {
-	return std::allocator<ch_type>();
+	return noexcept_allocator<ch_type>();
 }
 
 }
