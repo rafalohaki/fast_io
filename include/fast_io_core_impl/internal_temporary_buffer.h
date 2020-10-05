@@ -123,8 +123,8 @@ public:
 	using iterator = pointer;
 	using const_iterator = pointer;
 	using allocator_type = noexcept_allocator<char_type>;
-	std::array<char_type,2> static_buffer;
-	pointer beg_ptr=static_buffer.data(),end_ptr=static_buffer.data(),capacity_ptr=static_buffer.data()+2;
+	std::array<char_type,4096> static_buffer;
+	pointer beg_ptr=static_buffer.data(),end_ptr=static_buffer.data(),capacity_ptr=static_buffer.data()+4096;
 	constexpr internal_temporary_buffer()=default;
 	internal_temporary_buffer(internal_temporary_buffer const&)=delete;
 	internal_temporary_buffer& operator=(internal_temporary_buffer const&)=delete;
