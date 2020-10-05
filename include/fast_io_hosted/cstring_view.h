@@ -30,7 +30,6 @@ public:
 	requires (len!=0)
 	constexpr basic_cstring_view(ch_type const (&cstr)[len]) noexcept:string_view_type(cstr,len-1)
 	{
-		assert(cstr[len-1]==0);
 	}
 	template<typename T>
 	requires (std::convertible_to<T,const_pointer>&&!std::is_array_v<T>)
