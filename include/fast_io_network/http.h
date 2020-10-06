@@ -97,41 +97,6 @@ inline void print_define(output& out,basic_http_request_status<typename output::
 	print_freestanding(out,s.method,u8" ",s.path,u8" ",s.version);
 }
 
-#if __cpp_lib_coroutine >= 201707L
-
-template<input_stream input>
-requires (buffer_input_stream<input>||mutex_stream<input>)
-inline generator<http_header_line<typename input::char_type>> scan_http_header(input& in)
-{
-	if constexpr(mutex_stream<input>)
-	{
-		details::lock_guard lg{in};
-		decltype(auto) uh{in.unlocked_handle()};
-		return scan_http_header(uh);
-	}
-	else
-	{
-		for(std::basic_string<typename input::char_type> str;;)
-		{
-			scan(in,line(str));
-			if(str.size()<2)
-				co_return;
-			auto sz{str.find(u8':')};
-			if(sz==std::string::npos)
-#ifdef __cpp_exceptions
-				throw fast_io_text_error("unknown http header line");
-#else
-				fast_terminate();
-#endif
-			std::size_t i{sz+1};
-			for(;i!=str.size()&&str[i]==u8' ';++i);
-			co_yield http_header_line<typename input::char_type>{
-			std::basic_string_view<typename input::char_type>(str.data(),sz),
-			std::basic_string_view<typename input::char_type>(str.cbegin()+i,str.cend())};
-		}
-	}
-}
-#endif
 template<buffer_input_stream input>
 inline constexpr void skip_http_header(input& in)
 {
