@@ -95,7 +95,7 @@ inline constexpr io_async_overlapped_t<basic_c_io_observer_unlocked<typename T::
 {
 	return {};
 }
-
+#if defined(_WIN32) || defined(__linux__)
 template<typename T,typename... Args>
 requires async_output_stream<basic_c_io_observer_unlocked<typename T::char_type>>
 inline void async_write_callback(io_async_observer ioa,basic_general_streambuf_io_observer<T> h,Args&& ...args)
@@ -109,7 +109,7 @@ inline void async_read_callback(io_async_observer ioa,basic_general_streambuf_io
 {
 	async_read_callback(ioa,static_cast<basic_c_io_observer_unlocked<typename T::char_type>>(h),std::forward<Args>(args)...);
 }
-
+#endif
 template<typename T>
 inline constexpr basic_general_streambuf_io_observer<T> io_value_handle(basic_general_streambuf_io_observer<T> other) noexcept
 {
