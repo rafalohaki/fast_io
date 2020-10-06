@@ -101,8 +101,8 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,mani
 	return 1;
 }
 
-template<std::integral char_type,std::integral pchar_type,std::contiguous_iterator caiter>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manip::chvw<pchar_type>>,caiter iter,auto ch)
+template<std::integral char_type,std::integral pchar_type,std::contiguous_iterator caiter,typename T>
+inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manip::chvw<pchar_type>>,caiter iter,T ch)
 {
 	*iter=static_cast<pchar_type>(ch.reference);
 	return ++iter;

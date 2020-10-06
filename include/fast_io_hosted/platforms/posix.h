@@ -29,7 +29,7 @@ namespace fast_io
 	
 namespace details
 {
-#if defined(__WINNT__) || defined(_MSC_VER)
+#ifdef _WIN32
 template<bool wide_char=false>
 inline constexpr int calculate_posix_open_mode_for_win32_handle(open_mode value) noexcept
 {
@@ -445,6 +445,10 @@ inline void flush(basic_posix_io_observer<ch_type>)
 namespace details
 {
 
+#ifdef _WIN32
+using mode_t = int;
+#endif
+
 inline constexpr perms st_mode_to_perms(mode_t m)
 {
 	return static_cast<perms>(m);
@@ -483,6 +487,30 @@ S_ISSOCK(m)
 
 socket? (Not in POSIX.1-1996.)
 */
+#ifdef _WIN32
+/*
+https://github.com/Alexpux/mingw-w64/blob/master/mingw-w64-headers/crt/sys/stat.h
+
+#define _S_IFDIR 0x4000
+#define _S_IFCHR 0x2000
+#define _S_IFIFO 0x1000
+#define _S_IFREG 0x8000
+#define	_S_IFBLK 0x3000
+*/
+	if((m&0xF000)==0x8000)
+		return file_type::regular;
+	else if((m&0xF000)==0x4000)
+		return file_type::directory;
+	else if((m&0xF000)==0x2000)
+		return file_type::character;
+	else if((m&0xF000)==0x3000)
+		return file_type::block;
+	else if((m&0xF000)==0x1000)
+		return file_type::fifo;
+	else
+		return file_type::unknown;
+
+#else
 	if(S_ISREG(m))
 		return file_type::regular;
 	else if(S_ISDIR(m))
@@ -503,6 +531,7 @@ socket? (Not in POSIX.1-1996.)
 #endif
 	else
 		return file_type::unknown;
+#endif
 }
 
 inline posix_file_status fstat_impl(int fd)

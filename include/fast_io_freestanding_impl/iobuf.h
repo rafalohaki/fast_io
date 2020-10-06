@@ -2,6 +2,11 @@
 
 namespace fast_io
 {
+#ifdef _WIN32
+extern "C" void * _aligned_malloc(size_t size,size_t alignment) noexcept;
+#else
+extern "C" void * aligned_alloc(size_t size,size_t alignment) noexcept;
+#endif
 
 template<typename T,std::size_t alignment=4096>
 struct io_aligned_allocator
@@ -45,7 +50,7 @@ struct io_aligned_allocator
 	}
 };
 
-template<std::integral CharT,bool need_secure_clear=false,std::size_t buffer_size = details::cal_buffer_size<CharT,true>(),typename Allocator = io_aligned_allocator<CharT>>
+template<std::integral CharT,bool need_secure_clear=false,std::size_t buffer_size = details::cal_buffer_size<CharT,true>(),typename Allocator = noexcept_allocator<CharT>>
 requires (buffer_size!=0)
 class basic_buf_handler
 {
