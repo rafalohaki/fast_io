@@ -32,18 +32,18 @@ inline constexpr std::size_t calculate_scatter_reserve_size_unit()
 		return 0;
 }
 
-template<typename T>
+template<std::integral char_type,typename T>
 inline constexpr std::size_t calculate_scatter_reserve_size()
 {
-	return calculate_scatter_reserve_size_unit<T>();
+	return calculate_scatter_reserve_size_unit<char_type,T>();
 }
 
-template<typename T,typename... Args>
+template<std::integral char_type,typename T,typename... Args>
 requires (sizeof...(Args)!=0)
 inline constexpr std::size_t calculate_scatter_reserve_size()
 {
-	return calculate_scatter_reserve_size_unit<T>()+
-		calculate_scatter_reserve_size<Args...>();
+	return calculate_scatter_reserve_size_unit<char_type,T>()+
+		calculate_scatter_reserve_size<char_type,Args...>();
 }
 
 template<std::integral char_type,typename T>
@@ -57,7 +57,7 @@ inline constexpr void scatter_print_with_reserve_recursive_unit(char_type*& star
 	}
 	else
 	{
-		auto end_ptr = print_reserve_define(io_reserve_type<real_type>,start_ptr,t);
+		auto end_ptr = print_reserve_define(io_reserve_type<char_type,real_type>,start_ptr,t);
 		*arr={start_ptr,(end_ptr-start_ptr)*sizeof(*start_ptr)};
 		start_ptr=end_ptr;
 	}
@@ -230,7 +230,7 @@ inline constexpr void print_fallback(output out,Args ...args)
 		}
 		else
 		{
-			std::array<typename output::char_type,calculate_scatter_reserve_size<Args...>()+static_cast<std::size_t>(line)> array;
+			std::array<typename output::char_type,calculate_scatter_reserve_size<typename output::char_type,Args...>()+static_cast<std::size_t>(line)> array;
 			scatter_print_with_reserve_recursive(array.data(),scatters.data(),args...);
 			if constexpr(line)
 			{
