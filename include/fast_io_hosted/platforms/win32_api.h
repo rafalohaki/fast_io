@@ -1,6 +1,8 @@
 #pragma once
 //Referenced from : https://github.com/ned14/status-code/blob/master/include/win32_code.hpp
-
+#ifdef __GNUC__
+#pragma GCC system_header
+#endif
 namespace fast_io::win32
 {
 extern "C"
@@ -77,7 +79,7 @@ int __stdcall FreeLibrary(void*) noexcept;
 
 int __stdcall TransmitFile(std::uintptr_t,void*,std::uint32_t,std::uint32_t,overlapped*,transmit_file_buffer*,std::uint32_t) noexcept;
 
-using farproc = intptr_t(__stdcall*)();
+using farproc = intptr_t(__stdcall*)() noexcept;
 
 farproc __stdcall GetProcAddress(void*,char const*) noexcept;
 

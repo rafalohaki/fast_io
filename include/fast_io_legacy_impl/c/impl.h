@@ -615,7 +615,7 @@ inline constexpr basic_c_io_observer_unlocked<T> io_value_handle(basic_c_io_obse
 }
 
 template<std::integral T,std::contiguous_iterator Iter>
-inline Iter read(basic_c_io_observer<T> cfhd,Iter begin,Iter end)
+[[nodiscard]] inline Iter read(basic_c_io_observer<T> cfhd,Iter begin,Iter end)
 {
 	details::lock_guard lg{cfhd};
 	basic_c_io_observer_unlocked<T> cfhd_unlocked{cfhd.fp};
