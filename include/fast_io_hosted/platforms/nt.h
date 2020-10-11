@@ -286,7 +286,7 @@ inline void* nt_create_file_impl(basic_cstring_view<char_type> filename,nt_open_
 	return nt_create_file_common_impl(nullptr,std::addressof(nt_name),mode);
 }
 
-inline std::size_t nt_read_impl(void* handle,void* begin,std::size_t size)
+inline std::size_t nt_read_impl(void* __restrict handle,void* __restrict begin,std::size_t size)
 {
 	if constexpr(4<sizeof(std::size_t))
 		if(static_cast<std::size_t>(UINT32_MAX)<size)
@@ -299,17 +299,38 @@ inline std::size_t nt_read_impl(void* handle,void* begin,std::size_t size)
 	return block.Information;
 }
 
-inline std::size_t nt_write_impl(void* handle,void const* begin,std::size_t size)
+inline std::size_t nt_write_impl(void* __restrict handle,void const* __restrict begin,std::size_t size)
 {
-	if constexpr(4<sizeof(std::size_t))
-		if(static_cast<std::size_t>(UINT32_MAX)<size)
-			size=static_cast<std::size_t>(UINT32_MAX);
-	win32::nt::io_status_block block{};
-	auto const status{win32::nt::nt_write_file(handle,nullptr,nullptr,nullptr,
-		std::addressof(block), begin, static_cast<std::uint32_t>(size), nullptr, nullptr)};
-	if(status)
-		throw_nt_error(status);
-	return block.Information;
+	if constexpr(4<sizeof(std::size_t))		//above the size of std::uint32_t, unfortunately, we cannot guarantee the atomicity of syscall
+	{
+		std::size_t written{};
+		for(;size;)
+		{
+			std::uint32_t to_write_this_round{UINT32_MAX};
+			if(size<static_cast<std::size_t>(UINT32_MAX))
+				to_write_this_round=static_cast<std::uint32_t>(size);
+			win32::nt::io_status_block block{};
+			auto const status{win32::nt::nt_write_file(handle,nullptr,nullptr,nullptr,
+				std::addressof(block), begin, to_write_this_round, nullptr, nullptr)};
+			if(status)
+				throw_nt_error(status);
+			std::uint32_t number_of_bytes_written{static_cast<std::uint32_t>(block.Information)};
+			written+=number_of_bytes_written;
+			if(number_of_bytes_written<to_write_this_round)
+				break;
+			size-=to_write_this_round;
+		}
+		return written;
+	}
+	else
+	{
+		win32::nt::io_status_block block{};
+		auto const status{win32::nt::nt_write_file(handle,nullptr,nullptr,nullptr,
+			std::addressof(block), begin, static_cast<std::uint32_t>(size), nullptr, nullptr)};
+		if(status)
+			throw_nt_error(status);
+		return block.Information;
+	}
 }
 
 }
@@ -376,7 +397,7 @@ inline constexpr basic_nt_io_observer<ch_type> io_value_handle(basic_nt_io_obser
 
 
 template<std::integral ch_type,std::contiguous_iterator Iter>
-inline Iter read(basic_nt_io_observer<ch_type> obs,Iter begin,Iter end)
+[[nodiscard]] inline Iter read(basic_nt_io_observer<ch_type> obs,Iter begin,Iter end)
 {
 	return begin+details::nt::nt_read_impl(obs.handle,std::to_address(begin),(end-begin)*sizeof(*begin))/sizeof(*begin);
 }

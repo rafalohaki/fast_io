@@ -272,7 +272,7 @@ inline constexpr Iter ibuf_read_cold(T& ib,Iter begin,Iter end)
 
 template<input_stream Ihandler,typename Buf,std::contiguous_iterator Iter>
 requires (std::same_as<std::iter_value_t<Iter>,typename Ihandler::char_type>||std::same_as<typename Ihandler::char_type,char>)
-inline constexpr Iter read(basic_ibuf<Ihandler,Buf>& ib,Iter begin,Iter end)
+[[nodiscard]] inline constexpr Iter read(basic_ibuf<Ihandler,Buf>& ib,Iter begin,Iter end)
 {
 	using char_type = typename basic_ibuf<Ihandler,Buf>::char_type;
 	if constexpr(std::same_as<char_type,std::iter_value_t<Iter>>)

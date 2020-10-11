@@ -364,11 +364,23 @@ inline std::size_t posix_read_impl(int fd,void* address,std::size_t bytes_to_rea
 
 inline std::size_t posix_write_impl(int fd,void const* address,std::size_t bytes_to_write)
 {
-#ifdef _WIN32
-	if constexpr(4<sizeof(std::size_t))
-		if(static_cast<std::size_t>(UINT32_MAX)<bytes_to_write)
-			bytes_to_write=static_cast<std::size_t>(UINT32_MAX);
-#endif
+#ifdef _WIN64
+	std::size_t written{};
+	for(;bytes_to_write;)
+	{
+		std::uint32_t to_write_this_round{INT32_MAX};
+		if(bytes_to_write<static_cast<std::size_t>(INT32_MAX))
+			to_write_this_round=static_cast<std::uint32_t>(bytes_to_write);
+		std::int32_t number_of_bytes_written{::_write(fd,address,to_write_this_round)};
+		if(number_of_bytes_written<0)
+			throw_posix_error();
+		written+=static_cast<std::uint32_t>(number_of_bytes_written);
+		if(static_cast<std::uint32_t>(number_of_bytes_written)<to_write_this_round)
+			break;
+		bytes_to_write-=to_write_this_round;
+	}
+	return written;
+#else
 	auto write_bytes(
 #if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
 		system_call<
@@ -386,6 +398,7 @@ inline std::size_t posix_write_impl(int fd,void const* address,std::size_t bytes
 	(fd,address,bytes_to_write));
 	system_call_throw_error(write_bytes);
 	return write_bytes;
+#endif
 }
 
 inline std::uintmax_t posix_seek_impl(int fd,std::intmax_t offset,seekdir s)
@@ -416,7 +429,7 @@ inline std::uintmax_t posix_seek_impl(int fd,std::intmax_t offset,seekdir s)
 }
 
 template<std::integral ch_type,std::contiguous_iterator Iter>
-inline Iter read(basic_posix_io_observer<ch_type> h,Iter begin,Iter end)
+[[nodiscard]] inline Iter read(basic_posix_io_observer<ch_type> h,Iter begin,Iter end)
 {
 	return begin+details::posix_read_impl(h.fd,std::to_address(begin),(end-begin)*sizeof(*begin))/sizeof(*begin);
 }
@@ -562,7 +575,7 @@ fstat64
 #ifdef _WIN32
 	65536,
 	static_cast<std::uintmax_t>(st.st_size/512),
-	{st.st_atime},{st.st_mtime},{st.st_ctime},
+	{st.st_atime,{}},{st.st_mtime,{}},{st.st_ctime,{}},
 #else
 	static_cast<std::uintmax_t>(st.st_blksize),
 	static_cast<std::uintmax_t>(st.st_blocks),st.st_atim,st.st_mtim,st.st_ctim,

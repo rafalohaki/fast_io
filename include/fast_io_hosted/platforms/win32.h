@@ -415,7 +415,7 @@ inline constexpr auto redirect_handle(basic_win32_io_observer<ch_type> hd)
 namespace win32::details
 {
 
-inline std::size_t read_impl(void* handle,void* begin,std::size_t to_read)
+inline std::size_t read_impl(void* __restrict handle,void* __restrict begin,std::size_t to_read)
 {
 	std::uint32_t number_of_bytes_read{};
 	if constexpr(4<sizeof(std::size_t))
@@ -431,15 +431,33 @@ inline std::size_t read_impl(void* handle,void* begin,std::size_t to_read)
 	return number_of_bytes_read;
 }
 
-inline std::size_t write_impl(void* handle,void const* cbegin,std::size_t to_write)
+inline std::size_t write_impl(void* __restrict handle,void const* __restrict cbegin,std::size_t to_write)
 {
-	std::uint32_t number_of_bytes_written{};
-	if constexpr(4<sizeof(std::size_t))
-		if(static_cast<std::size_t>(UINT32_MAX)<to_write)
-			to_write=static_cast<std::size_t>(UINT32_MAX);
-	if(!win32::WriteFile(handle,cbegin,static_cast<std::uint32_t>(to_write),std::addressof(number_of_bytes_written),nullptr))
-		throw_win32_error();
-	return number_of_bytes_written;
+	if constexpr(4<sizeof(std::size_t))		//above the size of std::uint32_t, unfortunately, we cannot guarantee the atomicity of syscall
+	{
+		std::size_t written{};
+		for(;to_write;)
+		{
+			std::uint32_t to_write_this_round{UINT32_MAX};
+			if(to_write<static_cast<std::size_t>(UINT32_MAX))
+				to_write_this_round=static_cast<std::uint32_t>(to_write);
+			std::uint32_t number_of_bytes_written{};
+			if(!win32::WriteFile(handle,cbegin,to_write_this_round,std::addressof(number_of_bytes_written),nullptr))
+				throw_win32_error();
+			written+=number_of_bytes_written;
+			if(number_of_bytes_written<to_write_this_round)
+				break;
+			to_write-=to_write_this_round;
+		}
+		return written;
+	}
+	else
+	{
+		std::uint32_t number_of_bytes_written{};
+		if(!win32::WriteFile(handle,cbegin,static_cast<std::uint32_t>(to_write),std::addressof(number_of_bytes_written),nullptr))
+			throw_win32_error();
+		return number_of_bytes_written;
+	}
 }
 
 inline std::uintmax_t seek_impl(void* handle,std::intmax_t offset,seekdir s)
@@ -459,7 +477,7 @@ inline std::uintmax_t seek(basic_win32_io_observer<ch_type> handle,std::intmax_t
 }
 
 template<std::integral ch_type,std::contiguous_iterator Iter>
-inline Iter read(basic_win32_io_observer<ch_type> handle,Iter begin,Iter end)
+[[nodiscard]] inline Iter read(basic_win32_io_observer<ch_type> handle,Iter begin,Iter end)
 {
 	return begin+win32::details::read_impl(handle.handle,std::to_address(begin),(end-begin)*sizeof(*begin))/sizeof(*begin);
 }

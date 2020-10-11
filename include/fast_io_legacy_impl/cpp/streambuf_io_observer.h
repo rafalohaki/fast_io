@@ -62,7 +62,7 @@ public:
 };
 
 template<typename T,std::contiguous_iterator Iter>
-inline Iter read(basic_general_streambuf_io_observer<T> t,Iter begin,Iter end)
+[[nodiscard]] inline Iter read(basic_general_streambuf_io_observer<T> t,Iter begin,Iter end)
 {
 	using char_type = typename T::char_type;
 	return begin+(t.fb->sgetn(static_cast<char_type*>(static_cast<void*>(std::to_address(begin))),(end-begin)*sizeof(*begin)/sizeof(char_type))*sizeof(char_type)/sizeof(*begin));
