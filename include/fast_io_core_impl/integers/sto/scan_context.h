@@ -84,9 +84,8 @@ namespace fast_io
 		enum class phase_code :char8_t
 		{
 			empty = 0,
-			sign = 1,
-			no_a_digit = 2,
-			zero = 3
+			zero = 1,
+			numbers = 2
 		};
 
 
@@ -204,50 +203,91 @@ namespace fast_io
 
 			inline constexpr void operator()(Iter begin, Iter end) noexcept
 			{
-				if (begin == end)		//EOF
+				switch (p0_phase)
 				{
-					if (p0_phase != phase_code::zero)
+				case phase_code::empty:
+				{
+					if (begin == end)
+					{
+						iter = begin;
+						code = scan_context_status_code::need_more_data;
+						return;
+					}
+					if constexpr (my_signed_integral<T>)
+					{
+						if ((*begin == u8'-') | (*begin == u8'+'))
+						{
+							minus = (*begin == u8'-');
+							++begin;
+						}
+					}
+					auto p0_ret{ phase0<base>(begin,end) };
+					iter = p0_ret.first;
+					auto iter_skip0{ iter };
+					if (p0_ret.second)
 					{
 						code = scan_context_status_code::lexical_error;
 						return;
 					}
-					finalize();
-					return;
-				}
-				if (p0_phase != phase_code::zero)
-				{
-					if constexpr (my_signed_integral<T>)
+					if (iter == end)
 					{
-						if (p0_phase == phase_code::empty)
-						{
-							if ((*begin == u8'-') | (*begin == u8'+'))
-							{
-								minus = (*begin == u8'-');
-								++begin;
-							}
-						}
+						// last number is still zero
+						p0_phase = phase_code::zero;
 					}
-					auto p0_ret{ phase0<base>(begin,end) };
-					begin = p0_ret.first;
-					p0_phase = p0_ret.second;
-					if (p0_phase == phase_code::no_a_digit)
-						code = scan_context_status_code::lexical_error;
-					else
-						code = scan_context_status_code::need_more_data;
-					return;
-				}
-				iter = phase1<base>(begin, end, val, val_last);
-				length += iter - begin;
-				if (iter == end)
-				{
+					else {
+						// non-zeros from iter to end
+						p0_phase = phase_code::numbers;
+						iter = phase1<base>(iter, end, val, val_last);
+						length += iter - begin;
+					}
 					code = scan_context_status_code::need_more_data;
-					return;
 				}
-				finalize();
+				break;
+				case phase_code::zero:
+				{
+					auto p0_ret{ phase0<base>(begin,end) };
+					iter = p0_ret.first;
+					auto iter_skip0{ iter };
+					if (p0_ret.second)
+					{
+						code = scan_context_status_code::lexical_error;
+						return;
+					}
+					if (iter == end)
+					{
+						// last number is still zero
+						p0_phase = phase_code::zero;
+					}
+					else {
+						// non-zeros from iter to end
+						p0_phase = phase_code::numbers;
+						iter = phase1<base>(iter, end, val, val_last);
+						length += iter - begin;
+					}
+					code = scan_context_status_code::need_more_data;
+				}
+					break;
+				case phase_code::numbers:
+				{
+					iter = phase1<base>(begin, end, val, val_last);
+					length += iter - begin;
+					if (iter == end) {
+						code = scan_context_status_code::need_more_data;
+					}
+					else {
+						finalize();
+					}
+				}
+				break;
+				}
 			}
+
 			inline constexpr voldmort(Iter begin, Iter end, T& t) noexcept
 			{
 				using namespace details::ctx_scan_integer;
+				code = scan_context_status_code::need_more_data;
+				pointer = std::addressof(t);
+				length = 0;
 				if (begin == end)
 				{
 					iter = begin;
@@ -279,7 +319,7 @@ namespace fast_io
 					iter = phase1<base>(iter, end, val, val_last);
 					if constexpr (details::my_unsigned_integral<T>)
 					{
-						if (detect_overflow_v2<base>(val, val_last, static_cast<std::size_t>(iter - iter_skip0))) [[unlikely]]
+  						if (detect_overflow_v2<base>(val, val_last, static_cast<std::size_t>(iter - iter_skip0))) [[unlikely]]
 						{
 							code = scan_context_status_code::syntax_error;
 							return;
@@ -301,53 +341,7 @@ namespace fast_io
 				}
 				else
 				{
-					auto p0_ret{ phase0<base>(begin,end) };
-					iter = p0_ret.first;
-					auto iter_skip0{ iter };
-					//p0_phase = p0_ret.second;
-					//if (p0_phase != phase_code::zero)
-					//{
-					//	if (p0_phase == phase_code::no_a_digit)
-					//		code = scan_context_status_code::lexical_error;
-					//	else
-					//		code = scan_context_status_code::need_more_data;
-					//	return;
-					//}
-					if (p0_ret.second)
-					{
-						code = scan_context_status_code::lexical_error;
-						return;
-					}
-					auto bg{ iter };
-					iter = phase1<base>(bg, end, val, val_last);
-					if (iter == end)
-					{
-						length = bg - iter;
-						code = scan_context_status_code::need_more_data;
-						p0_phase = phase_code::zero;
-						return;
-					}
-					if constexpr (details::my_unsigned_integral<T>)
-					{
-						if (detect_overflow_v2<base>(val, val_last, static_cast<std::size_t>(iter - iter_skip0))) [[unlikely]]
-						{
-							code = scan_context_status_code::syntax_error;
-							return;
-						}
-						t = val;
-					}
-					else
-					{
-						if (detect_signed_overflow_v2<base>(val, val_last, static_cast<std::size_t>(iter - iter_skip0), minus)) [[unlikely]]
-						{
-							code = scan_context_status_code::syntax_error;
-							return;
-						}
-							if (minus)
-								t = 0 - val;
-							else
-								t = val;
-					}
+					operator()(begin, end);
 				}
 			}
 		};
@@ -359,3 +353,4 @@ namespace fast_io
 		return details::ctx_scan_integer::voldmort<10, contiguous_only, Iter, T>(begin, end, t);
 	}
 }
+
