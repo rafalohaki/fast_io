@@ -761,12 +761,9 @@ public:
 	basic_posix_file(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_open(file.data(),details::calculate_posix_open_mode(om),static_cast<mode_t>(pm)))
 	{
 	}
-
-#ifndef __NEWLIB__
 	basic_posix_file(posix_at_entry pate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_openat(pate.fd,file.data(),details::calculate_posix_open_mode(om),static_cast<mode_t>(pm)))
 	{
 	}
-#endif
 
 #ifdef __linux__
 /*
