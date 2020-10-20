@@ -234,7 +234,7 @@ inline constexpr std::uintmax_t bufferred_transmit_impl(output& outp,input& inp,
 		return transmitted_chars;
 	}
 }
-#if defined(__linux__)||defined(__BSD_VISIBLE)
+#if defined(__linux__)
 template<output_stream output,input_stream input>
 inline constexpr std::uintmax_t zero_copy_transmit_impl(output& outp,input& inp)
 {
@@ -280,7 +280,7 @@ inline constexpr auto transmit_impl(output& outp,input& inp,Args&& ...args)
 			}
 			if constexpr(buffer_output_stream<output>)
 				flush(outp);
-#if defined(__linux__)||defined(__BSD_VISIBLE)
+#if defined(__linux__)
 			return zero_copy_transmit_impl(outp,inp,std::forward<Args>(args)...);
 #else
 			return zero_copy_transmit<false>(outp,inp,0,std::forward<Args>(args)...);
