@@ -453,7 +453,7 @@ inline void flush(basic_posix_io_observer<ch_type>)
 }
 */
 
-#if !defined(__NEWLIB__) && !defined(__MSDOS__)
+#if !defined(__NEWLIB__)
 namespace details
 {
 
@@ -499,7 +499,7 @@ S_ISSOCK(m)
 
 socket? (Not in POSIX.1-1996.)
 */
-#ifdef _WIN32
+#if defined(_WIN32)
 /*
 https://github.com/Alexpux/mingw-w64/blob/master/mingw-w64-headers/crt/sys/stat.h
 
@@ -550,20 +550,24 @@ inline posix_file_status fstat_impl(int fd)
 {
 #ifdef _WIN32
 	struct __stat64 st;
+#elif defined(__MSDOS__)
+	struct stat st;
 #else
 	struct stat64 st;
 #endif
 	if(
 #ifdef _WIN32
 _fstat64
+#elif defined(__MSDOS__)
+fstat
 #else
 fstat64
 #endif
 (fd,std::addressof(st))<0)
 		throw_posix_error();
 
-	return {st.st_dev,
-	st.st_ino,
+	return {static_cast<std::uintmax_t>(st.st_dev),
+	static_cast<std::uintmax_t>(st.st_ino),
 	st_mode_to_perms(st.st_mode),
 	st_mode_to_file_type(st.st_mode),
 	static_cast<std::uintmax_t>(st.st_nlink),
@@ -571,7 +575,7 @@ fstat64
 	static_cast<std::uintmax_t>(st.st_gid),
 	static_cast<std::uintmax_t>(st.st_rdev),
 	static_cast<std::uintmax_t>(st.st_size),
-#ifdef _WIN32
+#if defined(_WIN32)||defined(__MSDOS__)
 	65536,
 	static_cast<std::uintmax_t>(st.st_size/512),
 	{st.st_atime,{}},{st.st_mtime,{}},{st.st_ctime,{}},
