@@ -74,7 +74,7 @@ inline constexpr auto scan_with_space(input &in,T&& t)
 				{
 					auto curr{ibuffer_curr(in)};
 					auto ed{ibuffer_end(in)};
-					auto res{space_scan_reserve_define(io_reserve_type<no_cvref,not_contiguous>,curr,ed,std::forward<T>(t))};
+					auto res{space_scan_reserve_define(io_reserve_type<typename std::remove_cvref_t<input>::char_type,no_cvref,not_contiguous>,curr,ed,std::forward<T>(t))};
 					if constexpr(not_contiguous)
 					{
 						if(res==ed)[[unlikely]]
