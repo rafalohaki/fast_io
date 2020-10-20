@@ -3,11 +3,14 @@
 namespace fast_io::details
 {
 
+#ifdef __MSDOS__
+extern "C" int dup(int) noexcept;
+extern "C" int dup2(int,int) noexcept;
+extern "C" int _close(int) noexcept;
+#endif
+
 inline int sys_dup(int old_fd)
 {
-#ifdef __MSDOS__
-	throw_posix_error(ENOTSUP);
-#else
 	auto fd{
 #if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
 		system_call<
@@ -25,14 +28,10 @@ inline int sys_dup(int old_fd)
 	(old_fd)};
 	system_call_throw_error(fd);
 	return fd;
-#endif
 }
 
 inline int sys_dup2(int old_fd,int new_fd)
 {
-#ifdef __MSDOS__
-	throw_posix_error(ENOTSUP);
-#else
 	auto fd{
 #if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
 		system_call<
@@ -50,7 +49,6 @@ inline int sys_dup2(int old_fd,int new_fd)
 	(old_fd,new_fd)};
 	system_call_throw_error(fd);
 	return fd;
-#endif
 }
 
 inline int sys_close(int fd) noexcept

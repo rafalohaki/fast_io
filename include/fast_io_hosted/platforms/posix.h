@@ -678,11 +678,33 @@ inline int my_posix_openat(int dirfd,char const* pathname,int flags,mode_t mode)
 #endif
 }
 
+#ifdef __MSDOS__
+extern "C" unsigned int _dos_creat(char const*,short unsigned,int*) noexcept;
+extern "C" unsigned int _dos_creatnew(char const*,short unsigned,int*) noexcept;
+extern "C" unsigned int _dos_open(char const*,short unsigned,int*) noexcept;
+#endif
+
 inline int my_posix_open(char const* pathname,int flags,mode_t mode)
 {
 #ifdef __MSDOS__
-	int fd{::_open(pathname,flags)};
-	system_call_throw_error(fd);
+/*
+Referenced from
+https://dl.acm.org/doi/pdf/10.1145/70931.70935?casa_token=rWDy5JyhhkMAAAAA:BdkF0zbbWgurns3mU3yEJI2HnHXWhe6wyYGtKxjRewlEgLg6lk-cGGNLZTTdr3vUjtFg6Cnia2b4
+An Example of Multiple Inheritance in C++: A Model of the Iostream Library
+*/
+	int fd{-1};
+	unsigned int ret{};
+	if(((flags&O_CREAT)==O_CREAT))
+	{
+		if((flags&O_EXCL)!=O_EXCL)
+			ret=_dos_creat(pathname,0,&fd);
+		else
+			ret=_dos_creatnew(pathname,0,&fd);
+	}
+	else
+		ret=_dos_open(pathname,flags,&fd);
+	if(ret)
+		throw_posix_error();
 	return fd;
 #elif defined(__NEWLIB__)
 	int fd{::open(pathname,flags,mode)};
