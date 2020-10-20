@@ -44,8 +44,9 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - Windows
 - Linux
 - BSD platforms (Including FreeBSD, NetBSD, OpenBSD and Mac)
+- Microsoft DOS
 - Barebone (No any operating system.)
-- Todo: Webassembly, DOS
+- Todo: Webassembly
 
 ## Supported libc FILE* hacks platforms
 - glibc
@@ -53,6 +54,7 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - Universal CRT
 - BSD libc
 - MUSL libc
+- MSDOS CRT
 - Newlib (Compilation success. Luckily newlib shares the same code as BSD libc. However, we still need to test on a bare bone operating system.)
 - To do (before we supported them, they will be emulated with POSIX apis):
 - Bionic
