@@ -76,7 +76,11 @@ template<std::integral char_type>
 inline std::size_t c_io_write_impl(basic_c_io_observer_unlocked<char_type> cfhd,char_type const* begin,char_type const* end)
 {
 	std::size_t const count(end-begin);
-	if constexpr((std::same_as<char_type,char>&&buffer_io_stream<c_io_observer_unlocked>)||(std::same_as<char_type,wchar_t>&&buffer_io_stream<wc_io_observer_unlocked>))
+	if constexpr((std::same_as<char_type,char>&&buffer_io_stream<c_io_observer_unlocked>)
+#ifndef __MSDOS__
+	||(std::same_as<char_type,wchar_t>&&buffer_io_stream<wc_io_observer_unlocked>)
+#endif
+)
 	{
 		auto curr{obuffer_curr(cfhd)};
 		auto ed{obuffer_end(cfhd)};
@@ -94,7 +98,11 @@ template<std::integral char_type>
 inline std::size_t c_io_read_impl(basic_c_io_observer_unlocked<char_type> cfhd,char_type* begin,char_type* end)
 {
 	std::size_t count(end-begin);
-	if constexpr((std::same_as<char_type,char>&&buffer_io_stream<c_io_observer_unlocked>)||(std::same_as<char_type,wchar_t>&&buffer_io_stream<wc_io_observer_unlocked>))
+	if constexpr((std::same_as<char_type,char>&&buffer_io_stream<c_io_observer_unlocked>)
+#ifndef __MSDOS__
+	||(std::same_as<char_type,wchar_t>&&buffer_io_stream<wc_io_observer_unlocked>)
+#endif
+)
 	{
 		auto curr{ibuffer_curr(cfhd)};
 		auto ed{ibuffer_end(cfhd)};

@@ -7,8 +7,9 @@ For hosted implementations the set of standard library headers required by the C
 */
 //fast_io_hosted defines what we could use in a hosted environment.
 #include"fast_io_freestanding.h"
-
-
+#ifdef __MSDOS__
+#undef __STRICT_ANSI__
+#endif
 #if __cpp_lib_filesystem >= 201703L
 #include<filesystem>
 #endif
@@ -21,7 +22,9 @@ For hosted implementations the set of standard library headers required by the C
 
 
 #if !defined(__NEWLIB__)||defined(_GLIBCXX_HAS_GTHREADS)
+#ifndef __MSDOS__
 #include"fast_io_hosted/iomutex.h"
+#endif
 #endif
 #include"fast_io_hosted/wrapper.h"
 #include"fast_io_hosted/filesystem/native.h"

@@ -67,10 +67,12 @@ using u8native_io_observer = u8posix_io_observer;
 using u8native_io_handle = u8posix_io_handle;
 using u8native_file = u8posix_file;
 using u8native_pipe = u8posix_pipe;
+#ifndef __MSDOS__
 using wnative_io_observer = wposix_io_observer;
 using wnative_io_handle = wposix_io_handle;
 using wnative_file = wposix_file;
 using wnative_pipe = wposix_pipe;
+#endif
 template<std::integral ch_type>
 using basic_native_io_observer = basic_posix_io_observer<ch_type>;
 template<std::integral ch_type>

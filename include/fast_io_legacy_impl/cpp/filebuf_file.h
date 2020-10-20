@@ -165,9 +165,11 @@ public:
 };
 
 using filebuf_file=basic_filebuf_file<char>;
-using wfilebuf_file=basic_filebuf_file<wchar_t>;
 using u8filebuf_file=basic_filebuf_file<char8_t>;
 
+#ifndef __MSDOS__
+using wfilebuf_file=basic_filebuf_file<wchar_t>;
+#endif
 static_assert(std::is_standard_layout_v<filebuf_file>);
 
 }

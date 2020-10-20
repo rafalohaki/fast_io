@@ -41,9 +41,11 @@ using iobuf_file = basic_iobuf<ionative_file>;
 using ibuf_text_file = basic_ibuf_text<inative_file>;
 using obuf_text_file = basic_obuf_text<onative_file>;
 #if !defined(__NEWLIB__)||defined(_GLIBCXX_HAS_GTHREADS)
+#ifndef __MSDOS__
 using ibuf_file_mutex = basic_iomutex<ibuf_file>;
 using obuf_file_mutex = basic_iomutex<obuf_file>;
 using iobuf_file_mutex = basic_iomutex<iobuf_file>;
+#endif
 #endif
 // utf-8
 using u8pipe = u8native_pipe;
@@ -57,12 +59,15 @@ using u8ibuf_file = basic_ibuf<u8inative_file>;
 using u8obuf_file = basic_obuf<u8onative_file>;
 using u8iobuf_file = basic_iobuf<u8ionative_file>;
 #if !defined(__NEWLIB__)||defined(_GLIBCXX_HAS_GTHREADS)
+#ifndef __MSDOS__
 using u8ibuf_file_mutex = basic_iomutex<u8ibuf_file>;
 using u8obuf_file_mutex = basic_iomutex<u8obuf_file>;
 using u8iobuf_file_mutex = basic_iomutex<u8iobuf_file>;
 #endif
-using wpipe = wnative_pipe;
+#endif
 
+#ifndef __MSDOS__
+using wpipe = wnative_pipe;
 using winative_file = input_file_wrapper<wnative_file>;
 using wonative_file = output_file_wrapper<wnative_file>;
 using wionative_file = io_file_wrapper<wnative_file>;
@@ -75,7 +80,7 @@ using wibuf_file_mutex = basic_iomutex<wibuf_file>;
 using wobuf_file_mutex = basic_iomutex<wobuf_file>;
 using wiobuf_file_mutex = basic_iomutex<wiobuf_file>;
 #endif
-
+#endif
 template<std::integral new_code_type,output_stream output>
 using basic_obuf_utf = basic_obuf<basic_indirect_obuffer_constructor_source_type<new_code_type,output,transforms::utf>,true>;
 

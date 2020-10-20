@@ -127,16 +127,19 @@ using basic_stringbuf_io_observer = basic_general_streambuf_io_observer<std::bas
 
 
 using streambuf_io_observer = basic_streambuf_io_observer<char>;
-using wstreambuf_io_observer = basic_streambuf_io_observer<wchar_t>;
-using u8streambuf_io_observer = basic_streambuf_io_observer<char8_t>;
-
 using filebuf_io_observer = basic_filebuf_io_observer<char>;
-using wfilebuf_io_observer = basic_filebuf_io_observer<wchar_t>;
-using u8filebuf_io_observer = basic_filebuf_io_observer<char8_t>;
-
 using stringbuf_io_observer = basic_stringbuf_io_observer<char>;
-using wstringbuf_io_observer = basic_stringbuf_io_observer<wchar_t>;
+
+using u8streambuf_io_observer = basic_streambuf_io_observer<char8_t>;
+using u8filebuf_io_observer = basic_filebuf_io_observer<char8_t>;
 using u8stringbuf_io_observer = basic_stringbuf_io_observer<char8_t>;
+
+#ifndef __MSDOS__
+using wstreambuf_io_observer = basic_streambuf_io_observer<wchar_t>;
+using wfilebuf_io_observer = basic_filebuf_io_observer<wchar_t>;
+using wstringbuf_io_observer = basic_stringbuf_io_observer<wchar_t>;
+#endif
+
 
 #if defined(__GLIBCXX__) || defined(__LIBCPP_VERSION)  || defined(_MSVC_STL_UPDATE)
 template<std::integral ch_type,typename Traits>

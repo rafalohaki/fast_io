@@ -297,8 +297,10 @@ using u8io_io_observer = basic_io_io_observer<char8_t>;
 using u8io_io_handle = basic_io_io_handle<char8_t>;
 using u8io_file = basic_io_file<char8_t>;
 
+
+#ifndef __MSDOS__
 using wio_io_observer = basic_io_io_observer<wchar_t>;
 using wio_io_handle = basic_io_io_handle<wchar_t>;
 using wio_file = basic_io_file<wchar_t>;
-
+#endif
 }

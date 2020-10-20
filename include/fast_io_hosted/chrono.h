@@ -3,6 +3,13 @@
 
 namespace fast_io
 {
+#ifdef __MSDOS__
+struct timespec
+{
+std::time_t tv_sec;
+long tv_nsec;
+};
+#endif
 template<std::integral char_type>
 constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,struct timespec>)
 {

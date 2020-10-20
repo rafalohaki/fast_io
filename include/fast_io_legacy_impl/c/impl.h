@@ -212,7 +212,7 @@ public:
 
 template<typename stm>
 inline constexpr c_io_cookie_functions_t<stm> c_io_cookie_functions{};
-#elif defined(__unix__) || (defined(__APPLE__) && defined(__MACH__)) || defined(__BIONIC__) || defined(__NEWLIB__)
+#elif (defined(__APPLE__) && defined(__MACH__)) || defined(__BIONIC__) || defined(__NEWLIB__)
 namespace details
 {
 #ifdef __NEWLIB__
@@ -338,6 +338,11 @@ cookie,readfn,writefn,seekfn,closefn)};
 namespace details
 {
 
+#ifdef __MSDOS__
+extern "C" int fileno(FILE*) noexcept;
+extern "C" std::FILE* fdopen(int,char const*) noexcept;
+#endif
+
 inline int fp_unlocked_to_fd(FILE* fp) noexcept
 {
 	if(fp==nullptr)
@@ -350,6 +355,8 @@ inline int fp_unlocked_to_fd(FILE* fp) noexcept
 		_fileno(fp)
 #elif defined(__NEWLIB__)
 		fp->_file
+#elif defined(__MSDOS__)
+		fileno(fp)
 #else
 		::fileno_unlocked(fp)
 #endif
@@ -368,6 +375,8 @@ inline int fp_to_fd(FILE* fp) noexcept
 		_fileno(fp)
 #elif defined(__NEWLIB__)
 		fp->_file
+#elif defined(__MSDOS__)
+		fileno(fp)
 #else
 		::fileno(fp)
 #endif
@@ -473,7 +482,7 @@ https://www.gnu.org/software/libc/manual/html_node/File-Positioning.html
 	if(
 #if defined(_WIN32)
 		_fseeki64
-#elif defined(__NEWLIB__)
+#elif defined(__NEWLIB__) || defined(__MSDOS__)
 		fseek
 #else
 		fseeko64
@@ -483,7 +492,7 @@ https://www.gnu.org/software/libc/manual/html_node/File-Positioning.html
 	auto val{
 #if defined(_WIN32)
 		_ftelli64
-#elif defined(__NEWLIB__)
+#elif defined(__NEWLIB__) || defined(__MSDOS__)
 		ftell
 #else
 		ftello64 
@@ -572,6 +581,7 @@ public:
 #ifndef __SINGLE_THREAD__
 //	flockfile(fp);	//TO FIX
 #endif
+#elif defined(__MSDOS__)
 #else
 	flockfile(fp);
 #endif
@@ -586,6 +596,7 @@ public:
 #ifndef __SINGLE_THREAD__
 //		_funlockfile(fp); //TO FIX
 #endif
+#elif defined(__MSDOS__)
 #else
 	funlockfile(fp);
 #endif
@@ -705,6 +716,8 @@ public:
 			::_fdopen(
 #elif defined(__NEWLIB__)
 			::_fdopen_r(_REENT,
+#elif defined(__MSDOS__)
+			details::fdopen(
 #else
 			::fdopen(
 #endif
@@ -913,14 +926,14 @@ using c_io_handle_unlocked = basic_c_io_handle_unlocked<char>;
 using c_io_handle = basic_c_io_handle<char>;
 using c_file = basic_c_file<char>;
 using c_file_unlocked = basic_c_file_unlocked<char>;
-
+#ifndef __MSDOS__
 using wc_io_observer_unlocked=basic_c_io_observer_unlocked<wchar_t>;
 using wc_io_observer=basic_c_io_observer<wchar_t>;
 using wc_io_handle_unlocked = basic_c_io_handle_unlocked<wchar_t>;
 using wc_io_handle = basic_c_io_handle<wchar_t>;
 using wc_file = basic_c_file<wchar_t>;
 using wc_file_unlocked = basic_c_file_unlocked<wchar_t>;
-
+#endif
 template<std::integral ch_type>
 requires zero_copy_input_stream<basic_posix_io_observer<ch_type>>
 inline decltype(auto) zero_copy_in_handle(basic_c_io_observer_unlocked<ch_type> h)
@@ -965,7 +978,10 @@ inline constexpr void const* print_alias_define(io_alias_t<alias_char_type>,basi
 #else
 #include"bsd.h"
 #endif
+#elif defined(__MSDOS__)
+#include"msdos.h"
+#else
+#include"general.h"
 #endif
 
-#include"general.h"
 #include"done.h"
