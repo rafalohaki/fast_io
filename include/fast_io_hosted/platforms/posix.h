@@ -905,7 +905,7 @@ inline int constexpr posix_stdin_number = 0;
 inline int constexpr posix_stdout_number = 1;
 inline int constexpr posix_stderr_number = 2;
 
-#if defined(__linux__)||!defined(__NEWLIB__)
+#if defined(__linux__)
 
 //zero copy IO for linux
 
