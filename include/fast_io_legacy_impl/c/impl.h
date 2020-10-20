@@ -980,7 +980,9 @@ inline constexpr void const* print_alias_define(io_alias_t<alias_char_type>,basi
 #endif
 #elif defined(__MSDOS__)
 #include"msdos.h"
-#else
+#endif
+
+#ifndef __MSDOS__
 #include"general.h"
 #endif
 
