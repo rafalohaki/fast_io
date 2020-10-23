@@ -22,6 +22,8 @@
 #include<cstring>		//for memcpy
 #include<bit>			//for std::endian, std::rotl and std::bit_cast etc
 
+
+#include"fast_io_core_impl/ebcdic.h"
 //fast_io core
 #include"fast_io_core_impl/utils.h"
 

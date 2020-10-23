@@ -149,7 +149,7 @@ inline constexpr void perrln(Args&&... args)
 }
 
 template<typename... Args>
-inline constexpr void panic(Args&&... args) noexcept
+[[noreturn]] inline constexpr void panic(Args&&... args) noexcept
 {
 	if constexpr(sizeof...(Args)!=0)
 	{
@@ -167,7 +167,7 @@ inline constexpr void panic(Args&&... args) noexcept
 }
 
 template<typename... Args>
-inline constexpr void panicln(Args&&... args) noexcept
+[[noreturn]] inline constexpr void panicln(Args&&... args) noexcept
 {
 #ifdef __cpp_exceptions
 	try
@@ -214,17 +214,6 @@ inline constexpr void debug_perrln(Args&&... args)
 	::perrln(std::forward<Args>(args)...);
 }
 
-template<typename... Args>
-inline constexpr void debug_panic(Args&&... args) noexcept
-{
-	::panic(std::forward<Args>(args)...);
-}
-
-template<typename... Args>
-inline constexpr void debug_panicln(Args&&... args) noexcept
-{
-	::panicln(std::forward<Args>(args)...);
-}
 #endif
 
 template<bool report_eof=false,typename T,typename... Args>
@@ -233,5 +222,5 @@ inline constexpr auto scan(T&& t,Args&& ...args)
 	if constexpr(fast_io::input_stream<std::remove_cvref_t<T>>)
 		return fast_io::scan<report_eof>(std::forward<T>(t),std::forward<Args>(args)...);
 	else
-		return scan<report_eof>(fast_io::c_io_observer{stdin},std::forward<T>(t),std::forward<Args>(args)...);
+		return scan<report_eof>(fast_io::c_stdin(),std::forward<T>(t),std::forward<Args>(args)...);
 }

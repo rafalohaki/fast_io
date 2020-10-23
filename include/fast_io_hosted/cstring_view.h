@@ -31,6 +31,13 @@ public:
 	constexpr basic_cstring_view(ch_type const (&cstr)[len]) noexcept:string_view_type(cstr,len-1)
 	{
 	}
+
+	template<std::size_t len>
+	requires (len!=0)
+	basic_cstring_view(char8_t const (&cstr)[len]) noexcept requires(std::same_as<ch_type,char>):string_view_type(reinterpret_cast<char const*>(cstr),len-1)
+	{
+	}
+
 	template<typename T>
 	requires (std::convertible_to<T,const_pointer>&&!std::is_array_v<T>)
 	constexpr basic_cstring_view(T const& cstr) noexcept:string_view_type(cstr)
