@@ -1,18 +1,21 @@
 #pragma once
 
-namespace manip
+namespace fast_io
+{
+
+namespace manipulators
 {
 
 template<typename T,char32_t sep,std::size_t N>
 struct seperator
 {
-	T value;
+	T reference;
 };
 
 template<typename T,char32_t dec>
 struct decimal_point
 {
-	T value;
+	T reference;
 };
 
 template<typename T>
@@ -36,7 +39,9 @@ using ten_thousand_sep = seperator<T,sep,4>;
 template<typename T,char32_t sep=u8','>
 struct three_two_two_sep
 {
-	T value;
+	T reference;
 };
+
+}
 
 }

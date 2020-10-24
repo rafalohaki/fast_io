@@ -111,10 +111,8 @@ concept io_controllable=requires(io_device& device,Args&& ...args)
 	io_control(device,std::forward<Args>(args)...);
 };
 
-struct manip_tag_t{};
-
 template<typename T>
-concept manipulator = std::same_as<typename T::manip_tag,manip_tag_t>&&requires(T t)
+concept manipulator = requires(T t)
 {
 	{t.reference};
 };

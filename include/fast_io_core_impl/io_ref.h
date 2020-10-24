@@ -6,7 +6,7 @@ namespace fast_io
 template<typename T>
 inline constexpr auto io_forward(T const& t) noexcept
 {
-	if constexpr(std::is_trivially_copyable_v<T>&&sizeof(t)<=(sizeof(std::size_t)<<1))		//predict the cost of passing by value
+	if constexpr(std::is_trivially_copyable_v<T>&&sizeof(t)<=alignof(std::max_align_t))		//predict the cost of passing by value
 		return std::remove_cvref_t<T>(t);
 	else
 		return parameter<std::remove_reference_t<T>>{t};
