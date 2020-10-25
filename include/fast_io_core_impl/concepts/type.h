@@ -80,13 +80,20 @@ explicit constexpr print_scatter_type_t() noexcept =default;
 template<typename T>
 inline constexpr print_scatter_type_t<T> print_scatter_type{};
 
-template<std::integral char_type>
 struct io_alias_t
 {
 explicit constexpr io_alias_t() noexcept =default;
 };
 
+inline constexpr io_alias_t io_alias{};
+
 template<std::integral char_type>
-inline constexpr io_alias_t<char_type> io_alias{};
+struct io_alias_type_t
+{
+explicit constexpr io_alias_type_t() noexcept = default;
+};
+
+template<std::integral char_type>
+inline constexpr io_alias_type_t<char_type> io_alias_type{};
 
 }

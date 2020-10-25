@@ -13,7 +13,7 @@ namespace fast_io
 #if !defined(__NEWLIB__) && !defined(__MSDOS__)
 template<std::integral char_type>
 requires std::same_as<char_type,char>||std::same_as<char_type,native_char_type>
-inline constexpr auto print_alias_define(io_alias_t<char_type> ch_type,directory_entry dir) noexcept
+inline constexpr auto print_alias_define(io_alias_type_t<char_type> ch_type,directory_entry dir) noexcept
 {
 	auto nfm{filename(dir)};
 	if constexpr(std::same_as<char_type,native_char_type>)
@@ -33,13 +33,14 @@ inline std::filesystem::path to_path(directory_entry de)
 
 template<std::integral char_type>
 requires std::same_as<char_type,char>||std::same_as<char_type,native_char_type>
-inline auto print_alias_define(io_alias_t<char_type> ch_type,std::filesystem::path const& pth)
+inline auto print_alias_define(io_alias_type_t<char_type> ch_type,std::filesystem::path const& pth)
 {
 	if constexpr(std::same_as<char_type,native_char_type>)
 		return basic_io_scatter_t<native_char_type>{pth.native().data(),pth.native().size()};
 	else
 		return manip::code_cvt<basic_io_scatter_t<native_char_type>>{{pth.native().data(),pth.native().size()}};
 }
+
 #endif
 
 #endif

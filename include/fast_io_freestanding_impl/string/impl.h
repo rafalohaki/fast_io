@@ -14,8 +14,8 @@
 
 namespace fast_io
 {
-template<std::integral stream_char_type,std::integral char_type>
-inline constexpr basic_io_scatter_t<char_type> print_alias_define(io_alias_t<stream_char_type>,std::basic_string<char_type> const& str)
+template<std::integral char_type>
+inline constexpr basic_io_scatter_t<char_type> print_alias_define(io_alias_t,std::basic_string<char_type> const& str)
 {
 	return {str.data(),str.size()};
 }

@@ -61,9 +61,8 @@ inline constexpr basic_io_scatter_t<char_type> print_scatter_define(print_scatte
 	return iosc;
 }
 
-template<std::integral alias_char_type,std::integral char_type,std::size_t n>
-requires std::same_as<alias_char_type,char_type>
-inline constexpr auto print_alias_define(io_alias_t<alias_char_type>,char_type const(&s)[n])
+template<std::integral char_type,std::size_t n>
+inline constexpr auto print_alias_define(io_alias_t,char_type const(&s)[n])
 {
 	if constexpr(n==2)
 		return manip::chvw<char_type>(*s);
@@ -71,23 +70,22 @@ inline constexpr auto print_alias_define(io_alias_t<alias_char_type>,char_type c
 		return basic_io_scatter_t<char_type>{s,n-1};
 }
 
-template<std::integral alias_char_type,std::integral char_type>
-inline constexpr basic_io_scatter_t<char_type> print_alias_define(io_alias_t<alias_char_type>,std::basic_string_view<char_type> svw)
+template<std::integral char_type>
+inline constexpr basic_io_scatter_t<char_type> print_alias_define(io_alias_t,std::basic_string_view<char_type> svw)
 {
 	return {svw.data(),svw.size()};
 }
 
-template<std::integral alias_char_type,typename T>
-requires std::same_as<alias_char_type,std::remove_cvref_t<T>>
-inline constexpr auto print_alias_define(io_alias_t<alias_char_type>,manip::chvw<T*> svw)
+template<std::integral T>
+inline constexpr auto print_alias_define(io_alias_t,manip::chvw<T const*> svw)
 {
-	std::basic_string_view<std::remove_cvref_t<T>> bsv{svw.reference};
-	return basic_io_scatter_t<std::remove_cvref_t<T>>{bsv.data(),bsv.size()};
+	std::basic_string_view<T> bsv{svw.reference};
+	return basic_io_scatter_t<T>{bsv.data(),bsv.size()};
 }
 
-template<std::integral alias_char_type,typename Iter>
+template<typename Iter>
 requires (std::contiguous_iterator<Iter>||std::is_pointer_v<Iter>)
-inline constexpr void const* print_alias_define(io_alias_t<alias_char_type>,Iter it)
+inline constexpr void const* print_alias_define(io_alias_t,Iter it)
 {
 	if constexpr(std::is_pointer_v<std::remove_cvref_t<Iter>>)
 		return it;

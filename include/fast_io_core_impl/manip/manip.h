@@ -190,7 +190,7 @@ inline constexpr manip::chvw<T> chvw(T ch)
 	return {ch};
 }
 template<std::integral T>
-inline constexpr manip::chvw<T*> chvw(T* ch)
+inline constexpr manip::chvw<T const*> chvw(T const* ch)
 {
 	return {ch};
 }

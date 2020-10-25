@@ -218,8 +218,8 @@ inline constexpr posix_at_entry at(basic_filebuf_io_observer<char_type> other) n
 
 #endif
 
-template<std::integral char_type,typename T>
-inline constexpr void const* print_alias_define(io_alias_t<char_type>,basic_general_streambuf_io_observer<T> v)
+template<typename T>
+inline constexpr void const* print_alias_define(io_alias_t,basic_general_streambuf_io_observer<T> v)
 {
 	return v.fb;
 }

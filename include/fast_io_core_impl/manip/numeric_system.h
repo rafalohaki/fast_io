@@ -1,6 +1,6 @@
 #pragma once
 
-namespace manip
+namespace fast_io::manip
 {
 
 template<typename T,char32_t sep,std::size_t N>

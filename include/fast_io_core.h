@@ -75,3 +75,4 @@
 #include"fast_io_core_impl/read_write_all.h"
 #include"fast_io_core_impl/crtp/crtp.h"
 #include"fast_io_core_impl/malformed_input.h"
+
