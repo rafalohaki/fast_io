@@ -102,7 +102,7 @@ inline constexpr void print_control(output out,T t)
 			{
 				auto it{print_reserve_define(io_reserve_type<char_type,value_type>,obuffer_curr(out),t)};
 				if constexpr(details::exec_charset_is_ebcdic<char_type>())
-					*it=0x15;
+					*it=0x25;
 				else
 					*it=u8'\n';
 				obuffer_set_curr(out,++it);
@@ -121,7 +121,7 @@ inline constexpr void print_control(output out,T t)
 				{
 					auto it{print_reserve_define(io_reserve_type<char_type,value_type>,obuffer_curr(out),t)};
 					if constexpr(details::exec_charset_is_ebcdic<char_type>())
-						*it=0x15;
+						*it=0x25;
 					else
 						*it=u8'\n';
 					obuffer_set_curr(out,++it);
@@ -138,7 +138,7 @@ inline constexpr void print_control(output out,T t)
 				{
 					auto it{print_reserve_define(io_reserve_type<char_type,value_type>,array.data(),t)};
 					if constexpr(details::exec_charset_is_ebcdic<char_type>())
-						*it=0x15;
+						*it=0x25;
 					else
 						*it=u8'\n';
 					write(out,array.data(),++it);
@@ -159,7 +159,7 @@ inline constexpr void print_control(output out,T t)
 					{
 						auto it{print_reserve_define(io_reserve_type<char_type,value_type>,array.data(),t)};
 						if constexpr(details::exec_charset_is_ebcdic<char_type>())
-							*it=0x15;
+							*it=0x25;
 						else
 							*it=u8'\n';
 						write(out,array.data(),++it);
@@ -174,7 +174,7 @@ inline constexpr void print_control(output out,T t)
 				{
 					auto it{print_reserve_define(io_reserve_type<char_type,value_type>,ptr,t)};
 					if constexpr(details::exec_charset_is_ebcdic<char_type>())
-						*it=0x15;
+						*it=0x25;
 					else
 						*it=u8'\n';
 					orelease(out,++it);
@@ -188,7 +188,7 @@ inline constexpr void print_control(output out,T t)
 				{
 					auto it{print_reserve_define(io_reserve_type<char_type,value_type>,oreserve(out,size),t)};
 					if constexpr(details::exec_charset_is_ebcdic<char_type>())
-						*it=0x15;
+						*it=0x25;
 					else
 						*it=u8'\n';
 					orelease(out,++it);
@@ -204,7 +204,7 @@ inline constexpr void print_control(output out,T t)
 			{
 				auto it{print_reserve_define(io_reserve_type<char_type,value_type>,array.data(),t)};
 				if constexpr(details::exec_charset_is_ebcdic<char_type>())
-					*it=0x15;
+					*it=0x25;
 				else
 					*it=u8'\n';
 				write(out,array.data(),++it);
@@ -219,7 +219,7 @@ inline constexpr void print_control(output out,T t)
 		if constexpr(line)
 		{
 			if constexpr(details::exec_charset_is_ebcdic<char_type>())
-				put(out,0x15);
+				put(out,0x25);
 			else
 				put(out,u8'\n');
 		}
@@ -250,7 +250,7 @@ inline constexpr void print_fallback(output out,Args ...args)
 			{
 				if constexpr(details::exec_charset_is_ebcdic<char_type>())
 				{
-					typename output::char_type ch(0x15);
+					typename output::char_type ch(0x25);
 					scatters.back()={std::addressof(ch),sizeof(ch)};
 					scatter_write(out,scatters);
 				}
@@ -272,7 +272,7 @@ inline constexpr void print_fallback(output out,Args ...args)
 			{
 				if constexpr(details::exec_charset_is_ebcdic<char_type>())
 				{
-					typename output::char_type ch(0x15);
+					typename output::char_type ch(0x25);
 					scatters.back()={std::addressof(ch),sizeof(ch)};
 					scatter_write(out,scatters);
 				}
@@ -304,7 +304,7 @@ inline constexpr void print_fallback(output out,Args ...args)
 				{
 					((print_control(ref,args)),...);
 					if constexpr(details::exec_charset_is_ebcdic<char_type>())
-						put(buffer,0x15);
+						put(buffer,0x25);
 					else
 						put(buffer,u8'\n');
 				}
@@ -417,7 +417,7 @@ inline constexpr void println_freestanding_decay(output out,Args ...args)
 				{
 					details::non_overlapped_copy_n(scatter.base,len,curr);
 					if constexpr(details::exec_charset_is_ebcdic<char_type>())
-						curr[len]=0x15;
+						curr[len]=0x25;
 					else
 						curr[len]=u8'\n';
 					obuffer_set_curr(out,curr+(len+1));
@@ -426,7 +426,7 @@ inline constexpr void println_freestanding_decay(output out,Args ...args)
 				{
 					write(out,scatter.base,scatter.base+len);
 					if constexpr(details::exec_charset_is_ebcdic<char_type>())
-						put(out,0x15);
+						put(out,0x25);
 					else
 						put(out,u8'\n');
 				}
@@ -435,7 +435,7 @@ inline constexpr void println_freestanding_decay(output out,Args ...args)
 			{
 				((details::decay::print_control(out,args)),...);
 				if constexpr(details::exec_charset_is_ebcdic<char_type>())
-					put(out,0x15);
+					put(out,0x25);
 				else
 					put(out,u8'\n');
 			}

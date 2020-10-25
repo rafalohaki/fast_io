@@ -46,7 +46,7 @@ inline constexpr T deal_with_one(U t)
 	{
 		auto p {print_reserve_define(io_reserve_type<typename T::value_type,no_cvref>,array.data(),t)};
 		if constexpr(details::exec_charset_is_ebcdic<value_type>())
-			*p=0x15;
+			*p=0x25;
 		else
 			*p=u8'\n';
 		return T(array.data(),++p);
@@ -137,7 +137,7 @@ inline constexpr auto deal_with_scatters(std::array<io_scatter_t,arg_number>& sc
 	if constexpr(line)
 	{
 		if constexpr(details::exec_charset_is_ebcdic<char_type>())
-			*it=0x15;
+			*it=0x25;
 		else
 			*it=u8'\n';
 		++it;
@@ -164,7 +164,7 @@ inline constexpr void deal_with_scatters_string(std::basic_string<char_type>& st
 	if constexpr(line)
 	{
 		if constexpr(details::exec_charset_is_ebcdic<char_type>())
-			*it=0x15;
+			*it=0x25;
 		else
 			*it=u8'\n';
 		++it;
@@ -239,7 +239,7 @@ inline constexpr decltype(auto) deal_with_first_is_string_rvalue_reference(U&& u
 		if constexpr(line)
 		{
 			if constexpr(details::exec_charset_is_ebcdic<char_type>())
-				u.push_back(0x15);
+				u.push_back(0x25);
 			else
 				u.push_back(u8'\n');
 		}
@@ -277,7 +277,7 @@ inline constexpr T concatln(Args&& ...args)
 	if constexpr(sizeof...(Args)==0)
 	{
 		if constexpr(details::exec_charset_is_ebcdic<typename T::value_type>())
-			return T(1,0x15);
+			return T(1,0x25);
 		else
 			return T(1,u8'\n');
 	}
