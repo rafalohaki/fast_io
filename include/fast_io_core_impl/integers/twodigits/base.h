@@ -12,94 +12,67 @@ inline constexpr auto output_base_number_impl(Iter iter,U a)
 //number: 0:48 9:57
 //upper: 65 :A 70: F
 //lower: 97 :a 102 :f
-	constexpr auto &table(details::shared_static_base_table<std::iter_value_t<Iter>,base,uppercase,transparent>::table);
+	using char_type = std::iter_value_t<Iter>;
+	using unsigned_char_type = std::make_unsigned_t<char_type>;
+	constexpr auto &table(details::shared_static_base_table<char_type,base,uppercase,transparent>::table);
 	constexpr std::uint32_t pw(static_cast<std::uint32_t>(table.size()));
-	constexpr std::size_t chars(table.front().size());
+	constexpr std::size_t chars{2};
 	for(;pw<=a;)
 	{
 		auto const rem(a%pw);
 		a/=pw;
 		non_overlapped_copy_n(table[rem].data(),chars,iter-=chars);
 	}
-	if constexpr(chars==2)
+	if(base<=a)
 	{
-		if(base<=a)
+		auto const& tm(table[a]);
+		if constexpr(point)
 		{
-			auto const& tm(table[a]);
-			
-			if constexpr(point)
+			*--iter=tm[1];
+			if constexpr(exec_charset_is_ebcdic<char_type>())
 			{
-				*--iter=tm[1];
-				*--iter=dec;
-				*--iter=tm.front();
+				if constexpr(dec==u8'.')
+					*--iter=0x4B;
+				else if constexpr(dec==u8',')
+					*--iter=0x6B;
+				else
+					*--iter=dec;
 			}
 			else
-			{
-				non_overlapped_copy_n(tm.data(),chars,iter-=chars);
-			}
+				*--iter=dec;
+			*--iter=tm.front();
 		}
 		else
 		{
-			if constexpr(point)
-				*--iter=dec;
-			if constexpr(transparent)
-				*--iter=a;
-			else
-			{
-				if constexpr(10 < base)
-				{
-					if(a<10)
-						*--iter = a+0x30;
-					else
-					{
-						if constexpr (uppercase)
-							*--iter = a+55;	
-						else
-							*--iter = a+87;
-					}
-				}
-				else
-					*--iter=a+0x30;
-			}
+			non_overlapped_copy_n(tm.data(),chars,iter-=chars);
 		}
 	}
 	else
 	{
-		if(base<=a)
+		if constexpr(point)
 		{
-			auto const& tm(table[a]);
-			auto i(tm.data());
-			for(;*i==0x30;++i);
-			auto const ed(tm.data()+chars);
-			if constexpr(point)
+			if constexpr(exec_charset_is_ebcdic<char_type>())
 			{
-				non_overlapped_copy_n(i+1,ed,iter-=ed-(i+1));
-				*--iter=dec;
-				*--iter=*i;
+				if constexpr(dec==u8'.')
+					*--iter=0x4B;
+				else if constexpr(dec==u8',')
+					*--iter=0x6B;
+				else
+					*--iter=dec;
 			}
 			else
-				non_overlapped_copy_n(i,ed,iter-=ed-i);
+				*--iter=dec;
 		}
+		if constexpr(transparent)
+			*--iter=a;
 		else
 		{
-			if constexpr(point)
-				*--iter=dec;
-			if constexpr(transparent)
-				*--iter=a;
+			if constexpr(10 < base)
+				*--iter=table[a][1];
 			else
 			{
-				if constexpr(10 < base)
-				{
-					if(a<10)
-						*--iter = a+0x30;
-					else
-					{
-						if constexpr (uppercase)
-							*--iter = a+55;	
-						else
-							*--iter = a+87;
-					}
-				}
+				if constexpr(exec_charset_is_ebcdic<char_type>())
+					*--iter=a+0xF0;
 				else
 					*--iter=a+0x30;
 			}

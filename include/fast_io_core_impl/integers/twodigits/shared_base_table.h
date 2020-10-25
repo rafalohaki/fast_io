@@ -25,10 +25,41 @@ inline constexpr auto cal_content()
 	}
 	if constexpr(!transparent)
 	{
-	for(auto &e : vals)
-		for(auto &e1 : e)
-			if constexpr(10<base)
-			{
+	if constexpr(exec_charset_is_ebcdic<char_type>())
+	{
+/*
+http://www.astrodigital.org/digital/ebcdic.html#:~:text=The%20EBCDIC%20Character%20Table%20Once%20upon%20a%20time,that%20is%20used%20in%20the%20IBM%20mainframe%20environment.
+*/
+		for(auto &e : vals)
+			for(auto &e1 : e)
+				if(e1<10)
+					e1+=0xF0;
+				else if(e1<19)
+				{
+					if constexpr(upper)
+						e1+=0xC1-10;
+					else
+						e1+=0x81-10;
+				}
+				else if(e1<28)
+				{
+					if constexpr(upper)
+						e1+=0xD1-19;
+					else
+						e1+=0x91-19;
+				}
+				else
+				{
+					if constexpr(upper)
+						e1+=0xE2-28;
+					else
+						e1+=0xA2-28;
+				}
+	}
+	else
+	{
+		for(auto &e : vals)
+			for(auto &e1 : e)
 				if(e1<10)
 					e1+=0x30;
 				else
@@ -38,9 +69,7 @@ inline constexpr auto cal_content()
 					else
 						e1+=0x61-10;
 				}
-			}
-			else
-				e1+=0x30;
+	}
 	}
 	return vals;
 }
