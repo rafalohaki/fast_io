@@ -6,7 +6,7 @@ namespace fast_io::details::jiaendu
 template<typename T>
 inline constexpr char8_t cal_ebcdic_start(char8_t start) noexcept
 {
-	if constexpr(start==u8'0'&&exec_charset_is_ebcdic<std::remove_cvref_t<T>>())
+	if(start==u8'0'&&exec_charset_is_ebcdic<std::remove_cvref_t<T>>())
 		return 0xF0;
 	return start;
 }
@@ -126,10 +126,10 @@ public:
 		std::conditional_t<sizeof(ch_type)==2,char16_t,
 		std::conditional_t<sizeof(ch_type)==4,char32_t,ch_type>>>;
 #endif
-	inline static constexpr auto table2{calculate_table2<type,start>()};
-	inline static constexpr auto table3{calculate_table3<type,start>()};
-	inline static constexpr auto table4{calculate_table4<type,start>()};
-	inline static constexpr auto table5{calculate_table5<type,start>()};
+	inline static constexpr auto table2{calculate_table2<type>(start)};
+	inline static constexpr auto table3{calculate_table3<type>(start)};
+	inline static constexpr auto table4{calculate_table4<type>(start)};
+	inline static constexpr auto table5{calculate_table5<type>(start)};
 };
 
 }
