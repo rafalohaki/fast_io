@@ -13,20 +13,6 @@ struct chvw
 	T reference;
 };
 
-template<std::integral T>
-struct unsigned_view
-{
-	using manip_tag = manip_tag_t;
-	T& reference;
-};
-
-template<std::integral T>
-struct signed_view
-{
-	using manip_tag = manip_tag_t;
-	T& reference;
-};
-
 template<typename T>
 struct unix
 {
@@ -194,36 +180,6 @@ inline constexpr manip::chvw<T const*> chvw(T const* ch)
 {
 	return {ch};
 }
-
-template<std::integral T>
-inline constexpr decltype(auto) unsigned_view(T& value)
-{
-	return reinterpret_cast<std::make_unsigned_t<T>&>(value);
-}
-
-template<std::integral T>
-inline constexpr decltype(auto) signed_view(T& value)
-{
-	return reinterpret_cast<std::make_signed_t<T>&>(value);
-}
-
-template<std::integral T>
-inline constexpr decltype(auto) unsigned_view(T const& value)
-{
-	return reinterpret_cast<std::make_unsigned_t<T const>&>(value);
-}
-template<std::integral T>
-inline constexpr decltype(auto) signed_view(T const& value)
-{
-	return reinterpret_cast<std::make_signed_t<T const>&>(value);
-}
-
-template<typename T>
-inline constexpr std::size_t unsigned_view(T * const pointer)
-{
-	return bit_cast<std::size_t>(pointer);
-}
-
 
 template<typename T>
 inline constexpr manip::local<T const> local(T const &f){return {f};}

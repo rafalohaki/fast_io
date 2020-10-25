@@ -45,31 +45,31 @@ concept reserve_scan_avoidance = requires(input in)
 };
 
 template<typename char_type,typename T>
-concept reserve_printable=std::integral<char_type>&&requires(T&& t,char_type* ptr)
+concept reserve_printable=std::integral<char_type>&&requires(T t,char_type* ptr)
 {
 	{print_reserve_size(io_reserve_type<char_type,std::remove_cvref_t<T>>)}->std::convertible_to<std::size_t>;
 	{print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,ptr,t)}->std::convertible_to<char_type*>;
 };
 
 template<typename char_type,typename T>
-concept dynamic_reserve_printable=std::integral<char_type>&&requires(T&& t,char_type* ptr)
+concept dynamic_reserve_printable=std::integral<char_type>&&requires(T t,char_type* ptr,std::size_t size)
 {
 	{print_reserve_size(io_reserve_type<char_type,std::remove_cvref_t<T>>,t)}->std::convertible_to<std::size_t>;
-	{print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,ptr,t)}->std::convertible_to<char_type*>;
+	{print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,ptr,t,size)}->std::convertible_to<char_type*>;
 };
 
 template<typename char_type,typename T>
-concept reverse_reserve_printable=std::integral<char_type>&&reserve_printable<char_type,T>&&requires(T&& t,char_type* ptr)
+concept reverse_reserve_printable=std::integral<char_type>&&reserve_printable<char_type,T>&&requires(T t,char_type* ptr)
 {
 	{print_reverse_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,ptr,t)}->std::convertible_to<char_type*>;
 };
-/*
-template<typename T>
-concept reserve_print_testable=requires(T&& t)
+
+template<typename char_type,typename T>
+concept reverse_dynamic_reserve_printable=std::integral<char_type>&&dynamic_reserve_printable<char_type,T>&&requires(T t,char_type* ptr,std::size_t size)
 {
-	{print_reserve_test<static_cast<std::size_t>(0)>(io_reserve_type<std::remove_cvref_t<T>>,std::forward<T>(t))}->std::convertible_to<bool>;
-}&&reserve_printable<T>;
-*/
+	{print_reverse_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,ptr,t,size)}->std::convertible_to<char_type*>;
+};
+
 template<typename output,typename T>
 concept printable=output_stream<output>&&requires(output& out,T&& t)
 {
@@ -113,7 +113,7 @@ concept alias_type_printable=std::integral<char_type>&&requires(T&& t)
 };
 
 template<typename io_device,typename... Args>
-concept io_controllable=requires(io_device& device,Args&& ...args)
+concept io_controllable=requires(io_device device,Args&& ...args)
 {
 	io_control(device,std::forward<Args>(args)...);
 };

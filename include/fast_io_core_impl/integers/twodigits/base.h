@@ -19,7 +19,7 @@ inline constexpr auto output_base_number_impl(Iter iter,U a)
 	{
 		auto const rem(a%pw);
 		a/=pw;
-		my_copy_n(table[rem].data(),chars,iter-=chars);
+		non_overlapped_copy_n(table[rem].data(),chars,iter-=chars);
 	}
 	if constexpr(chars==2)
 	{
@@ -35,7 +35,7 @@ inline constexpr auto output_base_number_impl(Iter iter,U a)
 			}
 			else
 			{
-				my_copy_n(tm.data(),chars,iter-=chars);
+				non_overlapped_copy_n(tm.data(),chars,iter-=chars);
 			}
 		}
 		else
@@ -73,12 +73,12 @@ inline constexpr auto output_base_number_impl(Iter iter,U a)
 			auto const ed(tm.data()+chars);
 			if constexpr(point)
 			{
-				my_copy(i+1,ed,iter-=ed-(i+1));
+				non_overlapped_copy_n(i+1,ed,iter-=ed-(i+1));
 				*--iter=dec;
 				*--iter=*i;
 			}
 			else
-				my_copy(i,ed,iter-=ed-i);
+				non_overlapped_copy_n(i,ed,iter-=ed-i);
 		}
 		else
 		{
@@ -147,12 +147,12 @@ inline constexpr bool is_space(T const u)
 {
 	if constexpr(std::unsigned_integral<std::remove_cvref_t<T>>)
 	{
-		return u==0x20||(u-0x9)<0x4;
+		return (u==0x20)|((u-0x9)<0x4);
 	}
 	else
 	{
 		std::make_unsigned_t<T> const e(u);
-		return e==0x20||(e-0x9)<0x4;
+		return (e==0x20)|((e-0x9)<0x4);
 	}
 }
 
