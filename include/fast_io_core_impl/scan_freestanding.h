@@ -65,7 +65,10 @@ template<buffer_input_stream input,typename T>
 		auto end{ibuffer_end(in)};
 		state_machine(curr,end);
 		if(state_machine.code==scan_context_status_code::success)[[likely]]
+		{
+			ibuffer_set_curr(in, state_machine.iter);
 			return true;
+		}
 	}
 	throw_posix_error(EINVAL);
 }
@@ -96,6 +99,7 @@ template<buffer_input_stream input,typename T>
 		auto state_machine{scan_context_define(scan_context<false>,curr,end,arg)};
 		if(state_machine.code != scan_context_status_code::success)[[likely]]
 			return scan_single_status_impl(in,state_machine);
+		ibuffer_set_curr(in, state_machine.iter);
 		return true;
 #if 0
 	}
