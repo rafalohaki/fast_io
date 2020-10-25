@@ -101,7 +101,10 @@ inline constexpr void print_control(output out,T t)
 			if constexpr(line)
 			{
 				auto it{print_reserve_define(io_reserve_type<char_type,value_type>,obuffer_curr(out),t)};
-				*it=u8'\n';
+				if constexpr(details::exec_charset_is_ebcdic<char_type>())
+					*it=0x15;
+				else
+					*it=u8'\n';
 				obuffer_set_curr(out,++it);
 			}
 			else
@@ -117,7 +120,10 @@ inline constexpr void print_control(output out,T t)
 				if constexpr(line)
 				{
 					auto it{print_reserve_define(io_reserve_type<char_type,value_type>,obuffer_curr(out),t)};
-					*it=u8'\n';
+					if constexpr(details::exec_charset_is_ebcdic<char_type>())
+						*it=0x15;
+					else
+						*it=u8'\n';
 					obuffer_set_curr(out,++it);
 				}
 				else
@@ -131,7 +137,10 @@ inline constexpr void print_control(output out,T t)
 				if constexpr(line)
 				{
 					auto it{print_reserve_define(io_reserve_type<char_type,value_type>,array.data(),t)};
-					*it=u8'\n';
+					if constexpr(details::exec_charset_is_ebcdic<char_type>())
+						*it=0x15;
+					else
+						*it=u8'\n';
 					write(out,array.data(),++it);
 				}
 				else
@@ -149,7 +158,10 @@ inline constexpr void print_control(output out,T t)
 					if constexpr(line)
 					{
 						auto it{print_reserve_define(io_reserve_type<char_type,value_type>,array.data(),t)};
-						*it=u8'\n';
+						if constexpr(details::exec_charset_is_ebcdic<char_type>())
+							*it=0x15;
+						else
+							*it=u8'\n';
 						write(out,array.data(),++it);
 					}
 					else
@@ -161,7 +173,10 @@ inline constexpr void print_control(output out,T t)
 				if constexpr(line)
 				{
 					auto it{print_reserve_define(io_reserve_type<char_type,value_type>,ptr,t)};
-					*it=u8'\n';
+					if constexpr(details::exec_charset_is_ebcdic<char_type>())
+						*it=0x15;
+					else
+						*it=u8'\n';
 					orelease(out,++it);
 				}
 				else
@@ -172,7 +187,10 @@ inline constexpr void print_control(output out,T t)
 				if constexpr(line)
 				{
 					auto it{print_reserve_define(io_reserve_type<char_type,value_type>,oreserve(out,size),t)};
-					*it=u8'\n';
+					if constexpr(details::exec_charset_is_ebcdic<char_type>())
+						*it=0x15;
+					else
+						*it=u8'\n';
 					orelease(out,++it);
 				}
 				else
@@ -185,7 +203,10 @@ inline constexpr void print_control(output out,T t)
 			if constexpr(line)
 			{
 				auto it{print_reserve_define(io_reserve_type<char_type,value_type>,array.data(),t)};
-				*it=u8'\n';
+				if constexpr(details::exec_charset_is_ebcdic<char_type>())
+					*it=0x15;
+				else
+					*it=u8'\n';
 				write(out,array.data(),++it);
 			}
 			else
@@ -196,7 +217,12 @@ inline constexpr void print_control(output out,T t)
 	{
 		print_define(out,t);
 		if constexpr(line)
-			put(out,u8'\n');
+		{
+			if constexpr(details::exec_charset_is_ebcdic<char_type>())
+				put(out,0x15);
+			else
+				put(out,u8'\n');
+		}
 	}
 	else
 	{
@@ -213,6 +239,7 @@ concept test_print_control = requires(T t,U arg)
 template<bool line,output_stream output,typename ...Args>
 inline constexpr void print_fallback(output out,Args ...args)
 {
+	using char_type = typename output::char_type;
 	if constexpr(scatter_output_stream<output>&&((scatter_printable<typename output::char_type,Args>||reserve_printable<typename output::char_type,Args>)&&...))
 	{
 		std::array<io_scatter_t,(sizeof...(Args))+static_cast<std::size_t>(line)> scatters;
@@ -221,9 +248,18 @@ inline constexpr void print_fallback(output out,Args ...args)
 			scatter_print_recursive<typename output::char_type>(scatters.data(),args...);
 			if constexpr(line)
 			{
-				typename output::char_type ch(u8'\n');
-				scatters.back()={std::addressof(ch),sizeof(ch)};
-				scatter_write(out,scatters);
+				if constexpr(details::exec_charset_is_ebcdic<char_type>())
+				{
+					typename output::char_type ch(0x15);
+					scatters.back()={std::addressof(ch),sizeof(ch)};
+					scatter_write(out,scatters);
+				}
+				else
+				{
+					typename output::char_type ch(u8'\n');
+					scatters.back()={std::addressof(ch),sizeof(ch)};
+					scatter_write(out,scatters);
+				}
 			}
 			else
 				scatter_write(out,scatters);
@@ -234,9 +270,18 @@ inline constexpr void print_fallback(output out,Args ...args)
 			scatter_print_with_reserve_recursive(array.data(),scatters.data(),args...);
 			if constexpr(line)
 			{
-				typename output::char_type ch(u8'\n');
-				scatters.back()={std::addressof(ch),sizeof(ch)};
-				scatter_write(out,scatters);
+				if constexpr(details::exec_charset_is_ebcdic<char_type>())
+				{
+					typename output::char_type ch(0x15);
+					scatters.back()={std::addressof(ch),sizeof(ch)};
+					scatter_write(out,scatters);
+				}
+				else
+				{
+					typename output::char_type ch(u8'\n');
+					scatters.back()={std::addressof(ch),sizeof(ch)};
+					scatter_write(out,scatters);
+				}
 			}
 			else
 				scatter_write(out,scatters);
@@ -258,7 +303,10 @@ inline constexpr void print_fallback(output out,Args ...args)
 				else
 				{
 					((print_control(ref,args)),...);
-					put(buffer,u8'\n');
+					if constexpr(details::exec_charset_is_ebcdic<char_type>())
+						put(buffer,0x15);
+					else
+						put(buffer,u8'\n');
 				}
 			}
 			else
@@ -368,19 +416,28 @@ inline constexpr void println_freestanding_decay(output out,Args ...args)
 				if(curr+(len+1)<end)[[likely]]
 				{
 					details::non_overlapped_copy_n(scatter.base,len,curr);
-					curr[len]=u8'\n';
+					if constexpr(details::exec_charset_is_ebcdic<char_type>())
+						curr[len]=0x15;
+					else
+						curr[len]=u8'\n';
 					obuffer_set_curr(out,curr+(len+1));
 				}
 				else
 				{
 					write(out,scatter.base,scatter.base+len);
-					put(out,u8'\n');
+					if constexpr(details::exec_charset_is_ebcdic<char_type>())
+						put(out,0x15);
+					else
+						put(out,u8'\n');
 				}
 			}
 			else
 			{
 				((details::decay::print_control(out,args)),...);
-				put(out,u8'\n');
+				if constexpr(details::exec_charset_is_ebcdic<char_type>())
+					put(out,0x15);
+				else
+					put(out,u8'\n');
 			}
 		}
 	}
