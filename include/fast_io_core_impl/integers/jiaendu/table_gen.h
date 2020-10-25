@@ -6,8 +6,9 @@ namespace fast_io::details::jiaendu
 template<typename T>
 inline constexpr char8_t cal_ebcdic_start(char8_t start) noexcept
 {
-	if(start==u8'0'&&exec_charset_is_ebcdic<std::remove_cvref_t<T>>())
-		return 0xF0;
+	if constexpr(exec_charset_is_ebcdic<std::remove_cvref_t<T>>())
+		if(start==u8'0')
+			return 0xF0;
 	return start;
 }
 
@@ -118,14 +119,11 @@ template<std::integral ch_type = char8_t,char8_t start=u8'0'>
 class static_tables
 {
 public:
-#if (('!' == 0x5A) || (L'!' == 0x5A))
-//ebcdic
-	using type = ch_type;
-#else
-	using type = std::conditional_t<sizeof(ch_type)==1,char8_t,
+	using type = std::conditional_t<
+		exec_charset_is_ebcdic<std::remove_cvref_t<ch_type>>(),ch_type,
+		std::conditional_t<sizeof(ch_type)==1,char8_t,
 		std::conditional_t<sizeof(ch_type)==2,char16_t,
-		std::conditional_t<sizeof(ch_type)==4,char32_t,ch_type>>>;
-#endif
+		std::conditional_t<sizeof(ch_type)==4,char32_t,ch_type>>>>;
 	inline static constexpr auto table2{calculate_table2<type>(start)};
 	inline static constexpr auto table3{calculate_table3<type>(start)};
 	inline static constexpr auto table4{calculate_table4<type>(start)};
