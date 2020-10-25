@@ -18,7 +18,7 @@ template<bool contiguous_only=false>
 inline constexpr scan_context_t<contiguous_only> scan_context;
 
 template<typename char_type,typename T,bool contiguous_only=false>
-concept context_scannable = requires(char_type const* begin,char_type const* end,T& t)
+concept context_scanable = requires(char_type const* begin,char_type const* end,T& t)
 {
 	{scan_context_define(scan_context<char_type,contiguous_only>,begin,end,t).iter}->std::same_as<char_type const*>;
 	{scan_context_define(scan_context<char_type,contiguous_only>,begin,end,t).code}->std::convertible_to<scan_context_status_code>;
@@ -33,7 +33,7 @@ template<typename T>
 inline constexpr scan_skip_type_t<T> scan_skip_type{};
 
 template<typename T>
-concept scannable_skipping = requires(scan_skip_type_t<T> t,char8_t const* begin,char8_t const* end)
+concept scanable_skipping = requires(scan_skip_type_t<T> t,char8_t const* begin,char8_t const* end)
 {
 	{scan_skip_define(scan_skip_type<T>,begin,end)}->std::convertible_to<char8_t const*>;
 };

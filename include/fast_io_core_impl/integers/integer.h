@@ -7,6 +7,7 @@
 #include"jiaendu/jiaendu.h"
 #include"sto/sto.h"
 #include"sto/sto_reserve.h"
+#include"sto/scan_context.h"
 #include"append_nine_digits.h"
 
 namespace fast_io

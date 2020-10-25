@@ -151,6 +151,23 @@ constexpr decltype(auto) ibuffer_cap(io_reference_wrapper<input> in)
 	return ibuffer_cap(*in.ptr);
 }
 
+template<buffer_input_stream input>
+constexpr decltype(auto) ibuffer_begin(io_reference_wrapper<input> in)
+{
+	return ibuffer_begin(*in.ptr);
+}
+
+template<buffer_input_stream input>
+constexpr decltype(auto) ibuffer_curr(io_reference_wrapper<input> in)
+{
+	return ibuffer_curr(*in.ptr);
+}
+template<buffer_input_stream input>
+constexpr decltype(auto) ibuffer_end(io_reference_wrapper<input> in)
+{
+	return ibuffer_end(*in.ptr);
+}
+
 template<buffer_input_stream input,typename... Args>
 constexpr decltype(auto) ibuffer_set_curr(io_reference_wrapper<input> in,Args&& ...args)
 {

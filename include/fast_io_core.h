@@ -51,6 +51,10 @@
 //#include"fast_io_core_impl/print_reserver.h"
 #include"fast_io_core_impl/scan_transmit/scan_transmit.h"
 
+
+
+#include"fast_io_core_impl/scan_freestanding.h"
+
 // This should provide an option macro to disable any generation for table in freestanding environments.
 #include"fast_io_core_impl/integers/integer.h"
 
@@ -75,4 +79,5 @@
 #include"fast_io_core_impl/read_write_all.h"
 #include"fast_io_core_impl/crtp/crtp.h"
 #include"fast_io_core_impl/malformed_input.h"
+
 
