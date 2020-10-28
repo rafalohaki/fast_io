@@ -205,6 +205,11 @@ namespace details::ctx_scan_integer
 					p0_phase = phase_code::numbers;
 					iter = phase1<base>(iter, end, val, val_last);
 					length += iter - begin;
+					if (length > 0 && iter != end) {
+						code = scan_context_status_code::success;
+						finalize();
+						break;
+					}
 				}
 				code = scan_context_status_code::need_more_data;
 			}
@@ -229,6 +234,11 @@ namespace details::ctx_scan_integer
 					p0_phase = phase_code::numbers;
 					iter = phase1<base>(iter, end, val, val_last);
 					length += iter - begin;
+					if (length > 0 && iter != end) {
+						code = scan_context_status_code::success;
+						finalize();
+						break;
+					}
 				}
 				code = scan_context_status_code::need_more_data;
 			}
