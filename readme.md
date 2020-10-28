@@ -70,6 +70,7 @@ A general purpose I/O library to replace stdio.h and iostream
 
 - As close to system call as possible.
 - No default locale. It is optional.
+- To do. Correctly deal with EBCDIC exec-charset (where no libc correctly deals it).
 
 ### Safe
 
