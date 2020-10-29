@@ -122,7 +122,7 @@ public:
 	using pointer = char_type*;
 	using iterator = pointer;
 	using const_iterator = pointer;
-	using allocator_type = noexcept_allocator<char_type>;
+	using allocator_type = std::allocator<char_type>;
 	std::array<char_type,4096> static_buffer;
 	pointer beg_ptr=static_buffer.data(),end_ptr=static_buffer.data(),capacity_ptr=static_buffer.data()+4096;
 	constexpr internal_temporary_buffer()=default;
@@ -136,7 +136,7 @@ public:
 		if(beg_ptr!=static_buffer.data())
 		{
 			allocator_type alloc;
-			using allocator_traits = std::allocator_traits<noexcept_allocator<char_type>>;
+			using allocator_traits = std::allocator_traits<std::allocator<char_type>>;
 			allocator_traits::deallocate(alloc,beg_ptr,capacity_ptr-beg_ptr);
 		}
 	}
@@ -173,39 +173,29 @@ template<bool vector_buf,typename T>
 inline constexpr void ogrow_impl(T& ob,std::size_t new_capacity)
 {
 	using char_type = typename T::char_type;
+	std::allocator<char_type> alloc;
+	using allocator_traits = std::allocator_traits<std::allocator<char_type>>;
+	auto newp{allocator_traits::allocate(alloc,new_capacity)};
+	std::size_t const current_size(ob.end_ptr-ob.beg_ptr);
+	non_overlapped_copy_n(ob.beg_ptr,current_size,newp);
 	if constexpr(!vector_buf)
 	{
-		noexcept_allocator<char_type> alloc;
-		using allocator_traits = std::allocator_traits<noexcept_allocator<char_type>>;
-		std::size_t const current_size(ob.end_ptr-ob.beg_ptr);
-		if(ob.beg_ptr==ob.static_buffer.data())
+		if(ob.beg_ptr!=ob.static_buffer.data())
 		{
-			auto newp{allocator_traits::allocate(alloc,new_capacity)};
-			details::non_overlapped_copy_n(ob.beg_ptr,current_size,newp);
-			ob.beg_ptr=newp;
+			std::allocator<char_type> alloc;
+			allocator_traits::deallocate(alloc,ob.beg_ptr,ob.capacity_ptr-ob.beg_ptr);
 		}
-		else
-		{
-			ob.beg_ptr=allocator_traits::allocate(alloc,new_capacity,ob.beg_ptr);
-		}
-		ob.end_ptr=ob.beg_ptr+current_size;
-		ob.capacity_ptr=ob.beg_ptr+new_capacity;
 	}
 	else
 	{
-		std::allocator<char_type> alloc;
-		using allocator_traits = std::allocator_traits<std::allocator<char_type>>;
-		auto newp{allocator_traits::allocate(alloc,new_capacity)};
-		std::size_t const current_size(ob.end_ptr-ob.beg_ptr);
-		details::non_overlapped_copy_n(ob.beg_ptr,current_size,newp);
 		if(ob.beg_ptr)[[likely]]
 		{
 			std::allocator<char_type> alloc;
 			allocator_traits::deallocate(alloc,ob.beg_ptr,ob.capacity_ptr-ob.beg_ptr);
 		}
-		ob.end_ptr=(ob.beg_ptr=newp)+current_size;
-		ob.capacity_ptr=ob.beg_ptr+new_capacity;
 	}
+	ob.end_ptr=(ob.beg_ptr=newp)+current_size;
+	ob.capacity_ptr=ob.beg_ptr+new_capacity;
 }
 
 }
@@ -296,7 +286,7 @@ inline constexpr void flush(internal_temporary_buffer<ch_type>&) noexcept{}
 template<std::integral ch_type>
 inline constexpr auto oallocator(internal_temporary_buffer<ch_type>&) noexcept
 {
-	return noexcept_allocator<ch_type>();
+	return std::allocator<ch_type>();
 }
 
 }
