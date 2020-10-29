@@ -5,7 +5,9 @@
 #include<sys/stat.h>
 #include<sys/types.h>
 #endif
+#ifndef _MSC_VER
 #include<unistd.h>
+#endif
 #include"systemcall_details.h"
 #include<fcntl.h>
 #ifdef __linux__
@@ -25,7 +27,7 @@ struct io_uring;
 
 namespace fast_io
 {
-	
+
 namespace details
 {
 #ifdef _WIN32
