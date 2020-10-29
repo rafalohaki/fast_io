@@ -36,6 +36,27 @@ struct bio_new_fp_flags
 {
 	inline static constexpr int value=calculate_bio_new_fp_flags<detach>(om);
 };
+
+
+inline std::FILE* bio_to_fp(BIO* bio) noexcept
+{
+	std::FILE* fp{};
+	BIO_get_fp(bio,std::addressof(fp));
+	return fp;
+}
+
+inline int bio_to_fd(BIO* bio) noexcept
+{
+	auto fp{bio_to_fp(bio)};
+	if(fp==nullptr)
+	{
+		int fd{-1};
+		BIO_get_fd(bio,std::addressof(fd));
+		return fd;
+	}
+	return ::fast_io::details::fp_to_fd(fp);
+}
+
 }
 
 template<typename stm>
@@ -134,18 +155,11 @@ public:
 	}
 	explicit operator basic_c_io_observer<char_type>() const noexcept
 	{
-		std::FILE* fp{};
-		BIO_get_fp(bio,std::addressof(fp));
-		return {fp};
+		return {details::bio_to_fp(bio)};
 	}
 	explicit operator basic_posix_io_observer<char_type>() const noexcept
 	{
-		auto c_iob{static_cast<basic_c_io_observer<char_type>>(*this)};
-		if(c_iob)
-			return static_cast<basic_posix_io_observer<char_type>>(c_iob);
-		int fd{-1};
-		BIO_get_fd(bio,std::addressof(fd));
-		return {fd};
+		return {details::bio_to_fd(bio)};
 	}
 #if defined(_WIN32)
 	explicit operator basic_win32_io_observer<char_type>() const noexcept
@@ -214,6 +228,16 @@ public:
 		basic_bio_file(basic_posix_file(std::move(bmv),om),om)
 	{
 	}
+
+	template<typename... Args>
+	basic_bio_file(wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_bio_file(basic_c_file<char_type>(file,om,pm),om)
+	{}
+
+	basic_bio_file(native_at_entry nate,wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_bio_file(basic_c_file<char_type>(nate,file,om,pm),om)
+	{}
+
 #endif
 	template<typename... Args>
 	basic_bio_file(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
@@ -223,7 +247,6 @@ public:
 	basic_bio_file(native_at_entry nate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_bio_file(basic_c_file<char_type>(nate,file,om,pm),om)
 	{}
-
 
 	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
 	{
@@ -283,6 +306,12 @@ template<std::integral ch_type>
 inline constexpr basic_bio_io_observer<ch_type> io_value_handle(basic_bio_io_observer<ch_type> other) noexcept
 {
 	return other;
+}
+
+template<std::integral ch_type>
+inline constexpr posix_at_entry at(basic_bio_io_observer<ch_type> bio) noexcept
+{
+	return posix_at_entry{details::bio_to_fd(bio.bio)};
 }
 
 static_assert(input_stream<bio_file>);

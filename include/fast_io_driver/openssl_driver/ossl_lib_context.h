@@ -3,19 +3,19 @@
 namespace fast_io::openssl
 {
 
-using openssl_context_observer = details::observer<OPENSSL_CTX*>;
+using ossl_lib_context_observer = details::observer<OSSL_LIB_CTX*>;
 
-class openssl_context:public openssl_context_observer
+class openssl_context:public ossl_lib_context_observer
 {
 public:
-	openssl_context():openssl_context_observer(OPENSSL_CTX_new())
+	openssl_context():ossl_lib_context_observer(OSSL_LIB_CTX_new())
 	{
 		if(this->native_handle()==nullptr)
 			throw_openssl_error();
 	}
 	openssl_context(openssl_context const&) = delete;
 	openssl_context& operator=(openssl_context const&) = delete;
-	constexpr openssl_context(openssl_context&& bmv) noexcept:openssl_context_observer(bmv.native_handle())
+	constexpr openssl_context(openssl_context&& bmv) noexcept:ossl_lib_context_observer(bmv.native_handle())
 	{
 		bmv.native_handle()=nullptr;
 	}
@@ -24,7 +24,7 @@ public:
 		if(bmv.native_handle()==this->native_handle())
 			return *this;
 		if(this->native_handle())[[likely]]
-			OPENSSL_CTX_free(this->native_handle());
+			OSSL_LIB_CTX_free(this->native_handle());
 		this->native_handle()=bmv.native_handle();
 		bmv.native_handle()=nullptr;
 		return *this;
@@ -32,7 +32,7 @@ public:
 	~openssl_context()
 	{
 		if(this->native_handle())[[likely]]
-			OPENSSL_CTX_free(this->native_handle());
+			OSSL_LIB_CTX_free(this->native_handle());
 	}
 };
 
