@@ -46,9 +46,8 @@ public:
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	constexpr basic_filebuf_file(native_hd fb):basic_filebuf_io_observer<CharT,Traits>{fb}{}
 #if defined(__GLIBCXX__)
-	template<typename T>
-	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,T&& t):
-		basic_filebuf_io_observer<CharT,Traits>{new __gnu_cxx::stdio_filebuf<char_type,traits_type>(piohd.native_handle(),details::calculate_fstream_open_value(std::forward<T>(t)),fast_io::details::cal_buffer_size<CharT,true>())}
+	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
+		basic_filebuf_io_observer<CharT,Traits>{new __gnu_cxx::stdio_filebuf<char_type,traits_type>(piohd.native_handle(),details::calculate_fstream_open_value(mode),fast_io::details::cal_buffer_size<CharT,true>())}
 	{
 /*
 https://github.com/gcc-mirror/gcc/blob/41d6b10e96a1de98e90a7c0378437c3255814b16/libstdc%2B%2B-v3/config/io/basic_file_stdio.cc#L216
@@ -63,11 +62,10 @@ This function never fails. but what if fdopen fails?
 		piohd.release();
 	}
 #elif defined(__LIBCPP_VERSION)
-	template<typename T>
-	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,T&& t):
+	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
 		basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>}
 	{
-		fb.__open(piohd.native_handle(),details::calculate_fstream_open_value(std::forward<T>(t)));
+		fb.__open(piohd.native_handle(),details::calculate_fstream_open_value(mode));
 		if(!this->native_handle()->is_open())
 		{
 			delete this->native_handle();
@@ -76,8 +74,7 @@ This function never fails. but what if fdopen fails?
 		piohd.release();
 	}
 #else
-	template<typename T>
-	basic_filebuf_file(basic_c_io_handle_unlocked<char_type>&& chd,T&& t):basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>(chd.native_handle())}
+	basic_filebuf_file(basic_c_io_handle_unlocked<char_type>&& chd,open_mode):basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>(chd.native_handle())}
 	{
 		if(!this->native_handle()->is_open())
 		{
@@ -86,18 +83,16 @@ This function never fails. but what if fdopen fails?
 		}
 		chd.release();
 	}
-	template<typename T>
-	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,T&& t):
-		basic_filebuf_file(basic_c_file_unlocked<char_type>(std::move(piohd),std::forward<T>(t)),std::forward<T>(t))
+	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
+		basic_filebuf_file(basic_c_file_unlocked<char_type>(std::move(piohd),mode),mode)
 	{
 	}
 #endif
 
 #ifdef _WIN32
 //windows specific. open posix file from win32 io handle
-	template<typename T>
-	basic_filebuf_file(basic_win32_io_handle<char_type>&& win32_handle,T&& t):
-		basic_filebuf_file(basic_posix_file<char_type>(std::move(win32_handle),std::forward<T>(t)),std::forward<T>(t))
+	basic_filebuf_file(basic_win32_io_handle<char_type>&& win32_handle,open_mode mode):
+		basic_filebuf_file(basic_posix_file<char_type>(std::move(win32_handle),mode),mode)
 	{
 	}
 	basic_filebuf_file(wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
