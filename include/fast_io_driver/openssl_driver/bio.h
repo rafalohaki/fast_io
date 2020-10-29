@@ -3,16 +3,16 @@ struct bio_method_st
 {
     int type;
     char const *name;
-    int (*bwrite) (BIO *, const char *, size_t, size_t *);
-    int (*bwrite_old) (BIO *, const char *, int);
-    int (*bread) (BIO *, char *, size_t, size_t *);
-    int (*bread_old) (BIO *, char *, int);
-    int (*bputs) (BIO *, const char *);
-    int (*bgets) (BIO *, char *, int);
-    long (*ctrl) (BIO *, int, long, void *);
-    int (*create) (BIO *);
-    int (*destroy) (BIO *);
-    long (*callback_ctrl) (BIO *, int, BIO_info_cb *);
+    int (*bwrite) (BIO *, const char *, size_t, size_t *) noexcept;
+    int (*bwrite_old) (BIO *, const char *, int) noexcept;
+    int (*bread) (BIO *, char *, size_t, size_t *) noexcept;
+    int (*bread_old) (BIO *, char *, int) noexcept;
+    int (*bputs) (BIO *, const char *) noexcept;
+    int (*bgets) (BIO *, char *, int) noexcept;
+    long (*ctrl) (BIO *, int, long, void *) noexcept;
+    int (*create) (BIO *) noexcept;
+    int (*destroy) (BIO *) noexcept;
+    long (*callback_ctrl) (BIO *, int, BIO_info_cb *) noexcept;
 };
 
 namespace fast_io
