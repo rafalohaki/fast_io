@@ -318,12 +318,6 @@ static_assert(input_stream<bio_file>);
 static_assert(output_stream<bio_file>);
 
 template<output_stream output,std::integral ch_type>
-constexpr void print_define(output& out,basic_bio_io_observer<ch_type> bio)
-{
-	print_freestanding(out,bio.native_handle());
-}
-
-template<output_stream output,std::integral ch_type>
 inline void print_define(output& out,openssl_error const& err)
 {
 	bio_file bf(io_cookie,out);

@@ -834,10 +834,4 @@ inline basic_win32_io_observer<char_type> native_stderr()
 	return basic_win32_io_observer<char_type>{fast_io::win32::GetStdHandle(-12)};
 }
 
-template<std::integral char_type>
-inline constexpr void const* print_alias_define(io_alias_t,basic_win32_io_observer<char_type> v)
-{
-	return v.handle;
-}
-
 }

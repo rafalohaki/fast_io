@@ -9,7 +9,7 @@ namespace fast_io
 namespace details
 {
 
-inline constexpr std::ios::openmode calculate_fstream_file_open_mode(open_mode om)
+inline constexpr std::ios::openmode calculate_fstream_file_open_mode(open_mode om) noexcept
 {
 	std::ios::openmode ios_om{};
 	if((om&open_mode::app)!=open_mode::none)
@@ -27,7 +27,7 @@ inline constexpr std::ios::openmode calculate_fstream_file_open_mode(open_mode o
 	return ios_om;
 }
 
-inline constexpr std::ios::openmode calculate_fstream_open_value(open_mode om)
+inline constexpr std::ios::openmode calculate_fstream_open_value(open_mode om) noexcept
 {
 	return calculate_fstream_file_open_mode(om);
 }

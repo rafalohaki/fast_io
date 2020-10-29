@@ -948,19 +948,6 @@ inline decltype(auto) zero_copy_out_handle(basic_c_io_observer_unlocked<ch_type>
 	return zero_copy_out_handle(static_cast<basic_posix_io_observer<ch_type>>(h));
 }
 
-
-template<std::integral char_type>
-inline constexpr void const* print_alias_define(io_alias_t,basic_c_io_observer_unlocked<char_type> v)
-{
-	return v.fp;
-}
-
-template<std::integral char_type>
-inline constexpr void const* print_alias_define(io_alias_t,basic_c_io_observer<char_type> v)
-{
-	return v.fp;
-}
-
 }
 #if defined(_MSC_VER)||defined(_UCRT)
 #include"universal_crt.h"

@@ -1172,11 +1172,5 @@ inline auto scatter_write(basic_posix_pipe<ch_type>& h,Args&& ...args)
 #endif
 #endif
 
-template<std::integral char_type>
-inline constexpr int print_alias_define(io_alias_t,basic_posix_io_observer<char_type> v)
-{
-	return v.fd;
-}
-
 
 }
