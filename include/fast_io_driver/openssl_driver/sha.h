@@ -1,6 +1,6 @@
 #pragma once
 
-namespace fast_io
+namespace fast_io::ossl
 {
 
 enum class sha_type
