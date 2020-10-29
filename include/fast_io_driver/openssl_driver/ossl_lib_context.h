@@ -1,6 +1,6 @@
 #pragma once
 
-namespace fast_io::openssl
+namespace fast_io
 {
 
 using ossl_lib_context_observer = details::observer<OSSL_LIB_CTX*>;

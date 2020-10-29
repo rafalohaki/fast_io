@@ -1,6 +1,6 @@
 #pragma once
 
-namespace fast_io::openssl
+namespace fast_io
 {
 
 class openssl_error:public fast_io_error

@@ -15,7 +15,7 @@ struct bio_method_st
     long (*callback_ctrl) (BIO *, int, BIO_info_cb *);
 };
 
-namespace fast_io::openssl
+namespace fast_io
 {
 
 namespace details

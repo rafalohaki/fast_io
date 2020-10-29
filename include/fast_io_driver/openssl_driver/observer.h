@@ -1,6 +1,6 @@
 #pragma once
 
-namespace fast_io::openssl::details
+namespace fast_io::details
 {
 
 template<typename T>
