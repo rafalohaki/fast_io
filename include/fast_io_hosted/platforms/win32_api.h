@@ -199,6 +199,10 @@ int __stdcall GetFileInformationByHandleEx(void*,file_info_by_handle_class,void*
 
 std::uint32_t __stdcall GetFileType(void*) noexcept;
 
+
+int __stdcall LockFileEx(void*,std::uint32_t,std::uint32_t,std::uint32_t,std::uint32_t,overlapped*) noexcept;
+int __stdcall UnlockFileEx(void*,std::uint32_t,std::uint32_t,std::uint32_t,overlapped*) noexcept;
+
 }
 
 

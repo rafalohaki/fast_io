@@ -31,7 +31,7 @@ inline constexpr nt_open_mode calculate_nt_open_mode(open_mode value,perms pm)
 		mode.DesiredAccess|=0x120116;	//FILE_GENERIC_WRITE
 		generic_write=true;
 	}
-	if((value&open_mode::in)!=open_mode::none)
+	if(((value&open_mode::in)!=open_mode::none)|((value&open_mode::app)!=open_mode::none))
 	{
 		mode.DesiredAccess|=0x120089;	//FILE_GENERIC_READ
 		if((value&open_mode::out)!=open_mode::none&&((value&open_mode::app)!=open_mode::none&&(value&open_mode::trunc)!=open_mode::none))
@@ -117,7 +117,8 @@ does not exist
 		mode.CreateOptions |= 0x00000008;//FILE_NO_INTERMEDIATE_BUFFERING
 	if((value&open_mode::sync)!=open_mode::none)
 		mode.CreateOptions |= 0x00000002;//FILE_WRITE_THROUGH
-
+	if((value&open_mode::follow)!=open_mode::none)
+		mode.CreateOptions |= 0x00200000; //FILE_FLAG_OPEN_REPARSE_POINT => FILE_OPEN_REPARSE_POINT (0x00200000)
 	bool set_normal{true};
 	if((value&open_mode::archive)!=open_mode::none)
 	{

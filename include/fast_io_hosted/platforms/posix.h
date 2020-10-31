@@ -1146,28 +1146,28 @@ inline std::size_t posix_scatter_write_impl(int fd,std::span<io_scatter_t const>
 
 }
 
-template<std::integral ch_type,typename... Args>
-inline auto scatter_read(basic_posix_io_observer<ch_type> h,Args&& ...args)
+template<std::integral ch_type>
+inline auto scatter_read(basic_posix_io_observer<ch_type> h,std::span<io_scatter_t const> sp)
 {
-	return details::posix_scatter_read_impl(h.fd,std::forward<Args>(args)...);
+	return details::posix_scatter_read_impl(h.fd,sp);
 }
 
-template<std::integral ch_type,typename... Args>
-inline auto scatter_write(basic_posix_io_observer<ch_type> h,Args&& ...args)
+template<std::integral ch_type>
+inline auto scatter_write(basic_posix_io_observer<ch_type> h,std::span<io_scatter_t const> sp)
 {
-	return details::posix_scatter_write_impl(h.fd,std::forward<Args>(args)...);
+	return details::posix_scatter_write_impl(h.fd,sp);
 }
 
-template<std::integral ch_type,typename... Args>
-inline auto scatter_read(basic_posix_pipe<ch_type>& h,Args&& ...args)
+template<std::integral ch_type>
+inline auto scatter_read(basic_posix_pipe<ch_type>& h,std::span<io_scatter_t const> sp)
 {
-	return details::posix_scatter_read_impl(h.in().fd,std::forward<Args>(args)...);
+	return details::posix_scatter_read_impl(h.in().fd,sp);
 }
 
-template<std::integral ch_type,typename... Args>
-inline auto scatter_write(basic_posix_pipe<ch_type>& h,Args&& ...args)
+template<std::integral ch_type>
+inline auto scatter_write(basic_posix_pipe<ch_type>& h,std::span<io_scatter_t const> sp)
 {
-	return details::posix_scatter_write_impl(h.out().fd,std::forward<Args>(args)...);
+	return details::posix_scatter_write_impl(h.out().fd,sp);
 }
 #endif
 #endif

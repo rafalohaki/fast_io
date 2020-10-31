@@ -55,19 +55,24 @@ inline auto create_io_completion_port(Args&&... args)
 	return ptr;
 }
 
-inline void* create_file_a_impld(wchar_t const* lpFileName,
-std::uint32_t dwDesiredAccess,
-std::uint32_t dwShareMode,
-std::uint32_t dwCreationDisposition,
-std::uint32_t dwFlagsAndAttributes,bool inherit)
+struct win32_open_mode
+{
+std::uint32_t dwDesiredAccess{};
+std::uint32_t dwShareMode{1|2};//FILE_SHARE_READ|FILE_SHARE_WRITE
+bool inherit{};
+std::uint32_t dwCreationDisposition{};	//depends on EXCL
+std::uint32_t dwFlagsAndAttributes{};//=128|0x10000000;//FILE_ATTRIBUTE_NORMAL|FILE_FLAG_RANDOM_ACCESS
+};
+
+inline void* win32_create_file_a_impld(wchar_t const* lpFileName,win32_open_mode const& mode)
 {
 	win32::security_attributes sec_attr{sizeof(win32::security_attributes),nullptr,true};
 	auto handle(win32::CreateFileW(lpFileName,
-	dwDesiredAccess,
-	dwShareMode,
-	inherit?std::addressof(sec_attr):nullptr,
-	dwCreationDisposition,
-	dwFlagsAndAttributes,
+	mode.dwDesiredAccess,
+	mode.dwShareMode,
+	mode.inherit?std::addressof(sec_attr):nullptr,
+	mode.dwCreationDisposition,
+	mode.dwFlagsAndAttributes,
 	nullptr));
 	if(handle==((void*) (std::intptr_t)-1))
 		throw_win32_error();
@@ -75,43 +80,30 @@ std::uint32_t dwFlagsAndAttributes,bool inherit)
 }
 
 template<std::integral char_type>
-inline void* create_file_a_impl(basic_cstring_view<char_type> path,
-	std::uint32_t dwDesiredAccess,
-	std::uint32_t dwShareMode,
-	std::uint32_t dwCreationDisposition,
-	std::uint32_t dwFlagsAndAttributes,
-	bool inherit)
+requires (std::same_as<char_type,char>||std::same_as<char_type,wchar_t>)
+inline void* win32_create_file_impl(basic_cstring_view<char_type> path,win32_open_mode const& mode)
 {
 	if constexpr(std::same_as<char_type,char>)
 	{
 		details::temp_unique_arr_ptr<wchar_t> buffer(path.size()+1);
 		*utf_code_convert(path.data(),path.data()+path.size(),buffer.ptr)=0;
-		return create_file_a_impld(buffer.ptr,
-			dwDesiredAccess,dwShareMode,dwCreationDisposition,dwFlagsAndAttributes,inherit);
+		return win32_create_file_a_impld(buffer.ptr,mode);
 	}
 	else
 	{
-		return create_file_a_impld(path.data(),
-			dwDesiredAccess,dwShareMode,dwCreationDisposition,dwFlagsAndAttributes,inherit);
+		return win32_create_file_a_impld(path.data(),mode);
 	}
 }
 
-struct win32_open_mode
-{
-std::uint32_t dwDesiredAccess{};
-std::uint32_t dwShareMode{1|2};//FILE_SHARE_READ|FILE_SHARE_WRITE
-std::uint32_t dwCreationDisposition{};	//depends on EXCL
-std::uint32_t dwFlagsAndAttributes{};//=128|0x10000000;//FILE_ATTRIBUTE_NORMAL|FILE_FLAG_RANDOM_ACCESS
-};
 
-inline constexpr win32_open_mode calculate_win32_open_mode(open_mode value)
+inline constexpr win32_open_mode calculate_win32_open_mode(open_mode value,perms pm)
 {
 	win32_open_mode mode;
 	if((value&open_mode::app)!=open_mode::none)
 		mode.dwDesiredAccess|=4;//FILE_APPEND_DATA
 	else if((value&open_mode::out)!=open_mode::none)
 		mode.dwDesiredAccess|=0x40000000;//GENERIC_WRITE
-	if((value&open_mode::in)!=open_mode::none)
+	if(((value&open_mode::in)!=open_mode::none)|((value&open_mode::app)!=open_mode::none))
 	{
 		mode.dwDesiredAccess|=0x80000000;//GENERIC_READ
 		if((value&open_mode::out)!=open_mode::none&&((value&open_mode::app)!=open_mode::none&&(value&open_mode::trunc)!=open_mode::none))
@@ -214,7 +206,14 @@ does not exist
 	if((value&open_mode::follow)!=open_mode::none)
 		mode.dwFlagsAndAttributes|=0x00200000;	//FILE_FLAG_OPEN_REPARSE_POINT
 	if((value&open_mode::directory)!=open_mode::none)
+	{
 		mode.dwFlagsAndAttributes|=0x02000000;	//FILE_FLAG_BACKUP_SEMANTICS
+		if(mode.dwCreationDisposition==0)
+		{
+			mode.dwDesiredAccess|=0x80000000;	//GENERIC_READ
+			mode.dwCreationDisposition=3;		//OPEN_EXISTING
+		}
+	}
 	bool set_normal{true};
 	if((value&open_mode::archive)!=open_mode::none)
 	{
@@ -263,34 +262,11 @@ does not exist
 		mode.dwFlagsAndAttributes|=0x04000000;					//FILE_FLAG_DELETE_ON_CLOSE
 		mode.dwFlagsAndAttributes|=0x100;					//FILE_ATTRIBUTE_TEMPORARY
 	}
+	if((pm&perms::owner_write)==perms::none)
+		mode.dwFlagsAndAttributes|=1;						//FILE_ATTRIBUTE_READONLY
 	return mode;
 }
 
-inline constexpr std::uint32_t dw_flag_attribute_with_perms(std::uint32_t dw_flags_and_attributes,perms pm)
-{
-	if((pm&perms::owner_write)==perms::none)
-		return dw_flags_and_attributes|1;//dw_flags_and_attributes|FILE_ATTRIBUTE_READONLY
-	return dw_flags_and_attributes;
-}
-
-inline constexpr win32_open_mode calculate_win32_open_mode_with_perms(open_mode om,perms pm)
-{
-	auto m(calculate_win32_open_mode(om));
-	m.dwFlagsAndAttributes=dw_flag_attribute_with_perms(m.dwFlagsAndAttributes,pm);
-	return m;
-}
-
-template<open_mode om,perms pm>
-struct win32_file_openmode
-{
-	inline static constexpr win32_open_mode mode = calculate_win32_open_mode_with_perms(om,pm);
-};
-
-template<open_mode om>
-struct win32_file_openmode_single
-{
-	inline static constexpr win32_open_mode mode = calculate_win32_open_mode(om);
-};
 }
 template<std::integral ch_type>
 class basic_win32_io_observer
@@ -431,7 +407,41 @@ inline std::size_t read_impl(void* __restrict handle,void* __restrict begin,std:
 	return number_of_bytes_read;
 }
 
-inline std::size_t write_impl(void* __restrict handle,void const* __restrict cbegin,std::size_t to_write)
+struct file_lock_guard
+{
+	void* handle;
+	constexpr file_lock_guard(void* h):handle(h){}
+	file_lock_guard(file_lock_guard const&)=delete;
+	file_lock_guard& operator=(file_lock_guard const&)=delete;
+	~file_lock_guard()
+	{
+		win32::overlapped overlap{};
+		win32::UnlockFileEx(handle,0,UINT32_MAX,UINT32_MAX,std::addressof(overlap));
+	}
+};
+
+inline std::size_t readv_impl(void* __restrict handle,std::span<io_scatter_t const> sp)
+{
+	std::size_t has_read{};
+	for(auto const& e : sp)
+	{
+		std::size_t read_this_round{read_impl(handle,const_cast<void*>(e.base),e.len)};
+		has_read+=read_this_round;
+		if(read_this_round<e.len)[[unlikely]]
+			break;
+	}
+	return has_read;
+}
+
+inline std::uint32_t write_simple_impl(void* __restrict handle,void const* __restrict cbegin,std::size_t to_write)
+{
+	std::uint32_t number_of_bytes_written{};
+	if(!win32::WriteFile(handle,cbegin,static_cast<std::uint32_t>(to_write),std::addressof(number_of_bytes_written),nullptr))
+		throw_win32_error();
+	return number_of_bytes_written;
+}
+
+inline std::size_t write_nolock_impl(void* __restrict handle,void const* __restrict cbegin,std::size_t to_write)
 {
 	if constexpr(4<sizeof(std::size_t))		//above the size of std::uint32_t, unfortunately, we cannot guarantee the atomicity of syscall
 	{
@@ -441,9 +451,7 @@ inline std::size_t write_impl(void* __restrict handle,void const* __restrict cbe
 			std::uint32_t to_write_this_round{UINT32_MAX};
 			if(to_write<static_cast<std::size_t>(UINT32_MAX))
 				to_write_this_round=static_cast<std::uint32_t>(to_write);
-			std::uint32_t number_of_bytes_written{};
-			if(!win32::WriteFile(handle,cbegin,to_write_this_round,std::addressof(number_of_bytes_written),nullptr))
-				throw_win32_error();
+			std::uint32_t number_of_bytes_written{write_simple_impl(handle,cbegin,to_write_this_round)};
 			written+=number_of_bytes_written;
 			if(number_of_bytes_written<to_write_this_round)
 				break;
@@ -453,11 +461,30 @@ inline std::size_t write_impl(void* __restrict handle,void const* __restrict cbe
 	}
 	else
 	{
-		std::uint32_t number_of_bytes_written{};
-		if(!win32::WriteFile(handle,cbegin,static_cast<std::uint32_t>(to_write),std::addressof(number_of_bytes_written),nullptr))
-			throw_win32_error();
-		return number_of_bytes_written;
+		return write_simple_impl(handle,cbegin,to_write);
 	}
+}
+
+inline std::size_t write_impl(void* __restrict handle,void const* __restrict cbegin,std::size_t to_write)
+{
+	if constexpr(4<sizeof(std::size_t))		//above the size of std::uint32_t, unfortunately, we cannot guarantee the atomicity of syscall
+	{
+		if(static_cast<std::size_t>(UINT32_MAX)<to_write)
+		{
+			win32::overlapped overlap{};
+			if(win32::LockFileEx(handle,0x00000002,0,UINT32_MAX,UINT32_MAX,std::addressof(overlap)))
+			{
+				file_lock_guard lg{handle};
+				return write_nolock_impl(handle,cbegin,to_write);
+			}
+			else
+				return write_nolock_impl(handle,cbegin,to_write);
+		}
+		else
+			return write_simple_impl(handle,cbegin,to_write);
+	}
+	else
+		return write_nolock_impl(handle,cbegin,to_write);
 }
 
 inline std::uintmax_t seek_impl(void* handle,std::intmax_t offset,seekdir s)
@@ -467,6 +494,109 @@ inline std::uintmax_t seek_impl(void* handle,std::intmax_t offset,seekdir s)
 		throw_win32_error();
 	return distance_to_move_high;
 }
+
+inline std::size_t write_v_unhappy_path_impl(void* __restrict handle,std::span<io_scatter_t const> sp)
+{
+	std::size_t total_bytes{};
+	constexpr std::size_t pipe_size_limits{33525760U};
+	bool ok{true};
+	for(auto const& e : sp)
+	{
+		total_bytes+=e.len;
+		if(e.len<pipe_size_limits)
+			ok=false;
+	}
+	if(!total_bytes)
+		return 0;
+	if(ok)
+	{
+		std::size_t written{};
+		for(auto const& e : sp)
+			if(e.len)
+			{
+				std::size_t written_this_round{write_nolock_impl(handle,e.base,e.len)};
+				written+=written_this_round;
+				if(written_this_round<e.len)
+					break;
+			}
+		return written;
+	}
+	std::size_t buffer_size{pipe_size_limits<total_bytes?pipe_size_limits:total_bytes};
+	std::unique_ptr<std::byte[]> buffer{new std::byte[buffer_size]};
+	auto position{buffer.get()};
+	auto const ed{buffer.get()+buffer_size};
+	std::size_t written{};
+	for(auto const& e : sp)
+	{
+		std::size_t remain_space(ed-position);
+		if(e.len<remain_space)
+		{
+			if(e.len)[[likely]]
+				std::memcpy(position,e.base,e.len);
+			position+=e.len;
+		}
+		else if(buffer_size==remain_space)
+		{
+			std::size_t actual_written{write_nolock_impl(handle,e.base,e.len)};
+			written+=actual_written;
+			if(actual_written<e.len)
+				return written;
+		}
+		else
+		{
+			if(remain_space)
+				memcpy(position,e.base,remain_space);
+			{
+				std::size_t actual_written{write_simple_impl(handle,buffer.get(),buffer_size)};
+				written+=actual_written;
+				if(actual_written<remain_space)
+					return written;
+			}
+			std::byte const* ebaseoffset{reinterpret_cast<std::byte const*>(e.base)+remain_space};
+			std::size_t to_write{e.len-remain_space};
+			if(buffer_size<=to_write)
+			{
+				std::size_t actual_written{write_nolock_impl(handle,ebaseoffset,to_write)};
+				written+=actual_written;
+				if(actual_written<remain_space)
+					return written;
+			}
+			else if(to_write)
+			{
+				memcpy(buffer.get(),ebaseoffset,to_write);
+				position=buffer.get()+to_write;
+			}
+		}
+	}
+	if(position==buffer.get())
+		return written;
+	else
+		return written+write_simple_impl(handle,buffer.get(),position-buffer.get());
+}
+
+inline std::size_t writev_impl(void* __restrict handle,std::span<io_scatter_t const> sp)
+{
+	if(sp.empty())
+		return 0;
+	else
+	{
+		win32::overlapped overlap{};
+		auto succ{win32::LockFileEx(handle,0x00000002,0,UINT32_MAX,UINT32_MAX,std::addressof(overlap))};
+		if(!succ)
+			return write_v_unhappy_path_impl(handle,sp);
+		file_lock_guard gd{handle};
+		std::size_t total_write{};
+		for(auto const & e : sp)
+		{
+			std::size_t written{write_nolock_impl(handle,e.base,e.len)};
+			total_write+=written;
+			if(e.len<written)
+				break;
+		}
+		return total_write;
+	}
+}
+
 
 }
 
@@ -486,6 +616,18 @@ template<std::integral ch_type,std::contiguous_iterator Iter>
 inline Iter write(basic_win32_io_observer<ch_type> handle,Iter cbegin,Iter cend)
 {
 	return cbegin+win32::details::write_impl(handle.handle,std::to_address(cbegin),(cend-cbegin)*sizeof(*cbegin))/sizeof(*cbegin);
+}
+
+template<std::integral ch_type>
+inline std::size_t scatter_read(basic_win32_io_observer<ch_type> handle,std::span<io_scatter_t const> sp)
+{
+	return win32::details::readv_impl(handle.handle,sp);
+}
+
+template<std::integral ch_type>
+inline std::size_t scatter_write(basic_win32_io_observer<ch_type> handle,std::span<io_scatter_t const> sp)
+{
+	return win32::details::writev_impl(handle.handle,sp);
 }
 
 template<std::integral ch_type,std::contiguous_iterator Iter>
@@ -605,14 +747,14 @@ public:
 	{}
 
 	explicit basic_win32_file(cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-				basic_win32_io_handle<char_type>(details::nt::nt_create_file_impl(filename,details::nt::calculate_nt_open_mode(om,pm)))
+				basic_win32_io_handle<char_type>(details::win32_create_file_impl(filename,details::calculate_win32_open_mode(om,pm)))
 	{}
 	explicit basic_win32_file(nt_at_entry nate,wcstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
 				basic_win32_io_handle<char_type>(details::nt::nt_create_file_directory_impl(nate.handle,filename,details::nt::calculate_nt_open_mode(om,pm)))
 	{}
 
 	explicit basic_win32_file(wcstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-				basic_win32_io_handle<char_type>(details::nt::nt_create_file_impl(filename,details::nt::calculate_nt_open_mode(om,pm)))
+				basic_win32_io_handle<char_type>(details::win32_create_file_impl(filename,details::calculate_win32_open_mode(om,pm)))
 	{}
 
 #if 0
@@ -766,12 +908,24 @@ inline Iter read(basic_win32_pipe<ch_type>& h,Iter begin,Iter end)
 {
 	return read(h.in(),begin,end);
 }
+
 template<std::integral ch_type,std::contiguous_iterator Iter>
 inline Iter write(basic_win32_pipe<ch_type>& h,Iter begin,Iter end)
 {
 	return write(h.out(),begin,end);
 }
 
+template<std::integral ch_type>
+inline std::size_t scatter_read(basic_win32_pipe<ch_type>& h,std::span<io_scatter_t const> sp)
+{
+	return scatter_read(h.in(),sp);
+}
+
+template<std::integral ch_type>
+inline std::size_t scatter_write(basic_win32_pipe<ch_type>& h,std::span<io_scatter_t const> sp)
+{
+	return scatter_write(h.out(),sp);
+}
 
 template<std::integral ch_type>
 inline std::array<void*,2> redirect_handle(basic_win32_pipe<ch_type>& hd)
