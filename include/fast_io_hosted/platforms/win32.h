@@ -801,19 +801,6 @@ inline void truncate(basic_win32_io_observer<ch_type> handle,std::uintmax_t size
 namespace win32::details
 {
 
-inline std::uintmax_t file_size_impl(void* handle)
-{
-/*
-Microsoft's Document said 
-https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfilesizeex
-Windows Store apps:  GetFileSizeEx is not supported. Use GetFileInformationByHandleEx.
-*/
-	file_standard_info finfo{};
-	if(!GetFileInformationByHandleEx(handle,file_info_by_handle_class::FileStandardInfo,std::addressof(finfo),sizeof(finfo)))
-		throw_win32_error();
-	return finfo.EndOfFile;
-}
-
 inline file_type file_type_impl(void* handle)
 {
 /*
@@ -843,18 +830,36 @@ https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfiletyp
 	};
 }
 
+inline posix_file_status win32_status_impl(void* __restrict handle)
+{
+	by_handle_file_information bhdi;
+	if(!GetFileInformationByHandle(handle,std::addressof(bhdi)))
+		throw_win32_error();
+	std::uintmax_t file_size{static_cast<std::uintmax_t>((static_cast<std::uint64_t>(bhdi.nFileSizeHigh)<<32)|bhdi.nFileSizeLow)};
+	std::underlying_type_t<perms> pm{0444};
+	if((bhdi.dwFileAttributes&0x1)==0x0)
+		pm|=0222;
+	return posix_file_status{static_cast<std::uintmax_t>(bhdi.dwVolumeSerialNumber),
+	static_cast<std::uintmax_t>((static_cast<std::uint64_t>(bhdi.nFileIndexHigh)<<32)|bhdi.nFileIndexLow),
+	static_cast<perms>(pm),
+	file_type_impl(handle),
+	static_cast<std::uintmax_t>(bhdi.nNumberOfLinks),
+	0,0,0,
+	file_size,
+	65536,file_size>>9,
+	to_struct_timespec(bhdi.ftLastAccessTime),
+	to_struct_timespec(bhdi.ftLastWriteTime),
+	to_struct_timespec(bhdi.ftCreationTime),
+	0,0};
+}
+
+
 }
 
 template<std::integral ch_type>
-inline std::uintmax_t size(basic_win32_io_observer<ch_type> handle)
+inline posix_file_status status(basic_win32_io_observer<ch_type> wiob)
 {
-	return win32::details::file_size_impl(handle.handle);
-}
-
-template<std::integral ch_type>
-inline file_type type(basic_win32_io_observer<ch_type> handle)
-{
-	return win32::details::file_type_impl(handle.handle);
+	return win32::details::win32_status_impl(wiob.handle);
 }
 
 template<std::integral ch_type>

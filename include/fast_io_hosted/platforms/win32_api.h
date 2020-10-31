@@ -203,6 +203,45 @@ std::uint32_t __stdcall GetFileType(void*) noexcept;
 int __stdcall LockFileEx(void*,std::uint32_t,std::uint32_t,std::uint32_t,std::uint32_t,overlapped*) noexcept;
 int __stdcall UnlockFileEx(void*,std::uint32_t,std::uint32_t,std::uint32_t,overlapped*) noexcept;
 
+struct filetime
+{
+std::uint32_t dwLowDateTime,dwHighDateTime;
+};
+
+inline constexpr struct timespec to_struct_timespec(filetime ft) noexcept
+{
+	std::uint64_t date_time{(static_cast<std::uint64_t>(ft.dwHighDateTime)<<32)|ft.dwLowDateTime};
+
+/*
+116444736000000000
+18446744073709551616
+ 999999999
+1000000000
+*/
+
+	constexpr std::uint64_t gap{11644473600000ULL * 10000ULL};
+	std::uint64_t unix_time{date_time-gap};
+	if(date_time<gap)[[unlikely]]
+		unix_time=0;
+	return {static_cast<std::time_t>(unix_time/10000000ULL),static_cast<long>((unix_time%10000000ULL)*100)};
+}
+
+struct by_handle_file_information
+{
+std::uint32_t    dwFileAttributes;
+filetime	 ftCreationTime;
+filetime	 ftLastAccessTime;
+filetime	 ftLastWriteTime;
+std::uint32_t    dwVolumeSerialNumber;
+std::uint32_t    nFileSizeHigh;
+std::uint32_t    nFileSizeLow;
+std::uint32_t    nNumberOfLinks;
+std::uint32_t    nFileIndexHigh;
+std::uint32_t    nFileIndexLow;
+};
+
+inline int __stdcall GetFileInformationByHandle(void* __restrict,by_handle_file_information* __restrict) noexcept;
+
 }
 
 

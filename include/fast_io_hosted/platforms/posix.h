@@ -258,11 +258,11 @@ public:
 #ifdef _WIN32
 	explicit operator basic_win32_io_observer<char_type>() const noexcept
 	{
-		return {details::_get_osfhandle(fd)};
+		return {reinterpret_cast<void*>(details::_get_osfhandle(fd))};
 	}
 	explicit operator basic_nt_io_observer<char_type>() const noexcept
 	{
-		return {details::_get_osfhandle(fd)};
+		return {reinterpret_cast<void*>(details::_get_osfhandle(fd))};
 	}
 #endif
 	constexpr native_handle_type release() noexcept
