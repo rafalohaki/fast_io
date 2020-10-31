@@ -566,6 +566,8 @@ inline std::size_t write_v_unhappy_path_impl(void* __restrict handle,std::span<i
 				memcpy(buffer.get(),ebaseoffset,to_write);
 				position=buffer.get()+to_write;
 			}
+			else
+				position=buffer.get();
 		}
 	}
 	if(position==buffer.get())
