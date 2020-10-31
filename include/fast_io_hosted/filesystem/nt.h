@@ -193,7 +193,7 @@ struct nt_recursive_directory_iterator
 {
 	void* root_handle{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
 	nt_dirent* entry{};
-	std::vector<win32_file> stack;
+	std::vector<nt_file> stack;
 	nt_recursive_directory_iterator()=default;
 	nt_recursive_directory_iterator(void* root_han,nt_dirent* ent):root_handle(root_han),entry(ent){}
 	nt_recursive_directory_iterator(nt_recursive_directory_iterator const&)=delete;

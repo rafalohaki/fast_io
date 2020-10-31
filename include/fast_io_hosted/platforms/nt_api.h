@@ -318,6 +318,13 @@ inline auto nt_set_information_file(Args&& ...args) noexcept
 	return (get_nt_module_handle<std::uint32_t __stdcall(void* __restrict,io_status_block* __restrict,void* __restrict,std::uint32_t,file_information_class) noexcept >("NtSetInformationFile"))(std::forward<Args>(args)...);
 }
 
+template<typename... Args>
+requires (sizeof...(Args)==7)
+inline auto nt_duplicate_object(Args&& ...args) noexcept
+{
+	return (get_nt_module_handle<std::uint32_t __stdcall(void*,void*,void*,void**,std::uint32_t,std::uint32_t,std::uint32_t) noexcept >("NtDuplicateObject"))(std::forward<Args>(args)...);
+}
+
 struct rtlp_curdir_def
 {
 	std::int32_t ref_count;

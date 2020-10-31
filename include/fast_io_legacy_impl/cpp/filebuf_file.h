@@ -95,6 +95,10 @@ This function never fails. but what if fdopen fails?
 		basic_filebuf_file(basic_posix_file<char_type>(std::move(win32_handle),mode),mode)
 	{
 	}
+	basic_filebuf_file(basic_nt_io_handle<char_type>&& nt_handle,open_mode mode):
+		basic_filebuf_file(basic_posix_file<char_type>(std::move(nt_handle),mode),mode)
+	{
+	}
 	basic_filebuf_file(wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_filebuf_file(basic_posix_file<char_type>(file,om,pm),om)
 	{}

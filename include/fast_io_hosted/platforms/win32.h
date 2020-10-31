@@ -315,13 +315,21 @@ inline constexpr basic_win32_io_observer<ch_type> io_value_handle(basic_win32_io
 namespace win32::details
 {
 
-inline void* win32_dup(void* handle)
+inline void* win32_dup_impl(void* handle)
 {
-	auto const current_process(GetCurrentProcess());
+	void* current_process{reinterpret_cast<void*>(static_cast<intptr_t>(-1))};
 	void* new_handle{};
 	if(!DuplicateHandle(current_process,handle,current_process,std::addressof(new_handle), 0, true, 2/*DUPLICATE_SAME_ACCESS*/))
 		throw_win32_error();
 	return handle;
+}
+
+inline void* win32_dup2_impl(void* handle,void* newhandle)
+{
+	auto temp{win32_dup_impl(handle)};
+	if(newhandle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))[[likely]]
+		CloseHandle(newhandle);
+	return temp;
 }
 
 }
@@ -339,16 +347,10 @@ public:
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	explicit constexpr basic_win32_io_handle(native_hd handle) noexcept:
 		basic_win32_io_observer<ch_type>{handle}{}
-	basic_win32_io_handle(basic_win32_io_handle const& other):basic_win32_io_observer<ch_type>{win32::details::win32_dup(other.native_handle())}{}
+	basic_win32_io_handle(basic_win32_io_handle const& other):basic_win32_io_observer<ch_type>{win32::details::win32_dup_impl(other.native_handle())}{}
 	basic_win32_io_handle& operator=(basic_win32_io_handle const& other)
 	{
-		auto const current_process(win32::GetCurrentProcess());
-		void* new_handle{};
-		if(!win32::DuplicateHandle(current_process,other.native_handle(),current_process,std::addressof(new_handle), 0, true, 2/*DUPLICATE_SAME_ACCESS*/))
-			throw_win32_error();
-		if(*this)[[likely]]
-			fast_io::win32::CloseHandle(this->native_handle());
-		this->native_handle()=new_handle;
+		this->handle=win32::details::win32_dup2_impl(other.handle,this->handle);
 		return *this;
 	}
 	basic_win32_io_handle(basic_win32_io_handle&& b) noexcept:
@@ -737,7 +739,7 @@ public:
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	explicit constexpr basic_win32_file(native_hd handle) noexcept:basic_win32_io_handle<ch_type>(handle){}
 
-	basic_win32_file(io_dup_t,basic_win32_io_observer<ch_type> wiob):basic_win32_io_handle<ch_type>(win32::details::win32_dup(wiob.native_handle()))
+	basic_win32_file(io_dup_t,basic_win32_io_observer<ch_type> wiob):basic_win32_io_handle<ch_type>(win32::details::win32_dup_impl(wiob.native_handle()))
 	{}
 
 
@@ -789,7 +791,7 @@ inline constexpr auto zero_copy_in_handle(basic_win32_io_observer<ch_type> iob)
 }
 
 template<std::integral ch_type>
-inline void truncate(basic_win32_io_observer<ch_type> handle,std::size_t size)
+inline void truncate(basic_win32_io_observer<ch_type> handle,std::uintmax_t size)
 {
 	seek(handle,size,seekdir::beg);
 	if(!win32::SetEndOfFile(handle.handle))
@@ -862,15 +864,6 @@ public:
 	using char_type = ch_type;
 	using native_handle_type = std::array<basic_win32_file<ch_type>,2>;
 	native_handle_type pipes;
-	template<typename ...Args>
-	basic_win32_pipe(fast_io::native_interface_t, Args&& ...args)
-	{
-		if(!win32::CreatePipe(
-			std::addressof(pipes.front().native_handle()),
-			std::addressof(pipes.back().native_handle()),
-			std::forward<Args>(args)...))
-			throw_win32_error();
-	}
 	basic_win32_pipe()
 	{
 		win32::security_attributes sec_attr{sizeof(win32::security_attributes),nullptr,true};
@@ -880,17 +873,6 @@ public:
 			std::addressof(sec_attr),0))
 			throw_win32_error();
 	}
-/*
-	template<std::size_t om>
-	basic_win32_pipe(open::interface_t<om>):basic_win32_pipe()
-	{
-		auto constexpr omb(om&~open::binary.value);
-		static_assert(omb==open::in.value||omb==open::out.value||omb==(open::in.value|open::out.value),u8"pipe open mode must be in or out");
-		if constexpr (!(om&~open::in.value)&&(om&~open::out.value))
-			pipes.front().close();
-		if constexpr ((om&~open::in.value)&&!(om&~open::out.value))
-			pipes.back().close();
-	}*/
 	auto& native_handle()
 	{
 		return pipes;
@@ -960,34 +942,34 @@ inline constexpr std::uint32_t win32_stdout_number(-11);
 inline constexpr std::uint32_t win32_stderr_number(-12);
 
 template<std::integral char_type=char>
-inline basic_win32_io_observer<char_type> win32_stdin()
+inline basic_win32_io_observer<char_type> win32_stdin() noexcept
 {
 	return {fast_io::win32::GetStdHandle(-10)};
 }
 template<std::integral char_type=char>
-inline basic_win32_io_observer<char_type> win32_stdout()
+inline basic_win32_io_observer<char_type> win32_stdout() noexcept
 {
 	return basic_win32_io_observer<char_type>{fast_io::win32::GetStdHandle(-11)};
 }
 template<std::integral char_type=char>
-inline basic_win32_io_observer<char_type> win32_stderr()
+inline basic_win32_io_observer<char_type> win32_stderr() noexcept
 {
 	return basic_win32_io_observer<char_type>{fast_io::win32::GetStdHandle(-12)};
 }
 template<std::integral char_type=char>
-inline basic_win32_io_observer<char_type> native_stdin()
+inline basic_win32_io_observer<char_type> native_stdin() noexcept
 {
 	return {fast_io::win32::GetStdHandle(-10)};
 }
 template<std::integral char_type=char>
-inline basic_win32_io_observer<char_type> native_stdout()
+inline basic_win32_io_observer<char_type> native_stdout() noexcept
 {
-	return basic_win32_io_observer<char_type>{fast_io::win32::GetStdHandle(-11)};
+	return {fast_io::win32::GetStdHandle(-11)};
 }
 template<std::integral char_type=char>
-inline basic_win32_io_observer<char_type> native_stderr()
+inline basic_win32_io_observer<char_type> native_stderr() noexcept
 {
-	return basic_win32_io_observer<char_type>{fast_io::win32::GetStdHandle(-12)};
+	return {fast_io::win32::GetStdHandle(-12)};
 }
 
 }

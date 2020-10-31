@@ -368,9 +368,9 @@ public:
 	{
 		return handle;
 	}
-	explicit constexpr operator bool() const noexcept
+	explicit operator bool() const noexcept
 	{
-		return handle;
+		return handle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
 	}
 	explicit constexpr operator basic_win32_io_observer<char_type>() const noexcept
 	{
@@ -424,7 +424,7 @@ https://doxygen.reactos.org/da/d02/dll_2win32_2kernel32_2client_2file_2fileinfo_
 namespace details::nt
 {
 
-inline std::uint64_t nt_seek64_impl(void* handle,std::int64_t offset,seekdir s)
+inline std::uint64_t nt_seek64_impl(void* __restrict handle,std::int64_t offset,seekdir s)
 {
 	std::uint64_t file_position{static_cast<std::uint64_t>(offset)};
 	win32::nt::io_status_block block{};
@@ -468,10 +468,42 @@ inline std::uint64_t nt_seek64_impl(void* handle,std::int64_t offset,seekdir s)
 		throw_nt_error(status);
 	return file_position;
 }
-inline std::uintmax_t nt_seek_impl(void* handle,std::intmax_t offset,seekdir s)
+inline std::uintmax_t nt_seek_impl(void* __restrict handle,std::intmax_t offset,seekdir s)
 {
 	return static_cast<std::uintmax_t>(nt_seek64_impl(handle,static_cast<std::int64_t>(offset),s));
 }
+
+inline void* nt_dup_impl(void* handle)
+{
+	void* current_process{reinterpret_cast<void*>(static_cast<intptr_t>(-1))};
+	void* new_handle{};
+	auto status{win32::nt::nt_duplicate_object(current_process,handle,current_process,std::addressof(new_handle),0,0x00000002L,2)};
+	if(status)
+		throw_nt_error(status);
+	return new_handle;
+}
+
+inline void* nt_dup2_impl(void* handle,void* newhandle)
+{
+	auto temp{nt_dup_impl(handle)};
+	if(newhandle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))[[likely]]
+		win32::nt::nt_close(newhandle);
+	return temp;
+}
+
+inline void nt_truncate_impl(void* handle,std::uintmax_t newfilesizem)
+{
+	std::uint64_t newfilesize{static_cast<std::uint64_t>(newfilesizem)};
+	win32::nt::io_status_block block{};
+	auto status{win32::nt::nt_set_information_file(handle,
+		std::addressof(block),
+		std::addressof(newfilesize),
+		sizeof(std::uint64_t),
+		win32::nt::file_information_class::FileEndOfFileInformation)};
+	if(status)
+		throw_nt_error(status);
+}
+
 }
 
 template<std::integral ch_type>
@@ -481,15 +513,21 @@ inline std::uintmax_t seek(basic_nt_io_observer<ch_type> handle,std::intmax_t of
 }
 
 template<std::integral ch_type>
+inline void truncate(basic_nt_io_observer<ch_type> handle,std::uintmax_t newfilesize)
+{
+	details::nt::nt_truncate_impl(handle.handle,newfilesize);
+}
+
+template<std::integral ch_type>
 class basic_nt_io_handle:public basic_nt_io_observer<ch_type>
 {
 public:
 	using char_type = ch_type;
 	using native_handle_type = void*;
-	constexpr basic_nt_io_handle() noexcept = default;
+	explicit constexpr basic_nt_io_handle() noexcept = default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	constexpr basic_nt_io_handle(native_hd hd) noexcept:basic_nt_io_observer<ch_type>(hd){}
+	explicit constexpr basic_nt_io_handle(native_hd hd) noexcept:basic_nt_io_observer<ch_type>(hd){}
 	void reset(native_handle_type newhandle=nullptr) noexcept
 	{
 		if(this->native_handle()!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))[[likely]]
@@ -506,9 +544,12 @@ public:
 			this->native_handle()=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
 		}
 	}
-	basic_nt_io_handle(basic_nt_io_handle const&)=delete;//Todo copy with ZwDuplicateObject or NtDuplicateObject??
-	basic_nt_io_handle& operator=(basic_nt_io_handle const&)=delete;
-
+	basic_nt_io_handle(basic_nt_io_handle const& other):basic_nt_io_observer<ch_type>(details::nt::nt_dup_impl(other.handle)){}
+	basic_nt_io_handle& operator=(basic_nt_io_handle const& other)
+	{
+		this->handle=details::nt::nt_dup2_impl(other.handle,this->handle);
+		return *this;
+	}
 	constexpr basic_nt_io_handle(basic_nt_io_handle&& b) noexcept:
 		basic_nt_io_handle<ch_type>(b.native_handle())
 	{
@@ -527,30 +568,32 @@ public:
 	}
 };
 
-
 template<std::integral ch_type>
 class basic_nt_file:public basic_nt_io_handle<ch_type>
 {
 public:
 	using char_type = ch_type;
 	using native_handle_type = void*;
-	constexpr basic_nt_file()=default;
+	explicit constexpr basic_nt_file()=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	constexpr basic_nt_file(native_hd hd):basic_nt_io_handle<ch_type>(hd){}
-	basic_nt_file(cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
+	explicit constexpr basic_nt_file(native_hd hd):basic_nt_io_handle<ch_type>(hd){}
+	explicit basic_nt_file(io_dup_t,basic_nt_io_observer<ch_type> wiob):basic_nt_io_handle<ch_type>(details::nt::nt_dup_impl(wiob.handle))
+	{}
+
+	explicit basic_nt_file(cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_nt_io_handle<ch_type>(details::nt::nt_create_file_impl(filename,details::nt::calculate_nt_open_mode(om,pm)))
 	{
 	}
-	basic_nt_file(nt_at_entry nate,cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
+	explicit basic_nt_file(nt_at_entry nate,cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_nt_io_handle<char_type>(details::nt::nt_create_file_directory_impl(nate.handle,filename,details::nt::calculate_nt_open_mode(om,pm)))
 	{
 	}
-	basic_nt_file(wcstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
+	explicit basic_nt_file(wcstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_nt_io_handle<ch_type>(details::nt::nt_create_file_impl(filename,details::nt::calculate_nt_open_mode(om,pm)))
 	{
 	}
-	basic_nt_file(nt_at_entry nate,wcstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
+	explicit basic_nt_file(nt_at_entry nate,wcstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_nt_io_handle<char_type>(details::nt::nt_create_file_directory_impl(nate.handle,filename,details::nt::calculate_nt_open_mode(om,pm)))
 	{
 	}
@@ -564,6 +607,7 @@ public:
 			win32::nt::nt_close(this->native_handle());
 	}
 };
+
 using nt_io_observer=basic_nt_io_observer<char>;
 using nt_io_handle=basic_nt_io_handle<char>;
 using nt_file=basic_nt_file<char>;
@@ -572,4 +616,45 @@ using u8nt_io_observer=basic_nt_io_observer<char8_t>;
 using u8nt_io_handle=basic_nt_io_handle<char8_t>;
 using u8nt_file=basic_nt_file<char8_t>;
 
+using wnt_io_observer=basic_nt_io_observer<wchar_t>;
+using wnt_io_handle=basic_nt_io_handle<wchar_t>;
+using wnt_file=basic_nt_file<wchar_t>;
+
+inline constexpr std::uint32_t nt_stdin_number(-10);
+inline constexpr std::uint32_t nt_stdout_number(-11);
+inline constexpr std::uint32_t nt_stderr_number(-12);
+
+template<std::integral char_type=char>
+inline basic_nt_io_observer<char_type> nt_stdin() noexcept
+{
+	return {fast_io::win32::GetStdHandle(-10)};
+}
+template<std::integral char_type=char>
+inline basic_nt_io_observer<char_type> nt_stdout() noexcept
+{
+	return {fast_io::win32::GetStdHandle(-11)};
+}
+template<std::integral char_type=char>
+inline basic_nt_io_observer<char_type> nt_stderr() noexcept
+{
+	return {fast_io::win32::GetStdHandle(-12)};
+}
+
+#if 0
+template<std::integral char_type=char>
+inline basic_nt_io_observer<char_type> native_stdin() noexcept
+{
+	return {fast_io::win32::GetStdHandle(-10)};
+}
+template<std::integral char_type=char>
+inline basic_nt_io_observer<char_type> native_stdout() noexcept
+{
+	return {fast_io::win32::GetStdHandle(-11)};
+}
+template<std::integral char_type=char>
+inline basic_nt_io_observer<char_type> native_stderr() noexcept
+{
+	return {fast_io::win32::GetStdHandle(-12)};
+}
+#endif
 }

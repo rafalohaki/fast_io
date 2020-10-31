@@ -663,7 +663,18 @@ inline void io_control(basic_posix_io_observer<ch_type> h,Args&& ...args)
 namespace details
 {
 
-#ifndef _WIN32
+#ifdef _WIN32
+
+inline int open_fd_from_handle(void* handle,open_mode md)
+{
+	int fd{_open_osfhandle(bit_cast<std::intptr_t>(handle),
+		details::calculate_posix_open_mode_for_win32_handle(md))};
+	if(fd==-1)
+		throw_posix_error();
+	return fd;
+}
+
+#else
 
 inline int my_posix_openat(int dirfd,char const* pathname,int flags,mode_t mode)
 {
@@ -743,13 +754,15 @@ public:
 #if defined(_WIN32)
 //windows specific. open posix file from win32 io handle
 	basic_posix_file(basic_win32_io_handle<char_type>&& hd,open_mode m):
-		basic_posix_io_handle<char_type>(::_open_osfhandle(bit_cast<std::intptr_t>(hd.native_handle()),details::calculate_posix_open_mode_for_win32_handle(m)))
+		basic_posix_io_handle<char_type>{details::open_fd_from_handle(hd.handle,m)}
 	{
-		if(native_handle()==-1)
-			throw_posix_error();
 		hd.release();
 	}
-
+	basic_posix_file(basic_nt_io_handle<char_type>&& hd,open_mode m):
+		basic_posix_io_handle<char_type>{details::open_fd_from_handle(hd.handle,m)}
+	{
+		hd.release();
+	}
 	basic_posix_file(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_posix_file(basic_win32_file<char_type>(file,om,pm),om)
 	{}
