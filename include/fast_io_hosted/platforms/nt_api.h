@@ -3,47 +3,33 @@
 namespace fast_io::win32::nt
 {
 
-template<bool no_exception=false>
-inline auto get_nt_module_handle() noexcept(no_exception)
+inline auto get_nt_module_handle() noexcept
 {
 	auto mod(GetModuleHandleW(L"ntdll.dll"));
-	if constexpr(no_exception)
-		return mod;
-	else
-	{
-		if(mod==nullptr)
-			throw_win32_error();
-		return mod;
-	}
+	if(mod==nullptr)
+		fast_terminate();
+	return mod;
 }
 
 
-template<typename func,bool no_exception=false>
-inline func* get_nt_module_handle(char const* funname) noexcept(no_exception)
+template<typename func>
+inline func* get_nt_module_handle(char const* funname) noexcept
 {
-	auto hd(get_nt_module_handle<no_exception>());
-	if constexpr(no_exception)
-	{
-		if(hd==nullptr)
-			return nullptr;
-	}
+	auto hd(get_nt_module_handle());
 	auto proc_addr(GetProcAddress(hd,funname));
-	if constexpr(!no_exception)
-	{
-		if(proc_addr==nullptr)
-			throw_win32_error();
-	}
+	if(proc_addr==nullptr)
+		fast_terminate();
 	return bit_cast<func*>(proc_addr);
 }
 
-inline std::uint32_t rtl_nt_status_to_dos_error(std::uint32_t status)
+inline std::uint32_t rtl_nt_status_to_dos_error(std::uint32_t status) noexcept
 {
-	return (get_nt_module_handle<std::uint32_t __stdcall(std::uint32_t status)>("RtlNtStatusToDosError"))(status);
+	return (get_nt_module_handle<std::uint32_t __stdcall(std::uint32_t status) noexcept >("RtlNtStatusToDosError"))(status);
 }
 
 inline std::uint32_t nt_close(void* handle) noexcept
 {
-	auto func_ptr{get_nt_module_handle<std::uint32_t __stdcall(void*),true>("NtClose")};
+	auto func_ptr{get_nt_module_handle<std::uint32_t __stdcall(void*) noexcept >("NtClose")};
 	return func_ptr(handle);
 }
 
@@ -78,7 +64,7 @@ std::uintptr_t Information;
 
 template<typename... Args>
 requires (sizeof...(Args)==11)
-inline auto nt_create_file(Args&& ...args)
+inline auto nt_create_file(Args&& ...args) noexcept
 {
 /*
 __kernel_entry NTSYSCALLAPI NTSTATUS NtCreateFile(
@@ -96,7 +82,7 @@ ULONG(std::uint32_t)              EaLength
 );
 */
 	return (get_nt_module_handle<std::uint32_t __stdcall(void**,std::uint32_t,object_attributes*,io_status_block*,std::int64_t*,
-				std::uint32_t,std::uint32_t,std::uint32_t,std::uint32_t,void*,std::uint32_t)>("NtCreateFile"))(std::forward<Args>(args)...);
+				std::uint32_t,std::uint32_t,std::uint32_t,std::uint32_t,void*,std::uint32_t) noexcept>("NtCreateFile"))(std::forward<Args>(args)...);
 }
 
 using pio_apc_routine = void (*)(void*,io_status_block*,std::uint32_t);
@@ -120,12 +106,12 @@ __kernel_entry NTSYSCALLAPI NTSTATUS NtWriteFile(
 );
 */
 	return (get_nt_module_handle<std::uint32_t __stdcall(void*,void*,pio_apc_routine,void*,io_status_block*,
-				void const*,std::uint32_t,std::int64_t*,std::uint32_t*)>("NtWriteFile"))(std::forward<Args>(args)...);
+				void const*,std::uint32_t,std::int64_t*,std::uint32_t*) noexcept>("NtWriteFile"))(std::forward<Args>(args)...);
 }
 
 template<typename... Args>
 requires (sizeof...(Args)==9)
-inline auto nt_read_file(Args&& ...args)
+inline auto nt_read_file(Args&& ...args) noexcept
 {
 /*
 __kernel_entry NTSYSCALLAPI NTSTATUS NtReadFile(
@@ -141,7 +127,7 @@ __kernel_entry NTSYSCALLAPI NTSTATUS NtReadFile(
 );
 */
 	return (get_nt_module_handle<std::uint32_t __stdcall(void*,void*,pio_apc_routine,void*,io_status_block*,
-				void*,std::uint32_t,std::int64_t*,std::uint32_t*)>("NtReadFile"))(std::forward<Args>(args)...);
+				void*,std::uint32_t,std::int64_t*,std::uint32_t*) noexcept>("NtReadFile"))(std::forward<Args>(args)...);
 }
 
 /*
@@ -286,9 +272,18 @@ file_full_dir_information* FullDirInfo;
 file_both_dir_information* BothDirInfo;
 };
 
+struct file_standard_information
+{
+std::uint64_t allocation_size;
+std::uint64_t end_of_file;
+std::uint32_t number_of_links;
+int delete_pending;
+int directory;
+};
+
 template<typename... Args>
 requires (sizeof...(Args)==11)
-inline auto nt_query_directory_file(Args&& ...args)
+inline auto nt_query_directory_file(Args&& ...args) noexcept
 {
 /*
 __kernel_entry NTSYSCALLAPI NTSTATUS NtQueryDirectoryFile(
@@ -306,7 +301,21 @@ __kernel_entry NTSYSCALLAPI NTSTATUS NtQueryDirectoryFile(
 );
 */
 	return (get_nt_module_handle<std::uint32_t __stdcall(void*,void*,pio_apc_routine,void*,io_status_block*,
-				void*,std::uint32_t,file_information_class,int,unicode_string*,int)>("NtQueryDirectoryFile"))(std::forward<Args>(args)...);
+				void*,std::uint32_t,file_information_class,int,unicode_string*,int) noexcept>("NtQueryDirectoryFile"))(std::forward<Args>(args)...);
+}
+
+template<typename... Args>
+requires (sizeof...(Args)==5)
+inline auto nt_query_information_file(Args&& ...args) noexcept
+{
+	return (get_nt_module_handle<std::uint32_t __stdcall(void* __restrict,io_status_block* __restrict,void* __restrict,std::uint32_t,file_information_class) noexcept >("NtQueryInformationFile"))(std::forward<Args>(args)...);
+}
+
+template<typename... Args>
+requires (sizeof...(Args)==5)
+inline auto nt_set_information_file(Args&& ...args) noexcept
+{
+	return (get_nt_module_handle<std::uint32_t __stdcall(void* __restrict,io_status_block* __restrict,void* __restrict,std::uint32_t,file_information_class) noexcept >("NtSetInformationFile"))(std::forward<Args>(args)...);
 }
 
 struct rtlp_curdir_def
@@ -324,16 +333,16 @@ struct rtl_relative_name_u
 
 template<typename... Args>
 requires (sizeof...(Args)==4)
-inline auto rtl_dos_path_name_to_nt_path_name_u(Args&& ...args)
+inline auto rtl_dos_path_name_to_nt_path_name_u(Args&& ...args) noexcept
 {
 //https://github.com/mirror/reactos/blob/master/rostests/apitests/ntdll/RtlDosPathNameToNtPathName_U.c
-	return (get_nt_module_handle<int __stdcall(wchar_t const*,unicode_string*,wchar_t const**,rtl_relative_name_u*)>("RtlDosPathNameToNtPathName_U"))(std::forward<Args>(args)...);
+	return (get_nt_module_handle<int __stdcall(wchar_t const*,unicode_string*,wchar_t const**,rtl_relative_name_u*) noexcept >("RtlDosPathNameToNtPathName_U"))(std::forward<Args>(args)...);
 }
 //RtlDosPathNameToNtPathName_U
 
-inline void rtl_free_unicode_string(unicode_string* us)
+inline void rtl_free_unicode_string(unicode_string* us) noexcept
 {
-	auto func_ptr{get_nt_module_handle<void __stdcall(unicode_string*),true>("RtlFreeUnicodeString")};
+	auto func_ptr{get_nt_module_handle<void __stdcall(unicode_string*) noexcept>("RtlFreeUnicodeString")};
 	return func_ptr(us);
 }
 

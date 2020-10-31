@@ -421,20 +421,63 @@ ReactOS provides implementation of how to do this
 https://doxygen.reactos.org/da/d02/dll_2win32_2kernel32_2client_2file_2fileinfo_8c_source.html#l00327
 */
 
-template<std::integral ch_type,typename T,std::integral U>
-inline std::common_type_t<std::int64_t, std::size_t> seek(basic_nt_io_observer<ch_type> handle,seek_type_t<T>,U i=0,seekdir s=seekdir::cur)
+namespace details::nt
 {
-	std::int64_t distance_to_move_high{};
-	std::int64_t seekposition{seek_precondition<std::int64_t,T,ch_type>(i)};
-	if(!win32::SetFilePointerEx(handle.native_handle(),seekposition,std::addressof(distance_to_move_high),static_cast<std::uint32_t>(s)))
-		throw_win32_error();
-	return distance_to_move_high;
+
+inline std::uint64_t nt_seek64_impl(void* handle,std::int64_t offset,seekdir s)
+{
+	std::uint64_t file_position{static_cast<std::uint64_t>(offset)};
+	win32::nt::io_status_block block{};
+	switch(s)
+	{
+	case seekdir::cur:
+	{
+		std::uint64_t fps{};
+		auto status{win32::nt::nt_query_information_file(handle,
+			std::addressof(block),
+			std::addressof(fps),
+			sizeof(std::uint64_t),
+			win32::nt::file_information_class::FilePositionInformation)};
+		if(status)
+			throw_nt_error(status);
+		file_position+=fps;
+	}
+	break;
+	case seekdir::end:
+	{
+		win32::nt::file_standard_information fsi;
+		auto status{win32::nt::nt_query_information_file(handle,
+			std::addressof(block),
+			std::addressof(fsi),
+			sizeof(win32::nt::file_standard_information),
+			win32::nt::file_information_class::FileStandardInformation)};
+		if(status)
+			throw_nt_error(status);
+		file_position+=fsi.end_of_file;
+	}
+	break;
+	}
+	if(static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max())<file_position)
+		file_position=0;
+	auto status{win32::nt::nt_set_information_file(handle,
+		std::addressof(block),
+		std::addressof(file_position),
+		sizeof(std::uint64_t),
+		win32::nt::file_information_class::FilePositionInformation)};
+	if(status)
+		throw_nt_error(status);
+	return file_position;
+}
+inline std::uintmax_t nt_seek_impl(void* handle,std::intmax_t offset,seekdir s)
+{
+	return static_cast<std::uintmax_t>(nt_seek64_impl(handle,static_cast<std::int64_t>(offset),s));
+}
 }
 
-template<std::integral ch_type,std::integral U>
-inline auto seek(basic_nt_io_observer<ch_type> handle,U i=0,seekdir s=seekdir::cur)
+template<std::integral ch_type>
+inline std::uintmax_t seek(basic_nt_io_observer<ch_type> handle,std::intmax_t offset=0,seekdir s=seekdir::cur)
 {
-	return seek(handle,seek_type<ch_type>,i,s);
+	return details::nt::nt_seek_impl(handle.handle,offset,s);
 }
 
 template<std::integral ch_type>
