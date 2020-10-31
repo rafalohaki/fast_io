@@ -832,6 +832,12 @@ https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfiletyp
 
 inline posix_file_status win32_status_impl(void* __restrict handle)
 {
+	file_type ft{file_type_impl(handle)};
+	if(ft==file_type::fifo||ft==file_type::character)
+	{
+		return posix_file_status{.type=ft,.nlink=1,
+		.rdev=static_cast<std::uintmax_t>(reinterpret_cast<std::uintptr_t>(handle)),.blksize=65536};
+	}
 	by_handle_file_information bhdi;
 	if(!GetFileInformationByHandle(handle,std::addressof(bhdi)))
 		throw_win32_error();
@@ -842,7 +848,7 @@ inline posix_file_status win32_status_impl(void* __restrict handle)
 	return posix_file_status{static_cast<std::uintmax_t>(bhdi.dwVolumeSerialNumber),
 	static_cast<std::uintmax_t>((static_cast<std::uint64_t>(bhdi.nFileIndexHigh)<<32)|bhdi.nFileIndexLow),
 	static_cast<perms>(pm),
-	file_type_impl(handle),
+	ft,
 	static_cast<std::uintmax_t>(bhdi.nNumberOfLinks),
 	0,0,0,
 	file_size,
