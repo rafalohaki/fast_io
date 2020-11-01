@@ -412,7 +412,26 @@ inline constexpr Iter year_month_weekday_last_reserve_define_impl(Iter it,std::c
 		month_reserve_define_impl<ch_type,chinese>(year_reserve_define_impl<ch_type,chinese>(it,ymdl.year()),
 		ymdl.month()),ymdl.weekday_last());
 }
-
+#if 0
+template<std::integral ch_type,std::random_access_iterator Iter>
+inline constexpr Iter tod_reserve_define_impl(Iter it,std::chrono::time_of_day<std::chrono::hours> tod) noexcept
+{
+	it = print_reserve_define(io_reserve_type<ch_type,std::chrono::hours::rep>,it,tod.hours().count()));
+	if constexpr(std::same_as<ch_type,char>)
+		*it = 'h';
+#ifndef __MSDOS__
+	else if constexpr(std::same_as<ch_type,wchar_t>)
+		*it = L'h';
+#endif
+	else if constexpr(std::same_as<ch_type,char8_t>)
+		*it = u8'h';
+	else if constexpr(std::same_as<ch_type,char16_t>)
+		*it = u'h';
+	else if constexpr(std::same_as<ch_type,char32_t>)
+		*it = U'h';
+	return ++it;
+}
+#endif
 }
 
 template<std::integral ch_type>
@@ -928,6 +947,19 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<ch_type,chinese<std
 	return details::year_month_weekday_last_reserve_define_impl<ch_type,true>(it,ymwl.reference);
 }
 
+#if 0
+template<std::integral ch_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<ch_type,std::chrono::time_of_day<std::chrono::hours>>) noexcept
+{
+	return 1+print_reserve_size(io_reserve_type_t<ch_type,std::chrono::hours::rep>);
+}
+
+template<std::integral ch_type,std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<ch_type,std::chrono::time_of_day<std::chrono::hours>>,Iter it,std::chrono::time_of_day<std::chrono::hours> tod) noexcept
+{
+	return details::tod_reserve_define_impl<ch_type>(it,tod);
+}
+#endif
 
 
 #endif
