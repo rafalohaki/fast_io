@@ -14,44 +14,6 @@ struct chvw
 };
 
 template<typename T>
-struct unix
-{
-	using manip_tag = manip_tag_t;
-	T& reference;
-};
-
-template<typename T>
-struct local
-{
-	using manip_tag = manip_tag_t;
-	T& reference;
-};
-template<typename T>
-struct utc
-{
-	using manip_tag = manip_tag_t;
-	T& reference;
-};
-template<typename T>
-struct chinese
-{
-	using manip_tag = manip_tag_t;
-	T& reference;
-};
-template<typename T>
-struct utc_chinese
-{
-	using manip_tag = manip_tag_t;
-	T& reference;
-};
-template<typename T>
-struct local_chinese
-{
-	using manip_tag = manip_tag_t;
-	T& reference;
-};
-
-template<typename T>
 struct whole
 {
 	using manip_tag = manip_tag_t;
@@ -182,20 +144,11 @@ inline constexpr manip::chvw<T const*> chvw(T const* ch)
 }
 
 template<typename T>
-inline constexpr manip::local<T const> local(T const &f){return {f};}
-
-template<typename T>
-inline constexpr manip::utc<T const> utc(T const &f){return {f};}
-
-template<typename T>
-inline constexpr manip::unix<T const> unix(T const &f){return {f};}
-
-template<typename T>
-inline constexpr manip::chinese<T const> chinese(T const &f){return {f};}
-template<typename T>
-inline constexpr manip::local_chinese<T const> local_chinese(T const &f){return {f};}
-template<typename T>
-inline constexpr manip::utc_chinese<T const> utc_chinese(T const &f){return {f};}
+struct chinese
+{
+	using manip_tag = manip_tag_t;
+	T reference;
+};
 
 template<typename T>
 inline constexpr manip::whole<T> whole(T &f){return {f};}
