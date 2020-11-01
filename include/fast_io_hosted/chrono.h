@@ -755,17 +755,17 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<ch_type,chines
 {
 	std::size_t size{print_reserve_size(io_reserve_type<ch_type,unsigned>)};
 	if constexpr(std::same_as<ch_type,char>)
-		return size+sizeof("星期")-1;
+		return size+sizeof("星期日")-1;
 #ifndef __MSDOS__
 	else if constexpr(std::same_as<ch_type,wchar_t>)
-		return size+sizeof(L"星期")-1;
+		return size+sizeof(L"星期日")-1;
 #endif
 	else if constexpr(std::same_as<ch_type,char8_t>)
-		return size+sizeof(u8"星期")-1;
+		return size+sizeof(u8"星期日")-1;
 	else if constexpr(std::same_as<ch_type,char16_t>)
-		return size+sizeof(u"星期")-1;
+		return size+sizeof(u"星期日")-1;
 	else if constexpr(std::same_as<ch_type,char32_t>)
-		return size+sizeof(U"星期")-1;
+		return size+sizeof(U"星期日")-1;
 }
 
 template<std::integral ch_type,std::random_access_iterator Iter>
