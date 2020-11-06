@@ -6,7 +6,7 @@ namespace fast_io::details::optimize_size
 namespace with_length
 {
 template<char8_t base=10,bool uppercase=false,std::random_access_iterator Iter,my_unsigned_integral U>
-inline constexpr void output_unsigned(Iter str,U value,std::size_t const len)
+inline constexpr void output_unsigned(Iter str,U value,std::size_t const len) noexcept
 {
 	using char_type=std::iter_value_t<Iter>;
 	str+=len-1;
@@ -101,16 +101,22 @@ inline constexpr void output_unsigned(Iter str,U value,std::size_t const len)
 
 
 template<std::size_t len,char8_t base=10,bool uppercase=false,std::random_access_iterator Iter,my_unsigned_integral U>
-inline constexpr void output_unsigned_dummy(Iter str,U value)
+inline constexpr void output_unsigned_dummy(Iter str,U value) noexcept
 {
-	with_length::output_unsigned<base,uppercase>(str,value,len);
+	if constexpr(sizeof(U)<=sizeof(unsigned))
+		with_length::output_unsigned<base,uppercase>(str,static_cast<unsigned>(value),len);
+	else
+		with_length::output_unsigned<base,uppercase>(str,value,len);
 }
 
 template<char8_t base=10,bool uppercase=false,std::random_access_iterator Iter,my_unsigned_integral U>
-inline constexpr std::size_t output_unsigned(Iter str,U value)
+inline constexpr std::size_t output_unsigned(Iter str,U value) noexcept
 {
 	std::size_t const len{chars_len<base>(value)};
-	with_length::output_unsigned(str,value,len);
+	if constexpr(sizeof(U)<=sizeof(unsigned))
+		with_length::output_unsigned(str,static_cast<unsigned>(value),len);
+	else
+		with_length::output_unsigned(str,value,len);
 	return len;
 }
 

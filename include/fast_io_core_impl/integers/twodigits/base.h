@@ -7,7 +7,7 @@ namespace details
 {
 
 template<char8_t base,bool uppercase,bool point=false,char32_t dec=u8'.',bool transparent=false,std::random_access_iterator Iter,my_unsigned_integral U>
-inline constexpr auto output_base_number_impl(Iter iter,U a)
+inline constexpr auto output_base_number_impl(Iter iter,U a) noexcept
 {
 //number: 0:48 9:57
 //upper: 65 :A 70: F
@@ -86,7 +86,7 @@ requires (0x2<base&&base<=0x36)
 struct is_numerical
 {
 template<std::integral T>
-inline constexpr bool operator()(T ch)
+inline constexpr bool operator()(T ch) noexcept
 {
 	std::make_unsigned_t<T> e(ch);
 	if constexpr(sign)
@@ -116,7 +116,7 @@ inline constexpr bool operator()(T ch)
 }
 };
 template<std::integral T>
-inline constexpr bool is_space(T const u)
+inline constexpr bool is_space(T const u) noexcept
 {
 	if constexpr(std::unsigned_integral<std::remove_cvref_t<T>>)
 	{
@@ -134,20 +134,26 @@ namespace twodigits
 {
 
 template<char8_t base=10,bool uppercase=false,std::random_access_iterator Iter,my_unsigned_integral U>
-inline constexpr std::size_t output_unsigned(Iter str,U value)
+inline constexpr std::size_t output_unsigned(Iter str,U value) noexcept
 {
 	std::size_t const len{chars_len<base>(value)};
-	output_base_number_impl<base,uppercase>(str+len,value);
+	if constexpr(sizeof(U)<=sizeof(unsigned))
+		output_base_number_impl<base,uppercase>(str+len,static_cast<unsigned>(value));
+	else
+		output_base_number_impl<base,uppercase>(str+len,value);
 	return len;
 }
 namespace fp
 {
 template<char8_t start=u8'0',std::random_access_iterator Iter,my_unsigned_integral U>
 requires (start==0||start==u8'0')
-inline constexpr std::size_t output_unsigned(Iter str,U value)
+inline constexpr std::size_t output_unsigned(Iter str,U value) noexcept
 {
 	std::size_t const len{chars_len<10,true>(value)};
-	output_base_number_impl<10,false,false,u8'.',start==0>(str+len,value);
+	if constexpr(sizeof(U)<=sizeof(unsigned))
+		output_base_number_impl<10,false,false,u8'.',start==0>(str+len,static_cast<unsigned>(value));
+	else
+		output_base_number_impl<10,false,false,u8'.',start==0>(str+len,value);
 	return len;
 }
 }
@@ -156,9 +162,12 @@ namespace with_length
 {
 template<char8_t start=u8'0',std::random_access_iterator Iter,my_unsigned_integral U>
 requires (start==0||start==u8'0')
-inline constexpr void output_unsigned(Iter str,U value,std::size_t const len)
+inline constexpr void output_unsigned(Iter str,U value,std::size_t const len) noexcept
 {
-	output_base_number_impl<10,false,false,u8'.',start==0>(str+len,value);
+	if constexpr(sizeof(U)<=sizeof(unsigned))
+		output_base_number_impl<10,false,false,u8'.',start==0>(str+len,static_cast<unsigned>(value));
+	else
+		output_base_number_impl<10,false,false,u8'.',start==0>(str+len,value);
 }
 }
 

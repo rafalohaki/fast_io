@@ -43,7 +43,7 @@ inline constexpr std::size_t fp_output_unsigned(Iter iter,U i)
 }
 
 template<std::contiguous_iterator Iter,my_unsigned_integral U>
-inline constexpr void fp_output_unsigned_with_len(Iter iter,U i,std::size_t len)
+inline constexpr void fp_output_unsigned_with_len(Iter iter,U i,std::size_t len) noexcept
 {
 	if(std::is_constant_evaluated())
 	{
@@ -62,7 +62,7 @@ inline constexpr void fp_output_unsigned_with_len(Iter iter,U i,std::size_t len)
 }
 
 template<bool control,typename T,char8_t static_decimal_point,my_unsigned_integral U,std::contiguous_iterator Iter>
-inline constexpr std::size_t fp_output_unsigned_point([[maybe_unused]]compile_time_floating_value<control,T,static_decimal_point> decm,U value,Iter str)
+inline constexpr std::size_t fp_output_unsigned_point([[maybe_unused]]compile_time_floating_value<control,T,static_decimal_point> decm,U value,Iter str) noexcept
 {
 	if(value >= 10)[[likely]]
 	{
