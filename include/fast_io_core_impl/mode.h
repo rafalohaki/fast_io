@@ -23,30 +23,145 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,file
 template<std::integral char_type,std::random_access_iterator caiter>
 inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,file_type>,caiter it,file_type f) noexcept
 {
-	switch(f)
+	if constexpr(std::same_as<char_type,char>)
 	{
-	case file_type::none:
-		return details::copy_string_literal(u8"none",it); 
-	case file_type::not_found:
-		return details::copy_string_literal(u8"not_found",it); 
-	case file_type::regular:
-		return details::copy_string_literal(u8"regular",it); 
-	case file_type::directory:
-		return details::copy_string_literal(u8"directory",it); 
-	case file_type::symlink:
-		return details::copy_string_literal(u8"symlink",it);
-	case file_type::block:
-		return details::copy_string_literal(u8"block",it);
-	case file_type::character:
-		return details::copy_string_literal(u8"character",it);
-	case file_type::fifo:
-		return details::copy_string_literal(u8"fifo",it);
-	case file_type::socket:
-		return details::copy_string_literal(u8"socket",it);
-	case file_type::remote:
-		return details::copy_string_literal(u8"remote",it);
-	default:
-		return details::copy_string_literal(u8"unknown",it);
+		switch(f)
+		{
+		case file_type::none:
+			return details::copy_string_literal("none",it); 
+		case file_type::not_found:
+			return details::copy_string_literal("not_found",it); 
+		case file_type::regular:
+			return details::copy_string_literal("regular",it); 
+		case file_type::directory:
+			return details::copy_string_literal("directory",it); 
+		case file_type::symlink:
+			return details::copy_string_literal("symlink",it);
+		case file_type::block:
+			return details::copy_string_literal("block",it);
+		case file_type::character:
+			return details::copy_string_literal("character",it);
+		case file_type::fifo:
+			return details::copy_string_literal("fifo",it);
+		case file_type::socket:
+			return details::copy_string_literal("socket",it);
+		case file_type::remote:
+			return details::copy_string_literal("remote",it);
+		default:
+			return details::copy_string_literal("unknown",it);
+		}
+	}
+	else if constexpr(std::same_as<char_type,wchar_t>)
+	{
+		switch(f)
+		{
+		case file_type::none:
+			return details::copy_string_literal(L"none",it); 
+		case file_type::not_found:
+			return details::copy_string_literal(L"not_found",it); 
+		case file_type::regular:
+			return details::copy_string_literal(L"regular",it); 
+		case file_type::directory:
+			return details::copy_string_literal(L"directory",it); 
+		case file_type::symlink:
+			return details::copy_string_literal(L"symlink",it);
+		case file_type::block:
+			return details::copy_string_literal(L"block",it);
+		case file_type::character:
+			return details::copy_string_literal(L"character",it);
+		case file_type::fifo:
+			return details::copy_string_literal(L"fifo",it);
+		case file_type::socket:
+			return details::copy_string_literal(L"socket",it);
+		case file_type::remote:
+			return details::copy_string_literal(L"remote",it);
+		default:
+			return details::copy_string_literal(L"unknown",it);
+		}
+	}
+	else if constexpr(std::same_as<char_type,char8_t>)
+	{
+		switch(f)
+		{
+		case file_type::none:
+			return details::copy_string_literal(u8"none",it); 
+		case file_type::not_found:
+			return details::copy_string_literal(u8"not_found",it); 
+		case file_type::regular:
+			return details::copy_string_literal(u8"regular",it); 
+		case file_type::directory:
+			return details::copy_string_literal(u8"directory",it); 
+		case file_type::symlink:
+			return details::copy_string_literal(u8"symlink",it);
+		case file_type::block:
+			return details::copy_string_literal(u8"block",it);
+		case file_type::character:
+			return details::copy_string_literal(u8"character",it);
+		case file_type::fifo:
+			return details::copy_string_literal(u8"fifo",it);
+		case file_type::socket:
+			return details::copy_string_literal(u8"socket",it);
+		case file_type::remote:
+			return details::copy_string_literal(u8"remote",it);
+		default:
+			return details::copy_string_literal(u8"unknown",it);
+		}
+	}
+	else if constexpr(std::same_as<char_type,char16_t>)
+	{
+		switch(f)
+		{
+		case file_type::none:
+			return details::copy_string_literal(u"none",it); 
+		case file_type::not_found:
+			return details::copy_string_literal(u"not_found",it); 
+		case file_type::regular:
+			return details::copy_string_literal(u"regular",it); 
+		case file_type::directory:
+			return details::copy_string_literal(u"directory",it); 
+		case file_type::symlink:
+			return details::copy_string_literal(u"symlink",it);
+		case file_type::block:
+			return details::copy_string_literal(u"block",it);
+		case file_type::character:
+			return details::copy_string_literal(u"character",it);
+		case file_type::fifo:
+			return details::copy_string_literal(u"fifo",it);
+		case file_type::socket:
+			return details::copy_string_literal(u"socket",it);
+		case file_type::remote:
+			return details::copy_string_literal(u"remote",it);
+		default:
+			return details::copy_string_literal(u"unknown",it);
+		}
+	}
+	else if constexpr(std::same_as<char_type,char32_t>)
+	{
+		switch(f)
+		{
+		case file_type::none:
+			return details::copy_string_literal(U"none",it); 
+		case file_type::not_found:
+			return details::copy_string_literal(U"not_found",it); 
+		case file_type::regular:
+			return details::copy_string_literal(U"regular",it); 
+		case file_type::directory:
+			return details::copy_string_literal(U"directory",it); 
+		case file_type::symlink:
+			return details::copy_string_literal(U"symlink",it);
+		case file_type::block:
+			return details::copy_string_literal(U"block",it);
+		case file_type::character:
+			return details::copy_string_literal(U"character",it);
+		case file_type::fifo:
+			return details::copy_string_literal(U"fifo",it);
+		case file_type::socket:
+			return details::copy_string_literal(U"socket",it);
+		case file_type::remote:
+			return details::copy_string_literal(U"remote",it);
+		default:
+			return details::copy_string_literal(U"unknown",it);
+		}
 	}
 }
 
@@ -173,40 +288,40 @@ inline constexpr char const* to_c_mode(open_mode m) noexcept
 //Action if file already exists;	Action if file does not exist;	c-style mode;	Explanation
 //Read from start;	Failure to open;	"r";	Open a file for reading
 	case static_cast<utype>(open_mode::in):
-		return "r";
+		return "\x72";
 //Destroy contents;	Create new;	"w";	Create a file for writing
 	case static_cast<utype>(open_mode::out):
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::trunc):
-		return "w";
+		return "\x77";
 //Append to file;	Create new;	"a";	Append to a file
 	case static_cast<utype>(open_mode::app):
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app):
-		return "a";
+		return "\x61";
 //Read from start;	Error;	"r+";		Open a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in):
-		return "r+";
+		return "\x72\x2b";
 //Destroy contents;	Create new;	"w+";	Create a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::trunc):
-		return "w+";
+		return "\x77\x2b";
 //Write to end;	Create new;	"a+";	Open a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app):
 	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app):
-		return "a+";
+		return "\x61\x2b";
 //Destroy contents;	Error;	"wx";	Create a file for writing
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::excl):
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::excl):
-		return "wx";
+		return "\x77\x78";
 //Append to file;	Error;	"ax";	Append to a file
 	case static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl):
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl):
-		return "ax";
+		return "\x61\x78";
 //Destroy contents;	Error;	"w+x";	Create a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::excl):
-		return "w+x";
+		return "\x77\x2b\x78";
 //Write to end;	Error;	"a+x";	Open a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl):
 	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl):
-		return "a+x";
+		return "\x61\x2b\x78";
 	break;
 	
 //binary support
@@ -214,85 +329,48 @@ inline constexpr char const* to_c_mode(open_mode m) noexcept
 //Action if file already exists;	Action if file does not exist;	c-style mode;	Explanation
 //Read from start;	Failure to open;	"rb";	Open a file for reading
 	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::binary):
-		return "rb";
+		return "\x72\x62";
 //Destroy contents;	Create new;	"wb";	Create a file for writing
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::binary):
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::binary):
-		return "wb";
+		return "\x77\x62";
 //Append to file;	Create new;	"ab";	Append to a file
 	case static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::binary):
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::binary):
-		return "ab";
+		return "\x61\x62";
 //Read from start;	Error;	"r+b";		Open a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::binary):
-		return "r+b";
+		return "\x72\x2b\x62";
 //Destroy contents;	Create new;	"w+b";	Create a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::binary):
-		return "w+b";
+		return "\x77\x2b\x62";
 //Write to end;	Create new;	"a+b";	Open a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::binary):
 	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::binary):
-		return "a+b";
+		return "\x61\x2b\x62";
 //Destroy contents;	Error;	"wxb";	Create a file for writing
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::binary):
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::binary):
-		return "wxb";
+		return "\x77\x78\x62";
 //Append to file;	Error;	"axb";	Append to a file
 	case static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::binary):
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::binary):
-		return "axb";
+		return "\x61\x78\x62";
 //Destroy contents;	Error;	"w+xb";	Create a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::binary):
-		return "w+xb";
+		return "\x77\x2b\x78\x62";
 //Write to end;	Error;	"a+xb";	Open a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::binary):
 	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::binary):
-		return "a+xb";
+		return "\x61\x2b\x78\x62";
 	break;
 	case 0:
 		if((m&open_mode::directory)!=open_mode::none)
-			return "r";
+			return "\x72";
 		[[fallthrough]];
 	default:
 		return "";
 	}
-}
-
-inline constexpr open_mode c_mode(std::string_view csm) noexcept
-{
-	open_mode v{};
-	bool extended{};
-	for(auto const& e : csm)
-		if(e==0x2b)
-			extended=true;
-	for(auto const& e : csm)
-		switch(e)
-		{
-			case u8'a':
-				v|=open_mode::app;
-				if(extended)
-					v|=open_mode::in|open_mode::out;
-			break;
-			case u8'b':
-				v|=open_mode::binary;
-			break;
-			case 0x72:
-				v|=open_mode::in;
-				if(extended)
-					v|=open_mode::out;
-			break;
-			case 0x77:
-				v|=open_mode::out;
-				if(extended)
-					v|=open_mode::in|open_mode::trunc;
-			break;
-			case 0x78:
-				v|=open_mode::excl;
-			break;
-			case 0x2b:
-			break;
-		}
-	return v;
 }
 struct native_interface_t
 {

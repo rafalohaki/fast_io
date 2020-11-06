@@ -47,53 +47,53 @@ From microsoft's document. _fdopen only supports
 //Action if file already exists;	Action if file does not exist;	c-style mode;	Explanation
 //Read from start;	Failure to open;	"r";	Open a file for reading
 	case static_cast<utype>(open_mode::in):
-		return "r";
+		return "\x72";
 //Destroy contents;	Create new;	"w";	Create a file for writing
 	case static_cast<utype>(open_mode::out):
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::trunc):
-		return "w";
+		return "\x77";
 //Append to file;	Create new;	"a";	Append to a file
 	case static_cast<utype>(open_mode::app):
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app):
-		return "a";
+		return "\x61";
 //Read from start;	Error;	"r+";		Open a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in):
-		return "r+";
+		return "\x72\x2b";
 //Destroy contents;	Create new;	"w+";	Create a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::trunc):
-		return "w+";
+		return "\x77\x2b";
 //Write to end;	Create new;	"a+";	Open a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app):
 	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app):
-		return "a+";
+		return "\x77\x2b";
 
 //binary support
 
 //Action if file already exists;	Action if file does not exist;	c-style mode;	Explanation
 //Read from start;	Failure to open;	"rb";	Open a file for reading
 	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::binary):
-		return "rb";
+		return "\x72\x62";
 //Destroy contents;	Create new;	"wb";	Create a file for writing
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::binary):
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::binary):
-		return "wb";
+		return "\x77\x62";
 //Append to file;	Create new;	"ab";	Append to a file
 	case static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::binary):
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::binary):
-		return "ab";
+		return "\x61\x62";
 //Read from start;	Error;	"r+b";		Open a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::binary):
-		return "r+b";
+		return "\x72\x2b\x62";
 //Destroy contents;	Create new;	"w+b";	Create a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::binary):
-		return "w+b";
+		return "\x77\x2b\x62";
 //Write to end;	Create new;	"a+b";	Open a file for read/write
 	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::binary):
 	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::binary):
-		return "a+b";
+		return "\x61\x2b\x62";
 	case 0:
 		if((m&open_mode::directory)!=open_mode::none)
-			return "r";
+			return "\x72";
 		[[fallthrough]];
 	default:
 		return "";
