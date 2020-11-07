@@ -42,12 +42,13 @@ inline constexpr Iter chrono_two_digits_impl(Iter it,U u) noexcept
 #ifdef FAST_IO_OPTIMIZE_SIZE
 	if(100u<=u)[[unlikely]]
 		return process_integer_output<10,false>(it,u);
-	return optimize_size::with_length::output_unsigned(it,u,2);
+	optimize_size::with_length::output_unsigned(it,u,2);
+	return it+=2;
 #elif defined(FAST_IO_OPTIMIZE_TIME)
 	using char_type = std::iter_value_t<Iter>;
 	if(100u<=u)[[unlikely]]
 		return process_integer_output<10,false>(it,u);
-	return non_overlapped_copy_n(jiaendu::static_table<char_type>::table2[u].data(),2,it);
+	return non_overlapped_copy_n(jiaendu::static_tables<char_type>::table2[u].data(),2,it);
 #else
 	using char_type = std::iter_value_t<Iter>;
 	if(100u<=u)[[unlikely]]
@@ -75,11 +76,12 @@ inline constexpr Iter chrono_year_impl(Iter it,int i) noexcept
 #ifdef FAST_IO_OPTIMIZE_SIZE
 	if(10000u<=u)[[unlikely]]
 		return process_integer_output<10,false>(it,u);
-	return optimize_size::with_length::output_unsigned(it,u,4);
+	optimize_size::with_length::output_unsigned(it,u,4);
+	return it+=4;
 #elif defined(FAST_IO_OPTIMIZE_TIME)
 	if(10000u<=u)[[unlikely]]
 		return process_integer_output<10,false>(it,u);
-	return non_overlapped_copy_n(jiaendu::static_table<char_type>::table4[u].data(),4,it);
+	return non_overlapped_copy_n(jiaendu::static_tables<char_type>::table4[u].data(),4,it);
 #else
 	if(10000u<=u)[[unlikely]]
 		return process_integer_output<10,false>(it,u);

@@ -106,6 +106,37 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chro
 
 
 template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std::chrono::month_day>) noexcept
+{
+	return print_reserve_size(io_reserve_type<char_type,std::chrono::month>)+print_reserve_size(io_reserve_type<char_type,std::chrono::day>)+3;
+}
+
+template<std::integral char_type,std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chrono::month_day>,Iter it,std::chrono::month_day md) noexcept
+{
+	if constexpr(std::same_as<char_type,char>)
+		it=details::copy_string_literal("--",it);
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		it=details::copy_string_literal(L"--",it);
+	else if constexpr(std::same_as<char_type,char16_t>)
+		it=details::copy_string_literal(u"--",it);
+	else if constexpr(std::same_as<char_type,char32_t>)
+		it=details::copy_string_literal(U"--",it);
+	else
+		it=details::copy_string_literal(u8"--",it);
+	it=print_reserve_define(io_reserve_type<char_type,std::chrono::month>,it,md.month());
+	if constexpr(std::same_as<char_type,char>)
+		*it='-';
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		*it=L'-';
+	else
+		*it=u8'-';
+	++it;
+	return print_reserve_define(io_reserve_type<char_type,std::chrono::day>,it,md.day());
+}
+
+
+template<std::integral char_type>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std::chrono::year_month>) noexcept
 {
 	return print_reserve_size(io_reserve_type<char_type,std::chrono::year>)+print_reserve_size(io_reserve_type<char_type,std::chrono::month>)+1;
