@@ -64,6 +64,9 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - LLVM libc++
 - MSVC STL
 
+## Special Support
+- LLVM Address Sanitizer
+
 ## Design Goal
 
 A general purpose I/O library to replace stdio.h and iostream
@@ -80,6 +83,7 @@ A general purpose I/O library to replace stdio.h and iostream
 - No dual error reporting mechanism. Exception as the ONLY error reporting mechanism.
 - No std::error_code and std::system_error
 - No useless bounds checking
+- Addresss Sanitizer special code for protecting memory safety issues.
 
 ### Easy to use
 
