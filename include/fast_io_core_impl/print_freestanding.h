@@ -57,9 +57,18 @@ inline constexpr void scatter_print_with_reserve_recursive_unit(char_type*& star
 	}
 	else
 	{
+#ifdef __SANITIZE_ADDRESS__
+		constexpr std::size_t sz{print_reserve_size(io_reserve_type<char_type,real_type>())};
+		std::array<char_type,sz> sanitize_buffer;
+		auto dt{print_reserve_define(io_reserve_type<char_type,real_type>,sanitize_buffer.data(),t)};
+		auto end_ptr{non_overlapped_copy_n(sanitize_buffer,static_cast<std::size_t>(dt-sanitize_buffer.data()),start_ptr)};
+		*arr={start_ptr,(end_ptr-start_ptr)*sizeof(*start_ptr)};
+		start_ptr=end_ptr;		
+#else
 		auto end_ptr = print_reserve_define(io_reserve_type<char_type,real_type>,start_ptr,t);
 		*arr={start_ptr,(end_ptr-start_ptr)*sizeof(*start_ptr)};
 		start_ptr=end_ptr;
+#endif
 	}
 }
 
@@ -96,6 +105,7 @@ inline constexpr void print_control(output out,T t)
 	if constexpr(reserve_printable<char_type,value_type>)
 	{
 		constexpr std::size_t size{print_reserve_size(io_reserve_type<char_type,value_type>)+static_cast<std::size_t>(line)};
+#ifndef __SANITIZE_ADDRESS__
 		if constexpr(contiguous_output_stream<output>)
 		{
 			if constexpr(line)
@@ -199,6 +209,7 @@ inline constexpr void print_control(output out,T t)
 		}
 		else
 		{
+#endif
 			std::array<char_type,size> array;
 			if constexpr(line)
 			{
@@ -211,7 +222,9 @@ inline constexpr void print_control(output out,T t)
 			}
 			else
 				write(out,array.data(),print_reserve_define(io_reserve_type<char_type,value_type>,array.data(),t));
+#ifndef __SANITIZE_ADDRESS__
 		}
+#endif
 	}
 	else if constexpr(printable<output,value_type>)
 	{
