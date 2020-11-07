@@ -23,23 +23,18 @@ constexpr Iter print_reserve_define(io_reserve_type_t<char_type,struct timespec>
 	unsigned long nsec{static_cast<unsigned long>(spc.tv_nsec)};
 	if(nsec==0UL||999999999UL<nsec)
 		return it;
-	*it=u8'.';
+	if constexpr(std::same_as<char_type,char>)
+		*it='.';
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		*it=L'.';
+	else
+		*it=u8'.';
 	++it;
-	std::size_t sz{};
-	for(;nsec%10==0;++sz)
+	std::size_t sz{9};
+	for(;nsec%10==0;--sz)
 		nsec/=10;
-	sz=9-sz;
-	auto res{it+sz};
-	it=res;
-	--it;
-	for(std::size_t i{};i!=sz;++i)
-	{
-		unsigned long const temp(nsec/10);
-		*it=static_cast<char8_t>(static_cast<char8_t>(nsec%10)+u8'0');
-		--it;
-		nsec=temp;
-	}
-	return res;
+	details::with_length_output_unsigned(it,nsec,sz);
+	return it+sz;
 }
 
 //We use seconds since seconds is the standard unit of SI
@@ -61,6 +56,102 @@ constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chrono::dur
 
 #if __cpp_lib_chrono >= 201907L || __GNUC__>= 11
 
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std::chrono::year>) noexcept
+{
+	return print_reserve_size(io_reserve_type<char_type,int>);
+}
+
+template<std::integral char_type,std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chrono::year>,Iter it,std::chrono::year year) noexcept
+{
+	return details::chrono_year_impl(it,static_cast<int>(year));
+}
+
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std::chrono::month>) noexcept
+{
+	return print_reserve_size(io_reserve_type<char_type,unsigned>);
+}
+
+template<std::integral char_type,std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chrono::month>,Iter it,std::chrono::month m) noexcept
+{
+	return details::chrono_two_digits_impl(it,static_cast<unsigned>(m));
+}
+
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std::chrono::day>) noexcept
+{
+	return print_reserve_size(io_reserve_type<char_type,unsigned>);
+}
+
+template<std::integral char_type,std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chrono::day>,Iter it,std::chrono::day m) noexcept
+{
+	return details::chrono_two_digits_impl(it,static_cast<unsigned>(m));
+}
+
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std::chrono::weekday>) noexcept
+{
+	return print_reserve_size(io_reserve_type<char_type,unsigned>);
+}
+
+template<std::integral char_type,std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chrono::weekday>,Iter it,std::chrono::weekday wkd) noexcept
+{
+	return details::chrono_one_digit_impl(it,static_cast<unsigned>(wkd.iso_encoding()));
+}
+
+
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std::chrono::year_month>) noexcept
+{
+	return print_reserve_size(io_reserve_type<char_type,std::chrono::year>)+print_reserve_size(io_reserve_type<char_type,std::chrono::month>)+1;
+}
+
+template<std::integral char_type,std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chrono::year_month>,Iter it,std::chrono::year_month ym) noexcept
+{
+	it=print_reserve_define(io_reserve_type<char_type,std::chrono::year>,it,ym.year());
+	if constexpr(std::same_as<char_type,char>)
+		*it='-';
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		*it=L'-';
+	else
+		*it=u8'-';
+	++it;
+	return print_reserve_define(io_reserve_type<char_type,std::chrono::month>,it,ym.month());
+}
+
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std::chrono::year_month_day>) noexcept
+{
+	return print_reserve_size(io_reserve_type<char_type,std::chrono::year_month>)+print_reserve_size(io_reserve_type<char_type,std::chrono::day>)+1;
+}
+
+template<std::integral char_type,std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chrono::year_month_day>,Iter it,std::chrono::year_month_day ymd) noexcept
+{
+	it=print_reserve_define(io_reserve_type<char_type,std::chrono::year>,it,ymd.year());
+	if constexpr(std::same_as<char_type,char>)
+		*it='-';
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		*it=L'-';
+	else
+		*it=u8'-';
+	++it;
+	it=print_reserve_define(io_reserve_type<char_type,std::chrono::month>,it,ymd.month());
+	if constexpr(std::same_as<char_type,char>)
+		*it='-';
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		*it=L'-';
+	else
+		*it=u8'-';
+	++it;
+	return print_reserve_define(io_reserve_type<char_type,std::chrono::day>,it,ymd.day());
+}
 
 #endif
 

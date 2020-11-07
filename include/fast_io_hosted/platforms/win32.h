@@ -718,14 +718,6 @@ inline void io_control(basic_win32_io_observer<ch_type> h,Args&& ...args)
 		throw_win32_error();
 }
 
-/*
-template<std::integral ch_type>
-inline auto memory_map_in_handle(basic_win32_io_observer<ch_type> handle)
-{
-	return handle.native_handle();
-}
-*/
-
 template<std::integral ch_type>
 class basic_win32_file:public basic_win32_io_handle<ch_type>
 {

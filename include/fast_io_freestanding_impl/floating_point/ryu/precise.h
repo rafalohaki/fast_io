@@ -3,7 +3,7 @@
 namespace fast_io::details::ryu
 {
 template<std::floating_point floating_type,std::contiguous_iterator Iter>
-inline constexpr Iter precise(typename floating_traits<floating_type>::mantissa_type bits,Iter start)
+inline constexpr Iter precise(typename floating_traits<floating_type>::mantissa_type bits,Iter start) noexcept
 {
 	using floating_trait = floating_traits<floating_type>;
 	using mantissa_type = typename floating_trait::mantissa_type;

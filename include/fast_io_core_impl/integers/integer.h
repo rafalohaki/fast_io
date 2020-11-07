@@ -29,7 +29,7 @@ constexpr Iter process_integer_output(Iter iter,int_type i) noexcept
 			bool const negative(i<0);
 			if(negative)
 			{
-				abs_value = 0 - abs_value;
+				abs_value = 0u - abs_value;
 				if constexpr(!ignore_sign)
 				{
 				*iter=u8'-';
@@ -123,7 +123,7 @@ constexpr caiter print_reserve_define(io_reserve_type_t<char_type,int_type>,cait
 }
 
 template<std::integral char_type,char8_t base,bool uppercase,details::my_integral int_type>
-constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manip::base_t<base,uppercase,int_type>>)
+constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manip::base_t<base,uppercase,int_type>>) noexcept
 {
 	if constexpr(details::my_unsigned_integral<int_type>)
 		return details::cal_max_int_size<int_type,base>();
@@ -167,3 +167,4 @@ constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manip::base_t<
 
 #include"pointer.h"
 #include"representation.h"
+#include"chrono.h"

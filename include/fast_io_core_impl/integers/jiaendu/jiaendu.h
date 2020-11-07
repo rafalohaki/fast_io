@@ -10,7 +10,7 @@ namespace details::jiaendu
 {
 
 template<std::contiguous_iterator Iter>
-inline void output_unsigned_partial(Iter str,std::uint64_t value)
+inline void output_unsigned_partial(Iter str,std::uint64_t value) noexcept
 {
 	using ch_type = std::remove_cvref_t<decltype(*str)>;
 	constexpr std::size_t bytes4{4*sizeof(ch_type)};
@@ -35,7 +35,7 @@ inline void output_unsigned_partial(Iter str,std::uint64_t value)
 
 template<std::contiguous_iterator Iter,my_unsigned_integral U>
 requires (sizeof(U)<=16)
-inline std::size_t output_unsigned(Iter str,U value)
+inline std::size_t output_unsigned(Iter str,U value) noexcept
 {
 	using ch_type = std::remove_cvref_t<decltype(*str)>;
 	constexpr std::size_t bytes4{4*sizeof(ch_type)};
