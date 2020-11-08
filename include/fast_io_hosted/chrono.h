@@ -94,7 +94,7 @@ constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std::chrono
 {
 	constexpr std::size_t sz{print_reserve_size(io_reserve_type<char_type,Rep>)};
 	if constexpr(std::same_as<Period,std::nano>||std::same_as<Period,std::micro>
-		||std::same_as<Period,std::milli>||std::same_as<Period,std::ratio<3600>>||std::same_as<Period,std::ratio<604800>>||
+		||std::same_as<Period,std::milli>||std::same_as<Period,std::ratio<604800>>||
 		std::same_as<Period,std::ratio<2629746>>||std::same_as<Period,std::ratio<31556952>>)
 		return sz+2;
 	else if constexpr(std::same_as<Period,std::ratio<60>>)
@@ -178,15 +178,13 @@ constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chrono::dur
 	else if constexpr(std::same_as<Period,std::ratio<3600>>)
 	{
 		if constexpr(std::same_as<char_type,char>)
-			return details::copy_string_literal("hr",it);
+			*it='h';
 		else if constexpr(std::same_as<char_type,wchar_t>)
-			return details::copy_string_literal(L"hr",it);
-		else if constexpr(std::same_as<char_type,char16_t>)
-			return details::copy_string_literal(u"hr",it);
-		else if constexpr(std::same_as<char_type,char32_t>)
-			return details::copy_string_literal(U"hr",it);
+			*it=L'h';
 		else
-			return details::copy_string_literal(u8"hr",it);
+			*it=u8'h';
+		++it;
+		return it;
 	}
 	else if constexpr(std::same_as<Period,std::ratio<86400>>)
 	{
