@@ -13,11 +13,7 @@ namespace fast_io::details
 template<std::random_access_iterator Iter,my_unsigned_integral U>
 inline constexpr void with_length_output_unsigned(Iter it,U u,std::size_t len) noexcept
 {
-#ifdef FAST_IO_OPTIMIZE_SIZE
 	optimize_size::with_length::output_unsigned(it,u,len);
-#else
-	twodigits::with_length::output_unsigned(it,u,len);
-#endif
 }
 
 template<std::random_access_iterator Iter,my_unsigned_integral U>
@@ -55,6 +51,25 @@ inline constexpr Iter chrono_two_digits_impl(Iter it,U u) noexcept
 		return process_integer_output<10,false>(it,u);
 	return non_overlapped_copy_n(shared_static_base_table<char_type,10,false>::table[u].data(),2,it);
 #endif
+}
+
+template<std::random_access_iterator Iter,my_signed_integral I>
+inline constexpr Iter chrono_two_digits_impl(Iter it,I i) noexcept
+{
+	using char_type = std::iter_value_t<Iter>;
+	my_make_unsigned_t<I> u(static_cast<my_make_unsigned_t<I>>(i));
+	if(i<0)[[unlikely]]
+	{
+		u = 0u - u;
+		if constexpr(std::same_as<char_type,char>)
+			*it='-';
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			*it=L'-';
+		else
+			*it=u8'-';
+		++it;
+	}
+	return chrono_two_digits_impl(it,u);
 }
 
 template<std::random_access_iterator Iter>

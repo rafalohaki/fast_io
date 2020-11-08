@@ -16,13 +16,40 @@ constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,struct time
 	return print_reserve_size(io_reserve_type<char_type,std::time_t>)+1+print_reserve_size(io_reserve_type<char_type,long>);
 }
 
-template<std::integral char_type,std::random_access_iterator Iter>
-constexpr Iter print_reserve_define(io_reserve_type_t<char_type,struct timespec>,Iter it,struct timespec spc) noexcept
+namespace details
 {
-	it=print_reserve_define(io_reserve_type<char_type,std::time_t>,it,spc.tv_sec);
-	unsigned long nsec{static_cast<unsigned long>(spc.tv_nsec)};
-	if(nsec==0UL||999999999UL<nsec)
-		return it;
+
+inline constexpr bool denom_is_natural_pow10(std::intmax_t denom) noexcept
+{
+	if(denom<0)
+		return false;
+	std::uintmax_t den{static_cast<std::uintmax_t>(denom)};
+	for(;!(den%10u);den/=10u);
+	return den==1;
+}
+
+inline constexpr std::size_t denom_natural_log10(std::uintmax_t den) noexcept
+{
+	std::size_t logarithm{};
+	for(;!(den%10u);den/=10u)
+		++logarithm;
+	return logarithm;
+}
+
+template<std::uintmax_t lim,std::integral char_type,std::random_access_iterator Iter,details::my_unsigned_integral uint_type>
+inline constexpr Iter subseconds_part_print_sz_impl(Iter it,uint_type nsec) noexcept
+{
+	if constexpr(std::numeric_limits<uint_type>::max()>=lim)
+	{
+		constexpr uint_type lmt{static_cast<uint_type>(lim)};
+		if((!nsec)||lmt<=nsec)
+			return it;
+	}
+	else
+	{
+		if(!nsec)
+			return it;
+	}
 	if constexpr(std::same_as<char_type,char>)
 		*it='.';
 	else if constexpr(std::same_as<char_type,wchar_t>)
@@ -30,11 +57,31 @@ constexpr Iter print_reserve_define(io_reserve_type_t<char_type,struct timespec>
 	else
 		*it=u8'.';
 	++it;
-	std::size_t sz{9};
+	constexpr std::size_t lgsz{denom_natural_log10(lim)};
+	std::size_t sz{lgsz};
 	for(;nsec%10==0;--sz)
 		nsec/=10;
-	details::with_length_output_unsigned(it,nsec,sz);
+	if constexpr(sizeof(uint_type)<=sizeof(unsigned))
+		with_length_output_unsigned(it,static_cast<unsigned>(nsec),sz);
+	else
+		with_length_output_unsigned(it,nsec,sz);
 	return it+sz;
+}
+
+template<std::integral char_type,std::random_access_iterator Iter>
+inline constexpr Iter timespec_print_impl(Iter it,struct timespec spc) noexcept
+{
+	return subseconds_part_print_sz_impl<1000000000UL,char_type>(
+		print_reserve_define(io_reserve_type<char_type,std::time_t>,it,spc.tv_sec),
+		static_cast<unsigned long>(spc.tv_nsec));
+}
+
+}
+
+template<std::integral char_type,std::random_access_iterator Iter>
+constexpr Iter print_reserve_define(io_reserve_type_t<char_type,struct timespec>,Iter it,struct timespec spc) noexcept
+{
+	return details::timespec_print_impl<char_type>(it,spc);	
 }
 
 template<std::integral char_type,typename Rep,typename Period>
@@ -276,7 +323,6 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chro
 	return print_reserve_define(io_reserve_type<char_type,std::chrono::day>,it,md.day());
 }
 
-
 template<std::integral char_type>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std::chrono::year_month>) noexcept
 {
@@ -325,17 +371,32 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chro
 	return print_reserve_define(io_reserve_type<char_type,std::chrono::day>,it,ymd.day());
 }
 
-template<std::integral char_type,typename duration>
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std::chrono::hh_mm_ss<duration>>) noexcept
+template<std::integral char_type,details::my_integral int_type,std::intmax_t den>
+requires (details::denom_is_natural_pow10(den))
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,
+	std::chrono::hh_mm_ss<std::chrono::duration<int_type,std::ratio<1,den>>>>) noexcept
 {
-	return print_reserve_size(io_reserve_type<char_type,std::chrono::hours::rep>)+
-		print_reserve_size(io_reserve_type<char_type,std::chrono::minutes::rep>)+
-		print_reserve_size(io_reserve_type<char_type,std::chrono::hours::rep>)+
-		print_reserve_size(io_reserve_type<char_type,duration::rep>)+4;
+	if constexpr(den==1)
+	{
+		return print_reserve_size(io_reserve_type<char_type,std::chrono::hours::rep>)+
+			print_reserve_size(io_reserve_type<char_type,std::chrono::minutes::rep>)+
+			print_reserve_size(io_reserve_type<char_type,std::chrono::seconds::rep>)+3;
+	}
+	else
+	{
+		return print_reserve_size(io_reserve_type<char_type,std::chrono::hours::rep>)+
+			print_reserve_size(io_reserve_type<char_type,std::chrono::minutes::rep>)+
+			print_reserve_size(io_reserve_type<char_type,std::chrono::seconds::rep>)+
+			print_reserve_size(io_reserve_type<char_type,std::intmax_t>)+4;
+	}
 }
 
-template<std::integral char_type,std::random_access_iterator Iter,typename duration>
-inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chrono::hh_mm_ss<duration>>,Iter it,std::chrono::hh_mm_ss<duration> hms) noexcept
+namespace details
+{
+
+template<std::integral char_type,std::random_access_iterator Iter,my_integral int_type,std::intmax_t den>
+inline constexpr Iter print_hh_mm_ss_reserve_define_impl(Iter it,
+	std::chrono::hh_mm_ss<std::chrono::duration<int_type,std::ratio<1,den>>> hms) noexcept
 {
 	if(hms.is_negative())
 	{
@@ -364,7 +425,22 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chro
 		*it=u8':';
 	++it;
 	it=details::chrono_two_digits_impl(it,hms.seconds().count());
-	return it;
+	if constexpr(den==1)
+		return it;
+	else
+		return subseconds_part_print_sz_impl<static_cast<std::uintmax_t>(den),char_type>(it,
+			static_cast<std::make_unsigned_t<std::common_type_t<std::intmax_t,
+			std::chrono::seconds::rep>>>(hms.subseconds().count()));
+}
+}
+
+template<std::integral char_type,std::random_access_iterator Iter,details::my_integral int_type,std::intmax_t den>
+requires (details::denom_is_natural_pow10(den))
+inline constexpr Iter print_reserve_define(
+	io_reserve_type_t<char_type,std::chrono::hh_mm_ss<std::chrono::duration<int_type,std::ratio<1,den>>>>,
+	Iter it,std::chrono::hh_mm_ss<std::chrono::duration<int_type,std::ratio<1,den>>> hms) noexcept
+{
+	return details::print_hh_mm_ss_reserve_define_impl<char_type>(it,hms);
 }
 #if 0
 template<std::integral char_type>
