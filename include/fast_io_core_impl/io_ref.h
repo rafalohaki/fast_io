@@ -226,7 +226,7 @@ constexpr decltype(auto) require_secure_clear(io_reference_wrapper<scrs> sc)
 }
 
 template<contiguous_input_stream cis>
-constexpr decltype(auto) underflow_forever_false(io_reference_wrapper<cis> ci)
+constexpr void underflow_forever_false(io_reference_wrapper<cis> ci)
 {
 	return underflow_forever_false(*ci.ptr);
 }

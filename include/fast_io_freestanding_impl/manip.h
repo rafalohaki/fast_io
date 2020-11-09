@@ -9,7 +9,20 @@ namespace details
 template<character_input_stream input,typename Func>
 inline constexpr bool scan_std_string(input& in,std::basic_string<typename input::char_type>& str,Func&& dg)
 {
-	if constexpr(buffer_input_stream<input>)
+	if constexpr(contiguous_input_stream<input>)
+	{
+		auto b{ibuffer_curr(in)};
+		auto e{ibuffer_end(in)};
+		for(;b!=e&&dg(*b);++b);
+		if(b==e)
+			return false;
+		auto i{b};
+		for(;i!=e&&!dg(*i);++i);
+		str.clear();
+		str.append(b,i);
+		ibuffer_set_curr(in,i);
+	}
+	else if constexpr(buffer_input_stream<input>)
 	{
 		for(;;)
 		{

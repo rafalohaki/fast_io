@@ -56,13 +56,7 @@ inline constexpr auto ibuffer_set_curr(istring_view<char_type>& sp,char_type con
 }
 
 template<std::integral char_type>
-inline
-#if __cpp_consteval >= 201811L
-consteval
-#else
-constexpr
-#endif
-bool underflow(istring_view<char_type>& sp) noexcept
+inline constexpr bool underflow(istring_view<char_type>& sp) noexcept
 {
 	return false;
 }
