@@ -21,6 +21,7 @@ inline constexpr bool scan_std_string(input& in,std::basic_string<typename input
 		str.clear();
 		str.append(b,i);
 		ibuffer_set_curr(in,i);
+		return true;
 	}
 	else if constexpr(buffer_input_stream<input>)
 	{
