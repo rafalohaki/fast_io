@@ -162,7 +162,7 @@ inline auto system_call(auto p1,auto p2,auto p3,auto p4,auto p5,auto p6)
 template<std::integral I>
 inline void fast_exit(I ret)
 {
-	system_call_no_return<93>(ret);
+	system_call_no_return<__NR_exit>(ret);
 }
 
 }

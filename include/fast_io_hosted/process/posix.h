@@ -10,14 +10,8 @@ requires(sizeof...(Args)==2)
 inline auto my_dup2(Args&& ...args)
 {
 	int new_fd(
-#if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
-		system_call<
-#if defined(__x86_64__)
-			33
-#elif defined(__arm64__) || defined(__aarch64__) 
-			1041
-#endif
-		,int>
+#if defined(__linux__)
+		system_call<__NR_dup2,int>
 #else
 		dup2
 #endif
@@ -29,14 +23,8 @@ inline auto my_dup2(Args&& ...args)
 inline void my_close(int fd)
 {
 	if(fd!=-1)
-#if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
-		system_call<
-#if defined(__x86_64__)
-			3
-#elif defined(__arm64__) || defined(__aarch64__) 
-			57
-#endif
-		,int>(fd);
+#if defined(__linux__)
+		system_call<3,int>(fd);
 #else
 		close(fd);
 #endif
@@ -119,14 +107,8 @@ class posix_process
 public:
 	using native_handle_t = pid_t;
 	posix_process(native_interface_t):pid(
-#if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
-	system_call<
-#if defined(__x86_64__)
-		57
-#elif defined(__arm64__) || defined(__aarch64__)
-		1079
-#endif
-	,pid_t>
+#if defined(__linux__)
+	system_call<__NR_fork,pid_t>
 #else
 	fork
 #endif
@@ -154,14 +136,8 @@ public:
 	void join()
 	{
 		system_call_throw_error(
-	#if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
-		system_call<
-		#if defined(__x86_64__)
-			61
-		#elif defined(__arm64__) || defined(__aarch64__) 
-			260
-		#endif
-		,int>(pid,nullptr,0,nullptr)
+	#if defined(__linux__)
+		system_call<__NR_wait4,int>(pid,nullptr,0,nullptr)
 	#else
 		waitpid(pid,nullptr,0)
 	#endif
@@ -194,14 +170,8 @@ class posix_jprocess
 	{
 		if(0<pid)
 		{
-	#if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
-		system_call<
-		#if defined(__x86_64__)
-			61
-		#elif defined(__arm64__) || defined(__aarch64__)
-			260
-		#endif
-		,int>(pid,nullptr,0,nullptr);
+	#if defined(__linux__)
+		system_call<__NR_wait4,int>(pid,nullptr,0,nullptr);
 	#else
 		waitpid(pid,nullptr,0);
 	#endif
@@ -210,14 +180,8 @@ class posix_jprocess
 public:
 	using native_handle_t = pid_t;
 	posix_jprocess(native_interface_t):pid(
-#if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
-	system_call<
-	#if defined(__x86_64__) 
-		57
-	#elif defined(__arm64__) || defined(__aarch64__)
-		1079
-	#endif
-	,pid_t>
+#if defined(__linux__)
+	system_call<__NR_fork,pid_t>
 #else
 	fork
 #endif
@@ -241,14 +205,8 @@ public:
 	inline void join()
 	{
 		system_call_throw_error(
-	#if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
-		system_call<
-		#if defined(__x86_64__)
-			61
-		#elif defined(__arm64__) || defined(__aarch64__)
-			260
-		#endif
-		,int>(pid,nullptr,0,nullptr)
+	#if defined(__linux__)
+		system_call<__NR_wait4,int>(pid,nullptr,0,nullptr)
 	#else
 		waitpid(pid,nullptr,0)
 	#endif

@@ -212,6 +212,46 @@ struct posix_file_openmode
 
 }
 
+
+
+struct posix_io_redirection
+{
+	int *pipe_fds{};
+	int fd{-1};
+	bool dev_null{};
+};
+
+struct posix_io_redirection_std:posix_io_redirection
+{
+	constexpr posix_io_redirection_std() noexcept=default;
+	template<typename T>
+	requires requires(T&& t)
+	{
+		{redirect(std::forward<T>(t))}->std::same_as<posix_io_redirection>;
+	}
+	constexpr posix_io_redirection_std(T&& t) noexcept:posix_io_redirection(redirect(std::forward<T>(t))){}
+};
+
+struct posix_process_io
+{
+	posix_io_redirection_std in;
+	posix_io_redirection_std out;
+	posix_io_redirection_std err;
+};
+
+struct posix_dev_null_t{};
+
+inline constexpr posix_dev_null_t posix_dev_null() noexcept
+{
+	return {};
+}
+
+inline constexpr posix_io_redirection redirect(posix_dev_null_t) noexcept
+{
+	return {.dev_null=true};
+}
+
+
 #ifdef __linux__
 class io_uring_observer
 {
@@ -280,7 +320,7 @@ inline constexpr posix_at_entry at(basic_posix_io_observer<ch_type> piob) noexce
 }
 
 template<std::integral ch_type>
-inline constexpr basic_posix_io_observer<ch_type> io_value_handle(basic_posix_io_observer<ch_type> other)
+inline constexpr basic_posix_io_observer<ch_type> io_value_handle(basic_posix_io_observer<ch_type> other) noexcept
 {
 	return other;
 }
@@ -345,14 +385,8 @@ inline std::size_t posix_read_impl(int fd,void* address,std::size_t bytes_to_rea
 			bytes_to_read=static_cast<std::size_t>(UINT32_MAX);
 #endif
 	auto read_bytes(
-#if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
-		system_call<
-#if defined(__x86_64__)
-		0
-#elif defined(__arm64__) || defined(__aarch64__)
-		63
-#endif
-		,std::ptrdiff_t>
+#if defined(__linux__)
+		system_call<__NR_read,std::ptrdiff_t>
 #elif _WIN32 || __MSDOS__
 		::_read
 #else
@@ -383,14 +417,8 @@ inline std::size_t posix_write_impl(int fd,void const* address,std::size_t bytes
 	return written;
 #else
 	auto write_bytes(
-#if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
-		system_call<
-#if defined(__x86_64__)
-		1
-#elif defined(__arm64__) || defined(__aarch64__)
-		64
-#endif
-		,std::ptrdiff_t>
+#if defined(__linux__)
+		system_call<__NR_write,std::ptrdiff_t>
 #elif _WIN32 || __MSDOS__
 		::_write
 #else
@@ -405,16 +433,8 @@ inline std::size_t posix_write_impl(int fd,void const* address,std::size_t bytes
 inline std::uintmax_t posix_seek_impl(int fd,std::intmax_t offset,seekdir s)
 {
 	auto ret(
-#if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
-		system_call<
-#if defined(__x86_64__)
-		8
-#elif defined(__arm64__) || defined(__aarch64__)
-		62
-#endif
-		,std::ptrdiff_t>
-#elif defined(__linux__)
-		::lseek64
+#if defined(__linux__)
+		system_call<__NR_lseek,std::ptrdiff_t>
 #elif defined(__WINNT__) || defined(_MSC_VER)
 		::_lseeki64
 #else
@@ -463,12 +483,12 @@ namespace details
 using mode_t = int;
 #endif
 
-inline constexpr perms st_mode_to_perms(mode_t m)
+inline constexpr perms st_mode_to_perms(mode_t m) noexcept
 {
 	return static_cast<perms>(m);
 }
 
-inline constexpr file_type st_mode_to_file_type(mode_t m)
+inline constexpr file_type st_mode_to_file_type(mode_t m) noexcept
 {
 /*
 https://linux.die.net/man/2/fstat64
@@ -616,8 +636,11 @@ inline auto zero_copy_out_handle(basic_posix_io_observer<ch_type> h)
 	return h.native_handle();
 }
 #endif
+
+
+#ifdef _WIN32
 template<std::integral ch_type>
-inline auto redirect_handle(basic_posix_io_observer<ch_type> h)
+inline auto redirect_handle(basic_posix_io_observer<ch_type> h) noexcept
 {
 #if defined(_WIN32)
 	return bit_cast<void*>(_get_osfhandle(h.native_handle()));
@@ -625,6 +648,16 @@ inline auto redirect_handle(basic_posix_io_observer<ch_type> h)
 	return h.native_handle();
 #endif
 }
+#else
+
+
+template<std::integral ch_type>
+inline constexpr posix_io_redirection redirect(basic_posix_io_observer<ch_type> h) noexcept
+{
+	return {.fd=h.fd};
+}
+
+#endif
 
 #if defined(_WIN32)
 template<std::integral ch_type,typename... Args>
@@ -643,19 +676,11 @@ requires requires(basic_posix_io_observer<ch_type> h,Args&& ...args)
 }
 inline void io_control(basic_posix_io_observer<ch_type> h,Args&& ...args)
 {
-#if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
-	system_call_throw_error(system_call<
-#if defined(__x86_64__)
-		16
-#elif defined(__arm64__) || defined(__aarch64__)
-		29
-#endif
-	,int>(h.native_handle(),std::forward<Args>(args)...));
+#if defined(__linux__)
+	system_call_throw_error(system_call<__NR_ioctl,int>(h.native_handle(),std::forward<Args>(args)...));
 #else
 	if(ioctl(h.native_handle(),std::forward<Args>(args)...)==-1)
-	{
 		throw_posix_error();
-	}
 #endif
 }
 #endif
@@ -676,21 +701,23 @@ inline int open_fd_from_handle(void* handle,open_mode md)
 
 #else
 
+template<bool always_terminate=false>
 inline int my_posix_openat(int dirfd,char const* pathname,int flags,mode_t mode)
 {
 #if defined(__NEWLIB__)||defined(__MSDOS__)
-	throw_posix_error(ENOTSUP);
+	if constexpr(always_terminate)
+		fast_terminate();
+	else
+		throw_posix_error(ENOTSUP);
 #else
 	int fd{
-#if defined(__linux__)&&defined(__x86_64__)
-	system_call<257,int>
-#elif defined(__linux__)&&(defined(__arm64__) || defined(__aarch64__))
-	system_call<56,int>
+#if defined(__linux__)
+	system_call<__NR_openat,int>
 #else
 	::openat
 #endif
 	(dirfd,pathname,flags,mode)};
-	system_call_throw_error(fd);
+	system_call_throw_error<always_terminate>(fd);
 	return fd;
 #endif
 }
@@ -700,7 +727,7 @@ extern "C" unsigned int _dos_creat(char const*,short unsigned,int*) noexcept;
 extern "C" unsigned int _dos_creatnew(char const*,short unsigned,int*) noexcept;
 extern "C" unsigned int _dos_open(char const*,short unsigned,int*) noexcept;
 #endif
-
+template<bool always_terminate=false>
 inline int my_posix_open(char const* pathname,int flags,mode_t mode)
 {
 #ifdef __MSDOS__
@@ -721,14 +748,19 @@ An Example of Multiple Inheritance in C++: A Model of the Iostream Library
 	else
 		ret=_dos_open(pathname,flags,&fd);
 	if(ret)
-		throw_posix_error();
+	{
+		if constexpr(always_terminate)
+			fast_terminate();
+		else
+			throw_posix_error();
+	}
 	return fd;
 #elif defined(__NEWLIB__)
 	int fd{::open(pathname,flags,mode)};
-	system_call_throw_error(fd);
+	system_call_throw_error<always_terminate>(fd);
 	return fd;
 #else
-	return my_posix_openat(AT_FDCWD,pathname,flags,mode);
+	return my_posix_openat<always_terminate>(AT_FDCWD,pathname,flags,mode);
 #endif
 }
 #endif
@@ -880,13 +912,22 @@ inline void flush(basic_posix_pipe<ch_type>&)
 //		if(::fsync(fd)==-1)
 //			throw posix_error();
 }
-
+#ifdef _WIN32
 template<std::integral ch_type>
 inline std::array<int*,2> redirect_handle(basic_posix_pipe<ch_type>& h)
 {
 	return {std::addressof(h.in().native_handle()),
 		std::addressof(h.out().native_handle())};
 }
+#else
+template<std::integral ch_type>
+inline constexpr posix_io_redirection redirect(basic_posix_pipe<ch_type>& h) noexcept
+{
+	return {.pipe_pfds=std::addressof(h.in().fd)};
+}
+
+#endif
+
 
 #ifdef __linux__
 template<std::integral ch_type>
@@ -1107,15 +1148,9 @@ struct __attribute__((__may_alias__)) iovec_may_alias:iovec
 inline std::size_t posix_scatter_read_impl(int fd,std::span<io_scatter_t const> sp)
 {
 
-#if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
+#if defined(__linux__)
 	static_assert(sizeof(unsigned long)==sizeof(std::size_t));
-	auto val{system_call<
-#if defined(__x86_64__)
-		19
-#elif defined(__arm64__) || defined(__aarch64__) 
-		65
-#endif
-,std::ptrdiff_t>(static_cast<unsigned int>(fd),sp.data(),sp.size())};
+	auto val{system_call<__NR_readv,std::ptrdiff_t>(static_cast<unsigned int>(fd),sp.data(),sp.size())};
 	system_call_throw_error(val);
 	return val;
 #else
@@ -1134,15 +1169,9 @@ inline std::size_t posix_scatter_read_impl(int fd,std::span<io_scatter_t const> 
 inline std::size_t posix_scatter_write_impl(int fd,std::span<io_scatter_t const> sp)
 {
 
-#if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
+#if defined(__linux__)
 	static_assert(sizeof(unsigned long)==sizeof(std::size_t));
-	auto val{system_call<
-#if defined(__x86_64__)
-		20
-#else
-		66
-#endif
-,std::ptrdiff_t>(static_cast<unsigned int>(fd),sp.data(),sp.size())};
+	auto val{system_call<__NR_writev,std::ptrdiff_t>(static_cast<unsigned int>(fd),sp.data(),sp.size())};
 	system_call_throw_error(val);
 	return val;
 #else

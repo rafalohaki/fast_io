@@ -15,11 +15,6 @@
 #include"win32.h"
 //#include"com_error.h"
 #endif
-#if defined(__linux__)
-#ifdef __x86_64__
-#include"linux/amd64.h"
-#endif
-#endif
 #include"linux/system_call.h"
 #include"posix.h"
 

@@ -9,14 +9,8 @@ template<typename... Args>
 inline void execve_impl(Args&& ...args)
 {
 	system_call_throw_error(
-#if defined(__linux__)&&(defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__) )
-		system_call<
-#if defined(__x86_64__)
-			59
-#elif defined(__arm64__) || defined(__aarch64__)
-			221
-#endif
-			,int>
+#if defined(__linux__)
+		system_call<__NR_execve,int>
 #elif defined(__WINNT__) || defined(_MSC_VER)
 		::_execve
 #else

@@ -372,6 +372,11 @@ inline constexpr char const* to_c_mode(open_mode m) noexcept
 		return "";
 	}
 }
+enum class posix_wait_reason:unsigned char
+{
+unknown,if_exited,if_signaled,if_core_dump,if_core_signal,if_stopped
+};
+
 struct native_interface_t
 {
 explicit constexpr native_interface_t() noexcept=default;
