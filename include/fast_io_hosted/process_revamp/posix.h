@@ -24,8 +24,43 @@ inline constexpr posix_wait_reason reason(posix_wait_status pws) noexcept
 #endif
 	if(WIFSTOPPED(pws.wait_loc))
 		return posix_wait_reason::if_stopped;
-	return posix_wait_reason::unknown;
+	return posix_wait_reason::none;
 }
+
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,posix_wait_status>) noexcept
+{
+	return sizeof(u8"reason:")+print_reserve_size(io_reserve_type<char_type,posix_wait_reason>)
+		+sizeof(u8" code:")+print_reserve_size(io_reserve_type<char_type,int>);
+}
+
+template<std::integral char_type,std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,posix_wait_status>,Iter iter,posix_wait_status pws) noexcept
+{
+	if constexpr(std::same_as<char_type,char>)
+		iter=details::copy_string_literal("reason:",iter);
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		iter=details::copy_string_literal(L"reason:",iter);
+	else if constexpr(std::same_as<char_type,char16_t>)
+		iter=details::copy_string_literal(u"reason:",iter);
+	else if constexpr(std::same_as<char_type,char32_t>)
+		iter=details::copy_string_literal(U"reason:",iter);
+	else
+		iter=details::copy_string_literal(u8"reason:",iter);
+	iter=print_reserve_define(io_reserve_type<char_type,posix_wait_reason>,iter,reason(pws));
+	if constexpr(std::same_as<char_type,char>)
+		iter=details::copy_string_literal(" code:",iter);
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		iter=details::copy_string_literal(L" code:",iter);
+	else if constexpr(std::same_as<char_type,char16_t>)
+		iter=details::copy_string_literal(u" code:",iter);
+	else if constexpr(std::same_as<char_type,char32_t>)
+		iter=details::copy_string_literal(U" code:",iter);
+	else
+		iter=details::copy_string_literal(u8" code:",iter);
+	return print_reserve_define(io_reserve_type<char_type,int>,iter,pws.wait_loc);
+}
+
 
 inline constexpr int exit_status(posix_wait_status pws) noexcept
 {

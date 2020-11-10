@@ -374,8 +374,121 @@ inline constexpr char const* to_c_mode(open_mode m) noexcept
 }
 enum class posix_wait_reason:unsigned char
 {
-unknown,if_exited,if_signaled,if_core_dump,if_core_signal,if_stopped
+none,if_exited,if_signaled,if_core_dump,if_core_signal,if_stopped
 };
+
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,posix_wait_reason>) noexcept
+{
+	return 20;
+}
+
+template<std::integral char_type,std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,posix_wait_reason>,Iter iter,posix_wait_reason reason) noexcept
+{
+	if constexpr(std::same_as<char_type,char>)
+	{
+		switch(reason)
+		{
+		case posix_wait_reason::none:
+			return details::copy_string_literal("none",iter);
+		case posix_wait_reason::if_exited:
+			return details::copy_string_literal("if_exited",iter);
+		case posix_wait_reason::if_signaled:
+			return details::copy_string_literal("if_signaled",iter);
+		case posix_wait_reason::if_core_dump:
+			return details::copy_string_literal("if_core_dump",iter);
+		case posix_wait_reason::if_core_signal:
+			return details::copy_string_literal("if_core_signal",iter);
+		case posix_wait_reason::if_stopped:
+			return details::copy_string_literal("if_stopped",iter);
+		default:
+			return details::copy_string_literal("unknown",iter);
+		}
+	}
+	else if constexpr(std::same_as<char_type,wchar_t>)
+	{
+		switch(reason)
+		{
+		case posix_wait_reason::none:
+			return details::copy_string_literal(L"none",iter);
+		case posix_wait_reason::if_exited:
+			return details::copy_string_literal(L"if_exited",iter);
+		case posix_wait_reason::if_signaled:
+			return details::copy_string_literal(L"if_signaled",iter);
+		case posix_wait_reason::if_core_dump:
+			return details::copy_string_literal(L"if_core_dump",iter);
+		case posix_wait_reason::if_core_signal:
+			return details::copy_string_literal(L"if_core_signal",iter);
+		case posix_wait_reason::if_stopped:
+			return details::copy_string_literal(L"if_stopped",iter);
+		default:
+			return details::copy_string_literal(L"unknown",iter);
+		}
+	}
+	else if constexpr(std::same_as<char_type,char16_t>)
+	{
+		switch(reason)
+		{
+		case posix_wait_reason::none:
+			return details::copy_string_literal(u"none",iter);
+		case posix_wait_reason::if_exited:
+			return details::copy_string_literal(u"if_exited",iter);
+		case posix_wait_reason::if_signaled:
+			return details::copy_string_literal(u"if_signaled",iter);
+		case posix_wait_reason::if_core_dump:
+			return details::copy_string_literal(u"if_core_dump",iter);
+		case posix_wait_reason::if_core_signal:
+			return details::copy_string_literal(u"if_core_signal",iter);
+		case posix_wait_reason::if_stopped:
+			return details::copy_string_literal(u"if_stopped",iter);
+		default:
+			return details::copy_string_literal(u"unknown",iter);
+		}
+	}
+	else if constexpr(std::same_as<char_type,char32_t>)
+	{
+		switch(reason)
+		{
+		case posix_wait_reason::none:
+			return details::copy_string_literal(U"none",iter);
+		case posix_wait_reason::if_exited:
+			return details::copy_string_literal(U"if_exited",iter);
+		case posix_wait_reason::if_signaled:
+			return details::copy_string_literal(U"if_signaled",iter);
+		case posix_wait_reason::if_core_dump:
+			return details::copy_string_literal(U"if_core_dump",iter);
+		case posix_wait_reason::if_core_signal:
+			return details::copy_string_literal(U"if_core_signal",iter);
+		case posix_wait_reason::if_stopped:
+			return details::copy_string_literal(U"if_stopped",iter);
+		default:
+			return details::copy_string_literal(U"unknown",iter);
+		}
+	}
+	else
+	{
+		switch(reason)
+		{
+		case posix_wait_reason::none:
+			return details::copy_string_literal(u8"none",iter);
+		case posix_wait_reason::if_exited:
+			return details::copy_string_literal(u8"if_exited",iter);
+		case posix_wait_reason::if_signaled:
+			return details::copy_string_literal(u8"if_signaled",iter);
+		case posix_wait_reason::if_core_dump:
+			return details::copy_string_literal(u8"if_core_dump",iter);
+		case posix_wait_reason::if_core_signal:
+			return details::copy_string_literal(u8"if_core_signal",iter);
+		case posix_wait_reason::if_stopped:
+			return details::copy_string_literal(u8"if_stopped",iter);
+		default:
+			return details::copy_string_literal(u8"unknown",iter);
+		}
+	}
+}
+
+
 
 struct native_interface_t
 {
