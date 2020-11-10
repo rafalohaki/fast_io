@@ -923,7 +923,7 @@ inline std::array<int*,2> redirect_handle(basic_posix_pipe<ch_type>& h)
 template<std::integral ch_type>
 inline constexpr posix_io_redirection redirect(basic_posix_pipe<ch_type>& h) noexcept
 {
-	return {.pipe_pfds=std::addressof(h.in().fd)};
+	return {.pipe_fds=std::addressof(h.in().fd)};
 }
 
 #endif

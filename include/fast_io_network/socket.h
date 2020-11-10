@@ -51,6 +51,13 @@ inline auto redirect_handle(basic_socket_io_observer<ch_type> soc)
 {
 	return soc.soc;
 }
+
+template<std::integral ch_type>
+inline posix_io_redirection redirect(basic_socket_io_observer<ch_type> soc)
+{
+	return {.fd=h.fd};
+}
+
 #endif
 
 #if defined(__linux__)

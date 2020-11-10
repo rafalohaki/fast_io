@@ -93,21 +93,21 @@ inline void posix_waitpid_noexcept(pid_t pid) noexcept
 #endif
 }
 
-inline [[noreturn]] void posix_execveat(int dirfd,char const* path,char* const argv,char* const envp)
+[[noreturn]] inline void posix_execveat(int dirfd,char const* path,char const* const* argv,char const* const* envp) noexcept
 {
 #ifdef __linux__
 	system_call<__NR_execveat,int>(dirfd,path,argv,envp,AT_SYMLINK_NOFOLLOW);
 	fast_terminate();
 #else
-	int fd{::openat(dirfd,path,O_RDONLY|O_EXCL,0644))};
+	int fd{::openat(dirfd,path,O_RDONLY|O_EXCL,0644)};
 	if(fd==-1)
 		fast_terminate();
-	::fexecve(fd,argv,envp);
+	::fexecve(fd,const_cast<char* const*>(argv),const_cast<char* const*>(envp));
 	fast_terminate();
 #endif
 }
 
-inline int child_process_deal_with_process_io(posix_io_redirection& red,int fd) noexcept
+inline int child_process_deal_with_process_io(posix_io_redirection const& red,int fd) noexcept
 {
 	bool is_stdin{fd==0};
 	if(red.pipe_fds)
@@ -130,16 +130,8 @@ inline int child_process_deal_with_process_io(posix_io_redirection& red,int fd) 
 }
 
 
-inline void child_process_execveat(int dirfd,cstring_view csv,std::span<cstring_view> args,std::span<cstring_view> envp,posix_process_io& pio) noexcept
+inline void child_process_execveat(int dirfd,cstring_view csv,char const* const* args_ptr,char const* const* envp_ptr,posix_process_io const& pio) noexcept
 {
-	auto args_uptr=new char const*[args.size()+1];
-	for(std::size_t i{};i!=args.size();++i)
-		args_uptr[i]=args[i].c_str();
-	args_uptr[args.size()]=nullptr;
-	auto envp_uptr=new char const*[envp.size()+1];
-	for(std::size_t i{};i!=envp.size();++i)
-		envp_uptr[i]=envp[i].c_str();
-	envp_uptr[envp.size()]=nullptr;
 	int in_fd{child_process_deal_with_process_io(pio.in,0)};
 	int out_fd{child_process_deal_with_process_io(pio.out,1)};
 	int err_fd{child_process_deal_with_process_io(pio.err,2)};
@@ -159,12 +151,12 @@ inline void child_process_execveat(int dirfd,cstring_view csv,std::span<cstring_
 		sys_dup2<true>(out_fd,1);
 	if((err_fd!=-1)&(err_fd!=2))
 		sys_dup2<true>(err_fd,2);	
-	posix_execveat(dirfd,csv.c_str(),args_uptr.data(),envp_uptr.data());
+	posix_execveat(dirfd,csv.c_str(),args_ptr,envp_ptr);
 };
 
 
 template<bool is_stdin>
-inline void parent_process_deal_with_process_io(posix_io_redirection& red) noexcept
+inline void parent_process_deal_with_process_io(posix_io_redirection const& red) noexcept
 {
 	if(red.pipe_fds)
 	{
@@ -177,17 +169,19 @@ inline void parent_process_deal_with_process_io(posix_io_redirection& red) noexc
 	}
 }
 
-inline pid_t posix_fork_execveat_impl(int dirfd,cstring_view csv,std::span<cstring_view> args,std::span<cstring_view> envp,posix_process_io& pio)
+
+inline pid_t posix_fork_execveat_impl(int dirfd,cstring_view csv,char const* const* args,char const* const* envp,posix_process_io const& pio)
 {
 	pid_t pid{posix_fork()};
 	if(pid)
 	{
-		parent_process_deal_with_process_io<true>(red.in);
-		parent_process_deal_with_process_io<false>(red.out);
-		parent_process_deal_with_process_io<false>(red.err);
+		parent_process_deal_with_process_io<true>(pio.in);
+		parent_process_deal_with_process_io<false>(pio.out);
+		parent_process_deal_with_process_io<false>(pio.err);
 		return pid;
 	}
-	child_process_execveat(dir,csv,args,envp,pio);
+	child_process_execveat(dirfd,csv,args,envp,pio);
+	fast_terminate();
 }
 
 }
@@ -199,15 +193,15 @@ public:
 	pid_t pid{-1};
 	constexpr auto& native_handle() noexcept
 	{
-		return handle;
+		return pid;
 	}
 	constexpr auto& native_handle() const noexcept
 	{
-		return handle;
+		return pid;
 	}
 	explicit inline constexpr operator bool() const noexcept
 	{
-		return handle!=-1;
+		return pid!=-1;
 	}
 	inline constexpr pid_t release() noexcept
 	{
@@ -227,14 +221,14 @@ inline constexpr bool is_parent(posix_process_observer ppob) noexcept
 	return ppob.pid==0;
 }
 
-inline constexpr pid_t detach(posix_process_observer ppob) noexcept
+inline constexpr void detach(posix_process_observer ppob) noexcept
 {
-	return ppob.release();
+	ppob.pid=-1;
 }
 
-inline constexpr posix_wait_status wait(posix_process_observer ppob)
+inline posix_wait_status wait(posix_process_observer ppob)
 {
-	posix_wait_status status{details::details::waitpid(ppob.pid)};
+	posix_wait_status status{details::posix_waitpid(ppob.pid)};
 	ppob.pid=-1;
 	return status;
 }
@@ -249,6 +243,86 @@ inline constexpr auto operator<=>(posix_process_observer a,posix_process_observe
 	return a.pid<=>b.pid;
 }
 
+namespace details
+{
+template<std::random_access_iterator Iter>
+inline
+#if __cpp_constexpr_dynamic_alloc >= 201907L
+	constexpr
+#endif
+char const* const* dup_enviro_impl(Iter begin,Iter end)
+{
+	std::size_t const size{static_cast<std::size_t>(end-begin)};
+	std::unique_ptr<char const*[]> uptr(new char const*[size+1]);
+	if constexpr(requires(std::iter_value_t<Iter> v)
+	{
+		{v.c_str()}->std::convertible_to<char const*>;
+	})
+	{
+		for(char const* it{uptr.get()};begin!=end;++begin)
+		{
+			*it=begin->c_str();
+			++it;
+		}
+	}
+	else
+		non_overlapped_copy_n(begin,size,uptr.get());
+	uptr[size]=nullptr;
+	return uptr.release();
+}
+
+template<std::random_access_iterator Iter>
+inline 
+#if __cpp_constexpr_dynamic_alloc >= 201907L
+	constexpr
+#endif
+char const* const* dup_enviro_entry(Iter begin,Iter end)
+{
+	if constexpr(std::contiguous_iterator<Iter>)
+		return dup_enviro_impl(std::to_address(begin),std::to_address(end));
+	else
+		return dup_enviro_impl(begin,end);
+}
+
+
+}
+
+
+struct posix_process_args
+{
+	char const* const* args{};
+	bool is_dynamic_allocated{};
+	inline constexpr posix_process_args(char const* const* envir) noexcept:args(envir){}
+	template<std::random_access_iterator Iter>
+	requires (std::convertible_to<std::iter_value_t<Iter>,char const*>||requires(std::iter_value_t<Iter> v)
+	{
+		{v.c_str()}->std::convertible_to<char const*>;
+	})
+	inline constexpr posix_process_args(Iter begin,Iter end):
+		args(details::dup_enviro_entry(begin,end)),is_dynamic_allocated(true)
+	{}
+	template<std::ranges::random_access_range range>
+	requires (std::convertible_to<std::ranges::range_value_t<range>,char const*>||requires(std::ranges::range_value_t<range> v)
+	{
+		{v.c_str()}->std::convertible_to<char const*>;
+	})
+	inline constexpr posix_process_args(range&& rg):posix_process_args(std::ranges::cbegin(rg),std::ranges::cend(rg))
+	{}
+	inline constexpr posix_process_args(std::initializer_list<char const*> ilist):
+		posix_process_args(ilist.begin(),ilist.end()){}
+	posix_process_args(posix_process_args const&)=delete;
+	posix_process_args& operator=(posix_process_args const&)=delete;
+#if __cpp_constexpr_dynamic_alloc >= 201907L
+	inline constexpr
+#endif
+	~posix_process_args()
+	{
+		if(is_dynamic_allocated)
+			delete[] args;
+	}
+};
+
+
 class posix_process:public posix_process_observer
 {
 public:
@@ -258,10 +332,10 @@ public:
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	explicit constexpr posix_process(native_hd pid) noexcept:
 		posix_process_observer{pid}{}
-	posix_process(posix_at_entry pate,cstring_view filename,std::span<cstring_view> args,std::span<cstring_view> envp,posix_process_io pio):
-		posix_process_observer{details::posix_fork_execveat_impl(pate.fd,filename,args,envp,pio)}{}
-	posix_process(cstring_view filename,std::span<cstring_view> args,std::span<cstring_view> envp,posix_process_io pio):
-		posix_process_observer{details::posix_fork_execveat_impl(AT_FDCWD,filename,args,envp,pio)}{}
+	posix_process(posix_at_entry pate,cstring_view filename,posix_process_args const& args,posix_process_args const& envp,posix_process_io const& pio):
+		posix_process_observer{details::posix_fork_execveat_impl(pate.fd,filename,args.args,envp.args,pio)}{}
+	posix_process(cstring_view filename,posix_process_args const& args,posix_process_args const& envp,posix_process_io const& pio):
+		posix_process_observer{details::posix_fork_execveat_impl(AT_FDCWD,filename,args.args,envp.args,pio)}{}
 	posix_process(posix_process const&)=delete;
 	posix_process& operator=(posix_process const&)=delete;
 	constexpr posix_process(posix_process&& other) noexcept:posix_process_observer{other.pid}
