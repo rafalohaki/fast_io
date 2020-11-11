@@ -7,7 +7,7 @@ struct nt_user_process_information
 {
 	void* hprocess;
 	void* hthread;
-	ps_create_info create_info;
+	win32::nt::ps_create_info create_info;
 };
 
 namespace win32::nt::details
@@ -36,7 +36,7 @@ inline void close_nt_user_process_information(nt_user_process_information* hnt_u
 
 inline std::uint32_t nt_wait_user_process_or_thread(void* hprocess_thread) noexcept
 {
-	return win32::nt::nt_wait_for_single_object(hprocess_thread,false,nullptr)};
+	return win32::nt::nt_wait_for_single_object(hprocess_thread,false,nullptr);
 }
 
 template<bool throw_eh=false>
@@ -67,6 +67,7 @@ inline void close_nt_user_process_information_and_wait(nt_user_process_informati
 	}
 }
 
+inline nt_user_process_information* create_nt_user_process_impl(void* __restrict directory,wcstring_view filename);
 
 inline nt_user_process_information* create_nt_user_process_impl(void* __restrict directory,wcstring_view filename)
 {
@@ -78,7 +79,14 @@ inline nt_user_process_information* create_nt_user_process_impl(void* __restrict
 
 	constexpr std::uint32_t maximum_allowed{0x02000000L};
 
-	unicode_string path{filename.data(),filename.size(),filename.size()};
+	std::size_t filename_size{filename.size()<<1};
+	if constexpr(sizeof(std::size_t)>sizeof(std::uint16_t))
+	{
+		if(static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max())<filename_size)
+			throw_nt_error(0xC0000106);
+	}
+	unicode_string path{static_cast<std::uint16_t>(filename_size),static_cast<std::uint16_t>(filename_size),
+		const_cast<wchar_t*>(filename.c_str())};
 
 	object_attributes obj{.Length=sizeof(win32::nt::object_attributes),
 		.RootDirectory=directory,
@@ -87,7 +95,7 @@ inline nt_user_process_information* create_nt_user_process_impl(void* __restrict
 	ps_create_info create_info{};
 
 	auto status{nt_create_user_process(std::addressof(uptr->hprocess),std::addressof(uptr->hthread),
-		maximum_allowed,maximum_allowed,std::addressof(obj),nullptr,0,0,nullptr,std::addressof(uptr->create_info),std::addressof(attribute))};
+		maximum_allowed,maximum_allowed,std::addressof(obj),nullptr,0,0,nullptr,std::addressof(uptr->create_info),std::addressof(attributes))};
 	if(status)
 		throw_nt_error(status);
 	return uptr.release();
@@ -120,9 +128,9 @@ public:
 	}
 };
 
-inline constexpr void detach(nt_process_observer ppob) noexcept
+inline void detach(nt_process_observer ppob) noexcept
 {
-	details::close_nt_user_process_information(ppob.hnt_user_process_info);
+	win32::nt::details::close_nt_user_process_information(ppob.hnt_user_process_info);
 	ppob.hnt_user_process_info=nullptr;
 }
 #if 0
@@ -140,7 +148,7 @@ inline nt_wait_status wait(nt_process_observer ppob)
 {
 	if(handle==nullptr)
 		throw_nt_status(0xC0000008);
-	details::nt_wait_and_close_user_process_or_thread<true>(ppob.hnt_user_process_info->hthread);
+	win32::nt::details_wait_and_close_user_process_or_thread<true>(ppob.hnt_user_process_info->hthread);
 	auto& hprocess=ppob.hnt_user_process_info->hprocess;
 	auto status{nt_wait_user_process_or_thread(hprocess)};
 
@@ -203,11 +211,10 @@ public:
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	explicit constexpr nt_process(native_hd hd) noexcept:nt_process_observer{hd}{}
 
-	explicit basic_nt_file(nt_at_entry nate,wcstring_view filename):nt_process_observer{create_nt_user_process_impl(nate.handle,filename)}
+	explicit nt_process(nt_at_entry nate,wcstring_view filename):
+		nt_process_observer{win32::nt::details::create_nt_user_process_impl(nate.handle,filename)}
 		//to do. first test API
-	{
-
-	}
+	{}
 
 	nt_process(nt_process const& b)=delete;
 	nt_process& operator=(nt_process const& b)=delete;

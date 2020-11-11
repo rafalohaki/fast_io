@@ -85,9 +85,9 @@ inline void* win32_create_file_impl(basic_cstring_view<char_type> path,win32_ope
 {
 	if constexpr(std::same_as<char_type,char>)
 	{
-		details::temp_unique_arr_ptr<wchar_t> buffer(path.size()+1);
-		*utf_code_convert(path.data(),path.data()+path.size(),buffer.ptr)=0;
-		return win32_create_file_a_impld(buffer.ptr,mode);
+		std::unique_ptr<wchar_t[]> buffer(new wchar_t[path.size()+1]);
+		*utf_code_convert(path.data(),path.data()+path.size(),buffer.get())=0;
+		return win32_create_file_a_impld(buffer.get(),mode);
 	}
 	else
 	{
@@ -739,14 +739,14 @@ public:
 	explicit basic_win32_file(io_temp_t):basic_win32_io_handle<char_type>(details::create_win32_temp_file()){}
 #endif
 	explicit basic_win32_file(nt_at_entry nate,cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-				basic_win32_io_handle<char_type>(details::nt::nt_create_file_directory_impl(nate.handle,filename,details::nt::calculate_nt_open_mode(om,pm)))
+				basic_win32_io_handle<char_type>(win32::nt::details::nt_create_file_directory_impl(nate.handle,filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
 	{}
 
 	explicit basic_win32_file(cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
 				basic_win32_io_handle<char_type>(details::win32_create_file_impl(filename,details::calculate_win32_open_mode(om,pm)))
 	{}
 	explicit basic_win32_file(nt_at_entry nate,wcstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-				basic_win32_io_handle<char_type>(details::nt::nt_create_file_directory_impl(nate.handle,filename,details::nt::calculate_nt_open_mode(om,pm)))
+				basic_win32_io_handle<char_type>(win32::nt::details::nt_create_file_directory_impl(nate.handle,filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
 	{}
 
 	explicit basic_win32_file(wcstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):

@@ -3,7 +3,7 @@
 namespace fast_io
 {
 
-namespace details::nt
+namespace win32::nt::details
 {
 
 struct nt_open_mode
@@ -247,13 +247,13 @@ inline void* nt_create_file_directory_impl(void* directory,basic_cstring_view<ch
 {
 	if constexpr(std::same_as<char_type,char>)
 	{
-		details::temp_unique_arr_ptr<wchar_t> buffer(filename.size());
-		auto buffer_data_end=utf_code_convert(filename.data(),filename.data()+filename.size(),buffer.data());
-		std::uint16_t const bytes(filename_bytes(buffer_data_end-buffer.data()));
+		std::unique_ptr<wchar_t[]> buffer(new wchar_t[filename.size()]);
+		auto buffer_data_end=utf_code_convert(filename.data(),filename.data()+filename.size(),buffer.get());
+		std::uint16_t const bytes(filename_bytes(buffer_data_end-buffer.get()));
 		win32::nt::unicode_string relative_path{
 			.Length=bytes,
 			.MaximumLength=bytes,
-			.Buffer=buffer.data()};
+			.Buffer=buffer.get()};
 		return nt_create_file_common_impl(directory,std::addressof(relative_path),mode);
 	}
 	else
@@ -276,8 +276,8 @@ inline void* nt_create_file_impl(basic_cstring_view<char_type> filename,nt_open_
 	win32::nt::unicode_string nt_name{};
 	if constexpr(std::same_as<char_type,char>)
 	{
-		details::temp_unique_arr_ptr<wchar_t> buffer(filename.size()+1);
-		nt_file_rtl_path(filename,buffer.data(),nt_name,part_name,relative_name);
+		std::unique_ptr<wchar_t[]> buffer(new wchar_t[filename.size()+1]);
+		nt_file_rtl_path(filename,buffer.get(),nt_name,part_name,relative_name);
 	}
 	else
 	{
@@ -400,13 +400,13 @@ inline constexpr basic_nt_io_observer<ch_type> io_value_handle(basic_nt_io_obser
 template<std::integral ch_type,std::contiguous_iterator Iter>
 [[nodiscard]] inline Iter read(basic_nt_io_observer<ch_type> obs,Iter begin,Iter end)
 {
-	return begin+details::nt::nt_read_impl(obs.handle,std::to_address(begin),(end-begin)*sizeof(*begin))/sizeof(*begin);
+	return begin+win32::nt::details::nt_read_impl(obs.handle,std::to_address(begin),(end-begin)*sizeof(*begin))/sizeof(*begin);
 }
 
 template<std::integral ch_type,std::contiguous_iterator Iter>
 inline Iter write(basic_nt_io_observer<ch_type> obs,Iter cbegin,Iter cend)
 {
-	return cbegin+details::nt::nt_write_impl(obs.handle,std::to_address(cbegin),(cend-cbegin)*sizeof(*cbegin))/sizeof(*cbegin);
+	return cbegin+win32::nt::details::nt_write_impl(obs.handle,std::to_address(cbegin),(cend-cbegin)*sizeof(*cbegin))/sizeof(*cbegin);
 }
 
 template<std::integral ch_type>
@@ -421,7 +421,7 @@ ReactOS provides implementation of how to do this
 https://doxygen.reactos.org/da/d02/dll_2win32_2kernel32_2client_2file_2fileinfo_8c_source.html#l00327
 */
 
-namespace details::nt
+namespace win32::nt::details
 {
 
 inline std::uint64_t nt_seek64_impl(void* __restrict handle,std::int64_t offset,seekdir s)
@@ -509,13 +509,13 @@ inline void nt_truncate_impl(void* handle,std::uintmax_t newfilesizem)
 template<std::integral ch_type>
 inline std::uintmax_t seek(basic_nt_io_observer<ch_type> handle,std::intmax_t offset=0,seekdir s=seekdir::cur)
 {
-	return details::nt::nt_seek_impl(handle.handle,offset,s);
+	return win32::nt::details::nt_seek_impl(handle.handle,offset,s);
 }
 
 template<std::integral ch_type>
 inline void truncate(basic_nt_io_observer<ch_type> handle,std::uintmax_t newfilesize)
 {
-	details::nt::nt_truncate_impl(handle.handle,newfilesize);
+	win32::nt::details::nt_truncate_impl(handle.handle,newfilesize);
 }
 
 template<std::integral ch_type>
@@ -544,10 +544,10 @@ public:
 			this->native_handle()=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
 		}
 	}
-	basic_nt_io_handle(basic_nt_io_handle const& other):basic_nt_io_observer<ch_type>(details::nt::nt_dup_impl(other.handle)){}
+	basic_nt_io_handle(basic_nt_io_handle const& other):basic_nt_io_observer<ch_type>(win32::nt::details::nt_dup_impl(other.handle)){}
 	basic_nt_io_handle& operator=(basic_nt_io_handle const& other)
 	{
-		this->handle=details::nt::nt_dup2_impl(other.handle,this->handle);
+		this->handle=win32::nt::details::nt_dup2_impl(other.handle,this->handle);
 		return *this;
 	}
 	constexpr basic_nt_io_handle(basic_nt_io_handle&& b) noexcept:
@@ -578,23 +578,23 @@ public:
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	explicit constexpr basic_nt_file(native_hd hd):basic_nt_io_handle<ch_type>(hd){}
-	explicit basic_nt_file(io_dup_t,basic_nt_io_observer<ch_type> wiob):basic_nt_io_handle<ch_type>(details::nt::nt_dup_impl(wiob.handle))
+	explicit basic_nt_file(io_dup_t,basic_nt_io_observer<ch_type> wiob):basic_nt_io_handle<ch_type>(win32::nt::details::nt_dup_impl(wiob.handle))
 	{}
 
 	explicit basic_nt_file(cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_io_handle<ch_type>(details::nt::nt_create_file_impl(filename,details::nt::calculate_nt_open_mode(om,pm)))
+		basic_nt_io_handle<ch_type>(win32::nt::details::nt_create_file_impl(filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
 	{
 	}
 	explicit basic_nt_file(nt_at_entry nate,cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_io_handle<char_type>(details::nt::nt_create_file_directory_impl(nate.handle,filename,details::nt::calculate_nt_open_mode(om,pm)))
+		basic_nt_io_handle<char_type>(win32::nt::details::nt_create_file_directory_impl(nate.handle,filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
 	{
 	}
 	explicit basic_nt_file(wcstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_io_handle<ch_type>(details::nt::nt_create_file_impl(filename,details::nt::calculate_nt_open_mode(om,pm)))
+		basic_nt_io_handle<ch_type>(win32::nt::details::nt_create_file_impl(filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
 	{
 	}
 	explicit basic_nt_file(nt_at_entry nate,wcstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_io_handle<char_type>(details::nt::nt_create_file_directory_impl(nate.handle,filename,details::nt::calculate_nt_open_mode(om,pm)))
+		basic_nt_io_handle<char_type>(win32::nt::details::nt_create_file_directory_impl(nate.handle,filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
 	{
 	}
  	basic_nt_file(basic_nt_file const&)=default;
