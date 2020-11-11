@@ -27,11 +27,21 @@ inline constexpr posix_wait_reason reason(posix_wait_status pws) noexcept
 	return posix_wait_reason::none;
 }
 
+inline constexpr int native_code(posix_wait_status pws) noexcept
+{
+	return pws.wait_loc;
+}
+
+inline constexpr std::uintmax_t code(posix_wait_status pws) noexcept
+{
+	return static_cast<std::uintmax_t>(pws.wait_loc);
+}
+
 template<std::integral char_type>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,posix_wait_status>) noexcept
 {
 	return sizeof(u8"reason:")+print_reserve_size(io_reserve_type<char_type,posix_wait_reason>)
-		+sizeof(u8" code:")+print_reserve_size(io_reserve_type<char_type,int>);
+		+sizeof(u8" native_code:")+print_reserve_size(io_reserve_type<char_type,int>);
 }
 
 template<std::integral char_type,std::random_access_iterator Iter>
@@ -49,45 +59,16 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,posix_wai
 		iter=details::copy_string_literal(u8"reason:",iter);
 	iter=print_reserve_define(io_reserve_type<char_type,posix_wait_reason>,iter,reason(pws));
 	if constexpr(std::same_as<char_type,char>)
-		iter=details::copy_string_literal(" code:",iter);
+		iter=details::copy_string_literal(" native_code:",iter);
 	else if constexpr(std::same_as<char_type,wchar_t>)
-		iter=details::copy_string_literal(L" code:",iter);
+		iter=details::copy_string_literal(L" native_code:",iter);
 	else if constexpr(std::same_as<char_type,char16_t>)
-		iter=details::copy_string_literal(u" code:",iter);
+		iter=details::copy_string_literal(u" native_code:",iter);
 	else if constexpr(std::same_as<char_type,char32_t>)
-		iter=details::copy_string_literal(U" code:",iter);
+		iter=details::copy_string_literal(U" native_code:",iter);
 	else
-		iter=details::copy_string_literal(u8" code:",iter);
+		iter=details::copy_string_literal(u8" native_code:",iter);
 	return print_reserve_define(io_reserve_type<char_type,int>,iter,pws.wait_loc);
-}
-
-
-inline constexpr int exit_status(posix_wait_status pws) noexcept
-{
-	return WEXITSTATUS(pws.wait_loc);
-}
-
-inline constexpr int core_dump(posix_wait_status pws) noexcept
-{
-#ifdef WCOREDUMP
-	return WCOREDUMP(pws.wait_loc);
-#else
-	return 0;
-#endif
-}
-
-inline constexpr int core_signal(posix_wait_status pws) noexcept
-{
-#ifdef WCORESIG
-	return WCORESIG(pws.wait_loc);
-#else
-	return 0;
-#endif
-}
-
-inline constexpr int stop_signal(posix_wait_status pws) noexcept
-{
-	return WSTOPSIG(pws.wait_loc);
 }
 
 namespace details
@@ -246,16 +227,6 @@ public:
 	}
 };
 
-inline constexpr bool is_child(posix_process_observer ppob) noexcept
-{
-	return 0<ppob.pid;
-}
-
-inline constexpr bool is_parent(posix_process_observer ppob) noexcept
-{
-	return ppob.pid==0;
-}
-
 inline constexpr void detach(posix_process_observer ppob) noexcept
 {
 	ppob.pid=-1;
@@ -362,7 +333,7 @@ class posix_process:public posix_process_observer
 {
 public:
 	using native_handle_type = pid_t;
-	constexpr posix_process() noexcept =default;
+	explicit constexpr posix_process() noexcept =default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	explicit constexpr posix_process(native_hd pid) noexcept:

@@ -574,7 +574,7 @@ class basic_nt_file:public basic_nt_io_handle<ch_type>
 public:
 	using char_type = ch_type;
 	using native_handle_type = void*;
-	explicit constexpr basic_nt_file()=default;
+	constexpr basic_nt_file()=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	explicit constexpr basic_nt_file(native_hd hd):basic_nt_io_handle<ch_type>(hd){}

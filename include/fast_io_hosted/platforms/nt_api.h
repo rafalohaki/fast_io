@@ -85,6 +85,244 @@ ULONG(std::uint32_t)              EaLength
 				std::uint32_t,std::uint32_t,std::uint32_t,std::uint32_t,void*,std::uint32_t) noexcept>("NtCreateFile"))(std::forward<Args>(args)...);
 }
 
+/*
+typedef struct _RTL_USER_PROCESS_PARAMETERS
+{
+	ULONG MaximumLength;
+	ULONG Length;
+
+	ULONG Flags;
+	ULONG DebugFlags;
+
+	HANDLE ConsoleHandle;
+	ULONG ConsoleFlags;
+	HANDLE StandardInput;
+	HANDLE StandardOutput;
+	HANDLE StandardError;
+
+	CURDIR CurrentDirectory;
+	UNICODE_STRING DllPath;
+	UNICODE_STRING ImagePathName;
+	UNICODE_STRING CommandLine;
+	PWCHAR Environment;
+
+	ULONG StartingX;
+	ULONG StartingY;
+	ULONG CountX;
+	ULONG CountY;
+	ULONG CountCharsX;
+	ULONG CountCharsY;
+	ULONG FillAttribute;
+
+	ULONG WindowFlags;
+	ULONG ShowWindowFlags;
+	UNICODE_STRING WindowTitle;
+	UNICODE_STRING DesktopInfo;
+	UNICODE_STRING ShellInfo;
+	UNICODE_STRING RuntimeData;
+	RTL_DRIVE_LETTER_CURDIR CurrentDirectories[RTL_MAX_DRIVE_LETTERS];
+
+	ULONG_PTR EnvironmentSize;
+	ULONG_PTR EnvironmentVersion;
+	PVOID PackageDependencyData;
+	ULONG ProcessGroupId;
+	ULONG LoaderThreads;
+} RTL_USER_PROCESS_PARAMETERS, *PRTL_USER_PROCESS_PARAMETERS;
+*/
+
+struct curdir
+{
+	unicode_string DosPath;
+	void* Handle;
+};
+
+struct rtl_drive_letter_curdir
+{
+	std::uint16_t Flags;
+	std::uint16_t Length;
+	std::uint32_t TimeStamp;
+	unicode_string DosPath;
+};
+
+inline constexpr std::size_t rtl_max_drive_letters{32};
+
+struct rtl_user_process_parameters
+{
+	std::uint32_t MaximumLength;
+	std::uint32_t Length;
+
+	std::uint32_t Flags;
+	std::uint32_t DebugFlags;
+
+	void* ConsoleHandle;
+	std::uint32_t ConsoleFlags;
+	void* StandardInput;
+	void* StandardOutput;
+	void* StandardError;
+
+	curdir CurrentDirectory;
+	unicode_string DllPath;
+	unicode_string ImagePathName;
+	unicode_string CommandLine;
+	wchar_t *Environment;
+
+	std::uint32_t StartingX;
+	std::uint32_t StartingY;
+	std::uint32_t CountX;
+	std::uint32_t CountY;
+	std::uint32_t CountCharsX;
+	std::uint32_t CountCharsY;
+	std::uint32_t FillAttribute;
+
+	std::uint32_t WindowFlags;
+	std::uint32_t ShowWindowFlags;
+	unicode_string WindowTitle;
+	unicode_string DesktopInfo;
+	unicode_string ShellInfo;
+	unicode_string RuntimeData;
+	rtl_drive_letter_curdir CurrentDirectories[rtl_max_drive_letters];
+
+	std::uint32_t* EnvironmentSize;
+	std::uint32_t* EnvironmentVersion;
+	void* PackageDependencyData;
+	std::uint32_t ProcessGroupId;
+	std::uint32_t LoaderThreads;
+};
+
+enum class ps_create_state
+{
+	PsCreateInitialState,
+	PsCreateFailOnFileOpen,
+	PsCreateFailOnSectionCreate,
+	PsCreateFailExeFormat,
+	PsCreateFailMachineMismatch,
+	PsCreateFailExeName, // Debugger specified
+	PsCreateSuccess,
+	PsCreateMaximumStates
+};
+
+struct ps_create_info
+{
+	std::size_t Size;
+	ps_create_state State;
+	union
+	{
+		// PsCreateInitialState
+		struct
+		{
+			union
+			{
+				std::uint32_t InitFlags;
+				struct
+				{
+					unsigned char WriteOutputOnExit : 1;
+					unsigned char DetectManifest : 1;
+					unsigned char IFEOSkipDebugger : 1;
+					unsigned char IFEODoNotPropagateKeyState : 1;
+					unsigned char SpareBits1 : 4;
+					unsigned char SpareBits2 : 8;
+					std::uint16_t ProhibitedImageCharacteristics : 16;
+				} s;
+			} u;
+			std::uint32_t AdditionalFileAccess;
+		} InitState;
+
+		// PsCreateFailOnSectionCreate
+		struct
+		{
+			void* FileHandle;
+		} FailSection;
+
+		// PsCreateFailExeFormat
+		struct
+		{
+			std::uint32_t DllCharacteristics;
+		} ExeFormat;
+
+		// PsCreateFailExeName
+		struct
+		{
+			void* IFEOKey;
+		} ExeName;
+
+		// PsCreateSuccess
+		struct
+		{
+			union
+			{
+				std::uint32_t OutputFlags;
+				struct
+				{
+					unsigned char ProtectedProcess : 1;
+					unsigned char AddressSpaceOverride : 1;
+					unsigned char DevOverrideEnabled : 1; // From Image File Execution Options
+					unsigned char ManifestDetected : 1;
+					unsigned char ProtectedProcessLight : 1;
+					unsigned char SpareBits1 : 3;
+					unsigned char SpareBits2 : 8;
+					std::uint16_t SpareBits3 : 16;
+				} s;
+			} u;
+			void* FileHandle;
+			void* SectionHandle;
+			std::uint64_t UserProcessParametersNative;
+			std::uint32_t UserProcessParametersWow64;
+			std::uint32_t CurrentParameterFlags;
+			std::uint64_t PebAddressNative;
+			std::uint32_t PebAddressWow64;
+			std::uint64_t ManifestAddress;
+			std::uint32_t ManifestSize;
+		} SuccessState;
+	} u;
+};
+
+struct ps_attribute
+{
+	std::uintptr_t attribute;
+	std::size_t size;
+	union
+	{
+		std::uintptr_t Value;				// Reserve 8 bytes for data (such as a Handle or a data pointer)
+		void* ValuePtr;					// data pointer
+	} u;
+	std::size_t *ReturnLength;
+};
+
+struct ps_attribute_list
+{
+	std::size_t TotalLength;
+	ps_attribute attribute[2];
+};
+
+template<typename... Args>
+requires (sizeof...(Args)==11)
+inline auto nt_create_user_process(Args&& ...args) noexcept
+{
+/*
+Referenced From
+https://github.com/Mattiwatti/BSOD10/blob/b43bc139e97fd7019315e8771fa809f58f7bd53e/src/ntdll.h
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtCreateUserProcess(
+	_Out_ PHANDLE(void**)  ProcessHandle,
+	_Out_ PHANDLE(void**) ThreadHandle,
+	_In_ ACCESS_MASK(std::uint32_t) ProcessDesiredAccess,
+	_In_ ACCESS_MASK(std::uint32_t) ThreadDesiredAccess,
+	_In_opt_ POBJECT_ATTRIBUTES(object_attributes*) ProcessObjectAttributes,
+	_In_opt_ POBJECT_ATTRIBUTES(object_attributes*) ThreadObjectAttributes,
+	_In_ ULONG(std::uint32_t) ProcessFlags,
+	_In_ ULONG(std::uint32_t) ThreadFlags,
+	_In_ PRTL_USER_PROCESS_PARAMETERS ProcessParameters,
+	_Inout_ PPS_CREATE_INFO CreateInfo,
+	_In_ PPS_ATTRIBUTE_LIST AttributeList
+	);
+*/
+	return (get_nt_module_handle<std::uint32_t __stdcall(void**,void**,std::uint32_t,std::uint32_t,
+		object_attributes*,object_attributes*,std::uint32_t,std::uint32_t,rtl_user_process_parameters*,
+		ps_create_info*,ps_attribute_list*) noexcept>("NtCreateUserProcess"))(std::forward<Args>(args)...);
+}
+
 using pio_apc_routine = void (*)(void*,io_status_block*,std::uint32_t);
 //typedef VOID (NTAPI *PIO_APC_ROUTINE)(PVOID ApcContext,PIO_STATUS_BLOCK IoStatusBlock,ULONG Reserved);
 
@@ -323,6 +561,13 @@ requires (sizeof...(Args)==7)
 inline auto nt_duplicate_object(Args&& ...args) noexcept
 {
 	return (get_nt_module_handle<std::uint32_t __stdcall(void*,void*,void*,void**,std::uint32_t,std::uint32_t,std::uint32_t) noexcept >("NtDuplicateObject"))(std::forward<Args>(args)...);
+}
+
+template<typename... Args>
+requires (sizeof...(Args)==3)
+inline auto nt_wait_for_single_object(Args&& ...args) noexcept
+{
+	return (get_nt_module_handle<std::uint32_t __stdcall(void*,int,std::uint64_t*) noexcept >("NtWaitForSingleObject"))(std::forward<Args>(args)...);
 }
 
 struct rtlp_curdir_def
