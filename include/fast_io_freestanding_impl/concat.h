@@ -101,7 +101,7 @@ inline constexpr std::size_t scatter_concat_with_reserve_recursive_unit(char_typ
 	else
 	{
 		auto end_ptr = print_reserve_define(io_reserve_type<char_type,real_type>,start_ptr,t);
-		*arr={start_ptr,(end_ptr-start_ptr)*sizeof(*start_ptr)};
+		*arr={start_ptr,static_cast<std::size_t>(end_ptr-start_ptr)};
 		start_ptr=end_ptr;
 	}
 	return arr->len;
@@ -125,7 +125,6 @@ inline constexpr std::size_t scatter_concat_with_reserve_recursive(char_type* pt
 template<bool line,typename char_type,std::size_t arg_number>
 inline constexpr auto deal_with_scatters(std::array<basic_io_scatter_t<char_type>,arg_number>& scatters,std::size_t sz)
 {
-	sz/=sizeof(char_type);
 	std::basic_string<char_type> str;
 	if constexpr(line)
 		str.reserve(sz+1);
@@ -150,7 +149,6 @@ inline constexpr auto deal_with_scatters(std::array<basic_io_scatter_t<char_type
 template<bool line,typename char_type,std::size_t arg_number>
 inline constexpr void deal_with_scatters_string(std::basic_string<char_type>& str,std::array<basic_io_scatter_t<char_type>,arg_number>& scatters,std::size_t sz)
 {
-	sz/=sizeof(char_type);
 	if constexpr(line)
 		str.reserve(sz+1+str.size());
 	else
