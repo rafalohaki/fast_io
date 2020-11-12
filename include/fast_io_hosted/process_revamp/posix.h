@@ -227,12 +227,12 @@ public:
 	}
 };
 
-inline constexpr void detach(posix_process_observer ppob) noexcept
+inline constexpr void detach(posix_process_observer& ppob) noexcept
 {
 	ppob.pid=-1;
 }
 
-inline posix_wait_status wait(posix_process_observer ppob)
+inline posix_wait_status wait(posix_process_observer& ppob)
 {
 	posix_wait_status status{details::posix_waitpid(ppob.pid)};
 	ppob.pid=-1;

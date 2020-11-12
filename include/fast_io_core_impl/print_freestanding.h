@@ -374,7 +374,6 @@ inline constexpr void print_freestanding_decay(output out,Args ...args)
 		details::decay::print_fallback<false>(out,args...);
 }
 
-
 template<std::integral char_type,typename T>
 inline constexpr decltype(auto) io_print_alias(T&& t)
 {

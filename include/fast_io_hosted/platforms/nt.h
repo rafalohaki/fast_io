@@ -221,6 +221,7 @@ inline void* nt_create_file_common_impl(void* directory,win32::nt::unicode_strin
 		.Attributes=mode.ObjAttributes,
 		.SecurityDescriptor=mode.ObjAttributes&0x00000002?std::addressof(sec_attr):nullptr,
 	};
+/*	puts(fast_io::concatln(obj.ObjectName->Length," ",obj.RootDirectory," ",mode.ObjAttributes).c_str());*/
 	void* handle{};
 	win32::nt::io_status_block block{};
 	auto const status{win32::nt::nt_create_file(
@@ -540,7 +541,7 @@ public:
 		{
 			auto status{win32::nt::nt_close(this->native_handle())};
 			if(status)[[unlikely]]
-				throw_nt_status(status);
+				throw_nt_error(status);
 			this->native_handle()=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
 		}
 	}

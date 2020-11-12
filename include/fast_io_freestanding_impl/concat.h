@@ -22,16 +22,16 @@ inline static constexpr bool value{true};
 };
 
 template<bool ln,typename T,typename U,typename... Args>
-inline constexpr bool test_one()
+inline constexpr bool test_one() noexcept
 {
-	using no_cvref = std::remove_cvref_t<U>;
-	if constexpr(!reserve_printable<typename T::value_type,no_cvref>)
-		return false;
-	else
+	using no_cvref=std::remove_cvref_t<std::invoke_result_t<decltype(io_print_alias<typename T::value_type,U>),U&&>>;
+	if constexpr(reserve_printable<typename T::value_type,no_cvref>)
 	{
-		constexpr auto size{print_reserve_size(io_reserve_type<typename T::value_type,typename T::value_type>)+static_cast<std::size_t>(ln)};
-		return string_hack::local_capacity<T>()<size;
+		constexpr auto size{print_reserve_size(io_reserve_type<typename T::value_type,no_cvref>)+static_cast<std::size_t>(ln)};
+		return size<string_hack::local_capacity<T>();
 	}
+	else
+		return false;
 }
 
 template<typename T,bool ln,typename U>
@@ -39,22 +39,26 @@ inline constexpr T deal_with_one(U t)
 {
 	using value_type = typename T::value_type;
 	using no_cvref = std::remove_cvref_t<U>;
-
 	constexpr auto size{print_reserve_size(io_reserve_type<typename T::value_type,no_cvref>)+static_cast<std::size_t>(ln)};
-	std::array<value_type,size> array;
-	if constexpr(ln)
-	{
-		auto p {print_reserve_define(io_reserve_type<typename T::value_type,no_cvref>,array.data(),t)};
-		if constexpr(details::exec_charset_is_ebcdic<value_type>())
-			*p=0x25;
-		else
-			*p=u8'\n';
-		return T(array.data(),++p);
-	}
+	if constexpr(!ln&&std::same_as<no_cvref,fast_io::manip::chvw<typename T::value_type>>)
+		return T(1,t.reference);
 	else
 	{
-		return T(array.data(),
-		print_reserve_define(io_reserve_type<typename T::value_type,no_cvref>,array.data(),t));
+		std::array<value_type,size> array;
+		if constexpr(ln)
+		{
+			auto p {print_reserve_define(io_reserve_type<typename T::value_type,no_cvref>,array.data(),t)};
+			if constexpr(details::exec_charset_is_ebcdic<value_type>())
+				*p=0x25;
+			else
+				*p=u8'\n';
+			return T(array.data(),++p);
+		}
+		else
+		{
+			return T(array.data(),
+			print_reserve_define(io_reserve_type<typename T::value_type,no_cvref>,array.data(),t));
+		}
 	}
 }
 
@@ -183,7 +187,7 @@ inline constexpr auto concat_fallback(Args ...args)
 				scatters.data(),args...));
 		else
 		{
-			constexpr std::size_t sca_sz{decay::calculate_scatter_reserve_size<Args...>()};
+			constexpr std::size_t sca_sz{decay::calculate_scatter_reserve_size<char_type,Args...>()};
 			std::array<char_type,sca_sz> array;
 			return deal_with_scatters<line,char_type>(scatters,scatter_concat_with_reserve_recursive<char_type>(
 				array.data(),scatters.data(),args...));
@@ -213,7 +217,7 @@ inline constexpr decltype(auto) deal_with_first_is_string_rvalue_reference_decay
 				scatters.data(),args...));
 		else
 		{
-			constexpr std::size_t sca_sz{decay::calculate_scatter_reserve_size<Args...>()};
+			constexpr std::size_t sca_sz{decay::calculate_scatter_reserve_size<char_type,Args...>()};
 			std::array<char_type,sca_sz> array;
 			deal_with_scatters_string<line>(u,scatters,scatter_concat_with_reserve_recursive<char_type>(
 				array.data(),scatters.data(),args...));
@@ -246,7 +250,7 @@ inline constexpr decltype(auto) deal_with_first_is_string_rvalue_reference(U&& u
 	}
 	else
 	{
-		deal_with_first_is_string_rvalue_reference_decay<line,char_type>(std::forward<U>(u),io_forward(io_print_alias(args))...);
+		deal_with_first_is_string_rvalue_reference_decay<line,char_type>(std::forward<U>(u),io_forward(io_print_alias<char_type>(args))...);
 	}
 	return std::forward<U>(u);
 }
@@ -259,15 +263,13 @@ inline constexpr T concat(Args&& ...args)
 	if constexpr(sizeof...(Args)==0)
 		return {};
 	else if constexpr(sizeof...(Args)==1&&details::test_one<false,T,Args...>())
-	{
-		return details::deal_with_one<T,false>(io_forward(io_print_alias(args))...);
-	}
+		return details::deal_with_one<T,false>(io_forward(io_print_alias<typename T::value_type>(args))...);
 	else
 	{
 		if constexpr(details::test_first_is_string_rvalue_reference<T,Args&&...>())
 			return details::deal_with_first_is_string_rvalue_reference<false,typename T::value_type>(std::forward<Args>(args)...);
 		else
-			return details::concat_fallback<false,typename T::value_type>(io_forward(io_print_alias(args))...);
+			return details::concat_fallback<false,typename T::value_type>(io_forward(io_print_alias<typename T::value_type>(args))...);
 	}
 }
 
@@ -283,14 +285,14 @@ inline constexpr T concatln(Args&& ...args)
 	}
 	else if constexpr(sizeof...(Args)==1&&details::test_one<true,T,Args...>())
 	{
-		return details::deal_with_one<T,true>(io_forward(io_print_alias(args))...);
+		return details::deal_with_one<T,true>(io_forward(io_print_alias<typename T::value_type>(args))...);
 	}
 	else
 	{
 		if constexpr(details::test_first_is_string_rvalue_reference<T,Args&&...>())
 			return details::deal_with_first_is_string_rvalue_reference<true,typename T::value_type>(std::forward<Args>(args)...);
 		else
-			return details::concat_fallback<true,typename T::value_type>(io_forward(io_print_alias(args))...);
+			return details::concat_fallback<true,typename T::value_type>(io_forward(io_print_alias<typename T::value_type>(args))...);
 	}
 }
 

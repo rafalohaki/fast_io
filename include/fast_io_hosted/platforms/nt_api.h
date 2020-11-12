@@ -47,7 +47,7 @@ void*          RootDirectory;
 unicode_string *ObjectName;
 std::uint32_t   Attributes;
 void*           SecurityDescriptor;
-void*           SecurityQualityOfService{};
+void*           SecurityQualityOfService;
 };
 
 struct io_status_block
@@ -200,6 +200,17 @@ enum class ps_create_state
 	PsCreateSuccess,
 	PsCreateMaximumStates
 };
+enum class ps_protected_signer
+{
+	none,
+	authenticode,
+	code_gen,
+	antimal_ware,
+	lsa,
+	windows,
+	win_tcb,
+	max
+};
 
 struct ps_create_info
 {
@@ -322,6 +333,33 @@ NtCreateUserProcess(
 		object_attributes*,object_attributes*,std::uint32_t,std::uint32_t,rtl_user_process_parameters*,
 		ps_create_info*,ps_attribute_list*) noexcept>("NtCreateUserProcess"))(std::forward<Args>(args)...);
 }
+
+template<typename... Args>
+requires (sizeof...(Args)==8)
+inline auto nt_create_process(Args&& ...args) noexcept
+{
+/*
+Referenced From
+https://github.com/Mattiwatti/BSOD10/blob/b43bc139e97fd7019315e8771fa809f58f7bd53e/src/ntdll.h
+
+NTSYSCALLAPI
+NTSTATUS
+NTAPI
+NtCreateProcess(
+	_Out_ PHANDLE(void**) ProcessHandle,
+	_In_ ACCESS_MASK(std::uint32_t) DesiredAccess,
+	_In_opt_ POBJECT_ATTRIBUTES(object_attributes*) ObjectAttributes,
+	_In_ HANDLE(void*) ParentProcess,
+	_In_ BOOLEAN(int) InheritObjectTable,
+	_In_opt_ HANDLE(void*) SectionHandle,
+	_In_opt_ HANDLE(void*) DebugPort,
+	_In_opt_ HANDLE(void*) ExceptionPort
+	);
+*/
+	return (get_nt_module_handle<std::uint32_t __stdcall(void**,std::uint32_t,object_attributes*,
+		void*,std::uint32_t,void*,void*,void*) noexcept>("NtCreateProcess"))(std::forward<Args>(args)...);
+}
+
 
 using pio_apc_routine = void (*)(void*,io_status_block*,std::uint32_t);
 //typedef VOID (NTAPI *PIO_APC_ROUTINE)(PVOID ApcContext,PIO_STATUS_BLOCK IoStatusBlock,ULONG Reserved);

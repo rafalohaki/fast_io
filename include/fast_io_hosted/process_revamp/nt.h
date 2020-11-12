@@ -5,9 +5,9 @@ namespace fast_io
 
 struct nt_user_process_information
 {
-	void* hprocess;
-	void* hthread;
-	win32::nt::ps_create_info create_info;
+	void* hprocess{reinterpret_cast<void*>(-1)};
+	void* hthread{reinterpret_cast<void*>(-1)};
+	win32::nt::ps_create_info create_info{};
 };
 
 namespace win32::nt::details
@@ -67,13 +67,12 @@ inline void close_nt_user_process_information_and_wait(nt_user_process_informati
 	}
 }
 
-inline nt_user_process_information* create_nt_user_process_impl(void* __restrict directory,wcstring_view filename);
-
 inline nt_user_process_information* create_nt_user_process_impl(void* __restrict directory,wcstring_view filename)
 {
 	std::unique_ptr<nt_user_process_information> uptr(new nt_user_process_information);
 
 	rtl_user_process_parameters user_parameters{};
+
 
 	ps_attribute_list attributes{};
 
@@ -90,14 +89,27 @@ inline nt_user_process_information* create_nt_user_process_impl(void* __restrict
 
 	object_attributes obj{.Length=sizeof(win32::nt::object_attributes),
 		.RootDirectory=directory,
-		.ObjectName=std::addressof(path)};
+		.ObjectName=std::addressof(path),
+		.Attributes = 0x00000002U};
+#if 0
+	object_attributes thobj{.Length=sizeof(win32::nt::object_attributes),.Attributes = 0x00000002U};
 
-	ps_create_info create_info{};
+	ps_create_info create_info{.Size=sizeof(ps_create_info),.u={.InitState={.u={.InitFlags=0x20000003},.AdditionalFileAccess=0x81}}};
 
 	auto status{nt_create_user_process(std::addressof(uptr->hprocess),std::addressof(uptr->hthread),
-		maximum_allowed,maximum_allowed,std::addressof(obj),nullptr,0,0,nullptr,std::addressof(uptr->create_info),std::addressof(attributes))};
+		maximum_allowed,maximum_allowed,std::addressof(obj),
+		std::addressof(thobj),0,0,nullptr,
+		std::addressof(uptr->create_info),std::addressof(attributes))};
 	if(status)
 		throw_nt_error(status);
+#endif
+	void* const current_process{reinterpret_cast<void*>(static_cast<intptr_t>(-1))};
+	puts("Before\n");
+	auto status{nt_create_process(std::addressof(uptr->hprocess),0x0400/*PROCESS_QUERY_INFORMATION*/,
+		std::addressof(obj),current_process,true,nullptr,nullptr,nullptr)};
+	if(status)
+		throw_nt_error(status);
+	puts("Success\n");
 	return uptr.release();
 }
 
@@ -128,7 +140,7 @@ public:
 	}
 };
 
-inline void detach(nt_process_observer ppob) noexcept
+inline void detach(nt_process_observer& ppob) noexcept
 {
 	win32::nt::details::close_nt_user_process_information(ppob.hnt_user_process_info);
 	ppob.hnt_user_process_info=nullptr;
