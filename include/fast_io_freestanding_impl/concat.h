@@ -118,7 +118,7 @@ template<std::integral char_type,typename T,typename... Args>
 inline constexpr std::size_t scatter_concat_with_reserve_recursive(char_type* ptr,
 	basic_io_scatter_t<char_type>* arr,T t, Args ...args)
 {
-	std::size_t const res{scatter_concat_with_reserve_recursive(ptr,arr,t)};
+	std::size_t const res{scatter_concat_with_reserve_recursive_unit(ptr,arr,t)};
 	return res+scatter_concat_with_reserve_recursive(ptr,arr+1,args...);
 }
 
@@ -144,6 +144,16 @@ inline constexpr auto deal_with_scatters(std::array<basic_io_scatter_t<char_type
 	}
 	obuffer_set_curr(oref,it);
 	return str;
+}
+
+template<std::integral char_type,typename T,typename... Args>
+inline constexpr char_type* concat_with_reserve_recursive(char_type* ptr,T t,Args... args)
+{
+	using real_type = std::remove_cvref_t<T>;
+	ptr=print_reserve_define(io_reserve_type<char_type,real_type>,ptr,t);
+	if constexpr(sizeof...(Args)!=0)
+		ptr=concat_with_reserve_recursive(ptr,args...);
+	return ptr;
 }
 
 template<bool line,typename char_type,std::size_t arg_number>
@@ -173,16 +183,33 @@ inline constexpr auto concat_fallback(Args ...args)
 {
 	if constexpr(((scatter_type_printable<char_type,Args>||reserve_printable<char_type,Args>)&&...))
 	{
-		std::array<basic_io_scatter_t<char_type>,sizeof...(Args)> scatters;
-		if constexpr(((scatter_type_printable<char_type,Args>)&&...))
-			return deal_with_scatters<line,char_type>(scatters,scatter_concat_recursive<char_type>(
-				scatters.data(),args...));
+		if constexpr(((reserve_printable<char_type,Args>)&&...))
+		{
+			std::array<char_type,decay::calculate_scatter_reserve_size<char_type,Args...>()+static_cast<std::size_t>(line)> array;
+			auto ptr{concat_with_reserve_recursive<char_type>(array.data(),args...)};
+			if constexpr(line)
+			{
+				if constexpr(details::exec_charset_is_ebcdic<char_type>())
+					*ptr=0x25;
+				else
+					*ptr=u8'\n';
+				++ptr;
+			}
+			return std::basic_string<char_type>(array.data(),ptr);
+		}
 		else
 		{
-			constexpr std::size_t sca_sz{decay::calculate_scatter_reserve_size<char_type,Args...>()};
-			std::array<char_type,sca_sz> array;
-			return deal_with_scatters<line,char_type>(scatters,scatter_concat_with_reserve_recursive<char_type>(
-				array.data(),scatters.data(),args...));
+			std::array<basic_io_scatter_t<char_type>,sizeof...(Args)> scatters;
+			if constexpr(((scatter_type_printable<char_type,Args>)&&...))
+				return deal_with_scatters<line,char_type>(scatters,scatter_concat_recursive<char_type>(
+					scatters.data(),args...));
+			else
+			{
+				constexpr std::size_t sca_sz{decay::calculate_scatter_reserve_size<char_type,Args...>()};
+				std::array<char_type,sca_sz> array;
+				return deal_with_scatters<line,char_type>(scatters,scatter_concat_with_reserve_recursive<char_type>(
+					array.data(),scatters.data(),args...));
+			}
 		}
 	}
 	else
