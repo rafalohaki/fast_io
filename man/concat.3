@@ -1,0 +1,140 @@
+.\" Manpage for fast_io::concat
+.\" Contact euloanty@live.com or pssvv4@gmail.com to correct errors of typos
+.TH CONCAT 3 2020-11-14 "fast_io" "C++ Programmer's Manual"
+.SH "NAME"
+concat, concatln - string generators
+.SH "SYNOPSIS"
+.nf
+.B #include <fast_io.h>
+.PP
+.BI "template<typename T=std::string> constexpr T concat(args...);"
+.BI "template<typename T=std::string> constexpr T concatln(args...);"
+.SH DESCRIPTION
+The functions in the
+.BR concat ()
+family generate a std::string by default using the given parameters.
+.PP
+Function concatln() will add a newline character to the concatenating result.
+.PP
+Neither concat() nor concatln() will dereference a pointer argument, since such action is un-safe and may lead to SegmentFault.
+.PP
+When dealing with pointers, concat() and concatln() returns the value of a pointer as a hexadecimal literal.
+.PP
+The functions concat() and concatln() take one or more printable objects as parameters and return a std::string with content of the concatenation the parameters as default.
+.PP
+
+.SH RETURN VALUE
+These functions return std::string as default. Return type can be specified by specifying the first template parameter T when calling concat() and concatln().
+.SH PROCESS SAFETY
+Functions concat () and concatln () guarantee process safety during each call.
+.SH THREAD SAFETY
+Function concat () and concatln () guarantee process safety during each call.
+
+.SH EXCEPTIONS
+When concat () family functions fail, they throw exceptions. These functions are exception safe.
+.SH EXAMPLE
+generate a std::string with content "It's a sunny day!"
+.PP
+.in +8n
+.EX
+#include<fast_io.h>
+
+int main()
+{
+	std::string weather = "sunny";
+	auto str = fast_io::concat("It's a", weather, " day!"); // type of str is std::string as default
+	print(str);
+}
+
+.EE
+.in -8n
+.PP
+generate a std::string with multiple different type args.
+.PP
+.in +8n
+.EX
+#include<fast_io.h>
+
+int main()
+{
+	int answer = 42;
+	auto result = fast_io::concat("The answer is ", answer);
+}
+.EE
+.in -8n
+.BR
+.PP
+.in +8n
+.EX
+#include<fast_io.h>
+
+int main()
+{
+	int answer = 1;
+	auto result = fast_io::concat("The answer is ", answer);
+}
+.EE
+.in -8n
+.PP
+generate std::string ending with newline character:
+.PP
+.in +8n
+.EX
+#include <fast_io.h>
+
+int main() 
+{
+	auto str1 = fast_io::concatln("This example shows how to use fast_io::concatln to generate a std::string ending with newline character.");
+	auto str2 = fast_io::concatln("This can also take ", "more ", "than ", 1, "parameter. and even ", 1.234567);
+}
+.EE
+.in -8n
+.PP
+WARNING: pointers passed to concat() and concatln() are treated only as a value that describes the address and is converted to a hexadecimal literal
+.PP
+.in +8n
+.EX
+#include <fast_io.h>
+
+int main() 
+{
+	const char *ptr = "Hello,Pointer?";
+	// this will not dereference ptr to string literal "Hello,Pointer?"
+	// but the literal value of ptr itself.
+	fast_io::concat("The address that ptr describes is ", ptr);
+}
+.EE
+.in -8n
+.PP
+perform the same action of concat() and concatln() with functions 
+.BR print () 
+and 
+.BR println ()
+.PP
+.in +8n
+.EX
+#include <fast_io.h>
+
+int main() 
+{
+	{
+		std::string str;
+		fast_io::ostring_ref ref(str);
+		print(ref, "Hello World", 40, " ok ", 4.32535);
+	}
+	{
+		auto str = fast_io::concat("Hello World", 40, " ok ", 4.32535);
+	}
+}
+.EE
+.in -8n
+.PP
+
+
+.SH SEE ALSO
+.BR print (3)
+.SH COLOPHON
+This page is part of 2628 version of the
+.I fast_io
+project.
+Wiki can be found out in https://github.com/expnkx/fast_io/wiki
