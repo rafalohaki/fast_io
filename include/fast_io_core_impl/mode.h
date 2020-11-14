@@ -20,8 +20,11 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,file
 	return 20;
 }
 
+
+namespace details
+{
 template<std::integral char_type,std::random_access_iterator caiter>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,file_type>,caiter it,file_type f) noexcept
+inline constexpr caiter print_file_status_impl(caiter it,file_type f) noexcept
 {
 	if constexpr(std::same_as<char_type,char>)
 	{
@@ -77,34 +80,6 @@ inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,file_ty
 			return details::copy_string_literal(L"remote",it);
 		default:
 			return details::copy_string_literal(L"unknown",it);
-		}
-	}
-	else if constexpr(std::same_as<char_type,char8_t>)
-	{
-		switch(f)
-		{
-		case file_type::none:
-			return details::copy_string_literal(u8"none",it); 
-		case file_type::not_found:
-			return details::copy_string_literal(u8"not_found",it); 
-		case file_type::regular:
-			return details::copy_string_literal(u8"regular",it); 
-		case file_type::directory:
-			return details::copy_string_literal(u8"directory",it); 
-		case file_type::symlink:
-			return details::copy_string_literal(u8"symlink",it);
-		case file_type::block:
-			return details::copy_string_literal(u8"block",it);
-		case file_type::character:
-			return details::copy_string_literal(u8"character",it);
-		case file_type::fifo:
-			return details::copy_string_literal(u8"fifo",it);
-		case file_type::socket:
-			return details::copy_string_literal(u8"socket",it);
-		case file_type::remote:
-			return details::copy_string_literal(u8"remote",it);
-		default:
-			return details::copy_string_literal(u8"unknown",it);
 		}
 	}
 	else if constexpr(std::same_as<char_type,char16_t>)
@@ -163,6 +138,41 @@ inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,file_ty
 			return details::copy_string_literal(U"unknown",it);
 		}
 	}
+	else
+	{
+		switch(f)
+		{
+		case file_type::none:
+			return details::copy_string_literal(u8"none",it); 
+		case file_type::not_found:
+			return details::copy_string_literal(u8"not_found",it); 
+		case file_type::regular:
+			return details::copy_string_literal(u8"regular",it); 
+		case file_type::directory:
+			return details::copy_string_literal(u8"directory",it); 
+		case file_type::symlink:
+			return details::copy_string_literal(u8"symlink",it);
+		case file_type::block:
+			return details::copy_string_literal(u8"block",it);
+		case file_type::character:
+			return details::copy_string_literal(u8"character",it);
+		case file_type::fifo:
+			return details::copy_string_literal(u8"fifo",it);
+		case file_type::socket:
+			return details::copy_string_literal(u8"socket",it);
+		case file_type::remote:
+			return details::copy_string_literal(u8"remote",it);
+		default:
+			return details::copy_string_literal(u8"unknown",it);
+		}
+	}
+}
+}
+
+template<std::integral char_type,std::random_access_iterator caiter>
+inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,file_type>,caiter it,file_type f) noexcept
+{
+	return details::print_file_status_impl<char_type>(it,f);
 }
 
 enum class shut{in,out,io};

@@ -105,8 +105,10 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,perm
 	return 9;
 }
 
+namespace details
+{
 template<std::integral char_type,std::random_access_iterator raiter>
-inline constexpr raiter print_reserve_define(io_reserve_type_t<char_type,perms>,raiter iter,perms p) noexcept
+inline constexpr raiter print_status_impl(raiter iter,perms p) noexcept
 {
 	details::perm::print_perm_per_check<char_type,u8'r'>(iter,p,perms::owner_read);
 	details::perm::print_perm_per_check<char_type,u8'w'>(++iter,p,perms::owner_write);
@@ -118,6 +120,13 @@ inline constexpr raiter print_reserve_define(io_reserve_type_t<char_type,perms>,
 	details::perm::print_perm_per_check<char_type,u8'w'>(++iter,p,perms::others_write);
 	details::perm::print_perm_per_check<char_type,u8'x'>(++iter,p,perms::others_exec);
 	return ++iter;
+}
+}
+
+template<std::integral char_type,std::random_access_iterator raiter>
+inline constexpr raiter print_reserve_define(io_reserve_type_t<char_type,perms>,raiter iter,perms p) noexcept
+{
+	return details::print_status_impl<char_type>(iter,p);
 }
 
 }
