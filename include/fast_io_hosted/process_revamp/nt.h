@@ -7,7 +7,6 @@ struct nt_user_process_information
 {
 	void* hprocess{reinterpret_cast<void*>(-1)};
 	void* hthread{reinterpret_cast<void*>(-1)};
-	win32::nt::ps_create_info create_info{};
 };
 
 namespace win32::nt::details
@@ -67,50 +66,56 @@ inline void close_nt_user_process_information_and_wait(nt_user_process_informati
 	}
 }
 
-inline nt_user_process_information* create_nt_user_process_impl(void* __restrict directory,wcstring_view filename)
+inline nt_user_process_information* nt_process_create_impl(void* __restrict fhandle)
 {
 	std::unique_ptr<nt_user_process_information> uptr(new nt_user_process_information);
 
-	rtl_user_process_parameters user_parameters{};
-
-
-	ps_attribute_list attributes{};
-
-	constexpr std::uint32_t maximum_allowed{0x02000000L};
-
-	std::size_t filename_size{filename.size()<<1};
-	if constexpr(sizeof(std::size_t)>sizeof(std::uint16_t))
-	{
-		if(static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max())<filename_size)
-			throw_nt_error(0xC0000106);
-	}
-	unicode_string path{static_cast<std::uint16_t>(filename_size),static_cast<std::uint16_t>(filename_size),
-		const_cast<wchar_t*>(filename.c_str())};
-
-	object_attributes obj{.Length=sizeof(win32::nt::object_attributes),
-		.RootDirectory=directory,
-		.ObjectName=std::addressof(path),
-		.Attributes = 0x00000002U};
-#if 0
-	object_attributes thobj{.Length=sizeof(win32::nt::object_attributes),.Attributes = 0x00000002U};
-
-	ps_create_info create_info{.Size=sizeof(ps_create_info),.u={.InitState={.u={.InitFlags=0x20000003},.AdditionalFileAccess=0x81}}};
-
-	auto status{nt_create_user_process(std::addressof(uptr->hprocess),std::addressof(uptr->hthread),
-		maximum_allowed,maximum_allowed,std::addressof(obj),
-		std::addressof(thobj),0,0,nullptr,
-		std::addressof(uptr->create_info),std::addressof(attributes))};
+	void* hsection{reinterpret_cast<void*>(-1)};
+	auto status{nt_create_section(std::addressof(hsection),0xf001f /*SECTION_ALL_ACCESS*/,
+		nullptr,nullptr,0x02 /*PAGE_READONLY*/,0x1000000 /*SEC_IMAGE*/,fhandle)};
 	if(status)
 		throw_nt_error(status);
-#endif
+	nt_file section(hsection);
+
 	void* const current_process{reinterpret_cast<void*>(static_cast<intptr_t>(-1))};
-	puts("Before\n");
-	auto status{nt_create_process(std::addressof(uptr->hprocess),0x0400/*PROCESS_QUERY_INFORMATION*/,
-		std::addressof(obj),current_process,true,nullptr,nullptr,nullptr)};
+
+	void* hprocess{reinterpret_cast<void*>(-1)};
+	status=nt_create_process(std::addressof(hprocess),0x000F0000U|0x00100000U|0xFFF
+		/*PROCESS_ALL_ACCESS==(STANDARD_RIGHTS_REQUIRED | SYNCHRONIZE | 0xFFF)*/,
+		nullptr,current_process,true,hsection,nullptr,nullptr);
 	if(status)
 		throw_nt_error(status);
-	puts("Success\n");
+	nt_file process(hprocess);
+
+	process_basic_information pb_info{};
+	std::uint32_t returned_length{};
+	status=nt_query_information_process(hprocess,process_information_class::ProcessBasicInformation,
+		std::addressof(pb_info),sizeof(pb_info),std::addressof(returned_length));
+	if(status)
+		throw_nt_error(status);
+	
+	void* hthread{reinterpret_cast<void*>(-1)};
+	status=nt_create_thread(std::addressof(hthread),0x000F0000U|0x00100000U|0x3FF
+		/*THREAD_ALL_ACCESS==(STANDARD_RIGHTS_REQUIRED | SYNCHRONIZE | 0x3FF)*/,
+		hprocess,
+	);
 	return uptr.release();
+}
+
+template<typename T>
+requires (std::same_as<T,char>||std::same_as<T,wchar_t>)
+inline nt_user_process_information* nt_create_process_overloads(nt_at_entry entry,basic_cstring_view<T> filename)
+{
+	nt_file nf(entry,filename,open_mode::in|open_mode::excl);
+	return nt_process_create_impl(nf.handle);
+}
+
+template<typename T>
+requires (std::same_as<T,char>||std::same_as<T,wchar_t>)
+inline nt_user_process_information* nt_create_process_overloads(basic_cstring_view<T> filename)
+{
+	nt_file nf(filename,open_mode::in|open_mode::excl);
+	return nt_process_create_impl(nf.handle);
 }
 
 }
@@ -224,7 +229,7 @@ public:
 	explicit constexpr nt_process(native_hd hd) noexcept:nt_process_observer{hd}{}
 
 	explicit nt_process(nt_at_entry nate,wcstring_view filename):
-		nt_process_observer{win32::nt::details::create_nt_user_process_impl(nate.handle,filename)}
+		nt_process_observer{win32::nt::details::nt_create_process_overloads(nate,filename)}
 		//to do. first test API
 	{}
 

@@ -221,7 +221,6 @@ inline void* nt_create_file_common_impl(void* directory,win32::nt::unicode_strin
 		.Attributes=mode.ObjAttributes,
 		.SecurityDescriptor=mode.ObjAttributes&0x00000002?std::addressof(sec_attr):nullptr,
 	};
-/*	puts(fast_io::concatln(obj.ObjectName->Length," ",obj.RootDirectory," ",mode.ObjAttributes).c_str());*/
 	void* handle{};
 	win32::nt::io_status_block block{};
 	auto const status{win32::nt::nt_create_file(

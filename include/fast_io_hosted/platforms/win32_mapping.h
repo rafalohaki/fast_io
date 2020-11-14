@@ -50,11 +50,7 @@ inline constexpr win32_file_map_attribute to_win32_file_map_attribute(file_map_a
 	case file_map_attribute::read_write:return win32_file_map_attribute::read|win32_file_map_attribute::write;
 	case file_map_attribute::write_copy:return win32_file_map_attribute::write|win32_file_map_attribute::copy;
 	default:
-#ifdef __cpp_exceptions
-		throw fast_io_text_error("unknown file_mapping_attribute");
-#else
-		fast_terminate();
-#endif
+		throw_win32_error(0x000000A0);
 	};
 }
 

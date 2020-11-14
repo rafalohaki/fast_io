@@ -160,6 +160,12 @@ struct file_standard_info
 	int Directory;
 };
 
+struct file_attribute_tag_info
+{
+	std::uint32_t FileAttributes;
+	std::uint32_t ReparseTag;
+};
+
 enum class file_info_by_handle_class
 {
 FileBasicInfo,

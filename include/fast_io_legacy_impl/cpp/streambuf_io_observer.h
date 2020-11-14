@@ -173,41 +173,21 @@ inline decltype(auto) io_control(basic_filebuf_io_observer<ch_type> h,Args&& ...
 template<std::integral ch_type>
 requires requires(basic_c_io_observer_unlocked<ch_type> piob)
 {
-	size(piob);
+	status(piob);
 }
-inline constexpr auto size(basic_streambuf_io_observer<ch_type> ciob)
+inline constexpr auto status(basic_streambuf_io_observer<ch_type> ciob)
 {
-	return size(static_cast<basic_c_io_observer_unlocked<ch_type>>(ciob));
-}
-
-template<std::integral ch_type>
-requires requires(basic_c_io_observer_unlocked<ch_type> piob)
-{
-	type(piob);
-}
-inline constexpr auto type(basic_streambuf_io_observer<ch_type> ciob)
-{
-	return type(static_cast<basic_c_io_observer_unlocked<ch_type>>(ciob));
+	return status(static_cast<basic_c_io_observer_unlocked<ch_type>>(ciob));
 }
 
 template<std::integral ch_type>
 requires requires(basic_c_io_observer_unlocked<ch_type> piob)
 {
-	size(piob);
+	status(piob);
 }
-inline constexpr auto size(basic_filebuf_io_observer<ch_type> ciob)
+inline constexpr auto status(basic_filebuf_io_observer<ch_type> ciob)
 {
-	return size(static_cast<basic_c_io_observer_unlocked<ch_type>>(ciob));
-}
-
-template<std::integral ch_type>
-requires requires(basic_c_io_observer_unlocked<ch_type> piob)
-{
-	type(piob);
-}
-inline constexpr auto type(basic_filebuf_io_observer<ch_type> ciob)
-{
-	return type(static_cast<basic_c_io_observer_unlocked<ch_type>>(ciob));
+	return status(static_cast<basic_c_io_observer_unlocked<ch_type>>(ciob));
 }
 
 template<std::integral char_type>

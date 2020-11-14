@@ -52,11 +52,7 @@ inline constexpr posix_file_map_attribute to_posix_file_map_attribute(file_map_a
 	case file_map_attribute::read_write:return posix_file_map_attribute::read|posix_file_map_attribute::write;
 	case file_map_attribute::write_copy:return posix_file_map_attribute::write;
 	default:
-#ifdef __cpp_exceptions
-		throw fast_io_text_error("unknown file_mapping_attribute");
-#else
-		fast_terminate();
-#endif
+		throw_posix_error(EINVAL);
 	};
 }
 

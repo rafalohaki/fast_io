@@ -618,7 +618,11 @@ fstat64
 template<std::integral ch_type>
 inline posix_file_status status(basic_posix_io_observer<ch_type> piob)
 {
+#ifdef _WIN32
+	return status(static_cast<basic_win32_io_observer<ch_type>>(piob));
+#else
 	return details::fstat_impl(piob.fd);
+#endif
 }
 
 #endif

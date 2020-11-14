@@ -2,11 +2,6 @@
 
 namespace fast_io
 {
-#ifdef _WIN32
-extern "C" void * _aligned_malloc(size_t size,size_t alignment) noexcept;
-#else
-extern "C" void * aligned_alloc(size_t size,size_t alignment) noexcept;
-#endif
 
 template<typename T,std::size_t alignment=4096>
 struct io_aligned_allocator
@@ -130,7 +125,7 @@ public:
 	template<typename... Args>
 	requires std::constructible_from<Ihandler,Args...>
 	constexpr basic_ibuf(Args&&... args):ih(std::forward<Args>(args)...){}
-	inline constexpr auto& native_handle()
+	inline constexpr auto& native_handle() noexcept
 	{
 		return ih;
 	}
@@ -225,6 +220,16 @@ inline constexpr decltype(auto) redirect_handle(basic_ibuf<Ihandler,Buf>& ib)
 template<stream Ihandler,typename Buf>
 requires secure_clear_requirement_stream<Ihandler>
 inline constexpr void require_secure_clear(basic_ibuf<Ihandler,Buf>&){}
+
+template<input_stream Ihandler,typename Buf>
+requires requires(Ihandler h)
+{
+	status(h);
+}
+inline constexpr auto status(basic_ibuf<Ihandler,Buf>& ib)
+{
+	return status(ib.native_handle());
+}
 
 template<typename T,typename Iter>
 concept write_read_punned_constraints = (std::contiguous_iterator<Iter>&&sizeof(typename T::char_type)==1) ||
@@ -379,7 +384,7 @@ public:
 	}
 	constexpr basic_obuf& operator=(basic_obuf&&) noexcept =delete;
 	constexpr basic_obuf(basic_obuf&&) noexcept=delete;
-	inline constexpr auto& native_handle()
+	inline constexpr auto& native_handle() noexcept
 	{
 		return oh;
 	}
@@ -626,6 +631,16 @@ inline constexpr decltype(auto) seek(basic_obuf<Ohandler,forcecopy,Buf>& ob,Args
 		ob.obuffer.curr=ob.obuffer.beg;
 	}
 	return seek(ob.oh,std::forward<Args>(args)...);
+}
+
+template<output_stream Ohandler,bool forcecopy,typename Buf>
+requires requires(Ohandler h)
+{
+	status(h);
+}
+inline constexpr auto status(basic_obuf<Ohandler,forcecopy,Buf>& ob)
+{
+	return status(ob.native_handle());
 }
 
 
