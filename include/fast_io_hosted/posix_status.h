@@ -64,41 +64,196 @@ namespace details
 template<std::integral char_type,std::random_access_iterator raiter>
 inline constexpr raiter print_file_status_impl(raiter iter,fast_io::posix_file_status const& status)
 {
-	iter=details::copy_string_literal(u8"dev:",iter);
-	iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.dev);
-	iter=details::copy_string_literal(u8"\nino:",iter);
-	iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.ino);
-	iter=details::copy_string_literal(u8"\nperm:",iter);
-	iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<perms>>,iter,status.perm);
-	iter=details::copy_string_literal(u8"\ntype:",iter);
-	iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<file_type>>,iter,status.type);
-	iter=details::copy_string_literal(u8"\nnlink:",iter);
-	iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.nlink);
-	iter=details::copy_string_literal(u8"\nuid:",iter);
-	iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.uid);
-	iter=details::copy_string_literal(u8"\ngid:",iter);
-	iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.gid);
-	iter=details::copy_string_literal(u8"\nrdev:",iter);
-	iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.rdev);
-	iter=details::copy_string_literal(u8"\nsize:",iter);
-	iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.size);
-	iter=details::copy_string_literal(u8"\nblksize:",iter);
-	iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.blksize);
-	iter=details::copy_string_literal(u8"\nblocks:",iter);
-	iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.blocks);
+	if constexpr(std::same_as<char_type,char>)
+	{
+		iter=details::copy_string_literal("dev:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.dev);
+		iter=details::copy_string_literal("\nino:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.ino);
+		iter=details::copy_string_literal("\nperm:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<perms>>,iter,status.perm);
+		iter=details::copy_string_literal("\ntype:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<file_type>>,iter,status.type);
+		iter=details::copy_string_literal("\nnlink:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.nlink);
+		iter=details::copy_string_literal("\nuid:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.uid);
+		iter=details::copy_string_literal("\ngid:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.gid);
+		iter=details::copy_string_literal("\nrdev:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.rdev);
+		iter=details::copy_string_literal("\nsize:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.size);
+		iter=details::copy_string_literal("\nblksize:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.blksize);
+		iter=details::copy_string_literal("\nblocks:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.blocks);
 
 
-	iter=details::copy_string_literal(u8"\natim:",iter);
-	iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.atim);
-	iter=details::copy_string_literal(u8"\nmtim:",iter);
-	iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.mtim);
-	iter=details::copy_string_literal(u8"\nctim:",iter);
-	iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.ctim);
+		iter=details::copy_string_literal("\natim:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.atim);
+		iter=details::copy_string_literal("\nmtim:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.mtim);
+		iter=details::copy_string_literal("\nctim:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.ctim);
 
-	iter=details::copy_string_literal(u8"\nflags:",iter);
-	iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.flags);
-	iter=details::copy_string_literal(u8"\ngen:",iter);
-	return print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.gen);
+		iter=details::copy_string_literal("\nflags:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.flags);
+		iter=details::copy_string_literal("\ngen:",iter);
+		return print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.gen);
+	}
+	else if constexpr(std::same_as<char_type,wchar_t>)
+	{
+		iter=details::copy_string_literal(L"dev:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.dev);
+		iter=details::copy_string_literal(L"\nino:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.ino);
+		iter=details::copy_string_literal(L"\nperm:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<perms>>,iter,status.perm);
+		iter=details::copy_string_literal(L"\ntype:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<file_type>>,iter,status.type);
+		iter=details::copy_string_literal(L"\nnlink:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.nlink);
+		iter=details::copy_string_literal(L"\nuid:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.uid);
+		iter=details::copy_string_literal(L"\ngid:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.gid);
+		iter=details::copy_string_literal(L"\nrdev:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.rdev);
+		iter=details::copy_string_literal(L"\nsize:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.size);
+		iter=details::copy_string_literal(L"\nblksize:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.blksize);
+		iter=details::copy_string_literal(L"\nblocks:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.blocks);
+
+
+		iter=details::copy_string_literal(L"\natim:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.atim);
+		iter=details::copy_string_literal(L"\nmtim:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.mtim);
+		iter=details::copy_string_literal(L"\nctim:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.ctim);
+
+		iter=details::copy_string_literal(L"\nflags:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.flags);
+		iter=details::copy_string_literal(L"\ngen:",iter);
+		return print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.gen);
+	}
+	else if constexpr(std::same_as<char_type,char16_t>)
+	{
+		iter=details::copy_string_literal(u"dev:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.dev);
+		iter=details::copy_string_literal(u"\nino:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.ino);
+		iter=details::copy_string_literal(u"\nperm:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<perms>>,iter,status.perm);
+		iter=details::copy_string_literal(u"\ntype:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<file_type>>,iter,status.type);
+		iter=details::copy_string_literal(u"\nnlink:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.nlink);
+		iter=details::copy_string_literal(u"\nuid:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.uid);
+		iter=details::copy_string_literal(u"\ngid:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.gid);
+		iter=details::copy_string_literal(u"\nrdev:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.rdev);
+		iter=details::copy_string_literal(u"\nsize:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.size);
+		iter=details::copy_string_literal(u"\nblksize:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.blksize);
+		iter=details::copy_string_literal(u"\nblocks:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.blocks);
+
+
+		iter=details::copy_string_literal(u"\natim:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.atim);
+		iter=details::copy_string_literal(u"\nmtim:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.mtim);
+		iter=details::copy_string_literal(u"\nctim:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.ctim);
+
+		iter=details::copy_string_literal(u"\nflags:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.flags);
+		iter=details::copy_string_literal(u"\ngen:",iter);
+		return print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.gen);
+	}
+	else if constexpr(std::same_as<char_type,char32_t>)
+	{
+		iter=details::copy_string_literal(U"dev:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.dev);
+		iter=details::copy_string_literal(U"\nino:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.ino);
+		iter=details::copy_string_literal(U"\nperm:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<perms>>,iter,status.perm);
+		iter=details::copy_string_literal(U"\ntype:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<file_type>>,iter,status.type);
+		iter=details::copy_string_literal(U"\nnlink:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.nlink);
+		iter=details::copy_string_literal(U"\nuid:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.uid);
+		iter=details::copy_string_literal(U"\ngid:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.gid);
+		iter=details::copy_string_literal(U"\nrdev:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.rdev);
+		iter=details::copy_string_literal(U"\nsize:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.size);
+		iter=details::copy_string_literal(U"\nblksize:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.blksize);
+		iter=details::copy_string_literal(U"\nblocks:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.blocks);
+
+
+		iter=details::copy_string_literal(U"\natim:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.atim);
+		iter=details::copy_string_literal(U"\nmtim:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.mtim);
+		iter=details::copy_string_literal(U"\nctim:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.ctim);
+
+		iter=details::copy_string_literal(U"\nflags:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.flags);
+		iter=details::copy_string_literal(U"\ngen:",iter);
+		return print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.gen);
+	}
+	else
+	{
+		iter=details::copy_string_literal(u8"dev:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.dev);
+		iter=details::copy_string_literal(u8"\nino:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.ino);
+		iter=details::copy_string_literal(u8"\nperm:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<perms>>,iter,status.perm);
+		iter=details::copy_string_literal(u8"\ntype:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::common_type_t<file_type>>,iter,status.type);
+		iter=details::copy_string_literal(u8"\nnlink:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.nlink);
+		iter=details::copy_string_literal(u8"\nuid:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.uid);
+		iter=details::copy_string_literal(u8"\ngid:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.gid);
+		iter=details::copy_string_literal(u8"\nrdev:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.rdev);
+		iter=details::copy_string_literal(u8"\nsize:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.size);
+		iter=details::copy_string_literal(u8"\nblksize:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.blksize);
+		iter=details::copy_string_literal(u8"\nblocks:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.blocks);
+
+
+		iter=details::copy_string_literal(u8"\natim:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.atim);
+		iter=details::copy_string_literal(u8"\nmtim:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.mtim);
+		iter=details::copy_string_literal(u8"\nctim:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.ctim);
+
+		iter=details::copy_string_literal(u8"\nflags:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.flags);
+		iter=details::copy_string_literal(u8"\ngen:",iter);
+		return print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.gen);
+	}
 }
 }
 
