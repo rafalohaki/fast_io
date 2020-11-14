@@ -67,6 +67,11 @@ public:
 	}
 };
 
+inline constexpr std::span<std::byte> to_span(posix_memory_map_io_observer pmiop) noexcept
+{
+	return std::span<std::byte>(pmiop.address_begin,pmiop.address_end);
+}
+
 class posix_memory_map_file:public posix_memory_map_io_observer
 {
 public:
