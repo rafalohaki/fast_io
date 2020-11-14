@@ -67,12 +67,12 @@ public:
 		{
 			if(it==ed)
 			{
-				ibuffer_set_curr(ref.ptr,it);
+				ibuffer_set_curr(ref,it);
 				if(bg==it)
 					nullable_handle={};
 			}
 			else
-				ibuffer_set_curr(ref.ptr,it+1);
+				ibuffer_set_curr(ref,it+1);
 		}
 		else
 		{
