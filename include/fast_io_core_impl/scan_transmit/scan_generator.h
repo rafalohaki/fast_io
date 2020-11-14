@@ -180,7 +180,7 @@ struct scan_line_seperator
 	{
 		data=std::basic_string_view<char_type>(bg,static_cast<std::size_t>(ed-bg));
 	}
-	constexpr std::basic_string_view<char_type> const& get_data() const noexcept
+	constexpr std::basic_string_view<char_type> get_data() const noexcept
 	{
 		return data;
 	}
