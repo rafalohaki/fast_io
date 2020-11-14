@@ -59,8 +59,10 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,fast
 	return res;
 }
 
+namespace details
+{
 template<std::integral char_type,std::random_access_iterator raiter>
-inline constexpr raiter print_reserve_define(io_reserve_type_t<char_type,fast_io::posix_file_status>,raiter iter,fast_io::posix_file_status const& status)
+inline constexpr raiter print_file_status_impl(raiter iter,fast_io::posix_file_status const& status)
 {
 	iter=details::copy_string_literal(u8"dev:",iter);
 	iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.dev);
@@ -97,6 +99,13 @@ inline constexpr raiter print_reserve_define(io_reserve_type_t<char_type,fast_io
 	iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.flags);
 	iter=details::copy_string_literal(u8"\ngen:",iter);
 	return print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.gen);
+}
+}
+
+template<std::integral char_type,std::random_access_iterator raiter>
+inline constexpr raiter print_reserve_define(io_reserve_type_t<char_type,fast_io::posix_file_status>,raiter iter,fast_io::posix_file_status const& status)
+{
+	return details::print_file_status_impl<char_type>(iter,status);
 }
 
 }
