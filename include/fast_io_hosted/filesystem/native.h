@@ -22,6 +22,13 @@ inline constexpr auto print_alias_define(io_alias_type_t<char_type> ch_type,dire
 		return manip::code_cvt<basic_io_scatter_t<native_char_type>>{{nfm.data(),nfm.size()}};
 }
 
+inline constexpr auto is_dot_or_dot_dot(directory_entry dir) noexcept
+{
+	auto nfm{filename(dir)};
+	return (nfm.size()==1&&nfm[0]=='.')||(nfm.size()==2&&nfm[0]=='..');
+}
+
+
 #if __cpp_lib_filesystem >= 201703L
 
 inline std::filesystem::path to_path(directory_entry de)
