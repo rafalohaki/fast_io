@@ -837,7 +837,9 @@ inline posix_file_status win32_status_impl(void* __restrict handle)
 	std::underlying_type_t<perms> pm{0444};
 	if((bhdi.dwFileAttributes&0x1)==0x0)
 		pm|=0222;
-	if((bhdi.dwFileAttributes&0x10)==0x10)
+	if((bhdi.dwFileAttributes&0x400)==0x400)
+		ft=file_type::symlink;
+	else if((bhdi.dwFileAttributes&0x10)==0x10)
 		ft=file_type::directory;
 	return posix_file_status{static_cast<std::uintmax_t>(bhdi.dwVolumeSerialNumber),
 	static_cast<std::uintmax_t>((static_cast<std::uint64_t>(bhdi.nFileIndexHigh)<<32)|bhdi.nFileIndexLow),
