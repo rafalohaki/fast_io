@@ -7,8 +7,11 @@ concat, concatln - string generators
 .nf
 .B #include <fast_io.h>
 .PP
-.BI "template<typename T=std::string,typename...Args> constexpr T concat(Args ...args);"
-.BI "template<typename T=std::string,typename...Args> constexpr T concatln(Args ...args);"
+.BI "template<typename T=std::string,typename...Args>"
+.BI "constexpr T concat(args...);"
+.PP
+.BI "template<typename T=std::string,typename...Args>"
+.BI "constexpr T concatln(args...);" 
 .SH DESCRIPTION
 The functions in the
 .BR concat ()
@@ -16,11 +19,13 @@ family generate a std::string by default using the given parameters.
 .PP
 Function concatln() will add a newline character to the concatenating result.
 .PP
-Neither concat() nor concatln() will dereference a pointer argument, since such action is un-safe and may lead to SegmentFault.
+Neither concat() nor concatln() will dereference a pointer argument, since such action is un-safe and may lead to SegmentFault. Function  
+.BR chvw ()
+may help if you really want to do so. See EXAMPLES to get more informations.
 .PP
 When dealing with pointers, concat() and concatln() returns the value of a pointer as a hexadecimal literal.
 .PP
-The functions concat() and concatln() take one or more printable objects as parameter and return a std::string with content of the concatenation the parameters as default.
+The functions concat() and concatln() take one or more printable objects as parameter and return a std::string by default, with content of the concatenation of the parameters.
 .PP
 
 .SH RETURN VALUE
@@ -31,7 +36,7 @@ Function concat () and concatln () guarantee process safety during each call.
 .SH EXCEPTIONS
 When concat () family functions fail, they throw exceptions. These functions are exception safe.
 .SH EXAMPLE
-generate a std::string with content "It's a sunny day!"
+generate a std::string with content "It's a sunny day!":
 .PP
 .in +8n
 .EX
@@ -46,7 +51,7 @@ int main()
 .EE
 .in -8n
 .PP
-generate a std::string with multiple different type args.
+generate a std::string with multiple different type args:
 .PP
 .in +8n
 .EX
@@ -75,7 +80,7 @@ int main()
 .EE
 .in -8n
 .PP
-WARNING: pointers passed to concat() and concatln() are treated only as a value that describes the address and is converted to a hexadecimal literal
+WARNING: pointers passed to concat() and concatln() are treated only as a value that describes the address and is converted to a hexadecimal literal:
 .PP
 .in +8n
 .EX
@@ -91,7 +96,7 @@ int main()
 .EE
 .in -8n
 .PP
-perform the same action of concat() and concatln() with functions 
+perform the same action of concat() and concatln() with functions:
 .BR print () 
 and 
 .BR println ()
@@ -126,6 +131,20 @@ int main()
 {
 	char const *str{"correct usage: "};
 	print(fast_io::concat(fast_io::chvw(str), fast_io::chvw('Y')));
+}
+.EE
+.in -8n
+.PP
+generate std::wstring:
+.PP
+.in +8n
+.EX
+#include <fast_io.h>
+
+int main()
+{
+	std::wstring wstr1{L"Hello, "};
+	std::wstring wstr2{fast_io::concat<std::wstring>(wstr1, L"World!")};
 }
 .EE
 .in -8n
