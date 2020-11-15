@@ -21,9 +21,9 @@ Function concatln() will add a newline character to the concatenating result.
 .PP
 Neither concat() nor concatln() will dereference a pointer argument, since such action is un-safe and may lead to SegmentFault. Function  
 .BR chvw ()
-may help if you really want to do so. See EXAMPLES to get more informations.
+may help if you really want to do so. See EXAMPLES to get more information.
 .PP
-When dealing with pointers, concat() and concatln() returns the value of a pointer as a hexadecimal literal.
+When dealing with pointers, concat() and concatln() return the value of the pointers(themselves) as a hexadecimal literal.
 .PP
 The functions concat() and concatln() take one or more printable objects as parameter and return a std::string by default, with content of the concatenation of the parameters.
 .PP
@@ -31,7 +31,7 @@ The functions concat() and concatln() take one or more printable objects as para
 .SH RETURN VALUE
 These functions return std::string as default. Return type can be specified by specifying the first template parameter T when calling concat() and concatln().
 .SH THREAD SAFETY
-Function concat () and concatln () guarantee process safety during each call.
+Function concat () and concatln () guarantee thread safety during each call.
 
 .SH EXCEPTIONS
 When concat () family functions fail, they throw exceptions. These functions are exception safe.
@@ -92,31 +92,8 @@ int main()
 	// this will not dereference ptr to string literal "Hello,Pointer?"
 	// but the literal value of ptr itself.
 	print(fast_io::concat("The address that ptr describes is ", ptr));
-}
-.EE
-.in -8n
-.PP
-perform the same action of concat() and concatln() with functions:
-.BR print () 
-and 
-.BR println ()
-.PP
-.in +8n
-.EX
-#include <fast_io.h>
-
-int main() 
-{
-	{
-		std::string str;
-		fast_io::ostring_ref ref(str);
-		print(ref, "Hello World", 40, " ok ", 4.32535);
-
-		println("result of do concat with print(): ", str);
-	}
-	{
-		println("result of do concat with concat(): ", fast_io::concat("Hello World", 40, " ok ", 4.32535));
-	}
+	// this prints The address that ptr describes is 0X...... 
+	// where the dots(...) represents the value of ptr
 }
 .EE
 .in -8n
@@ -149,10 +126,36 @@ int main()
 .EE
 .in -8n
 .PP
+perform the same action of concat() and concatln() with functions:
+.BR print () 
+and 
+.BR println ()
+.PP
+.in +8n
+.EX
+#include <fast_io.h>
+
+int main() 
+{
+	{
+		std::string str;
+		fast_io::ostring_ref ref(str);
+		print(ref, "Hello World", 40, " ok ", 4.32535);
+
+		println("result of do concat with print(): ", str);
+	}
+	{
+		println("result of do concat with concat(): ", fast_io::concat("Hello World", 40, " ok ", 4.32535));
+	}
+}
+.EE
+.in -8n
+.PP
 
 .SH SEE ALSO
 .BR print (3)
 .BR chvw (3)
+.BR to (3)
 .SH COLOPHON
 This page is part of 2628 version of the
 .I fast_io
