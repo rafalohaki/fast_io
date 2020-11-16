@@ -96,7 +96,7 @@ public:
 #ifdef _WIN32
 			throw_win32_error();
 #else
-			throw_posix_error(EACCES);
+			throw_posix_error(ENOENT);
 #endif
 
 #ifdef _WIN32
