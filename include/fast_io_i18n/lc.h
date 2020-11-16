@@ -79,7 +79,6 @@ struct basic_lc_time
 {
 	std::array<std::basic_string_view<char_type>,7> abday{};
 	std::array<std::basic_string_view<char_type>,7> day{};
-	std::array<std::basic_string_view<char_type>,7> week{};
 	std::array<std::basic_string_view<char_type>,12> abmon{};
 	std::array<std::basic_string_view<char_type>,12> ab_alt_mon{};
 	std::array<std::basic_string_view<char_type>,12> mon{};
