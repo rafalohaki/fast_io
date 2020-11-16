@@ -88,12 +88,17 @@ public:
 #else
 				getenv("LC_ALL");
 #endif
-				if(loc_name==nullptr||loc_name=="C"||loc_name="POSIX")
+				if(loc_name==nullptr)
 				{
 					loc_name="/usr/local/lib/fast_io_i18n_data/locale/POSIX.so";
 					goto loading;
 				}
 				locale_name=cstring_view(loc_name);
+				if(locale_name=="C"||locale_name=="POSIX")
+				{
+					loc_name="/usr/local/lib/fast_io_i18n_data/locale/POSIX.so";
+					goto loading;
+				}
 			}
 			{
 				constexpr std::size_t sz{sizeof("/usr/local/lib/fast_io_i18n_data/locale/")-1};
