@@ -59,7 +59,7 @@ public:
 	i18n_locale(std::string_view locale_name)
 	{
 		if(locale_name.size()>6&&locale_name.substr(locale_name.size()-6,6)==".UTF-8")
-			locale_name.substr(0,locale_name.size()-6);
+			locale_name=locale_name.substr(0,locale_name.size()-6);
 		std::unique_ptr<char[]> arrptr;
 		char const* loc_name{};
 #ifdef _WIN32
@@ -97,7 +97,7 @@ public:
 				}
 				locale_name=loc_name;
 				if(locale_name.size()>6&&locale_name.substr(locale_name.size()-6,6)==".UTF-8")
-					locale_name.substr(0,locale_name.size()-6);
+					locale_name=locale_name.substr(0,locale_name.size()-6);
 				if(locale_name=="C"||locale_name=="POSIX")
 				{
 					loc_name="/usr/local/lib/fast_io_i18n_data/locale/POSIX.so";
