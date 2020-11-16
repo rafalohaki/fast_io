@@ -17,7 +17,7 @@ add_definitions(-Xclang -fconcepts-ts -ffast-math)
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
-
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 INSTALL (DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION include)
 INSTALL (DIRECTORY ${CMAKE_SOURCE_DIR}/man/ DESTINATION man/man3)
