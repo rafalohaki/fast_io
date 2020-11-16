@@ -88,7 +88,7 @@ public:
 #else
 				getenv("LC_ALL");
 #endif
-				if(loc_name==nullptr)
+				if(loc_name==nullptr||loc_name=="C"||loc_name="POSIX")
 				{
 					loc_name="/usr/local/lib/fast_io_i18n_data/locale/POSIX.so";
 					goto loading;
