@@ -32,6 +32,9 @@ https://bitbucket.org/ejsvifq_mabmip/fast_io_deprecated
 
 However, they might not work current fast_io since fast_io keeps changing.
 
+This i18n repo stores the i18n source files.
+https://bitbucket.org/ejsvifq_mabmip/fast_io_i18n
+
 ## Compiler Support
 - GCC 11.
 You can download the latest GCC compiler for windows here. https://bitbucket.org/ejsvifq_mabmip/mingw-gcc/src/master/ 
