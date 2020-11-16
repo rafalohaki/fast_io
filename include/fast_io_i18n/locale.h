@@ -56,8 +56,10 @@ public:
 	lc_locale loc{};
 	void* dll_handle{};
 	constexpr i18n_locale() noexcept=default;
-	i18n_locale(cstring_view locale_name)
+	i18n_locale(std::string_view locale_name)
 	{
+		if(locale_name.size()>6&&locale_name.substr(locale_name.size()-6,6)==".UTF-8")
+			locale_name.substr(0,locale_name.size()-6);
 		std::unique_ptr<char[]> arrptr;
 		char const* loc_name{};
 #ifdef _WIN32
@@ -84,16 +86,18 @@ public:
 			{
 				loc_name=
 #if defined(_GNU_SOURCE)
-				secure_getenv("LC_ALL");
+				secure_getenv("LANG");
 #else
-				getenv("LC_ALL");
+				getenv("LANG");
 #endif
 				if(loc_name==nullptr)
 				{
 					loc_name="/usr/local/lib/fast_io_i18n_data/locale/POSIX.so";
 					goto loading;
 				}
-				locale_name=cstring_view(loc_name);
+				locale_name=loc_name;
+				if(locale_name.size()>6&&locale_name.substr(locale_name.size()-6,6)==".UTF-8")
+					locale_name.substr(0,locale_name.size()-6);
 				if(locale_name=="C"||locale_name=="POSIX")
 				{
 					loc_name="/usr/local/lib/fast_io_i18n_data/locale/POSIX.so";
