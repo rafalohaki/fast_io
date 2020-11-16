@@ -849,7 +849,7 @@ inline constexpr void print_define(output bos,lc_locale const& loc)
 		print_freestanding(bos,*loc.u8all);
 	else if constexpr(std::same_as<typename output::char_type,char16_t>)
 		print_freestanding(bos,*loc.u16all);
-	else if constexpr(std::same_as<typename output::char_type,char16_t>)
+	else if constexpr(std::same_as<typename output::char_type,char32_t>)
 		print_freestanding(bos,*loc.u32all);
 }
 
