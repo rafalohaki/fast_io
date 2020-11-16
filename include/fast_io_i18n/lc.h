@@ -182,7 +182,7 @@ struct basic_lc_address
 	basic_io_scatter_t<char_type> country_ab3{};
 	std::uintmax_t country_num{};
 	basic_io_scatter_t<char_type> country_car{};
-	std::uintmax_t country_isbn{};
+	basic_io_scatter_t<char_type> country_isbn{};
 	basic_io_scatter_t<char_type> lang_name{};
 	basic_io_scatter_t<char_type> lang_ab{};
 	basic_io_scatter_t<char_type> lang_term{};
