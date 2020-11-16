@@ -100,6 +100,20 @@ template<buffer_output_stream output>
 inline void print_grouping(output bos,basic_io_scatter_t<std::size_t> grouping)
 {
 	using char_type = typename output::char_type;
+	if(grouping.len==0)
+	{
+		if constexpr(std::same_as<char,char_type>)
+			print_freestanding(bos,"-1");
+		else if constexpr(std::same_as<wchar_t,char_type>)
+			print_freestanding(bos,L"-1");
+		else if constexpr(std::same_as<char16_t,char_type>)
+			print_freestanding(bos,u"-1");
+		else if constexpr(std::same_as<char32_t,char_type>)
+			print_freestanding(bos,U"-1");
+		else if constexpr(std::same_as<char8_t,char_type>)
+			print_freestanding(bos,u8"-1");
+		return;
+	}
 	for(std::size_t i{};i!=grouping.len;++i)
 	{
 		if(i)
@@ -337,6 +351,249 @@ inline constexpr void print_define(output bos,basic_lc_numeric<char_type> const&
 			u8"END LC_NUMERIC");
 	}
 }
+/*
+To do time
+*/
+
+template<buffer_output_stream output,std::integral char_type>
+requires std::same_as<typename output::char_type,char_type>
+inline constexpr void print_define(output bos,basic_lc_messages<char_type> const& messages)
+{
+	if constexpr(std::same_as<char_type,char>)
+	{
+		print_freestanding(bos,"LC_MESSAGES\n"
+			"yesexpr\t\"",messages.yesexpr,"\"\n"
+			"noexpr\t\"",messages.noexpr,"\"\n"
+			"yesstr\t\"",messages.yesstr,"\"\n"
+			"nostr\t\"",messages.nostr,"\"\n"
+			"END LC_MESSAGES");
+	}
+	else if constexpr(std::same_as<char_type,wchar_t>)
+	{
+		print_freestanding(bos,L"LC_MESSAGES\n"
+			L"yesexpr\t\"",messages.yesexpr,L"\"\n"
+			L"noexpr\t\"",messages.noexpr,L"\"\n"
+			L"yesstr\t\"",messages.yesstr,L"\"\n"
+			L"nostr\t\"",messages.nostr,L"\"\n"
+			L"END LC_MESSAGES");
+	}
+	else if constexpr(std::same_as<char_type,char16_t>)
+	{
+		print_freestanding(bos,u"LC_MESSAGES\n"
+			u"yesexpr\t\"",messages.yesexpr,u"\"\n"
+			u"noexpr\t\"",messages.noexpr,u"\"\n"
+			u"yesstr\t\"",messages.yesstr,u"\"\n"
+			u"nostr\t\"",messages.nostr,u"\"\n"
+			u"END LC_MESSAGES");
+	}
+	else if constexpr(std::same_as<char_type,char32_t>)
+	{
+		print_freestanding(bos,U"LC_MESSAGES\n"
+			U"yesexpr\t\"",messages.yesexpr,U"\"\n"
+			U"noexpr\t\"",messages.noexpr,U"\"\n"
+			U"yesstr\t\"",messages.yesstr,U"\"\n"
+			U"nostr\t\"",messages.nostr,U"\"\n"
+			U"END LC_MESSAGES");
+	}
+	else if constexpr(std::same_as<char_type,char8_t>)
+	{
+		print_freestanding(bos,u8"LC_MESSAGES\n"
+			u8"yesexpr\t\"",messages.yesexpr,u8"\"\n"
+			u8"noexpr\t\"",messages.noexpr,u8"\"\n"
+			u8"yesstr\t\"",messages.yesstr,u8"\"\n"
+			u8"nostr\t\"",messages.nostr,u8"\"\n"
+			u8"END LC_MESSAGES");
+	}
+}
+
+template<buffer_output_stream output,std::integral char_type>
+requires std::same_as<typename output::char_type,char_type>
+inline constexpr void print_define(output bos,basic_lc_paper<char_type> const& paper)
+{
+	if constexpr(std::same_as<char_type,char>)
+	{
+		print_freestanding(bos,"LC_PAPER\n"
+			"width\t",paper.width,"\n"
+			"height\t",paper.height,"\n"
+			"END LC_PAPER");
+	}
+	else if constexpr(std::same_as<char_type,wchar_t>)
+	{
+		print_freestanding(bos,L"LC_PAPER\n"
+			L"width\t",paper.width,L"\n"
+			L"height\t",paper.height,L"\n"
+			L"END LC_PAPER");
+	}
+	else if constexpr(std::same_as<char_type,char16_t>)
+	{
+		print_freestanding(bos,u"LC_PAPER\n"
+			u"width\t",paper.width,u"\n"
+			u"height\t",paper.height,u"\n"
+			u"END LC_PAPER");
+	}
+	else if constexpr(std::same_as<char_type,char32_t>)
+	{
+		print_freestanding(bos,U"LC_PAPER\n"
+			U"width\t",paper.width,U"\n"
+			U"height\t",paper.height,U"\n"
+			U"END LC_PAPER");
+	}
+	else if constexpr(std::same_as<char_type,char8_t>)
+	{
+		print_freestanding(bos,u8"LC_PAPER\n"
+			u8"width\t",paper.width,u8"\n"
+			u8"height\t",paper.height,u8"\n"
+			u8"END LC_PAPER");
+	}
+}
+
+template<buffer_output_stream output,std::integral char_type>
+requires std::same_as<typename output::char_type,char_type>
+inline constexpr void print_define(output bos,basic_lc_telephone<char_type> const& telephone)
+{
+	if constexpr(std::same_as<char_type,char>)
+	{
+		print_freestanding(bos,"LC_TELEPHONE\n"
+			"tel_int_fmt\t\"",telephone.tel_int_fmt,"\"\n"
+			"tel_dom_fmt\t\"",telephone.tel_dom_fmt,"\"\n"
+			"int_select\t\"",telephone.int_select,"\"\n"
+			"int_prefix\t\"",telephone.int_prefix,"\"\n"
+			"END LC_TELEPHONE");
+	}
+	else if constexpr(std::same_as<char_type,wchar_t>)
+	{
+		print_freestanding(bos,L"LC_TELEPHONE\n"
+			L"tel_int_fmt\t\"",telephone.tel_int_fmt,L"\"\n"
+			L"tel_dom_fmt\t\"",telephone.tel_dom_fmt,L"\"\n"
+			L"int_select\t\"",telephone.int_select,L"\"\n"
+			L"int_prefix\t\"",telephone.int_prefix,L"\"\n"
+			L"END LC_TELEPHONE");
+	}
+	else if constexpr(std::same_as<char_type,char16_t>)
+	{
+		print_freestanding(bos,u"LC_TELEPHONE\n"
+			u"tel_int_fmt\t\"",telephone.tel_int_fmt,u"\"\n"
+			u"tel_dom_fmt\t\"",telephone.tel_dom_fmt,u"\"\n"
+			u"int_select\t\"",telephone.int_select,u"\"\n"
+			u"int_prefix\t\"",telephone.int_prefix,u"\"\n"
+			u"END LC_TELEPHONE");
+	}
+	else if constexpr(std::same_as<char_type,char32_t>)
+	{
+		print_freestanding(bos,U"LC_TELEPHONE\n"
+			U"tel_int_fmt\t\"",telephone.tel_int_fmt,U"\"\n"
+			U"tel_dom_fmt\t\"",telephone.tel_dom_fmt,U"\"\n"
+			U"int_select\t\"",telephone.int_select,U"\"\n"
+			U"int_prefix\t\"",telephone.int_prefix,U"\"\n"
+			U"END LC_TELEPHONE");
+	}
+	else if constexpr(std::same_as<char_type,char8_t>)
+	{
+		print_freestanding(bos,u8"LC_TELEPHONE\n"
+			u8"tel_int_fmt\t\"",telephone.tel_int_fmt,u8"\"\n"
+			u8"tel_dom_fmt\t\"",telephone.tel_dom_fmt,u8"\"\n"
+			u8"int_select\t\"",telephone.int_select,u8"\"\n"
+			u8"int_prefix\t\"",telephone.int_prefix,u8"\"\n"
+			u8"END LC_TELEPHONE");
+	}
+}
+
+template<buffer_output_stream output,std::integral char_type>
+requires std::same_as<typename output::char_type,char_type>
+inline constexpr void print_define(output bos,basic_lc_name<char_type> const& name)
+{
+	if constexpr(std::same_as<char_type,char>)
+	{
+		print_freestanding(bos,"LC_NAME\n"
+			"name_fmt\t\"",name.name_fmt,"\"\n"
+			"name_gen\t\"",name.name_gen,"\"\n"
+			"name_miss\t\"",name.name_miss,"\"\n"
+			"name_mr\t\"",name.name_mr,"\"\n"
+			"name_mrs\t\"",name.name_mrs,"\"\n"
+			"name_ms\t\"",name.name_ms,"\"\n"
+			"END LC_NAME");
+	}
+	else if constexpr(std::same_as<char_type,wchar_t>)
+	{
+		print_freestanding(bos,L"LC_NAME\n"
+			L"name_fmt\t\"",name.name_fmt,L"\"\n"
+			L"name_gen\t\"",name.name_gen,L"\"\n"
+			L"name_miss\t\"",name.name_miss,L"\"\n"
+			L"name_mr\t\"",name.name_mr,L"\"\n"
+			L"name_mrs\t\"",name.name_mrs,L"\"\n"
+			L"name_ms\t\"",name.name_ms,L"\"\n"
+			L"END LC_NAME");
+	}
+	else if constexpr(std::same_as<char_type,char16_t>)
+	{
+		print_freestanding(bos,u"LC_NAME\n"
+			u"name_fmt\t\"",name.name_fmt,u"\"\n"
+			u"name_gen\t\"",name.name_gen,u"\"\n"
+			u"name_miss\t\"",name.name_miss,u"\"\n"
+			u"name_mr\t\"",name.name_mr,u"\"\n"
+			u"name_mrs\t\"",name.name_mrs,u"\"\n"
+			u"name_ms\t\"",name.name_ms,u"\"\n"
+			u"END LC_NAME");
+	}
+	else if constexpr(std::same_as<char_type,char32_t>)
+	{
+		print_freestanding(bos,U"LC_NAME\n"
+			U"name_fmt\t\"",name.name_fmt,U"\"\n"
+			U"name_gen\t\"",name.name_gen,U"\"\n"
+			U"name_miss\t\"",name.name_miss,U"\"\n"
+			U"name_mr\t\"",name.name_mr,U"\"\n"
+			U"name_mrs\t\"",name.name_mrs,U"\"\n"
+			U"name_ms\t\"",name.name_ms,U"\"\n"
+			U"END LC_NAME");
+	}
+	else if constexpr(std::same_as<char_type,char8_t>)
+	{
+		print_freestanding(bos,u8"LC_NAME\n"
+			u8"name_fmt\t\"",name.name_fmt,u8"\"\n"
+			u8"name_gen\t\"",name.name_gen,u8"\"\n"
+			u8"name_miss\t\"",name.name_miss,u8"\"\n"
+			u8"name_mr\t\"",name.name_mr,u8"\"\n"
+			u8"name_mrs\t\"",name.name_mrs,u8"\"\n"
+			u8"name_ms\t\"",name.name_ms,u8"\"\n"
+			u8"END LC_NAME");
+	}
+}
+
+template<buffer_output_stream output,std::integral char_type>
+requires std::same_as<typename output::char_type,char_type>
+inline constexpr void print_define(output bos,basic_lc_measurement<char_type> const& measurement)
+{
+	if constexpr(std::same_as<char_type,char>)
+	{
+		print_freestanding(bos,"LC_MEASUREMENT\n"
+			"measurement\t",measurement.measurement,"\n"
+			"END LC_MEASUREMENT");
+	}
+	else if constexpr(std::same_as<char_type,wchar_t>)
+	{
+		print_freestanding(bos,L"LC_MEASUREMENT\n"
+			L"measurement\t",measurement.measurement,L"\n"
+			L"END LC_MEASUREMENT");
+	}
+	else if constexpr(std::same_as<char_type,char16_t>)
+	{
+		print_freestanding(bos,u"LC_MEASUREMENT\n"
+			u"measurement\t",measurement.measurement,u"\n"
+			u"END LC_MEASUREMENT");
+	}
+	else if constexpr(std::same_as<char_type,char32_t>)
+	{
+		print_freestanding(bos,U"LC_MEASUREMENT\n"
+			U"measurement\t",measurement.measurement,U"\n"
+			U"END LC_MEASUREMENT");
+	}
+	else if constexpr(std::same_as<char_type,char8_t>)
+	{
+		print_freestanding(bos,u8"LC_MEASUREMENT\n"
+			u8"measurement\t",measurement.measurement,u8"\n"
+			u8"END LC_MEASUREMENT");
+	}
+}
 
 template<buffer_output_stream output,std::integral char_type>
 requires std::same_as<typename output::char_type,char_type>
@@ -345,7 +602,12 @@ inline constexpr void print_define(output bos,basic_lc_all<char_type> const& all
 	if constexpr(std::same_as<char_type,char>)
 		print_freestanding(bos,all.identification,"\n\n",
 			all.monetary,"\n\n",
-			all.numeric);
+			all.numeric,"\n\n",
+			all.messages,"\n\n",
+			all.paper,"\n\n",
+			all.telephone,"\n\n",
+			all.name,"\n\n",
+			all.measurement);
 }
 
 template<buffer_output_stream output>
