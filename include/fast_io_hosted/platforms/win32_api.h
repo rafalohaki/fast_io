@@ -81,6 +81,10 @@ inline farproc __stdcall GetProcAddress(void*,char const*) noexcept;
 
 inline void* __stdcall GetModuleHandleW(wchar_t const*) noexcept;
 
+inline void* __stdcall LoadLibraryA(char const*) noexcept;
+
+inline int __stdcall FreeLibrary(void*) noexcept;
+
 inline int __stdcall AllocConsole() noexcept;
 
 inline std::uint32_t __stdcall WaitForSingleObject(void*,std::uint32_t) noexcept;
