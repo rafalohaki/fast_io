@@ -3,23 +3,23 @@
 namespace fast_io
 {
 
-template<std::integral char_type>
+template<typename char_type>
 struct basic_lc_identification
 {
-	std::basic_string_view<char_type> title{};
-	std::basic_string_view<char_type> source{};
-	std::basic_string_view<char_type> address{};
-	std::basic_string_view<char_type> contact{};
-	std::basic_string_view<char_type> email{};
-	std::basic_string_view<char_type> tel{};
-	std::basic_string_view<char_type> fax{};
-	std::basic_string_view<char_type> language{};
-	std::basic_string_view<char_type> territory{};
-	std::basic_string_view<char_type> audience{};
-	std::basic_string_view<char_type> application{};
-	std::basic_string_view<char_type> abbreviation{};
-	std::basic_string_view<char_type> revision{};
-	std::basic_string_view<char_type> date{};
+	basic_io_scatter_t<char_type> title{};
+	basic_io_scatter_t<char_type> source{};
+	basic_io_scatter_t<char_type> address{};
+	basic_io_scatter_t<char_type> contact{};
+	basic_io_scatter_t<char_type> email{};
+	basic_io_scatter_t<char_type> tel{};
+	basic_io_scatter_t<char_type> fax{};
+	basic_io_scatter_t<char_type> language{};
+	basic_io_scatter_t<char_type> territory{};
+	basic_io_scatter_t<char_type> audience{};
+	basic_io_scatter_t<char_type> application{};
+	basic_io_scatter_t<char_type> abbreviation{};
+	basic_io_scatter_t<char_type> revision{};
+	basic_io_scatter_t<char_type> date{};
 };
 
 using lc_identification=basic_lc_identification<char>;
@@ -28,16 +28,16 @@ using u8lc_identification=basic_lc_identification<char8_t>;
 using u16lc_identification=basic_lc_identification<char16_t>;
 using u32lc_identification=basic_lc_identification<char32_t>;
 
-template<std::integral char_type>
+template<typename char_type>
 struct basic_lc_monetary
 {
-	std::basic_string_view<char_type> int_curr_symbol{};
-	std::basic_string_view<char_type> currency_symbol{};
-	std::basic_string_view<char_type> mon_decimal_point{};
-	std::basic_string_view<char_type> mon_thousands_sep{};
-	std::span<std::size_t> mon_grouping{};
-	std::basic_string_view<char_type> positive_sign{};
-	std::basic_string_view<char_type> negative_sign{};
+	basic_io_scatter_t<char_type> int_curr_symbol{};
+	basic_io_scatter_t<char_type> currency_symbol{};
+	basic_io_scatter_t<char_type> mon_decimal_point{};
+	basic_io_scatter_t<char_type> mon_thousands_sep{};
+	basic_io_scatter_t<std::size_t> mon_grouping{};
+	basic_io_scatter_t<char_type> positive_sign{};
+	basic_io_scatter_t<char_type> negative_sign{};
 	std::size_t int_frac_digits{};
 	std::size_t frac_digits{};
 	std::size_t p_cs_precedes{};
@@ -60,12 +60,12 @@ using u8lc_monetary=basic_lc_monetary<char8_t>;
 using u16lc_monetary=basic_lc_monetary<char16_t>;
 using u32lc_monetary=basic_lc_monetary<char32_t>;
 
-template<std::integral char_type>
+template<typename char_type>
 struct basic_lc_numeric
 {
-	std::basic_string_view<char_type> decimal_point{};
-	std::basic_string_view<char_type> thousands_sep{};
-	std::span<std::size_t> grouping{};
+	basic_io_scatter_t<char_type> decimal_point{};
+	basic_io_scatter_t<char_type> thousands_sep{};
+	basic_io_scatter_t<std::size_t> grouping{};
 };
 
 using lc_numeric=basic_lc_numeric<char>;
@@ -74,25 +74,25 @@ using u8lc_numeric=basic_lc_numeric<char8_t>;
 using u16lc_numeric=basic_lc_numeric<char16_t>;
 using u32lc_numeric=basic_lc_numeric<char32_t>;
 
-template<std::integral char_type>
+template<typename char_type>
 struct basic_lc_time
 {
-	std::array<std::basic_string_view<char_type>,7> abday{};
-	std::array<std::basic_string_view<char_type>,7> day{};
-	std::array<std::basic_string_view<char_type>,12> abmon{};
-	std::array<std::basic_string_view<char_type>,12> ab_alt_mon{};
-	std::array<std::basic_string_view<char_type>,12> mon{};
-	std::basic_string_view<char_type> d_t_fmt{};
-	std::basic_string_view<char_type> d_fmt{};
-	std::basic_string_view<char_type> t_fmt{};
-	std::basic_string_view<char_type> t_fmt_ampm{};
-	std::basic_string_view<char_type> date_fmt{};
-	std::array<std::basic_string_view<char_type>,2> am_pm{};
-	std::span<std::basic_string_view<char_type>> era{};
-	std::basic_string_view<char_type> era_d_fmt{};
-	std::basic_string_view<char_type> era_d_t_fmt{};
-	std::basic_string_view<char_type> era_t_fmt{};
-	std::span<std::basic_string_view<char_type>> alt_digits{};
+	basic_io_scatter_t<char_type> abday[7]{};
+	basic_io_scatter_t<char_type> day[7]{};
+	basic_io_scatter_t<char_type> abmon[12]{};
+	basic_io_scatter_t<char_type> ab_alt_mon[12]{};
+	basic_io_scatter_t<char_type> mon[12]{};
+	basic_io_scatter_t<char_type> d_t_fmt{};
+	basic_io_scatter_t<char_type> d_fmt{};
+	basic_io_scatter_t<char_type> t_fmt{};
+	basic_io_scatter_t<char_type> t_fmt_ampm{};
+	basic_io_scatter_t<char_type> date_fmt{};
+	basic_io_scatter_t<char_type> am_pm[2]{};
+	basic_io_scatter_t<basic_io_scatter_t<char_type>> era{};
+	basic_io_scatter_t<char_type> era_d_fmt{};
+	basic_io_scatter_t<char_type> era_d_t_fmt{};
+	basic_io_scatter_t<char_type> era_t_fmt{};
+	basic_io_scatter_t<basic_io_scatter_t<char_type>> alt_digits{};
 	struct
 	{
 		std::size_t ndays{7};
@@ -102,7 +102,7 @@ struct basic_lc_time
 	std::size_t first_weekday{};
 	std::size_t first_workday{};
 	std::size_t cal_direction{};
-	std::span<std::basic_string_view<char_type>> timezone{};
+	basic_io_scatter_t<basic_io_scatter_t<char_type>> timezone{};
 };
 
 using lc_time=basic_lc_time<char>;
@@ -111,13 +111,13 @@ using u8lc_time=basic_lc_time<char8_t>;
 using u16lc_time=basic_lc_time<char16_t>;
 using u32lc_time=basic_lc_time<char32_t>;
 
-template<std::integral char_type>
+template<typename char_type>
 struct basic_lc_messages
 {
-	std::basic_string_view<char_type> yesexpr{};
-	std::basic_string_view<char_type> noexpr{};
-	std::basic_string_view<char_type> yesstr{};
-	std::basic_string_view<char_type> nostr{};
+	basic_io_scatter_t<char_type> yesexpr{};
+	basic_io_scatter_t<char_type> noexpr{};
+	basic_io_scatter_t<char_type> yesstr{};
+	basic_io_scatter_t<char_type> nostr{};
 };
 
 using lc_messages=basic_lc_messages<char>;
@@ -126,7 +126,7 @@ using u8lc_messages=basic_lc_messages<char8_t>;
 using u16lc_messages=basic_lc_messages<char16_t>;
 using u32lc_messages=basic_lc_messages<char32_t>;
 
-template<std::integral char_type>
+template<typename char_type>
 struct basic_lc_paper
 {
 	std::uintmax_t width{};
@@ -139,13 +139,13 @@ using u8lc_paper=basic_lc_paper<char8_t>;
 using u16lc_paper=basic_lc_paper<char16_t>;
 using u32lc_paper=basic_lc_paper<char32_t>;
 
-template<std::integral char_type>
+template<typename char_type>
 struct basic_lc_telephone
 {
-	std::basic_string_view<char_type> tel_int_fmt{};
-	std::basic_string_view<char_type> tel_dom_fmt{};
-	std::basic_string_view<char_type> int_select{};
-	std::basic_string_view<char_type> int_prefix{};
+	basic_io_scatter_t<char_type> tel_int_fmt{};
+	basic_io_scatter_t<char_type> tel_dom_fmt{};
+	basic_io_scatter_t<char_type> int_select{};
+	basic_io_scatter_t<char_type> int_prefix{};
 };
 
 using lc_telephone=basic_lc_telephone<char>;
@@ -154,15 +154,15 @@ using u8lc_telephone=basic_lc_telephone<char8_t>;
 using u16lc_telephone=basic_lc_telephone<char16_t>;
 using u32lc_telephone=basic_lc_telephone<char32_t>;
 
-template<std::integral char_type>
+template<typename char_type>
 struct basic_lc_name
 {
-	std::basic_string_view<char_type> name_fmt{};
-	std::basic_string_view<char_type> name_gen{};
-	std::basic_string_view<char_type> name_miss{};
-	std::basic_string_view<char_type> name_mr{};
-	std::basic_string_view<char_type> name_mrs{};
-	std::basic_string_view<char_type> name_ms{};
+	basic_io_scatter_t<char_type> name_fmt{};
+	basic_io_scatter_t<char_type> name_gen{};
+	basic_io_scatter_t<char_type> name_miss{};
+	basic_io_scatter_t<char_type> name_mr{};
+	basic_io_scatter_t<char_type> name_mrs{};
+	basic_io_scatter_t<char_type> name_ms{};
 };
 
 using lc_name=basic_lc_name<char>;
@@ -171,21 +171,21 @@ using u8lc_name=basic_lc_name<char8_t>;
 using u16lc_name=basic_lc_name<char16_t>;
 using u32lc_name=basic_lc_name<char32_t>;
 
-template<std::integral char_type>
+template<typename char_type>
 struct basic_lc_address
 {
-	std::basic_string_view<char_type> postal_fmt{};
-	std::basic_string_view<char_type> country_name{};
-	std::basic_string_view<char_type> country_post{};
-	std::basic_string_view<char_type> country_ab2{};
-	std::basic_string_view<char_type> country_ab3{};
+	basic_io_scatter_t<char_type> postal_fmt{};
+	basic_io_scatter_t<char_type> country_name{};
+	basic_io_scatter_t<char_type> country_post{};
+	basic_io_scatter_t<char_type> country_ab2{};
+	basic_io_scatter_t<char_type> country_ab3{};
 	std::uintmax_t country_num{};
-	std::basic_string_view<char_type> country_car{};
+	basic_io_scatter_t<char_type> country_car{};
 	std::uintmax_t country_isbn{};
-	std::basic_string_view<char_type> lang_name{};
-	std::basic_string_view<char_type> lang_ab{};
-	std::basic_string_view<char_type> lang_term{};
-	std::basic_string_view<char_type> lang_lib{};
+	basic_io_scatter_t<char_type> lang_name{};
+	basic_io_scatter_t<char_type> lang_ab{};
+	basic_io_scatter_t<char_type> lang_term{};
+	basic_io_scatter_t<char_type> lang_lib{};
 };
 
 using lc_address=basic_lc_address<char>;
@@ -194,7 +194,7 @@ using u8lc_address=basic_lc_address<char8_t>;
 using u16lc_address=basic_lc_address<char16_t>;
 using u32lc_address=basic_lc_address<char32_t>;
 
-template<std::integral char_type>
+template<typename char_type>
 struct basic_lc_measurement
 {
 	std::uintmax_t measurement{};
@@ -206,7 +206,7 @@ using u8lc_measurement=basic_lc_measurement<char8_t>;
 using u16lc_measurement=basic_lc_measurement<char16_t>;
 using u32lc_measurement=basic_lc_measurement<char32_t>;
 
-template<std::integral char_type>
+template<typename char_type>
 struct basic_lc_all
 {
 	basic_lc_identification<char_type> identification{};
