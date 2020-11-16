@@ -1,5 +1,5 @@
 #pragma once
-
+#include<type_traits>
 namespace fast_io_i18n
 {
 
@@ -10,16 +10,8 @@ inline constexpr bool compile_time_compare(char_type1 const (&a)[n1],char_type2 
 		return false;
 	for(std::size_t i{};i!=n1;++i)
 	{
-		if constexpr(sizeof(char_type1)==1)
-		{
-			if(static_cast<char8_t>(a[i])!=static_cast<char8_t>(b[i]))
-				return false;
-		}
-		else
-		{
-			if(a[i]!=b[i])
-				return false;
-		}
+		if(static_cast<std::make_unsigned_t<char_type1>>(a[i])!=static_cast<std::make_unsigned_t<char_type2>>(b[i]))
+			return false;
 	}
 	return true;
 }
