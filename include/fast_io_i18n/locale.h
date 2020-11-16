@@ -2,6 +2,10 @@
 
 #include"lc.h"
 
+#ifndef _WIN32
+#include <dlfcn.h>
+#endif
+
 namespace fast_io
 {
 
@@ -13,7 +17,11 @@ struct close_dll
 	void operator()(void* handle) const noexcept
 	{
 		if(handle)[[likely]]
+#ifdef _WIN32
 			fast_io::win32::FreeLibrary(handle);
+#else
+			dlclose(handle);	
+#endif
 	}
 };
 
@@ -76,31 +84,37 @@ public:
 			loading:;
 		}
 #endif
-		std::unique_ptr<void,details::close_dll> ptr{fast_io::win32::LoadLibraryA(loc_name)};
+		std::unique_ptr<void,details::close_dll> ptr{
+#ifdef _WIN32
+			fast_io::win32::LoadLibraryA(loc_name)
+#else
+			dlopen(loc_name,RTLD_LAZY)
+#endif
+};
 		if(!ptr)
 #ifdef _WIN32
 			throw_win32_error();
 #else
-			throw_posix_error();
+			throw_posix_error(EACCES);
 #endif
 
 #ifdef _WIN32
 		auto func(bit_cast<bool __stdcall(*)(lc_locale*) noexcept >(fast_io::win32::GetProcAddress(ptr.get(),"export_locale_data")));
 #else
-
+		auto func(bit_cast<void (*)(lc_locale*) noexcept >(dlsym(ptr.get(),"export_locale_data")));
 #endif
 
 		if(func==nullptr)
 #ifdef _WIN32
 			throw_win32_error();
 #else
-			throw_posix_error();
+			throw_posix_error(EFAULT);
 #endif
-		if(!func(std::addressof(loc)))
 #ifdef _WIN32
+		if(!func(std::addressof(loc)))
 			throw_win32_error();
 #else
-			throw_posix_error();
+		func(std::addressof(loc));
 #endif
 		dll_handle=ptr.release();
 	}
@@ -116,7 +130,11 @@ public:
 	void close() noexcept
 	{
 		if(dll_handle)[[likely]]
+#ifdef _WIN32
 			fast_io::win32::FreeLibrary(dll_handle);
+#else
+			dlclose(dll_handle);
+#endif
 	}
 	i18n_locale& operator=(i18n_locale&& other) noexcept
 	{
