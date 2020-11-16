@@ -66,7 +66,7 @@ public:
 		if(locale_name=="C"||locale_name=="POSIX")
 			loc_name="fast_io_i18n_data\\locale\\POSIX.dll";
 		else if(locale_name.empty())
-			loc_name="fast_io_i18n_data\\locale\\fast_io.dll";
+			loc_name="fast_io_i18n_data\\locale_local.dll";
 		else
 		{
 			constexpr std::size_t sz{sizeof("fast_io_i18n_data\\locale\\")-1};
@@ -86,14 +86,32 @@ public:
 			{
 				loc_name=
 #if defined(_GNU_SOURCE)
-				secure_getenv("LANG");
+					secure_getenv("FAST_IO_I18N_LOCALE");
 #else
-				getenv("LANG");
+					getenv("FAST_IO_I18N_LOCALE");
 #endif
 				if(loc_name==nullptr)
 				{
-					loc_name="/usr/local/lib/fast_io_i18n_data/locale/POSIX.so";
-					goto loading;
+					loc_name=
+#if defined(_GNU_SOURCE)
+					secure_getenv("LC_ALL");
+#else
+					getenv("LC_ALL");
+#endif
+					if(loc_name==nullptr)
+					{
+						loc_name=
+#if defined(_GNU_SOURCE)
+						secure_getenv("LANG");
+#else
+						getenv("LANG");
+#endif
+						if(loc_name==nullptr)
+						{
+							loc_name="/usr/local/lib/fast_io_i18n_data/locale/POSIX.so";
+							goto loading;
+						}
+					}
 				}
 				locale_name=loc_name;
 				if(locale_name.size()>6&&locale_name.substr(locale_name.size()-6,6)==".UTF-8")
