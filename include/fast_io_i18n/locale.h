@@ -28,6 +28,28 @@ struct close_dll
 
 }
 
+#ifndef _WIN32
+
+class posix_dl_error:public fast_io_error
+{
+public:
+	virtual	void report(error_reporter& err) const override
+	{
+		print(err,fast_io::chvw(dlerror()));
+	}
+};
+
+[[noreturn]] inline void throw_posix_dl_error()
+{
+#ifdef __cpp_exceptions
+	throw posix_dl_error();
+#else
+	fast_terminate();
+#endif
+}
+
+#endif
+
 class i18n_locale
 {
 public:
@@ -96,7 +118,7 @@ public:
 #ifdef _WIN32
 			throw_win32_error();
 #else
-			throw_posix_error(ENOENT);
+			throw_posix_dl_error();
 #endif
 
 #ifdef _WIN32
@@ -109,7 +131,7 @@ public:
 #ifdef _WIN32
 			throw_win32_error();
 #else
-			throw_posix_error(EFAULT);
+			throw_posix_dl_error();
 #endif
 #ifdef _WIN32
 		if(!func(std::addressof(loc)))
