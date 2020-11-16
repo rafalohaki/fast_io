@@ -1,6 +1,7 @@
 #pragma once
 
 #include"lc.h"
+#include"lc_print.h"
 
 #ifndef _WIN32
 #include <dlfcn.h>
