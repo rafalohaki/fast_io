@@ -24,7 +24,7 @@ inline void my_close(int fd)
 {
 	if(fd!=-1)
 #if defined(__linux__)
-		system_call<3,int>(fd);
+		system_call<__NR_close,int>(fd);
 #else
 		close(fd);
 #endif
