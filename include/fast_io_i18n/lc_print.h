@@ -97,7 +97,7 @@ inline constexpr void print_define(output bos,basic_lc_identification<char_type>
 namespace details
 {
 template<buffer_output_stream output>
-inline void print_grouping(output bos,basic_io_scatter_t<std::size_t> grouping)
+inline constexpr void print_grouping(output bos,basic_io_scatter_t<std::size_t> grouping)
 {
 	using char_type = typename output::char_type;
 	if(grouping.len==0)
@@ -351,9 +351,196 @@ inline constexpr void print_define(output bos,basic_lc_numeric<char_type> const&
 			u8"END LC_NUMERIC");
 	}
 }
-/*
-To do time
-*/
+
+namespace details
+{
+template<buffer_output_stream output>
+inline constexpr void print_loc_days_impl(output bos,std::basic_string_view<typename output::char_type> category_name,std::span<basic_io_scatter_t<typename output::char_type> const> day_strings)
+{
+	using char_type = typename output::char_type;
+	if(day_strings.empty()||day_strings.front().len==0)
+		return;
+	print_freestanding(bos,category_name);
+	if constexpr(std::same_as<char,char_type>)
+		print_freestanding(bos,"\t");
+	else if constexpr(std::same_as<wchar_t,char_type>)
+		print_freestanding(bos,L"\t");
+	else if constexpr(std::same_as<char16_t,char_type>)
+		print_freestanding(bos,u"\t");
+	else if constexpr(std::same_as<char32_t,char_type>)
+		print_freestanding(bos,U"\t");
+	else if constexpr(std::same_as<char8_t,char_type>)
+		print_freestanding(bos,u8"\t");
+	for(std::size_t i{};i!=day_strings.size();++i)
+	{
+		if(i)
+		{
+			if constexpr(std::same_as<char,char_type>)
+				print_freestanding(bos,";");
+			else if constexpr(std::same_as<wchar_t,char_type>)
+				print_freestanding(bos,L";");
+			else if constexpr(std::same_as<char16_t,char_type>)
+				print_freestanding(bos,u";");
+			else if constexpr(std::same_as<char32_t,char_type>)
+				print_freestanding(bos,U";");
+			else if constexpr(std::same_as<char8_t,char_type>)
+				print_freestanding(bos,u8";");
+		}
+		if constexpr(std::same_as<char,char_type>)
+			print_freestanding(bos,"\"",day_strings[i],u8"\"");
+		else if constexpr(std::same_as<wchar_t,char_type>)
+			print_freestanding(bos,L"\"",day_strings[i],u8"\"");
+		else if constexpr(std::same_as<char16_t,char_type>)
+			print_freestanding(bos,u"\"",day_strings[i],u8"\"");
+		else if constexpr(std::same_as<char32_t,char_type>)
+			print_freestanding(bos,U"\"",day_strings[i],u8"\"");
+		else if constexpr(std::same_as<char8_t,char_type>)
+			print_freestanding(bos,u8"\"",day_strings[i],u8"\"");
+	}
+	println_freestanding(bos);
+}
+template<buffer_output_stream output>
+inline constexpr void print_loc_days_impl(output bos,std::basic_string_view<typename output::char_type> category_name,basic_io_scatter_t<basic_io_scatter_t<typename output::char_type>> day_strings)
+{
+	print_loc_days_impl(bos,category_name,std::span{day_strings.base,day_strings.len});
+}
+}
+
+template<buffer_output_stream output,std::integral char_type>
+requires std::same_as<typename output::char_type,char_type>
+inline constexpr void print_define(output bos,basic_lc_time<char_type> const& time)
+{
+	if constexpr(std::same_as<char,char_type>)
+	{
+		details::print_loc_days_impl(bos,"abday",time.abday);
+		details::print_loc_days_impl(bos,"day",time.day);
+		details::print_loc_days_impl(bos,"abmon",time.abmon);
+		details::print_loc_days_impl(bos,"ab_alt_mon",time.ab_alt_mon);
+		details::print_loc_days_impl(bos,"mon",time.mon);
+		print_freestanding(bos,
+		"d_t_fmt\t\"",time.d_t_fmt,"\"\n",
+		"d_fmt\t\"",time.d_fmt,"\"\n",
+		"t_fmt\t\"",time.t_fmt,"\"\n",
+		"t_fmt_ampm\t\"",time.t_fmt_ampm,"\"\n",
+		"date_fmt\t\"",time.date_fmt,"\"\n",
+		"am_pm\t\"",time.am_pm[0],"\";\"",time.am_pm[1],"\"\n");
+		details::print_loc_days_impl(bos,"era",time.era);
+		print_freestanding(bos,"era_d_fmt\t\"",time.era_d_fmt,"\"\n",
+		"era_d_t_fmt\t\"",time.era_d_t_fmt,"\"\n",
+		"era_t_fmt\t\"",time.era_t_fmt,"\"\n");
+		details::print_loc_days_impl(bos,"alt_digits",time.alt_digits);
+		print_freestanding(bos,"week\t",time.week.ndays,";",time.week.first_day,";",time.week.first_week,"\n",
+		"first_weekday\t",time.first_weekday,"\n"
+		"first_workday\t",time.first_workday,"\n"
+		"cal_direction\t",time.cal_direction,"\n");
+		details::print_loc_days_impl(bos,"timezone",time.timezone);
+		print_freestanding(bos,"END LC_TIME");
+	}
+	else if constexpr(std::same_as<wchar_t,char_type>)
+	{
+		details::print_loc_days_impl(bos,L"abday",time.abday);
+		details::print_loc_days_impl(bos,L"day",time.day);
+		details::print_loc_days_impl(bos,L"abmon",time.abmon);
+		details::print_loc_days_impl(bos,L"ab_alt_mon",time.ab_alt_mon);
+		details::print_loc_days_impl(bos,L"mon",time.mon);
+		print_freestanding(bos,
+		L"d_t_fmt\t\"",time.d_t_fmt,L"\"\n",
+		L"d_fmt\t\"",time.d_fmt,L"\"\n",
+		L"t_fmt\t\"",time.t_fmt,L"\"\n",
+		L"t_fmt_ampm\t\"",time.t_fmt_ampm,L"\"\n",
+		L"date_fmt\t\"",time.date_fmt,L"\"\n",
+		L"am_pm\t\"",time.am_pm[0],L"\";\"",time.am_pm[1],L"\"\n");
+		details::print_loc_days_impl(bos,L"era",time.era);
+		print_freestanding(bos,L"era_d_fmt\t\"",time.era_d_fmt,L"\"\n",
+		L"era_d_t_fmt\t\"",time.era_d_t_fmt,L"\"\n",
+		L"era_t_fmt\t\"",time.era_t_fmt,L"\"\n");
+		details::print_loc_days_impl(bos,L"alt_digits",time.alt_digits);
+		print_freestanding(bos,L"week\t",time.week.ndays,L";",time.week.first_day,L";",time.week.first_week,L"\n",
+		L"first_weekday\t",time.first_weekday,L"\n"
+		L"first_workday\t",time.first_workday,L"\n"
+		L"cal_direction\t",time.cal_direction,L"\n");
+		details::print_loc_days_impl(bos,L"timezone",time.timezone);
+		print_freestanding(bos,L"END LC_TIME");
+	}
+	else if constexpr(std::same_as<char16_t,char_type>)
+	{
+		details::print_loc_days_impl(bos,u"abday",time.abday);
+		details::print_loc_days_impl(bos,u"day",time.day);
+		details::print_loc_days_impl(bos,u"abmon",time.abmon);
+		details::print_loc_days_impl(bos,u"ab_alt_mon",time.ab_alt_mon);
+		details::print_loc_days_impl(bos,u"mon",time.mon);
+		print_freestanding(bos,
+		u"d_t_fmt\t\"",time.d_t_fmt,u"\"\n",
+		u"d_fmt\t\"",time.d_fmt,u"\"\n",
+		u"t_fmt\t\"",time.t_fmt,u"\"\n",
+		u"t_fmt_ampm\t\"",time.t_fmt_ampm,u"\"\n",
+		u"date_fmt\t\"",time.date_fmt,u"\"\n",
+		u"am_pm\t\"",time.am_pm[0],u"\";\"",time.am_pm[1],u"\"\n");
+		details::print_loc_days_impl(bos,u"era",time.era);
+		print_freestanding(bos,u"era_d_fmt\t\"",time.era_d_fmt,u"\"\n",
+		u"era_d_t_fmt\t\"",time.era_d_t_fmt,u"\"\n",
+		u"era_t_fmt\t\"",time.era_t_fmt,u"\"\n");
+		details::print_loc_days_impl(bos,u"alt_digits",time.alt_digits);
+		print_freestanding(bos,u"week\t",time.week.ndays,u";",time.week.first_day,u";",time.week.first_week,u"\n",
+		u"first_weekday\t",time.first_weekday,u"\n"
+		u"first_workday\t",time.first_workday,u"\n"
+		u"cal_direction\t",time.cal_direction,u"\n");
+		details::print_loc_days_impl(bos,u"timezone",time.timezone);
+		print_freestanding(bos,u"END LC_TIME");
+	}
+	else if constexpr(std::same_as<char32_t,char_type>)
+	{
+		details::print_loc_days_impl(bos,U"abday",time.abday);
+		details::print_loc_days_impl(bos,U"day",time.day);
+		details::print_loc_days_impl(bos,U"abmon",time.abmon);
+		details::print_loc_days_impl(bos,U"ab_alt_mon",time.ab_alt_mon);
+		details::print_loc_days_impl(bos,U"mon",time.mon);
+		print_freestanding(bos,
+		U"d_t_fmt\t\"",time.d_t_fmt,U"\"\n",
+		U"d_fmt\t\"",time.d_fmt,U"\"\n",
+		U"t_fmt\t\"",time.t_fmt,U"\"\n",
+		U"t_fmt_ampm\t\"",time.t_fmt_ampm,U"\"\n",
+		U"date_fmt\t\"",time.date_fmt,U"\"\n",
+		U"am_pm\t\"",time.am_pm[0],U"\";\"",time.am_pm[1],U"\"\n");
+		details::print_loc_days_impl(bos,U"era",time.era);
+		print_freestanding(bos,U"era_d_fmt\t\"",time.era_d_fmt,U"\"\n",
+		U"era_d_t_fmt\t\"",time.era_d_t_fmt,U"\"\n",
+		U"era_t_fmt\t\"",time.era_t_fmt,U"\"\n");
+		details::print_loc_days_impl(bos,U"alt_digits",time.alt_digits);
+		print_freestanding(bos,U"week\t",time.week.ndays,U";",time.week.first_day,U";",time.week.first_week,U"\n",
+		U"first_weekday\t",time.first_weekday,U"\n"
+		U"first_workday\t",time.first_workday,U"\n"
+		U"cal_direction\t",time.cal_direction,U"\n");
+		details::print_loc_days_impl(bos,U"timezone",time.timezone);
+		print_freestanding(bos,U"END LC_TIME");
+	}
+	else if constexpr(std::same_as<char8_t,char_type>)
+	{
+		details::print_loc_days_impl(bos,u8"abday",time.abday);
+		details::print_loc_days_impl(bos,u8"day",time.day);
+		details::print_loc_days_impl(bos,u8"abmon",time.abmon);
+		details::print_loc_days_impl(bos,u8"ab_alt_mon",time.ab_alt_mon);
+		details::print_loc_days_impl(bos,u8"mon",time.mon);
+		print_freestanding(bos,
+		u8"d_t_fmt\t\"",time.d_t_fmt,u8"\"\n",
+		u8"d_fmt\t\"",time.d_fmt,u8"\"\n",
+		u8"t_fmt\t\"",time.t_fmt,u8"\"\n",
+		u8"t_fmt_ampm\t\"",time.t_fmt_ampm,u8"\"\n",
+		u8"date_fmt\t\"",time.date_fmt,u8"\"\n",
+		u8"am_pm\t\"",time.am_pm[0],u8"\";\"",time.am_pm[1],u8"\"\n");
+		details::print_loc_days_impl(bos,u8"era",time.era);
+		print_freestanding(bos,u8"era_d_fmt\t\"",time.era_d_fmt,u8"\"\n",
+		u8"era_d_t_fmt\t\"",time.era_d_t_fmt,u8"\"\n",
+		u8"era_t_fmt\t\"",time.era_t_fmt,u8"\"\n");
+		details::print_loc_days_impl(bos,u8"alt_digits",time.alt_digits);
+		print_freestanding(bos,u8"week\t",time.week.ndays,u8";",time.week.first_day,u8";",time.week.first_week,u8"\n",
+		u8"first_weekday\t",time.first_weekday,u8"\n"
+		u8"first_workday\t",time.first_workday,u8"\n"
+		u8"cal_direction\t",time.cal_direction,u8"\n");
+		details::print_loc_days_impl(bos,u8"timezone",time.timezone);
+		print_freestanding(bos,u8"END LC_TIME");
+	}
+}
 
 template<buffer_output_stream output,std::integral char_type>
 requires std::same_as<typename output::char_type,char_type>
@@ -603,10 +790,51 @@ inline constexpr void print_define(output bos,basic_lc_all<char_type> const& all
 		print_freestanding(bos,all.identification,"\n\n",
 			all.monetary,"\n\n",
 			all.numeric,"\n\n",
+			all.time,"\n\n",
 			all.messages,"\n\n",
 			all.paper,"\n\n",
 			all.telephone,"\n\n",
 			all.name,"\n\n",
+			all.measurement);
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		print_freestanding(bos,all.identification,L"\n\n",
+			all.monetary,L"\n\n",
+			all.numeric,L"\n\n",
+			all.time,L"\n\n",
+			all.messages,L"\n\n",
+			all.paper,L"\n\n",
+			all.telephone,L"\n\n",
+			all.name,L"\n\n",
+			all.measurement);
+	else if constexpr(std::same_as<char_type,char8_t>)
+		print_freestanding(bos,all.identification,u8"\n\n",
+			all.monetary,u8"\n\n",
+			all.numeric,u8"\n\n",
+			all.time,u8"\n\n",
+			all.messages,u8"\n\n",
+			all.paper,u8"\n\n",
+			all.telephone,u8"\n\n",
+			all.name,u8"\n\n",
+			all.measurement);
+	else if constexpr(std::same_as<char_type,char16_t>)
+		print_freestanding(bos,all.identification,u"\n\n",
+			all.monetary,u"\n\n",
+			all.numeric,u"\n\n",
+			all.time,u"\n\n",
+			all.messages,u"\n\n",
+			all.paper,u"\n\n",
+			all.telephone,u"\n\n",
+			all.name,u"\n\n",
+			all.measurement);
+	else if constexpr(std::same_as<char_type,char32_t>)
+		print_freestanding(bos,all.identification,U"\n\n",
+			all.monetary,U"\n\n",
+			all.numeric,U"\n\n",
+			all.time,U"\n\n",
+			all.messages,U"\n\n",
+			all.paper,U"\n\n",
+			all.telephone,U"\n\n",
+			all.name,U"\n\n",
 			all.measurement);
 }
 
