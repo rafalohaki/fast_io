@@ -25,13 +25,13 @@ void
 #endif
 export_locale_data(lc_locale* lc_ptr) noexcept
 {
-	using lc_all_ptr = [[gnu::may_alias]] lc_all const*;
+	using lc_all_ptr [[gnu::may_alias]] = lc_all const*;
 	lc_all_ptr ptr;
 	if constexpr(compile_time_compare("😀",u8"😀"))
 		ptr=reinterpret_cast<lc_all_ptr>(&u8lc_all_global);
 	else
 		ptr=&lc_all_global;
-	using wlc_all_ptr = [[gnu::may_alias]] wlc_all const*;
+	using wlc_all_ptr [[gnu::may_alias]] = wlc_all const*;
 	wlc_all_ptr wptr;
 	if constexpr(compile_time_compare(u8"😀",L"😀"))
 		wptr=reinterpret_cast<wlc_all_ptr>(&u8lc_all_global);
