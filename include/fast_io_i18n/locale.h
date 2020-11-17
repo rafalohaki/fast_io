@@ -58,24 +58,43 @@ public:
 	constexpr i18n_locale() noexcept=default;
 	i18n_locale(std::string_view locale_name)
 	{
-		if(locale_name.size()>6&&locale_name.substr(locale_name.size()-6,6)==".UTF-8")
-			locale_name=locale_name.substr(0,locale_name.size()-6);
 		std::unique_ptr<char[]> arrptr;
 		char const* loc_name{};
+//There is no way to get environmental variables without thread-safety issues
+
 #ifdef _WIN32
 		if(locale_name=="C"||locale_name=="POSIX")
 			loc_name="fast_io_i18n_data\\locale\\POSIX.dll";
-		else if(locale_name.empty())
-			loc_name="fast_io_i18n_data\\locale_local.dll";
 		else
 		{
-			constexpr std::size_t sz{sizeof("fast_io_i18n_data\\locale\\")-1};
-			std::size_t size{sz+locale_name.size()+sizeof(".dll")};
-			arrptr.reset(new char[size]);
-			memcpy(arrptr.get(),"fast_io_i18n_data\\locale\\",sz);
-			memcpy(arrptr.get()+sz,locale_name.data(),locale_name.size());
-			memcpy(arrptr.get()+sz+locale_name.size(),".dll",sizeof(".dll"));
-			loc_name=arrptr.get();
+			if(locale_name.empty())
+			{
+				loc_name= std::getenv("FAST_IO_I18N_LOCALE");
+				if(loc_name)
+				{
+					loc_name= std::getenv("LANG");
+					if(loc_name==nullptr)
+					{
+						loc_name="fast_io_i18n_data\\locale\\POSIX.dll";
+						goto loading;
+					}
+					locale_name=loc_name;
+					if(locale_name.size()>6&&locale_name.substr(locale_name.size()-6,6)==".UTF-8")
+					{
+						locale_name=locale_name.substr(0,locale_name.size()-6);
+					}
+				}
+			}
+			{
+				constexpr std::size_t sz{sizeof("fast_io_i18n_data\\locale\\")-1};
+				std::size_t size{sz+locale_name.size()+sizeof(".dll")};
+				arrptr.reset(new char[size]);
+				memcpy(arrptr.get(),"fast_io_i18n_data\\locale\\",sz);
+				memcpy(arrptr.get()+sz,locale_name.data(),locale_name.size());
+				memcpy(arrptr.get()+sz+locale_name.size(),".dll",sizeof(".dll"));
+				loc_name=arrptr.get();
+			}
+			loading:;
 		}
 #else
 		if(locale_name=="C"||locale_name=="POSIX")
@@ -86,36 +105,31 @@ public:
 			{
 				loc_name=
 #if defined(_GNU_SOURCE)
-					secure_getenv("FAST_IO_I18N_LOCALE");
+				secure_getenv("FAST_IO_I18N_LOCALE");
 #else
-					getenv("FAST_IO_I18N_LOCALE");
+				std::getenv("FAST_IO_I18N_LOCALE");
 #endif
 				if(loc_name==nullptr)
 				{
 					loc_name=
 #if defined(_GNU_SOURCE)
-					secure_getenv("LC_ALL");
+					secure_getenv("LANG");
 #else
-					getenv("LC_ALL");
+					std::getenv("LANG");
 #endif
 					if(loc_name==nullptr)
 					{
-						loc_name=
-#if defined(_GNU_SOURCE)
-						secure_getenv("LANG");
-#else
-						getenv("LANG");
-#endif
-						if(loc_name==nullptr)
-						{
-							loc_name="/usr/local/lib/fast_io_i18n_data/locale/POSIX.so";
-							goto loading;
-						}
+						loc_name="/usr/local/lib/fast_io_i18n_data/locale/POSIX.so";
+						goto loading;
+					}
+					locale_name=loc_name;
+					if(locale_name.size()>6&&locale_name.substr(locale_name.size()-6,6)==".UTF-8")
+					{
+						locale_name=locale_name.substr(0,locale_name.size()-6);
 					}
 				}
-				locale_name=loc_name;
-				if(locale_name.size()>6&&locale_name.substr(locale_name.size()-6,6)==".UTF-8")
-					locale_name=locale_name.substr(0,locale_name.size()-6);
+				else
+					locale_name=loc_name;
 				if(locale_name=="C"||locale_name=="POSIX")
 				{
 					loc_name="/usr/local/lib/fast_io_i18n_data/locale/POSIX.so";
