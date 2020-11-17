@@ -17,11 +17,9 @@ inline constexpr bool compile_time_compare(char_type1 const (&a)[n1],char_type2 
 }
 
 
-extern "C" 
+extern "C" void
 #ifdef _WIN32
-bool __stdcall __declspec(dllexport)
-#else
-void
+__stdcall __declspec(dllexport)
 #endif
 export_locale_data(lc_locale* lc_ptr) noexcept
 {
@@ -42,9 +40,6 @@ export_locale_data(lc_locale* lc_ptr) noexcept
 	else
 		wptr=&wlc_all_global;
 	*lc_ptr={ptr,wptr,&u8lc_all_global,&u16lc_all_global,&u32lc_all_global};
-#ifdef _WIN32
-	return true;
-#endif
 }
 
 }
