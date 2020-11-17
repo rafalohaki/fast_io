@@ -10,23 +10,6 @@
 namespace fast_io
 {
 
-namespace details
-{
-
-struct close_dll
-{
-	void operator()(void* handle) const noexcept
-	{
-		if(handle)[[likely]]
-#ifdef _WIN32
-			fast_io::win32::FreeLibrary(handle);
-#else
-			dlclose(handle);	
-#endif
-	}
-};
-
-}
 
 #ifndef _WIN32
 
@@ -49,6 +32,40 @@ public:
 }
 
 #endif
+namespace details
+{
+
+struct close_dll
+{
+	void operator()(void* handle) const noexcept
+	{
+		if(handle)[[likely]]
+#ifdef _WIN32
+			fast_io::win32::FreeLibrary(handle);
+#else
+			dlclose(handle);	
+#endif
+	}
+};
+
+inline void load_lc_locale(void* dll_handle,lc_locale& loc)
+{
+#ifdef _WIN32
+	auto func(bit_cast<void __stdcall(*)(lc_locale*) noexcept >(fast_io::win32::GetProcAddress(dll_handle,"export_locale_data")));
+#else
+	auto func(bit_cast<void (*)(lc_locale*) noexcept >(dlsym(dll_handle,"export_locale_data")));
+#endif
+
+	if(func==nullptr)
+#ifdef _WIN32
+		throw_win32_error();
+#else
+		throw_posix_dl_error();
+#endif
+	func(std::addressof(loc));
+}
+
+}
 
 class i18n_locale
 {
@@ -69,21 +86,29 @@ public:
 		{
 			if(locale_name.empty())
 			{
-				loc_name= std::getenv("FAST_IO_I18N_LOCALE");
-				if(loc_name)
+				constexpr std::size_t prefix_length(sizeof(L"fast_io_i18n_data\\locale\\")/sizeof(wchar_t)-1);
+				constexpr std::size_t total_length(prefix_length+256+sizeof(L".dll"));
+				wchar_t buffer[total_length]=L"fast_io_i18n_data\\locale\\";
+				wchar_t* start{buffer+prefix_length};
+				std::size_t sz{static_cast<std::size_t>(win32::GetUserDefaultLocaleName(start,256))};
+				if(!sz)
 				{
-					loc_name= std::getenv("LANG");
-					if(loc_name==nullptr)
-					{
-						loc_name="fast_io_i18n_data\\locale\\POSIX.dll";
-						goto loading;
-					}
-					locale_name=loc_name;
-					if(locale_name.size()>6&&locale_name.substr(locale_name.size()-6,6)==".UTF-8")
-					{
-						locale_name=locale_name.substr(0,locale_name.size()-6);
-					}
+					loc_name="fast_io_i18n_data\\locale\\POSIX.dll";
+					goto loading;
 				}
+				for(std::size_t i{};i!=sz;++i)
+					if(start[i]==L'-')
+						start[i]=L'_';			
+				memcpy(start+sz,L".dll",sizeof(L".dll"));
+				std::unique_ptr<void,details::close_dll> ptr{win32::LoadLibraryW(buffer)};
+				if(!ptr)
+				{
+					loc_name="fast_io_i18n_data\\locale\\POSIX.dll";
+					goto loading;
+				}
+				details::load_lc_locale(ptr.get(),loc);
+				dll_handle=ptr.release();
+				return;
 			}
 			{
 				constexpr std::size_t sz{sizeof("fast_io_i18n_data\\locale\\")-1};
@@ -105,31 +130,20 @@ public:
 			{
 				loc_name=
 #if defined(_GNU_SOURCE)
-				secure_getenv("FAST_IO_I18N_LOCALE");
+				secure_getenv("LANG");
 #else
-				std::getenv("FAST_IO_I18N_LOCALE");
+				std::getenv("LANG");
 #endif
 				if(loc_name==nullptr)
 				{
-					loc_name=
-#if defined(_GNU_SOURCE)
-					secure_getenv("LANG");
-#else
-					std::getenv("LANG");
-#endif
-					if(loc_name==nullptr)
-					{
-						loc_name="/usr/local/lib/fast_io_i18n_data/locale/POSIX.so";
-						goto loading;
-					}
-					locale_name=loc_name;
-					if(locale_name.size()>6&&locale_name.substr(locale_name.size()-6,6)==".UTF-8")
-					{
-						locale_name=locale_name.substr(0,locale_name.size()-6);
-					}
+					loc_name="/usr/local/lib/fast_io_i18n_data/locale/POSIX.so";
+					goto loading;
 				}
-				else
-					locale_name=loc_name;
+				locale_name=loc_name;
+				if(locale_name.size()>6&&locale_name.substr(locale_name.size()-6,6)==".UTF-8")
+				{
+					locale_name=locale_name.substr(0,locale_name.size()-6);
+				}
 				if(locale_name=="C"||locale_name=="POSIX")
 				{
 					loc_name="/usr/local/lib/fast_io_i18n_data/locale/POSIX.so";
@@ -161,25 +175,7 @@ public:
 #else
 			throw_posix_dl_error();
 #endif
-
-#ifdef _WIN32
-		auto func(bit_cast<bool __stdcall(*)(lc_locale*) noexcept >(fast_io::win32::GetProcAddress(ptr.get(),"export_locale_data")));
-#else
-		auto func(bit_cast<void (*)(lc_locale*) noexcept >(dlsym(ptr.get(),"export_locale_data")));
-#endif
-
-		if(func==nullptr)
-#ifdef _WIN32
-			throw_win32_error();
-#else
-			throw_posix_dl_error();
-#endif
-#ifdef _WIN32
-		if(!func(std::addressof(loc)))
-			throw_win32_error();
-#else
-		func(std::addressof(loc));
-#endif
+		details::load_lc_locale(ptr.get(),loc);
 		dll_handle=ptr.release();
 	}
 	constexpr i18n_locale(i18n_locale const&)=delete;

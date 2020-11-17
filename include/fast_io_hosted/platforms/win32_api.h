@@ -247,6 +247,10 @@ std::uint32_t    nFileIndexLow;
 
 inline int __stdcall GetFileInformationByHandle(void* __restrict,by_handle_file_information* __restrict) noexcept;
 
+int __stdcall GetUserDefaultLocaleName(wchar_t*,int) noexcept;
+
+void* __stdcall LoadLibraryW(wchar_t const*) noexcept;
+
 }
 
 
