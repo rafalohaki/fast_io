@@ -20,7 +20,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 set(BUILD_STATIC_LIBS OFF)
 
-if(BUILD_SHARED_LIBS)
+
 set(CMAKE_SHARED_LIBRARY_PREFIX "")
 set(CMAKE_STATIC_LIBRARY_PREFIX "")
 add_library(aa_DJ SHARED src/i18n_data/locale/aa_DJ.cc)
@@ -394,12 +394,11 @@ add_library(zh_HK SHARED src/i18n_data/locale/zh_HK.cc)
 add_library(zh_SG SHARED src/i18n_data/locale/zh_SG.cc)
 add_library(zh_TW SHARED src/i18n_data/locale/zh_TW.cc)
 add_library(zu_ZA SHARED src/i18n_data/locale/zu_ZA.cc)
-endif()
+
 
 INSTALL (DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION include)
 INSTALL (DIRECTORY ${CMAKE_SOURCE_DIR}/man/ DESTINATION man/man3)
 
-if(BUILD_SHARED_LIBS)
 install(TARGETS aa_DJ LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
 install(TARGETS aa_ER LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
 install(TARGETS aa_ER_saaho LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
@@ -738,4 +737,3 @@ install(TARGETS zh_HK LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
 install(TARGETS zh_SG LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
 install(TARGETS zh_TW LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
 install(TARGETS zu_ZA LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
-endif()
