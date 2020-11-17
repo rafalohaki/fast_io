@@ -237,4 +237,23 @@ struct lc_locale
 	u32lc_all const* u32all{};
 };
 
+template<std::integral char_type>
+requires (std::same_as<char_type,char>||std::same_as<char_type,wchar_t>||
+	std::same_as<char_type,char8_t>||std::same_as<char_type,char16_t>||std::same_as<char_type,char32_t>)
+inline constexpr basic_lc_all<char_type> const* get_all(lc_locale const& loc) noexcept
+{
+	if constexpr(std::same_as<char_type,char>)
+		return loc.all;
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		return loc.wall;
+	else if constexpr(std::same_as<char_type,char8_t>)
+		return loc.u8all;
+	else if constexpr(std::same_as<char_type,char16_t>)
+		return loc.u16all;
+	else if constexpr(std::same_as<char_type,char32_t>)
+		return loc.u32all;
+	else
+		return {};
+}
+
 }
