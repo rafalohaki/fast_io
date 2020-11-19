@@ -121,6 +121,38 @@ int main()
 }
 .EE
 .in -8n
+The best practice (with fast_io) to print char const * ("Hello world!") to C's stdout:
+.PP
+.in +8n
+.EX
+#include <fast_io.h>
+
+int main()
+{
+	char const *str = "Hello world!";
+	
+	println("str = ", str); // this will print the pointer's value instead of the string. See the correct solutions above:
+	println("str = ", std::string_view(str)); // use std::string_view instead
+	println("str = ", fast_io::chvw(str));    // use  fast_io::chvw()
+}
+.EE
+.in -8n
+.PP
+print char to C's stdout:
+.PP
+.in +8n
+.EX
+#include <fast_io.h>
+
+int main()
+{
+	char ch = 'Y';
+	println(ch); // this will print the ASCII code (89) of 'Y' instead character 'Y'
+	println(std::chvw(ch)); // this can print 'Y'
+}
+.EE
+.in -8n
+.PP
 .SH SEE ALSO
 .BR native_file (3),
 .BR c_file (3),
