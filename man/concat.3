@@ -151,10 +151,33 @@ int main()
 .EE
 .in -8n
 .PP
+generate string with percision:
+.PP
+.in +8n
+.EX
+#include <fast_io.h>
+
+int main() 
+{
+    double value;
+    print("Enter a double: ");
+    scan(value);
+    std::string str;
+    fast_io::ostring_ref ref(str);
+    println(ref, "integer: ", 40,
+    		   "\nscientific: ", value,
+    		   "\nscientific with percision 3: ",fast_io::scientific(value, 3),
+    		   "\nfixed: ", fast_io::fixed(value),
+    		   "\nfixed with percision 3: ", fast_io::fixed(value, 3));
+    println("with percision: ", str);
+}
+.EE
+.in -8n
+.PP
 
 .SH SEE ALSO
-.BR print (3)
-.BR chvw (3)
+.BR print (3),
+.BR chvw (3),
 .BR to (3)
 .SH COLOPHON
 This page is part of 2628 version of the
