@@ -19,7 +19,11 @@ namespace fast_io
 
 template<std::integral T>
 requires ((std::unsigned_integral<T>&&sizeof(T)==2)||sizeof(T)==1)
-inline constexpr std::size_t utf_get_code_units(char32_t cdpt, T* pDst) noexcept
+inline constexpr std::size_t utf_get_code_units(char32_t cdpt, T* pDst)
+/*
+ noexcept
+Has not done. Cannot be noexcept
+*/
 {
 	if constexpr(sizeof(T)==2)
 	{
