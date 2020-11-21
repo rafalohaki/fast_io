@@ -58,7 +58,7 @@ inline constexpr void scatter_print_with_reserve_recursive_unit(char_type*& star
 	else
 	{
 #ifdef __SANITIZE_ADDRESS__
-		constexpr std::size_t sz{print_reserve_size(io_reserve_type<char_type,real_type>())};
+		constexpr std::size_t sz{print_reserve_size(io_reserve_type<char_type,real_type>)};
 		std::array<char_type,sz> sanitize_buffer;
 		auto dt{print_reserve_define(io_reserve_type<char_type,real_type>,sanitize_buffer.data(),t)};
 		auto end_ptr{non_overlapped_copy_n(sanitize_buffer,static_cast<std::size_t>(dt-sanitize_buffer.data()),start_ptr)};
