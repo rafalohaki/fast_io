@@ -31,7 +31,7 @@ struct io_reference_wrapper
 		return ptr->unlocked_handle();
 	}
 };
-template<stream strm>
+template<typename strm>
 inline constexpr auto io_ref(strm& stm) noexcept
 {
 	if constexpr(value_based_stream<std::remove_cvref_t<strm>>)
@@ -253,24 +253,6 @@ template<fill_nc_output_stream T>
 constexpr void fill_nc_define(io_reference_wrapper<T> fnc,std::size_t n,typename std::remove_cvref_t<T>::char_type ch)
 {
 	fill_nc_define(*fnc.ptr,n,ch);
-}
-
-template<status_output_stream output,typename... Args>
-inline constexpr void print_status_define(io_reference_wrapper<output> out,Args&& ...args)
-{
-	print_status_define(*out.ptr,std::forward<Args>(args)...);
-}
-
-template<status_output_stream output,typename... Args>
-inline constexpr void println_status_define(io_reference_wrapper<output> out,Args&& ...args)
-{
-	println_status_define(*out.ptr,std::forward<Args>(args)...);
-}
-
-template<bool rac=false,status_input_stream input,typename... Args>
-inline constexpr void scan_status_define(io_reference_wrapper<input> out,Args&& ...args)
-{
-	scan_status_define<rac>(*out.ptr,std::forward<Args>(args)...);
 }
 
 }

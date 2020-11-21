@@ -116,8 +116,10 @@ template<input_stream input,typename... Args>
 		details::lock_guard lg{in};
 		return scan_freestanding_decay(in.unlocked_handle(),args...);
 	}
+#if 0
 	else if constexpr(status_input_stream<input>)
 		return scan_status_define(in,args...);
+#endif
 	else
 		return (details::scan_single_impl(in,args)||...);
 }

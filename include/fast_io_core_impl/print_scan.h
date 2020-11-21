@@ -189,8 +189,10 @@ inline constexpr auto scan(input &&in,Args&& ...args)
 		details::lock_guard lg{in};
 		return scan<report_eof>(in.unlocked_handle(),std::forward<Args>(args)...);
 	}
+#if 0
 	else if constexpr(status_input_stream<input>)
 		return scan_status_define<report_eof>(in,std::forward<Args>(args)...);
+#endif
 	else if constexpr(!character_input_stream<input>)
 	{
 		single_character_input_buffer<std::remove_cvref_t<input>> scib{in};

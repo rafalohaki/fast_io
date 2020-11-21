@@ -337,25 +337,22 @@ inline constexpr void print_fallback(output out,Args ...args)
 	}
 }
 
-}
 
 template<output_stream output,typename ...Args>
 requires (std::is_trivially_copyable_v<output>&&(std::is_trivially_copyable_v<Args>&&...))
-inline constexpr void print_freestanding_decay(output out,Args ...args)
+inline constexpr void print_freestanding_decay_normal(output out,Args ...args)
 {
 	if constexpr(mutex_stream<output>)
 	{
-		details::lock_guard lg{out};
+		lock_guard lg{out};
 		decltype(auto) dout{out.unlocked_handle()};
 		print_freestanding_decay(io_ref(dout),args...);
 	}
-	else if constexpr(status_output_stream<output>)
-		print_status_define(out,args...);
 	else if constexpr(((printable<output,Args>||reserve_printable<typename output::char_type,Args>)&&...)&&(sizeof...(Args)==1||buffer_output_stream<output>))
 	{
 		if constexpr(sizeof...(Args)==1||(!maybe_buffer_output_stream<output>))
 		{
-			(details::decay::print_control(out,args),...);
+			(print_control(out,args),...);
 		}
 		else
 		{
@@ -363,15 +360,27 @@ inline constexpr void print_freestanding_decay(output out,Args ...args)
 			{
 				if(!obuffer_is_active(out))[[unlikely]]
 				{
-					details::decay::print_fallback<false>(out,args...);
+					print_fallback<false>(out,args...);
 					return;
 				}
 			}
-			(details::decay::print_control(out,args),...);
+			(print_control(out,args),...);
 		}
 	}
 	else
-		details::decay::print_fallback<false>(out,args...);
+		print_fallback<false>(out,args...);
+}
+
+}
+
+template<typename output,typename ...Args>
+requires (output_stream<output>||status_output_stream<output>)&&(std::is_trivially_copyable_v<output>&&(std::is_trivially_copyable_v<Args>&&...))
+inline constexpr void print_freestanding_decay(output out,Args ...args)
+{
+	if constexpr(status_output_stream<output>)
+		print_status_define(out,args...);
+	else if constexpr(output_stream<output>)
+		details::decay::print_freestanding_decay_normal(out,args...);
 }
 
 template<std::integral char_type,typename T>
@@ -385,24 +394,26 @@ inline constexpr decltype(auto) io_print_alias(T&& t)
 		return std::forward<T>(t);
 }
 
-template<output_stream output,typename ...Args>
+template<typename output,typename ...Args>
+requires (output_stream<output>||status_output_stream<output>)
 inline constexpr void print_freestanding(output&& out,Args&& ...args)
 {
 	print_freestanding_decay(io_ref(out),io_forward(io_print_alias<typename std::remove_cvref_t<output>::char_type>(args))...);
 }
 
 
-template<output_stream output,typename ...Args>
+template<typename output,typename ...Args>
+requires (output_stream<output>||status_output_stream<output>)
 inline constexpr void println_freestanding_decay(output out,Args ...args)
 {
-	if constexpr(mutex_stream<output>)
+	if constexpr(status_output_stream<output>)
+		println_status_define(out,args...);
+	else if constexpr(mutex_stream<output>)
 	{
 		details::lock_guard lg{out};
 		decltype(auto) dout{out.unlocked_handle()};
 		println_freestanding_decay(io_ref(dout),args...);
 	}
-	else if constexpr(status_output_stream<output>)
-		println_status_define(out,args...);
 	else if constexpr((sizeof...(Args)==1&&(reserve_printable<typename output::char_type,Args>&&...))||
 	((printable<output,Args>&&...)&&buffer_output_stream<output>))
 	{
@@ -453,7 +464,7 @@ inline constexpr void println_freestanding_decay(output out,Args ...args)
 			}
 		}
 	}
-	else
+	else if constexpr(output_stream<output>)
 		details::decay::print_fallback<true>(out,args...);
 }
 

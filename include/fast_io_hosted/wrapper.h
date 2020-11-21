@@ -30,11 +30,9 @@ template<input_stream T>
 using input_file_wrapper = basic_file_wrapper<T,open_mode::in>;
 template<output_stream T>
 using output_file_wrapper = basic_file_wrapper<T,open_mode::out>;
-template<io_stream T>
-using io_file_wrapper = basic_file_wrapper<T,open_mode::in|open_mode::out>;
 
 template<stream T>
-using io_dir_file_wrapper = basic_file_wrapper<T,open_mode::directory>;
+using directory_file_wrapper = basic_file_wrapper<T,open_mode::directory>;
 
 
 }
