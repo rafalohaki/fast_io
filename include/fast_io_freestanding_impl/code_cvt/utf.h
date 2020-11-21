@@ -182,6 +182,7 @@ inline constexpr to_iter utf_code_convert_details(from_iter& p_src_begin_iter,fr
 				}
 				else
 				{
+#if 0
 					if constexpr(sizeof(std::iter_value_t<to_iter>)==4)
 					{
 						*p_dst=0xFFFD;
@@ -189,6 +190,13 @@ inline constexpr to_iter utf_code_convert_details(from_iter& p_src_begin_iter,fr
 					}
 					else
 						p_dst+=utf_get_code_units(cdpt, p_dst);
+#else
+#ifdef __cpp_exceptions
+					throw fast_io_text_error("illegal utf8");
+#else
+					fast_terminate();
+#endif
+#endif
 				}
 			}
 		}
