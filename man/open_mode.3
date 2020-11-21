@@ -1,0 +1,124 @@
+.\" Manpage for fast_io::concat
+.\" Contact euloanty@live.com or pssvv4@gmail.com to correct errors of typos
+.TH CONCAT 3 2020-11-20 "fast_io" "C++ Programmer's Manual"
+.SH "NAME"
+open_mode -- mode control for fast_io devices.
+.SH "SYNOPSIS"
+.nf
+.B #include <fast_io_device.h>
+.PP
+.BI none
+.BI app
+.BI archive
+.BI binary
+.BI case_insensitive
+.BI compressed
+.BI create
+.BI direct
+.BI directory
+.BI encrypted
+.BI excl
+.BI follow
+.BI hidden
+.BI inherit
+.BI no_atime
+.BI no_block
+.BI no_ctty
+.BI no_recall
+.BI normal
+.BI offline
+.BI out
+.BI path
+.BI random_access
+.BI search
+.BI session_aware
+.BI sync
+.BI system
+.BI temporary
+.BI trunc
+.BI tty_init
+.PP
+.SH INITIALIZATION
+
+.PP
+.SH DESCRIPTION
+native_file is an alias of current platform native file. Depending on your platform, native_file can be an alias of either
+.PP
+.SH RETURN VALUE
+.BR native_file have no return value. It's a observer.
+.SH THREAD SAFETY
+
+.SH PROCESS SAFETY
+native_file guarantees for process safety.
+
+.SH EXCEPTIONS
+
+.PP
+.SH EXAMPLE
+
+
+.SH SEE ALSO
+.BR native_file (3),
+.BR native_pipe (3),
+.BR dir_file (3),
+.BR win32_file (3),
+.BR posix_file (3),
+.BR ibuf_file (3),
+.BR obuf_file (3),
+.BR iobuf_file (3),
+.BR ibuf_file_mutex (3),
+.BR obuf_file_mutex (3),
+.BR iobuf_file_mutex (3),
+.BR ibuf_text_file (3),
+.BR obuf_text_file (3),
+.BR basic_ibuf_utf (3),
+.BR basic_obuf_utf (3),
+.BR basic_ibuf_utf_file (3),
+.BR basic_obuf_utf_file (3),
+.BR ibuf_utf8_file (3),
+.BR obuf_utf8_file (3),
+.BR native_memory_map_file (3)
+.SH COLOPHON
+This page is part of 2628 version of the
+.I fast_io
+project.
+Wiki can be found out in https://github.com/expnkx/fast_io/wiki
+
+
+
+
+.SH OPEN-MODE
+.PP
+.B #include <fast_io_device.h>
+.PP
+.BI none
+.BI app
+.BI archive
+.BI binary
+.BI case_insensitive
+.BI compressed
+.BI create
+.BI direct
+.BI directory
+.BI encrypted
+.BI excl
+.BI follow
+.BI hidden
+.BI inherit
+.BI no_atime
+.BI no_block
+.BI no_ctty
+.BI no_recall
+.BI normal
+.BI offline
+.BI out
+.BI path
+.BI random_access
+.BI search
+.BI session_aware
+.BI sync
+.BI system
+.BI temporary
+.BI trunc
+.BI tty_init
+.PP
