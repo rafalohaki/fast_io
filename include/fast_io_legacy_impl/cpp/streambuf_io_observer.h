@@ -78,7 +78,21 @@ inline void flush(basic_general_streambuf_io_observer<T> h)
 		throw_posix_error(EIO);
 }
 
+#if __cpp_lib_three_way_comparison >= 201907L
 
+template<typename T>
+inline constexpr bool operator==(basic_general_streambuf_io_observer<T> a,basic_general_streambuf_io_observer<T> b)
+{
+	return a.fb==b.fb;
+}
+
+template<typename T>
+inline constexpr auto operator<=>(basic_general_streambuf_io_observer<T> a,basic_general_streambuf_io_observer<T> b)
+{
+	return a.fb<=>b.fb;
+}
+
+#endif
 
 template<typename T>
 requires async_stream<basic_c_io_observer_unlocked<typename T::char_type>>

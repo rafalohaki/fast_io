@@ -301,6 +301,22 @@ public:
 	}
 };
 
+#if __cpp_lib_three_way_comparison >= 201907L
+
+template<std::integral ch_type>
+inline constexpr bool operator==(basic_win32_io_observer<ch_type> a,basic_win32_io_observer<ch_type> b)
+{
+	return a.handle==b.handle;
+}
+
+template<std::integral ch_type>
+inline constexpr auto operator<=>(basic_win32_io_observer<ch_type> a,basic_win32_io_observer<ch_type> b)
+{
+	return a.handle<=>b.handle;
+}
+
+#endif
+
 template<std::integral ch_type>
 inline constexpr nt_at_entry at(basic_win32_io_observer<ch_type> wiob) noexcept
 {

@@ -8,7 +8,9 @@
 #include<limits>
 #include<cstdint>
 //I know functions like memcpy would probably not be provided in freestanding environment. However, you can implement them on these platforms.
-
+#if __cpp_lib_three_way_comparison >= 201907L
+#include<compare>
+#endif
 
 //The C++20 standard does not require these headers to be freestanding.
 //However, they are clearly necessary and usable even in freestanding environment.
