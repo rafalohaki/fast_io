@@ -358,6 +358,45 @@ struct ps_attribute_list
 	ps_attribute Attributes[2];
 };
 
+struct section_image_information
+{
+	void* TransferAddress;
+	std::uint32_t ZeroBits;
+	std::size_t MaximumStackSize;
+	std::size_t CommittedStackSize;
+	std::uint32_t SubSystemType;
+	union
+	{
+		struct
+		{
+			std::uint16_t SubSystemMinorVersion;
+			std::uint16_t SubSystemMajorVersion;
+		};
+		std::uint32_t SubSystemVersion;
+	};
+	std::uint32_t GpValue;
+	std::uint16_t ImageCharacteristics;
+	std::uint16_t DllCharacteristics;
+	std::uint16_t Machine;
+	int ImageContainsCode;
+	union
+	{
+		char unsigned ImageFlags;
+		struct
+		{
+			char unsigned ComPlusNativeReady : 1;
+			char unsigned ComPlusILOnly : 1;
+			char unsigned ImageDynamicallyRelocated : 1;
+			char unsigned ImageMappedFlat : 1;
+			char unsigned BaseBelow4gb : 1;
+			char unsigned Reserved : 3;
+		};
+	};
+	std::uint32_t LoaderFlags;
+	std::uint32_t ImageFileSize;
+	std::uint32_t CheckSum;
+};
+
 template<bool zw,typename... Args>
 requires (sizeof...(Args)==11)
 inline auto nt_create_user_process(Args&& ...args) noexcept
@@ -584,39 +623,12 @@ struct client_id
 	void* hthread;
 };
 
-template<bool zw,typename... Args>
-requires (sizeof...(Args)==8)
-inline auto nt_create_thread(Args&& ...args) noexcept
-{
-/*
-Referenced From
-https://github.com/Mattiwatti/BSOD10/blob/b43bc139e97fd7019315e8771fa809f58f7bd53e/src/ntdll.h
-
-NTSYSCALLAPI
-NTSTATUS
-NTAPI
-NtCreateThread(
-	_Out_ PHANDLE ThreadHandle,
-	_In_ ACCESS_MASK DesiredAccess,
-	_In_opt_ POBJECT_ATTRIBUTES ObjectAttributes,
-	_In_ HANDLE ProcessHandle,
-	_Out_ PCLIENT_ID ClientId,
-	_In_ PCONTEXT ThreadContext,
-	_In_ PINITIAL_TEB InitialTeb,
-	_In_ BOOLEAN CreateSuspended
-	);
-*/
-	constexpr char8_t const* func_name{zw?u8"ZwCreateThread":u8"NtCreateThread"};
-	return (get_nt_module_handle<std::uint32_t __stdcall(void** __restrict,std::uint32_t,object_attributes*,
-		void* __restrict,client_id* __restrict,void* __restrict,void* __restrict,int) noexcept>(func_name))(std::forward<Args>(args)...);
-}
-
 using pio_apc_routine = void (*)(void*,io_status_block*,std::uint32_t);
 //typedef VOID (NTAPI *PIO_APC_ROUTINE)(PVOID ApcContext,PIO_STATUS_BLOCK IoStatusBlock,ULONG Reserved);
 
 template<bool zw,typename... Args>
 requires (sizeof...(Args)==9)
-inline auto nt_write_file(Args&& ...args)
+inline auto nt_write_file(Args&& ...args) noexcept
 {
 /*
 __kernel_entry NTSYSCALLAPI NTSTATUS NtWriteFile(
@@ -634,6 +646,20 @@ __kernel_entry NTSYSCALLAPI NTSTATUS NtWriteFile(
 	constexpr char8_t const* func_name{zw?u8"ZwWriteFile":u8"NtWriteFile"};
 	return (get_nt_module_handle<std::uint32_t __stdcall(void*,void*,pio_apc_routine,void*,io_status_block*,
 				void const*,std::uint32_t,std::int64_t*,std::uint32_t*) noexcept>(func_name))(std::forward<Args>(args)...);
+}
+
+template<typename... Args>
+requires (sizeof...(Args)==10)
+inline auto rtl_create_user_thread(Args&& ...args) noexcept
+{
+	return (get_nt_module_handle<std::uint32_t __stdcall(void*,void*,int,std::uint32_t,std::size_t,std::size_t,void*,void*,void**,client_id*) noexcept>(u8"RtlCreateUserThread"))(std::forward<Args>(args)...);
+}
+
+template<typename... Args>
+requires (sizeof...(Args)==3)
+inline auto rtl_p_init_environment(Args&& ...args) noexcept
+{
+	return (get_nt_module_handle<std::uint32_t __stdcall(void*,void*,rtl_user_process_parameters*) noexcept>(u8"RtlpInitEnvironment"))(std::forward<Args>(args)...);
 }
 
 template<bool zw,typename... Args>
@@ -831,6 +857,22 @@ __kernel_entry NTSYSCALLAPI NTSTATUS NtQueryDirectoryFile(
 	constexpr char8_t const* func_name{zw?u8"ZwQueryDirectoryFile":u8"NtQueryDirectoryFile"};
 	return (get_nt_module_handle<std::uint32_t __stdcall(void*,void*,pio_apc_routine,void*,io_status_block*,
 				void*,std::uint32_t,file_information_class,int,unicode_string*,int) noexcept>(func_name))(std::forward<Args>(args)...);
+}
+
+enum class section_information_class
+{
+SectionBasicInformation,
+SectionImageInformation,
+SectionRelocationInformation,
+MaxSectionInfoClass
+};
+
+template<bool zw,typename... Args>
+requires (sizeof...(Args)==5)
+inline auto nt_query_section(Args&& ...args) noexcept
+{
+	constexpr char8_t const* func_name{zw?u8"ZwQuerySection":u8"NtQuerySection"};
+	return (get_nt_module_handle<std::uint32_t __stdcall(void*,section_information_class,void*,std::size_t,std::size_t*) noexcept>(func_name))(std::forward<Args>(args)...);
 }
 
 template<bool zw,typename... Args>
