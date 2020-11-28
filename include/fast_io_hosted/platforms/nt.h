@@ -631,7 +631,7 @@ public:
 			this->native_handle()=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
 		}
 	}
-	basic_nt_family_io_handle(basic_nt_family_io_handle const& other):basic_nt_family_io_observer<family,ch_type>(win32::nt::details::nt_dup_impl(other.handle)){}
+	basic_nt_family_io_handle(basic_nt_family_io_handle const& other):basic_nt_family_io_observer<family,ch_type>(win32::nt::details::nt_dup_impl<family==nt_family::zw>(other.handle)){}
 	basic_nt_family_io_handle& operator=(basic_nt_family_io_handle const& other)
 	{
 		this->handle=win32::nt::details::nt_dup2_impl<family==nt_family::zw>(other.handle,this->handle);
@@ -663,9 +663,8 @@ public:
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	explicit constexpr basic_nt_family_file(native_hd hd):basic_nt_family_io_handle<family,ch_type>(hd){}
 	explicit basic_nt_family_file(io_dup_t,basic_nt_family_io_observer<family,ch_type> wiob):
-		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_dup_impl(wiob.handle))
+		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_dup_impl<family==nt_family::zw>(wiob.handle))
 	{}
-
 	explicit basic_nt_family_file(cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_create_file_impl<family==nt_family::zw>(filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
 	{
