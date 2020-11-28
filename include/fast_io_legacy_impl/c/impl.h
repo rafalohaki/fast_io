@@ -963,27 +963,6 @@ inline decltype(auto) zero_copy_out_handle(basic_c_io_observer_unlocked<ch_type>
 
 }
 
-namespace std
-{
-template<integral char_type>
-struct hash<fast_io::basic_c_io_observer<char_type>>
-{
-inline constexpr size_t operator()(fast_io::basic_c_io_observer<char_type> niob) noexcept
-{
-	return hash<FILE*>{}(niob.fp);
-}
-};
-
-template<integral char_type>
-struct hash<fast_io::basic_c_io_observer_unlocked<char_type>>
-{
-inline constexpr size_t operator()(fast_io::basic_c_io_observer<char_type> niob) noexcept
-{
-	return hash<FILE*>{}(niob.fp);
-}
-};
-}
-
 #if defined(_MSC_VER)||defined(_UCRT)
 #include"universal_crt.h"
 #elif defined(__WINNT__)
