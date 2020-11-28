@@ -434,22 +434,25 @@ struct file_lock_guard
 	file_lock_guard& operator=(file_lock_guard const&)=delete;
 	~file_lock_guard()
 	{
-		win32::overlapped overlap{};
-		win32::UnlockFileEx(handle,0,UINT32_MAX,UINT32_MAX,std::addressof(overlap));
+		if(handle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))
+		{
+			win32::overlapped overlap{};
+			win32::UnlockFileEx(handle,0,UINT32_MAX,UINT32_MAX,std::addressof(overlap));
+		}
 	}
 };
 
-inline std::size_t readv_impl(void* __restrict handle,std::span<io_scatter_t const> sp)
+inline io_scatter_status_t scatter_read_impl(void* __restrict handle,std::span<io_scatter_t const> sp)
 {
-	std::size_t has_read{};
-	for(auto const& e : sp)
+	std::size_t total_size{};
+	for(std::size_t i{};i!=sp.size();++i)
 	{
-		std::size_t read_this_round{read_impl(handle,const_cast<void*>(e.base),e.len)};
-		has_read+=read_this_round;
-		if(read_this_round<e.len)[[unlikely]]
-			break;
+		std::size_t pos_in_span{read_impl(handle,const_cast<void*>(sp[i].base),sp[i].len)};
+		total_size+=pos_in_span;
+		if(pos_in_span<sp[i].len)[[unlikely]]
+			return {total_size,i,pos_in_span};
 	}
-	return has_read;
+	return {total_size,sp.size()};
 }
 
 inline std::uint32_t write_simple_impl(void* __restrict handle,void const* __restrict cbegin,std::size_t to_write)
@@ -484,26 +487,28 @@ inline std::size_t write_nolock_impl(void* __restrict handle,void const* __restr
 	}
 }
 
+inline std::size_t write_lock_impl(void* __restrict handle,void const* __restrict cbegin,std::size_t to_write)
+{
+	win32::overlapped overlap{};
+	file_lock_guard gd{
+		win32::LockFileEx(handle,0x00000002,0,UINT32_MAX,UINT32_MAX,std::addressof(overlap))?
+		handle:
+		reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))
+	};
+	return write_nolock_impl(handle,cbegin,to_write);
+}
+
 inline std::size_t write_impl(void* __restrict handle,void const* __restrict cbegin,std::size_t to_write)
 {
-	if constexpr(4<sizeof(std::size_t))		//above the size of std::uint32_t, unfortunately, we cannot guarantee the atomicity of syscall
+	if constexpr(4<sizeof(std::size_t))
 	{
-		if(static_cast<std::size_t>(UINT32_MAX)<to_write)
-		{
-			win32::overlapped overlap{};
-			if(win32::LockFileEx(handle,0x00000002,0,UINT32_MAX,UINT32_MAX,std::addressof(overlap)))
-			{
-				file_lock_guard lg{handle};
-				return write_nolock_impl(handle,cbegin,to_write);
-			}
-			else
-				return write_nolock_impl(handle,cbegin,to_write);
-		}
+		if(static_cast<std::size_t>(UINT32_MAX)<to_write)[[unlikely]]
+			return write_lock_impl(handle,cbegin,to_write);
 		else
 			return write_simple_impl(handle,cbegin,to_write);
 	}
 	else
-		return write_nolock_impl(handle,cbegin,to_write);
+		return write_simple_impl(handle,cbegin,to_write);
 }
 
 inline std::uintmax_t seek_impl(void* handle,std::intmax_t offset,seekdir s)
@@ -514,108 +519,23 @@ inline std::uintmax_t seek_impl(void* handle,std::intmax_t offset,seekdir s)
 	return distance_to_move_high;
 }
 
-inline std::size_t write_v_unhappy_path_impl(void* __restrict handle,std::span<io_scatter_t const> sp)
+inline io_scatter_status_t scatter_write_impl(void* __restrict handle,std::span<io_scatter_t const> sp)
 {
-	std::size_t total_bytes{};
-	constexpr std::size_t pipe_size_limits{33525760U};
-	bool ok{true};
-	for(auto const& e : sp)
+	win32::overlapped overlap{};
+	file_lock_guard gd{
+		win32::LockFileEx(handle,0x00000002,0,UINT32_MAX,UINT32_MAX,std::addressof(overlap))?
+		handle:
+		reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))
+	};
+	std::size_t total_size{};
+	for(std::size_t i{};i!=sp.size();++i)
 	{
-		total_bytes+=e.len;
-		if(e.len<pipe_size_limits)
-			ok=false;
+		std::size_t written{write_nolock_impl(handle,sp[i].base,sp[i].len)};
+		total_size+=written;
+		if(sp[i].len<written)[[unlikely]]
+			return {total_size,i,written};
 	}
-	if(!total_bytes)
-		return 0;
-	if(ok)
-	{
-		std::size_t written{};
-		for(auto const& e : sp)
-			if(e.len)
-			{
-				std::size_t written_this_round{write_nolock_impl(handle,e.base,e.len)};
-				written+=written_this_round;
-				if(written_this_round<e.len)
-					break;
-			}
-		return written;
-	}
-	std::size_t buffer_size{pipe_size_limits<total_bytes?pipe_size_limits:total_bytes};
-	std::unique_ptr<std::byte[]> buffer{new std::byte[buffer_size]};
-	auto position{buffer.get()};
-	auto const ed{buffer.get()+buffer_size};
-	std::size_t written{};
-	for(auto const& e : sp)
-	{
-		std::size_t remain_space(ed-position);
-		if(e.len<remain_space)
-		{
-			if(e.len)[[likely]]
-				std::memcpy(position,e.base,e.len);
-			position+=e.len;
-		}
-		else if(buffer_size==remain_space)
-		{
-			std::size_t actual_written{write_nolock_impl(handle,e.base,e.len)};
-			written+=actual_written;
-			if(actual_written<e.len)
-				return written;
-		}
-		else
-		{
-			if(remain_space)
-				memcpy(position,e.base,remain_space);
-			{
-				std::size_t actual_written{write_simple_impl(handle,buffer.get(),buffer_size)};
-				written+=actual_written;
-				if(actual_written<remain_space)
-					return written;
-			}
-			std::byte const* ebaseoffset{reinterpret_cast<std::byte const*>(e.base)+remain_space};
-			std::size_t to_write{e.len-remain_space};
-			if(buffer_size<=to_write)
-			{
-				std::size_t actual_written{write_nolock_impl(handle,ebaseoffset,to_write)};
-				written+=actual_written;
-				if(actual_written<remain_space)
-					return written;
-			}
-			else if(to_write)
-			{
-				memcpy(buffer.get(),ebaseoffset,to_write);
-				position=buffer.get()+to_write;
-			}
-			else
-				position=buffer.get();
-		}
-	}
-	if(position==buffer.get())
-		return written;
-	else
-		return written+write_simple_impl(handle,buffer.get(),position-buffer.get());
-}
-
-inline std::size_t writev_impl(void* __restrict handle,std::span<io_scatter_t const> sp)
-{
-	if(sp.empty())
-		return 0;
-	else
-	{
-		win32::overlapped overlap{};
-		auto succ{win32::LockFileEx(handle,0x00000002,0,UINT32_MAX,UINT32_MAX,std::addressof(overlap))};
-		if(!succ)
-			return write_v_unhappy_path_impl(handle,sp);
-		file_lock_guard gd{handle};
-		std::size_t total_write{};
-		for(auto const & e : sp)
-		{
-			std::size_t written{write_nolock_impl(handle,e.base,e.len)};
-			total_write+=written;
-			if(e.len<written)
-				break;
-		}
-		return total_write;
-	}
+	return {total_size,sp.size()};
 }
 
 
@@ -640,15 +560,15 @@ inline Iter write(basic_win32_io_observer<ch_type> handle,Iter cbegin,Iter cend)
 }
 
 template<std::integral ch_type>
-inline std::size_t scatter_read(basic_win32_io_observer<ch_type> handle,std::span<io_scatter_t const> sp)
+inline io_scatter_status_t scatter_read(basic_win32_io_observer<ch_type> handle,std::span<io_scatter_t const> sp)
 {
-	return win32::details::readv_impl(handle.handle,sp);
+	return win32::details::scatter_read_impl(handle.handle,sp);
 }
 
 template<std::integral ch_type>
-inline std::size_t scatter_write(basic_win32_io_observer<ch_type> handle,std::span<io_scatter_t const> sp)
+inline io_scatter_status_t scatter_write(basic_win32_io_observer<ch_type> handle,std::span<io_scatter_t const> sp)
 {
-	return win32::details::writev_impl(handle.handle,sp);
+	return win32::details::scatter_write_impl(handle.handle,sp);
 }
 
 template<std::integral ch_type,std::contiguous_iterator Iter>
@@ -924,13 +844,13 @@ inline Iter write(basic_win32_pipe<ch_type>& h,Iter begin,Iter end)
 }
 
 template<std::integral ch_type>
-inline std::size_t scatter_read(basic_win32_pipe<ch_type>& h,std::span<io_scatter_t const> sp)
+inline io_scatter_status_t scatter_read(basic_win32_pipe<ch_type>& h,std::span<io_scatter_t const> sp)
 {
 	return scatter_read(h.in(),sp);
 }
 
 template<std::integral ch_type>
-inline std::size_t scatter_write(basic_win32_pipe<ch_type>& h,std::span<io_scatter_t const> sp)
+inline io_scatter_status_t scatter_write(basic_win32_pipe<ch_type>& h,std::span<io_scatter_t const> sp)
 {
 	return scatter_write(h.out(),sp);
 }

@@ -18,6 +18,13 @@ struct basic_io_scatter_t
 
 using io_scatter_t = basic_io_scatter_t<void>;
 
+struct io_scatter_status_t
+{
+	std::size_t total_size;
+	std::size_t span_position;
+	std::size_t pos_in_span;
+};
+
 template<typename T>
 struct basic_message_hdr
 {
