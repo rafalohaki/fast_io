@@ -606,7 +606,7 @@ NtCreateThread(
 	_In_ BOOLEAN CreateSuspended
 	);
 */
-	constexpr char8_t const* func_name{zw?u8"ZwCreateProcess":u8"NtCreateProcess"};
+	constexpr char8_t const* func_name{zw?u8"ZwCreateThread":u8"NtCreateThread"};
 	return (get_nt_module_handle<std::uint32_t __stdcall(void** __restrict,std::uint32_t,object_attributes*,
 		void* __restrict,client_id* __restrict,void* __restrict,void* __restrict,int) noexcept>(func_name))(std::forward<Args>(args)...);
 }
@@ -631,7 +631,7 @@ __kernel_entry NTSYSCALLAPI NTSTATUS NtWriteFile(
 	PULONG           Key
 );
 */
-	constexpr char8_t const* func_name{zw?u8"ZwCreateProcess":u8"NtCreateProcess"};
+	constexpr char8_t const* func_name{zw?u8"ZwWriteFile":u8"NtWriteFile"};
 	return (get_nt_module_handle<std::uint32_t __stdcall(void*,void*,pio_apc_routine,void*,io_status_block*,
 				void const*,std::uint32_t,std::int64_t*,std::uint32_t*) noexcept>(func_name))(std::forward<Args>(args)...);
 }
@@ -653,7 +653,7 @@ __kernel_entry NTSYSCALLAPI NTSTATUS NtReadFile(
 	PULONG           Key
 );
 */
-	constexpr char8_t const* func_name{zw?u8"ZwCreateProcess":u8"NtCreateProcess"};
+	constexpr char8_t const* func_name{zw?u8"ZwReadFile":u8"NtReadFile"};
 	return (get_nt_module_handle<std::uint32_t __stdcall(void*,void*,pio_apc_routine,void*,io_status_block*,
 				void*,std::uint32_t,std::int64_t*,std::uint32_t*) noexcept>(func_name))(std::forward<Args>(args)...);
 }
