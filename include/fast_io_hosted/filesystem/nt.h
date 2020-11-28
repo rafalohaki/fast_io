@@ -32,12 +32,13 @@ struct nt_dirent
 namespace win32::nt::details
 {
 
+template<nt_family family>
 inline nt_dirent* set_nt_dirent(nt_dirent* entry,bool start)
 {
 	io_status_block block{};
 	std::array<std::byte,0x4000> buffer;
 	win32::nt::dir_information d_info{buffer.data()};
-	auto status{nt_query_directory_file(entry->d_handle,nullptr,nullptr,nullptr,
+	auto status{nt_query_directory_file<family==nt_family::zw>(entry->d_handle,nullptr,nullptr,nullptr,
 	std::addressof(block),d_info.DirInfo,
 	buffer.size(),file_information_class::FileFullDirectoryInformation,
 	true,nullptr,start)};
@@ -79,14 +80,16 @@ https://github.com/win32ports/dirent_h/blob/5a40afce928f1780058f44e0dda37553c662
 	return entry;
 }
 
+template<nt_family family>
 inline nt_dirent* set_nt_dirent_first(nt_dirent* entry)
 {
-	return set_nt_dirent(entry,true);
+	return set_nt_dirent<family>(entry,true);
 }
 
+template<nt_family family>
 inline nt_dirent* nt_dirent_next(nt_dirent* entry)
 {
-	return set_nt_dirent(entry,false);
+	return set_nt_dirent<family>(entry,false);
 }
 
 }
@@ -94,7 +97,8 @@ inline nt_dirent* nt_dirent_next(nt_dirent* entry)
 struct nt_directory_entry
 {
 	nt_dirent* entry{};
-	explicit constexpr operator nt_io_observer() const noexcept
+	template<nt_family family>
+	explicit constexpr operator basic_nt_family_io_observer<family,char>() const noexcept
 	{
 		return {entry->d_handle};
 	}
@@ -124,35 +128,45 @@ inline constexpr file_type type(nt_directory_entry pioe) noexcept
 	return pioe.entry->d_type;
 }
 
-struct nt_directory_iterator
+template<nt_family family>
+struct nt_family_directory_iterator
 {
 	nt_dirent* entry{};
 };
 
-inline nt_directory_entry operator*(nt_directory_iterator pdit) noexcept
+template<nt_family family>
+inline nt_directory_entry operator*(nt_family_directory_iterator<family> pdit) noexcept
 {
 	return {pdit.entry};
 }
 
-inline nt_directory_iterator& operator++(nt_directory_iterator& pdit)
+template<nt_family family>
+inline nt_family_directory_iterator<family>& operator++(nt_family_directory_iterator<family>& pdit)
 {
-	pdit.entry=win32::nt::details::nt_dirent_next(pdit.entry);
+	pdit.entry=win32::nt::details::nt_dirent_next<family>(pdit.entry);
 	return pdit;
 }
 
-inline constexpr bool operator==(std::default_sentinel_t, nt_directory_iterator b) noexcept
+template<nt_family family>
+inline constexpr bool operator==(std::default_sentinel_t, nt_family_directory_iterator<family> b) noexcept
 {
 	return b.entry==nullptr;
 }
-inline constexpr bool operator==(nt_directory_iterator b, std::default_sentinel_t other) noexcept
+
+template<nt_family family>
+inline constexpr bool operator==(nt_family_directory_iterator<family> b, std::default_sentinel_t other) noexcept
 {
 	return other==b;
 }
-inline constexpr bool operator!=(std::default_sentinel_t other, nt_directory_iterator b) noexcept
+
+template<nt_family family>
+inline constexpr bool operator!=(std::default_sentinel_t other,nt_family_directory_iterator<family> b) noexcept
 {
 	return !(other==b);
 }
-inline constexpr bool operator!=(nt_directory_iterator b, std::default_sentinel_t other) noexcept
+
+template<nt_family family>
+inline constexpr bool operator!=(nt_family_directory_iterator<family> b, std::default_sentinel_t other) noexcept
 {
 	return !(other==b);
 }
@@ -169,64 +183,79 @@ inline std::unique_ptr<nt_dirent> make_nt_dirent(void* handle)
 
 }
 
-struct nt_directory_generator
+template<nt_family family>
+struct nt_family_directory_generator
 {
 	std::unique_ptr<nt_dirent> entry;
 };
 
-inline nt_directory_iterator begin(nt_directory_generator const& pdg)
+template<nt_family family>
+inline nt_family_directory_iterator<family> begin(nt_family_directory_generator<family> const& pdg)
 {
-	return {win32::nt::details::set_nt_dirent_first(pdg.entry.get())};
+	return {win32::nt::details::set_nt_dirent_first<family>(pdg.entry.get())};
 }
 
-inline std::default_sentinel_t end(nt_directory_generator const&) noexcept
+template<nt_family family>
+inline std::default_sentinel_t end(nt_family_directory_generator<family> const&) noexcept
 {
 	return {};
 }
+
+using nt_directory_generator = nt_family_directory_generator<nt_family::nt>;
+using zw_directory_generator = nt_family_directory_generator<nt_family::zw>;
 
 inline nt_directory_generator current(nt_at_entry nate)
 {
 	return {details::make_nt_dirent(nate.handle)};
 }
 
-struct nt_recursive_directory_iterator
+inline zw_directory_generator current(zw_at_entry nate)
+{
+	return {details::make_nt_dirent(nate.handle)};
+}
+
+template<nt_family family>
+struct nt_family_recursive_directory_iterator
 {
 	void* root_handle{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
 	nt_dirent* entry{};
-	std::vector<nt_file> stack;
-	nt_recursive_directory_iterator()=default;
-	nt_recursive_directory_iterator(void* root_han,nt_dirent* ent):root_handle(root_han),entry(ent){}
-	nt_recursive_directory_iterator(nt_recursive_directory_iterator const&)=delete;
-	nt_recursive_directory_iterator& operator=(nt_recursive_directory_iterator const&)=delete;
-	nt_recursive_directory_iterator(nt_recursive_directory_iterator&&) noexcept=default;
-	nt_recursive_directory_iterator& operator=(nt_recursive_directory_iterator&&) noexcept=default;
+	std::vector<basic_nt_family_file<family,char>> stack;
+	nt_family_recursive_directory_iterator()=default;
+	nt_family_recursive_directory_iterator(void* root_han,nt_dirent* ent):root_handle(root_han),entry(ent){}
+	nt_family_recursive_directory_iterator(nt_family_recursive_directory_iterator const&)=delete;
+	nt_family_recursive_directory_iterator& operator=(nt_family_recursive_directory_iterator const&)=delete;
+	nt_family_recursive_directory_iterator(nt_family_recursive_directory_iterator&&) noexcept=default;
+	nt_family_recursive_directory_iterator& operator=(nt_family_recursive_directory_iterator&&) noexcept=default;
 };
 
-struct nt_recursive_directory_generator
+template<nt_family family>
+struct nt_family_recursive_directory_generator
 {
 	void* root_handle{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
 	std::unique_ptr<nt_dirent> entry;
 };
 
-inline std::size_t depth(nt_recursive_directory_iterator const& prdit) noexcept
+template<nt_family family>
+inline std::size_t depth(nt_family_recursive_directory_iterator<family> const& prdit) noexcept
 {
 	return prdit.stack.size();
 }
 
-inline nt_recursive_directory_iterator& operator++(nt_recursive_directory_iterator& prdit)
+template<nt_family family>
+inline nt_family_recursive_directory_iterator<family>& operator++(nt_family_recursive_directory_iterator<family>& prdit)
 {
 	for(;;)
 	{
 		if(prdit.stack.empty())
 		{
 			prdit.entry->d_handle=prdit.root_handle;
-			if(!(prdit.entry=win32::nt::details::nt_dirent_next(prdit.entry)))
+			if(!(prdit.entry=win32::nt::details::nt_dirent_next<family>(prdit.entry)))
 				return prdit;
 		}
 		else
 		{
 			prdit.entry->d_handle=prdit.stack.back().handle;
-			auto entry=win32::nt::details::nt_dirent_next(prdit.entry);
+			auto entry=win32::nt::details::nt_dirent_next<family>(prdit.entry);
 			if(entry==nullptr)
 			{
 				prdit.stack.pop_back();
@@ -237,7 +266,7 @@ inline nt_recursive_directory_iterator& operator++(nt_recursive_directory_iterat
 		if(prdit.entry->d_type==file_type::directory)
 		{
 			wcstring_view name{prdit.entry->d_name()};
-			if((name.size()==1&&name.front()==L'.')||(name.size()==2&&name.front()==L'.'&&name[1]==L'.'))
+			if((name.size()==1&&name.front()==u'.')||(name.size()==2&&name.front()==u'.'&&name[1]==u'.'))
 				continue;
 			prdit.stack.emplace_back(nt_at_entry{prdit.stack.empty()?prdit.root_handle:prdit.stack.back().handle},name,
 				open_mode::directory);
@@ -247,7 +276,8 @@ inline nt_recursive_directory_iterator& operator++(nt_recursive_directory_iterat
 	return prdit;
 }
 
-inline void pop(nt_recursive_directory_iterator& prdit)
+template<nt_family family>
+inline void pop(nt_family_recursive_directory_iterator<family>& prdit)
 {
 	if(prdit.stack.empty())
 		prdit.entry=nullptr;
@@ -258,15 +288,16 @@ inline void pop(nt_recursive_directory_iterator& prdit)
 	}
 }
 
-inline nt_recursive_directory_iterator begin(nt_recursive_directory_generator const& prg) noexcept
+template<nt_family family>
+inline nt_family_recursive_directory_iterator<family> begin(nt_family_recursive_directory_iterator<family> const& prg) noexcept
 {
-	nt_recursive_directory_iterator prdit{prg.root_handle,prg.entry.get()};
+	nt_family_recursive_directory_iterator<family> prdit{prg.root_handle,prg.entry.get()};
 	prdit.entry->d_handle=prg.root_handle;
-	prdit.entry=win32::nt::details::set_nt_dirent_first(prdit.entry);
+	prdit.entry=win32::nt::details::set_nt_dirent_first<family>(prdit.entry);
 	if(prdit.entry&&prdit.entry->d_type==file_type::directory)
 	{
 		wcstring_view name{prdit.entry->d_name()};
-		if((name.size()==1&&name.front()==L'.')||(name.size()==2&&name.front()==L'.'&&name[1]==L'.'))
+		if((name.size()==1&&name.front()==u'.')||(name.size()==2&&name.front()==u'.'&&name[1]==u'.'))
 			++prdit;
 		else
 			prdit.stack.emplace_back(nt_at_entry{prdit.root_handle},name,
@@ -275,39 +306,53 @@ inline nt_recursive_directory_iterator begin(nt_recursive_directory_generator co
 	return prdit;
 }
 
-inline std::default_sentinel_t end(nt_recursive_directory_generator const&) noexcept
+template<nt_family family>
+inline std::default_sentinel_t end(nt_family_recursive_directory_generator<family> const&) noexcept
 {
 	return {};
 }
 
-inline nt_directory_entry operator*(nt_recursive_directory_iterator const& prdit) noexcept
+template<nt_family family>
+inline nt_directory_entry operator*(nt_family_recursive_directory_iterator<family> const& prdit) noexcept
 {
 	return {prdit.entry};
 }
 
-inline bool operator==(std::default_sentinel_t, nt_recursive_directory_iterator const& b) noexcept
+template<nt_family family>
+inline bool operator==(std::default_sentinel_t, nt_family_recursive_directory_iterator<family> const& b) noexcept
 {
 	return b.stack.empty()&&b.entry == nullptr;
 }
 
-inline bool operator==(nt_recursive_directory_iterator const& b, std::default_sentinel_t sntnl) noexcept
+template<nt_family family>
+inline bool operator==(nt_family_recursive_directory_iterator<family> const& b, std::default_sentinel_t sntnl) noexcept
 {
 	return sntnl==b;
 }
 
-inline bool operator!=(std::default_sentinel_t sntnl, nt_recursive_directory_iterator const& b) noexcept
+template<nt_family family>
+inline bool operator!=(std::default_sentinel_t sntnl, nt_family_recursive_directory_iterator<family> const& b) noexcept
 {
 	return !(sntnl==b);
 }
 
-inline bool operator!=(nt_recursive_directory_iterator const& b, std::default_sentinel_t sntnl) noexcept
+template<nt_family family>
+inline bool operator!=(nt_family_recursive_directory_iterator<family> const& b, std::default_sentinel_t sntnl) noexcept
 {
 	return sntnl!=b;
 }
 
+using nt_recursive_directory_generator = nt_family_recursive_directory_generator<nt_family::nt>;
+using zw_recursive_directory_generator = nt_family_recursive_directory_generator<nt_family::zw>;
+
 inline nt_recursive_directory_generator recursive(nt_at_entry nate)
 {
 	return {nate.handle,std::unique_ptr<nt_dirent>(new nt_dirent)};
+}
+
+inline zw_recursive_directory_generator recursive(zw_at_entry zate)
+{
+	return {zate.handle,std::unique_ptr<nt_dirent>(new nt_dirent)};
 }
 
 using directory_entry = nt_directory_entry;

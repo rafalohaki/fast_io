@@ -288,9 +288,10 @@ public:
 	{
 		return handle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
 	}
-	explicit constexpr operator basic_nt_io_observer<char_type>() const noexcept
+	template<nt_family family>
+	explicit constexpr operator basic_nt_family_io_observer<family,char_type>() const noexcept
 	{
-		return basic_nt_io_observer<char_type>{handle};
+		return basic_nt_family_io_observer<family,char_type>{handle};
 	}
 	inline native_handle_type release() noexcept
 	{
@@ -739,14 +740,14 @@ public:
 	explicit basic_win32_file(io_temp_t):basic_win32_io_handle<char_type>(details::create_win32_temp_file()){}
 #endif
 	explicit basic_win32_file(nt_at_entry nate,cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-				basic_win32_io_handle<char_type>(win32::nt::details::nt_create_file_directory_impl(nate.handle,filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
+				basic_win32_io_handle<char_type>(win32::nt::details::nt_create_file_directory_impl<false>(nate.handle,filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
 	{}
 
 	explicit basic_win32_file(cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
 				basic_win32_io_handle<char_type>(details::win32_create_file_impl(filename,details::calculate_win32_open_mode(om,pm)))
 	{}
 	explicit basic_win32_file(nt_at_entry nate,wcstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-				basic_win32_io_handle<char_type>(win32::nt::details::nt_create_file_directory_impl(nate.handle,filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
+				basic_win32_io_handle<char_type>(win32::nt::details::nt_create_file_directory_impl<false>(nate.handle,filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
 	{}
 
 	explicit basic_win32_file(wcstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
@@ -931,15 +932,25 @@ using win32_io_handle=basic_win32_io_handle<char>;
 using win32_file=basic_win32_file<char>;
 using win32_pipe=basic_win32_pipe<char>;
 
+using wwin32_io_observer=basic_win32_io_observer<wchar_t>;
+using wwin32_io_handle=basic_win32_io_handle<wchar_t>;
+using wwin32_file=basic_win32_file<wchar_t>;
+using wwin32_pipe=basic_win32_pipe<wchar_t>;
+
 using u8win32_io_observer=basic_win32_io_observer<char8_t>;
 using u8win32_io_handle=basic_win32_io_handle<char8_t>;
 using u8win32_file=basic_win32_file<char8_t>;
 using u8win32_pipe=basic_win32_pipe<char8_t>;
 
-using wwin32_io_observer=basic_win32_io_observer<wchar_t>;
-using wwin32_io_handle=basic_win32_io_handle<wchar_t>;
-using wwin32_file=basic_win32_file<wchar_t>;
-using wwin32_pipe=basic_win32_pipe<wchar_t>;
+using u16win32_io_observer=basic_win32_io_observer<char16_t>;
+using u16win32_io_handle=basic_win32_io_handle<char16_t>;
+using u16win32_file=basic_win32_file<char16_t>;
+using u16win32_pipe=basic_win32_pipe<char16_t>;
+
+using u32win32_io_observer=basic_win32_io_observer<char32_t>;
+using u32win32_io_handle=basic_win32_io_handle<char32_t>;
+using u32win32_file=basic_win32_file<char32_t>;
+using u32win32_pipe=basic_win32_pipe<char32_t>;
 
 using io_async_observer=win32_io_observer;
 using io_async_scheduler=win32_file;

@@ -300,7 +300,8 @@ public:
 	{
 		return {reinterpret_cast<void*>(details::_get_osfhandle(fd))};
 	}
-	explicit operator basic_nt_io_observer<char_type>() const noexcept
+	template<nt_family family>
+	explicit operator basic_nt_family_io_observer<family,char_type>() const noexcept
 	{
 		return {reinterpret_cast<void*>(details::_get_osfhandle(fd))};
 	}
@@ -794,7 +795,8 @@ public:
 	{
 		hd.release();
 	}
-	basic_posix_file(basic_nt_io_handle<char_type>&& hd,open_mode m):
+	template<nt_family family>
+	basic_posix_file(basic_nt_family_io_handle<family,char_type>&& hd,open_mode m):
 		basic_posix_io_handle<char_type>{details::open_fd_from_handle(hd.handle,m)}
 	{
 		hd.release();
@@ -951,16 +953,28 @@ using posix_io_handle=basic_posix_io_handle<char>;
 using posix_file=basic_posix_file<char>;
 using posix_pipe=basic_posix_pipe<char>;
 
-using u8posix_io_observer=basic_posix_io_observer<char8_t>;
-using u8posix_io_handle=basic_posix_io_handle<char8_t>;
-using u8posix_file=basic_posix_file<char8_t>;
-using u8posix_pipe=basic_posix_pipe<char8_t>;
 #ifndef __MSDOS__
 using wposix_io_observer=basic_posix_io_observer<wchar_t>;
 using wposix_io_handle=basic_posix_io_handle<wchar_t>;
 using wposix_file=basic_posix_file<wchar_t>;
 using wposix_pipe=basic_posix_pipe<wchar_t>;
 #endif
+
+using u8posix_io_observer=basic_posix_io_observer<char8_t>;
+using u8posix_io_handle=basic_posix_io_handle<char8_t>;
+using u8posix_file=basic_posix_file<char8_t>;
+using u8posix_pipe=basic_posix_pipe<char8_t>;
+
+using u16posix_io_observer=basic_posix_io_observer<char16_t>;
+using u16posix_io_handle=basic_posix_io_handle<char16_t>;
+using u16posix_file=basic_posix_file<char16_t>;
+using u16posix_pipe=basic_posix_pipe<char16_t>;
+
+using u32posix_io_observer=basic_posix_io_observer<char32_t>;
+using u32posix_io_handle=basic_posix_io_handle<char32_t>;
+using u32posix_file=basic_posix_file<char32_t>;
+using u32posix_pipe=basic_posix_pipe<char32_t>;
+
 inline int constexpr posix_stdin_number = 0;
 inline int constexpr posix_stdout_number = 1;
 inline int constexpr posix_stderr_number = 2;

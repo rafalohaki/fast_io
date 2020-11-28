@@ -95,7 +95,8 @@ This function never fails. but what if fdopen fails?
 		basic_filebuf_file(basic_posix_file<char_type>(std::move(win32_handle),mode),mode)
 	{
 	}
-	basic_filebuf_file(basic_nt_io_handle<char_type>&& nt_handle,open_mode mode):
+	template<nt_family family>
+	basic_filebuf_file(basic_nt_family_io_handle<family,char_type>&& nt_handle,open_mode mode):
 		basic_filebuf_file(basic_posix_file<char_type>(std::move(nt_handle),mode),mode)
 	{
 	}

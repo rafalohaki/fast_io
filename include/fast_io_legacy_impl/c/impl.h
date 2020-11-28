@@ -739,7 +739,8 @@ public:
 		basic_c_file_impl(basic_posix_file<char_type>(std::move(win32_handle),om),to_native_c_mode(om))
 	{
 	}
-	basic_c_file_impl(basic_nt_io_handle<char_type>&& nt_handle,open_mode om):
+	template<nt_family family>
+	basic_c_file_impl(basic_nt_family_io_handle<family,char_type>&& nt_handle,open_mode om):
 		basic_c_file_impl(basic_posix_file<char_type>(std::move(nt_handle),om),to_native_c_mode(om))
 	{
 	}
