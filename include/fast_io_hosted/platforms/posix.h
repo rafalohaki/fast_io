@@ -298,12 +298,12 @@ public:
 #ifdef _WIN32
 	explicit operator basic_win32_io_observer<char_type>() const noexcept
 	{
-		return {reinterpret_cast<void*>(details::_get_osfhandle(fd))};
+		return {reinterpret_cast<void*>(_get_osfhandle(fd))};
 	}
 	template<nt_family family>
 	explicit operator basic_nt_family_io_observer<family,char_type>() const noexcept
 	{
-		return {reinterpret_cast<void*>(details::_get_osfhandle(fd))};
+		return {reinterpret_cast<void*>(_get_osfhandle(fd))};
 	}
 #endif
 	constexpr native_handle_type release() noexcept
@@ -782,6 +782,10 @@ namespace details
 {
 
 #ifdef _WIN32
+inline std::intptr_t my_get_osfhandle(int fd) noexcept
+{
+	return _get_osfhandle(fd);
+}
 
 inline int open_fd_from_handle(void* handle,open_mode md)
 {

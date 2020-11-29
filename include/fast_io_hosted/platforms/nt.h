@@ -385,7 +385,7 @@ inline std::size_t nt_write_impl(void* __restrict handle,void const* __restrict 
 
 namespace details
 {
-extern "C" std::intptr_t __stdcall _get_osfhandle(int fd) noexcept;
+inline std::intptr_t my_get_osfhandle(int) noexcept;
 }
 
 struct nt_at_entry
@@ -394,7 +394,7 @@ struct nt_at_entry
 	void* handle{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
 	explicit constexpr nt_at_entry() noexcept=default;
 	explicit constexpr nt_at_entry(void* mhandle) noexcept:handle(mhandle){}
-	nt_at_entry(posix_at_entry pate) noexcept:handle(reinterpret_cast<void*>(details::_get_osfhandle(pate.fd))){}
+	nt_at_entry(posix_at_entry pate) noexcept:handle(reinterpret_cast<void*>(details::my_get_osfhandle(pate.fd))){}
 };
 
 template<nt_family family>
