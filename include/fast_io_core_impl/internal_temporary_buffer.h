@@ -14,7 +14,7 @@ extern "C" int __stdcall HeapFree(void*,std::uint32_t,void*) noexcept;
 extern "C" void* __stdcall HeapReAlloc(void*,std::uint32_t,void*,std::size_t) noexcept;
 #else
 extern "C" void* malloc(std::size_t) noexcept;
-extern "C" void* free(void*) noexcept;
+extern "C" void free(void*) noexcept;
 extern "C" void* realloc(void*,std::size_t) noexcept;
 #endif
 inline void* sys_allocate(std::size_t n) noexcept

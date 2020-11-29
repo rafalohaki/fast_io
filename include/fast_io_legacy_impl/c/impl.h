@@ -348,7 +348,7 @@ inline int fp_unlocked_to_fd(FILE* fp) noexcept
 	if(fp==nullptr)
 	{
 		errno=EBADF;
-		return {-1};
+		return -1;
 	}
 	return 
 #if defined(__WINNT__) || defined(_MSC_VER)
@@ -368,7 +368,7 @@ inline int fp_to_fd(FILE* fp) noexcept
 	if(fp==nullptr)
 	{
 		errno=EBADF;
-		return {-1};
+		return -1;
 	}
 	return 
 #if defined(__WINNT__) || defined(_MSC_VER)

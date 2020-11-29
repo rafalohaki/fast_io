@@ -8,7 +8,7 @@ namespace details
 {
 inline int dirp_to_fd(DIR* dirp) noexcept
 {
-	if(dirfd==nullptr)
+	if(dirp==nullptr)
 	{
 		errno=EBADF;
 		return -1;
@@ -52,7 +52,7 @@ namespace details
 
 inline DIR* sys_dup_dir(DIR* dirp)
 {
-	if(dirfd==nullptr)
+	if(dirp==nullptr)
 		throw_posix_error(EBADF);
 	auto fd{::dirfd(dirp)};
 	if(fd==-1)

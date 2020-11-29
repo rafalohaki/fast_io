@@ -19,8 +19,8 @@ inline constexpr scan_context_t<contiguous_only> scan_context;
 template<typename char_type, typename T, bool contiguous_only = false>
 concept context_scanable = requires(char_type const* begin, char_type const* end, T t)
 {
-	{ scan_context_define(scan_context<char_type, contiguous_only>, begin, end, t).iter }->std::same_as<char_type const*>;
-	{ scan_context_define(scan_context<char_type, contiguous_only>, begin, end, t).code }->std::convertible_to<scan_context_status_code>;
+	{ scan_context_define(scan_context<contiguous_only>, begin, end, t).iter }->std::same_as<char_type const*>;
+	{ scan_context_define(scan_context<contiguous_only>, begin, end, t).code }->std::convertible_to<scan_context_status_code>;
 };
 
 template<typename T>
@@ -71,12 +71,15 @@ template<buffer_input_stream input,typename T>
 		}
 	}
 	throw_posix_error(EINVAL);
+	return false;
 }
 
 template<buffer_input_stream input,typename T>
 [[nodiscard]] inline constexpr bool scan_single_impl(input in,T arg)
 {
+#if 0
 	using char_type = typename input::char_type;
+#endif
 	auto curr{ibuffer_curr(in)};
 	auto end{ibuffer_end(in)};
 #if 0

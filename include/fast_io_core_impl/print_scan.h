@@ -105,7 +105,7 @@ inline constexpr auto scan_with_space(input &in,T&& t)
 				{
 					auto curr{ibuffer_curr(in)};
 					auto ed{ibuffer_end(in)};
-					auto res{scan_reserve_define(io_reserve_type<no_cvref,!not_contiguous>,curr,ed,std::forward<T>(t))};
+					auto res{scan_reserve_define(io_reserve_type<typename std::remove_cvref_t<input>::char_type,no_cvref,!not_contiguous>,curr,ed,std::forward<T>(t))};
 					if(!res.first)
 						return false;
 					if constexpr(not_contiguous)
@@ -160,7 +160,7 @@ template<std::integral char_type,typename T>
 requires reserve_printable<char_type,T>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manip::line<T>>)
 {
-	constexpr std::size_t sz{print_reserve_size(io_reserve_type<std::remove_cvref_t<T>>)+1};
+	constexpr std::size_t sz{print_reserve_size(io_reserve_type<char_type,std::remove_cvref_t<T>>)+1};
 	return sz;
 }
 
@@ -168,7 +168,7 @@ template<std::integral char_type,std::random_access_iterator raiter,typename T,t
 requires reserve_printable<char_type,T>
 inline constexpr raiter print_reserve_define(io_reserve_type_t<char_type,manip::line<T>>,raiter start,U a)
 {
-	auto it{print_reserve_define(io_reserve_type<std::remove_cvref_t<T>>,start,a.reference)};
+	auto it{print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,start,a.reference)};
 	*it=u8'\n';
 	return ++it;
 }
@@ -181,9 +181,10 @@ concept test_normal_scan = requires(T t,Args&& ...args)
 };
 }
 
-template<bool report_eof=false,input_stream input,typename ...Args>
-inline constexpr auto scan(input &&in,Args&& ...args)
+template<bool report_eof=false,input_stream input_t,typename ...Args>
+inline constexpr auto scan(input_t &&in,Args&& ...args)
 {
+	using input = std::remove_cvref_t<input_t>;
 	if constexpr(mutex_stream<input>)
 	{
 		details::lock_guard lg{in};
