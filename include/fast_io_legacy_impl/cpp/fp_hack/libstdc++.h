@@ -8,9 +8,9 @@ namespace fast_io::details::streambuf_hack
 {
 
 template<typename char_type,typename traits_type>
-inline FILE* fp_hack(std::basic_filebuf<char_type,traits_type>* fbuf) noexcept
+inline std::FILE* fp_hack(std::basic_filebuf<char_type,traits_type>* fbuf) noexcept
 {
-	FILE* fp{};
+	std::FILE* fp{};
 	// we can only do this or ubsanitizer will complain. Do not do down_cast
 	memcpy(std::addressof(fp),reinterpret_cast<std::byte*>(fbuf)+sizeof(std::basic_streambuf<char_type, traits_type>)+sizeof(std::__c_lock),sizeof(fp));
 	return fp;
@@ -18,7 +18,7 @@ inline FILE* fp_hack(std::basic_filebuf<char_type,traits_type>* fbuf) noexcept
 
 template<typename T>
 requires (std::same_as<T,std::basic_streambuf<typename T::char_type,typename T::traits_type>>)
-inline FILE* fp_hack(T* cio) noexcept
+inline std::FILE* fp_hack(T* cio) noexcept
 {
 #ifdef __cpp_rtti
 	using char_type = typename T::char_type;
