@@ -109,7 +109,7 @@ constexpr char_type* ibuffer_end(basic_imemory_map<char_type>& bomp) noexcept
 }
 
 template<std::integral char_type>
-constexpr bool underflow(basic_imemory_map<char_type>& bomp) noexcept
+constexpr bool underflow(basic_imemory_map<char_type>&) noexcept
 {
 	return false;
 }
@@ -121,7 +121,7 @@ constexpr void ibuffer_set_curr(basic_imemory_map<char_type>& bomp,char_type* pt
 }
 
 template<std::integral char_type>
-constexpr void underflow_forever_false(basic_imemory_map<char_type>& bomp) noexcept{}
+constexpr void underflow_forever_false(basic_imemory_map<char_type>&) noexcept{}
 
 using imemory_map = basic_imemory_map<char>;
 

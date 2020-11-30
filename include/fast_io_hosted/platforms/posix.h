@@ -426,7 +426,7 @@ inline io_scatter_status_t posix_scatter_read_impl(int fd,std::span<io_scatter_t
 		if(pos_in_span<sp[i].len)[[unlikely]]
 			return {total_size,i,pos_in_span};
 	}
-	return {total_size,sp.size()};
+	return {total_size,sp.size(),0};
 }
 
 inline std::uint32_t posix_write_simple_impl(int fd,void const* address,std::uint32_t bytes_to_write)
@@ -490,7 +490,7 @@ inline io_scatter_status_t posix_scatter_write_impl(int fd,std::span<io_scatter_
 		if(sp[i].len<written)[[unlikely]]
 			return {total_size,i,written};
 	}
-	return {total_size,sp.size()};
+	return {total_size,sp.size(),0};
 }
 #endif
 
@@ -1291,7 +1291,7 @@ inline constexpr io_scatter_status_t scatter_size_to_status(std::size_t sz,std::
 			return {sz,i,total};
 		total-=sp[i].len;
 	}
-	return {sz,sp.size()};
+	return {sz,sp.size(),0};
 }
 
 inline io_scatter_status_t posix_scatter_write_impl(int fd,std::span<io_scatter_t const> sp)

@@ -452,7 +452,7 @@ inline io_scatter_status_t scatter_read_impl(void* __restrict handle,std::span<i
 		if(pos_in_span<sp[i].len)[[unlikely]]
 			return {total_size,i,pos_in_span};
 	}
-	return {total_size,sp.size()};
+	return {total_size,sp.size(),0};
 }
 
 inline std::uint32_t write_simple_impl(void* __restrict handle,void const* __restrict cbegin,std::size_t to_write)
@@ -535,7 +535,7 @@ inline io_scatter_status_t scatter_write_impl(void* __restrict handle,std::span<
 		if(sp[i].len<written)[[unlikely]]
 			return {total_size,i,written};
 	}
-	return {total_size,sp.size()};
+	return {total_size,sp.size(),0};
 }
 
 
