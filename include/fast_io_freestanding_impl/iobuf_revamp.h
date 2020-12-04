@@ -3,45 +3,44 @@
 namespace fast_io
 {
 
-enum class buffer_mode
+enum class buffer_flags
 {
 in=1<<0,
 out=1<<1,
 tie=1<<2,
 io=in|out|tie,
-decorator=1<<3,
-secure_clear=1<<4
+secure_clear=1<<3
 };
 
-constexpr buffer_mode operator&(buffer_mode x, buffer_mode y) noexcept
+constexpr buffer_flags operator&(buffer_flags x, buffer_flags y) noexcept
 {
-using utype = typename std::underlying_type<buffer_mode>::type;
-return static_cast<buffer_mode>(static_cast<utype>(x) & static_cast<utype>(y));
+using utype = typename std::underlying_type<buffer_flags>::type;
+return static_cast<buffer_flags>(static_cast<utype>(x) & static_cast<utype>(y));
 }
 
-constexpr buffer_mode operator|(buffer_mode x, buffer_mode y) noexcept
+constexpr buffer_flags operator|(buffer_flags x, buffer_flags y) noexcept
 {
-using utype = typename std::underlying_type<buffer_mode>::type;
-return static_cast<buffer_mode>(static_cast<utype>(x) | static_cast<utype>(y));
+using utype = typename std::underlying_type<buffer_flags>::type;
+return static_cast<buffer_flags>(static_cast<utype>(x) | static_cast<utype>(y));
 }
 
-constexpr buffer_mode operator^(buffer_mode x, buffer_mode y) noexcept
+constexpr buffer_flags operator^(buffer_flags x, buffer_flags y) noexcept
 {
-using utype = typename std::underlying_type<buffer_mode>::type;
-return static_cast<buffer_mode>(static_cast<utype>(x) ^ static_cast<utype>(y));
+using utype = typename std::underlying_type<buffer_flags>::type;
+return static_cast<buffer_flags>(static_cast<utype>(x) ^ static_cast<utype>(y));
 }
 
-constexpr buffer_mode operator~(buffer_mode x) noexcept
+constexpr buffer_flags operator~(buffer_flags x) noexcept
 {
-using utype = typename std::underlying_type<buffer_mode>::type;
-return static_cast<buffer_mode>(~static_cast<utype>(x));
+using utype = typename std::underlying_type<buffer_flags>::type;
+return static_cast<buffer_flags>(~static_cast<utype>(x));
 }
 
-inline constexpr buffer_mode& operator&=(buffer_mode& x, buffer_mode y) noexcept{return x=x&y;}
+inline constexpr buffer_flags& operator&=(buffer_flags& x, buffer_flags y) noexcept{return x=x&y;}
 
-inline constexpr buffer_mode& operator|=(buffer_mode& x, buffer_mode y) noexcept{return x=x|y;}
+inline constexpr buffer_flags& operator|=(buffer_flags& x, buffer_flags y) noexcept{return x=x|y;}
 
-inline constexpr buffer_mode& operator^=(buffer_mode& x, buffer_mode y) noexcept{return x=x^y;}
+inline constexpr buffer_flags& operator^=(buffer_flags& x, buffer_flags y) noexcept{return x=x^y;}
 
 
 template<typename char_type>
@@ -65,13 +64,13 @@ consteval
 #else
 constexpr
 #endif
-bool constraint_buffer_mode(buffer_mode mode) noexcept
+bool constraint_buffer_flags(buffer_flags mode) noexcept
 {
-	if(((mode&buffer_mode::in)==buffer_mode::in)&&(!input_stream<handle_type>))
+	if(((mode&buffer_flags::in)==buffer_flags::in)&&(!input_stream<handle_type>))
 		return false;
-	if(((mode&buffer_mode::out)==buffer_mode::out)&&(!output_stream<handle_type>))
+	if(((mode&buffer_flags::out)==buffer_flags::out)&&(!output_stream<handle_type>))
 		return false;
-	if(secure_clear_requirement_stream<handle_type>&&((mode&buffer_mode::secure_clear)!=buffer_mode::secure_clear))
+	if(secure_clear_requirement_stream<handle_type>&&((mode&buffer_flags::secure_clear)!=buffer_flags::secure_clear))
 		return false;
 	return true;
 }
@@ -91,11 +90,11 @@ struct allocator_guard
 }
 
 template<stream handletype,
-	buffer_mode mde,
+	buffer_flags mde,
 	typename Decorator = void,
 	typename Allocator = io_aligned_allocator<typename handletype::char_type>,
-	std::size_t bfs = std::min(std::allocator_traits<Allocator>::max_size(),io_default_buffer_size<typename handletype::char_type>)>
-requires (details::constraint_buffer_mode<handletype>(mde)&&(bfs!=0&&(bfs<=std::allocator_traits<Allocator>::max_size())))
+	std::size_t bfs = io_default_buffer_size<typename handletype::char_type>>
+requires (details::constraint_buffer_flags<handletype>(mde))
 class basic_io_buffer
 {
 public:
@@ -110,49 +109,33 @@ public:
 	using difference_type = typename allocator_traits::difference_type;
 	using reference = char_type&;
 	using const_reference = char_type const&;
-	inline static constexpr buffer_mode mode = mde;
+	inline static constexpr buffer_flags mode = mde;
 	inline static constexpr size_type buffer_size = bfs;
-	[[no_unique_address]] std::conditional_t<(mode&buffer_mode::in)==buffer_mode::in,basic_buffer_pointers<pointer>,empty_buffer_pointers> ibuffer;
-	[[no_unique_address]] std::conditional_t<(mode&buffer_mode::out)==buffer_mode::out,basic_buffer_pointers<pointer>,empty_buffer_pointers> obuffer;
-	[[no_unique_address]] handle_type handle;
-	[[no_unique_address]] std::conditional_t<std::same_as<Decorator,void>,empty_buffer_pointers,Decorator> decorator;
-	[[no_unique_address]] allocator_type allocator;
-	constexpr basic_io_buffer()=default;
-	template<typename... Args>
-	requires ((std::is_empty_v<allocator_type>)&&
-		(std::same_as<decorator_type,void>||(std::is_empty_v<decorator_type>&&std::default_initializable<decorator_type>))&&std::default_initializable<allocator_type>&&(std::constructible_from<handle_type,Args...>))
-	explicit constexpr basic_io_buffer(Args&& ...args):handle(std::forward<Args>(args)...){}
-
-	template<typename... Args1,typename... Args2>
-	requires ((!std::is_empty_v<allocator_type>)
-		&&(std::constructible_from<handle_type,Args1...>)
-		&&(std::constructible_from<allocator_type,Args2...>))
-	constexpr basic_io_buffer(std::piecewise_construct_t,
-		std::tuple<Args1...> args1,
-		std::tuple<Args2...> args2)
+	[[no_unique_address]] std::conditional_t<(mode&buffer_flags::in)==buffer_flags::in,basic_buffer_pointers<pointer>,empty_buffer_pointers> ibuffer;
+	[[no_unique_address]] std::conditional_t<(mode&buffer_flags::out)==buffer_flags::out,basic_buffer_pointers<pointer>,empty_buffer_pointers> obuffer;
+	struct compound_type
 	{
-		std::apply([&](Args1&& ...args)
-		{
-			handle=handle_type(std::forward<Args1>(args)...);
-		},args1);
-		std::apply([&](Args2&& ...args)
-		{
-			allocator=allocator_type(std::forward<Args2>(args)...);
-		},args2);
-	}
+		[[no_unique_address]] handle_type handle;
+		[[no_unique_address]] std::conditional_t<std::same_as<Decorator,void>,empty_buffer_pointers,Decorator> decorator;
+		[[no_unique_address]] allocator_type allocator;
+	};
+	[[no_unique_address]] compound_type compound;
+	constexpr basic_io_buffer()=default;
+	explicit constexpr basic_io_buffer(compound_type cpd) noexcept
+		:compound(std::move(cpd)){}
 
 private:
 	constexpr void close_throw_impl()
 	{
 		if(obuffer.beg!=obuffer.curr)
-			write(handle,obuffer.beg,obuffer.curr);
+			write(compound.handle,obuffer.beg,obuffer.curr);
 	}
 	constexpr void close_impl() noexcept
 	{
-		if constexpr((mode&buffer_mode::out)==buffer_mode::out)
+		if constexpr((mode&buffer_flags::out)==buffer_flags::out)
 		{
 			if constexpr(noexcept(
-				write(handle,obuffer.beg,obuffer.curr)
+				write(compound.handle,obuffer.beg,obuffer.curr)
 			))
 			{
 				close_throw_impl();
@@ -175,36 +158,35 @@ private:
 	}
 	constexpr void cleanup_impl() noexcept
 	{
-		if constexpr((mode&buffer_mode::secure_clear)==buffer_mode::secure_clear)
+		if constexpr((mode&buffer_flags::secure_clear)==buffer_flags::secure_clear)
 		{
-			if constexpr((mode&buffer_mode::out)==buffer_mode::out)
+			if constexpr((mode&buffer_flags::out)==buffer_flags::out)
 				if(obuffer.beg)
 				{
 					secure_clear(std::to_address(obuffer.beg),sizeof(char_type)*buffer_size);
-					allocator_traits::deallocate(obuffer.beg,buffer_size);
+					allocator_traits::deallocate(compound.allocator,obuffer.beg,buffer_size);
 				}
-			if constexpr((mode&buffer_mode::in)==buffer_mode::in)
+			if constexpr((mode&buffer_flags::in)==buffer_flags::in)
 				if(ibuffer.beg)
 				{
 					secure_clear(std::to_address(ibuffer.beg),sizeof(char_type)*buffer_size);
-					allocator_traits::deallocate(ibuffer.beg,buffer_size);
+					allocator_traits::deallocate(compound.allocator,ibuffer.beg,buffer_size);
 				}
 		}
 		else
 		{
-			if constexpr((mode&buffer_mode::out)==buffer_mode::out)
+			if constexpr((mode&buffer_flags::out)==buffer_flags::out)
 				if(obuffer.beg)
-					allocator_traits::deallocate(obuffer.beg,buffer_size);
-			if constexpr((mode&buffer_mode::in)==buffer_mode::in)
+					allocator_traits::deallocate(compound.allocator,obuffer.beg,buffer_size);
+			if constexpr((mode&buffer_flags::in)==buffer_flags::in)
 				if(ibuffer.beg)
-					allocator_traits::deallocate(ibuffer.beg,buffer_size);
+					allocator_traits::deallocate(compound.allocator,ibuffer.beg,buffer_size);
 		}
 	}
 public:
 
 	constexpr basic_io_buffer(basic_io_buffer&& other) noexcept:
-		ibuffer(other.ibuffer),obuffer(other.obuffer),
-		handle(std::move(other.handle)),decorator(std::move(other.decorator)),allocator(std::move(other.allocator))
+		ibuffer(other.ibuffer),obuffer(other.obuffer),compound(std::move(other.compound))
 	{
 		other.ibuffer={};
 		other.obuffer={};
@@ -212,42 +194,42 @@ public:
 
 	constexpr basic_io_buffer(basic_io_buffer&& other, allocator_type const& alloc)
 		noexcept(allocator_traits::is_always_equal) :
-		handle(std::move(other.handle)),decorator(std::move(other.decorator)),allocator(alloc)
+		compound{std::move(other.compound.handle),std::move(other.compound.decorator),allocator(alloc)}
 	{
 		if constexpr(!allocator_traits::is_always_equal)
 		{
-			if(alloc!=other.allocator)
+			if(alloc!=other.compound.allocator)
 			{
-				if constexpr((mode&buffer_mode::in)==buffer_mode::in)
+				if constexpr((mode&buffer_flags::in)==buffer_flags::in)
 				{
 					{
 						std::size_t const sz(other.ibuffer.ed-other.ibuffer.curr);
 						if(sz)
 						{
-							ibuffer.beg=allocator_traits::allocate(allocator,bfs);
+							ibuffer.beg=allocator_traits::allocate(compound.allocator,buffer_size);
 							ibuffer.ed=ibuffer.beg+buffer_size;
 							ibuffer.curr=non_overlapped_copy_n(other.ibuffer.curr,sz,ibuffer.beg);
 						}
 					}
-					if constexpr((mode&buffer_mode::out)==buffer_mode::out)
+					if constexpr((mode&buffer_flags::out)==buffer_flags::out)
 					{
 						std::size_t sz(other.obuffer.ed-other.obuffer.curr);
 						if(sz)
 						{
-							details::allocator_guard<allocator_type,buffer_size> gd{allocator,obuffer.beg};
-							obuffer.curr=obuffer.beg=allocator_traits::allocate(allocator,bfs);
+							details::allocator_guard<allocator_type,buffer_size> gd{compound.allocator,ibuffer.beg};
+							obuffer.curr=obuffer.beg=allocator_traits::allocate(compound.allocator,buffer_size);
 							obuffer.ed=non_overlapped_copy_n(other.obuffer.beg,sz,obuffer.beg);
 						}
 					}
 				}
 				else
 				{
-					if constexpr((mode&buffer_mode::out)==buffer_mode::out)
+					if constexpr((mode&buffer_flags::out)==buffer_flags::out)
 					{
 						std::size_t sz(other.obuffer.ed-other.obuffer.curr);
 						if(sz)
 						{
-							obuffer.curr=obuffer.beg=allocator_traits::allocate(allocator,bfs);
+							obuffer.curr=obuffer.beg=allocator_traits::allocate(compound.allocator,buffer_size);
 							obuffer.ed=non_overlapped_copy_n(other.obuffer.beg,sz,obuffer.beg);
 						}
 					}
@@ -262,10 +244,12 @@ public:
 	}
 
 	constexpr basic_io_buffer(basic_io_buffer const& other) requires(std::copyable<handle_type>&&std::copyable<decorator_type>):
-			handle(other.handle),decorator(other.decorator),allocator(allocator_traits::select_on_container_copy_construction(other.alloc)){}
+			compound{other.handle,other.decorator,allocator_traits::select_on_container_copy_construction(other.alloc)}
+	{}
 
 	constexpr basic_io_buffer(basic_io_buffer const& other, allocator_type const& alloc) requires(std::copyable<handle_type>&&std::copyable<decorator_type>):
-			handle(other.handle),decorator(other.decorator),allocator(alloc){}
+			compound{other.handle,other.decorator,alloc}
+	{}
 
 	constexpr std::size_t max_size() noexcept
 	{
@@ -275,10 +259,10 @@ public:
 	constexpr void close() requires(closable_stream<handle_type>)
 	{
 		close_throw_impl();
-		handle.close();
-		if constexpr((mode&buffer_mode::in)==buffer_mode::in)
+		compound.handle.close();
+		if constexpr((mode&buffer_flags::in)==buffer_flags::in)
 			ibuffer.ed=ibuffer.curr=ibuffer.beg;
-		if constexpr((mode&buffer_mode::out)==buffer_mode::out)
+		if constexpr((mode&buffer_flags::out)==buffer_flags::out)
 			obuffer.curr=obuffer.beg;
 	}
 	constexpr basic_io_buffer& operator=(basic_io_buffer const& other) requires(std::copyable<handle_type>&&std::copyable<decorator_type>)
@@ -289,19 +273,19 @@ public:
 			if(other.allocator!=this->allocator)
 			{
 				cleanup_impl();
-				if constexpr((mode&buffer_mode::in)==buffer_mode::in)
+				if constexpr((mode&buffer_flags::in)==buffer_flags::in)
 					ibuffer={};
-				if constexpr((mode&buffer_mode::out)==buffer_mode::out)
+				if constexpr((mode&buffer_flags::out)==buffer_flags::out)
 					obuffer={};
 			}
 			else
 			{
-				if constexpr((mode&buffer_mode::in)==buffer_mode::in)
+				if constexpr((mode&buffer_flags::in)==buffer_flags::in)
 				{
 					if(ibuffer.beg)
 						ibuffer.ed=ibuffer.curr=ibuffer.beg;
 				}
-				if constexpr((mode&buffer_mode::out)==buffer_mode::out)
+				if constexpr((mode&buffer_flags::out)==buffer_flags::out)
 				{
 					if(obuffer.beg)
 						obuffer.curr=obuffer.beg;
@@ -310,14 +294,12 @@ public:
 		}
 		else
 		{
-			if constexpr((mode&buffer_mode::in)==buffer_mode::in)
+			if constexpr((mode&buffer_flags::in)==buffer_flags::in)
 				ibuffer.ed=ibuffer.curr=ibuffer.beg;
-			if constexpr((mode&buffer_mode::out)==buffer_mode::out)
+			if constexpr((mode&buffer_flags::out)==buffer_flags::out)
 				obuffer.curr=obuffer.beg;
 		}
-		handle=other.handle;
-		decorator=other.decorator;
-		allocator=other.allocator;
+		compound=other.compound;
 		return *this;
 	}
 
@@ -331,51 +313,47 @@ public:
 		if constexpr(!allocator_traits::propagate_on_container_move_assignment::value
 			&&!allocator_traits::is_always_equal::value)
 		{
-			if(other.allocator!=this->allocator)
+			if(other.compound.allocator!=compound.allocator)
 			{
-				if constexpr((mode&buffer_mode::in)==buffer_mode::in)
+				if constexpr((mode&buffer_flags::in)==buffer_flags::in)
 				{
 					{
 						std::size_t const sz(other.ibuffer.ed-other.ibuffer.curr);
 						if(sz)
 						{
-							ibuffer.beg=allocator_traits::allocate(allocator,bfs);
+							ibuffer.beg=allocator_traits::allocate(compound.allocator,buffer_size);
 							ibuffer.ed=ibuffer.beg+buffer_size;
 							ibuffer.curr=non_overlapped_copy_n(other.ibuffer.curr,sz,ibuffer.beg);
 						}
 					}
-					if constexpr((mode&buffer_mode::out)==buffer_mode::out)
+					if constexpr((mode&buffer_flags::out)==buffer_flags::out)
 					{
 						std::size_t sz(other.obuffer.ed-other.obuffer.curr);
 						if(sz)
 						{
-							details::allocator_guard<allocator_type,buffer_size> gd{allocator,obuffer.beg};
-							obuffer.curr=obuffer.beg=allocator_traits::allocate(allocator,bfs);
+							details::allocator_guard<allocator_type,buffer_size> gd{compound.allocator,ibuffer.beg};
+							obuffer.curr=obuffer.beg=allocator_traits::allocate(compound.allocator,buffer_size);
 							obuffer.ed=non_overlapped_copy_n(other.obuffer.beg,sz,obuffer.beg);
 						}
 					}
 				}
 				else
 				{
-					if constexpr((mode&buffer_mode::out)==buffer_mode::out)
+					if constexpr((mode&buffer_flags::out)==buffer_flags::out)
 					{
 						std::size_t sz(other.obuffer.ed-other.obuffer.curr);
 						if(sz)
 						{
-							obuffer.curr=obuffer.beg=allocator_traits::allocate(allocator,bfs);
+							obuffer.curr=obuffer.beg=allocator_traits::allocate(compound.allocator,buffer_size);
 							obuffer.ed=non_overlapped_copy_n(other.obuffer.beg,sz,obuffer.beg);
 						}
 					}
 				}
-				handle=std::move(other.handle);
-				decorator=std::move(other.decorator);
-				allocator=std::move(other.allocator);
+				compound=std::move(other.compound);
 				return *this;
 			}
 		}
-		handle=std::move(other.handle);
-		decorator=std::move(other.decorator);
-		allocator=std::move(other.allocator);
+		compound=std::move(other.compound);
 		obuffer=std::move(other.obuffer);
 		ibuffer=std::move(other.ibuffer);
 		other.obuffer={};
@@ -392,13 +370,13 @@ WTF is this garbage?
 */
 		if constexpr(std::allocator_traits<allocator_type>::propagate_on_container_swap::value)
 		{
-			if(other.allocator!=this->allocator)
+			if(other.compound.allocator!=this->compound.allocator)
 				return;
 		}
 		using std::swap;
-		swap(handle,other.handle);
-		swap(decorator,other.decorator);
-		swap(allocator,other.allocator);
+		swap(compound.handle,other.compound.handle);
+		swap(compound.decorator,other.compound.decorator);
+		swap(compound.allocator,other.compound.allocator);
 		swap(obuffer,other.obuffer);
 		swap(ibuffer,other.ibuffer);
 	}
@@ -409,11 +387,13 @@ WTF is this garbage?
 	}
 };
 
-template<stream handletype,buffer_mode mde,typename Decorator,typename Allocator,std::size_t bfs>
-inline constexpr void swap(basic_io_buffer<handletype,mde,Decorator,Allocator,bfs>& lhs,basic_io_buffer<handletype,mde,Decorator,Allocator,bfs>& rhs)
+template<stream handletype,buffer_flags mde,typename Decorator,typename Allocator,std::size_t buffer_size>
+inline constexpr void swap(basic_io_buffer<handletype,mde,Decorator,Allocator,buffer_size>& lhs,basic_io_buffer<handletype,mde,Decorator,Allocator,buffer_size>& rhs)
 	noexcept(noexcept(lhs.swap(rhs)))
 {
 	lhs.swap(rhs);
 }
+
+
 
 }
