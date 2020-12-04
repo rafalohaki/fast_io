@@ -140,13 +140,6 @@ public:
 		},args2);
 	}
 #endif
-	constexpr basic_io_buffer(basic_io_buffer&& other) noexcept:
-		ibuffer(other.ibuffer),obuffer(other.obuffer),
-		handle(std::move(other.handle)),decorator(std::move(other.decorator)),allocator(std::move(other.allocator))
-	{
-		other.ibuffer={};
-		other.obuffer={};
-	}
 
 private:
 	constexpr close_throw_impl()
@@ -180,12 +173,42 @@ private:
 			}
 		}
 	}
+	constexpr cleanup_impl() noexcept
+	{
+		if constexpr((mode&buffer_mode::secure_clear)==buffer_mode::secure_clear)
+		{
+			if constexpr((mode&buffer_mode::out)==buffer_mode::out)
+				if(obuffer.beg)
+				{
+					secure_clear(std::to_address(obuffer.beg),sizeof(char_type)*buffer_size);
+					allocator_traits::deallocate(obuffer.beg,buffer_size);
+				}
+			if constexpr((mode&buffer_mode::in)==buffer_mode::in)
+				if(ibuffer.beg)
+				{
+					secure_clear(std::to_address(ibuffer.beg),sizeof(char_type)*buffer_size);
+					allocator_traits::deallocate(ibuffer.beg,buffer_size);
+				}
+		}
+		else
+		{
+			if constexpr((mode&buffer_mode::out)==buffer_mode::out)
+				if(obuffer.beg)
+					allocator_traits::deallocate(obuffer.beg,buffer_size);
+			if constexpr((mode&buffer_mode::in)==buffer_mode::in)
+				if(ibuffer.beg)
+					allocator_traits::deallocate(ibuffer.beg,buffer_size);
+		}
+	}
 public:
-
 
 	constexpr basic_io_buffer(basic_io_buffer&& other) noexcept:
 		ibuffer(other.ibuffer),obuffer(other.obuffer),
-		handle(std::move(other.handle)),decorator(std::move(other.decorator)),allocator(std::move(other.allocator)){}
+		handle(std::move(other.handle)),decorator(std::move(other.decorator)),allocator(std::move(other.allocator))
+	{
+		other.ibuffer={};
+		other.obuffer={};
+	}
 
 	constexpr basic_io_buffer(basic_io_buffer&& other, allocator_type const& alloc) noexcept(allocator_traits::is_always_equal)
 		handle(std::move(other.handle)),decorator(std::move(other.decorator)),allocator(alloc)
@@ -258,6 +281,43 @@ public:
 	constexpr basic_io_buffer& operator=(basic_io_buffer const& other) requires(std::copyable<handle_type>&&std::copyable<decorator_type>)
 	{
 		close_throw_impl();
+		if constexpr(allocator_traits::propagate_on_container_copy_assignment::value)
+		{
+			if(other.allocator!=this->allocator)
+			{
+				cleanup_impl();
+				if constexpr((mode&buffer_mode::in)==buffer_mode::in)
+					ibuffer={};
+				if constexpr((mode&buffer_mode::out)==buffer_mode::out)
+					obuffer={};
+			}
+			else
+			{
+				if constexpr((mode&buffer_mode::in)==buffer_mode::in)
+				{
+					if(ibuffer.beg)
+						ibuffer.ed=ibuffer.curr=ibuffer.beg;
+				}
+				if constexpr((mode&buffer_mode::out)==buffer_mode::out)
+				{
+					if(obuffer.beg)
+						obuffer.curr=obuffer.beg;
+				}
+			}
+		}
+		else
+		{
+			if constexpr((mode&buffer_mode::in)==buffer_mode::in)
+			{
+				if(ibuffer.beg)
+					ibuffer.ed=ibuffer.curr=ibuffer.beg;
+			}
+			if constexpr((mode&buffer_mode::out)==buffer_mode::out)
+			{
+				if(obuffer.beg)
+					obuffer.curr=obuffer.beg;
+			}
+		}
 		handle=other.handle;
 		decorator=other.decorator;
 		allocator=other.allocator;
@@ -265,14 +325,14 @@ public:
 	}
 
 	constexpr basic_io_buffer& operator=(basic_io_buffer&& other)
-		noexcept(std::allocator_traits<allocator_type>::propagate_on_container_move_assignment::value
-			||std::allocator_traits<allocator_type>::is_always_equal::value)
+		noexcept(allocator_traits::propagate_on_container_move_assignment::value
+			||allocator_traits::is_always_equal::value)
 	{
 		if(std::addressof(other)==this)
 			return *this;
 		close_impl();
-		if constexpr(!std::allocator_traits<allocator_type>::propagate_on_container_move_assignment::value
-			&&!std::allocator_traits<allocator_type>::is_always_equal::value)
+		if constexpr(!allocator_traits::propagate_on_container_move_assignment::value
+			&&!allocator_traits::is_always_equal::value)
 		{
 			if(other.allocator!=this->allocator)
 			{
@@ -325,34 +385,38 @@ public:
 		other.ibuffer={};
 		return *this;
 	}
+	constexpr void swap(basic_io_buffer& other) noexcept(allocator_traits::propagate_on_container_swap::value||allocator_traits::is_always_equal::value)
+	{
+/*
+If std::allocator_traits<allocator_type>::propagate_on_container_swap::value is true, then the allocators are exchanged using an unqualified call to non-member swap. Otherwise, they are not swapped (and if get_allocator() != other.get_allocator(), the behavior is undefined).
+
+WTF is this garbage?
+
+*/
+		if constexpr(std::allocator_traits<allocator_type>::propagate_on_container_swap::value)
+		{
+			if(other.allocator!=this->allocator)
+				return;
+		}
+		using std::swap;
+		swap(handle,other.handle);
+		swap(decorator,other.decorator);
+		swap(allocator,other.allocator);
+		swap(obuffer,other.obuffer);
+		swap(ibuffer,other.ibuffer);
+	}
 	constexpr ~basic_io_buffer()
 	{
 		close_impl();
-		if constexpr((mode&buffer_mode::secure_clear)==buffer_mode::secure_clear)
-		{
-			if constexpr((mode&buffer_mode::out)==buffer_mode::out)
-				if(obuffer.beg)
-				{
-					secure_clear(std::to_address(obuffer.beg),sizeof(char_type)*buffer_size);
-					allocator_traits::deallocate(obuffer.beg,buffer_size);
-				}
-			if constexpr((mode&buffer_mode::in)==buffer_mode::in)
-				if(ibuffer.beg)
-				{
-					secure_clear(std::to_address(ibuffer.beg),sizeof(char_type)*buffer_size);
-					allocator_traits::deallocate(ibuffer.beg,buffer_size);
-				}
-		}
-		else
-		{
-			if constexpr((mode&buffer_mode::out)==buffer_mode::out)
-				if(obuffer.beg)
-					allocator_traits::deallocate(obuffer.beg,buffer_size);
-			if constexpr((mode&buffer_mode::in)==buffer_mode::in)
-				if(ibuffer.beg)
-					allocator_traits::deallocate(ibuffer.beg,buffer_size);
-		}
+		cleanup_impl();
 	}
 };
+
+template<stream handletype,buffer_mode mde,typename Decorator,typename Allocator,std::size_t bfs>
+inline constexpr void swap(basic_io_buffer<handletype,mde,Decorator,Allocator,bfs>& lhs,basic_io_buffer<handletype,mde,Decorator,Allocator,bfs>& rhs)
+	noexcept(noexcept(lhs.swap(rhs)))
+{
+	lhs.swap(rhs);
+}
 
 }
