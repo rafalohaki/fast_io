@@ -83,3 +83,7 @@
 #include"fast_io_core_impl/malformed_input.h"
 
 
+#if __cpp_lib_source_location >= 201907L
+#include<source_location>
+#include"fast_io_core_impl/source_location.h"
+#endif
