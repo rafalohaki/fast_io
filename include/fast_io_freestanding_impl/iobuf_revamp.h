@@ -394,6 +394,159 @@ inline constexpr void swap(basic_io_buffer<handletype,mde,Decorator,Allocator,bu
 	lhs.swap(rhs);
 }
 
+/*
+input part
+*/
+
+
+template<stream handletype,buffer_flags mde,typename Decorator,typename Allocator,std::size_t buffer_size>
+requires (buffer_input_stream<handle_type>||((mode&buffer_flags::in)==buffer_flags::in))
+inline constexpr auto ibuffer_begin(basic_io_buffer<handletype,mde,Decorator,Allocator,buffer_size>& iobf) noexcept
+{
+	if constexpr((mode&buffer_flags::in)==buffer_flags::in)
+		return iobf.ibuffer.beg;
+	else
+		return ibuffer_begin(iobf.compound.handle);
+}
+
+template<stream handletype,buffer_flags mde,typename Decorator,typename Allocator,std::size_t buffer_size>
+requires (buffer_input_stream<handle_type>||((mode&buffer_flags::in)==buffer_flags::in))
+inline constexpr auto ibuffer_curr(basic_io_buffer<handletype,mde,Decorator,Allocator,buffer_size>& iobf) noexcept
+{
+	if constexpr((mode&buffer_flags::in)==buffer_flags::in)
+		return iobf.ibuffer.curr;
+	else
+		return ibuffer_curr(iobf.compound.handle);
+}
+
+template<stream handletype,buffer_flags mde,typename Decorator,typename Allocator,std::size_t buffer_size>
+requires (buffer_input_stream<handle_type>||((mode&buffer_flags::in)==buffer_flags::in))
+inline constexpr auto ibuffer_end(basic_io_buffer<handletype,mde,Decorator,Allocator,buffer_size>& iobf) noexcept
+{
+	if constexpr((mode&buffer_flags::in)==buffer_flags::in)
+		return iobf.ibuffer.ed;
+	else
+		return ibuffer_end(iobf.compound.handle);
+}
+
+template<stream handletype,buffer_flags mde,typename Decorator,typename Allocator,std::size_t buffer_size>
+requires ((buffer_input_stream<handle_type>&&requires(handle_type hd)
+	{
+		ibuffer_cap(hd);
+	})||((mode&buffer_flags::in)==buffer_flags::in))
+inline constexpr auto ibuffer_cap(basic_io_buffer<handletype,mde,Decorator,Allocator,buffer_size>& iobf) noexcept
+{
+	if constexpr((mode&buffer_flags::in)==buffer_flags::in)
+	{
+		if(iobf.ibuffer.bg)[[likely]]
+			return iobf.ibuffer.bg+buffer_size;
+		return iobf.ibuffer.bg;
+	}
+	else
+	{
+		return ibuffer_cap(iobf.compound.handle);
+	}
+}
+
+template<stream handletype,buffer_flags mde,typename Decorator,typename Allocator,std::size_t buffer_size>
+requires ((mode&buffer_flags::in)==buffer_flags::in)
+inline constexpr void ibuffer_set_curr(basic_io_buffer<handletype,mde,Decorator,Allocator,buffer_size>& iobf,
+	typename basic_io_buffer<handletype,mde,Decorator,Allocator,buffer_size>::pointer ptr) noexcept
+{
+	iobf.ibuffer.curr=ptr;
+}
+
+template<stream handletype,buffer_flags mde,typename Decorator,typename Allocator,std::size_t buffer_size>
+requires (((mode&buffer_flags::in)!=buffer_flags::in)&&buffer_input_stream<handle_type>)
+inline constexpr void ibuffer_set_curr(basic_io_buffer<handletype,mde,Decorator,Allocator,buffer_size>& iobf,
+	auto ptr) noexcept
+{
+	return ibuffer_set_curr(iobf.compound.handle,ptr);
+}
+
+namespace details
+{
+	
+}
+
+template<stream handletype,buffer_flags mde,typename Decorator,typename Allocator,std::size_t buffer_size>
+requires (buffer_input_stream<handletype>||((mode&buffer_flags::in)==buffer_flags::in))
+inline constexpr bool underflow(basic_io_buffer<handletype,mde,Decorator,Allocator,buffer_size>& iobf)
+	noexcept(noexcept(underflow(iobf.compound.handle)))
+{
+	if constexpr((mode&buffer_flags::in)==buffer_flags::in)
+	{
+
+	}
+	else if constexpr(contiguous_input_stream<handletype>)
+		return false;
+	else
+		return underflow(iobf.compound.handle);
+}
+
+template<contiguous_input_stream handletype,buffer_flags mde,typename Decorator,typename Allocator,std::size_t buffer_size>
+requires ((mode&buffer_flags::in)!=buffer_flags::in)
+inline constexpr void underflow_forever_false(basic_io_buffer<handletype,mde,Decorator,Allocator,buffer_size>&){}
+
+template<zero_copy_input_stream handletype,buffer_flags mde,typename Decorator,typename Allocator,std::size_t buffer_size>
+requires ((((mode&buffer_flags::in)!=buffer_flags::in)&&std::same_as<Decorator,void>))
+inline constexpr decltype(auto) zero_copy_in_handle(basic_io_buffer<handletype,mde,Decorator,Allocator,buffer_size>& iobf) noexcept noexcept(zero_copy_in_handle(hd))
+{
+	return zero_copy_in_handle(iobf.compound.handle);
+}
+
+namespace details
+{
+
+template<input_stream handletype,buffer_flags mde,typename Decorator,typename Allocator,std::size_t buffer_size,std::forward_iterator Iter>
+inline constexpr Iter read_unhappy_path(basic_io_buffer<handletype,mde,Decorator,Allocator,buffer_size>& iobf,Iter first,Iter last)
+{
+	
+}
+
+template<input_stream handletype,buffer_flags mde,typename Decorator,typename Allocator,std::size_t buffer_size,std::forward_iterator Iter>
+inline constexpr Iter read_unhappy_path(basic_io_buffer<handletype,mde,Decorator,Allocator,buffer_size>& iobf,Iter first,Iter last)
+{
+
+}
+
+}
+
+template<input_stream handletype,buffer_flags mde,typename Decorator,typename Allocator,std::size_t buffer_size,std::forward_iterator Iter>
+requires (((mode&buffer_flags::in)==buffer_flags::in)&&
+	std::same_as<typename basic_io_buffer<handletype,mde,Decorator,Allocator,buffer_size>::char_type,
+	std::iter_value_t<Iter>>)
+[[nodiscard]] inline constexpr Iter read(basic_io_buffer<handletype,mde,Decorator,Allocator,buffer_size>& iobf,Iter first,Iter last)
+{
+	if constexpr(std::random_access_iterator<Iter>)
+	{
+		std::size_t const iter_diff(last-first);
+		std::size_t const buf_diff(iobf.ibuffer.ed-iobf.ibuffer.curr);
+		if(iter_diff<buf_diff)[[likely]]
+		{
+			non_overlapped_copy_n(iter_diff,iter_diff);
+			return first;
+		}
+	}
+}
+
+/*
+output part
+
+template<input_stream handletype,buffer_flags mde,typename Decorator,typename Allocator,std::size_t buffer_size,std::forward_iterator Iter>
+requires ((mode&buffer_flags::out)==buffer_flags::out)
+inline constexpr void write(basic_io_buffer<handletype,mde,Decorator,Allocator,buffer_size>& iobf,Iter first,Iter last)
+{
+}
+
+*/
+
+template<zero_copy_output_stream handletype,buffer_flags mde,typename Decorator,typename Allocator,std::size_t buffer_size>
+requires ((((mode&buffer_flags::out)!=buffer_flags::out)&&std::same_as<Decorator,void>))
+inline constexpr decltype(auto) zero_copy_out_handle(basic_io_buffer<handletype,mde,Decorator,Allocator,buffer_size>& iobf) noexcept noexcept(zero_copy_out_handle(hd))
+{
+	return zero_copy_out_handle(iobf.compound.handle);
+}
 
 
 }

@@ -763,10 +763,9 @@ inline posix_file_status win32_status_impl(void* __restrict handle)
 {
 	file_type ft{file_type_impl(handle)};
 	if(ft==file_type::fifo||ft==file_type::character)
-	{
-		return posix_file_status{.type=ft,.nlink=1,
-		.rdev=static_cast<std::uintmax_t>(reinterpret_cast<std::uintptr_t>(handle)),.blksize=65536};
-	}
+		return posix_file_status{0,0,static_cast<perms>(436),ft,1,0,0,
+			static_cast<std::uintmax_t>(reinterpret_cast<std::uintptr_t>(handle)),
+			0,65536,0,{},{},{},0,0};
 	by_handle_file_information bhdi;
 	if(!GetFileInformationByHandle(handle,std::addressof(bhdi)))
 		throw_win32_error();
