@@ -213,18 +213,18 @@ public:
 	requires std::constructible_from<stm,Args...>
 	basic_bio_file(io_cookie_t,std::in_place_type_t<stm>,Args&& ...)
 	{
-		throw_posix_error(ENOTSUPP);
+		throw_posix_error(ENOTSUP);
 	}
 	template<stream stm>
 	basic_bio_file(io_cookie_t,stm&)
 	{
-		throw_posix_error(ENOTSUPP);
+		throw_posix_error(ENOTSUP);
 	}
 
 	template<stream stm>
 	basic_bio_file(io_cookie_t,stm&&)
 	{
-		throw_posix_error(ENOTSUPP);
+		throw_posix_error(ENOTSUP);
 	}
 #endif
 
