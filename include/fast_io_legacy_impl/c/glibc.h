@@ -23,7 +23,7 @@ inline constexpr void ibuffer_set_curr(c_io_observer_unlocked cio,char* ptr) noe
 	cio.fp->_IO_read_ptr=ptr;
 }
 
-extern "C" int __underflow (FILE *) noexcept;
+extern "C" int __underflow (std::FILE*) noexcept;
 inline bool underflow(c_io_observer_unlocked cio) noexcept
 {
 	return __underflow(cio.fp)!=EOF;

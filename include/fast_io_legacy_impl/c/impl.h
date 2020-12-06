@@ -948,6 +948,28 @@ using wc_io_handle = basic_c_io_handle<wchar_t>;
 using wc_file = basic_c_file<wchar_t>;
 using wc_file_unlocked = basic_c_file_unlocked<wchar_t>;
 #endif
+
+using u8c_io_observer_unlocked=basic_c_io_observer_unlocked<char8_t>;
+using u8c_io_observer=basic_c_io_observer<char8_t>;
+using u8c_io_handle_unlocked = basic_c_io_handle_unlocked<char8_t>;
+using u8c_io_handle = basic_c_io_handle<char8_t>;
+using u8c_file = basic_c_file<char8_t>;
+using u8c_file_unlocked = basic_c_file_unlocked<char8_t>;
+
+using u16c_io_observer_unlocked=basic_c_io_observer_unlocked<char16_t>;
+using u16c_io_observer=basic_c_io_observer<char16_t>;
+using u16c_io_handle_unlocked = basic_c_io_handle_unlocked<char16_t>;
+using u16c_io_handle = basic_c_io_handle<char16_t>;
+using u16c_file = basic_c_file<char16_t>;
+using u16c_file_unlocked = basic_c_file_unlocked<char16_t>;
+
+using u32c_io_observer_unlocked=basic_c_io_observer_unlocked<char32_t>;
+using u32c_io_observer=basic_c_io_observer<char32_t>;
+using u32c_io_handle_unlocked = basic_c_io_handle_unlocked<char32_t>;
+using u32c_io_handle = basic_c_io_handle<char32_t>;
+using u32c_file = basic_c_file<char32_t>;
+using u32c_file_unlocked = basic_c_file_unlocked<char32_t>;
+
 template<std::integral ch_type>
 requires zero_copy_input_stream<basic_posix_io_observer<ch_type>>
 inline decltype(auto) zero_copy_in_handle(basic_c_io_observer_unlocked<ch_type> h)
