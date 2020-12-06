@@ -323,7 +323,7 @@ inline std::size_t bio_read_impl(BIO* bio,void* address,std::size_t size)
 	return read_bytes;
 }
 
-inline std::size_t bio_write_impl(BIO* bio,void* address,std::size_t size)
+inline std::size_t bio_write_impl(BIO* bio,void const* address,std::size_t size)
 {
 	std::size_t written_bytes{};
 	if(BIO_write_ex(bio,address,size,std::addressof(written_bytes))==-1)
