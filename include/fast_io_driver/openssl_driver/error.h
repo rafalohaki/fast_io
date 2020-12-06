@@ -6,7 +6,12 @@ namespace fast_io
 class openssl_error:public fast_io_error
 {
 public:
-	virtual	void report(error_reporter& err) const override;
+	virtual	void report(error_reporter& err) const override
+#ifdef __cpp_exceptions
+	;
+#else
+	{}
+#endif
 };
 
 
