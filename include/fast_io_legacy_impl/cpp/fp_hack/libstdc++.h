@@ -1,8 +1,8 @@
 #pragma once
 //https://www.ginac.de/~kreckel/fileno/
-
-#include <ext/stdio_filebuf.h>
+#ifdef __cpp_rtti
 #include <ext/stdio_sync_filebuf.h>
+#endif
 
 namespace fast_io::details::streambuf_hack
 {
