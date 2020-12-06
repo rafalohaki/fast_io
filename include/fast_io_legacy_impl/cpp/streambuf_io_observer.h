@@ -82,13 +82,13 @@ inline void flush(basic_general_streambuf_io_observer<T> h)
 #if __cpp_lib_three_way_comparison >= 201907L
 
 template<typename T>
-inline constexpr bool operator==(basic_general_streambuf_io_observer<T> a,basic_general_streambuf_io_observer<T> b)
+inline constexpr bool operator==(basic_general_streambuf_io_observer<T> a,basic_general_streambuf_io_observer<T> b) noexcept
 {
 	return a.fb==b.fb;
 }
 
 template<typename T>
-inline constexpr auto operator<=>(basic_general_streambuf_io_observer<T> a,basic_general_streambuf_io_observer<T> b)
+inline constexpr auto operator<=>(basic_general_streambuf_io_observer<T> a,basic_general_streambuf_io_observer<T> b) noexcept
 {
 	return a.fb<=>b.fb;
 }

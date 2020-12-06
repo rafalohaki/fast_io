@@ -450,13 +450,13 @@ public:
 #if __cpp_lib_three_way_comparison >= 201907L
 
 template<nt_family family,std::integral ch_type>
-inline constexpr bool operator==(basic_nt_family_io_observer<family,ch_type> a,basic_nt_family_io_observer<family,ch_type> b)
+inline constexpr bool operator==(basic_nt_family_io_observer<family,ch_type> a,basic_nt_family_io_observer<family,ch_type> b) noexcept
 {
 	return a.handle==b.handle;
 }
 
 template<nt_family family,std::integral ch_type>
-inline constexpr auto operator<=>(basic_nt_family_io_observer<family,ch_type> a,basic_nt_family_io_observer<family,ch_type> b)
+inline constexpr auto operator<=>(basic_nt_family_io_observer<family,ch_type> a,basic_nt_family_io_observer<family,ch_type> b) noexcept
 {
 	return a.handle<=>b.handle;
 }

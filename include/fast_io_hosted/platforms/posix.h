@@ -317,13 +317,13 @@ public:
 #if __cpp_lib_three_way_comparison >= 201907L
 
 template<std::integral ch_type>
-inline constexpr bool operator==(basic_posix_io_observer<ch_type> a,basic_posix_io_observer<ch_type> b)
+inline constexpr bool operator==(basic_posix_io_observer<ch_type> a,basic_posix_io_observer<ch_type> b) noexcept
 {
 	return a.fd==b.fd;
 }
 
 template<std::integral ch_type>
-inline constexpr auto operator<=>(basic_posix_io_observer<ch_type> a,basic_posix_io_observer<ch_type> b)
+inline constexpr auto operator<=>(basic_posix_io_observer<ch_type> a,basic_posix_io_observer<ch_type> b) noexcept
 {
 	return a.fd<=>b.fd;
 }

@@ -658,25 +658,25 @@ inline std::uintmax_t seek(basic_c_io_observer<ch_type> cfhd,std::intmax_t offse
 #if __cpp_lib_three_way_comparison >= 201907L
 
 template<std::integral ch_type>
-inline constexpr bool operator==(basic_c_io_observer<ch_type> a,basic_c_io_observer<ch_type> b)
+inline constexpr bool operator==(basic_c_io_observer<ch_type> a,basic_c_io_observer<ch_type> b) noexcept
 {
 	return a.fp==b.fp;
 }
 
 template<std::integral ch_type>
-inline constexpr bool operator==(basic_c_io_observer_unlocked<ch_type> a,basic_c_io_observer_unlocked<ch_type> b)
+inline constexpr bool operator==(basic_c_io_observer_unlocked<ch_type> a,basic_c_io_observer_unlocked<ch_type> b) noexcept
 {
 	return a.fp==b.fp;
 }
 
 template<std::integral ch_type>
-inline constexpr auto operator<=>(basic_c_io_observer<ch_type> a,basic_c_io_observer<ch_type> b)
+inline constexpr auto operator<=>(basic_c_io_observer<ch_type> a,basic_c_io_observer<ch_type> b) noexcept
 {
 	return a.fp<=>b.fp;
 }
 
 template<std::integral ch_type>
-inline constexpr auto operator<=>(basic_c_io_observer_unlocked<ch_type> a,basic_c_io_observer_unlocked<ch_type> b)
+inline constexpr auto operator<=>(basic_c_io_observer_unlocked<ch_type> a,basic_c_io_observer_unlocked<ch_type> b) noexcept
 {
 	return a.fp<=>b.fp;
 }

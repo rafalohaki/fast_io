@@ -58,7 +58,7 @@ inline int bio_to_fd(BIO* bio) noexcept
 }
 
 }
-
+#ifdef __cpp_rtti
 template<typename stm>
 requires (stream<std::remove_reference_t<stm>>)
 struct bio_io_cookie_functions_t
@@ -126,7 +126,8 @@ struct bio_io_cookie_functions_t
 };
 
 template<typename stm>
-bio_io_cookie_functions_t<stm> const bio_io_cookie_functions{};
+inline bio_io_cookie_functions_t<stm> const bio_io_cookie_functions{};
+#endif
 
 template<std::integral ch_type>
 class basic_bio_io_observer
@@ -161,14 +162,15 @@ public:
 	{
 		return {details::bio_to_fd(bio)};
 	}
-#if defined(_WIN32)
+#ifdef _WIN32
 	explicit operator basic_win32_io_observer<char_type>() const noexcept
 	{
 		return basic_win32_io_observer<char_type>(static_cast<basic_posix_io_observer<char_type>>(*this));
 	}
-	explicit operator basic_nt_io_observer<char_type>() const noexcept
+	template<nt_family fam>
+	explicit operator basic_nt_family_io_observer<fam,char_type>() const noexcept
 	{
-		return basic_nt_io_observer<char_type>(static_cast<basic_posix_io_observer<char_type>>(*this));
+		return basic_nt_family_io_observer<fam,char_type>(static_cast<basic_posix_io_observer<char_type>>(*this));
 	}
 #endif
 };
@@ -185,6 +187,7 @@ public:
 	using char_type = ch_type;
 	constexpr basic_bio_file()=default;
 	constexpr basic_bio_file(native_handle_type bio):basic_bio_io_observer<char_type>(bio){}
+#ifdef __cpp_rtti
 	template<stream stm,typename ...Args>
 	requires std::constructible_from<stm,Args...>
 	basic_bio_file(io_cookie_t,std::in_place_type_t<stm>,Args&& ...args):basic_bio_io_observer<char_type>(BIO_new(std::addressof(bio_io_cookie_functions<stm>.functions)))
@@ -205,7 +208,25 @@ public:
 
 	template<stream stm>
 	basic_bio_file(io_cookie_t,stm&& sm):basic_bio_file<char_type>(io_cookie,std::in_place_type<stm>,std::move(sm)){}
+#else
+	template<stream stm,typename ...Args>
+	requires std::constructible_from<stm,Args...>
+	basic_bio_file(io_cookie_t,std::in_place_type_t<stm>,Args&& ...)
+	{
+		throw_posix_error(ENOTSUPP);
+	}
+	template<stream stm>
+	basic_bio_file(io_cookie_t,stm&)
+	{
+		throw_posix_error(ENOTSUPP);
+	}
 
+	template<stream stm>
+	basic_bio_file(io_cookie_t,stm&&)
+	{
+		throw_posix_error(ENOTSUPP);
+	}
+#endif
 
 	basic_bio_file(basic_c_io_handle<char_type>&& bmv,fast_io::open_mode om):
 		basic_bio_io_observer<char_type>(BIO_new_fp(bmv.native_handle(),details::calculate_bio_new_fp_flags<true>(om)))
@@ -281,26 +302,66 @@ public:
 
 using bio_io_observer =  basic_bio_io_observer<char>;
 using bio_file =  basic_bio_file<char>;
+#ifndef __MSDOS__
+using wbio_io_observer =  basic_bio_io_observer<wchar_t>;
+using wbio_file =  basic_bio_file<wchar_t>;
+#endif
+using u8bio_io_observer =  basic_bio_io_observer<char8_t>;
+using u8bio_file =  basic_bio_file<char8_t>;
+using u16bio_io_observer =  basic_bio_io_observer<char16_t>;
+using u16bio_file =  basic_bio_file<char16_t>;
+using u32bio_io_observer =  basic_bio_io_observer<char32_t>;
+using u32bio_file =  basic_bio_file<char32_t>;
+
+namespace details
+{
+inline std::size_t bio_read_impl(BIO* bio,void* address,std::size_t size)
+{
+	std::size_t read_bytes{};
+	if(BIO_read_ex(bio,address,size,std::addressof(read_bytes))==-1)
+		throw_openssl_error();
+	return read_bytes;
+}
+
+inline std::size_t bio_write_impl(BIO* bio,void* address,std::size_t size)
+{
+	std::size_t written_bytes{};
+	if(BIO_write_ex(bio,address,size,std::addressof(written_bytes))==-1)
+		throw_openssl_error();
+	return written_bytes;
+}
+inline posix_file_status bio_status_impl(BIO* bio)
+{
+	return status(posix_io_observer{bio_to_fd(bio)});
+}
+
+}
 
 template<std::integral ch_type,std::contiguous_iterator Iter>
 inline Iter read(basic_bio_io_observer<ch_type> iob,Iter begin,Iter end)
 {
-	std::size_t read_bytes{};
-	if(BIO_read_ex(iob.native_handle(),std::to_address(begin),
-		sizeof(*begin)*(std::to_address(end)-std::to_address(begin)),std::addressof(read_bytes))==-1)
-		throw_openssl_error();
-	return begin+read_bytes/sizeof(*begin);
+	return begin+details::bio_read_impl(iob.bio,std::to_address(begin),(end-begin)*sizeof(*begin))/sizeof(*begin);
 }
 
 template<std::integral ch_type,std::contiguous_iterator Iter>
 inline Iter write(basic_bio_io_observer<ch_type> iob,Iter begin,Iter end)
 {
-	std::size_t written_bytes{};
-	if(BIO_write_ex(iob.native_handle(),std::to_address(begin),
-		sizeof(*begin)*(std::to_address(end)-std::to_address(begin)),std::addressof(written_bytes))==-1)
-		throw_openssl_error();
-	return begin+written_bytes/sizeof(*begin);
+	return begin+details::bio_write_impl(iob.bio,std::to_address(begin),(end-begin)*sizeof(*begin))/sizeof(*begin);
 }
+
+#if __cpp_lib_three_way_comparison >= 201907L
+template<std::integral ch_type>
+inline constexpr bool operator==(basic_bio_io_observer<ch_type> a,basic_bio_io_observer<ch_type> b) noexcept
+{
+	return a.bio==b.bio;
+}
+
+template<std::integral ch_type>
+inline constexpr auto operator<=>(basic_bio_io_observer<ch_type> a,basic_bio_io_observer<ch_type> b) noexcept
+{
+	return a.bio<=>b.bio;
+}
+#endif
 
 template<std::integral ch_type>
 inline constexpr basic_bio_io_observer<ch_type> io_value_handle(basic_bio_io_observer<ch_type> other) noexcept
@@ -312,6 +373,12 @@ template<std::integral ch_type>
 inline constexpr posix_at_entry at(basic_bio_io_observer<ch_type> bio) noexcept
 {
 	return posix_at_entry{details::bio_to_fd(bio.bio)};
+}
+
+template<std::integral ch_type>
+inline constexpr posix_file_status status(basic_bio_io_observer<ch_type> bio)
+{
+	return details::bio_status_impl(bio.bio);
 }
 
 static_assert(input_stream<bio_file>);

@@ -304,13 +304,13 @@ public:
 #if __cpp_lib_three_way_comparison >= 201907L
 
 template<std::integral ch_type>
-inline constexpr bool operator==(basic_win32_io_observer<ch_type> a,basic_win32_io_observer<ch_type> b)
+inline constexpr bool operator==(basic_win32_io_observer<ch_type> a,basic_win32_io_observer<ch_type> b) noexcept
 {
 	return a.handle==b.handle;
 }
 
 template<std::integral ch_type>
-inline constexpr auto operator<=>(basic_win32_io_observer<ch_type> a,basic_win32_io_observer<ch_type> b)
+inline constexpr auto operator<=>(basic_win32_io_observer<ch_type> a,basic_win32_io_observer<ch_type> b) noexcept
 {
 	return a.handle<=>b.handle;
 }
