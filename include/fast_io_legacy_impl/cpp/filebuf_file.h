@@ -54,9 +54,9 @@ https://github.com/gcc-mirror/gcc/blob/41d6b10e96a1de98e90a7c0378437c3255814b16/
 __basic_file<char>::sys_open(int __fd, ios_base::openmode __mode) throw ()
 This function never fails. but what if fdopen fails?
 */
-		if(!this->native_handle()->is_open())
+		if(!this->fb->is_open())
 		{
-			delete this->native_handle();
+			delete this->fb;
 			throw_posix_error();
 		}
 		piohd.release();
@@ -66,9 +66,9 @@ This function never fails. but what if fdopen fails?
 		basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>}
 	{
 		fb.__open(piohd.native_handle(),details::calculate_fstream_open_value(mode));
-		if(!this->native_handle()->is_open())
+		if(!this->fb->is_open())
 		{
-			delete this->native_handle();
+			delete this->fb;
 			throw_posix_error();
 		}
 		piohd.release();
@@ -76,9 +76,9 @@ This function never fails. but what if fdopen fails?
 #else
 	basic_filebuf_file(basic_c_io_handle_unlocked<char_type>&& chd,open_mode):basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>(chd.native_handle())}
 	{
-		if(!this->native_handle()->is_open())
+		if(!this->fb->is_open())
 		{
-			delete this->native_handle();
+			delete this->fb;
 			throw_posix_error();
 		}
 		chd.release();
@@ -123,40 +123,40 @@ private:
 	void close_impl() noexcept
 	{
 #if defined(_MSVC_STL_UPDATE)
-		if(this->native_handle())[[likely]]
+		if(this->fb)[[likely]]
 		{
-			this->native_handle()->close();
-			delete this->native_handle();
+			this->fb->close();
+			delete this->fb;
 		}
 #else
-		delete this->native_handle();
+		delete this->fb;
 #endif
 	}
 public:
 	basic_filebuf_file& operator=(basic_filebuf_file&& bf) noexcept
 	{
-		if(this->native_handle()==bf.native_handle())[[unlikely]]
+		if(this->fb==bf.fb)[[unlikely]]
 			return *this;
 		close_impl();
-		this->native_handle()=bf.release();
+		this->fb=bf.release();
 		return *this;
 	}
 	void close()
 	{
-		if(this->native_handle())[[likely]]
+		if(this->fb)[[likely]]
 		{
-			this->native_handle()->clear();
-			this->native_handle()->close();
-			if(this->native_handle()->bad())[[unlikely]]
+			this->fb->clear();
+			this->fb->close();
+			if(this->fb->bad())[[unlikely]]
 				throw_posix_error();
-			delete this->native_handle();
-			this->native_handle()=nullptr;
+			delete this->fb;
+			this->fb=nullptr;
 		}
 	}
 	void reset(native_handle_type fb=nullptr) noexcept
 	{
 		close_impl();
-		this->native_handle()=fb;
+		this->fb=fb;
 	}
 	~basic_filebuf_file()
 	{
@@ -165,11 +165,12 @@ public:
 };
 
 using filebuf_file=basic_filebuf_file<char>;
-using u8filebuf_file=basic_filebuf_file<char8_t>;
-
 #ifndef __MSDOS__
 using wfilebuf_file=basic_filebuf_file<wchar_t>;
 #endif
+using u8filebuf_file=basic_filebuf_file<char8_t>;
+using u16filebuf_file=basic_filebuf_file<char16_t>;
+using u32filebuf_file=basic_filebuf_file<char32_t>;
 static_assert(std::is_standard_layout_v<filebuf_file>);
-
+static_assert(std::is_standard_layout_v<u32filebuf_file>);
 }

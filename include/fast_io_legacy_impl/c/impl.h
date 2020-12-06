@@ -555,14 +555,15 @@ public:
 	{
 		return {details::fp_to_fd(fp)};
 	}
-#if defined(__WINNT__) || defined(_MSC_VER)
+#ifdef _WIN32
 	explicit operator basic_win32_io_observer<char_type>() const noexcept
 	{
 		return static_cast<basic_win32_io_observer<char_type>>(static_cast<basic_posix_io_observer<char_type>>(*this));
 	}
-	explicit operator basic_nt_io_observer<char_type>() const noexcept
+	template<nt_family fam>
+	explicit operator basic_nt_family_io_observer<fam,char_type>() const noexcept
 	{
-		return static_cast<basic_nt_io_observer<char_type>>(static_cast<basic_posix_io_observer<char_type>>(*this));
+		return static_cast<basic_nt_family_io_observer<fam,char_type>>(static_cast<basic_posix_io_observer<char_type>>(*this));
 	}
 #endif
 	constexpr native_handle_type release() noexcept

@@ -46,15 +46,16 @@ public:
 	{
 		return static_cast<basic_posix_io_observer<char_type>>(static_cast<basic_c_io_observer<char_type>>(*this));
 	}
-#if defined(_WIN32)
+#ifdef _WIN32
 	explicit operator basic_win32_io_observer<char_type>() const noexcept
 	{
 		return static_cast<basic_win32_io_observer<char_type>>
 		(static_cast<basic_posix_io_observer<char_type>>(*this));
 	}
-	explicit operator basic_nt_io_observer<char_type>() const noexcept
+	template<nt_family fam>
+	explicit operator basic_nt_family_io_observer<fam,char_type>() const noexcept
 	{
-		return static_cast<basic_nt_io_observer<char_type>>
+		return static_cast<basic_nt_family_io_observer<fam,char_type>>
 		(static_cast<basic_posix_io_observer<char_type>>(*this));
 	}
 #endif
@@ -154,6 +155,13 @@ using wfilebuf_io_observer = basic_filebuf_io_observer<wchar_t>;
 using wstringbuf_io_observer = basic_stringbuf_io_observer<wchar_t>;
 #endif
 
+using u16streambuf_io_observer = basic_streambuf_io_observer<char16_t>;
+using u16filebuf_io_observer = basic_filebuf_io_observer<char16_t>;
+using u16stringbuf_io_observer = basic_stringbuf_io_observer<char16_t>;
+
+using u32streambuf_io_observer = basic_streambuf_io_observer<char32_t>;
+using u32filebuf_io_observer = basic_filebuf_io_observer<char32_t>;
+using u32stringbuf_io_observer = basic_stringbuf_io_observer<char32_t>;
 
 #if defined(__GLIBCXX__) || defined(__LIBCPP_VERSION)  || defined(_MSVC_STL_UPDATE)
 template<std::integral ch_type,typename Traits>
