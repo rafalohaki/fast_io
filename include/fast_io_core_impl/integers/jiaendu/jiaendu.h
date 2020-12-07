@@ -39,6 +39,7 @@ inline std::size_t output_unsigned(Iter str,U value) noexcept
 {
 	using ch_type = std::remove_cvref_t<decltype(*str)>;
 	constexpr std::size_t bytes4{4*sizeof(ch_type)};
+	constexpr bool is_ebcdic_exec_charset(exec_charset_is_ebcdic<ch_type>());
 	if constexpr(sizeof(U)==16)
 	{
 		constexpr auto zero39{fast_io::details::compile_pow10<U,38>()};
@@ -49,7 +50,7 @@ inline std::size_t output_unsigned(Iter str,U value) noexcept
 			auto remain3{value-v3*zero39};
 			auto v2{remain3/10000000000000000000ULL};
 			std::uint64_t remain{static_cast<std::uint64_t>(remain3-v2*10000000000000000000ULL)};
-			if constexpr(exec_charset_is_ebcdic<ch_type>)
+			if constexpr(is_ebcdic_exec_charset)
 				*str=static_cast<ch_type>(static_cast<char8_t>(v3)+(0xF0));
 			else
 				*str=static_cast<char8_t>(v3)+u8'0';
@@ -204,7 +205,7 @@ inline std::size_t output_unsigned(Iter str,U value) noexcept
 			}
 			else
 			{
-				if constexpr(exec_charset_is_ebcdic<ch_type>)
+				if constexpr(is_ebcdic_exec_charset)
 					*str = static_cast<ch_type>(static_cast<char8_t>(value)+(0xF0));
 				else
 					*str = static_cast<ch_type>(static_cast<char8_t>(value)+u8'0');
@@ -237,7 +238,7 @@ inline std::size_t output_unsigned(Iter str,U value) noexcept
 			}
 			else
 			{
-				if constexpr(exec_charset_is_ebcdic<ch_type>)
+				if constexpr(is_ebcdic_exec_charset)
 					*str = static_cast<ch_type>(static_cast<char8_t>(value)+(0xF0));
 				else
 					*str = static_cast<char8_t>(v2)+u8'0';
@@ -293,7 +294,7 @@ inline std::size_t output_unsigned(Iter str,U value) noexcept
 			}
 			else
 			{
-				if constexpr(exec_charset_is_ebcdic<ch_type>)
+				if constexpr(is_ebcdic_exec_charset)
 					*str = static_cast<ch_type>(static_cast<char8_t>(value)+(0xF0));
 				else
 					*str = static_cast<char8_t>(value)+u8'0';
@@ -350,7 +351,7 @@ inline std::size_t output_unsigned(Iter str,U value) noexcept
 			}
 			else
 			{
-				if constexpr(exec_charset_is_ebcdic<ch_type>)
+				if constexpr(is_ebcdic_exec_charset)
 					*str = static_cast<ch_type>(static_cast<char8_t>(value)+(0xF0));
 				else
 					*str = static_cast<char8_t>(value)+u8'0';
@@ -372,7 +373,7 @@ inline std::size_t output_unsigned(Iter str,U value) noexcept
 		}
 		else
 		{
-			if constexpr(exec_charset_is_ebcdic<ch_type>)
+			if constexpr(is_ebcdic_exec_charset)
 				*str = static_cast<ch_type>(static_cast<char8_t>(value)+(0xF0));
 			else
 				*str = static_cast<char8_t>(value)+u8'0';
