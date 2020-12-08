@@ -3,7 +3,6 @@
 namespace fast_io
 {
 
-
 class posix_error:public fast_io_error
 {
 public:
@@ -14,20 +13,11 @@ public:
 		return ec;
 	}
 #if __cpp_constexpr >= 201907L
-	//constexpr
+	constexpr
 #endif
 	void report(error_reporter& report) const override
 	{
-#ifdef _MSC_VER
-		std::array<char,256> buffer;
-		int fail{::strerror_s(buffer.data(),buffer.size(),ec)};
-		if(fail)
-			print_freestanding(report,"strerror_s() failed\n");
-		else
-			print_freestanding(report,fast_io::chvw(buffer.data()));
-#else
-		print_freestanding(report,chvw(strerror(ec)));
-#endif
+		print_freestanding(report,get_posix_errno_scatter<char>(ec));
 	}
 };
 
@@ -47,4 +37,11 @@ public:
 	fast_terminate();
 #endif
 }
+
+template<std::integral char_type>
+inline constexpr basic_io_scatter_t<char_type> print_alias_define(io_alias_type_t<char_type>,posix_error const& perr) noexcept
+{
+	return get_posix_errno_scatter<char_type>(perr.ec);
+}
+
 }

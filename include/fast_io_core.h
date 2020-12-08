@@ -87,3 +87,5 @@
 #include<source_location>
 #include"fast_io_core_impl/source_location.h"
 #endif
+
+#include"fast_io_core_impl/posix_error_scatter.h"

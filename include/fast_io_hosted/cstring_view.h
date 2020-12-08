@@ -77,6 +77,9 @@ public:
 
 using cstring_view = basic_cstring_view<char>;
 using wcstring_view = basic_cstring_view<wchar_t>;
+using u8cstring_view = basic_cstring_view<char8_t>;
+using u16cstring_view = basic_cstring_view<char16_t>;
+using u32cstring_view = basic_cstring_view<char32_t>;
 
 #ifdef _WIN32
 using native_char_type = wchar_t;

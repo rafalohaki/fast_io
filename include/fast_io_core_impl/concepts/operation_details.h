@@ -26,4 +26,8 @@ concept space_scan_reserve_sized_transmit_impl = requires(T t)
 };
 */
 
+template<typename ch_type>
+concept character = std::integral<ch_type>&&(std::same_as<ch_type,char>||std::same_as<ch_type,wchar_t>||
+std::same_as<ch_type,char8_t>||std::same_as<ch_type,char32_t>);
+
 }
