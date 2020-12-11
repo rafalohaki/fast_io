@@ -26,6 +26,7 @@
 
 
 #include"fast_io_core_impl/ebcdic.h"
+#include"fast_io_core_impl/char_category.h"
 //fast_io core
 #include"fast_io_core_impl/utils.h"
 
