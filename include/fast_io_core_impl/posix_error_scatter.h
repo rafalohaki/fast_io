@@ -7,7 +7,7 @@ Unfortunately, strerror is not thread-safe and strerror_r is not guaranteed to b
 BTW. I wouldn't say I like the idea this can be affected by locale. Locale is trash.
 The libc implementation will also make it fail to work under the EBCDIC execution charset.
 Even libstdc++ is doing the wrong thing here. I believe this is a severe CVE vulnerability.
-
+https://github.com/gcc-mirror/gcc/blob/16e2427f50c208dfe07d07f18009969502c25dc8/libstdc%2B%2B-v3/src/c%2B%2B11/system_error.cc#L51
 We use the same strerror strings in GNU newlib since newlib is the standard in OS kernel, and the linker will remove the same string literals.
 
 */
