@@ -212,7 +212,7 @@ requires (status_input_stream<input>||input_stream<input>)
 		return scan_freestanding_decay(in.unlocked_handle(),args...);
 	}
 	else
-		return (details::scan_single_impl(in,args)||...);
+		return (details::scan_single_impl(in,args)&&...);
 }
 
 template<typename input,typename ...Args>

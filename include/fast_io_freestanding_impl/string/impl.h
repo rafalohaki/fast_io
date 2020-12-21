@@ -11,6 +11,7 @@
 #endif
 
 #include"ostring_ref.h"
+#include"string_context.h"
 
 namespace fast_io
 {

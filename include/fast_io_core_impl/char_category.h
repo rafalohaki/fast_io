@@ -175,3 +175,15 @@ inline constexpr bool is_c_space(char_type ch) noexcept
 }
 
 }
+
+namespace fast_io
+{
+
+template<std::random_access_iterator Iter>
+inline constexpr Iter scan_skip_space(Iter begin, Iter end)
+{
+	for (; begin != end && fast_io::char_category::is_c_space(*begin); ++begin);
+	return begin;
+}
+
+}

@@ -15,7 +15,7 @@ namespace fast_io
 
 namespace details
 {
-template<char8_t base,bool uppercase,bool ignore_sign=false,std::contiguous_iterator Iter,my_integral int_type>
+template<char8_t base,bool uppercase,bool ignore_sign=false,std::random_access_iterator Iter,my_integral int_type>
 constexpr Iter process_integer_output(Iter iter,int_type i) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
@@ -113,106 +113,6 @@ constexpr Iter process_integer_output(Iter iter,int_type i) noexcept
 		}
 	}
 }
-
-template<char8_t base,bool uppercase,bool ignore_sign=false,std::contiguous_iterator Iter,my_integral int_type>
-constexpr Iter process_integer_output(Iter iter,int_type i) noexcept
-{
-	using char_type = std::iter_value_t<Iter>;
-	if (std::is_constant_evaluated())
-	{
-		namespace algo_decision = fast_io::details::optimize_size;
-		if constexpr(my_unsigned_integral<int_type>)
-			return iter+algo_decision::output_unsigned<base>(iter,static_cast<std::remove_cvref_t<int_type>>(i));
-		else
-		{
-			auto abs_value{static_cast<details::my_make_unsigned_t<std::remove_cvref_t<int_type>>>(i)};
-			bool const negative(i<0);
-			if(negative)
-			{
-				abs_value = 0u - abs_value;
-				if constexpr(!ignore_sign)
-				{
-					if constexpr(std::same_as<char_type,char8_t>)
-						*iter='-';
-					else if constexpr(std::same_as<char_type,wchar_t>)
-						*iter=L'-';
-					else
-						*iter=u8'-';
-					++iter;
-				}
-			}
-			return iter+algo_decision::output_unsigned<base>(iter,abs_value);
-		}
-	}
-	else
-	{
-		if constexpr(base==10)
-		{
-			namespace algo_decision = 
-#ifdef FAST_IO_OPTIMIZE_SIZE
-				details::optimize_size;
-#elif defined(FAST_IO_OPTIMIZE_TIME)
-				details::jiaendu;//Jiaendu is objectively the fastest algorithm since it avoids division. There is no point this isn't the fastest
-#else
-				details::twodigits;
-#endif
-			if constexpr(my_unsigned_integral<int_type>)
-				return iter+algo_decision::output_unsigned(iter,static_cast<std::remove_cvref_t<int_type>>(i));
-			else
-			{
-				auto abs_value{static_cast<details::my_make_unsigned_t<std::remove_cvref_t<int_type>>>(i)};
-				bool const negative(i<0);
-				if(negative)
-				{
-					abs_value = 0 - abs_value;
-					if constexpr(!ignore_sign)
-					{
-						if constexpr(std::same_as<char_type,char8_t>)
-							*iter='-';
-						else if constexpr(std::same_as<char_type,wchar_t>)
-							*iter=L'-';
-						else
-							*iter=u8'-';
-					++iter;
-					}
-				}
-				return iter+algo_decision::output_unsigned(iter,abs_value);
-			}
-		}
-		else
-		{
-			namespace algo_decision = 
-#ifdef FAST_IO_OPTIMIZE_SIZE
-				details::optimize_size;
-#else
-				details::twodigits;
-#endif
-			if constexpr(my_unsigned_integral<int_type>)
-				return iter+algo_decision::output_unsigned<base,uppercase>(iter,static_cast<std::remove_cvref_t<int_type>>(i));
-			else
-			{
-				auto abs_value{static_cast<details::my_make_unsigned_t<std::remove_cvref_t<int_type>>>(i)};
-				bool const negative(i<0);
-				if(negative)
-				{
-					abs_value = 0 - abs_value;
-					if constexpr(!ignore_sign)
-					{
-						if constexpr(std::same_as<char_type,char8_t>)
-							*iter='-';
-						else if constexpr(std::same_as<char_type,wchar_t>)
-							*iter=L'-';
-						else
-							*iter=u8'-';
-						++iter;
-					}
-				}
-				return iter+algo_decision::output_unsigned<base,uppercase>(iter,abs_value);
-			}
-		}
-	}
-}
-
 
 
 }
