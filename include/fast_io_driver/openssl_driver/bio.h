@@ -26,7 +26,7 @@ inline constexpr int calculate_bio_new_fp_flags(open_mode om)
 	int flag{BIO_CLOSE};
 	if constexpr(!detach)
 		flag=BIO_NOCLOSE;
-	if((om&open_mode::binary)==open_mode::none)
+	if((om&open_mode::text)!=open_mode::none)
 		flag|=BIO_FP_TEXT;
 	return flag;
 }

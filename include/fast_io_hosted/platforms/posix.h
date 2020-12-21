@@ -31,19 +31,9 @@ namespace fast_io
 namespace details
 {
 #ifdef _WIN32
-template<bool wide_char=false>
-inline constexpr int calculate_posix_open_mode_for_win32_handle(open_mode value) noexcept
+
+inline constexpr int calculate_posix_open_mode_for_win32_handle_impl(open_mode value,int mode) noexcept
 {
-	int mode{};
-	if((value&open_mode::binary)!=open_mode::none)
-		mode = _O_BINARY;
-	else
-	{
-		if constexpr(wide_char)
-			mode |= _O_WTEXT;
-		else
-			mode |= _O_TEXT;
-	}
 	constexpr auto supported_values{open_mode::out|open_mode::app|open_mode::in};
 	using utype = typename std::underlying_type<open_mode>::type;
 	switch(static_cast<utype>(supported_values)&static_cast<utype>(value))
@@ -70,11 +60,36 @@ inline constexpr int calculate_posix_open_mode_for_win32_handle(open_mode value)
 		return mode;
 	}
 }
-template<open_mode om>
-struct posix_file_openmode_for_win32_handle
+
+enum class posix_open_mode_text_behavior
 {
-	static int constexpr mode = calculate_posix_open_mode_for_win32_handle(om);
+always_binary=0,text,wide_text,u8_text,u16_text
 };
+
+template<posix_open_mode_text_behavior behavior>
+inline constexpr int calculate_posix_open_mode_for_win32_handle(open_mode value) noexcept
+{
+	int mode{};
+	if constexpr(behavior==posix_open_mode_text_behavior::always_binary)
+		mode = _O_BINARY;
+	else
+	{
+	if((value&open_mode::text)==open_mode::none)
+		mode = _O_BINARY;
+	else
+	{
+		if constexpr(behavior==posix_open_mode_text_behavior::wide_text)
+			mode |= _O_WTEXT;
+		else if constexpr(behavior==posix_open_mode_text_behavior::u8_text)
+			mode |= _O_U8TEXT;
+		else if constexpr(behavior==posix_open_mode_text_behavior::u16_text)
+			mode |= _O_U16TEXT;
+		else
+			mode |= _O_TEXT;
+	}
+	}
+	return calculate_posix_open_mode_for_win32_handle_impl(value,mode);
+}
 #endif
 
 
@@ -95,7 +110,7 @@ inline constexpr int calculate_posix_open_mode(open_mode value)
 		mode |= _O_NOINHERIT;
 #endif
 #ifdef O_BINARY
-	if((value&open_mode::binary)!=open_mode::none)
+	if((value&open_mode::text)==open_mode::none)
 		mode |= O_BINARY;
 #endif
 	if((value&open_mode::creat)!=open_mode::none)
@@ -787,13 +802,31 @@ inline std::intptr_t my_get_osfhandle(int fd) noexcept
 	return _get_osfhandle(fd);
 }
 
-inline int open_fd_from_handle(void* handle,open_mode md)
+template<posix_open_mode_text_behavior behavior>
+inline int open_fd_from_handle_impl(void* handle,open_mode md)
 {
 	int fd{_open_osfhandle(bit_cast<std::intptr_t>(handle),
-		details::calculate_posix_open_mode_for_win32_handle(md))};
+		details::calculate_posix_open_mode_for_win32_handle<behavior>(md))};
 	if(fd==-1)
 		throw_posix_error();
 	return fd;
+}
+
+template<std::integral ch_type>
+inline int open_fd_from_handle(void* handle,open_mode md)
+{
+	if constexpr(exec_charset_is_ebcdic<ch_type>())
+		return open_fd_from_handle_impl<posix_open_mode_text_behavior::always_binary>(handle,md);
+	else if constexpr(std::same_as<ch_type,char>)
+		return open_fd_from_handle_impl<posix_open_mode_text_behavior::text>(handle,md);
+	else if constexpr(std::same_as<ch_type,char8_t>)
+		return open_fd_from_handle_impl<posix_open_mode_text_behavior::u8_text>(handle,md);
+	else if constexpr(std::same_as<ch_type,wchar_t>)
+		return open_fd_from_handle_impl<posix_open_mode_text_behavior::wide_text>(handle,md);
+	else if constexpr(std::same_as<ch_type,char16_t>)
+		return open_fd_from_handle_impl<posix_open_mode_text_behavior::u16_text>(handle,md);
+	else
+		return open_fd_from_handle_impl<posix_open_mode_text_behavior::always_binary>(handle,md);
 }
 
 #else
@@ -883,13 +916,13 @@ public:
 #if defined(_WIN32)
 //windows specific. open posix file from win32 io handle
 	basic_posix_file(basic_win32_io_handle<char_type>&& hd,open_mode m):
-		basic_posix_io_handle<char_type>{details::open_fd_from_handle(hd.handle,m)}
+		basic_posix_io_handle<char_type>{details::open_fd_from_handle<ch_type>(hd.handle,m)}
 	{
 		hd.release();
 	}
 	template<nt_family family>
 	basic_posix_file(basic_nt_family_io_handle<family,char_type>&& hd,open_mode m):
-		basic_posix_io_handle<char_type>{details::open_fd_from_handle(hd.handle,m)}
+		basic_posix_io_handle<char_type>{details::open_fd_from_handle<ch_type>(hd.handle,m)}
 	{
 		hd.release();
 	}

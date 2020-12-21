@@ -14,7 +14,7 @@ inline constexpr std::ios::openmode calculate_fstream_file_open_mode(open_mode o
 	std::ios::openmode ios_om{};
 	if((om&open_mode::app)!=open_mode::none)
 		ios_om=ios_om|std::ios::app;
-	if((om&open_mode::binary)!=open_mode::none)
+	if((om&open_mode::text)==open_mode::none)
 		ios_om=ios_om|std::ios::binary;
 	if((om&open_mode::in)!=open_mode::none)
 		ios_om=ios_om|std::ios::in;

@@ -13,7 +13,7 @@ public:
 	template<typename... Args>
 	requires ((sizeof...(Args)!=0)&&std::constructible_from<native_handle_type,Args...>)
 	constexpr posix_dev_urandom(Args&& ...args):device(std::forward<Args>(args)...){}
-	constexpr posix_dev_urandom():device("/dev/urandom",fast_io::open_mode::in|fast_io::open_mode::binary){}
+	constexpr posix_dev_urandom():device("/dev/urandom",fast_io::open_mode::in){}
 	constexpr auto& native_handle() noexcept
 	{
 		return device;

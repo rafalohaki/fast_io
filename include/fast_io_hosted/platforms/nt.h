@@ -64,7 +64,7 @@ std::uint32_t ObjAttributes{};
 https://docs.microsoft.com/en-us/windows/win32/secauthz/access-mask-format
 */
 
-inline constexpr nt_open_mode calculate_nt_open_mode(open_mode value,perms pm)
+inline constexpr nt_open_mode calculate_nt_open_mode(open_mode value,perms pm) noexcept
 {
 	nt_open_mode mode;
 	bool generic_write{};

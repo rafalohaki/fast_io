@@ -180,64 +180,63 @@ enum class shut{in,out,io};
 enum class open_mode:std::uint32_t
 {
 none=0,
-//	indicates that the open mode has not been evaluated yet
+//	*indicates that the open mode has not been evaluated yet
 app=1<<0,
 //	*["a"]seek to the end of stream before each write.
 archive=1<<1,
 //	[Windows]FILE_ATTRIBUTE_ARCHIVE 0x20
-binary=1<<2,
-//	["b"]open in binary mode. native_file is always binary.
-//	The text mode is provided by the POSIX layer, while native_file is win32_file or nt_file, which ignores this toggle.
-case_insensitive=1<<3,
+case_insensitive=1<<2,
 //	[Windows]NT OBJ_CASE_INSENSITIVE 0x00000040L
-compressed=1<<4,
+compressed=1<<3,
 //	[Windows]FILE_ATTRIBUTE_COMPRESSED 0x800
-creat=1<<5,
-//	*POSIX O_CREAT
-direct=1<<6,
+creat=1<<4,
+//	POSIX O_CREAT
+direct=1<<5,
 //	*POSIX O_DIRECT
-directory=1<<7,
+directory=1<<6,
 //	*POSIX O_DIRECTORY.
-encrypted=1<<8,
+encrypted=1<<7,
 //	[Windows]FILE_ATTRIBUTE_ENCRYPTED 0x4000
-excl=1<<9,
+excl=1<<8,
 //	*["x"]POSIX O_EXCL
-follow=1<<10,
+follow=1<<9,
 //	*Inverse of POSIX O_NOFOLLOW.
-hidden=1<<11,
+hidden=1<<10,
 //	[Windows]FILE_ATTRIBUTE_HIDDEN 0x2
-in=1<<12,
+in=1<<11,
 //	*["r"]open for reading.
-inherit=1<<13,
+inherit=1<<12,
 //	*Inverse of POSIX O_CLOEXEC.
-no_atime=1<<14,
+no_atime=1<<13,
 //	[Linux]O_NOATIME
-no_block=1<<15,
+no_block=1<<14,
 //	*POSIX O_NONBLOCK
-no_ctty=1<<16,
+no_ctty=1<<15,
 //	[Linux]O_NOCTTY
-no_recall=1<<17,
+no_recall=1<<16,
 //	[Windows]FILE_FLAG_OPEN_NO_RECALL 0x00100000
-normal=1<<18,
+normal=1<<17,
 //	[Windows]FILE_ATTRIBUTE_NORMAL 0x80
-offline=1<<19,
+offline=1<<18,
 //	[Windows]FILE_ATTRIBUTE_OFFLINE 0x1000
-out=1<<20,
+out=1<<19,
 //	*["w"]open for writing.
-path=1<<21,
+path=1<<20,
 //	[Linux]O_PATH
-random_access=1<<22,
+random_access=1<<21,
 //	[Windows]FILE_FLAG_RANDOM_ACCESS 0x10000000
-search=1<<23,
+search=1<<22,
 //	POSIX O_SEARCH
-session_aware=1<<24,
+session_aware=1<<23,
 //	[Windows]FILE_FLAG_SESSION_AWARE 0x00800000
-sync=1<<25,
+sync=1<<24,
 //	*POSIX O_SYNC
-system=1<<26,
+system=1<<25,
 //	[Windows]FILE_ATTRIBUTE_SYSTEM 0x4
-temporary=1<<27,
+temporary=1<<26,
 //	*[Linux]O_TMPFILE. [Windows]FILE_ATTRIBUTE_TEMPORARY 0x100 + FILE_FLAG_DELETE_ON_CLOSE 0x04000000
+text=1<<27,
+//	[inverse of "b"]open in text mode. native_file is always binary. The text mode is provided by the POSIX layer or C FILE layer. When native_file is win32_file or nt_file or zw_file or unsupported character type for C FILE* or C++ filebuf, throw invalid arguments eh.
 trunc=1<<28,
 //	*POSIX O_TRUNC
 tty_init=1<<29,
@@ -279,7 +278,7 @@ inline constexpr open_mode& operator^=(open_mode& x, open_mode y) noexcept{retur
 inline constexpr open_mode c_supported(open_mode m) noexcept
 {
 using utype = typename std::underlying_type<open_mode>::type;
-constexpr auto c_supported_values{static_cast<utype>(open_mode::binary)|
+constexpr auto c_supported_values{static_cast<utype>(open_mode::text)|
 	static_cast<utype>(open_mode::excl)|
 	static_cast<utype>(open_mode::out)|
 	static_cast<utype>(open_mode::app)|
@@ -297,40 +296,40 @@ inline constexpr char const* to_c_mode(open_mode m) noexcept
 	{
 //Action if file already exists;	Action if file does not exist;	c-style mode;	Explanation
 //Read from start;	Failure to open;	"r";	Open a file for reading
-	case static_cast<utype>(open_mode::in):
+	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::text):
 		return "\x72";
 //Destroy contents;	Create new;	"w";	Create a file for writing
-	case static_cast<utype>(open_mode::out):
-	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::trunc):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::text):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::text):
 		return "\x77";
 //Append to file;	Create new;	"a";	Append to a file
-	case static_cast<utype>(open_mode::app):
-	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app):
+	case static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::text):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::text):
 		return "\x61";
 //Read from start;	Error;	"r+";		Open a file for read/write
-	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::text):
 		return "\x72\x2b";
 //Destroy contents;	Create new;	"w+";	Create a file for read/write
-	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::trunc):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::text):
 		return "\x77\x2b";
 //Write to end;	Create new;	"a+";	Open a file for read/write
-	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app):
-	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::text):
+	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::text):
 		return "\x61\x2b";
 //Destroy contents;	Error;	"wx";	Create a file for writing
-	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::excl):
-	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::excl):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::text):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::text):
 		return "\x77\x78";
 //Append to file;	Error;	"ax";	Append to a file
-	case static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl):
-	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl):
+	case static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::text):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::text):
 		return "\x61\x78";
 //Destroy contents;	Error;	"w+x";	Create a file for read/write
-	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::excl):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::text):
 		return "\x77\x2b\x78";
 //Write to end;	Error;	"a+x";	Open a file for read/write
-	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl):
-	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::text):
+	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::text):
 		return "\x61\x2b\x78";
 	break;
 	
@@ -338,40 +337,40 @@ inline constexpr char const* to_c_mode(open_mode m) noexcept
 
 //Action if file already exists;	Action if file does not exist;	c-style mode;	Explanation
 //Read from start;	Failure to open;	"rb";	Open a file for reading
-	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::binary):
+	case static_cast<utype>(open_mode::in):
 		return "\x72\x62";
 //Destroy contents;	Create new;	"wb";	Create a file for writing
-	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::binary):
-	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::binary):
+	case static_cast<utype>(open_mode::out):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::trunc):
 		return "\x77\x62";
 //Append to file;	Create new;	"ab";	Append to a file
-	case static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::binary):
-	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::binary):
+	case static_cast<utype>(open_mode::app):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app):
 		return "\x61\x62";
 //Read from start;	Error;	"r+b";		Open a file for read/write
-	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::binary):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in):
 		return "\x72\x2b\x62";
 //Destroy contents;	Create new;	"w+b";	Create a file for read/write
-	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::binary):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::trunc):
 		return "\x77\x2b\x62";
 //Write to end;	Create new;	"a+b";	Open a file for read/write
-	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::binary):
-	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::binary):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app):
+	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app):
 		return "\x61\x2b\x62";
 //Destroy contents;	Error;	"wxb";	Create a file for writing
-	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::binary):
-	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::binary):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::excl):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::excl):
 		return "\x77\x78\x62";
 //Append to file;	Error;	"axb";	Append to a file
-	case static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::binary):
-	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::binary):
+	case static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl):
 		return "\x61\x78\x62";
 //Destroy contents;	Error;	"w+xb";	Create a file for read/write
-	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::binary):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::excl):
 		return "\x77\x2b\x78\x62";
 //Write to end;	Error;	"a+xb";	Open a file for read/write
-	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::binary):
-	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl)|static_cast<utype>(open_mode::binary):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl):
+	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::excl):
 		return "\x61\x2b\x78\x62";
 	break;
 	case 0:
