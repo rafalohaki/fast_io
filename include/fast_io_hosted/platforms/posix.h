@@ -820,7 +820,7 @@ inline int open_fd_from_handle(void* handle,open_mode md)
 	else if constexpr(std::same_as<ch_type,char>)
 		return open_fd_from_handle_impl<posix_open_mode_text_behavior::text>(handle,md);
 	else if constexpr(std::same_as<ch_type,char8_t>)
-		return open_fd_from_handle_impl<posix_open_mode_text_behavior::u8_text>(handle,md);
+		return open_fd_from_handle_impl<posix_open_mode_text_behavior::text>(handle,md);
 	else if constexpr(std::same_as<ch_type,wchar_t>)
 		return open_fd_from_handle_impl<posix_open_mode_text_behavior::wide_text>(handle,md);
 	else if constexpr(std::same_as<ch_type,char16_t>)
