@@ -119,12 +119,12 @@ inline constexpr bool is_space(T const u) noexcept
 {
 	if constexpr(std::unsigned_integral<std::remove_cvref_t<T>>)
 	{
-		return (u==0x20)|((u-0x9)<0x4);
+		return (u==0x20)|(static_cast<std::remove_cvref_t<T>>(u-0x9)<static_cast<std::remove_cvref_t<T>>(0x4));
 	}
 	else
 	{
 		std::make_unsigned_t<T> const e(u);
-		return (e==0x20)|((e-0x9)<0x4);
+		return (e==0x20)|(static_cast<std::make_unsigned_t<T>>(e-0x9)<static_cast<std::make_unsigned_t<T>>(0x4));
 	}
 }
 
@@ -142,6 +142,7 @@ inline constexpr std::size_t output_unsigned(Iter str,U value) noexcept
 		output_base_number_impl<base,uppercase>(str+len,value);
 	return len;
 }
+
 namespace fp
 {
 template<char8_t start=u8'0',std::random_access_iterator Iter,my_unsigned_integral U>
@@ -161,7 +162,7 @@ namespace with_length
 {
 template<char8_t start=u8'0',std::random_access_iterator Iter,my_unsigned_integral U>
 requires (start==0||start==u8'0')
-inline constexpr void output_unsigned(Iter str,U value,std::size_t const len) noexcept
+inline constexpr void output_unsigned(Iter str,U value,std::size_t len) noexcept
 {
 	if constexpr(sizeof(U)<=sizeof(unsigned))
 		output_base_number_impl<10,false,false,u8'.',start==0>(str+len,static_cast<unsigned>(value));

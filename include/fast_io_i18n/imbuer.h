@@ -36,7 +36,7 @@ inline constexpr auto imbue(basic_lc_all<typename std::remove_cvref_t<stm>::char
 
 template<stream stm>
 requires (std::is_lvalue_reference_v<stm>||std::is_trivially_copyable_v<stm>)
-inline constexpr auto imbue(i18n_locale& loc,stm&& out) noexcept
+inline constexpr auto imbue(l10n& loc,stm&& out) noexcept
 {
 	using char_type = std::remove_cvref_t<stm>::char_type;
 	return imbue(get_all<char_type>(loc.loc),out);

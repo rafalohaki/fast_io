@@ -4,9 +4,10 @@
 Although it is still called jiaendu algorithm. The 64 and 128 bits are created by myself + I modified the table of jiaendu. It is no longer real jiaendu any more.
 */
 
-namespace fast_io
+namespace fast_io::details
 {
-namespace details::jiaendu
+
+namespace jiaendu
 {
 
 template<std::contiguous_iterator Iter>
@@ -381,7 +382,6 @@ inline std::size_t output_unsigned(Iter str,U value) noexcept
 		}
 	}
 }
-
 
 }
 

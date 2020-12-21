@@ -33,7 +33,7 @@ namespace details
 	template<std::random_access_iterator Iter>
 	inline constexpr Iter scan_skip_space(Iter begin, Iter end) noexcept
 	{
-		for (; begin != end && fast_io::details::is_space(*begin); ++begin);
+		for (; begin != end && fast_io::details::is_c_space(*begin); ++begin);
 		return begin;
 	}
 }

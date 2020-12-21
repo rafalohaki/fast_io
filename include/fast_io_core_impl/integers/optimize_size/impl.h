@@ -1,6 +1,9 @@
 #pragma once
 
-namespace fast_io::details::optimize_size
+namespace fast_io::details
+{
+
+namespace optimize_size
 {
 
 namespace with_length
@@ -118,6 +121,9 @@ inline constexpr std::size_t output_unsigned(Iter str,U value) noexcept
 	else
 		with_length::output_unsigned(str,value,len);
 	return len;
+}
+
+
 }
 
 }

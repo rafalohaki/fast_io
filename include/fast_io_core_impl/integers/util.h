@@ -40,7 +40,7 @@ inline constexpr auto power10_table_generator()
 template<std::unsigned_integral uint_type>
 inline constexpr auto power10table{power10_table_generator<uint_type>()};
 
-template<std::uint32_t base,bool ryu_mode=false,my_unsigned_integral U>
+template<std::uint32_t base,bool ryu_mode=false,std::size_t mx_size=std::numeric_limits<std::size_t>::max(),my_unsigned_integral U>
 inline constexpr std::uint32_t chars_len(U value) noexcept
 {
 /*
@@ -58,43 +58,62 @@ inline constexpr std::uint32_t chars_len(U value) noexcept
 			using M = std::remove_cvref_t<U>;
 			if constexpr(16<sizeof(M)||!ryu_mode)
 			{
+			if constexpr(39<=mx_size)
 			if(compile_pow10<M,38>()<=value)
 				return 39;
+			if constexpr(38<=mx_size)
 			if(compile_pow10<M,37>()<=value)
 				return 38;
+			if constexpr(37<=mx_size)
 			if(compile_pow10<M,36>()<=value)
 				return 37;
 			}
+			if constexpr(36<=mx_size)
 			if(compile_pow10<M,35>()<=value)
 				return 36;
+			if constexpr(35<=mx_size)
 			if(compile_pow10<M,34>()<=value)
 				return 35;
+			if constexpr(34<=mx_size)
 			if(compile_pow10<M,33>()<=value)
 				return 34;
+			if constexpr(33<=mx_size)
 			if(compile_pow10<M,32>()<=value)
 				return 33;
+			if constexpr(32<=mx_size)
 			if(compile_pow10<M,31>()<=value)
 				return 32;
+			if constexpr(31<=mx_size)
 			if(compile_pow10<M,30>()<=value)
 				return 31;
+			if constexpr(30<=mx_size)
 			if(compile_pow10<M,29>()<=value)
 				return 30;
+			if constexpr(29<=mx_size)
 			if(compile_pow10<M,28>()<=value)
 				return 29;
+			if constexpr(28<=mx_size)
 			if(compile_pow10<M,27>()<=value)
 				return 28;
+			if constexpr(27<=mx_size)
 			if(compile_pow10<M,26>()<=value)
 				return 27;
+			if constexpr(26<=mx_size)
 			if(compile_pow10<M,25>()<=value)
 				return 26;
+			if constexpr(25<=mx_size)
 			if(compile_pow10<M,24>()<=value)
 				return 25;
+			if constexpr(24<=mx_size)
 			if(compile_pow10<M,23>()<=value)
 				return 24;
+			if constexpr(23<=mx_size)
 			if(compile_pow10<M,22>()<=value)
 				return 23;
+			if constexpr(22<=mx_size)
 			if(compile_pow10<M,21>()<=value)
 				return 22;
+			if constexpr(21<=mx_size)
 			if(compile_pow10<M,20>()<=value)
 				return 21;
 		}
@@ -102,25 +121,35 @@ inline constexpr std::uint32_t chars_len(U value) noexcept
 		{
 			if constexpr(8<sizeof(U)||!ryu_mode)
 			{
+			if constexpr(20<=mx_size)
 			if(10000000000000000000ULL<=value)
 				return 20;
+			if constexpr(19<=mx_size)
 			if(1000000000000000000ULL<=value)
 				return 19;
+			if constexpr(18<=mx_size)
 			if(100000000000000000ULL<=value)
 				return 18;
 			}
+			if constexpr(17<=mx_size)
 			if(10000000000000000ULL<=value)
 				return 17;
+			if constexpr(16<=mx_size)
 			if(1000000000000000ULL<=value)
 				return 16;
+			if constexpr(15<=mx_size)
 			if(100000000000000ULL<=value)
 				return 15;
+			if constexpr(14<=mx_size)
 			if(10000000000000ULL<=value)
 				return 14;
+			if constexpr(13<=mx_size)
 			if(1000000000000ULL<=value)
 				return 13;
+			if constexpr(12<=mx_size)
 			if(100000000000ULL<=value)
 				return 12;
+			if constexpr(11<=mx_size)
 			if(10000000000ULL<=value)
 				return 11;
 		}
@@ -128,29 +157,39 @@ inline constexpr std::uint32_t chars_len(U value) noexcept
 		{
 			if constexpr(4<sizeof(U)||!ryu_mode)
 			{
+			if constexpr(10<=mx_size)
 			if(1000000000U<=value)
 				return 10;
 			}
+			if constexpr(9<=mx_size)
 			if(100000000U<=value)
 				return 9;
+			if constexpr(8<=mx_size)
 			if(10000000U<=value)
 				return 8;
+			if constexpr(7<=mx_size)
 			if(1000000U<=value)
 				return 7;
+			if constexpr(6<=mx_size)
 			if(100000U<=value)
 				return 6;
 		}
 		if constexpr(1<sizeof(U))
 		{
+			if constexpr(5<=mx_size)
 			if(10000U<=value)
 				return 5;
+			if constexpr(4<=mx_size)
 			if(1000U<=value)
 				return 4;
 		}
+		if constexpr(3<=mx_size)
 		if(100U<=value)
 			return 3;
+		if constexpr(2<=mx_size)
 		if(10U<=value)
 			return 2;
+		if constexpr(1<=mx_size)
 		return 1;
 	}
 	else

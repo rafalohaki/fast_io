@@ -57,6 +57,7 @@
 
 
 #include"fast_io_core_impl/scan_freestanding.h"
+#include"fast_io_core_impl/intrinsics.h"
 
 // This should provide an option macro to disable any generation for table in freestanding environments.
 #include"fast_io_core_impl/integers/integer.h"

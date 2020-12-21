@@ -151,15 +151,15 @@ concept status_output_stream = requires(T out)
 	print_status_define(out);
 	println_status_define(out);
 };
-#if 0
+
 /*
 input requires a whole overhual because C++ exception is horrible.
 */
 
 template<typename T>
-concept status_input_stream = input_stream<T>&&requires(T in)
+concept status_input_stream = requires(T in)
 {
-	scan_status_define<false>(in);
+	{scan_status_define(in)}->std::convertible_to<bool>;
 };
-#endif
+
 }

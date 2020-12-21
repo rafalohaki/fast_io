@@ -251,14 +251,14 @@ inline constexpr auto operator<=>(posix_process_observer a,posix_process_observe
 
 namespace details
 {
-template<std::random_access_iterator Iter>
+
+template<std::forward_iterator Iter>
 inline
 #if __cpp_constexpr_dynamic_alloc >= 201907L
 	constexpr
 #endif
-char const* const* dup_enviro_impl(Iter begin,Iter end)
+char const* const* dup_enviro_impl_with_size(Iter begin,Iter end,std::size_t size)
 {
-	std::size_t const size{static_cast<std::size_t>(end-begin)};
 	std::unique_ptr<char const*[]> uptr(new char const*[size+1]);
 	if constexpr(requires(std::iter_value_t<Iter> v)
 	{
@@ -277,7 +277,17 @@ char const* const* dup_enviro_impl(Iter begin,Iter end)
 	return uptr.release();
 }
 
-template<std::random_access_iterator Iter>
+template<std::forward_iterator Iter>
+inline
+#if __cpp_constexpr_dynamic_alloc >= 201907L
+	constexpr
+#endif
+char const* const* dup_enviro_impl(Iter begin,Iter end)
+{
+	return dup_enviro_impl_with_size(begin,end,static_cast<std::size_t>(std::distance(begin,end)));
+}
+
+template<std::forward_iterator Iter>
 inline 
 #if __cpp_constexpr_dynamic_alloc >= 201907L
 	constexpr
@@ -299,7 +309,7 @@ struct posix_process_args
 	char const* const* args{};
 	bool is_dynamic_allocated{};
 	inline constexpr posix_process_args(char const* const* envir) noexcept:args(envir){}
-	template<std::random_access_iterator Iter>
+	template<std::forward_iterator Iter>
 	requires (std::convertible_to<std::iter_value_t<Iter>,char const*>||requires(std::iter_value_t<Iter> v)
 	{
 		{v.c_str()}->std::convertible_to<char const*>;
@@ -307,7 +317,7 @@ struct posix_process_args
 	inline constexpr posix_process_args(Iter begin,Iter end):
 		args(details::dup_enviro_entry(begin,end)),is_dynamic_allocated(true)
 	{}
-	template<std::ranges::random_access_range range>
+	template<std::ranges::forward_range range>
 	requires (std::convertible_to<std::ranges::range_value_t<range>,char const*>||requires(std::ranges::range_value_t<range> v)
 	{
 		{v.c_str()}->std::convertible_to<char const*>;

@@ -26,7 +26,7 @@
 #include"fast_io_freestanding_impl/indirect_ibuffer.h"
 #include"fast_io_freestanding_impl/indirect_obuffer.h"
 #include"fast_io_freestanding_impl/ovector.h"
-//#include"fast_io_freestanding_impl/ucs.h"
+#include"fast_io_freestanding_impl/serialize.h"
 
 namespace fast_io
 {

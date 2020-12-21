@@ -67,13 +67,13 @@ inline void load_lc_locale(void* dll_handle,lc_locale& loc)
 
 }
 
-class i18n_locale
+class l10n
 {
 public:
 	lc_locale loc{};
 	void* dll_handle{};
-	constexpr i18n_locale() noexcept=default;
-	i18n_locale(std::string_view locale_name)
+	constexpr l10n() noexcept=default;
+	l10n(std::string_view locale_name)
 	{
 		std::unique_ptr<char[]> arrptr;
 		char const* loc_name{};
@@ -178,8 +178,8 @@ public:
 		details::load_lc_locale(ptr.get(),loc);
 		dll_handle=ptr.release();
 	}
-	constexpr i18n_locale(i18n_locale const&)=delete;
-	constexpr i18n_locale(i18n_locale&& other) noexcept : loc(std::move(other.loc)),dll_handle(other.dll_handle)
+	constexpr l10n(l10n const&)=delete;
+	constexpr l10n(l10n&& other) noexcept : loc(std::move(other.loc)),dll_handle(other.dll_handle)
 	{
 		dll_handle=nullptr;
 	}
@@ -196,7 +196,7 @@ public:
 			dlclose(dll_handle);
 #endif
 	}
-	i18n_locale& operator=(i18n_locale&& other) noexcept
+	l10n& operator=(l10n&& other) noexcept
 	{
 		if(std::addressof(other)==this)
 			return *this;
@@ -206,7 +206,7 @@ public:
 		other.dll_handle=nullptr;
 		return *this;
 	}
-	~i18n_locale()
+	~l10n()
 	{
 		close();
 	}

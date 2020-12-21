@@ -78,6 +78,15 @@ explicit constexpr io_reserve_type_t() noexcept =default;
 template<std::integral char_type,typename T,bool end_test=false>
 inline constexpr io_reserve_type_t<char_type,T,end_test> io_reserve_type{};
 
+
+template<std::integral char_type,typename T>
+struct io_serial_type_t
+{
+explicit constexpr io_serial_type_t() noexcept =default;
+};
+template<std::integral char_type,typename T>
+inline constexpr io_serial_type_t<char_type,T> io_serial_type{};
+
 template<typename T>
 struct print_scatter_type_t
 {

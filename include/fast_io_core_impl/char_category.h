@@ -160,12 +160,17 @@ inline constexpr bool is_c_space(char_type ch) noexcept
 	}
 	else
 	{
-		switch(ch)
+		if constexpr(std::unsigned_integral<std::remove_cvref_t<char_type>>)
 		{
-			case 9:case 10:case 11:
-			case 12:case 13:case 32:return true;
-			default:return false;
-		};
+			using unsigned_t = char_type;
+			return (ch==0x20)|(static_cast<unsigned_t>(ch-0x9)<static_cast<unsigned_t>(0x4));
+		}
+		else
+		{
+			using unsigned_t = std::make_unsigned_t<char_type>;
+			unsigned_t const e(ch);
+			return (e==0x20)|(static_cast<unsigned_t>(e-0x9)<static_cast<unsigned_t>(0x4));
+		}
 	}
 }
 

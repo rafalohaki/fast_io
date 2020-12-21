@@ -52,6 +52,12 @@ concept reserve_printable=std::integral<char_type>&&requires(T t,char_type* ptr)
 };
 
 template<typename char_type,typename T>
+concept reserve_serializable=reserve_printable<char_type,T>&&requires(T t,char_type* ptr)
+{
+	{print_reserve_define(io_serial_type<char_type,std::remove_cvref_t<T>>,ptr,t)}->std::convertible_to<char_type*>;
+};
+
+template<typename char_type,typename T>
 concept dynamic_reserve_printable=std::integral<char_type>&&requires(T t,char_type* ptr,std::size_t size)
 {
 	{print_reserve_size(io_reserve_type<char_type,std::remove_cvref_t<T>>,t)}->std::convertible_to<std::size_t>;
