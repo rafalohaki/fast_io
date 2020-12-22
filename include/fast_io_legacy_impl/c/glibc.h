@@ -62,7 +62,7 @@ namespace details::fp_wide_hack
 /*
 https://github.com/lattera/glibc/blob/master/libio/bits/types/struct_FILE.h
 */
-inline std::byte* hack_wide_data(FILE* fp)
+inline std::byte* hack_wide_data(FILE* fp) noexcept
 {
 	constexpr std::size_t off{sizeof(__off64_t)+2*sizeof(std::uintptr_t)};
 	std::byte* value;
@@ -71,7 +71,7 @@ inline std::byte* hack_wide_data(FILE* fp)
 }
 
 template<std::size_t position>
-inline wchar_t* hack_wp(FILE* fp)
+inline wchar_t* hack_wp(FILE* fp) noexcept
 {
 	constexpr std::size_t off{position*sizeof(uintptr_t)};
 	wchar_t* value;
@@ -79,7 +79,7 @@ inline wchar_t* hack_wp(FILE* fp)
 	return value;
 }
 template<std::size_t position>
-inline void hack_wpset(FILE* fp,wchar_t* ptr)
+inline void hack_wpset(FILE* fp,wchar_t* ptr) noexcept
 {
 	constexpr std::size_t off{position*sizeof(uintptr_t)};
 	memcpy(hack_wide_data(fp)+off,std::addressof(ptr),sizeof(wchar_t*));
