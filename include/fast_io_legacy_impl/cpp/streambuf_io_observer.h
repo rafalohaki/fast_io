@@ -29,7 +29,7 @@ public:
 	{
 		return fb;
 	}
-	constexpr operator bool() const noexcept
+	explicit constexpr operator bool() const noexcept
 	{
 		return fb;
 	}

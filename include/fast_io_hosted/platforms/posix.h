@@ -952,14 +952,7 @@ public:
 To verify whether O_TMPFILE is a thing on FreeBSD. https://github.com/FreeRDP/FreeRDP/pull/6268
 */
 	basic_posix_file(io_temp_t):basic_posix_file(
-#if defined(__x86_64__)
-		system_call<257,int>
-#elif defined(__arm64__) || defined(__aarch64__)
-		system_call<56,int>
-#else
-		::openat
-#endif
-		(AT_FDCWD,"/tmp",O_EXCL|O_RDWR|O_TMPFILE|O_APPEND|O_NOATIME,S_IRUSR | S_IWUSR))
+		system_call<__NR_openat,int>(AT_FDCWD,"/tmp",O_EXCL|O_RDWR|O_TMPFILE|O_APPEND|O_NOATIME,S_IRUSR | S_IWUSR))
 	{
 		system_call_throw_error(native_handle());
 	}

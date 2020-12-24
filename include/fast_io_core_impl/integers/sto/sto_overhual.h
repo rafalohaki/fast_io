@@ -132,8 +132,8 @@ inline constexpr bool char_digit_to_literal(std::make_unsigned_t<char_type>& ch)
 	}
 }
 
-template<char8_t base,std::random_access_iterator Iter>
-inline constexpr void from_chars_main(Iter& b,Iter e,std::uint64_t& res) noexcept
+template<char8_t base,std::random_access_iterator Iter,my_unsigned_integral muint>
+inline constexpr void from_chars_main(Iter& b,Iter e,muint& res) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
 	using unsigned_char_type = std::make_unsigned_t<char_type>;
@@ -148,8 +148,8 @@ inline constexpr void from_chars_main(Iter& b,Iter e,std::uint64_t& res) noexcep
 	}
 }
 
-template<char8_t base,std::random_access_iterator Iter>
-inline constexpr bool probe_overflow(Iter& b,Iter e,std::uint64_t& res,std::size_t& sz) noexcept
+template<char8_t base,std::random_access_iterator Iter,my_unsigned_integral muint>
+inline constexpr bool probe_overflow(Iter& b,Iter e,muint& res,std::size_t& sz) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
 	using unsigned_char_type = std::make_unsigned_t<char_type>;
@@ -158,10 +158,10 @@ inline constexpr bool probe_overflow(Iter& b,Iter e,std::uint64_t& res,std::size
 	unsigned_char_type result(*b);
 	if(char_digit_to_literal<base,char_type>(result))[[unlikely]]
 		return false;
-	constexpr std::uint64_t risky_value{std::numeric_limits<std::uint64_t>::max()/base};
-	constexpr unsigned_char_type risky_digit{static_cast<unsigned_char_type>(std::numeric_limits<std::uint64_t>::max()%base)};
-	constexpr std::size_t max_sizep1{cal_max_int_size<std::uint64_t,base>()+1};
-	if(risky_value<res||(risky_value==res&&res<risky_digit))
+	constexpr muint risky_value{std::numeric_limits<muint>::max()/base};
+	constexpr unsigned_char_type risky_digit{static_cast<unsigned_char_type>(std::numeric_limits<muint>::max()%base)};
+	constexpr std::size_t max_sizep1{cal_max_int_size<muint,base>()+1};
+	if((risky_value<res)||(risky_value==res&&risky_digit<result))
 	{
 		sz=max_sizep1;
 		return true;
@@ -183,8 +183,8 @@ inline constexpr bool probe_overflow(Iter& b,Iter e,std::uint64_t& res,std::size
 	}
 }
 
-template<char8_t base,bool ignore=false,std::random_access_iterator Iter>
-inline constexpr bool from_chars_u64(Iter& b,Iter e,std::uint64_t& res,std::size_t& sz) noexcept
+template<char8_t base,bool ignore=false,std::random_access_iterator Iter,my_unsigned_integral muint>
+inline constexpr bool from_chars_u64(Iter& b,Iter e,muint& res,std::size_t& sz) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
 	using unsigned_char_type = std::make_unsigned_t<char_type>;
@@ -197,7 +197,7 @@ inline constexpr bool from_chars_u64(Iter& b,Iter e,std::uint64_t& res,std::size
 		if(!res)
 			b=skip_zero(b,e);
 	}
-	constexpr std::size_t max_size{cal_max_int_size<std::uint64_t,base>()-1};
+	constexpr std::size_t max_size{cal_max_int_size<muint,base>()-1};
 	auto i{b};
 	auto bsz{b+max_size};
 	if constexpr(!ignore)
@@ -232,6 +232,9 @@ struct voldmort
 	{
 		code={};
 		t.reference=value;
+		constexpr std::size_t max_sizep1{cal_max_int_size<std::uint64_t,base>()};
+		if(max_sizep1<size)
+			code=std::errc::result_out_of_range;
 		return true;
 	}
 	inline constexpr void operator()(Iter begin, Iter end,parameter<T&> t) noexcept requires(!contiguous_only)

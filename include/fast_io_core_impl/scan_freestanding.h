@@ -54,6 +54,7 @@ namespace details
 template<typename T>
 struct unget_temp_buffer
 {
+	using char_type = typename T::char_type;
 	[[no_unique_address]] T input;
 	typename T::char_type buffer;
 	char8_t pos{};
@@ -71,6 +72,22 @@ struct unget_temp_buffer
 	}
 	constexpr ~unget_temp_buffer() = default;
 };
+
+template<input_stream T,std::input_or_output_iterator Iter>
+inline constexpr Iter read(unget_temp_buffer<T>& in,Iter begin, Iter end)
+{
+	if(begin==end)
+		return begin;
+	if(in.pos!=in.pos_end)
+	{
+		*begin=in.buffer;
+		++begin;
+	}
+	if(begin!=end)
+		begin=read(in.input,begin,end);	
+	in.pos=in.pos_end={};
+	return begin;
+}
 
 template<typename T>
 inline constexpr auto ibuffer_begin(unget_temp_buffer<T>& in) noexcept
@@ -101,10 +118,10 @@ inline constexpr bool underflow(unget_temp_buffer<T>& in)
 {
 	if constexpr(requires()
 	{
-		{try_get(in)}->std::convertible_to<std::pair<typename T::char_type,bool>>;
+		{try_get(in.input)}->std::convertible_to<std::pair<typename T::char_type,bool>>;
 	})
 	{
-		auto ret{try_get(in)};
+		auto ret{try_get(in.input)};
 		in.buffer=ret.first;
 		in.pos={};
 		in.pos_end=ret.second;
@@ -112,7 +129,7 @@ inline constexpr bool underflow(unget_temp_buffer<T>& in)
 	}
 	else
 	{
-		bool not_eof{read(in,std::addressof(in.ibuffer),std::addressof(in.ibuffer)+1)==std::addressof(in.ibuffer)};
+		bool not_eof{read(in.input,std::addressof(in.buffer),std::addressof(in.buffer)+1)!=std::addressof(in.buffer)};
 		in.pos={};
 		in.pos_end=not_eof;
 		return not_eof;
@@ -211,8 +228,13 @@ requires (status_input_stream<input>||input_stream<input>)
 		details::lock_guard lg{in};
 		return scan_freestanding_decay(in.unlocked_handle(),args...);
 	}
-	else
+	else if constexpr(buffer_input_stream<input>)
 		return (details::scan_single_impl(in,args)&&...);
+	else
+	{
+		details::unget_temp_buffer in_buffer(io_ref(in));
+		return scan_freestanding_decay(io_ref(in_buffer),args...);
+	}
 }
 
 template<typename input,typename ...Args>
