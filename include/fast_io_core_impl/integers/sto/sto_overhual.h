@@ -273,7 +273,7 @@ template<char8_t base, bool contiguous_only, std::random_access_iterator Iter, d
 struct voldmort
 {
 	Iter iter;
-	std::errc code;
+	std::errc code{};
 	[[no_unique_address]] std::conditional_t<contiguous_only, details::empty,std::uint64_t> value{};
 	[[no_unique_address]] std::conditional_t<contiguous_only, details::empty,std::size_t> size{};
 	[[no_unique_address]] std::conditional_t<!contiguous_only&&details::my_signed_integral<T>, bool, empty> minus{};
@@ -320,6 +320,7 @@ struct voldmort
 	{
 		iter=begin;
 		details::from_chars_u64<base>(iter,end,value,size);
+		code = {};
 		if(iter==end)
 		{
 			code = std::errc::resource_unavailable_try_again;
@@ -395,6 +396,12 @@ struct voldmort
 				code=std::errc::invalid_argument;
 				return;
 			}
+			constexpr std::size_t npos(-1);
+			if(size==npos)
+			{
+				code=std::errc::result_out_of_range;
+				return;
+			}
 			if constexpr(!(std::unsigned_integral<T>&&sizeof(T)==sizeof(std::uint64_t)))
 			{
 				if constexpr(std::unsigned_integral<T>)
@@ -453,6 +460,12 @@ struct voldmort
 			if(iter==end)
 			{
 				code=std::errc::resource_unavailable_try_again;
+				return;
+			}
+			constexpr std::size_t npos(-1);
+			if(size==npos)
+			{
+				code=std::errc::result_out_of_range;
 				return;
 			}
 			if constexpr(!(std::unsigned_integral<T>&&sizeof(T)==sizeof(std::uint64_t)))
