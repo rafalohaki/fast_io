@@ -15,19 +15,9 @@ namespace fast_io
 namespace details
 {
 template<std::integral char_type>
-requires (std::same_as<char_type,char>||std::same_as<char_type,wchar_t>)
-class basic_c_io_observer_unlocked_igenerator_iterator
-{
-public:
-	FILE* fp{};
-	char_type char_temp{};
-	bool eof{};
-};
-
-template<std::integral char_type>
 inline auto fgetc_unlocked_impl(std::FILE* fp)
 {
-	if constexpr(std::same_as<char_type,char>)
+	if constexpr(std::same_as<char_type,char>||std::same_as<char_type,char8_t>)
 	{
 #if defined(__WINNT__) || defined(_MSC_VER)
 		return _fgetc_nolock(fp);
@@ -50,17 +40,17 @@ inline auto fgetc_unlocked_impl(std::FILE* fp)
 }
 
 template<std::integral char_type,std::integral int_type>
-requires (std::same_as<char_type,char>||std::same_as<char_type,wchar_t>)
-inline constexpr bool equals_to_eof_macro(int_type inv)
+requires (std::same_as<char_type,char>||std::same_as<char_type,char8_t>||std::same_as<char_type,wchar_t>)
+inline constexpr bool equals_to_eof_macro(int_type inv) noexcept
 {
-	if constexpr(std::same_as<char_type,char>)
+	if constexpr(std::same_as<char_type,char>||std::same_as<char_type,char8_t>)
 		return inv==EOF;
 	else
 		return inv==WEOF;
 }
 
 template<std::integral char_type>
-inline auto ungetc_unlocked_impl(std::conditional_t<std::same_as<char_type,char>,int,wint_t> ch,std::FILE* fp)
+inline auto ungetc_unlocked_impl(std::conditional_t<std::same_as<char_type,wchar_t>,wint_t,int> ch,std::FILE* fp)
 {
 	if constexpr(std::same_as<char_type,char>)
 	{
@@ -83,7 +73,6 @@ inline auto ungetc_unlocked_impl(std::conditional_t<std::same_as<char_type,char>
 #endif
 	}
 }
-
 inline void ferror_throw_ex_impl(FILE* fp)
 {
 	if(
@@ -95,98 +84,26 @@ inline void ferror_throw_ex_impl(FILE* fp)
 	)
 		throw_posix_error();
 }
-
-
-template<std::integral char_type>
-struct basic_c_io_observer_unlocked_igenerator
-{
-	FILE* fp{};
-};
-template<std::integral char_type>
-inline basic_c_io_observer_unlocked_igenerator_iterator<char_type> begin(basic_c_io_observer_unlocked_igenerator<char_type> gen)
-{
-	auto ch{fgetc_unlocked_impl<char_type>(gen.fp)};
-	bool eof{equals_to_eof_macro<char_type>(ch)};
-	if(eof)[[unlikely]]
-		ferror_throw_ex_impl(gen.fp);
-	else
-		ungetc_unlocked_impl<char_type>(ch,gen.fp);
-	return {gen.fp,static_cast<char_type>(static_cast<std::make_unsigned_t<char_type>>(ch)),eof};
 }
 
 template<std::integral char_type>
-inline std::default_sentinel_t end(basic_c_io_observer_unlocked_igenerator<char_type>)
+requires (std::same_as<char_type,char>||std::same_as<char_type,wchar_t>||std::same_as<char_type,char8_t>)
+inline std::pair<char_type,bool> try_get(basic_c_io_observer_unlocked<char_type> ciob)
 {
-	return {};
-}
-
-template<std::integral char_type>
-inline constexpr auto operator*(basic_c_io_observer_unlocked_igenerator_iterator<char_type> gen)
-{
-	return gen.char_temp;
-}
-
-template<std::integral char_type>
-inline basic_c_io_observer_unlocked_igenerator_iterator<char_type>& operator++(basic_c_io_observer_unlocked_igenerator_iterator<char_type>& gen)
-{
+	auto ret{details::fgetc_unlocked_impl<char_type>(ciob.fp)};
+	if(details::equals_to_eof_macro<char_type>(ret))
 	{
-		auto ch{fgetc_unlocked_impl<char_type>(gen.fp)};
-		bool eof{equals_to_eof_macro<char_type>(ch)};
-		if(eof)[[unlikely]]
-		{
-			ferror_throw_ex_impl(gen.fp);
-			gen.eof=true;
-			return gen;
-		}
+		details::ferror_throw_ex_impl(ciob.fp);
+		return {0,false};
 	}
-	auto ch{fgetc_unlocked_impl<char_type>(gen.fp)};
-	bool eof{equals_to_eof_macro<char_type>(ch)};
-	if(eof)[[unlikely]]
-		ferror_throw_ex_impl(gen.fp);
-	else
-		ungetc_unlocked_impl<char_type>(ch,gen.fp);
-	gen.char_temp=ch;
-	gen.eof=eof;
-	return gen;
+	return {static_cast<char_type>(ret),true};
 }
 
 template<std::integral char_type>
-inline void operator++(basic_c_io_observer_unlocked_igenerator_iterator<char_type>& gen,int)
+requires (std::same_as<char_type,char>||std::same_as<char_type,wchar_t>||std::same_as<char_type,char8_t>)
+inline void try_unget(basic_c_io_observer_unlocked<char_type> ciob,char_type ch) noexcept
 {
-	static_cast<void>(operator++(gen));
-}
-
-template<std::integral char_type>
-inline constexpr bool operator!=(basic_c_io_observer_unlocked_igenerator_iterator<char_type> a, std::default_sentinel_t)
-{
-	return !a.eof;
-}
-
-template<std::integral char_type>
-inline constexpr bool operator==(basic_c_io_observer_unlocked_igenerator_iterator<char_type> a, std::default_sentinel_t)
-{
-	return a.eof;
-}
-
-template<std::integral char_type>
-inline constexpr bool operator!=(std::default_sentinel_t,basic_c_io_observer_unlocked_igenerator_iterator<char_type> a)
-{
-	return !a.eof;
-}
-
-template<std::integral char_type>
-inline constexpr bool operator==(std::default_sentinel_t,basic_c_io_observer_unlocked_igenerator_iterator<char_type> a)
-{
-	return a.eof;
-}
-
-}
-
-template<std::integral char_type>
-requires ((!buffer_input_stream<basic_c_io_observer_unlocked<char_type>>)&&(std::same_as<char_type,char>||std::same_as<char_type,wchar_t>))
-inline constexpr details::basic_c_io_observer_unlocked_igenerator<char_type> igenerator(basic_c_io_observer_unlocked<char_type> in)
-{
-	return {in.fp};
+	details::ungetc_unlocked_impl(ciob.fp,ch);
 }
 
 }

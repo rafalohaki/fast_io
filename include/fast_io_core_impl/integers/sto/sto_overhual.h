@@ -148,66 +148,115 @@ inline constexpr void from_chars_main(Iter& b,Iter e,muint& res) noexcept
 	}
 }
 
+template<char8_t base,std::random_access_iterator Iter>
+inline constexpr Iter skip_digits(Iter b,Iter e) noexcept
+{
+	using char_type = std::iter_value_t<Iter>;
+	using unsigned_char_type = std::make_unsigned_t<char_type>;
+	for(;b!=e;++b)
+	{
+		unsigned_char_type result(*b);
+		if(char_digit_to_literal<base,char_type>(result))
+			break;
+	}
+	return b;
+}
+
 template<char8_t base,std::random_access_iterator Iter,my_unsigned_integral muint>
-inline constexpr bool probe_overflow(Iter& b,Iter e,muint& res,std::size_t& sz) noexcept
+inline constexpr void probe_overflow(Iter& b,Iter e,muint& res,std::size_t& sz) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
 	using unsigned_char_type = std::make_unsigned_t<char_type>;
 	if(b==e)
-		return false;
+		return;
 	unsigned_char_type result(*b);
 	if(char_digit_to_literal<base,char_type>(result))[[unlikely]]
-		return false;
+		return;
 	constexpr muint risky_value{std::numeric_limits<muint>::max()/base};
-	constexpr unsigned_char_type risky_digit{static_cast<unsigned_char_type>(std::numeric_limits<muint>::max()%base)};
-	constexpr std::size_t max_sizep1{cal_max_int_size<muint,base>()+1};
+	constexpr unsigned_char_type risky_digit(std::numeric_limits<muint>::max()%base);
+	constexpr std::size_t npos(-1);
 	if((risky_value<res)||(risky_value==res&&risky_digit<result))
 	{
-		sz=max_sizep1;
-		return true;
+		sz=npos;
+		return;
 	}
 	res*=base;
 	res+=result;
 	++b;
 	if(b==e)
-		return false;
+		return;
 	{
 		unsigned_char_type result(*b);
 		if(char_digit_to_literal<base,char_type>(result))
-			return false;
-		sz=max_sizep1;
-		for(++b;b!=e;++b)
-			if(char_digit_to_literal<base,char_type>(result))
-				break;
-		return true;
+			return;
+		sz=npos;
+		++b;
+		b=skip_digits<base>(b,e);
 	}
 }
 
 template<char8_t base,bool ignore=false,std::random_access_iterator Iter,my_unsigned_integral muint>
-inline constexpr bool from_chars_u64(Iter& b,Iter e,muint& res,std::size_t& sz) noexcept
+inline constexpr void from_chars_u64(Iter& b,Iter e,muint& res,std::size_t& sz) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
 	using unsigned_char_type = std::make_unsigned_t<char_type>;
+	constexpr std::size_t max_size{cal_max_int_size<muint,base>()-1};
 	if constexpr(ignore)
 	{
 		b=skip_zero(b,e);
+		std::size_t iter_diff(e-b);
+		if(max_size<iter_diff)[[likely]]
+		{
+			iter_diff=max_size;
+			auto from_chars_ed{b+max_size};
+			auto start{b};
+			from_chars_main<base>(b,from_chars_ed,res);
+			sz=b-start;
+			if(b==from_chars_ed)[[unlikely]]
+			{
+				probe_overflow<base>(b,e,res,sz);
+				return;
+			}
+		}
+		else
+		{
+			auto start{b};
+			from_chars_main<base>(b,e,res);
+			sz=b-start;
+		}
 	}
 	else
 	{
+		constexpr std::size_t npos(-1);
+		if(sz==npos)
+		{
+			b=skip_digits<base>(b,e);
+			return;
+		}
 		if(!res)
 			b=skip_zero(b,e);
+		std::size_t iter_diff(e-b);
+		std::size_t max_size_msz(max_size-sz);
+		if(max_size_msz<iter_diff)[[likely]]
+		{
+			iter_diff=max_size_msz;
+			auto from_chars_ed{b+max_size_msz};
+			auto start{b};
+			from_chars_main<base>(b,from_chars_ed,res);
+			sz+=b-start;
+			if(b==from_chars_ed)[[unlikely]]
+			{
+				probe_overflow<base>(b,e,res,sz);
+				return;
+			}
+		}
+		else
+		{
+			auto start{b};
+			from_chars_main<base>(b,e,res);
+			sz+=b-start;
+		}
 	}
-	constexpr std::size_t max_size{cal_max_int_size<muint,base>()-1};
-	auto i{b};
-	auto bsz{b+max_size};
-	if constexpr(!ignore)
-		bsz-=sz;
-	if(e<bsz)
-		bsz=e;
-	from_chars_main<base>(b,bsz,res);
-	if(bsz==b)[[unlikely]]
-		return probe_overflow<base>(b,e,res,sz);
-	return false;
 }
 
 }
@@ -227,56 +276,61 @@ struct voldmort
 	std::errc code;
 	[[no_unique_address]] std::conditional_t<contiguous_only, details::empty,std::uint64_t> value{};
 	[[no_unique_address]] std::conditional_t<contiguous_only, details::empty,std::size_t> size{};
-	[[no_unique_address]] std::conditional_t<details::my_signed_integral<T>, char8_t, empty> minus{};
+	[[no_unique_address]] std::conditional_t<!contiguous_only&&details::my_signed_integral<T>, bool, empty> minus{};
 	inline constexpr bool test_eof(parameter<T&> t) noexcept requires(!contiguous_only)
 	{
-		code={};
-		t.reference=value;
-		constexpr std::size_t max_sizep1{cal_max_int_size<std::uint64_t,base>()};
-		if(max_sizep1<size)
+		constexpr std::size_t npos(-1);
+		if(size==npos)
+		{
 			code=std::errc::result_out_of_range;
+			return true;
+		}
+		code={};
+		if constexpr(!(std::unsigned_integral<T>&&sizeof(T)==sizeof(std::uint64_t)))
+		{
+			if constexpr(std::unsigned_integral<T>)
+			{
+				if(value>static_cast<std::uint64_t>(std::numeric_limits<T>::max()))
+				{
+					code=std::errc::result_out_of_range;
+					return true;
+				}					
+			}
+			else
+			{
+				if(value>(static_cast<std::uint64_t>(std::numeric_limits<T>::max())+minus))
+				{
+					code=std::errc::result_out_of_range;
+					return true;
+				}
+			}
+		}
+		if constexpr(my_signed_integral<T>)
+		{
+			if(minus)
+				t.reference=static_cast<std::uint64_t>(0)-value;
+			else
+				t.reference=value;
+		}
+		else
+			t.reference=value;
 		return true;
 	}
 	inline constexpr void operator()(Iter begin, Iter end,parameter<T&> t) noexcept requires(!contiguous_only)
 	{
 		iter=begin;
-		if constexpr (my_signed_integral<T>)
+		details::from_chars_u64<base>(iter,end,value,size);
+		if(iter==end)
 		{
-			if(!minus)
-			{
-				using char_type = std::iter_value_t<Iter>;
-				/*Dealing with EBCDIC exec-charset */
-				if constexpr(std::same_as<char_type,char>)
-				{
-					if (*iter == '-')
-					{
-						minus = u8'-';
-						++iter;
-					}
-				}
-				else if constexpr(std::same_as<char_type,wchar_t>)
-				{
-					if (*iter == L'-')
-					{
-						minus = u8'-';
-						++iter;
-					}
-				}
-				else
-				{
-					if (*iter == u8'-')
-					{
-						minus = u8'-';
-						++iter;
-					}
-				}
-				minus=u8'+';
-			}
+			code = std::errc::resource_unavailable_try_again;
+			return;
 		}
-		if(details::from_chars_u64<base>(iter,end,value,size))
+		constexpr std::size_t npos(-1);
+		if(size==npos)
+		{
 			code=std::errc::result_out_of_range;
-		else
-			code={};
+			return;
+		}
 		if constexpr(!(std::unsigned_integral<T>&&sizeof(T)==sizeof(std::uint64_t)))
 		{
 			if constexpr(std::unsigned_integral<T>)
@@ -285,68 +339,60 @@ struct voldmort
 				{
 					code=std::errc::result_out_of_range;
 					return;
-				}				
+				}
 			}
 			else
 			{
-				if(value>static_cast<std::uint64_t>(std::numeric_limits<T>::max())+(minus==u8'-'))
+				if(value>static_cast<std::uint64_t>(std::numeric_limits<T>::max())+minus)
 				{
 					code=std::errc::result_out_of_range;
 					return;
 				}
 			}
 		}
-		if(iter==end)
+		if constexpr(my_signed_integral<T>)
 		{
-			code = std::errc::resource_unavailable_try_again;
-			return;
+			if(minus)
+				t.reference=static_cast<std::uint64_t>(0)-value;
+			else
+				t.reference=value;
 		}
-		t.reference=value;
+		else
+			t.reference=value;
 	}
 	inline constexpr voldmort(Iter begin, Iter end, T& t) noexcept
 	{
 		iter = begin;
-		if (iter == end)
-		{
-			code = std::errc::resource_unavailable_try_again;
-			return;
-		}
-		if constexpr (my_signed_integral<T>)
-		{
-			using char_type = std::iter_value_t<Iter>;
-			/*Dealing with EBCDIC exec-charset */
-			if constexpr(std::same_as<char_type,char>)
-			{
-				if (*iter == '-')
-				{
-					minus = u8'-';
-					++iter;
-				}
-			}
-			else if constexpr(std::same_as<char_type,wchar_t>)
-			{
-				if (*iter == L'-')
-				{
-					minus = u8'-';
-					++iter;
-				}
-			}
-			else
-			{
-				if (*iter == u8'-')
-				{
-					minus = u8'-';
-					++iter;
-				}
-			}
-			minus=u8'+';
-		}
 		if constexpr (contiguous_only)
 		{
+			bool minus{};
+			using char_type = std::iter_value_t<Iter>;
+			/*Dealing with EBCDIC exec-charset */
+			if constexpr(my_signed_integral<T>)
+			{
+				if constexpr(std::same_as<char_type,char>)
+					minus=(*iter == '-');
+				else if constexpr(std::same_as<char_type,wchar_t>)
+					minus=(*iter == L'-');
+				else
+					minus=(*iter == u8'-');
+				if constexpr(std::contiguous_iterator<Iter>)
+					iter+=minus;
+				else
+				{
+					if(minus)
+						++iter;
+				}
+			}
 			std::uint64_t temp{};
 			if(details::from_chars_u64<base>(iter,end,temp))
 			{
 				code=std::errc::result_out_of_range;
+				return;
+			}
+			if(begin==iter)
+			{
+				code=std::errc::invalid_argument;
 				return;
 			}
 			if constexpr(!(std::unsigned_integral<T>&&sizeof(T)==sizeof(std::uint64_t)))
@@ -361,7 +407,7 @@ struct voldmort
 				}
 				else
 				{
-					if(temp>static_cast<std::uint64_t>(std::numeric_limits<T>::max())+(minus==u8'-'))
+					if(temp>(static_cast<std::uint64_t>(std::numeric_limits<T>::max())+minus))
 					{
 						code=std::errc::result_out_of_range;
 						return;
@@ -370,7 +416,7 @@ struct voldmort
 			}
 			if constexpr(my_signed_integral<T>)
 			{
-				if(minus==u8'-')
+				if(minus)
 					t=0-temp;
 				else
 					t=temp;
@@ -380,10 +426,30 @@ struct voldmort
 		}
 		else
 		{
-			if(details::from_chars_u64<base,true>(iter,end,value,size))
-				code=std::errc::result_out_of_range;
-			else
-				code={};
+			using char_type = std::iter_value_t<Iter>;
+			/*Dealing with EBCDIC exec-charset */
+			if constexpr(my_signed_integral<T>)
+			{
+				if constexpr(std::same_as<char_type,char>)
+					minus=(*iter == '-');
+				else if constexpr(std::same_as<char_type,wchar_t>)
+					minus=(*iter == L'-');
+				else
+					minus=(*iter == u8'-');
+				if constexpr(std::contiguous_iterator<Iter>)
+					iter+=minus;
+				else
+				{
+					if(minus)
+						++iter;
+				}
+			}
+			details::from_chars_u64<base,true>(iter,end,value,size);
+			if(begin==iter)
+			{
+				code=std::errc::invalid_argument;
+				return;
+			}
 			if(iter==end)
 			{
 				code=std::errc::resource_unavailable_try_again;
@@ -397,11 +463,11 @@ struct voldmort
 					{
 						code=std::errc::result_out_of_range;
 						return;
-					}					
+					}	
 				}
 				else
 				{
-					if(value>static_cast<std::uint64_t>(std::numeric_limits<T>::max())+(minus==u8'-'))
+					if(value>static_cast<std::uint64_t>(std::numeric_limits<T>::max())+(minus))
 					{
 						code=std::errc::result_out_of_range;
 						return;
@@ -410,8 +476,8 @@ struct voldmort
 			}
 			if constexpr(my_signed_integral<T>)
 			{
-				if(minus==u8'-')
-					t=0-value;
+				if(minus)
+					t=static_cast<std::uint64_t>(0)-value;
 				else
 					t=value;
 			}
@@ -427,5 +493,6 @@ inline constexpr auto scan_context_define(scan_context_t<contiguous_only>, Iter 
 {
 	return details::ctx_scan_integer::voldmort<10, contiguous_only, Iter, T>(begin, end, t.reference);
 }
+
 }
 

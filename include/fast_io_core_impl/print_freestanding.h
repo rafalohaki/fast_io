@@ -207,8 +207,10 @@ inline constexpr void print_control(output out,T t)
 			if constexpr(line)
 			{
 				auto it{print_reserve_control_define_impl<pci,char_type,value_type>(obuffer_curr(out),t)};
-				if constexpr(details::exec_charset_is_ebcdic<char_type>())
-					*it=0x25;
+				if constexpr(std::same_as<char,char_type>)
+					*it='\n';
+				else if constexpr(std::same_as<wchar_t,char_type>)
+					*it=L'\n';
 				else
 					*it=u8'\n';
 				obuffer_set_curr(out,++it);
@@ -221,13 +223,17 @@ inline constexpr void print_control(output out,T t)
 		else if constexpr(buffer_output_stream<output>)
 		{
 			auto bcurr{obuffer_curr(out)};
-			if(bcurr+size<obuffer_end(out))[[likely]]
+			auto bend{obuffer_end(out)};
+			std::size_t const diff(bend-bcurr);
+			if(size<diff)[[likely]]
 			{
 				if constexpr(line)
 				{
 					auto it{print_reserve_control_define_impl<pci,char_type,value_type>(bcurr,t)};
-					if constexpr(details::exec_charset_is_ebcdic<char_type>())
-						*it=0x25;
+					if constexpr(std::same_as<char,char_type>)
+						*it='\n';
+					else if constexpr(std::same_as<wchar_t,char_type>)
+						*it=L'\n';
 					else
 						*it=u8'\n';
 					obuffer_set_curr(out,++it);
@@ -243,8 +249,10 @@ inline constexpr void print_control(output out,T t)
 				if constexpr(line)
 				{
 					auto it{print_reserve_control_define_impl<pci,char_type,value_type>(array.data(),t)};
-					if constexpr(details::exec_charset_is_ebcdic<char_type>())
-						*it=0x25;
+					if constexpr(std::same_as<char,char_type>)
+						*it='\n';
+					else if constexpr(std::same_as<wchar_t,char_type>)
+						*it=L'\n';
 					else
 						*it=u8'\n';
 					write(out,array.data(),++it);
@@ -264,8 +272,10 @@ inline constexpr void print_control(output out,T t)
 					if constexpr(line)
 					{
 						auto it{print_reserve_control_define_impl<pci,char_type,value_type>(array.data(),t)};
-						if constexpr(details::exec_charset_is_ebcdic<char_type>())
-							*it=0x25;
+						if constexpr(std::same_as<char,char_type>)
+							*it='\n';
+						else if constexpr(std::same_as<wchar_t,char_type>)
+							*it=L'\n';
 						else
 							*it=u8'\n';
 						write(out,array.data(),++it);
@@ -279,8 +289,10 @@ inline constexpr void print_control(output out,T t)
 				if constexpr(line)
 				{
 					auto it{print_reserve_control_define_impl<pci,char_type,value_type>(ptr,t)};
-					if constexpr(details::exec_charset_is_ebcdic<char_type>())
-						*it=0x25;
+					if constexpr(std::same_as<char,char_type>)
+						*it='\n';
+					else if constexpr(std::same_as<wchar_t,char_type>)
+						*it=L'\n';
 					else
 						*it=u8'\n';
 					orelease(out,++it);
@@ -293,8 +305,10 @@ inline constexpr void print_control(output out,T t)
 				if constexpr(line)
 				{
 					auto it{print_reserve_control_define_impl<pci,char_type,value_type>(oreserve(out,size),t)};
-					if constexpr(details::exec_charset_is_ebcdic<char_type>())
-						*it=0x25;
+					if constexpr(std::same_as<char,char_type>)
+						*it='\n';
+					else if constexpr(std::same_as<wchar_t,char_type>)
+						*it=L'\n';
 					else
 						*it=u8'\n';
 					orelease(out,++it);
@@ -310,8 +324,10 @@ inline constexpr void print_control(output out,T t)
 			if constexpr(line)
 			{
 				auto it{print_reserve_control_define_impl<pci,char_type,value_type>(array.data(),t)};
-				if constexpr(details::exec_charset_is_ebcdic<char_type>())
-					*it=0x25;
+				if constexpr(std::same_as<char,char_type>)
+					*it='\n';
+				else if constexpr(std::same_as<wchar_t,char_type>)
+					*it=L'\n';
 				else
 					*it=u8'\n';
 				write(out,array.data(),++it);

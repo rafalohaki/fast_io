@@ -48,10 +48,10 @@ template<std::integral char_type,typename T>
 }
 
 [[noreturn]] inline void throw_scan_error(std::errc);
-namespace details
-{
 
-template<typename T>
+
+template<input_stream T>
+requires std::is_trivially_copyable_v<T>
 struct unget_temp_buffer
 {
 	using char_type = typename T::char_type;
@@ -67,8 +67,27 @@ struct unget_temp_buffer
 		try_unget(input,ch);
 	}
 	{
+#ifdef __cpp_exceptions
+		if constexpr(noexcept(try_unget(input,buffer)))
+		{
+			if(pos!=pos_end)
+				try_unget(input,buffer);
+		}
+		else
+		{
+			try
+			{
+				if(pos!=pos_end)
+					try_unget(input,buffer);
+			}
+			catch(...)
+			{
+			}
+		}
+#else
 		if(pos!=pos_end)
 			try_unget(input,buffer);
+#endif
 	}
 	constexpr ~unget_temp_buffer() = default;
 };
@@ -135,14 +154,21 @@ inline constexpr bool underflow(unget_temp_buffer<T>& in)
 		return not_eof;
 	}
 }
-
+namespace details
+{
 template<buffer_input_stream input,typename T,typename P>
 inline constexpr bool scan_single_status_impl(input in,T& state_machine,P arg)
 {
 	for(;state_machine.code==std::errc::resource_unavailable_try_again;)
 	{
 		if(!underflow(in))
-			return state_machine.test_eof(arg);
+		{
+			if(!state_machine.test_eof(arg))
+				return false;
+			if(state_machine.code==std::errc{})[[likely]]
+				return true;
+			break;
+		}
 		auto curr{ibuffer_curr(in)};
 		auto end{ibuffer_end(in)};
 		state_machine(curr,end,arg);
@@ -165,7 +191,11 @@ requires (scanable<input,T>||context_scanable<typename input::char_type,T,false>
 		if constexpr(contiguous_input_stream<input>)
 		{
 			if constexpr(scanable_skipping<T>)
+			{
 				curr=scan_skip_define(scan_skip_type<T>,curr,end);
+				if(curr==end)
+					return false;
+			}
 			if constexpr(context_scanable<char_type,T,true>||context_scanable<char_type,T,false>)
 			{
 				auto state_machine{scan_context_define(scan_context<context_scanable<char_type,T,true>>,curr,end,arg)};
@@ -187,7 +217,8 @@ requires (scanable<input,T>||context_scanable<typename input::char_type,T,false>
 			{
 				for(;(curr=scan_skip_define(scan_skip_type<T>,curr,end))==end;)
 				{
-					underflow(in);
+					if(!underflow(in))
+						return false;
 					curr=ibuffer_curr(in);
 					end=ibuffer_end(in);
 				}
@@ -232,7 +263,7 @@ requires (status_input_stream<input>||input_stream<input>)
 		return (details::scan_single_impl(in,args)&&...);
 	else
 	{
-		details::unget_temp_buffer in_buffer(io_ref(in));
+		unget_temp_buffer in_buffer(io_ref(in));
 		return scan_freestanding_decay(io_ref(in_buffer),args...);
 	}
 }
