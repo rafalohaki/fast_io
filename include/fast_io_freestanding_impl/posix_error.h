@@ -33,7 +33,7 @@ strerrordesc_np not found
 #endif
 			constexpr std::size_t buffer_size{1024};
 			char buffer[buffer_size];
-			print_freestanding(report,fast_io::chvw(::strerror_r(ec,buffer_size)));
+			print_freestanding(report,fast_io::chvw(::strerror_r(ec,buffer,buffer_size)));
 #elif defined(_WIN32)
 /*
 https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/strerror-s-strerror-s-wcserror-s-wcserror-s?view=msvc-160
