@@ -108,8 +108,8 @@ template<typename Func>
 class hash_processor:public basic_hash_processor<char,Func>
 {
 public:
-	using basic_hash_processor<char,Func>::char_type;
-	using basic_hash_processor<char,Func>::function_type;
+	using typename basic_hash_processor<char,Func>::char_type;
+	using typename basic_hash_processor<char,Func>::function_type;
 	using basic_hash_processor<char,Func>::block_size;
 	constexpr hash_processor(Func& func):basic_hash_processor<char,Func>(func){}
 };

@@ -660,7 +660,7 @@ class basic_win32_file:public basic_win32_io_handle<ch_type>
 {
 public:
 	using char_type=ch_type;
-	using native_handle_type = basic_win32_io_handle<ch_type>::native_handle_type;
+	using native_handle_type = typename basic_win32_io_handle<ch_type>::native_handle_type;
 	using basic_win32_io_handle<ch_type>::native_handle;
 	using async_scheduler_type = basic_win32_io_observer<char>;
 	explicit constexpr basic_win32_file()=default;

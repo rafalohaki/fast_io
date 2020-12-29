@@ -538,6 +538,8 @@ inline std::uint64_t nt_seek64_impl(void* __restrict handle,std::int64_t offset,
 		file_position+=fsi.end_of_file;
 	}
 	break;
+	default:
+	[[fallthrough]];
 	}
 	if(static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max())<file_position)
 		file_position=0;

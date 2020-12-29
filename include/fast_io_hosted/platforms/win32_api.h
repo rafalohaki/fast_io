@@ -7,11 +7,11 @@ namespace fast_io::win32
 {
 extern "C"
 {
-inline std::uint32_t __stdcall GetLastError(void) noexcept;
-inline void * __stdcall LoadLibraryW(wchar_t const*) noexcept;
+std::uint32_t __stdcall GetLastError(void) noexcept;
+void * __stdcall LoadLibraryW(wchar_t const*) noexcept;
 
 // Used to retrieve a locale-specific message string for some error code
-inline std::uint32_t __stdcall FormatMessageA(std::uint32_t, void const*, std::uint32_t,std::uint32_t, char*, std::uint32_t, void /*va_list*/ *) noexcept;
+std::uint32_t __stdcall FormatMessageA(std::uint32_t, void const*, std::uint32_t,std::uint32_t, char*, std::uint32_t, void /*va_list*/ *) noexcept;
 
 struct security_attributes
 {
@@ -20,9 +20,9 @@ struct security_attributes
 	int bInheritHandle;
 };
 
-inline int __stdcall CloseHandle(void*) noexcept;
+int __stdcall CloseHandle(void*) noexcept;
 
-inline void* __stdcall CreateFileW(wchar_t const*,std::uint32_t,std::uint32_t,security_attributes*,std::uint32_t,std::uint32_t,void*) noexcept;
+void* __stdcall CreateFileW(wchar_t const*,std::uint32_t,std::uint32_t,security_attributes*,std::uint32_t,std::uint32_t,void*) noexcept;
 
 struct overlapped
 {
@@ -51,47 +51,47 @@ void* Tail;
 std::uint32_t  TailLength;
 };
 
-inline void* __stdcall CreateFileMappingW(void*,security_attributes*,std::uint32_t,std::uint32_t,std::uint32_t,wchar_t const*) noexcept;
+void* __stdcall CreateFileMappingW(void*,security_attributes*,std::uint32_t,std::uint32_t,std::uint32_t,wchar_t const*) noexcept;
 
-inline void* __stdcall MapViewOfFile(void*,std::uint32_t,std::uint32_t,std::uint32_t,std::size_t) noexcept;
+void* __stdcall MapViewOfFile(void*,std::uint32_t,std::uint32_t,std::uint32_t,std::size_t) noexcept;
 
-inline int __stdcall SetEndOfFile(void*) noexcept;
+int __stdcall SetEndOfFile(void*) noexcept;
 
-inline int __stdcall UnmapViewOfFile(void const*) noexcept;
+int __stdcall UnmapViewOfFile(void const*) noexcept;
 
-inline int __stdcall WriteFile(void*,void const*,std::uint32_t,std::uint32_t*,overlapped*) noexcept;
+int __stdcall WriteFile(void*,void const*,std::uint32_t,std::uint32_t*,overlapped*) noexcept;
 
-inline int __stdcall ReadFile(void*,void const*,std::uint32_t,std::uint32_t*,overlapped*) noexcept;
+int __stdcall ReadFile(void*,void const*,std::uint32_t,std::uint32_t*,overlapped*) noexcept;
 
-inline int __stdcall SetFilePointerEx(void*,std::int64_t,std::int64_t*,std::uint32_t) noexcept;
+int __stdcall SetFilePointerEx(void*,std::int64_t,std::int64_t*,std::uint32_t) noexcept;
 
-inline int __stdcall DuplicateHandle(void*,void*,void*,void**,std::uint32_t,int,std::uint32_t) noexcept;
+int __stdcall DuplicateHandle(void*,void*,void*,void**,std::uint32_t,int,std::uint32_t) noexcept;
 
-inline void* __stdcall GetStdHandle(std::uint32_t) noexcept;
+void* __stdcall GetStdHandle(std::uint32_t) noexcept;
 
-inline int __stdcall CreatePipe(void**,void**,security_attributes*,std::uint32_t) noexcept;
+int __stdcall CreatePipe(void**,void**,security_attributes*,std::uint32_t) noexcept;
 
-inline int __stdcall FreeLibrary(void*) noexcept;
+int __stdcall FreeLibrary(void*) noexcept;
 
-inline int __stdcall TransmitFile(std::uintptr_t,void*,std::uint32_t,std::uint32_t,overlapped*,transmit_file_buffer*,std::uint32_t) noexcept;
+int __stdcall TransmitFile(std::uintptr_t,void*,std::uint32_t,std::uint32_t,overlapped*,transmit_file_buffer*,std::uint32_t) noexcept;
 
 using farproc = intptr_t(__stdcall*)() noexcept;
 
-inline farproc __stdcall GetProcAddress(void*,char const*) noexcept;
+farproc __stdcall GetProcAddress(void*,char const*) noexcept;
 
-inline void* __stdcall GetModuleHandleW(wchar_t const*) noexcept;
+void* __stdcall GetModuleHandleW(wchar_t const*) noexcept;
 
-inline void* __stdcall LoadLibraryA(char const*) noexcept;
+void* __stdcall LoadLibraryA(char const*) noexcept;
 
-inline int __stdcall FreeLibrary(void*) noexcept;
+int __stdcall FreeLibrary(void*) noexcept;
 
-inline int __stdcall AllocConsole() noexcept;
+int __stdcall AllocConsole() noexcept;
 
-inline std::uint32_t __stdcall WaitForSingleObject(void*,std::uint32_t) noexcept;
+std::uint32_t __stdcall WaitForSingleObject(void*,std::uint32_t) noexcept;
 
-inline std::uint32_t __stdcall ResumeThread(void*) noexcept;
+std::uint32_t __stdcall ResumeThread(void*) noexcept;
 
-inline std::uint32_t __stdcall CancelIo(void*) noexcept;
+std::uint32_t __stdcall CancelIo(void*) noexcept;
 
 struct startupinfo
 {
@@ -129,8 +129,8 @@ startupinfo* lpStartupInfo,
 process_information* lpProcessInformation) noexcept;
 
 
-inline int __stdcall GetHandleInformation(void*,std::uint32_t*) noexcept;
-inline int __stdcall SetHandleInformation(void*,std::uint32_t,std::uint32_t) noexcept;
+int __stdcall GetHandleInformation(void*,std::uint32_t*) noexcept;
+int __stdcall SetHandleInformation(void*,std::uint32_t,std::uint32_t) noexcept;
 /*
 struct win32_memory_range_entry
 {
@@ -140,17 +140,17 @@ std::size_t NumberOfBytes;
 int __stdcall PrefetchVirtualMemory(void*,std::size_t,win32_memory_range_entry*,std::uint32_t flags);*/
 
 
-inline int __stdcall DeviceIoControl(void*,std::uint32_t,void*,std::uint32_t,void*,std::uint32_t,void*,overlapped*) noexcept;
+int __stdcall DeviceIoControl(void*,std::uint32_t,void*,std::uint32_t,void*,std::uint32_t,void*,overlapped*) noexcept;
 
-inline void* __stdcall CreateIoCompletionPort(void*,void*,std::uintptr_t,std::uint32_t) noexcept;
+void* __stdcall CreateIoCompletionPort(void*,void*,std::uintptr_t,std::uint32_t) noexcept;
 
-inline int __stdcall GetQueuedCompletionStatus(void*,std::uint32_t*,std::uintptr_t*,overlapped**,std::uint32_t) noexcept;
+int __stdcall GetQueuedCompletionStatus(void*,std::uint32_t*,std::uintptr_t*,overlapped**,std::uint32_t) noexcept;
 
-inline int __stdcall SetFileValidData(void*,std::int64_t) noexcept;
+int __stdcall SetFileValidData(void*,std::int64_t) noexcept;
 
-inline std::uint32_t __stdcall GetTempPathW(std::uint32_t,wchar_t* buffer) noexcept;
+std::uint32_t __stdcall GetTempPathW(std::uint32_t,wchar_t* buffer) noexcept;
 
-inline int __stdcall SystemFunction036(void*,std::uint32_t) noexcept;
+int __stdcall SystemFunction036(void*,std::uint32_t) noexcept;
 
 /*
 https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getfileinformationbyhandleex
@@ -200,20 +200,20 @@ FileNormalizedNameInfo,
 MaximumFileInfoByHandleClass
 };
 
-inline int __stdcall GetFileInformationByHandleEx(void*,file_info_by_handle_class,void*,std::uint32_t) noexcept;
+int __stdcall GetFileInformationByHandleEx(void*,file_info_by_handle_class,void*,std::uint32_t) noexcept;
 
-inline std::uint32_t __stdcall GetFileType(void*) noexcept;
+std::uint32_t __stdcall GetFileType(void*) noexcept;
 
 
-inline int __stdcall LockFileEx(void*,std::uint32_t,std::uint32_t,std::uint32_t,std::uint32_t,overlapped*) noexcept;
-inline int __stdcall UnlockFileEx(void*,std::uint32_t,std::uint32_t,std::uint32_t,overlapped*) noexcept;
+int __stdcall LockFileEx(void*,std::uint32_t,std::uint32_t,std::uint32_t,std::uint32_t,overlapped*) noexcept;
+int __stdcall UnlockFileEx(void*,std::uint32_t,std::uint32_t,std::uint32_t,overlapped*) noexcept;
 
 struct filetime
 {
 std::uint32_t dwLowDateTime,dwHighDateTime;
 };
 
-inline constexpr struct timespec to_struct_timespec(filetime ft) noexcept
+constexpr struct timespec to_struct_timespec(filetime ft) noexcept
 {
 	std::uint64_t date_time{(static_cast<std::uint64_t>(ft.dwHighDateTime)<<32)|ft.dwLowDateTime};
 
@@ -245,7 +245,7 @@ std::uint32_t    nFileIndexHigh;
 std::uint32_t    nFileIndexLow;
 };
 
-inline int __stdcall GetFileInformationByHandle(void* __restrict,by_handle_file_information* __restrict) noexcept;
+int __stdcall GetFileInformationByHandle(void* __restrict,by_handle_file_information* __restrict) noexcept;
 
 int __stdcall GetUserDefaultLocaleName(wchar_t*,int) noexcept;
 
