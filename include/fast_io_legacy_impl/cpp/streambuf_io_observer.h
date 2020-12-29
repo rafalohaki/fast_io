@@ -7,7 +7,6 @@
 #include"fp_hack/libc++.h"
 #endif
 
-
 namespace fast_io
 {
 
@@ -61,16 +60,6 @@ public:
 #endif
 #endif
 };
-
-template<typename T,std::contiguous_iterator Iter>
-[[nodiscard]] inline Iter read(basic_general_streambuf_io_observer<T> t,Iter begin,Iter end)
-{
-	using char_type = typename T::char_type;
-	return begin+(t.fb->sgetn(static_cast<char_type*>(static_cast<void*>(std::to_address(begin))),(end-begin)*sizeof(*begin)/sizeof(char_type))*sizeof(char_type)/sizeof(*begin));
-}
-
-template<typename T,std::contiguous_iterator Iter>
-inline Iter write(basic_general_streambuf_io_observer<T> t,Iter begin,Iter end);
 
 template<typename T>
 inline void flush(basic_general_streambuf_io_observer<T> h)
@@ -229,23 +218,80 @@ inline constexpr posix_at_entry at(basic_filebuf_io_observer<char_type> other) n
 namespace fast_io
 {
 
+namespace details
+{
+
+template<std::integral char_type,typename traits_type>
+inline std::size_t streambuf_write_report_eh_impl(std::basic_streambuf<char_type,traits_type>* fb,
+	char_type const* src, std::size_t count)
+{
+	return static_cast<std::size_t>(fb->sputn(src,static_cast<std::streamsize>(count)));
+}
+
+template<std::integral char_type,typename traits_type>
+inline std::size_t streambuf_read_report_eh_impl(std::basic_streambuf<char_type,traits_type>* fb,char_type* dest, std::size_t count)
+{
+	return static_cast<std::size_t>(fb->sgetn(dest,static_cast<std::streamsize>(count)));
+}
+
+
+template<std::integral char_type,typename traits_type>
+inline std::size_t streambuf_write_impl(basic_streambuf_io_observer<char_type,traits_type> t,char_type const* src, std::size_t count)
+{
+	auto curr{obuffer_curr(t)};
+	auto ed{obuffer_end(t)};
+	if(count<static_cast<std::size_t>(ed-curr))[[likely]]
+	{
+		traits_type::copy(curr,src,count);
+		obuffer_set_curr(t,curr+count);
+		return count;
+	}
+	return streambuf_write_report_eh_impl(t.fb,src,count);
+}
+
+template<std::integral char_type,typename traits_type>
+inline std::size_t streambuf_read_impl(basic_streambuf_io_observer<char_type,traits_type> t,char_type* dest, std::size_t count)
+{
+	auto curr{ibuffer_curr(t)};
+	auto ed{ibuffer_end(t)};
+	if(count<static_cast<std::size_t>(ed-curr))[[likely]]
+	{
+		traits_type::copy(dest,curr,count);
+		ibuffer_set_curr(t,curr+count);
+		return count;
+	}
+	return streambuf_read_report_eh_impl(t.fb,dest,count);
+}
+
+
+}
+
 template<typename T,std::contiguous_iterator Iter>
+requires (std::same_as<typename T::char_type,std::iter_value_t<Iter>>||std::same_as<typename T::char_type,char>)
+[[nodiscard]] inline Iter read(basic_general_streambuf_io_observer<T> t,Iter begin,Iter end)
+{
+	using char_type = typename T::char_type;
+	using traits_type = typename T::traits_type;
+	if constexpr(std::same_as<typename T::char_type,std::iter_value_t<Iter>>)
+		return begin+details::streambuf_read_impl(basic_streambuf_io_observer<char_type,traits_type>{t.fb},
+			std::to_address(begin),static_cast<std::size_t>(end-begin));
+	else
+		return begin+details::streambuf_read_impl(basic_streambuf_io_observer<char_type,traits_type>{t.fb},
+			reinterpret_cast<char*>(std::to_address(begin)),static_cast<std::size_t>(end-begin)*sizeof(*begin))/(*begin);
+}
+
+template<typename T,std::contiguous_iterator Iter>
+requires (std::same_as<typename T::char_type,std::iter_value_t<Iter>>||std::same_as<typename T::char_type,char>)
 inline Iter write(basic_general_streambuf_io_observer<T> t,Iter begin,Iter end)
 {
 	using char_type = typename T::char_type;
-	std::size_t const count(end-begin);
-	std::size_t const total_bytes_to_write(count*sizeof(*begin));
-	std::size_t const total_count(total_bytes_to_write/sizeof(char_type));
-	auto curr{obuffer_curr(t)};
-	auto ed{obuffer_end(t)};
-	if(curr+total_count<ed)[[likely]]
-	{
-		if(total_bytes_to_write)
-			memcpy(curr,std::to_address(begin),total_bytes_to_write);
-		obuffer_set_curr(t,curr+total_count);
-		return end;
-	}
-	return begin+(t.fb->sputn(static_cast<char_type const*>(static_cast<void const*>(std::to_address(begin))),(end-begin)*sizeof(*begin)/sizeof(char_type)))*sizeof(char_type)/sizeof(*begin);
+	using traits_type = typename T::traits_type;
+	if constexpr(std::same_as<typename T::char_type,std::iter_value_t<Iter>>)
+		return begin+details::streambuf_write_impl(basic_streambuf_io_observer<char_type,traits_type>{t.fb},
+			std::to_address(begin),static_cast<std::size_t>(end-begin));
+	else
+		return begin+details::streambuf_write_impl(basic_streambuf_io_observer<char_type,traits_type>{t.fb},
+			reinterpret_cast<char const*>(std::to_address(begin)),static_cast<std::size_t>(end-begin)*sizeof(*begin))/(*begin);
 }
 
 }
