@@ -181,7 +181,7 @@ inline void obuffer_set_curr(c_io_observer_unlocked cio,char* ptr)
 inline void overflow(c_io_observer_unlocked cio,char ch)
 {
 	obuffer_set_curr(cio,obuffer_end(cio));
-	if(_fputc_nolock(static_cast<int>(static_cast<unsigned char>(ch)),cio.fp)==EOF)[[unlikely]]
+	if(_fputc_nolock(static_cast<int>(static_cast<unsigned char>(ch)),cio.fp)==WEOF)[[unlikely]]
 		throw_posix_error();
 }
 
@@ -213,7 +213,7 @@ inline bool underflow(wc_io_observer_unlocked cio)
 {
 	using namespace details::ucrt_hack;
 	ibuffer_set_curr(cio,ibuffer_end(cio));
-	if(_fgetwc_nolock(cio.fp)==EOF)[[unlikely]]
+	if(_fgetwc_nolock(cio.fp)==WEOF)[[unlikely]]
 		return false;
 	set_fp_cnt(cio.fp,get_fp_cnt(cio.fp)+1);
 	set_fp_ptr(cio.fp,get_fp_ptr(cio.fp)-1);

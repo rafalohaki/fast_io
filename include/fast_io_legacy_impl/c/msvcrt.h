@@ -175,7 +175,7 @@ inline void ibuffer_set_curr(wc_io_observer_unlocked cio, [[gnu::may_alias]] wch
 
 inline bool underflow(wc_io_observer_unlocked cio) noexcept
 {
-	if(_filbuf(cio.fp)==EOF)[[unlikely]]
+	if(_filbuf(cio.fp)==WEOF)[[unlikely]]
 		return false;
 	++cio.fp->_cnt;
 	--cio.fp->_ptr;
