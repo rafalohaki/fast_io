@@ -10,7 +10,7 @@ template<std::random_access_iterator Iter>
 inline constexpr Iter skip_zero(Iter begin, Iter end) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
-	using unsigned_char_type = std::make_unsigned_t<char_type>;
+	using unsigned_char_type = my_make_unsigned_t<char_type>;
 	if constexpr(std::same_as<char_type,char>)
 		for (; begin != end && *begin=='0'; ++begin);
 	else if constexpr(std::same_as<char_type,wchar_t>)
@@ -22,9 +22,9 @@ inline constexpr Iter skip_zero(Iter begin, Iter end) noexcept
 
 template<char8_t base,std::integral char_type>
 requires (2<=base&&base<=36)
-inline constexpr bool char_digit_to_literal(std::make_unsigned_t<char_type>& ch) noexcept
+inline constexpr bool char_digit_to_literal(my_make_unsigned_t<char_type>& ch) noexcept
 {
-	using unsigned_char_type = std::make_unsigned_t<char_type>;
+	using unsigned_char_type = my_make_unsigned_t<char_type>;
 	constexpr bool ebcdic{exec_charset_is_ebcdic<char_type>()};
 	constexpr char_type base_char_type(base);
 	if constexpr(base<=10)
@@ -136,7 +136,7 @@ template<char8_t base,std::random_access_iterator Iter,my_unsigned_integral muin
 inline constexpr void from_chars_main(Iter& b,Iter e,muint& res) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
-	using unsigned_char_type = std::make_unsigned_t<char_type>;
+	using unsigned_char_type = my_make_unsigned_t<char_type>;
 	constexpr unsigned_char_type base_char_type(base);
 	for(;b!=e;++b)
 	{
@@ -152,7 +152,7 @@ template<char8_t base,std::random_access_iterator Iter>
 inline constexpr Iter skip_digits(Iter b,Iter e) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
-	using unsigned_char_type = std::make_unsigned_t<char_type>;
+	using unsigned_char_type = my_make_unsigned_t<char_type>;
 	for(;b!=e;++b)
 	{
 		unsigned_char_type result(*b);
@@ -162,48 +162,63 @@ inline constexpr Iter skip_digits(Iter b,Iter e) noexcept
 	return b;
 }
 
-template<char8_t base,std::random_access_iterator Iter,my_unsigned_integral muint>
-inline constexpr void probe_overflow(Iter& b,Iter e,muint& res,std::size_t& sz) noexcept
+template<char8_t base,bool larger_than_native = false,std::random_access_iterator Iter,my_unsigned_integral muint>
+inline constexpr bool probe_overflow(Iter& b,Iter e,muint& res,std::size_t& sz) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
-	using unsigned_char_type = std::make_unsigned_t<char_type>;
+	using unsigned_char_type = my_make_unsigned_t<char_type>;
 	if(b==e)
-		return;
+		return false;
 	unsigned_char_type result(*b);
 	if(char_digit_to_literal<base,char_type>(result))[[unlikely]]
-		return;
-	constexpr muint risky_value{std::numeric_limits<muint>::max()/base};
-	constexpr unsigned_char_type risky_digit(std::numeric_limits<muint>::max()%base);
+		return false;
+	constexpr muint risky_uint_max{static_cast<muint>(-1)};
+	constexpr muint risky_value{risky_uint_max/base};
+	constexpr unsigned_char_type risky_digit(risky_uint_max%base);
 	constexpr std::size_t npos(-1);
 	if((risky_value<res)||(risky_value==res&&risky_digit<result))
 	{
-		sz=npos;
-		return;
+		if constexpr (!larger_than_native)
+			sz=npos;
+		return true;
 	}
 	res*=base;
 	res+=result;
 	++b;
+	if constexpr(larger_than_native)
+		++sz;
 	if(b==e)
-		return;
+		return false;
+	if constexpr (!larger_than_native)
 	{
 		unsigned_char_type result(*b);
 		if(char_digit_to_literal<base,char_type>(result))
-			return;
+			return false;
 		sz=npos;
 		++b;
 		b=skip_digits<base>(b,e);
+		return true;
+	}
+	else
+	{
+		unsigned_char_type result(*b);
+		if(char_digit_to_literal<base,char_type>(result))
+			return false;
+		else
+			return true;
 	}
 }
 
-template<char8_t base,bool ignore=false,std::random_access_iterator Iter,my_unsigned_integral muint>
-inline constexpr void from_chars_u64(Iter& b,Iter e,muint& res,std::size_t& sz) noexcept
+template<char8_t base,bool larger_than_native = false, bool skip_zeros = true, bool ignore=false, std::random_access_iterator Iter,my_unsigned_integral muint>
+inline constexpr bool from_chars(Iter& b,Iter e,muint& res,std::size_t& sz) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
-	using unsigned_char_type = std::make_unsigned_t<char_type>;
+	using unsigned_char_type = my_make_unsigned_t<char_type>;
 	constexpr std::size_t max_size{cal_max_int_size<muint,base>()-1};
 	if constexpr(ignore)
 	{
-		b=skip_zero(b,e);
+		if constexpr(skip_zeros)
+			b=skip_zero(b,e);
 		std::size_t iter_diff(e-b);
 		if(max_size<iter_diff)[[likely]]
 		{
@@ -214,8 +229,7 @@ inline constexpr void from_chars_u64(Iter& b,Iter e,muint& res,std::size_t& sz) 
 			sz=b-start;
 			if(b==from_chars_ed)[[unlikely]]
 			{
-				probe_overflow<base>(b,e,res,sz);
-				return;
+				return probe_overflow<base, larger_than_native>(b,e,res,sz);
 			}
 		}
 		else
@@ -231,10 +245,13 @@ inline constexpr void from_chars_u64(Iter& b,Iter e,muint& res,std::size_t& sz) 
 		if(sz==npos)
 		{
 			b=skip_digits<base>(b,e);
-			return;
+			return true;
 		}
-		if(!res)
-			b=skip_zero(b,e);
+		if constexpr(skip_zeros)
+		{
+			if(!res)
+				b=skip_zero(b,e);
+		}
 		std::size_t iter_diff(e-b);
 		std::size_t max_size_msz(max_size-sz);
 		if(max_size_msz<iter_diff)[[likely]]
@@ -246,8 +263,19 @@ inline constexpr void from_chars_u64(Iter& b,Iter e,muint& res,std::size_t& sz) 
 			sz+=b-start;
 			if(b==from_chars_ed)[[unlikely]]
 			{
-				probe_overflow<base>(b,e,res,sz);
-				return;
+				return probe_overflow<base, larger_than_native>(b,e,res,sz);
+				// if constexpr(larger_than_native)
+				// {
+				// 	if (probe_overflow<base, false>(b,e,res,sz)) {
+				// 		// overflow
+				// 		return true;
+				// 	} else {
+				// 		// did not overflow, add one extra digit
+				// 		return false;
+				// 	}
+				// } else {
+				// 	return probe_overflow<base>(b,e,res,sz);
+				// }
 			}
 		}
 		else
@@ -257,9 +285,49 @@ inline constexpr void from_chars_u64(Iter& b,Iter e,muint& res,std::size_t& sz) 
 			sz+=b-start;
 		}
 	}
+	return false;
 }
 
+
+template<char8_t base, details::my_integral T>
+inline 
+#if __cpp_consteval > 201811
+ consteval 
+#else
+ constexpr
+#endif
+ auto powmul_array() noexcept
+{
+	constexpr std::size_t charlen{chars_len<base>(cal_int_max<T>())};
+	std::array<T, charlen> arr{1};
+	for(std::size_t i{1};i!=charlen;++i)
+		arr[i] = arr[i-1] * base;
+	return arr;
 }
+
+template<char8_t base, details::my_integral T>
+inline
+#if __cpp_consteval > 201811
+ consteval 
+#else
+ constexpr
+#endif
+ auto powmul_table{powmul_array<base, T>()};
+
+template<char8_t base, details::my_integral T>
+inline constexpr T powmul(T v, std::size_t sz) noexcept
+{
+	// powmul(v,sz)=v*(base^sz)
+	// make a table
+#ifdef FAST_IO_OPTIMIZE_SIZE
+	for (std::size_t i{};i!=sz;++i)
+		v *= base;
+#else
+	return v * powmul_table<base, T>[sz];
+#endif
+}
+
+} // end details
 
 template<details::my_integral T, std::random_access_iterator Iter>
 inline constexpr Iter scan_skip_define(scan_skip_type_t<parameter<T&>>, Iter beg, Iter ed) noexcept
@@ -274,11 +342,13 @@ struct voldmort
 {
 	Iter iter;
 	std::errc code{};
-	[[no_unique_address]] std::conditional_t<contiguous_only, details::empty,std::uint64_t> value{};
+	[[no_unique_address]] std::conditional_t<contiguous_only, details::empty,my_make_unsigned_t<T>> value{};
 	[[no_unique_address]] std::conditional_t<contiguous_only, details::empty,std::size_t> size{};
 	[[no_unique_address]] std::conditional_t<!contiguous_only&&details::my_signed_integral<T>, bool, empty> minus{};
+
 	inline constexpr bool test_eof(parameter<T&> t) noexcept requires(!contiguous_only)
 	{
+		constexpr bool larger_than_native = sizeof(T) > sizeof(std::size_t);
 		constexpr std::size_t npos(-1);
 		if(size==npos)
 		{
@@ -286,23 +356,13 @@ struct voldmort
 			return true;
 		}
 		code={};
-		if constexpr(!(std::unsigned_integral<T>&&sizeof(T)==sizeof(std::uint64_t)))
+		// check minus overflow
+		if constexpr(!std::unsigned_integral<T>)
 		{
-			if constexpr(std::unsigned_integral<T>)
+			if(value>static_cast<my_make_unsigned_t<T>>(std::numeric_limits<T>::max())+minus)
 			{
-				if(value>static_cast<std::uint64_t>(std::numeric_limits<T>::max()))
-				{
-					code=std::errc::result_out_of_range;
-					return true;
-				}					
-			}
-			else
-			{
-				if(value>(static_cast<std::uint64_t>(std::numeric_limits<T>::max())+minus))
-				{
-					code=std::errc::result_out_of_range;
-					return true;
-				}
+				code=std::errc::result_out_of_range;
+				return true;
 			}
 		}
 		if constexpr(my_signed_integral<T>)
@@ -318,43 +378,76 @@ struct voldmort
 	}
 	inline constexpr void operator()(Iter begin, Iter end,parameter<T&> t) noexcept requires(!contiguous_only)
 	{
+		constexpr bool larger_than_native = sizeof(T) > sizeof(std::size_t);
+		constexpr std::size_t npos(-1);
 		iter=begin;
-		details::from_chars_u64<base>(iter,end,value,size);
+		if constexpr(larger_than_native)
+		{
+			std::conditional_t<sizeof(std::size_t)<=sizeof(std::uint32_t), std::uint32_t, std::uint64_t> value_native{};
+			for (;size!=npos;) {
+				std::size_t sz_tmp{};
+				if (details::from_chars<base, larger_than_native, false>(iter,end,value_native,sz_tmp))
+				{
+					// native value overflow
+					value = details::powmul<base>(value, sz_tmp);
+					value += static_cast<T>(value_native);
+					size += sz_tmp;
+					probe_overflow<base, larger_than_native>(iter,end,value,size);
+				}
+				else
+				{
+					value = details::powmul<base>(value, sz_tmp);
+					value += static_cast<T>(value_native);
+					size += sz_tmp;
+					break;
+				}
+			}
+		} else {
+			details::from_chars<base, larger_than_native, false>(iter,end,value,size);
+		}
 		code = {};
 		if(iter==end)
 		{
 			code = std::errc::resource_unavailable_try_again;
 			return;
 		}
-		constexpr std::size_t npos(-1);
 		if(size==npos)
 		{
 			code=std::errc::result_out_of_range;
 			return;
 		}
-		if constexpr(!(std::unsigned_integral<T>&&sizeof(T)==sizeof(std::uint64_t)))
+		// check minus overflow
+		if constexpr(!std::unsigned_integral<T>)
 		{
-			if constexpr(std::unsigned_integral<T>)
+			if(value>static_cast<my_make_unsigned_t<T>>(std::numeric_limits<T>::max())+minus)
 			{
-				if(value>static_cast<std::uint64_t>(std::numeric_limits<T>::max()))
-				{
-					code=std::errc::result_out_of_range;
-					return;
-				}
-			}
-			else
-			{
-				if(value>static_cast<std::uint64_t>(std::numeric_limits<T>::max())+minus)
-				{
-					code=std::errc::result_out_of_range;
-					return;
-				}
+				code=std::errc::result_out_of_range;
+				return;
 			}
 		}
+		// if constexpr(!(std::unsigned_integral<T>&&sizeof(T)==sizeof(std::uint64_t)))
+		// {
+		// 	if constexpr(std::unsigned_integral<T>)
+		// 	{
+		// 		if(value>static_cast<std::uint64_t>(std::numeric_limits<T>::max()))
+		// 		{
+		// 			code=std::errc::result_out_of_range;
+		// 			return;
+		// 		}
+		// 	}
+		// 	else
+		// 	{
+		// 		if(value>static_cast<std::uint64_t>(std::numeric_limits<T>::max())+minus)
+		// 		{
+		// 			code=std::errc::result_out_of_range;
+		// 			return;
+		// 		}
+		// 	}
+		// }
 		if constexpr(my_signed_integral<T>)
 		{
 			if(minus)
-				t.reference=static_cast<std::uint64_t>(0)-value;
+				t.reference=static_cast<T>(0)-static_cast<T>(value);
 			else
 				t.reference=value;
 		}
@@ -363,6 +456,8 @@ struct voldmort
 	}
 	inline constexpr voldmort(Iter begin, Iter end, T& t) noexcept
 	{
+		constexpr bool larger_than_native = sizeof(T) > sizeof(std::size_t);
+		constexpr std::size_t npos(-1);
 		iter = begin;
 		if constexpr (contiguous_only)
 		{
@@ -385,40 +480,67 @@ struct voldmort
 						++iter;
 				}
 			}
-			std::uint64_t temp{};
-			if(details::from_chars_u64<base>(iter,end,temp))
+			std::make_unsigned<T> temp{};
+			if constexpr(larger_than_native)
 			{
-				code=std::errc::result_out_of_range;
-				return;
+				std::conditional_t<sizeof(std::size_t)<=sizeof(std::uint32_t), std::uint32_t, std::uint64_t> value_native{};
+				if (details::from_chars<base, larger_than_native>(iter,end,value_native,size)) [[unlikely]]
+				{
+					// native value overflow
+					temp = static_cast<T>(value_native);
+					for (;size!=npos;) {
+						std::size_t sz_tmp{};
+						value_native = 0;
+						if (details::from_chars<base, larger_than_native, false>(iter,end,value_native,sz_tmp)) [[unlikely]]
+						{
+							// native value overflow
+							temp = details::powmul<base>(temp, sz_tmp);
+							temp += static_cast<T>(value_native);
+							size += sz_tmp;
+							if (probe_overflow<base, larger_than_native>(iter,end,temp,size))
+							{
+								// value overflow
+								code=std::errc::result_out_of_range;
+								return;
+							}
+						}
+						else
+						{
+							temp = details::powmul<base>(temp, sz_tmp);
+							size += sz_tmp;
+							temp += static_cast<T>(value_native);
+							break;
+						}
+					}
+				}
+				else
+				{
+					temp = static_cast<T>(value_native);
+				}
+			} else {
+				if(details::from_chars<base>(iter,end,temp))
+				{
+					code=std::errc::result_out_of_range;
+					return;
+				}
 			}
 			if(begin==iter)
 			{
 				code=std::errc::invalid_argument;
 				return;
 			}
-			constexpr std::size_t npos(-1);
 			if(size==npos)
 			{
 				code=std::errc::result_out_of_range;
 				return;
 			}
-			if constexpr(!(std::unsigned_integral<T>&&sizeof(T)==sizeof(std::uint64_t)))
+			// check minus overflow
+			if constexpr(!my_unsigned_integral<T>)
 			{
-				if constexpr(std::unsigned_integral<T>)
+				if(value>static_cast<my_make_unsigned_t<T>>(-1)+minus)
 				{
-					if(temp>static_cast<std::uint64_t>(std::numeric_limits<T>::max()))
-					{
-						code=std::errc::result_out_of_range;
-						return;
-					}					
-				}
-				else
-				{
-					if(temp>(static_cast<std::uint64_t>(std::numeric_limits<T>::max())+minus))
-					{
-						code=std::errc::result_out_of_range;
-						return;
-					}
+					code=std::errc::result_out_of_range;
+					return;
 				}
 			}
 			if constexpr(my_signed_integral<T>)
@@ -433,6 +555,7 @@ struct voldmort
 		}
 		else
 		{
+			// not contiguous
 			using char_type = std::iter_value_t<Iter>;
 			/*Dealing with EBCDIC exec-charset */
 			if constexpr(my_signed_integral<T>)
@@ -451,7 +574,47 @@ struct voldmort
 						++iter;
 				}
 			}
-			details::from_chars_u64<base,true>(iter,end,value,size);
+
+			if constexpr(larger_than_native)
+			{
+				std::conditional_t<sizeof(std::size_t)<=sizeof(std::uint32_t), std::uint32_t, std::uint64_t> value_native{};
+				if (details::from_chars<base, larger_than_native>(iter,end,value_native,size)) [[unlikely]]
+				{
+					// native value overflow
+					value = static_cast<T>(value_native);
+					for (;size != npos;) {
+						std::size_t sz_tmp{};
+						value_native = 0;
+						if (details::from_chars<base, larger_than_native, false>(iter,end,value_native,sz_tmp)) [[unlikely]]
+						{
+							// native value overflow
+							value = details::powmul<base>(value, sz_tmp);
+							value += static_cast<T>(value_native);
+							size += sz_tmp;
+							if (probe_overflow<base, larger_than_native>(iter,end,value,size))
+							{
+								// value overflow
+								code=std::errc::result_out_of_range;
+								return;
+							}
+						}
+						else
+						{
+							value = details::powmul<base>(value, sz_tmp);
+							size += sz_tmp;
+							value += static_cast<T>(value_native);
+							break;
+						}
+					}
+				}
+				else
+				{
+					value = static_cast<T>(value_native);
+				}
+			} else {
+				details::from_chars<base,larger_than_native,true>(iter,end,value,size);
+			}
+
 			if(begin==iter)
 			{
 				code=std::errc::invalid_argument;
@@ -462,35 +625,24 @@ struct voldmort
 				code=std::errc::resource_unavailable_try_again;
 				return;
 			}
-			constexpr std::size_t npos(-1);
 			if(size==npos)
 			{
 				code=std::errc::result_out_of_range;
 				return;
 			}
-			if constexpr(!(std::unsigned_integral<T>&&sizeof(T)==sizeof(std::uint64_t)))
+			// check minus overflow
+			if constexpr(!std::unsigned_integral<T>)
 			{
-				if constexpr(std::unsigned_integral<T>)
+				if(value>static_cast<my_make_unsigned_t<T>>(std::numeric_limits<T>::max())+minus)
 				{
-					if(value>static_cast<std::uint64_t>(std::numeric_limits<T>::max()))
-					{
-						code=std::errc::result_out_of_range;
-						return;
-					}	
-				}
-				else
-				{
-					if(value>static_cast<std::uint64_t>(std::numeric_limits<T>::max())+(minus))
-					{
-						code=std::errc::result_out_of_range;
-						return;
-					}
+					code=std::errc::result_out_of_range;
+					return;
 				}
 			}
 			if constexpr(my_signed_integral<T>)
 			{
 				if(minus)
-					t=static_cast<std::uint64_t>(0)-value;
+					t=static_cast<T>(0)-static_cast<T>(value);
 				else
 					t=value;
 			}
