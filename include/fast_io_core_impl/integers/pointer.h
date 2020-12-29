@@ -65,7 +65,7 @@ template<std::integral char_type,std::size_t n>
 inline constexpr auto print_alias_define(io_alias_t,char_type const(&s)[n]) noexcept
 {
 	if constexpr(n==2)
-		return manip::chvw<char_type>(*s);
+		return manip::chvw<char_type>{*s};
 	else
 		return basic_io_scatter_t<char_type>{s,n-1};
 }
