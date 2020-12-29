@@ -412,6 +412,7 @@ inline constexpr void print_define(output bos,basic_lc_time<char_type> const& ti
 {
 	if constexpr(std::same_as<char,char_type>)
 	{
+		print_freestanding(bos,"LC_TIME\n");
 		details::print_loc_days_impl(bos,"abday",time.abday);
 		details::print_loc_days_impl(bos,"day",time.day);
 		details::print_loc_days_impl(bos,"abmon",time.abmon);
@@ -438,6 +439,7 @@ inline constexpr void print_define(output bos,basic_lc_time<char_type> const& ti
 	}
 	else if constexpr(std::same_as<wchar_t,char_type>)
 	{
+		print_freestanding(bos,L"LC_TIME\n");
 		details::print_loc_days_impl(bos,L"abday",time.abday);
 		details::print_loc_days_impl(bos,L"day",time.day);
 		details::print_loc_days_impl(bos,L"abmon",time.abmon);
@@ -464,6 +466,7 @@ inline constexpr void print_define(output bos,basic_lc_time<char_type> const& ti
 	}
 	else if constexpr(std::same_as<char16_t,char_type>)
 	{
+		print_freestanding(bos,u"LC_TIME\n");
 		details::print_loc_days_impl(bos,u"abday",time.abday);
 		details::print_loc_days_impl(bos,u"day",time.day);
 		details::print_loc_days_impl(bos,u"abmon",time.abmon);
@@ -490,6 +493,7 @@ inline constexpr void print_define(output bos,basic_lc_time<char_type> const& ti
 	}
 	else if constexpr(std::same_as<char32_t,char_type>)
 	{
+		print_freestanding(bos,U"LC_TIME\n");
 		details::print_loc_days_impl(bos,U"abday",time.abday);
 		details::print_loc_days_impl(bos,U"day",time.day);
 		details::print_loc_days_impl(bos,U"abmon",time.abmon);
@@ -516,6 +520,7 @@ inline constexpr void print_define(output bos,basic_lc_time<char_type> const& ti
 	}
 	else if constexpr(std::same_as<char8_t,char_type>)
 	{
+		print_freestanding(bos,u8"LC_TIME\n");
 		details::print_loc_days_impl(bos,u8"abday",time.abday);
 		details::print_loc_days_impl(bos,u8"day",time.day);
 		details::print_loc_days_impl(bos,u8"abmon",time.abmon);
