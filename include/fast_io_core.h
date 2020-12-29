@@ -24,6 +24,8 @@
 #include<cstring>		//for memcpy
 #include<bit>			//for std::endian, std::rotl and std::bit_cast etc
 
+#include<system_error>		//for std::errc
+
 
 #include"fast_io_core_impl/ebcdic.h"
 #include"fast_io_core_impl/char_category.h"
