@@ -145,15 +145,14 @@ using streambuf_io_observer = basic_streambuf_io_observer<char>;
 using filebuf_io_observer = basic_filebuf_io_observer<char>;
 using stringbuf_io_observer = basic_stringbuf_io_observer<char>;
 
-using u8streambuf_io_observer = basic_streambuf_io_observer<char8_t>;
-using u8filebuf_io_observer = basic_filebuf_io_observer<char8_t>;
-using u8stringbuf_io_observer = basic_stringbuf_io_observer<char8_t>;
-
 #ifndef __MSDOS__
 using wstreambuf_io_observer = basic_streambuf_io_observer<wchar_t>;
 using wfilebuf_io_observer = basic_filebuf_io_observer<wchar_t>;
 using wstringbuf_io_observer = basic_stringbuf_io_observer<wchar_t>;
 #endif
+using u8streambuf_io_observer = basic_streambuf_io_observer<char8_t>;
+using u8filebuf_io_observer = basic_filebuf_io_observer<char8_t>;
+using u8stringbuf_io_observer = basic_stringbuf_io_observer<char8_t>;
 
 using u16streambuf_io_observer = basic_streambuf_io_observer<char16_t>;
 using u16filebuf_io_observer = basic_filebuf_io_observer<char16_t>;

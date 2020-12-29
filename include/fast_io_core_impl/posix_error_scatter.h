@@ -1,4 +1,4 @@
-#pragma oncee
+#pragma once
 
 namespace fast_io
 {

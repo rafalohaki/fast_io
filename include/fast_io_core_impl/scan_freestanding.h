@@ -62,9 +62,41 @@ struct unget_temp_buffer
 	constexpr unget_temp_buffer(T in):input(in){}
 	unget_temp_buffer(unget_temp_buffer const&)=delete;
 	unget_temp_buffer& operator=(unget_temp_buffer const&)=delete;
-	constexpr ~unget_temp_buffer() requires requires(typename T::char_type ch)
+#ifdef __clang__
+	constexpr ~unget_temp_buffer()
 	{
-		try_unget(input,ch);
+		if constexpr(requires()
+		{
+			try_unget(input,buffer);
+		})
+		{
+#ifdef __cpp_exceptions
+		if constexpr(noexcept(try_unget(input,buffer)))
+		{
+			if(pos!=pos_end)
+				try_unget(input,buffer);
+		}
+		else
+		{
+			try
+			{
+				if(pos!=pos_end)
+					try_unget(input,buffer);
+			}
+			catch(...)
+			{
+			}
+		}
+#else
+		if(pos!=pos_end)
+			try_unget(input,buffer);
+#endif
+		}
+	}
+#else
+	constexpr ~unget_temp_buffer() requires requires()
+	{
+		try_unget(input,buffer);
 	}
 	{
 #ifdef __cpp_exceptions
@@ -90,6 +122,7 @@ struct unget_temp_buffer
 #endif
 	}
 	constexpr ~unget_temp_buffer() = default;
+#endif
 };
 
 template<input_stream T,std::input_or_output_iterator Iter>
@@ -132,13 +165,19 @@ inline constexpr auto ibuffer_set_curr(unget_temp_buffer<T>& in,typename T::char
 	in.pos=ptr-std::addressof(in.buffer);
 }
 
+namespace details
+{
+template<typename T>
+concept try_get_input_stream=requires(T in)
+{
+	{try_get(in)}->std::convertible_to<std::pair<typename T::char_type,bool>>;
+};
+}
+
 template<typename T>
 inline constexpr bool underflow(unget_temp_buffer<T>& in)
 {
-	if constexpr(requires()
-	{
-		{try_get(in.input)}->std::convertible_to<std::pair<typename T::char_type,bool>>;
-	})
+	if constexpr(details::try_get_input_stream<T>)
 	{
 		auto ret{try_get(in.input)};
 		in.buffer=ret.first;
