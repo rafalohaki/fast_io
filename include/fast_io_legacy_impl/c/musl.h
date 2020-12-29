@@ -128,7 +128,7 @@ inline void obuffer_set_curr(c_io_observer_unlocked cio,char* ptr) noexcept
 	details::fp_hack::hack_fp_set_ptr<4>(cio.fp,ptr);
 }
 
-extern "C" int __overflow(_IO_FILE *, int);
+extern "C" int __overflow(_IO_FILE *, int) noexcept;
 
 inline void overflow(c_io_observer_unlocked cio,char ch)
 {

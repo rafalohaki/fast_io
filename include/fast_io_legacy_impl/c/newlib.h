@@ -59,7 +59,7 @@ inline void ibuffer_set_curr(c_io_observer_unlocked cio,char* ptr) noexcept
 	cio.fp->_p=reinterpret_cast<char unsigned*>(ptr);
 }
 
-extern "C" int __ssrefill_r(struct _reent *,FILE *);
+extern "C" int __ssrefill_r(struct _reent *,FILE *) noexcept;
 
 inline bool underflow(c_io_observer_unlocked cio)
 {
