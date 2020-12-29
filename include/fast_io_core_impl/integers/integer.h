@@ -5,8 +5,6 @@
 #include"twodigits/base.h"
 #include"optimize_size/impl.h"
 #include"jiaendu/jiaendu.h"
-#include"sto/sto.h"
-#include"sto/sto_reserve.h"
 #include"sto/sto_overhual.h"
 #include"append_nine_digits.h"
 

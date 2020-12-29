@@ -7,7 +7,7 @@ namespace fast_io::details::string_hack
 https://github.com/microsoft/STL/blob/master/stl/inc/xstring
 */
 
-template <class _Elem, class _Traits = char_traits<_Elem>, class _Alloc = allocator<_Elem>>
+template <class _Elem, class _Traits = std::char_traits<_Elem>, class _Alloc = std::allocator<_Elem>>
 struct model
 {
 	using _Alty        = std::_Rebind_alloc_t<_Alloc, _Elem>;

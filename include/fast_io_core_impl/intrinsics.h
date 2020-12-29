@@ -83,7 +83,7 @@ inline constexpr bool sub_borrow(bool borrow,T a,T b,T& out) noexcept
 
 inline constexpr std::uint64_t umul(std::uint64_t a,std::uint64_t b,std::uint64_t& high) noexcept
 {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
 	return _umul128(a,b,std::addressof(high));
 #else
 #if __cpp_lib_is_constant_evaluated >= 201811L

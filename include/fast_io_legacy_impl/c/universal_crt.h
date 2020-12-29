@@ -55,7 +55,7 @@ struct ucrt_stdio_stream_data_model
 
 
 template<std::integral T=char>
-inline [[gnu::may_alias]] T* get_fp_ptr(FILE* fp) noexcept
+inline T* get_fp_ptr(FILE* fp) noexcept
 {
 	T* b;
 	memcpy(std::addressof(b),reinterpret_cast<std::byte*>(fp),sizeof(T*));
@@ -68,7 +68,7 @@ inline void set_fp_ptr(FILE* fp,[[gnu::may_alias]] T* b) noexcept
 }
 
 template<std::integral T=char>
-inline [[gnu::may_alias]] T* get_fp_base(FILE* fp) noexcept
+inline T* get_fp_base(FILE* fp) noexcept
 {
 	T* b;
 	memcpy(std::addressof(b),reinterpret_cast<std::byte*>(fp)+sizeof(uintptr_t),sizeof(T*));

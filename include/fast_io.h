@@ -113,6 +113,18 @@ inline constexpr void debug_print_after_io_forward(Args ...args)
 }
 
 
+template<bool report,typename... Args>
+inline constexpr std::conditional_t<report,bool,void> scan_after_io_forward(Args ...args)
+{
+	if constexpr(report)
+		return scan_freestanding_decay(c_stdin(),args...);
+	else
+	{
+		if(!scan_freestanding_decay(c_stdin(),args...))
+			throw_scan_error(std::errc::resource_unavailable_try_again);
+	}
+}
+
 
 }
 
@@ -216,11 +228,19 @@ inline constexpr void debug_perrln(Args&&... args)
 
 #endif
 
-template<bool report_eof=false,typename T,typename... Args>
-inline constexpr auto scan(T&& t,Args&& ...args)
+template<bool report=false,typename input,typename... Args>
+inline constexpr std::conditional_t<report,bool,void> scan(input&& in,Args&& ...args)
 {
-	if constexpr(fast_io::input_stream<std::remove_cvref_t<T>>)
-		return fast_io::scan<report_eof>(std::forward<T>(t),std::forward<Args>(args)...);
+	if constexpr(fast_io::input_stream<std::remove_cvref_t<input>>)
+	{
+		if constexpr(report)
+			return fast_io::scan_freestanding_decay(fast_io::io_ref(in),fast_io::io_scan_alias<typename std::remove_cvref_t<input>::char_type>(args)...);
+		else
+		{
+			if(!fast_io::scan_freestanding_decay(fast_io::io_ref(in),fast_io::io_scan_alias<typename std::remove_cvref_t<input>::char_type>(args)...))
+				fast_io::throw_scan_error(std::errc::resource_unavailable_try_again);
+		}
+	}
 	else
-		return scan<report_eof>(fast_io::c_stdin(),std::forward<T>(t),std::forward<Args>(args)...);
+		return fast_io::details::scan_after_io_forward<report>(fast_io::io_scan_alias<char>(in),fast_io::io_scan_alias<char>(args)...);
 }

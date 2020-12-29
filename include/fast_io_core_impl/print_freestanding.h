@@ -10,8 +10,6 @@ inline constexpr Iter output_unsigned_serialize_size(std::size_t val,Iter iter) 
 
 
 
-template<std::uint32_t base,bool ryu_mode=false,std::size_t mx_size=std::numeric_limits<std::size_t>::max(),my_unsigned_integral U>
-inline constexpr std::uint32_t chars_len(U) noexcept;
 }
 
 namespace details
