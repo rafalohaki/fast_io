@@ -22,6 +22,7 @@ inline constexpr unrep<mantissaType,exponentType> init_repm2(mantissaType const&
 	}
 }
 
+
 template<bool uppercase_e=false,std::size_t mode=0,bool int_hint=false,
 bool is_runtime_decimal_point,std::integral decimal_char_type,
 char8_t decimal_point,std::random_access_iterator Iter,std::floating_point F>

@@ -60,7 +60,7 @@ inline constexpr void fp_output_unsigned_with_len(Iter iter,U i,std::size_t len)
 #endif
 	}
 }
-
+/*To remove*/
 template<bool control,typename T,char8_t static_decimal_point,my_unsigned_integral U,std::contiguous_iterator Iter>
 inline constexpr std::size_t fp_output_unsigned_point([[maybe_unused]]compile_time_floating_value<control,T,static_decimal_point> decm,U value,Iter str) noexcept
 {
@@ -99,6 +99,84 @@ inline constexpr std::size_t fp_output_unsigned_point([[maybe_unused]]compile_ti
 	else
 	{
 		*str = static_cast<char8_t>(value)+u8'0';
+		return 1;
+	}
+}
+
+
+
+template<char8_t decimal_point,std::random_access_iterator Iter,my_unsigned_integral U>
+inline constexpr std::size_t fp_output_unsigned_point_no_dcm(U value,Iter str) noexcept
+{
+	using char_type = std::iter_value_t<Iter>;
+	if(value >= 10)[[likely]]
+	{
+		if(std::is_constant_evaluated())
+		{
+			std::size_t ret(optimize_size::output_unsigned(str+1,value));
+			*str=str[1];
+			if constexpr(decimal_point==u8'.')
+			{
+				if constexpr(std::same_as<char_type,char>)
+					str[1]='.';
+				else if constexpr(std::same_as<char_type,wchar_t>)
+					str[1]=L'.';
+				else
+					str[1]=u8'.';
+			}
+			else if constexpr(decimal_point==u8',')
+			{
+				if constexpr(std::same_as<char_type,char>)
+					str[1]=',';
+				else if constexpr(std::same_as<char_type,wchar_t>)
+					str[1]=L',';
+				else
+					str[1]=u8',';
+			}
+			return ret+1;
+		}
+		else
+		{
+
+			namespace algo_decision = 
+#ifdef FAST_IO_OPTIMIZE_SIZE
+				optimize_size;
+#elif defined(FAST_IO_OPTIMIZE_TIME)
+				jiaendu::fp;
+#else
+				twodigits::fp;
+#endif
+			std::size_t ret(algo_decision::output_unsigned(str+1,value));
+			*str=str[1];
+			if constexpr(decimal_point==u8'.')
+			{
+				if constexpr(std::same_as<char_type,char>)
+					str[1]='.';
+				else if constexpr(std::same_as<char_type,wchar_t>)
+					str[1]=L'.';
+				else
+					str[1]=u8'.';
+			}
+			else if constexpr(decimal_point==u8',')
+			{
+				if constexpr(std::same_as<char_type,char>)
+					str[1]=',';
+				else if constexpr(std::same_as<char_type,wchar_t>)
+					str[1]=L',';
+				else
+					str[1]=u8',';
+			}
+			return ret+1;
+		}
+	}
+	else
+	{
+		if constexpr(std::same_as<char_type,char>)
+			*str = value+'0';
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			*str = value+L'0';
+		else
+			*str = value+u8'0';
 		return 1;
 	}
 }

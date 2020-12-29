@@ -8,11 +8,19 @@ namespace fast_io
 //And unfortuntely, this is not what it should be. It is impossible to correctly implement this without compiler magic.
 template<typename To,typename From>
 requires (sizeof(To)==sizeof(From) && std::is_trivially_copyable_v<To> && std::is_trivial_v<From>)
-inline To bit_cast(From const& src) noexcept
+inline
+#if __cpp_lib_bit_cast >= 201806L
+constexpr
+#endif
+ To bit_cast(From const& src) noexcept
 {
+#if __cpp_lib_bit_cast >= 201806L
+	return std::bit_cast<To>(src);
+#else
 	To dst;
 	std::memcpy(std::addressof(dst), std::addressof(src), sizeof(To));
 	return dst;
+#endif
 }
 
 
