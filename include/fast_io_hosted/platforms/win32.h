@@ -426,6 +426,25 @@ inline std::size_t read_impl(void* __restrict handle,void* __restrict begin,std:
 	return number_of_bytes_read;
 }
 
+inline std::size_t pread_impl(void* __restrict handle,void* __restrict begin,std::size_t to_read,std::uintmax_t u64off)
+{
+	std::uint32_t number_of_bytes_read{};
+	if constexpr(4<sizeof(std::size_t))
+		if(static_cast<std::size_t>(UINT32_MAX)<to_read)
+			to_read=static_cast<std::size_t>(UINT32_MAX);
+	win32::overlapped overlap{};
+	overlap.Offset=static_cast<std::uint32_t>(u64off);
+	overlap.OffsetHigh=static_cast<std::uint32_t>(u64off>>32);
+	if(!win32::ReadFile(handle,begin,static_cast<std::uint32_t>(to_read),std::addressof(number_of_bytes_read),std::addressof(overlap)))
+	{
+		auto err(win32::GetLastError());
+		if(err==109)
+			return 0;
+		throw_win32_error(err);
+	}
+	return number_of_bytes_read;
+}
+
 struct file_lock_guard
 {
 	void* handle;
@@ -461,6 +480,74 @@ inline std::uint32_t write_simple_impl(void* __restrict handle,void const* __res
 	if(!win32::WriteFile(handle,cbegin,static_cast<std::uint32_t>(to_write),std::addressof(number_of_bytes_written),nullptr))
 		throw_win32_error();
 	return number_of_bytes_written;
+}
+
+inline io_scatter_status_t scatter_pread_impl(void* __restrict handle,std::span<io_scatter_t const> sp,std::uintmax_t offset)
+{
+	std::size_t total_size{};
+	for(std::size_t i{};i!=sp.size();++i)
+	{
+		std::size_t pos_in_span{pread_impl(handle,const_cast<void*>(sp[i].base),sp[i].len,offset)};
+		total_size+=pos_in_span;
+		offset+=pos_in_span;
+		if(pos_in_span<sp[i].len)[[unlikely]]
+			return {total_size,i,pos_in_span};
+	}
+	return {total_size,sp.size(),0};
+}
+
+inline std::uint32_t pwrite_simple_impl(void* __restrict handle,void const* __restrict cbegin,std::size_t to_write,std::uintmax_t offset)
+{
+	std::uint64_t u64off(static_cast<std::uint64_t>(offset));
+	if constexpr(sizeof(std::uintmax_t)>sizeof(std::uint64_t))
+	{
+		if(static_cast<std::uintmax_t>(std::numeric_limits<std::uint64_t>::max())<offset)
+			throw_win32_error(0x00000057);
+	}
+	std::uint32_t number_of_bytes_written{};
+	win32::overlapped overlap{};
+	overlap.Offset=static_cast<std::uint32_t>(u64off);
+	overlap.OffsetHigh=static_cast<std::uint32_t>(u64off>>32);
+	if(!win32::WriteFile(handle,cbegin,static_cast<std::uint32_t>(to_write),std::addressof(number_of_bytes_written),std::addressof(overlap)))
+		throw_win32_error();
+	return number_of_bytes_written;
+}
+
+inline std::size_t pwrite_impl(void* __restrict handle,void const* __restrict cbegin,std::size_t to_write,std::uintmax_t offset)
+{
+	if constexpr(4<sizeof(std::size_t))
+	{
+		std::size_t written{};
+		for(;to_write;)
+		{
+			std::uint32_t to_write_this_round{UINT32_MAX};
+			if(to_write<static_cast<std::size_t>(UINT32_MAX))
+				to_write_this_round=static_cast<std::uint32_t>(to_write);
+			std::uint32_t number_of_bytes_written{pwrite_simple_impl(handle,cbegin,to_write_this_round,offset)};
+			written+=number_of_bytes_written;
+			offset+=number_of_bytes_written;
+			if(number_of_bytes_written<to_write_this_round)
+				break;
+			to_write-=to_write_this_round;
+		}
+		return written;
+	}
+	else
+		return pwrite_simple_impl(handle,cbegin,to_write,offset);
+}
+
+inline io_scatter_status_t scatter_pwrite_impl(void* __restrict handle,std::span<io_scatter_t const> sp,std::uintmax_t offset)
+{
+	std::size_t total_size{};
+	for(std::size_t i{};i!=sp.size();++i)
+	{
+		std::size_t written{pwrite_impl(handle,sp[i].base,sp[i].len,offset)};
+		total_size+=written;
+		offset+=written;
+		if(sp[i].len<written)[[unlikely]]
+			return {total_size,i,written};
+	}
+	return {total_size,sp.size(),0};
 }
 
 inline std::size_t write_nolock_impl(void* __restrict handle,void const* __restrict cbegin,std::size_t to_write)
@@ -725,6 +812,51 @@ inline void truncate(basic_win32_io_observer<ch_type> handle,std::uintmax_t size
 	seek(handle,size,seekdir::beg);
 	if(!win32::SetEndOfFile(handle.handle))
 		throw_win32_error();
+}
+
+template<std::integral ch_type>
+struct basic_win32_pio_entry
+{
+	using char_type = ch_type;
+	using native_handle_type = int;
+	void* handle=bit_cast<void*>(static_cast<std::int64_t>(-1));
+	std::uintmax_t offset{};
+};
+
+template<std::integral char_type>
+inline constexpr basic_win32_pio_entry<char_type> pio(basic_win32_io_observer<char_type> wiob,std::uintmax_t off) noexcept
+{
+	return {wiob.handle,off};
+}
+
+template<std::integral ch_type>
+inline constexpr basic_win32_pio_entry<ch_type> io_value_handle(basic_win32_pio_entry<ch_type> other) noexcept
+{
+	return other;
+}
+
+template<std::integral char_type,std::contiguous_iterator Iter>
+inline constexpr Iter write(basic_win32_pio_entry<char_type> wpioent,Iter begin,Iter end)
+{
+	return begin+win32::details::pwrite_impl(wpioent.handle,std::to_address(begin),(end-begin)*sizeof(*begin),wpioent.offset)/sizeof(*begin);
+}
+
+template<std::integral ch_type>
+inline io_scatter_status_t scatter_write(basic_win32_pio_entry<ch_type> wpioent,std::span<io_scatter_t const> sp)
+{
+	return win32::details::scatter_pwrite_impl(wpioent.handle,sp,wpioent.offset);
+}
+
+template<std::integral char_type,std::contiguous_iterator Iter>
+inline constexpr Iter read(basic_win32_pio_entry<char_type> wpioent,Iter begin,Iter end)
+{
+	return begin+win32::details::pread_impl(wpioent.handle,std::to_address(begin),(end-begin)*sizeof(*begin),wpioent.offset)/sizeof(*begin);
+}
+
+template<std::integral ch_type>
+inline io_scatter_status_t scatter_read(basic_win32_pio_entry<ch_type> wpioent,std::span<io_scatter_t const> sp)
+{
+	return win32::details::scatter_pread_impl(wpioent.handle,sp,wpioent.offset);
 }
 
 namespace win32::details
