@@ -1363,4 +1363,153 @@ inline io_scatter_status_t scatter_write(basic_posix_pipe<ch_type>& h,std::span<
 
 #endif
 
+
+template<std::integral ch_type>
+struct basic_posix_pio_entry
+{
+	using char_type = ch_type;
+	using native_handle_type = int;
+	int fd{-1};
+	std::uintmax_t offset{};
+};
+
+template<std::integral char_type>
+inline constexpr basic_posix_pio_entry<char_type> pio(basic_posix_io_observer<char_type> piob,std::uintmax_t off) noexcept
+{
+	return {piob.fd,off};
+}
+
+template<std::integral ch_type>
+inline constexpr basic_posix_pio_entry<ch_type> io_value_handle(basic_posix_pio_entry<ch_type> other) noexcept
+{
+	return other;
+}
+
+#if _XOPEN_SOURCE >= 500 ||  _POSIX_C_SOURCE >= 200809L
+
+namespace details
+{
+
+inline std::size_t posix_pread_impl(int fd,void* address,std::size_t bytes_to_read,std::uintmax_t offset)
+{
+	if constexpr(sizeof(std::uintmax_t)>sizeof(off_t))
+	{
+		if(static_cast<std::uintmax_t>(std::numeric_limits<off_t>::max())<offset)
+			throw_posix_error(EINVAL);
+	}
+	auto read_bytes(
+#if defined(__linux__)
+		system_call<__NR_pread64,std::ptrdiff_t>
+#else
+		::pread
+#endif
+	(fd,address,bytes_to_read,static_cast<off_t>(offset)));
+	system_call_throw_error(read_bytes);
+	return read_bytes;
+}
+
+inline std::size_t posix_pwrite_impl(int fd,void const* address,std::size_t bytes_to_write,std::uintmax_t offset)
+{
+	if constexpr(sizeof(std::uintmax_t)>sizeof(off_t))
+	{
+		if(static_cast<std::uintmax_t>(std::numeric_limits<off_t>::max())<offset)
+			throw_posix_error(EINVAL);
+	}
+	auto written_bytes(
+#if defined(__linux__)
+		system_call<__NR_pwrite64,std::ptrdiff_t>
+#else
+		::pwrite
+#endif
+	(fd,address,bytes_to_write,static_cast<off_t>(offset)));
+	system_call_throw_error(written_bytes);
+	return written_bytes;
+}
+
+inline std::size_t posix_scatter_pread_size_impl(int fd,std::span<io_scatter_t const> sp,std::uintmax_t offset)
+{
+	if constexpr(sizeof(std::uintmax_t)>sizeof(off_t))
+	{
+		if(static_cast<std::uintmax_t>(std::numeric_limits<off_t>::max())<offset)
+			throw_posix_error(EINVAL);
+	}
+#if defined(__linux__)
+//	static_assert(sizeof(unsigned long)==sizeof(std::size_t));
+	auto val{system_call<__NR_preadv,std::ptrdiff_t>(static_cast<unsigned int>(fd),sp.data(),sp.size(),static_cast<off_t>(offset))};
+	system_call_throw_error(val);
+	return val;
+#else
+	std::size_t sz{sp.size()};
+	if(static_cast<std::size_t>(std::numeric_limits<int>::max())<sz)
+		sz=static_cast<std::size_t>(std::numeric_limits<int>::max());
+	auto ptr{reinterpret_cast<iovec_may_alias const*>(sp.data())};
+	std::ptrdiff_t val{::preadv(fd,ptr,static_cast<int>(sz),static_cast<off_t>(offset))};
+	if(val<0)
+		throw_posix_error();
+	return val;
+#endif
+}
+
+inline std::size_t posix_scatter_pwrite_size_impl(int fd,std::span<io_scatter_t const> sp,std::uintmax_t offset)
+{
+	if constexpr(sizeof(std::uintmax_t)>sizeof(off_t))
+	{
+		if(static_cast<std::uintmax_t>(std::numeric_limits<off_t>::max())<offset)
+			throw_posix_error(EINVAL);
+	}
+#if defined(__linux__)
+//	static_assert(sizeof(unsigned long)==sizeof(std::size_t));
+	auto val{system_call<__NR_pwritev,std::ptrdiff_t>(static_cast<unsigned int>(fd),sp.data(),sp.size(),static_cast<off_t>(offset))};
+	system_call_throw_error(val);
+	return val;
+#else
+	std::size_t sz{sp.size()};
+	if(static_cast<std::size_t>(std::numeric_limits<int>::max())<sz)
+		sz=static_cast<std::size_t>(std::numeric_limits<int>::max());
+	auto ptr{reinterpret_cast<iovec_may_alias const*>(sp.data())};
+	std::ptrdiff_t val{::pwritev(fd,ptr,static_cast<int>(sz),static_cast<off_t>(offset))};
+	if(val<0)
+		throw_posix_error();
+	return val;
+#endif
+}
+
+inline io_scatter_status_t posix_scatter_pwrite_impl(int fd,std::span<io_scatter_t const> sp,std::uintmax_t offset)
+{
+	return scatter_size_to_status(posix_scatter_pwrite_size_impl(fd,sp,offset),sp);
+}
+
+[[nodiscard]] inline io_scatter_status_t posix_scatter_pread_impl(int fd,std::span<io_scatter_t const> sp,std::uintmax_t offset)
+{
+	return scatter_size_to_status(posix_scatter_pread_size_impl(fd,sp,offset),sp);
+}
+
+}
+
+template<std::integral char_type,std::contiguous_iterator Iter>
+inline constexpr Iter read(basic_posix_pio_entry<char_type> ppioent,Iter begin,Iter end)
+{
+	return begin+details::posix_pread_impl(ppioent.fd,std::to_address(begin),(end-begin)*sizeof(*begin),ppioent.offset)/sizeof(*begin);
+}
+
+template<std::integral char_type,std::contiguous_iterator Iter>
+inline constexpr Iter write(basic_posix_pio_entry<char_type> ppioent,Iter begin,Iter end)
+{
+	return begin+details::posix_pwrite_impl(ppioent.fd,std::to_address(begin),(end-begin)*sizeof(*begin),ppioent.offset)/sizeof(*begin);
+}
+
+template<std::integral ch_type>
+[[nodiscard]] inline io_scatter_status_t scatter_read(basic_posix_pio_entry<ch_type> ppioent,std::span<io_scatter_t const> sp)
+{
+	return details::posix_scatter_pread_impl(ppioent.fd,sp,ppioent.offset);
+}
+
+template<std::integral ch_type>
+inline io_scatter_status_t scatter_write(basic_posix_pio_entry<ch_type> ppioent,std::span<io_scatter_t const> sp)
+{
+	return details::posix_scatter_pwrite_impl(ppioent.fd,sp,ppioent.offset);
+}
+
+#endif
+
 }

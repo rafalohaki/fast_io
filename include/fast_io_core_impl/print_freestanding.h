@@ -547,14 +547,15 @@ inline constexpr void print_freestanding_decay_normal(output out,Args ...args)
 		{
 			if constexpr(pci==print_control_impl::normal)
 			{
-				((print_fallback<false,pci>(out,args)),...);
+/*				((print_fallback<false,pci>(out,args)),...);
 				if constexpr(line)
 				{
 					if constexpr(details::exec_charset_is_ebcdic<char_type>())
 						put(out,0x25);
 					else
 						put(out,u8'\n');
-				}
+				}*/
+				print_fallback<line>(out,args...);
 			}
 			else
 				((print_fallback<line,pci>(out,args)),...);
