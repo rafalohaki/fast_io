@@ -168,9 +168,11 @@ using filebuf_file=basic_filebuf_file<char>;
 #ifndef __MSDOS__
 using wfilebuf_file=basic_filebuf_file<wchar_t>;
 #endif
+#if !defined(_MSVC_STL_UPDATE) || defined(_SILENCE_CXX20_CODECVT_FACETS_DEPRECATION_WARNING)
 using u8filebuf_file=basic_filebuf_file<char8_t>;
 using u16filebuf_file=basic_filebuf_file<char16_t>;
 using u32filebuf_file=basic_filebuf_file<char32_t>;
+#endif
 static_assert(std::is_standard_layout_v<filebuf_file>);
 static_assert(std::is_standard_layout_v<u32filebuf_file>);
 }
