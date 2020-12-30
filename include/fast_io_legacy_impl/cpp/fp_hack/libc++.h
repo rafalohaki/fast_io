@@ -47,9 +47,8 @@ private:
   bool __always_noconv_;
 */
 
-
 template<typename char_type,typename traits_type>
-inline std::FILE* fp_hack(std::basic_filebuf<char_type,traits_type>* fbuf) noexcept
+inline std::FILE* fp_hack_impl(std::basic_filebuf<char_type,traits_type>* fbuf) noexcept
 {
 	std::FILE* fp{};
 	// we can only do this or ubsanitizer will complain. Do not do down_cast
@@ -57,6 +56,17 @@ inline std::FILE* fp_hack(std::basic_filebuf<char_type,traits_type>* fbuf) noexc
 	reinterpret_cast<std::byte*>(fbuf)+sizeof(std::basic_streambuf<char_type, traits_type>)+
 	4*sizeof(uintptr_t)+8+2*sizeof(std::size_t),sizeof(fp));
 	return fp;
+}
+
+template<typename char_type,typename traits_type>
+inline std::FILE* fp_hack(std::basic_filebuf<char_type,traits_type>* fbuf) noexcept
+{
+	if(fbuf==nullptr)
+	{
+		errno=EBADF;
+		return nullptr;
+	}
+	return fp_hack_impl(fbuf);
 }
 
 
@@ -71,16 +81,19 @@ inline std::FILE* fp_hack(T* stdbuf) noexcept
 	try
 	{
 #endif
-		cstring_view stdin_type{typeid(std::__stdinbuf<char_type>).name()};
-		cstring_view my_type{typeid(*stdbuf).name()};
-		if(my_type==stdin_type)
-			return stdinbuf_stdoutbuf_fp_hack(stdbuf);
-		cstring_view stdout_type{typeid(std::__stdoutbuf<char_type>).name()};
-		if(my_type==stdout_type)
-			return stdinbuf_stdoutbuf_fp_hack(stdbuf);
-		auto fbf{dynamic_cast<std::basic_filebuf<char_type,traits_type>*>(stdbuf)};
-		if(fbf)
-			return fp_hack(stdbuf);
+		if(stdbuf)[[likely]]
+		{
+			cstring_view stdin_type{typeid(std::__stdinbuf<char_type>).name()};
+			cstring_view my_type{typeid(*stdbuf).name()};
+			if(my_type==stdin_type)
+				return stdinbuf_stdoutbuf_fp_hack(stdbuf);
+			cstring_view stdout_type{typeid(std::__stdoutbuf<char_type>).name()};
+			if(my_type==stdout_type)
+				return stdinbuf_stdoutbuf_fp_hack(stdbuf);
+			auto fbf{dynamic_cast<std::basic_filebuf<char_type,traits_type>*>(stdbuf)};
+			if(fbf)
+				return fp_hack_impl(stdbuf);
+		}
 #ifdef __cpp_exceptions
 	}
 	catch(...){}

@@ -16,7 +16,7 @@ https://github.com/microsoft/STL/blob/master/stl/inc/fstream#L775
 */
 
 template<typename char_type,typename traits_type>
-inline std::FILE* fp_hack(std::basic_filebuf<char_type,traits_type>* fbuf) noexcept
+inline std::FILE* fp_hack_impl(std::basic_filebuf<char_type,traits_type>* fbuf) noexcept
 {
 	std::FILE* fp{};
 	// we can only do this or ubsanitizer will complain. Do not do down_cast
@@ -24,15 +24,29 @@ inline std::FILE* fp_hack(std::basic_filebuf<char_type,traits_type>* fbuf) noexc
 	return fp;
 }
 
+template<typename char_type,typename traits_type>
+inline std::FILE* fp_hack(std::basic_filebuf<char_type,traits_type>* fbuf) noexcept
+{
+	if(fbuf==nullptr)
+	{
+		errno=EBADF;
+		return nullptr;
+	}
+	return fp_hack_impl(fbuf);
+}
+
 template<typename T>
 requires (std::same_as<T,std::basic_streambuf<typename T::char_type,typename T::traits_type>>)
 inline std::FILE* fp_hack(T* cio) noexcept
 {
 #ifdef __cpp_rtti
+	if(cio)[[likely]]
+	{
 	using filebuf_type = std::basic_filebuf<typename T::char_type,typename T::traits_type>;
 	auto fptr{dynamic_cast<filebuf_type*>(cio)};
 	if(fptr)
-		return fp_hack(fptr);
+		return fp_hack_impl(fptr);
+	}
 #endif
 	errno=EBADF;
 	return nullptr;
