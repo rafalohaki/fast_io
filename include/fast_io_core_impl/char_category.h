@@ -145,8 +145,10 @@ ASCII: vertical tab (0x0b, '\v'), EBCDIC:11
 EBCDIC specific: NL:21
 */
 
+namespace details
+{
 template<std::integral char_type>
-inline constexpr bool is_c_space(char_type ch) noexcept
+inline constexpr bool is_c_space_impl(char_type ch) noexcept
 {
 	if constexpr(fast_io::details::exec_charset_is_ebcdic<char_type>())
 	{
@@ -172,6 +174,44 @@ inline constexpr bool is_c_space(char_type ch) noexcept
 			return (e==0x20)|(static_cast<unsigned_t>(e-0x9)<static_cast<unsigned_t>(0x4));
 		}
 	}
+}
+#if 0
+template<std::integral char_type>
+inline constexpr std::array<bool,256> is_c_space_tb_impl() noexcept
+{
+	std::array<bool,256> tb;
+	for(std::size_t i{};i!=tb.size();++i)
+		tb[i]=is_c_space_impl(static_cast<char_type>(i));
+	return tb;
+}
+
+template<std::integral char_type>
+requires (sizeof(char_type)==1)
+inline constexpr std::array<bool,256> is_c_space_tb{is_c_space_tb_impl<char_type>()};
+#endif
+}
+
+template<std::integral char_type>
+inline constexpr bool is_c_space(char_type ch) noexcept
+{
+#if 0
+	if constexpr(sizeof(char_type)==1)
+	{
+		if constexpr(fast_io::details::exec_charset_is_ebcdic<char_type>())
+			return details::is_c_space_tb<char_type>[static_cast<std::make_unsigned_t<char_type>>(ch)];
+		else
+			return details::is_c_space_tb<char8_t>[static_cast<std::make_unsigned_t<char_type>>(ch)];
+	}
+	else
+	{
+#endif
+	if constexpr(fast_io::details::exec_charset_is_ebcdic<char_type>())
+		return details::is_c_space_impl(ch);
+	else
+		return details::is_c_space_impl(static_cast<char32_t>(static_cast<std::make_unsigned_t<char_type>>(ch)));
+#if 0
+	}
+#endif
 }
 
 }
