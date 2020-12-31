@@ -19,7 +19,7 @@ inline constexpr bool compile_time_compare(char_type1 const (&a)[n1],char_type2 
 
 extern "C" void
 #ifdef _WIN32
-__stdcall __declspec(dllexport)
+__declspec(dllexport) __stdcall
 #endif
 export_locale_data(lc_locale* lc_ptr) noexcept
 {

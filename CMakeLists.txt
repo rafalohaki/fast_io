@@ -4,7 +4,7 @@ project(fast_io)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	# using Visual Studio C++
-add_definitions(/experimental:concepts)
+add_definitions(/experimental:concepts /MD /source-charset:utf8)
 #if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s")
