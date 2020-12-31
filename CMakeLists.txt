@@ -1137,6 +1137,7 @@ install(TARGETS br_FR.UTF-8 LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
 install(TARGETS br_FR_euro.UTF-8 LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
 install(TARGETS bs_BA.UTF-8 LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
 install(TARGETS byn_ER.UTF-8 LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
+install(TARGETS C.UTF-8 LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
 install(TARGETS ca_AD.UTF-8 LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
 install(TARGETS ca_ES.UTF-8 LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
 install(TARGETS ca_ES_euro.UTF-8 LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
@@ -2823,6 +2824,7 @@ install(TARGETS zh_HK.GB18030 LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
 install(TARGETS zh_SG.GB18030 LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
 install(TARGETS zh_TW.GB18030 LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
 install(TARGETS zu_ZA.GB18030 LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
+
 
 endif()
 
