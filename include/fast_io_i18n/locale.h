@@ -228,6 +228,19 @@ inline void* load_l10n_with_real_name_impl(lc_locale& loc,std::basic_string_view
 	return details::load_dll(arrptr.get(),loc);
 }
 
+template<std::integral char_type>
+inline void* load_l10n_with_full_name_impl(lc_locale& loc,std::basic_string_view<char_type> locale_fullname)
+{
+	constexpr auto prefix(details::l10n_path_prefix_dll_array<char_type>());
+	constexpr auto prefix_no_0_size{prefix.size()-1};
+	constexpr auto dll_postfix{exec_dll_array<char_type>()};
+	std::unique_ptr<char_type[]> arrptr(new char_type[prefix_no_0_size+locale_fullname.size()+dll_postfix.size()]);
+	memcpy(arrptr.get(),prefix.data(),prefix_no_0_size*sizeof(char_type));
+	memcpy(arrptr.get()+prefix_no_0_size,locale_fullname.data(),locale_fullname.size()*sizeof(char_type));
+	memcpy(arrptr.get()+prefix_no_0_size+locale_fullname.size(),dll_postfix.data(),dll_postfix.size()*sizeof(char_type));
+	return details::load_dll(arrptr.get(),loc);
+}
+
 #ifdef _WIN32
 
 inline std::wstring_view get_win32_lang_env(std::array<wchar_t,256>& buffer)
@@ -439,7 +452,30 @@ inline void* deal_with_locale_name_init_encoding(lc_locale& loc,std::string_view
 		return load_l10n_with_real_name_impl(loc,locale_name,encoding);
 }
 
+inline void* deal_with_locale_fullname(lc_locale& loc,std::string_view fullname)
+{
+	if(fullname.empty())
+		return deal_with_local_locale_name_local_encoding(loc);
+	else
+	{
+		auto pos{fullname.find(u8'.')};
+		if(pos==0)
+			return deal_with_local_locale_name_init_encoding(loc,fullname.substr(1));
+		else if(pos==std::string_view::npos)
+			return load_l10n_with_real_name_impl(loc,fullname);
+		else
+			return load_l10n_with_full_name_impl(loc,fullname);
+	}
 }
+
+}
+
+struct l10n_fullname_t
+{
+explicit constexpr l10n_fullname_t() noexcept = default;
+};
+
+inline constexpr l10n_fullname_t l10n_fullname{};
 
 class l10n
 {
@@ -460,6 +496,10 @@ public:
 			dll_handle=details::deal_with_local_locale_name_init_encoding(loc,encoding);
 		else
 			dll_handle=details::deal_with_locale_name_init_encoding(loc,locale_name,encoding);
+	}
+	explicit l10n(l10n_fullname_t,std::string_view fullname)
+	{
+		dll_handle=details::deal_with_locale_fullname(loc,fullname);
 	}
 	constexpr l10n(l10n const&)=delete;
 	constexpr l10n(l10n&& other) noexcept : loc(std::move(other.loc)),dll_handle(other.dll_handle)
