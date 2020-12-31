@@ -4,16 +4,10 @@ project(fast_io)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	# using Visual Studio C++
-add_definitions(/experimental:concepts /MD /source-charset:UTF-8)
-#if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s -finput-charset=UTF-8")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s -finput-charset=UTF-8")
-add_definitions(-ffast-math -Wall -Wextra)
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s -finput-charset=UTF-8")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s -finput-charset=UTF-8")
-add_definitions(-Xclang -fconcepts-ts -ffast-math)
+add_compile_options(/MD /source-charset:UTF-8)
+else()
+add_compile_options(-finput-charset=UTF-8)
+add_link_options(-s)
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
@@ -28,6 +22,10 @@ set(CMAKE_STATIC_LIBRARY_PREFIX "")
 INSTALL (DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION include)
 INSTALL (DIRECTORY ${CMAKE_SOURCE_DIR}/man/ DESTINATION man/man3)
 
+
+option(BUILD_I18N_DLLS "BUILD_I18N_DLLS" ON)
+
+if(BUILD_I18N_DLLS)
 
 add_library(aa_DJ.UTF-8 SHARED src/i18n_data/locale/aa_DJ.cc)
 add_library(aa_ER.UTF-8 SHARED src/i18n_data/locale/aa_ER.cc)
@@ -1426,7 +1424,7 @@ install(TARGETS zh_TW.UTF-8 LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
 install(TARGETS zu_ZA.UTF-8 LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
 
 
-
+if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 
 
 add_library(aa_DJ.GB18030 SHARED src/i18n_data/locale/aa_DJ.cc)
@@ -2144,7 +2142,7 @@ target_compile_options(zh_HK.GB18030 PRIVATE /execution-charset:GB18030)
 target_compile_options(zh_SG.GB18030 PRIVATE /execution-charset:GB18030)
 target_compile_options(zh_TW.GB18030 PRIVATE /execution-charset:GB18030)
 target_compile_options(zu_ZA.GB18030 PRIVATE /execution-charset:GB18030)
-elseif(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+else()
 target_compile_options(aa_DJ.GB18030 PRIVATE -fexec-charset=GB18030)
 target_compile_options(aa_ER.GB18030 PRIVATE -fexec-charset=GB18030)
 target_compile_options(aa_ER_saaho.GB18030 PRIVATE -fexec-charset=GB18030)
@@ -2825,3 +2823,7 @@ install(TARGETS zh_HK.GB18030 LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
 install(TARGETS zh_SG.GB18030 LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
 install(TARGETS zh_TW.GB18030 LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
 install(TARGETS zu_ZA.GB18030 LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
+
+endif()
+
+endif()
