@@ -519,6 +519,7 @@ public:
 			dlclose(dll_handle);
 #endif
 	}
+	l10n& operator=(l10n const&)=delete;
 	l10n& operator=(l10n&& other) noexcept
 	{
 		if(std::addressof(other)==this)
