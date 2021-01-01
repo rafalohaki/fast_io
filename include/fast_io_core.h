@@ -31,7 +31,6 @@
 #include"fast_io_core_impl/char_category.h"
 //fast_io core
 #include"fast_io_core_impl/utils.h"
-#include"fast_io_core_impl/iso6709.h"
 
 #include"fast_io_core_impl/overflow.h"
 #include"fast_io_core_impl/terminate.h"
@@ -94,3 +93,4 @@
 #endif
 
 #include"fast_io_core_impl/posix_error_scatter.h"
+#include"fast_io_core_impl/iso/isos.h"
