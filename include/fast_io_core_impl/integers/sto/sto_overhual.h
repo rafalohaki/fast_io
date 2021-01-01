@@ -42,7 +42,7 @@ inline constexpr bool char_digit_to_literal(my_make_unsigned_t<char_type>& ch) n
 
 			if constexpr(base<=19)
 			{
-				constexpr char_type mns{base-10};
+				constexpr unsigned_char_type mns{base-10};
 				char_type ch2(ch);
 				ch2-=0xC1;
 				char_type ch3(ch);
@@ -58,7 +58,7 @@ inline constexpr bool char_digit_to_literal(my_make_unsigned_t<char_type>& ch) n
 			}
 			else if constexpr(base<=28)
 			{
-				constexpr char_type mns{base-19};
+				constexpr unsigned_char_type mns{base-19};
 				char_type ch2(ch);
 				ch2-=0xC1;
 				char_type ch3(ch);
@@ -82,7 +82,7 @@ inline constexpr bool char_digit_to_literal(my_make_unsigned_t<char_type>& ch) n
 			}
 			else
 			{
-				constexpr char_type mns{base-27};
+				constexpr unsigned_char_type mns{base-27};
 				char_type ch2(ch);
 				ch2-=0xC1;
 				char_type ch3(ch);
@@ -115,10 +115,10 @@ inline constexpr bool char_digit_to_literal(my_make_unsigned_t<char_type>& ch) n
 		}
 		else
 		{
-			constexpr char_type mns{base-10};
-			char_type ch2(ch);
+			constexpr unsigned_char_type mns{base-10};
+			unsigned_char_type ch2(ch);
 			ch2-=u8'A';
-			char_type ch3(ch);
+			unsigned_char_type ch3(ch);
 			ch3-=u8'a';
 			ch-=u8'0';
 			if(ch2<mns)
