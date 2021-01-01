@@ -70,7 +70,8 @@ inline constexpr Iter read(istring_view<char_type>& ob,Iter cbegin,Iter cend) no
 {
 	if constexpr(std::same_as<char_type,std::iter_value_t<Iter>>)
 	{
-		std::size_t const min_size(std::min(cend-cbegin,ob.string_view.size()-ob.size()));
+		std::size_t const min_size(std::min(static_cast<std::size_t>(cend-cbegin),
+			static_cast<std::size_t>(ob.string_view.size()-ob.size())));
 		details::non_overlapped_copy_n(ob.current,min_size,cbegin);
 		ob.current+=min_size;
 		return cbegin+min_size;

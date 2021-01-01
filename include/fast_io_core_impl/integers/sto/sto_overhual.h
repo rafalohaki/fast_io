@@ -337,7 +337,7 @@ inline constexpr Iter scan_skip_define(scan_skip_type_t<parameter<T&>>, Iter beg
 
 namespace details::ctx_scan_integer
 {
-template<char8_t base, bool contiguous_only, std::random_access_iterator Iter, details::my_integral T>
+template<char8_t base, bool contiguous_only, std::random_access_iterator Iter,typename P, details::my_integral T>
 struct voldmort
 {
 	Iter iter;
@@ -346,7 +346,7 @@ struct voldmort
 	[[no_unique_address]] std::conditional_t<contiguous_only, details::empty,std::size_t> size{};
 	[[no_unique_address]] std::conditional_t<!contiguous_only&&details::my_signed_integral<T>, bool, empty> minus{};
 
-	inline constexpr bool test_eof(parameter<T&> t) noexcept requires(!contiguous_only)
+	inline constexpr bool test_eof(P t) noexcept requires(!contiguous_only)
 	{
 		constexpr bool larger_than_native = sizeof(T) > sizeof(std::size_t);
 		constexpr std::size_t npos(-1);
@@ -376,7 +376,7 @@ struct voldmort
 			t.reference=value;
 		return true;
 	}
-	inline constexpr void operator()(Iter begin, Iter end,parameter<T&> t) noexcept requires(!contiguous_only)
+	inline constexpr void operator()(Iter begin, Iter end,P t) noexcept requires(!contiguous_only)
 	{
 		constexpr bool larger_than_native = sizeof(T) > sizeof(std::size_t);
 		constexpr std::size_t npos(-1);
@@ -656,7 +656,20 @@ struct voldmort
 template<bool contiguous_only, std::random_access_iterator Iter, details::my_integral T>
 inline constexpr auto scan_context_define(scan_context_t<contiguous_only>, Iter begin, Iter end, parameter<T&> t) noexcept
 {
-	return details::ctx_scan_integer::voldmort<10, contiguous_only, Iter, T>(begin, end, t.reference);
+	return details::ctx_scan_integer::voldmort<10, contiguous_only, Iter, parameter<T&>, T>(begin, end, t.reference);
+}
+
+
+template<std::size_t base,bool cs, details::my_integral T, std::random_access_iterator Iter>
+inline constexpr Iter scan_skip_define(scan_skip_type_t<manipulators::base_t<base,cs,T&>>, Iter beg, Iter ed) noexcept
+{
+	return scan_skip_space(beg, ed);
+}
+
+template<bool contiguous_only, std::random_access_iterator Iter,std::size_t base,bool cs,details::my_integral T>
+inline constexpr auto scan_context_define(scan_context_t<contiguous_only>, Iter begin, Iter end, manipulators::base_t<base,cs,T&> t) noexcept
+{
+	return details::ctx_scan_integer::voldmort<base, contiguous_only, Iter, manipulators::base_t<base,false,T&>, T>(begin, end, t.reference);
 }
 
 }

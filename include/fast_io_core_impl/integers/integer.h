@@ -143,8 +143,8 @@ constexpr caiter print_reserve_define(io_reserve_type_t<char_type,int_type>,cait
 		return details::process_integer_output<10,false>(iter,i);
 }
 
-template<std::integral char_type,char8_t base,bool uppercase,details::my_integral int_type>
-constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manip::base_t<base,uppercase,int_type>>) noexcept
+template<std::integral char_type,std::size_t base,bool uppercase,details::my_integral int_type>
+constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manipulators::base_t<base,uppercase,int_type>>) noexcept
 {
 	if constexpr(details::my_unsigned_integral<int_type>)
 		return details::cal_max_int_size<int_type,base>();
@@ -152,8 +152,8 @@ constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manip::base
 		return details::cal_max_int_size<details::my_make_unsigned_t<int_type>,base>()+1;
 }
 
-template<std::integral char_type,std::random_access_iterator caiter,char8_t base,bool uppercase,details::my_integral int_type,typename P>
-constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manip::base_t<base,uppercase,int_type>>,caiter iter,P ref) noexcept
+template<std::integral char_type,std::random_access_iterator caiter,std::size_t base,bool uppercase,details::my_integral int_type>
+constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manipulators::base_t<base,uppercase,int_type>>,caiter iter,manipulators::base_t<base,uppercase,int_type> ref) noexcept
 {
 	return details::process_integer_output<base,uppercase>(iter,ref.reference);
 }
@@ -172,13 +172,13 @@ constexpr caiter print_reserve_define(io_reserve_type_t<char_type,std::byte>,cai
 }
 
 template<std::integral char_type,char8_t base,bool uppercase>
-constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manip::base_t<base,uppercase,std::byte>>) noexcept
+constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manipulators::base_t<base,uppercase,std::byte>>) noexcept
 {
 	return details::cal_max_int_size<std::uint8_t,base>();
 }
 
 template<std::integral char_type,std::random_access_iterator caiter,char8_t base,bool uppercase,typename P>
-constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manip::base_t<base,uppercase,std::byte>>,caiter iter,P ref) noexcept
+constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manipulators::base_t<base,uppercase,std::byte>>,caiter iter,P ref) noexcept
 {
 	return details::process_integer_output<base,uppercase>(iter,std::to_integer<std::uint8_t>(ref.reference));
 }
