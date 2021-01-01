@@ -235,11 +235,13 @@ struct voldmort
 			iter=find_lf(begin,end);
 		}
 		t.reference.assign(begin,iter);
-		not_empty_str=true;
 		code={};
 		if constexpr(!contiguous_only)
+		{
+			not_empty_str=true;
 			if(iter==end)
 				code=std::errc::resource_unavailable_try_again;
+		}
 	}
 };
 
