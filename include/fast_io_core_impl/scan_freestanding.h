@@ -303,7 +303,8 @@ requires (status_input_stream<input>||input_stream<input>)
 	else if constexpr(mutex_stream<input>)
 	{
 		details::lock_guard lg{in};
-		return scan_freestanding_decay(in.unlocked_handle(),args...);
+		decltype(auto) unlocked_in{in.unlocked_handle()};
+		return scan_freestanding_decay(io_ref(unlocked_in),args...);
 	}
 	else if constexpr(buffer_input_stream<input>)
 		return (details::scan_single_impl(in,args)&&...);
