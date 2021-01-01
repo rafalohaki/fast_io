@@ -481,7 +481,7 @@ struct voldmort
 						++iter;
 				}
 			}
-			std::make_unsigned_t<T> temp{};
+			my_make_unsigned_t<T> temp{};
 			std::size_t size{};
 			if constexpr(larger_than_native)
 			{
@@ -520,7 +520,7 @@ struct voldmort
 					temp = static_cast<T>(value_native);
 				}
 			} else {
-				if(details::from_chars<base,larger_than_native>(iter,end,temp))
+				if(details::from_chars<base>(iter,end,temp,size))
 				{
 					code=std::errc::result_out_of_range;
 					return;
@@ -539,7 +539,8 @@ struct voldmort
 			// check minus overflow
 			if constexpr(!my_unsigned_integral<T>)
 			{
-				if(value>static_cast<my_make_unsigned_t<T>>(-1)+minus)
+				constexpr my_make_unsigned_t<T> int_type_max(static_cast<my_make_unsigned_t<T>>(-1)>>1);
+				if(temp>int_type_max+minus)
 				{
 					code=std::errc::result_out_of_range;
 					return;
@@ -548,7 +549,7 @@ struct voldmort
 			if constexpr(my_signed_integral<T>)
 			{
 				if(minus)
-					t=0-temp;
+					t=static_cast<T>(0)-static_cast<T>(temp);
 				else
 					t=temp;
 			}
@@ -633,7 +634,7 @@ struct voldmort
 				return;
 			}
 			// check minus overflow
-			if constexpr(!std::unsigned_integral<T>)
+			if constexpr(!my_unsigned_integral<T>)
 			{
 				if(value>static_cast<my_make_unsigned_t<T>>(std::numeric_limits<T>::max())+minus)
 				{

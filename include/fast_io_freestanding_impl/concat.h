@@ -326,7 +326,9 @@ void in_place_to(T& t,Args&& ...args)
 	ostring_ref ref{str};
 	print_freestanding(ref,std::forward<Args>(args)...);
 	istring_view is(str);
-	scan(is,t);		//Todo. no_decoration
+	if(!scan_freestanding(is,t))
+		throw_scan_error(std::errc::resource_unavailable_try_again);
+	//No Decoration?
 }
 
 template<typename... Args>
