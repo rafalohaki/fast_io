@@ -50,6 +50,7 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - BSD platforms (Including FreeBSD, NetBSD, OpenBSD and Mac)
 - Microsoft DOS
 - Barebone (No any operating system.)
+- Cygwin/MSYS2
 - Todo: Webassembly
 
 ## Supported libc FILE* hacks platforms
