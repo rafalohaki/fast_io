@@ -94,7 +94,11 @@ struct unget_temp_buffer
 		}
 	}
 #else
-	constexpr ~unget_temp_buffer() requires requires()
+
+#if __cpp_constexpr_dynamic_alloc >= 201907L
+	constexpr
+#endif
+	~unget_temp_buffer() requires requires()
 	{
 		try_unget(input,buffer);
 	}
@@ -121,7 +125,10 @@ struct unget_temp_buffer
 			try_unget(input,buffer);
 #endif
 	}
-	constexpr ~unget_temp_buffer() = default;
+#if __cpp_constexpr_dynamic_alloc >= 201907L
+	constexpr
+#endif
+	~unget_temp_buffer() = default;
 #endif
 };
 
@@ -239,7 +246,7 @@ requires (scanable<input,T>||context_scanable<typename input::char_type,T,false>
 			{
 				auto state_machine{scan_context_define(scan_context<context_scanable<char_type,T,true>>,curr,end,arg)};
 				ibuffer_set_curr(in, state_machine.iter);
-				if(state_machine!=std::errc{})
+				if(state_machine.code!=std::errc{})
 				{
 					if(state_machine.code==std::errc::resource_unavailable_try_again)
 						return false;
