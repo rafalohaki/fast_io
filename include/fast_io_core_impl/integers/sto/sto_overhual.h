@@ -461,6 +461,7 @@ struct voldmort
 		iter = begin;
 		if constexpr (contiguous_only)
 		{
+			
 			bool minus{};
 			using char_type = std::iter_value_t<Iter>;
 			/*Dealing with EBCDIC exec-charset */
@@ -480,7 +481,8 @@ struct voldmort
 						++iter;
 				}
 			}
-			std::make_unsigned<T> temp{};
+			std::make_unsigned_t<T> temp{};
+			std::size_t size{};
 			if constexpr(larger_than_native)
 			{
 				std::conditional_t<sizeof(std::size_t)<=sizeof(std::uint32_t), std::uint32_t, std::uint64_t> value_native{};
@@ -518,7 +520,7 @@ struct voldmort
 					temp = static_cast<T>(value_native);
 				}
 			} else {
-				if(details::from_chars<base>(iter,end,temp))
+				if(details::from_chars<base,larger_than_native>(iter,end,temp))
 				{
 					code=std::errc::result_out_of_range;
 					return;
