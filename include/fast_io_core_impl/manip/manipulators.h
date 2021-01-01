@@ -12,7 +12,7 @@ struct base_t
 
 template<std::size_t bs,::fast_io::details::my_integral T>
 requires (2<=bs&&bs<=36)
-inline constexpr base_t<bs,false,T&> base_get(T& reference) noexcept
+inline constexpr std::conditional_t<bs==10,parameter<T&>,base_t<bs,false,T&>> base_get(T& reference) noexcept
 {
 	return {reference};
 }
@@ -25,14 +25,14 @@ inline constexpr base_t<16,false,T&> hex_get(T& reference) noexcept
 
 template<std::size_t bs,::fast_io::details::my_integral T>
 requires (2<=bs&&bs<=36)
-inline constexpr base_t<bs,false,T> base(T reference) noexcept
+inline constexpr std::conditional_t<bs==10,parameter<T>,base_t<bs,false,T>> base(T reference) noexcept
 {
 	return {reference};
 }
 
 template<std::size_t bs,::fast_io::details::my_integral T>
 requires (2<=bs&&bs<=36)
-inline constexpr base_t<bs,true,T> base_upper(T reference) noexcept
+inline constexpr std::conditional_t<bs==10,parameter<T>,base_t<bs,(10<bs),T>> base_upper(T reference) noexcept
 {
 	return {reference};
 }

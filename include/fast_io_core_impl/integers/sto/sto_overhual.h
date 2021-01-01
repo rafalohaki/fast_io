@@ -425,25 +425,6 @@ struct voldmort
 				return;
 			}
 		}
-		// if constexpr(!(std::unsigned_integral<T>&&sizeof(T)==sizeof(std::uint64_t)))
-		// {
-		// 	if constexpr(std::unsigned_integral<T>)
-		// 	{
-		// 		if(value>static_cast<std::uint64_t>(std::numeric_limits<T>::max()))
-		// 		{
-		// 			code=std::errc::result_out_of_range;
-		// 			return;
-		// 		}
-		// 	}
-		// 	else
-		// 	{
-		// 		if(value>static_cast<std::uint64_t>(std::numeric_limits<T>::max())+minus)
-		// 		{
-		// 			code=std::errc::result_out_of_range;
-		// 			return;
-		// 		}
-		// 	}
-		// }
 		if constexpr(my_signed_integral<T>)
 		{
 			if(minus)

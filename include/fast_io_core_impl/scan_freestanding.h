@@ -27,10 +27,10 @@ struct scan_skip_type_t
 template<typename T>
 inline constexpr scan_skip_type_t<T> scan_skip_type{};
 
-template<typename T>
-concept scanable_skipping = requires(scan_skip_type_t<T> t, char8_t const* begin, char8_t const* end)
+template<typename char_type,typename T>
+concept scanable_skipping = requires(scan_skip_type_t<T> t, char_type const* begin, char_type const* end)
 {
-	{ scan_skip_define(scan_skip_type<T>, begin, end) }->std::convertible_to<char8_t const*>;
+	{ scan_skip_define(scan_skip_type<T>, begin, end) }->std::convertible_to<char_type const*>;
 };
 
 
@@ -236,7 +236,7 @@ requires (scanable<input,T>||context_scanable<typename input::char_type,T,false>
 		auto end{ibuffer_end(in)};
 		if constexpr(contiguous_input_stream<input>)
 		{
-			if constexpr(scanable_skipping<T>)
+			if constexpr(scanable_skipping<char_type,T>)
 			{
 				curr=scan_skip_define(scan_skip_type<T>,curr,end);
 				if(curr==end)
@@ -259,7 +259,7 @@ requires (scanable<input,T>||context_scanable<typename input::char_type,T,false>
 		}
 		else
 		{
-			if constexpr(scanable_skipping<T>)
+			if constexpr(scanable_skipping<char_type,T>)
 			{
 				for(;(curr=scan_skip_define(scan_skip_type<T>,curr,end))==end;)
 				{
