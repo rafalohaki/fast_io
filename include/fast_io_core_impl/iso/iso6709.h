@@ -72,7 +72,6 @@ inline constexpr Iter print_reserve_define_iso6709_dddmmss_impl(Iter iter,iso670
 	if(dms.seconds)[[likely]]
 		iter=non_overlapped_copy_n(jiaendu::static_tables<char_type>::table2[dms.seconds].data(),2,iter);
 #else
-	optimize_size::with_length::output_unsigned(iter,absolute,3);
 	if(absolute>=100)
 	{
 		if constexpr(std::same_as<char_type,char>)
