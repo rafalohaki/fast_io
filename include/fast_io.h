@@ -149,12 +149,14 @@ inline constexpr void println(T&& t,Args&& ...args)
 }
 
 template<typename... Args>
+requires (sizeof...(Args)!=0)
 inline constexpr void perr(Args&&... args)
 {
 	fast_io::details::perr_after_io_forward<false>(fast_io::io_forward(fast_io::io_print_alias<char>(args))...);
 }
 
 template<typename... Args>
+requires (sizeof...(Args)!=0)
 inline constexpr void perrln(Args&&... args)
 {
 	fast_io::details::perr_after_io_forward<true>(fast_io::io_forward(fast_io::io_print_alias<char>(args))...);

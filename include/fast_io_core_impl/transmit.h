@@ -17,11 +17,7 @@ inline constexpr std::size_t cal_buffer_size()
 #ifdef FAST_IO_BUFFER_SIZE
 		FAST_IO_BUFFER_SIZE
 #else
-#if defined(__WINNT__) || defined(_MSC_VER)
-	1048576
-#else
 	65536
-#endif
 #endif
 		/sizeof(char_type);
 	}
@@ -34,11 +30,7 @@ inline constexpr std::size_t cal_buffer_size()
 #ifdef FAST_IO_TRANSMIT_ON_STACK
 	4096
 #else
-#if defined(__WINNT__) || defined(_MSC_VER)
-	1048576
-#else
 	65536
-#endif
 #endif
 #endif
 	/sizeof(char_type);
@@ -142,7 +134,7 @@ inline constexpr std::uintmax_t bufferred_transmit_impl(output& outp,input& inp,
 		{
 			auto curr{obuffer_curr(outp)};
 			auto ed{obuffer_end(outp)};
-			if(chars<ed-curr)
+			if(chars<static_cast<std::size_t>(ed-curr))
 				ed=chars;
 			for(auto ip{curr};;)
 			{

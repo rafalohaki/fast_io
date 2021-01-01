@@ -577,7 +577,7 @@ public:
 		fp=nullptr;
 		return temp;
 	}
-	inline void lock() const
+	inline void lock() const noexcept
 	{
 #if defined(_MSC_VER)||defined(_UCRT)
 	_lock_file(fp);
@@ -592,7 +592,7 @@ public:
 	flockfile(fp);
 #endif
 	}
-	inline void unlock() const
+	inline void unlock() const noexcept
 	{
 #if defined(_MSC_VER)||defined(_UCRT)
 	_unlock_file(fp);
