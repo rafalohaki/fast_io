@@ -143,20 +143,20 @@ inline constexpr auto exec_encoding_dll_array() noexcept
 	{
 		static_assert(sizeof(char_type)==sizeof(char16_t));
 		if constexpr('A'!=u8'A')
-			return std::to_array(u".IBM12712.dll");
+			return std::to_array(u".IBM12712.so");
 		else if constexpr(details::compile_time_compare("我",u8"我"))
-			return std::to_array(u".UTF-8.dll");
+			return std::to_array(u".UTF-8.so");
 		else
-			return std::to_array(u".GB18030.dll");
+			return std::to_array(u".GB18030.so");
 	}
 	else
 	{
 	if constexpr('A'!=u8'A')
-		return std::to_array(u8".IBM12712.dll");
+		return std::to_array(u8".IBM12712.so");
 	else if constexpr(details::compile_time_compare("我",u8"我"))
-		return std::to_array(u8".UTF-8.dll");
+		return std::to_array(u8".UTF-8.so");
 	else
-		return std::to_array(u8".GB18030.dll");
+		return std::to_array(u8".GB18030.so");
 	}
 #else
 	if constexpr('A'!=u8'A')
@@ -174,9 +174,9 @@ inline constexpr auto exec_dll_array() noexcept
 {
 #ifdef _WIN32
 	if constexpr(std::same_as<wchar_t,char_type>)
-		return std::to_array(u".dll");
+		return std::to_array(u".so");
 	else
-		return std::to_array(u8".dll");
+		return std::to_array(u8".so");
 #else
 	return std::to_array(u8".so");
 #endif
@@ -195,7 +195,7 @@ inline constexpr auto l10n_path_prefix_dll_array() noexcept
 	else
 		return std::to_array(u8"fast_io_i18n_data\\locale\\");
 #else
-	return std::to_array(u8"/usr/local/lib/fast_io_i18n_data/locale/");
+	return std::to_array(u8"./fast_io_i18n_data/locale/");
 #endif
 }
 
