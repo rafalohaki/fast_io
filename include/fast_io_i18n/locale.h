@@ -135,13 +135,11 @@ inline constexpr bool compile_time_compare(char_type1 const (&a)[n1],char_type2 
 }
 
 template<std::integral char_type>
-requires (std::same_as<char_type,char>||std::same_as<char_type,wchar_t>)
+requires (std::same_as<char_type,char>||(std::same_as<char_type,wchar_t>&&(sizeof(wchar_t)==sizeof(char16_t))))
 inline constexpr auto exec_encoding_dll_array() noexcept
 {
-#ifdef _WIN32
 	if constexpr(std::same_as<wchar_t,char_type>)
 	{
-		static_assert(sizeof(char_type)==sizeof(char16_t));
 		if constexpr('A'!=u8'A')
 			return std::to_array(u".IBM12712.so");
 		else if constexpr(details::compile_time_compare("我",u8"我"))
@@ -158,45 +156,26 @@ inline constexpr auto exec_encoding_dll_array() noexcept
 	else
 		return std::to_array(u8".GB18030.so");
 	}
-#else
-	if constexpr('A'!=u8'A')
-		return std::to_array(u8".IBM12712.so");
-	else if constexpr(details::compile_time_compare("我",u8"我"))
-		return std::to_array(u8".UTF-8.so");
-	else
-		return std::to_array(u8".GB18030.so");
-#endif
 }
 
 template<std::integral char_type>
-requires (std::same_as<char_type,char>||std::same_as<char_type,wchar_t>)
+requires (std::same_as<char_type,char>||(std::same_as<char_type,wchar_t>&&(sizeof(wchar_t)==sizeof(char16_t))))
 inline constexpr auto exec_dll_array() noexcept
 {
-#ifdef _WIN32
 	if constexpr(std::same_as<wchar_t,char_type>)
 		return std::to_array(u".so");
 	else
 		return std::to_array(u8".so");
-#else
-	return std::to_array(u8".so");
-#endif
 }
 
 template<std::integral char_type>
-requires (std::same_as<char_type,char>||std::same_as<char_type,wchar_t>)
+requires (std::same_as<char_type,char>||(std::same_as<char_type,wchar_t>&&(sizeof(wchar_t)==sizeof(char16_t))))
 inline constexpr auto l10n_path_prefix_dll_array() noexcept
 {
-#ifdef _WIN32
 	if constexpr(std::same_as<wchar_t,char_type>)
-	{
-		static_assert(sizeof(char_type)==sizeof(char16_t));
 		return std::to_array(u"fast_io_i18n_data\\locale\\");
-	}
 	else
 		return std::to_array(u8"fast_io_i18n_data\\locale\\");
-#else
-	return std::to_array(u8"./fast_io_i18n_data/locale/");
-#endif
 }
 
 template<std::integral char_type>
@@ -243,18 +222,6 @@ inline void* load_l10n_with_full_name_impl(lc_locale& loc,std::basic_string_view
 
 #ifdef _WIN32
 
-inline std::wstring_view get_win32_lang_env(std::array<wchar_t,256>& buffer)
-{
-	std::size_t size(win32::GetUserDefaultLocaleName(buffer.data(),buffer.size()));
-	if(!size)
-		throw_win32_error();
-	--size;
-	for(std::size_t i{};i!=size;++i)
-		if(buffer[i]==u'-')
-			buffer[i]=u'_';	
-	return std::wstring_view(buffer.data(),size);
-}
-
 inline std::string_view get_win32_lang_env(std::array<char,256>& buffer)
 {
 	std::array<wchar_t,256> wbuffer;
@@ -293,7 +260,7 @@ inline std::string_view get_posix_lang_env()
 inline void* load_l10n_with_extracting_local_name_impl(lc_locale& loc)
 {
 #ifdef _WIN32
-	std::array<wchar_t,256> buffer;
+	std::array<char,256> buffer;
 	auto lang_env(get_win32_lang_env(buffer));
 #else
 	auto lang_env(get_posix_lang_env());
