@@ -12,11 +12,12 @@ add_link_options(-s)
 endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-message(STATUS "Clang does not support -fexec-charset=GB18030 which it is not going to work correctly on Computers in China. Consider using GCC to build this. i18n Locale data dlls will not be built.")
+message(STATUS "Clang does not support -fexec-charset=GB18030, which means it will not work correctly on Computers in China. Consider using GCC to build this. We will not build dynamic libraries that store locale data for GB18030.")
+else()
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 set(BUILD_STATIC_LIBS OFF)
 
 
@@ -31,8 +32,6 @@ INSTALL (DIRECTORY ${CMAKE_SOURCE_DIR}/man/ DESTINATION man/man3)
 option(BUILD_I18N_DLLS "BUILD_I18N_DLLS" ON)
 
 if(BUILD_I18N_DLLS)
-
-if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 
 add_library(aa_DJ.UTF-8 SHARED src/i18n_data/locale/aa_DJ.cc)
 add_library(aa_ER.UTF-8 SHARED src/i18n_data/locale/aa_ER.cc)
@@ -1090,7 +1089,6 @@ target_compile_options(zh_TW.UTF-8 PRIVATE -fexec-charset=UTF-8)
 target_compile_options(zu_ZA.UTF-8 PRIVATE -fexec-charset=UTF-8)
 endif()
 
-
 if (WIN32)
 install(TARGETS aa_DJ.UTF-8 RUNTIME DESTINATION lib/fast_io_i18n_data/locale)
 install(TARGETS aa_ER.UTF-8 RUNTIME DESTINATION lib/fast_io_i18n_data/locale)
@@ -1774,7 +1772,7 @@ install(TARGETS zu_ZA.UTF-8 LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
 endif()
 
 
-
+if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 add_library(aa_DJ.GB18030 SHARED src/i18n_data/locale/aa_DJ.cc)
 add_library(aa_ER.GB18030 SHARED src/i18n_data/locale/aa_ER.cc)
 add_library(aa_ER_saaho.GB18030 SHARED src/i18n_data/locale/aa_ER@saaho.cc)
