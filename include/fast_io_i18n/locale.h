@@ -172,10 +172,17 @@ template<std::integral char_type>
 requires (std::same_as<char_type,char>||(std::same_as<char_type,wchar_t>&&(sizeof(wchar_t)==sizeof(char16_t))))
 inline constexpr auto l10n_path_prefix_dll_array() noexcept
 {
+#ifdef _WIN32
 	if constexpr(std::same_as<wchar_t,char_type>)
 		return std::to_array(u"fast_io_i18n_data\\locale\\");
 	else
 		return std::to_array(u8"fast_io_i18n_data\\locale\\");
+#else
+	if constexpr(std::same_as<wchar_t,char_type>)
+		return std::to_array(u"./fast_io_i18n_data/locale/");
+	else
+		return std::to_array(u8"./fast_io_i18n_data/locale/");
+#endif
 }
 
 template<std::integral char_type>
