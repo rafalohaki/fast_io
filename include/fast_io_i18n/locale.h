@@ -179,9 +179,9 @@ inline constexpr auto l10n_path_prefix_dll_array() noexcept
 		return std::to_array(u8"fast_io_i18n_data\\locale\\");
 #else
 	if constexpr(std::same_as<wchar_t,char_type>)
-		return std::to_array(u"./fast_io_i18n_data/locale/");
+		return std::to_array(u"/usr/local/lib/fast_io_i18n_data/locale/");
 	else
-		return std::to_array(u8"./fast_io_i18n_data/locale/");
+		return std::to_array(u8"/usr/local/lib/fast_io_i18n_data/locale/");
 #endif
 }
 
