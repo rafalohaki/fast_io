@@ -222,16 +222,16 @@ inline void* load_l10n_with_full_name_impl(lc_locale& loc,std::basic_string_view
 
 #ifdef _WIN32
 
-inline std::string_view get_win32_lang_env(std::array<char,256>& buffer)
+inline std::string_view get_win32_lang_env(std::array<char,64>& buffer) noexcept
 {
-	std::array<wchar_t,256> wbuffer;
+	std::array<wchar_t,64> wbuffer;
 	std::size_t size(win32::GetUserDefaultLocaleName(wbuffer.data(),wbuffer.size()));
 	if(!size)
-		throw_win32_error();
+		return reinterpret_cast<char const*>(u8"C");
 	--size;
 	for(std::size_t i{};i!=size;++i)
 		if(127<static_cast<std::make_unsigned_t<wchar_t>>(wbuffer[i]))
-			throw_win32_error(0x57);
+			return reinterpret_cast<char const*>(u8"C");
 		else if(wbuffer[i]==u'-')
 			buffer[i]=u8'_';
 		else
@@ -239,46 +239,6 @@ inline std::string_view get_win32_lang_env(std::array<char,256>& buffer)
 	return std::string_view(buffer.data(),size);
 }
 
-#else
-inline std::string_view get_posix_lang_env()
-{
-	std::string_view lang_env=
-#if defined(_GNU_SOURCE)
-	secure_getenv(reinterpret_cast<char const*>(u8"LANG"));
-#else
-	std::getenv(reinterpret_cast<char const*>(u8"LANG"));
-#endif
-	if(lang_env.empty())
-		return std::string_view(reinterpret_cast<char const*>(u8"POSIX"),5);
-	auto dot{lang_env.find(u8'.')};
-	if(dot!=std::string_view::npos)
-		lang_env=lang_env.substr(0,dot);
-	return lang_env;
-}
-#endif
-
-inline void* load_l10n_with_extracting_local_name_impl(lc_locale& loc)
-{
-#ifdef _WIN32
-	std::array<char,256> buffer;
-	auto lang_env(get_win32_lang_env(buffer));
-#else
-	auto lang_env(get_posix_lang_env());
-#endif
-	return load_l10n_with_real_name_impl(loc,lang_env);
-}
-
-inline void* load_l10n_with_extracting_local_name_impl(lc_locale& loc,std::string_view encoding)
-{
-#ifdef _WIN32
-	std::array<char,256> buffer;
-	auto lang_env(get_win32_lang_env(buffer));
-#else
-	auto lang_env(get_posix_lang_env());
-#endif
-	return load_l10n_with_real_name_impl(loc,lang_env,encoding);
-}
-#ifdef _WIN32
 extern "C" std::uint32_t __stdcall GetACP() noexcept;
 
 inline constexpr std::u8string_view get_code_page_encoding(std::uint32_t codepage) noexcept
@@ -292,27 +252,96 @@ inline constexpr std::u8string_view get_code_page_encoding(std::uint32_t codepag
 	}
 }
 
+/*
+Since MSYS2 console respects POSIX locales. We should support it too.
+*/
+
+extern "C" errno_t __stdcall getenv_s(std::size_t *,char* buffer,std::size_t ,char const *) noexcept;
+
 inline std::string_view acp_encoding_name() noexcept
 {
 	auto strvw{get_code_page_encoding(GetACP())};
 	return {reinterpret_cast<char const*>(strvw.data()),strvw.size()};
 }
 
+inline std::size_t get_lc_all_or_lang(std::array<char,64>& buffer) noexcept
+{
+	std::size_t size_buffer{};
+	if(!getenv_s(std::addressof(size_buffer),buffer.data(),buffer.size(),reinterpret_cast<char const*>(u8"LC_ALL")))
+		return size_buffer;
+	if(!getenv_s(std::addressof(size_buffer),buffer.data(),buffer.size(),reinterpret_cast<char const*>(u8"LANG")))
+		return size_buffer;
+	return 0;
+}
+
+struct language_encoding_views
+{
+	std::string_view language,encoding;
+};
+
+inline language_encoding_views win32_get_language_encoding_based_on_lc_all_or_lang(std::array<char,64>& buffer) noexcept
+{
+	std::size_t size{get_lc_all_or_lang(buffer)};
+	if(size)
+		--size;
+	std::string_view buffer_strvw(buffer.data(),size);
+	std::size_t dot_pos{buffer_strvw.find(u8'.')};
+	std::string_view language;
+	std::string_view encoding;
+	if(dot_pos==std::string_view::npos)
+		language=buffer_strvw;
+	else
+	{
+		language=buffer_strvw.substr(0,dot_pos);
+		encoding=buffer_strvw.substr(dot_pos+1);
+	}
+	return {language,encoding};
+}
+
+inline std::string_view win32_only_get_language_not_encoding(std::array<char,64>& buffer) noexcept
+{
+	auto language{win32_get_language_encoding_based_on_lc_all_or_lang(buffer).language};
+	if(language.empty())
+		return get_win32_lang_env(buffer);
+	return language;
+}
+
+inline void* load_l10n_with_extracting_local_name_impl(lc_locale& loc)
+{
+	std::array<char,64> buffer;
+	return load_l10n_with_real_name_impl(loc,win32_only_get_language_not_encoding(buffer));
+}
+inline void* load_l10n_with_extracting_local_name_impl(lc_locale& loc,std::string_view encoding)
+{
+	std::array<char,64> buffer;
+	return load_l10n_with_real_name_impl(loc,win32_only_get_language_not_encoding(buffer),encoding);
+}
+
 inline void* deal_with_local_locale_name_local_encoding(lc_locale& loc)
 {
-	std::array<char,256> buffer;
-	return load_l10n_with_real_name_impl(loc,get_win32_lang_env(buffer),acp_encoding_name());
+	std::array<char,64> buffer;
+	auto [language,encoding]=win32_get_language_encoding_based_on_lc_all_or_lang(buffer);
+	std::array<char,64> lang_buffer;
+	if(language.empty())
+		language=get_win32_lang_env(lang_buffer);
+	if(encoding.empty())
+		encoding=acp_encoding_name();
+	return load_l10n_with_real_name_impl(loc,language,encoding);
 }
 
 inline void* deal_with_local_locale_name_encoding(lc_locale& loc,std::string_view encoding)
 {
-	std::array<char,256> buffer;
-	return load_l10n_with_real_name_impl(loc,get_win32_lang_env(buffer),encoding);
+	std::array<char,64> buffer;
+	return load_l10n_with_real_name_impl(loc,win32_only_get_language_not_encoding(buffer),encoding);
 }
 
 inline void* deal_with_locale_name_local_encoding(lc_locale& loc,std::string_view locale_name)
 {
-	return load_l10n_with_real_name_impl(loc,locale_name,acp_encoding_name());
+	std::array<char,64> buffer;
+	auto encoding{win32_get_language_encoding_based_on_lc_all_or_lang(buffer).encoding};
+	if(encoding.empty())
+		encoding=acp_encoding_name();
+	return load_l10n_with_real_name_impl(loc,locale_name,encoding);
 }
 
 #else
@@ -335,14 +364,32 @@ inline std::string_view get_lc_all_or_lang() noexcept
 	lc_all_ptr = my_getenv(u8"LANG");
 	if(lc_all_ptr)
 		return std::string_view(lc_all_ptr);
-	return {};
+	return std::string_view(reinterpret_cast<char const*>(u8"C.UTF-8"),sizeof(u8"C.UTF-8")-1);
+}
+
+inline std::string_view get_posix_lang_env() noexcept
+{
+	std::string_view lang_env{get_lc_all_or_lang()};
+	auto dot{lang_env.find(u8'.')};
+	if(dot!=std::string_view::npos)
+		lang_env=lang_env.substr(0,dot);
+	return lang_env;
+}
+
+inline void* load_l10n_with_extracting_local_name_impl(lc_locale& loc)
+{
+	return load_l10n_with_real_name_impl(loc,get_posix_lang_env());
+}
+inline void* load_l10n_with_extracting_local_name_impl(lc_locale& loc,std::string_view encoding)
+{
+	return load_l10n_with_real_name_impl(loc,get_posix_lang_env(),encoding);
 }
 
 inline std::string_view get_lc_all_or_lang_non_empty() noexcept
 {
 	std::string_view lang_env=get_lc_all_or_lang();
 	if(lang_env.empty())
-		lang_env=std::string_view(reinterpret_cast<char const*>(u8"POSIX"),5);
+		lang_env=reinterpret_cast<char const*>(u8"C");
 	return lang_env;
 }
 
