@@ -12,7 +12,7 @@ add_link_options(-s)
 endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-message(STATUS "Clang does not support -fexec-charset=GB18030. Consider using GCC to build this.")
+message(STATUS "Clang does not support -fexec-charset=GB18030 which it is not going to work correctly on Computers in China. Consider using GCC to build this. i18n Locale data dlls will not be built.")
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
@@ -31,6 +31,8 @@ INSTALL (DIRECTORY ${CMAKE_SOURCE_DIR}/man/ DESTINATION man/man3)
 option(BUILD_I18N_DLLS "BUILD_I18N_DLLS" ON)
 
 if(BUILD_I18N_DLLS)
+
+if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 
 add_library(aa_DJ.UTF-8 SHARED src/i18n_data/locale/aa_DJ.cc)
 add_library(aa_ER.UTF-8 SHARED src/i18n_data/locale/aa_ER.cc)
@@ -1771,7 +1773,6 @@ install(TARGETS zh_TW.UTF-8 LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
 install(TARGETS zu_ZA.UTF-8 LIBRARY DESTINATION lib/fast_io_i18n_data/locale)
 endif()
 
-if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 
 
 add_library(aa_DJ.GB18030 SHARED src/i18n_data/locale/aa_DJ.cc)
