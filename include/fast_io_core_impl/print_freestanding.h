@@ -196,7 +196,7 @@ inline constexpr void print_control(output out,T t)
 {
 	using char_type = typename output::char_type;
 	using value_type = std::remove_cvref_t<T>;
-	if constexpr(reserve_printable<char_type,value_type>)
+	if constexpr(reserve_printable<char_type,value_type>||dynamic_reserve_printable<char_type,value_type>)
 	{
 		constexpr std::size_t size{print_reserve_control_size_impl<pci,char_type,value_type>()+static_cast<std::size_t>(line)};
 #ifndef __SANITIZE_ADDRESS__
@@ -606,7 +606,9 @@ inline constexpr void println_freestanding_decay(output out,Args ...args)
 		decltype(auto) dout{out.unlocked_handle()};
 		println_freestanding_decay(io_ref(dout),args...);
 	}
-	else if constexpr((sizeof...(Args)==1&&(reserve_printable<typename output::char_type,Args>&&...))||
+	else if constexpr((sizeof...(Args)==1&&(reserve_printable<typename output::char_type,Args>&&...)
+	&&(dynamic_reserve_printable<typename output::char_type,Args>&&...)
+	)||
 	((printable<output,Args>&&...)&&buffer_output_stream<output>))
 	{
 		using char_type = typename std::remove_cvref_t<output>::char_type;

@@ -3,37 +3,6 @@
 namespace fast_io
 {
 
-template<bool contiguous_only = false>
-struct scan_context_t
-{
-	explicit inline constexpr scan_context_t() noexcept = default;
-};
-
-template<bool contiguous_only = false>
-inline constexpr scan_context_t<contiguous_only> scan_context;
-
-template<typename char_type, typename T, bool contiguous_only = false>
-concept context_scanable = requires(char_type const* begin, char_type const* end, T t)
-{
-	{ scan_context_define(scan_context<contiguous_only>, begin, end, t).iter }->std::convertible_to<char_type const*>;
-	{ scan_context_define(scan_context<contiguous_only>, begin, end, t).code }->std::convertible_to<std::errc>;
-};
-
-template<typename T>
-struct scan_skip_type_t
-{
-	explicit inline constexpr scan_skip_type_t() noexcept = default;
-};
-template<typename T>
-inline constexpr scan_skip_type_t<T> scan_skip_type{};
-
-template<typename char_type,typename T>
-concept scanable_skipping = requires(scan_skip_type_t<T> t, char_type const* begin, char_type const* end)
-{
-	{ scan_skip_define(scan_skip_type<T>, begin, end) }->std::convertible_to<char_type const*>;
-};
-
-
 template<std::integral char_type,typename T>
 [[nodiscard]] inline constexpr auto io_scan_alias(T&& t)
 {
@@ -41,7 +10,7 @@ template<std::integral char_type,typename T>
 		return scan_alias_define(io_alias_type<char_type>,std::forward<T>(t));
 	else if constexpr(alias_scanable<std::remove_reference_t<T>>)
 		return scan_alias_define(io_alias,std::forward<T>(t));
-	else if constexpr(manipulator<T>)
+	else if constexpr(manipulator<std::remove_cvref_t<T>>)
 		return t;
 	else
 		return parameter<std::remove_reference_t<T>&>{t};
@@ -224,21 +193,26 @@ inline constexpr bool scan_single_status_impl(input in,T& state_machine,P arg)
 	}
 	throw_scan_error(state_machine.code);
 }
-template<input_stream input,typename T>
-requires (scanable<input,T>||context_scanable<typename input::char_type,T,false>
+template<buffer_input_stream input,typename T>
+requires (context_scanable<typename input::char_type,T,false>||skipper<typename input::char_type,T>
 ||(contiguous_input_stream<input>&&context_scanable<typename input::char_type,T,true>))
 [[nodiscard]] inline constexpr bool scan_single_impl(input in,T arg)
 {
 	using char_type = typename input::char_type;
-	if constexpr(buffer_input_stream<input>)
+	auto curr{ibuffer_curr(in)};
+	auto end{ibuffer_end(in)};
+	if constexpr(contiguous_input_stream<input>)
 	{
-		auto curr{ibuffer_curr(in)};
-		auto end{ibuffer_end(in)};
-		if constexpr(contiguous_input_stream<input>)
+		if constexpr(skipper<char_type,T>)
+		{
+			ibuffer_set_curr(in,skip_define(curr,end,arg));
+			return true;
+		}
+		else
 		{
 			if constexpr(scanable_skipping<char_type,T>)
 			{
-				curr=scan_skip_define(scan_skip_type<T>,curr,end);
+				curr=scan_skip_define(curr,end,arg);
 				if(curr==end)
 					return false;
 			}
@@ -256,6 +230,21 @@ requires (scanable<input,T>||context_scanable<typename input::char_type,T,false>
 			}
 			else if constexpr(scanable<input,T>)
 				return scan_define(in,arg);
+		}
+	}
+	else
+	{
+		if constexpr(skipper<char_type,T>)
+		{
+			for(;(curr=skip_define(curr,end,arg))==end;)
+			{
+				if(!underflow(in))
+					return true;
+				curr=ibuffer_curr(in);
+				end=ibuffer_end(in);
+			}
+			ibuffer_set_curr(in,curr);
+			return true;
 		}
 		else
 		{
@@ -280,16 +269,6 @@ requires (scanable<input,T>||context_scanable<typename input::char_type,T,false>
 			else if constexpr(scanable<input,T>)
 				return scan_define(in,arg);
 		}
-	}
-	else
-	{
-		if constexpr(context_scanable<char_type,T,false>)
-		{
-			unget_temp_buffer in_buffer(io_ref(in));
-			return scan_single_impl(io_ref(in_buffer),arg);
-		}
-		else if constexpr(scanable<input,T>)
-			return scan_define(in,arg);
 	}
 }
 }

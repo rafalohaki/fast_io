@@ -126,4 +126,19 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,iso6709_d
 	return details::print_reserve_define_iso6709_dddmmss_impl(details::print_reserve_define_iso6709_dddmmss_impl(iter,dms.latitude),dms.longtitude);
 }
 
+
+struct iso6709_coordinate
+{
+	std::int16_t degrees{};
+	std::uint8_t minutes{};
+	std::uint8_t seconds{};
+	uintiso_t subseconds{};
+};
+
+struct iso6709_coordinates
+{
+	iso6709_coordinate latitude{};
+	iso6709_coordinate longtitude{};
+};
+
 }

@@ -2,46 +2,29 @@
 
 namespace fast_io
 {
-
 template<typename input,typename T>
-concept space_scanable=input_stream<input>&&requires(input& in,T&& t)
+concept scanable=input_stream<input>&&requires(input& in,T t)
 {
-	space_scan_define(in,std::forward<T>(t));
+	{scan_define(in,t)}->std::convertible_to<bool>;
 };
 
-template<typename input,typename T>
-concept scanable=input_stream<input>&&requires(input& in,T&& t)
+template<typename char_type, typename T, bool contiguous_only = false>
+concept context_scanable = requires(char_type const* begin, char_type const* end, T t)
 {
-	scan_define(in,std::forward<T>(t));
+	{ scan_context_define(scan_context<contiguous_only>, begin, end, t).iter }->std::convertible_to<char_type const*>;
+	{ scan_context_define(scan_context<contiguous_only>, begin, end, t).code }->std::convertible_to<std::errc>;
 };
-
-template<typename T,typename output,typename input>
-concept reserve_scanable=(details::scan_reserve_transmit_impl<T,output,input>||scanable<T,input>)&&requires(T t,char8_t const* ptr,input in)
-{
-	scan_reserve_skip(io_reserve_type<typename output::char_type,std::remove_cvref_t<T>>,in);
-	{scan_reserve_define(io_reserve_type<typename output::char_type,std::remove_cvref_t<T>,true>,ptr,ptr,t)}->std::convertible_to<typename output::char_type const*>;
-};
-
-template<typename T,typename output,typename input>
-concept reserve_space_scanable=(details::scan_reserve_transmit_impl<T,output,input>||space_scanable<T,input>)&&
-	requires(T t,char8_t const* ptr)
-{
-	{space_scan_reserve_define(io_reserve_type<typename std::remove_cvref_t<output>::char_type,std::remove_cvref_t<T>,true>,ptr,ptr,t)}->std::convertible_to<char8_t const*>;
-};
-
-template<typename T,typename output,typename input>
-concept general_reserve_scanable=reserve_space_scanable<T,output,input>||reserve_scanable<T,output,input>;
 
 template<typename char_type,typename T>
-concept reserve_size_scanable=std::integral<char_type>&&requires()
+concept scanable_skipping = requires(scan_skip_type_t<T> t, char_type const* begin, char_type const* end)
 {
-	{scan_reserve_size(io_reserve_type<char_type,std::remove_cvref_t<T>>)}->std::convertible_to<std::size_t>;
+	{ scan_skip_define(scan_skip_type<T>, begin, end) }->std::convertible_to<char_type const*>;
 };
 
-template<typename input>
-concept reserve_scan_avoidance = requires(input in)
+template<typename char_type,typename T>
+concept skipper = requires(char_type const* begin, char_type const* end,T t)
 {
-	avoid_scan_reserve(in);
+	{ skip_define(begin, end, t) }->std::convertible_to<char_type const*>;
 };
 
 template<typename char_type,typename T>
@@ -93,9 +76,6 @@ concept scatter_type_printable=scatter_printable<char_type,T>&&requires(char_typ
 	{print_scatter_define(print_scatter_type<char_type>,std::forward<T>(t))}->std::convertible_to<basic_io_scatter_t<char_type>>;
 };
 
-template<typename input,typename T>
-concept general_scanable=space_scanable<input,T>||scanable<input,T>;
-
 template<typename output,typename T>
 concept general_printable=reserve_printable<typename output::char_type,T>||printable<output,T>;
 
@@ -131,19 +111,16 @@ concept io_controllable=requires(io_device device,Args&& ...args)
 
 struct manip_tag_t{};
 
-inline constexpr manip_tag_t manip_tag{};
-
-
 template<typename T>
 concept manipulator = requires(T t)
 {
-
-	{t.reference};
+	typename T::manip_tag;
 };
 
 template<typename T>
 struct parameter
 {
+	using manip_tag = manip_tag_t;
 	T reference;
 };
 

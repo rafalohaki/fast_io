@@ -112,4 +112,21 @@ explicit constexpr io_alias_type_t() noexcept = default;
 template<std::integral char_type>
 inline constexpr io_alias_type_t<char_type> io_alias_type{};
 
+template<bool contiguous_only = false>
+struct scan_context_t
+{
+	explicit inline constexpr scan_context_t() noexcept = default;
+};
+
+template<bool contiguous_only = false>
+inline constexpr scan_context_t<contiguous_only> scan_context;
+
+template<typename T>
+struct scan_skip_type_t
+{
+	explicit inline constexpr scan_skip_type_t() noexcept = default;
+};
+template<typename T>
+inline constexpr scan_skip_type_t<T> scan_skip_type{};
+
 }

@@ -10,7 +10,6 @@
 //#include<cmath>
 #include"fast_io_freestanding_impl/string/impl.h"
 #include"fast_io_freestanding_impl/concat.h"
-#include"fast_io_freestanding_impl/manip.h"
 #include"fast_io_freestanding_impl/exception.h"
 #include"fast_io_freestanding_impl/reserve_read_write.h"
 #include"fast_io_freestanding_impl/code_cvt/utf.h"
@@ -20,7 +19,7 @@
 #include"fast_io_freestanding_impl/iobuf.h"
 #include"fast_io_freestanding_impl/io_io_file.h"
 #include"fast_io_freestanding_impl/send_receive.h"
-#include"fast_io_freestanding_impl/natural.h"
+//#include"fast_io_freestanding_impl/natural.h"
 
 #include"fast_io_freestanding_impl/transformers/transformers.h"
 #include"fast_io_freestanding_impl/indirect_ibuffer.h"
