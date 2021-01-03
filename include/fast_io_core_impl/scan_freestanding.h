@@ -212,7 +212,7 @@ requires (context_scanable<typename input::char_type,T,false>||skipper<typename 
 		{
 			if constexpr(scanable_skipping<char_type,T>)
 			{
-				curr=scan_skip_define(curr,end,arg);
+				curr=scan_skip_define(scan_skip_type<T>,curr,end);
 				if(curr==end)
 					return false;
 			}
