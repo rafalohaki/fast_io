@@ -43,9 +43,27 @@ inline constexpr Iter chrono_two_digits_impl(Iter it,U u) noexcept
 	{
 		if(100u<=u)[[unlikely]]
 			return process_integer_output<10,false>(it,u);
-		optimize_size::with_length::output_unsigned(it,u,2);
 	}
-	return it+=2;
+	auto v{u/10};
+	u%=10;
+	using char_type = iter_value_t<Iter>;
+	*it=v;
+	if constexpr(std::same_as<char_type,char>)
+		*it+='0';
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		*it+=L'0';
+	else
+		*it+=u8'0';
+	++it;
+	*it=u;
+	if constexpr(std::same_as<char_type,char>)
+		*it+='0';
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		*it+=L'0';
+	else
+		*it+=u8'0';
+	++it
+	return it;
 #elif defined(FAST_IO_OPTIMIZE_TIME)
 	using char_type = std::iter_value_t<Iter>;
 	if constexpr(!unchecked)
@@ -84,11 +102,12 @@ inline constexpr Iter chrono_two_digits_impl(Iter it,I i) noexcept
 	return chrono_two_digits_impl<unchecked>(it,u);
 }
 
-template<std::random_access_iterator Iter>
-inline constexpr Iter chrono_year_impl(Iter it,int i) noexcept
+template<std::random_access_iterator Iter,std::signed_integral integ>
+inline constexpr Iter chrono_year_impl(Iter it,integ i) noexcept
 {
+	using unsigned_type = std::make_unsigned_t<std::remove_cvref_t<integ>>;
 	using char_type = std::iter_value_t<Iter>;
-	unsigned u{static_cast<unsigned>(i)};
+	unsigned_type u(i);
 	if(i<0)[[unlikely]]
 	{
 		u = 0u - u;
@@ -112,8 +131,8 @@ inline constexpr Iter chrono_year_impl(Iter it,int i) noexcept
 #else
 	if(10000u<=u)[[unlikely]]
 		return process_integer_output<10,false>(it,u);
-	unsigned dv(u/100u);
-	unsigned rmd(u%100u);
+	unsigned_type dv(u/100u);
+	unsigned_type rmd(u%100u);
 	it=non_overlapped_copy_n(shared_static_base_table<char_type,10,false>::table[dv].data(),2,it);
 	return non_overlapped_copy_n(shared_static_base_table<char_type,10,false>::table[rmd].data(),2,it);
 #endif
