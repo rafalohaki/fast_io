@@ -128,5 +128,33 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,iso6709_c
 	return details::print_reserve_define_iso6709_coordinate_impl(details::print_reserve_define_iso6709_coordinate_impl(iter,dms.latitude),dms.longtitude);
 }
 
+template<std::random_access_iterator Iter>
+inline constexpr Iter scan_skip_define(scan_skip_type_t<parameter<iso6709_coordinates&>>, Iter beg, Iter ed) noexcept
+{
+	return scan_skip_space(beg, ed);
+}
+#if 0
+namespace details::ctx_scan_iso6709
+{
 
+template<bool contiguous_only, std::random_access_iterator Iter>
+struct voldmort
+{
+	Iter iter;
+	std::errc code{};
+	std::conditional_t<>
+	inline constexpr voldmort(Iter begin, Iter end, iso6709_coordinates& t) noexcept
+	{
+
+	}
+};
+
+}
+
+template<bool contiguous_only, std::random_access_iterator Iter>
+inline constexpr auto scan_context_define(scan_context_t<contiguous_only>, Iter begin, Iter end, parameter<iso6709_coordinates&> t) noexcept
+{
+	return details::ctx_scan_iso6709::voldmort<contiguous_only,Iter,iso6709_coordinates>(begin,end,t);
+}
+#endif
 }

@@ -60,9 +60,9 @@ concept reverse_dynamic_reserve_printable=std::integral<char_type>&&dynamic_rese
 };
 
 template<typename output,typename T>
-concept printable=output_stream<output>&&requires(output& out,T&& t)
+concept printable=output_stream<output>&&requires(output out,T t)
 {
-	print_define(out,std::forward<T>(t));
+	print_define(out,t);
 };
 template<typename char_type,typename T>
 concept scatter_printable=requires(char_type ch,T&& t)

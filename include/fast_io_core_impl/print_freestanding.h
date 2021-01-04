@@ -417,8 +417,10 @@ inline constexpr void print_control(output out,T t)
 			print_define(out,t);
 		if constexpr(line)
 		{
-			if constexpr(details::exec_charset_is_ebcdic<char_type>())
-				put(out,0x25);
+			if constexpr(std::same_as<char_type,char>)
+				put(out,'\n');
+			else if constexpr(std::same_as<char_type,wchar_t>)
+				put(out,L'\n');
 			else
 				put(out,u8'\n');
 		}
@@ -599,65 +601,27 @@ requires (output_stream<output>||status_output_stream<output>)
 inline constexpr void println_freestanding_decay(output out,Args ...args)
 {
 	if constexpr(status_output_stream<output>)
+	{
 		println_status_define(out,args...);
+	}
 	else if constexpr(mutex_stream<output>)
 	{
 		details::lock_guard lg{out};
 		decltype(auto) dout{out.unlocked_handle()};
 		println_freestanding_decay(io_ref(dout),args...);
 	}
-	else if constexpr((sizeof...(Args)==1&&(reserve_printable<typename output::char_type,Args>&&...)
-	&&(dynamic_reserve_printable<typename output::char_type,Args>&&...)
-	)||
-	((printable<output,Args>&&...)&&buffer_output_stream<output>))
+	else if constexpr((sizeof...(Args)==1||buffer_output_stream<output>)&&((printable<output,Args>||reserve_printable<typename output::char_type,Args>||dynamic_reserve_printable<typename output::char_type,Args>||scatter_type_printable<typename output::char_type,Args>)&&...))
 	{
 		using char_type = typename std::remove_cvref_t<output>::char_type;
-		if constexpr((sizeof...(Args)==1)&&(reserve_printable<typename output::char_type,Args>&&...))
+		if constexpr((sizeof...(Args)==1))
 			((details::decay::print_control<true>(out,args)),...);
 		else
 		{
-#if 0
-			if constexpr(maybe_buffer_output_stream<output>)
-			{
-				if(!obuffer_is_active(out))[[unlikely]]
-				{
-					details::decay::print_fallback<true>(out,args...);
-					return;
-				}
-			}
-#endif
-			if constexpr(sizeof...(Args)==1&&(scatter_type_printable<char_type,Args>&&...))
-			{
-				auto curr=obuffer_curr(out);
-				auto end=obuffer_end(out);
-				auto scatter=details::decay::extract_one_scatter<char_type>(args...);
-				std::size_t const len{scatter.len};
-				if(curr+(len+1)<end)[[likely]]
-				{
-					details::non_overlapped_copy_n(scatter.base,len,curr);
-					if constexpr(details::exec_charset_is_ebcdic<char_type>())
-						curr[len]=0x25;
-					else
-						curr[len]=u8'\n';
-					obuffer_set_curr(out,curr+(len+1));
-				}
-				else
-				{
-					write(out,scatter.base,scatter.base+len);
-					if constexpr(details::exec_charset_is_ebcdic<char_type>())
-						put(out,0x25);
-					else
-						put(out,u8'\n');
-				}
-			}
+			((details::decay::print_control(out,args)),...);
+			if constexpr(details::exec_charset_is_ebcdic<char_type>())
+				put(out,0x25);
 			else
-			{
-				((details::decay::print_control(out,args)),...);
-				if constexpr(details::exec_charset_is_ebcdic<char_type>())
-					put(out,0x25);
-				else
-					put(out,u8'\n');
-			}
+				put(out,u8'\n');
 		}
 	}
 	else if constexpr(output_stream<output>)
