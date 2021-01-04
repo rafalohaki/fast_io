@@ -50,9 +50,9 @@ inline constexpr bool equals_to_eof_macro(int_type inv) noexcept
 }
 
 template<std::integral char_type>
-inline auto ungetc_unlocked_impl(std::conditional_t<std::same_as<char_type,wchar_t>,wint_t,int> ch,std::FILE* fp)
+inline auto ungetc_unlocked_impl(char_type ch,std::FILE* fp)
 {
-	if constexpr(std::same_as<char_type,char>)
+	if constexpr(std::same_as<char_type,char>||std::same_as<char_type,char8_t>)
 	{
 #if defined(_MSC_VER)
 		return _ungetc_nolock(ch,fp);
@@ -103,7 +103,7 @@ template<std::integral char_type>
 requires (std::same_as<char_type,char>||std::same_as<char_type,wchar_t>||std::same_as<char_type,char8_t>)
 inline void try_unget(basic_c_io_observer_unlocked<char_type> ciob,char_type ch) noexcept
 {
-	details::ungetc_unlocked_impl(ciob.fp,ch);
+	details::ungetc_unlocked_impl<char_type>(ch,ciob.fp);
 }
 
 }

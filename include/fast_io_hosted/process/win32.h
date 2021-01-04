@@ -59,7 +59,6 @@ inline void* redirect_to_std_handle(io_observer& ob)
 class priviledge_guard
 {
 	void* hobject{};
-	std::uint32_t dw_flags{};
 public:
 	priviledge_guard(void* hd)
 	{

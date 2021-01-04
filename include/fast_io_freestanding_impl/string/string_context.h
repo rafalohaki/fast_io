@@ -143,7 +143,7 @@ struct voldmort
 	Iter iter;
 	std::errc code;
 	[[no_unique_address]] std::conditional_t<contiguous_only,empty,bool> not_empty_str{};
-	inline constexpr bool test_eof(T t) noexcept requires(!contiguous_only)
+	inline constexpr bool test_eof([[maybe_unused]]T) noexcept requires(!contiguous_only)
 	{
 		code={};
 		return not_empty_str;

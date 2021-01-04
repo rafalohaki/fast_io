@@ -17,7 +17,7 @@ public:
 		details::report_win32_error(report,win32::nt::rtl_nt_status_to_dos_error(ntstatus));
 	}
 };
-[[noreturn]] inline void throw_nt_error(std::uint32_t err)
+[[noreturn]] inline void throw_nt_error([[maybe_unused]] std::uint32_t err)
 {
 #ifdef __cpp_exceptions
 	throw nt_error(err);

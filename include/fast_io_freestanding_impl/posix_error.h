@@ -89,7 +89,7 @@ public:
 	fast_terminate();
 #endif
 }
-[[noreturn]] inline void throw_posix_error(int err)
+[[noreturn]] inline void throw_posix_error([[maybe_unused]] int err)
 {
 #ifdef __cpp_exceptions
 	throw posix_error(err);
@@ -122,7 +122,7 @@ public:
 	}
 };
 
-[[noreturn]] inline void throw_scan_error(std::errc ec)
+[[noreturn]] inline void throw_scan_error([[maybe_unused]] std::errc ec)
 {
 #ifdef __cpp_exceptions
 	throw scan_error(ec);

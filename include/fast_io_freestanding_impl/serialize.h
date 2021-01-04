@@ -29,7 +29,6 @@ template<output_stream stm>
 requires (std::is_lvalue_reference_v<stm>||std::is_trivially_copyable_v<stm>)
 inline constexpr auto serialize(stm&& out) noexcept
 {
-	using char_type = typename std::remove_cvref_t<stm>::char_type;
 	if constexpr(value_based_stream<stm>)
 		return serializer{io_value_handle(out)};
 	else
@@ -71,7 +70,6 @@ template<stream stm>
 requires (std::is_lvalue_reference_v<stm>||std::is_trivially_copyable_v<stm>)
 inline constexpr auto deserialize(stm&& out) noexcept
 {
-	using char_type = typename std::remove_cvref_t<stm>::char_type;
 	if constexpr(value_based_stream<stm>)
 		return deserializer{io_value_handle(out)};
 	else

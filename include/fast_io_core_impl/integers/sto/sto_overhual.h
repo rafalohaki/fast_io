@@ -10,7 +10,6 @@ template<std::random_access_iterator Iter>
 inline constexpr Iter skip_zero(Iter begin, Iter end) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
-	using unsigned_char_type = my_make_unsigned_t<char_type>;
 	if constexpr(std::same_as<char_type,char>)
 		for (; begin != end && *begin=='0'; ++begin);
 	else if constexpr(std::same_as<char_type,wchar_t>)
@@ -212,8 +211,6 @@ inline constexpr bool probe_overflow(Iter& b,Iter e,muint& res,std::size_t& sz) 
 template<char8_t base,bool larger_than_native = false, bool skip_zeros = true, bool ignore=false, std::random_access_iterator Iter,my_unsigned_integral muint>
 inline constexpr bool from_chars(Iter& b,Iter e,muint& res,std::size_t& sz) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
-	using unsigned_char_type = my_make_unsigned_t<char_type>;
 	constexpr std::size_t max_size{cal_max_int_size<muint,base>()-1};
 	if constexpr(ignore)
 	{
@@ -262,21 +259,7 @@ inline constexpr bool from_chars(Iter& b,Iter e,muint& res,std::size_t& sz) noex
 			from_chars_main<base>(b,from_chars_ed,res);
 			sz+=b-start;
 			if(b==from_chars_ed)[[unlikely]]
-			{
 				return probe_overflow<base, larger_than_native>(b,e,res,sz);
-				// if constexpr(larger_than_native)
-				// {
-				// 	if (probe_overflow<base, false>(b,e,res,sz)) {
-				// 		// overflow
-				// 		return true;
-				// 	} else {
-				// 		// did not overflow, add one extra digit
-				// 		return false;
-				// 	}
-				// } else {
-				// 	return probe_overflow<base>(b,e,res,sz);
-				// }
-			}
 		}
 		else
 		{
@@ -348,7 +331,6 @@ struct voldmort
 
 	inline constexpr bool test_eof(P t) noexcept requires(!contiguous_only)
 	{
-		constexpr bool larger_than_native = sizeof(T) > sizeof(std::size_t);
 		constexpr std::size_t npos(-1);
 		if(size==npos)
 		{

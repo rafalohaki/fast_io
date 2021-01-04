@@ -698,7 +698,7 @@ inline constexpr io_type_t<iocp_overlapped> async_overlapped_type(basic_win32_io
 }
 
 template<std::integral ch_type,std::contiguous_iterator Iter>
-inline void async_write_callback(basic_win32_io_observer<char> over,basic_win32_io_observer<ch_type> h,Iter cbegin,Iter cend,
+inline void async_write_callback(basic_win32_io_observer<char>,basic_win32_io_observer<ch_type> h,Iter cbegin,Iter cend,
 	iocp_overlapped_observer callback,std::ptrdiff_t offset=0)
 {
 	std::size_t to_write((cend-cbegin)*sizeof(*cbegin));

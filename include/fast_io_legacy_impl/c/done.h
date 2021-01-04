@@ -80,6 +80,9 @@ inline std::size_t c_io_write_impl(basic_c_io_observer_unlocked<char_type> cfhd,
 #ifndef __MSDOS__
 	||(std::same_as<char_type,wchar_t>&&buffer_io_stream<wc_io_observer_unlocked>)
 #endif
+	||(std::same_as<char_type,char8_t>&&buffer_output_stream<u8c_io_observer_unlocked>)
+	||(std::same_as<char_type,char16_t>&&buffer_output_stream<u16c_io_observer_unlocked>)
+	||(std::same_as<char_type,char32_t>&&buffer_output_stream<u32c_io_observer_unlocked>)
 )
 	{
 		auto curr{obuffer_curr(cfhd)};
@@ -102,6 +105,9 @@ inline std::size_t c_io_read_impl(basic_c_io_observer_unlocked<char_type> cfhd,c
 #ifndef __MSDOS__
 	||(std::same_as<char_type,wchar_t>&&buffer_io_stream<wc_io_observer_unlocked>)
 #endif
+	||(std::same_as<char_type,char8_t>&&buffer_io_stream<u8c_io_observer_unlocked>)
+	||(std::same_as<char_type,char16_t>&&buffer_io_stream<u16c_io_observer_unlocked>)
+	||(std::same_as<char_type,char32_t>&&buffer_io_stream<u32c_io_observer_unlocked>)
 )
 	{
 		auto curr{ibuffer_curr(cfhd)};
