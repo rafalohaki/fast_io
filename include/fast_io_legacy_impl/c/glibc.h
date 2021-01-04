@@ -143,16 +143,9 @@ inline void overflow(wc_io_observer_unlocked cio,wchar_t ch)
 
 template<std::integral ch_type>
 requires (std::same_as<ch_type,char>||std::same_as<ch_type,wchar_t>)
-inline constexpr void put_define(basic_c_io_observer_unlocked<ch_type> out,typename basic_c_io_observer_unlocked<ch_type>::char_type ch)
+inline constexpr bool obuffer_is_line_buffering(basic_c_io_observer_unlocked<ch_type> out) noexcept
 {
-	auto ref{obuffer_curr(out)};
-	if(obuffer_end(out)<=ref)[[unlikely]]
-	{
-		overflow(out,ch);
-		return;
-	}
-	*ref=ch;
-	obuffer_set_curr(out,ref+1);
+	return obuffer_end(out)<obuffer_curr(out);
 }
 
 }

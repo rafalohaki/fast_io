@@ -69,6 +69,12 @@ template<typename T>
 concept fixed_buffer_output_stream = buffer_output_stream<T>&&!dynamic_buffer_output_stream<T>;
 
 template<typename T>
+concept line_buffer_output_stream = buffer_output_stream<T>&&requires(T t)
+{
+	{obuffer_is_line_buffering(t)}->std::convertible_to<bool>;
+};
+
+template<typename T>
 concept zero_copy_input_stream = input_stream<T>&&details::zero_copy_input_stream_impl<T>;
 
 template<typename T>

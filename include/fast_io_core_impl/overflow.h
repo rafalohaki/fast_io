@@ -21,25 +21,30 @@ inline constexpr void orelease(output& out,typename output::char_type* ptr)
 template<buffer_output_stream output>
 inline constexpr void put(output& out,typename std::remove_cvref_t<output>::char_type ch)
 {
-#ifndef _MSC_VER
-	if constexpr(requires()
+	auto curr{obuffer_curr(out)};
+	auto end{obuffer_end(out)};
+/*
+Referenced from glibc
+https://github.com/bminor/glibc/blob/21c3f4b5368686ade28d90d8c7d79c4c95c72c1b/libio/bits/types/struct_FILE.h
+*/
+	if constexpr(line_buffer_output_stream<output>)
 	{
-		put_define(out,ch);
-	})
-		put_define(out,ch);
-	else
-	{
-#endif
-		auto ref{obuffer_curr(out)};
-		if(ref==obuffer_end(out))[[unlikely]]
+		if(end<=curr)[[unlikely]]
 		{
 			overflow(out,ch);
 			return;
 		}
-		*ref=ch;
-		obuffer_set_curr(out,ref+1);
-#ifndef _MSC_VER
 	}
-#endif
+	else
+	{
+		if(curr==end)[[unlikely]]
+		{
+			overflow(out,ch);
+			return;
+		}
+	}
+	*curr=ch;
+	obuffer_set_curr(out,++curr);
+
 }
 }
