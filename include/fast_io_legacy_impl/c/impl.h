@@ -770,8 +770,6 @@ public:
 	{
 		if(native_handle()==nullptr)
 			throw_posix_error();
-		if constexpr(sizeof(wchar_t)!=sizeof(char)&&sizeof(wchar_t)==sizeof(char_type))
-			std::fwide(this->fp,1);
 	}
 
 	basic_c_file_impl(basic_posix_io_handle<char_type>&& posix_handle,open_mode om):
