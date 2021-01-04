@@ -67,9 +67,14 @@ concept dynamic_buffer_output_stream = buffer_output_stream<T>&&details::dynamic
 
 template<typename T>
 concept fixed_buffer_output_stream = buffer_output_stream<T>&&!dynamic_buffer_output_stream<T>;
-
+/*
+noline_buffer_output_stream ensures obuffer_begin(out)<=obuffer_curr(out)<=obuffer_end(out)
+line_buffer_output_stream may end up a situation obuffer_curr(out)>obuffer_end(out), triggering overflow.
+That is how glibc implements FILE*.
+In fast_io, all fast_io directly supported stream ensures noline_buffer_output_stream
+*/
 template<typename T>
-concept line_buffer_output_stream = buffer_output_stream<T>&&requires(T t)
+concept noline_buffer_output_stream = buffer_output_stream<T>&&!requires(T t)
 {
 	{obuffer_is_line_buffering(t)}->std::convertible_to<bool>;
 };

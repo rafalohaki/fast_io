@@ -27,9 +27,9 @@ inline constexpr void put(output& out,typename std::remove_cvref_t<output>::char
 Referenced from glibc
 https://github.com/bminor/glibc/blob/21c3f4b5368686ade28d90d8c7d79c4c95c72c1b/libio/bits/types/struct_FILE.h
 */
-	if constexpr(line_buffer_output_stream<output>)
+	if constexpr(noline_buffer_output_stream<output>)
 	{
-		if(end<=curr)[[unlikely]]
+		if(curr==end)[[unlikely]]
 		{
 			overflow(out,ch);
 			return;
@@ -37,7 +37,7 @@ https://github.com/bminor/glibc/blob/21c3f4b5368686ade28d90d8c7d79c4c95c72c1b/li
 	}
 	else
 	{
-		if(curr==end)[[unlikely]]
+		if(end<=curr)[[unlikely]]
 		{
 			overflow(out,ch);
 			return;
