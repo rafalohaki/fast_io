@@ -102,6 +102,11 @@ From microsoft's document. _fdopen only supports
 	return to_c_mode(m);
 #endif
 }
+struct io_c_mode
+{
+	char const* mode{};
+	explicit constexpr io_c_mode(cstring_view view):mode(view.c_str()){}
+};
 
 #if defined(_GNU_SOURCE) || defined(__MUSL__) || defined(__NEED___isoc_va_list)
 template<typename stm>
@@ -743,6 +748,24 @@ public:
 };
 
 
+inline std::FILE* my_fdopen_impl(int fd,char const* mode) 
+{
+	auto fp{
+#if defined(__WINNT__) || defined(_MSC_VER)
+			::_fdopen(
+#elif defined(__NEWLIB__)
+			::_fdopen_r(_REENT,
+#elif defined(__MSDOS__)
+			details::fdopen(
+#else
+			::fdopen(
+#endif
+		fd,mode)};
+	if(fp==nullptr)
+		throw_posix_error();
+	return fp;
+}
+
 template<typename T>
 class basic_c_file_impl:public T
 {
@@ -754,29 +777,19 @@ public:
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	explicit constexpr basic_c_file_impl(native_hd hd):T(hd){}
-//fdopen interface
-	basic_c_file_impl(native_interface_t,int fd,char const* mode):T(
-#if defined(__WINNT__) || defined(_MSC_VER)
-			::_fdopen(
-#elif defined(__NEWLIB__)
-			::_fdopen_r(_REENT,
-#elif defined(__MSDOS__)
-			details::fdopen(
-#else
-			::fdopen(
-#endif
-		fd,mode)
-			)
-	{
-		if(native_handle()==nullptr)
-			throw_posix_error();
-	}
-
-	basic_c_file_impl(basic_posix_io_handle<char_type>&& posix_handle,open_mode om):
-		basic_c_file_impl(native_interface,posix_handle.fd,to_native_c_mode(om))
+	basic_c_file_impl(io_c_mode cmode,basic_posix_io_handle<char_type>&& posix_handle,open_mode):
+		T(my_fdopen_impl(posix_handle.fd,cmode.mode))
 	{
 		posix_handle.release();
 	}
+
+
+	basic_c_file_impl(basic_posix_io_handle<char_type>&& posix_handle,open_mode om):
+		T(my_fdopen_impl(posix_handle.fd,to_native_c_mode(om)))
+	{
+		posix_handle.release();
+	}
+
 #ifdef _WIN32
 //windows specific. open posix file from win32 io handle
 	basic_c_file_impl(basic_win32_io_handle<char_type>&& win32_handle,open_mode om):
@@ -788,12 +801,27 @@ public:
 		basic_c_file_impl(basic_posix_file<char_type>(std::move(nt_handle),om),to_native_c_mode(om))
 	{
 	}
+	basic_c_file_impl(io_c_mode cmode,basic_win32_io_handle<char_type>&& win32_handle,open_mode om)
+		:basic_c_file_impl(cmode,basic_posix_file<char_type>(std::move(win32_handle),om),om)
+	{
+	}
 
+	template<nt_family family>
+	basic_c_file_impl(io_c_mode cmode,basic_nt_family_io_handle<family,char_type>&& nt_handle,open_mode om)
+		:basic_c_file_impl(cmode,basic_posix_file<char_type>(std::move(nt_handle),om),om)
+	{
+	}
 	basic_c_file_impl(wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_c_file_impl(basic_posix_file<typename T::char_type>(file,om,pm),om)
 	{}
 	basic_c_file_impl(native_at_entry nate,wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_c_file_impl(basic_posix_file<typename T::char_type>(nate,file,om,pm),om)
+	{}
+	basic_c_file_impl(io_c_mode cmode,wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_c_file_impl(cmode,basic_posix_file<typename T::char_type>(file,om,pm),om)
+	{}
+	basic_c_file_impl(io_c_mode cmode,native_at_entry nate,wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_c_file_impl(cmode,basic_posix_file<typename T::char_type>(nate,file,om,pm),om)
 	{}
 #endif
 	basic_c_file_impl(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
@@ -802,6 +830,15 @@ public:
 	basic_c_file_impl(native_at_entry nate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_c_file_impl(basic_posix_file<typename T::char_type>(nate,file,om,pm),om)
 	{}
+
+
+	basic_c_file_impl(io_c_mode cmode,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_c_file_impl(cmode,basic_posix_file<typename T::char_type>(file,om,pm),om)
+	{}
+	basic_c_file_impl(io_c_mode cmode,native_at_entry nate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_c_file_impl(cmode,basic_posix_file<typename T::char_type>(nate,file,om,pm),om)
+	{}
+
 
 	template<stream stm,typename... Args>
 	basic_c_file_impl(io_cookie_t,[[maybe_unused]] cstring_view mode,std::in_place_type_t<stm>,[[maybe_unused]] Args&& ...args)
@@ -833,8 +870,7 @@ public:
 #endif
 	}
 	template<stream stm>
-	basic_c_file_impl(io_cookie_t,cstring_view mode,stm&& rref):basic_c_file_impl(io_cookie,mode.c_str(),std::in_place_type<stm>,std::move(rref)){}
-
+	basic_c_file_impl(io_cookie_t,cstring_view mode,stm&& rref):basic_c_file_impl(io_cookie,mode,std::in_place_type<stm>,std::move(rref)){}
 
 	basic_c_file_impl(basic_c_file_impl const&)=default;
 	basic_c_file_impl& operator=(basic_c_file_impl const&)=default;
