@@ -64,14 +64,8 @@ inline void overflow(c_io_observer_unlocked cio,char ch)
 		throw_posix_error();
 }
 
-inline constexpr bool obuffer_is_active(c_io_observer_unlocked cio) noexcept
-{
-	return cio.fp->_base;
-}
-
 
 static_assert(buffer_io_stream<c_io_observer_unlocked>);
-static_assert(maybe_buffer_output_stream<c_io_observer_unlocked>);
 static_assert(!buffer_io_stream<basic_c_io_observer_unlocked<char8_t>>);
 
 }

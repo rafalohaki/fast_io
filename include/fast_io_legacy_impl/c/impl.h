@@ -639,8 +639,19 @@ template<std::integral T,std::contiguous_iterator Iter>
 	return read(cfhd_unlocked,begin,end);
 }
 
+namespace details
+{
+inline void c_write_impl(void const* __restrict ptr,std::size_t size,std::size_t count,std::FILE* __restrict fp)
+{
+	if(fwrite(ptr,size,count,fp)<count)
+		throw_posix_error();
+	return;	
+}
+}
+
 template<std::integral T,std::contiguous_iterator Iter>
-inline decltype(auto) write(basic_c_io_observer<T> cfhd,Iter begin,Iter end)
+requires (std::same_as<T,char>||std::same_as<std::iter_value_t<Iter>,T>)
+inline Iter write(basic_c_io_observer<T> cfhd,Iter begin,Iter end)
 {
 	details::lock_guard lg{cfhd};
 	basic_c_io_observer_unlocked<T> cfhd_unlocked{cfhd.fp};
