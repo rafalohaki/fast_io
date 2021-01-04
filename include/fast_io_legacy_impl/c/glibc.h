@@ -141,11 +141,16 @@ inline void overflow(wc_io_observer_unlocked cio,wchar_t ch)
 		throw_posix_error();
 }
 
+extern "C" int __flbf(std::FILE* fp) noexcept;
+
 template<std::integral ch_type>
 requires (std::same_as<ch_type,char>||std::same_as<ch_type,wchar_t>)
-inline constexpr bool obuffer_is_line_buffering(basic_c_io_observer_unlocked<ch_type> out) noexcept
+inline bool obuffer_is_line_buffering(basic_c_io_observer_unlocked<ch_type> ciou) noexcept
 {
-	return obuffer_end(out)<obuffer_curr(out);
+	return __flbf(ciou.fp);
 }
+
+static_assert(buffer_output_stream<c_io_observer_unlocked>);
+static_assert(!noline_buffer_output_stream<c_io_observer_unlocked>);
 
 }
