@@ -26,6 +26,7 @@ inline constexpr void ibuffer_set_curr(c_io_observer_unlocked cio,char* ptr) noe
 extern "C" int __underflow (std::FILE*) noexcept;
 inline bool underflow(c_io_observer_unlocked cio) noexcept
 {
+	cio.fp->_IO_read_ptr=cio.fp->_IO_read_end;
 	return __underflow(cio.fp)!=EOF;
 }
 
@@ -80,6 +81,7 @@ inline void ibuffer_set_curr(u8c_io_observer_unlocked cio,char8_t* ptr) noexcept
 
 inline bool underflow(u8c_io_observer_unlocked cio) noexcept
 {
+	cio.fp->_IO_read_ptr=cio.fp->_IO_read_end;
 	return __underflow(cio.fp)!=EOF;
 }
 
@@ -164,6 +166,7 @@ inline void ibuffer_set_curr(wc_io_observer_unlocked cio,wchar_t* ptr) noexcept
 extern "C" std::wint_t __wunderflow (FILE *) noexcept;
 inline bool underflow(wc_io_observer_unlocked cio) noexcept
 {
+	ibuffer_set_curr(cio,ibuffer_end(cio));
 	return __wunderflow(cio.fp)!=WEOF;
 }
 
@@ -184,6 +187,7 @@ inline wchar_t* obuffer_end(wc_io_observer_unlocked cio) noexcept
 
 inline void obuffer_set_curr(wc_io_observer_unlocked cio,wchar_t* ptr) noexcept
 {
+	ibuffer_set_curr(cio,ibuffer_end(cio));
 	details::fp_wide_hack::hack_wpset<4>(cio.fp,ptr);
 }
 
@@ -218,6 +222,7 @@ inline void ibuffer_set_curr(u32c_io_observer_unlocked cio,[[gnu::may_alias]] ch
 
 inline bool underflow(u32c_io_observer_unlocked cio) noexcept
 {
+	ibuffer_set_curr(cio,ibuffer_end(cio));
 	return __wunderflow(cio.fp)!=WEOF;
 }
 
@@ -251,7 +256,6 @@ inline void overflow(u32c_io_observer_unlocked cio,char32_t ch)
 extern "C" int __flbf(std::FILE* fp) noexcept;
 
 template<std::integral ch_type>
-requires (std::same_as<ch_type,char>||std::same_as<ch_type,wchar_t>||std::same_as<ch_type,char8_t>||std::same_as<ch_type,char32_t>)
 inline bool obuffer_is_line_buffering(basic_c_io_observer_unlocked<ch_type> ciou) noexcept
 {
 	return __flbf(ciou.fp);
