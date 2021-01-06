@@ -514,6 +514,8 @@ inline constexpr void print_control(output out,T t)
 				}
 				if(lenp1<sz)[[likely]]
 				{
+					if constexpr(pci==print_control_impl::serialize)
+					{
 					curr=print_reserve_define(io_reserve_type<char_type,std::size_t>,curr,len);
 					if constexpr(std::same_as<char,char_type>)
 						*curr=' ';
@@ -522,6 +524,7 @@ inline constexpr void print_control(output out,T t)
 					else
 						*curr=u8' ';
 					++curr;
+					}
 					curr=details::non_overlapped_copy_n(scatter.base,len,curr);
 					if constexpr(details::exec_charset_is_ebcdic<char_type>())
 						*curr=0x25;
@@ -532,7 +535,10 @@ inline constexpr void print_control(output out,T t)
 				}
 				else
 				{
+					if constexpr(pci==print_control_impl::serialize)
+					{
 					print_serialize_size_bad_path(out,scatter.len);
+					}
 					write(out,scatter.base,scatter.base+scatter.len);
 					if constexpr(details::exec_charset_is_ebcdic<char_type>())
 						put(out,0x25);
