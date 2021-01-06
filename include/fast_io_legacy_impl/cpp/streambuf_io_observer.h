@@ -140,7 +140,10 @@ using wfilebuf_io_observer = basic_filebuf_io_observer<wchar_t>;
 using wstringbuf_io_observer = basic_stringbuf_io_observer<wchar_t>;
 #endif
 
-#if !defined(_MSVC_STL_UPDATE) || defined(_SILENCE_CXX20_CODECVT_FACETS_DEPRECATION_WARNING)
+#if defined(_MSVC_STL_UPDATE)
+#pragma warning(push, _STL_WARNING_LEVEL)
+#pragma warning(disable : 4996)
+#endif
 using u8streambuf_io_observer = basic_streambuf_io_observer<char8_t>;
 using u8filebuf_io_observer = basic_filebuf_io_observer<char8_t>;
 using u8stringbuf_io_observer = basic_stringbuf_io_observer<char8_t>;
@@ -152,6 +155,8 @@ using u16stringbuf_io_observer = basic_stringbuf_io_observer<char16_t>;
 using u32streambuf_io_observer = basic_streambuf_io_observer<char32_t>;
 using u32filebuf_io_observer = basic_filebuf_io_observer<char32_t>;
 using u32stringbuf_io_observer = basic_stringbuf_io_observer<char32_t>;
+#if defined(_MSVC_STL_UPDATE)
+#pragma warning(pop)
 #endif
 
 #if defined(__GLIBCXX__) || defined(__LIBCPP_VERSION)  || defined(_MSVC_STL_UPDATE)
