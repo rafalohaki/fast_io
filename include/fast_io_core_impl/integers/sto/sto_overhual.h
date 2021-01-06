@@ -25,7 +25,7 @@ inline constexpr bool char_digit_to_literal(my_make_unsigned_t<char_type>& ch) n
 {
 	using unsigned_char_type = my_make_unsigned_t<char_type>;
 	constexpr bool ebcdic{exec_charset_is_ebcdic<char_type>()};
-	constexpr char_type base_char_type(base);
+	constexpr unsigned_char_type base_char_type(base);
 	if constexpr(base<=10)
 	{
 		if constexpr(ebcdic)
@@ -42,9 +42,9 @@ inline constexpr bool char_digit_to_literal(my_make_unsigned_t<char_type>& ch) n
 			if constexpr(base<=19)
 			{
 				constexpr unsigned_char_type mns{base-10};
-				char_type ch2(ch);
+				unsigned_char_type ch2(ch);
 				ch2-=0xC1;
-				char_type ch3(ch);
+				unsigned_char_type ch3(ch);
 				ch3-=0x81;
 				ch-=0xF0;
 				if(ch2<mns)
@@ -58,13 +58,13 @@ inline constexpr bool char_digit_to_literal(my_make_unsigned_t<char_type>& ch) n
 			else if constexpr(base<=28)
 			{
 				constexpr unsigned_char_type mns{base-19};
-				char_type ch2(ch);
+				unsigned_char_type ch2(ch);
 				ch2-=0xC1;
-				char_type ch3(ch);
+				unsigned_char_type ch3(ch);
 				ch3-=0x81;
-				char_type ch4(ch);
+				unsigned_char_type ch4(ch);
 				ch2-=0xD1;
-				char_type ch5(ch);
+				unsigned_char_type ch5(ch);
 				ch3-=0x91;
 				ch-=0xF0;
 				if(ch4<mns)
@@ -82,17 +82,17 @@ inline constexpr bool char_digit_to_literal(my_make_unsigned_t<char_type>& ch) n
 			else
 			{
 				constexpr unsigned_char_type mns{base-27};
-				char_type ch2(ch);
+				unsigned_char_type ch2(ch);
 				ch2-=0xC1;
-				char_type ch3(ch);
+				unsigned_char_type ch3(ch);
 				ch3-=0x81;
-				char_type ch4(ch);
+				unsigned_char_type ch4(ch);
 				ch4-=0xD1;
-				char_type ch5(ch);
+				unsigned_char_type ch5(ch);
 				ch5-=0x91;
-				char_type ch6(ch);
+				unsigned_char_type ch6(ch);
 				ch6-=0xE2;
-				char_type ch7(ch);
+				unsigned_char_type ch7(ch);
 				ch7-=0xA2;
 				ch-=0xF0;
 				if(ch6<mns)
@@ -127,6 +127,81 @@ inline constexpr bool char_digit_to_literal(my_make_unsigned_t<char_type>& ch) n
 			else if(10<=ch)
 				return true;
 			return false;
+		}
+	}
+}
+
+template<char8_t base,std::integral char_type>
+requires (2<=base&&base<=36)
+inline constexpr bool char_digit_probe_overflow(my_make_unsigned_t<char_type> ch) noexcept
+{
+	using unsigned_char_type = my_make_unsigned_t<char_type>;
+	constexpr bool ebcdic{exec_charset_is_ebcdic<char_type>()};
+	constexpr unsigned_char_type base_char_type(base);
+	if constexpr(base<=10)
+	{
+		if constexpr(ebcdic)
+			ch-=static_cast<unsigned_char_type>(240);
+		else
+			ch-=static_cast<unsigned_char_type>(u8'0');
+		return ch<base_char_type;
+	}
+	else
+	{
+		if constexpr(ebcdic)
+		{
+			if constexpr(base<=19)
+			{
+				constexpr unsigned_char_type mns{base-10};
+				unsigned_char_type ch2(ch);
+				ch2-=0xC1;
+				unsigned_char_type ch3(ch);
+				ch3-=0x81;
+				ch-=0xF0;
+				return (ch2<mns)|(ch3<mns)|(ch<10u);
+			}
+			else if constexpr(base<=28)
+			{
+				constexpr unsigned_char_type mns{base-19};
+				unsigned_char_type ch2(ch);
+				ch2-=0xC1;
+				unsigned_char_type ch3(ch);
+				ch3-=0x81;
+				unsigned_char_type ch4(ch);
+				ch2-=0xD1;
+				unsigned_char_type ch5(ch);
+				ch3-=0x91;
+				ch-=0xF0;
+				return (ch4<mns)|(ch5<mns)|(ch2<mns)|(ch3<9)|(ch<10u);
+			}
+			else
+			{
+				constexpr unsigned_char_type mns{base-27};
+				unsigned_char_type ch2(ch);
+				ch2-=0xC1;
+				unsigned_char_type ch3(ch);
+				ch3-=0x81;
+				unsigned_char_type ch4(ch);
+				ch4-=0xD1;
+				unsigned_char_type ch5(ch);
+				ch5-=0x91;
+				unsigned_char_type ch6(ch);
+				ch6-=0xE2;
+				unsigned_char_type ch7(ch);
+				ch7-=0xA2;
+				ch-=0xF0;
+				return (ch6<mns)|(ch7<mns)|(ch4<9u)|(ch5<9u)|(ch2<9u)|(ch3<9u)|(ch<10u);
+			}
+		}
+		else
+		{
+			constexpr unsigned_char_type mns{base-10};
+			unsigned_char_type ch2(ch);
+			ch2-=u8'A';
+			unsigned_char_type ch3(ch);
+			ch3-=u8'a';
+			ch-=u8'0';
+			return (ch2<mns)|(ch3<mns)|(ch<10u);
 		}
 	}
 }
@@ -191,7 +266,7 @@ inline constexpr bool probe_overflow(Iter& b,Iter e,muint& res,std::size_t& sz) 
 	if constexpr (!larger_than_native)
 	{
 		unsigned_char_type result(*b);
-		if(char_digit_to_literal<base,char_type>(result))
+		if(!char_digit_probe_overflow<base,char_type>(result))
 			return false;
 		sz=npos;
 		++b;
@@ -201,15 +276,16 @@ inline constexpr bool probe_overflow(Iter& b,Iter e,muint& res,std::size_t& sz) 
 	else
 	{
 		unsigned_char_type result(*b);
-		if(char_digit_to_literal<base,char_type>(result))
-			return false;
-		else
-			return true;
+		return char_digit_probe_overflow<base,char_type>(result);
 	}
 }
 
 template<char8_t base,bool larger_than_native = false, bool skip_zeros = true, bool ignore=false, std::random_access_iterator Iter,my_unsigned_integral muint>
-inline constexpr bool from_chars(Iter& b,Iter e,muint& res,std::size_t& sz) noexcept
+inline
+#if defined(_MSC_VER) && !defined(__clang__)
+__forceinline
+#endif
+constexpr bool from_chars(Iter& b,Iter e,muint& res,std::size_t& sz) noexcept
 {
 	constexpr std::size_t max_size{cal_max_int_size<muint,base>()-1};
 	if constexpr(ignore)

@@ -46,7 +46,7 @@ inline constexpr Iter chrono_two_digits_impl(Iter it,U u) noexcept
 	}
 	auto v{u/10};
 	u%=10;
-	using char_type = iter_value_t<Iter>;
+	using char_type = std::iter_value_t<Iter>;
 	*it=v;
 	if constexpr(std::same_as<char_type,char>)
 		*it+='0';
@@ -62,7 +62,7 @@ inline constexpr Iter chrono_two_digits_impl(Iter it,U u) noexcept
 		*it+=L'0';
 	else
 		*it+=u8'0';
-	++it
+	++it;
 	return it;
 #elif defined(FAST_IO_OPTIMIZE_TIME)
 	using char_type = std::iter_value_t<Iter>;
