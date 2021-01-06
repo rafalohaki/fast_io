@@ -31,16 +31,16 @@ struct overlapped
 #else
 	std::uint32_t Internal,InternalHigh;
 #endif
-union
+union dummy_union_name_t
 {
-struct
+struct dummy_struct_name_t
 {
 std::uint32_t Offset;
 std::uint32_t OffsetHigh;
-} DUMMYSTRUCTNAME;
+} dummy_struct_name;
 void* Pointer;
 }
-DUMMYUNIONNAME;
+dummy_union_name;
 void* hEvent;
 };
 struct transmit_file_buffer

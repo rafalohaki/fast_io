@@ -256,6 +256,148 @@ inline void overflow(wc_io_observer_unlocked cio,wchar_t ch)
 		throw_posix_error();
 }
 
+[[gnu::may_alias]] inline char8_t* ibuffer_begin(u8c_io_observer_unlocked cio)
+{
+	return details::ucrt_hack::get_fp_base<char8_t>(cio.fp);
+}
+
+[[gnu::may_alias]] inline char8_t* ibuffer_curr(u8c_io_observer_unlocked cio)
+{
+	using namespace details::ucrt_hack;
+	return get_fp_ptr<char8_t>(cio.fp);
+}
+
+[[gnu::may_alias]] inline char8_t* ibuffer_end(u8c_io_observer_unlocked cio)
+{
+	using namespace details::ucrt_hack;
+	return get_fp_ptr<char8_t>(cio.fp)+(get_fp_cnt(cio.fp));
+}
+
+inline void ibuffer_set_curr(u8c_io_observer_unlocked cio, [[gnu::may_alias]] char8_t* ptr)
+{
+	using namespace details::ucrt_hack;
+	set_fp_cnt(cio.fp,(get_fp_ptr<char8_t>(cio.fp)-ptr)+get_fp_cnt(cio.fp));
+	set_fp_ptr(cio.fp,ptr);
+}
+
+inline bool underflow(u8c_io_observer_unlocked cio)
+{
+	using namespace details::ucrt_hack;
+	ibuffer_set_curr(cio,ibuffer_end(cio));
+	if(_fgetc_nolock(cio.fp)==EOF)[[unlikely]]
+		return false;
+	set_fp_cnt(cio.fp,get_fp_cnt(cio.fp)+1);
+	set_fp_ptr(cio.fp,get_fp_ptr(cio.fp)-1);
+	return true;
+}
+
+[[gnu::may_alias]] inline char8_t* obuffer_begin(u8c_io_observer_unlocked cio)
+{
+	using namespace details::ucrt_hack;
+	return get_fp_base<char8_t>(cio.fp);
+}
+
+[[gnu::may_alias]] inline char8_t* obuffer_curr(u8c_io_observer_unlocked cio)
+{
+	using namespace details::ucrt_hack;
+	return get_fp_ptr<char8_t>(cio.fp);
+}
+
+[[gnu::may_alias]] inline char8_t* obuffer_end(u8c_io_observer_unlocked cio)
+{
+	using namespace details::ucrt_hack;
+	return get_fp_base<char8_t>(cio.fp)+get_fp_bufsiz(cio.fp);
+}
+
+inline void obuffer_set_curr(u8c_io_observer_unlocked cio,[[gnu::may_alias]] char8_t* ptr)
+{
+	using namespace details::ucrt_hack;
+	set_fp_cnt(cio.fp,(get_fp_ptr<char8_t>(cio.fp)-ptr)+get_fp_cnt(cio.fp));
+	set_fp_ptr(cio.fp,ptr);
+	set_fp_flags(cio.fp,get_fp_flags(cio.fp)|0x010000);
+}
+
+//extern "C" wint_t __stdcall __acrt_stdio_flush_and_write_wide_nolock(wint_t,FILE*) noexcept;
+
+inline void overflow(u8c_io_observer_unlocked cio,char8_t ch)
+{
+	using namespace details::ucrt_hack;
+	obuffer_set_curr(cio,obuffer_end(cio));
+	if(_fputc_nolock(static_cast<wint_t>(static_cast<std::make_unsigned_t<char8_t>>(ch)),cio.fp)==EOF)[[unlikely]]
+		throw_posix_error();
+}
+
+[[gnu::may_alias]] inline char16_t* ibuffer_begin(u16c_io_observer_unlocked cio)
+{
+	return details::ucrt_hack::get_fp_base<char16_t>(cio.fp);
+}
+
+[[gnu::may_alias]] inline char16_t* ibuffer_curr(u16c_io_observer_unlocked cio)
+{
+	using namespace details::ucrt_hack;
+	return get_fp_ptr<char16_t>(cio.fp);
+}
+
+[[gnu::may_alias]] inline char16_t* ibuffer_end(u16c_io_observer_unlocked cio)
+{
+	using namespace details::ucrt_hack;
+	return get_fp_ptr<char16_t>(cio.fp)+(get_fp_cnt(cio.fp)/sizeof(char16_t));
+}
+
+inline void ibuffer_set_curr(u16c_io_observer_unlocked cio, [[gnu::may_alias]] char16_t* ptr)
+{
+	using namespace details::ucrt_hack;
+	set_fp_cnt(cio.fp,(get_fp_ptr<char16_t>(cio.fp)-ptr)*sizeof(char16_t)+get_fp_cnt(cio.fp));
+	set_fp_ptr(cio.fp,ptr);
+}
+
+inline bool underflow(u16c_io_observer_unlocked cio)
+{
+	using namespace details::ucrt_hack;
+	ibuffer_set_curr(cio,ibuffer_end(cio));
+	if(_fgetwc_nolock(cio.fp)==WEOF)[[unlikely]]
+		return false;
+	set_fp_cnt(cio.fp,get_fp_cnt(cio.fp)+1);
+	set_fp_ptr(cio.fp,get_fp_ptr(cio.fp)-1);
+	return true;
+}
+
+[[gnu::may_alias]] inline char16_t* obuffer_begin(u16c_io_observer_unlocked cio)
+{
+	using namespace details::ucrt_hack;
+	return get_fp_base<char16_t>(cio.fp);
+}
+
+[[gnu::may_alias]] inline char16_t* obuffer_curr(u16c_io_observer_unlocked cio)
+{
+	using namespace details::ucrt_hack;
+	return get_fp_ptr<char16_t>(cio.fp);
+}
+
+[[gnu::may_alias]] inline char16_t* obuffer_end(u16c_io_observer_unlocked cio)
+{
+	using namespace details::ucrt_hack;
+	return get_fp_base<char16_t>(cio.fp)+get_fp_bufsiz(cio.fp)/sizeof(char16_t);
+}
+
+inline void obuffer_set_curr(u16c_io_observer_unlocked cio,[[gnu::may_alias]] char16_t* ptr)
+{
+	using namespace details::ucrt_hack;
+	set_fp_cnt(cio.fp,(get_fp_ptr<char16_t>(cio.fp)-ptr)*sizeof(char16_t)+get_fp_cnt(cio.fp));
+	set_fp_ptr(cio.fp,ptr);
+	set_fp_flags(cio.fp,get_fp_flags(cio.fp)|0x010000);
+}
+
+//extern "C" wint_t __stdcall __acrt_stdio_flush_and_write_wide_nolock(wint_t,FILE*) noexcept;
+
+inline void overflow(u16c_io_observer_unlocked cio,char16_t ch)
+{
+	using namespace details::ucrt_hack;
+	obuffer_set_curr(cio,obuffer_end(cio));
+	if(_fputwc_nolock(static_cast<wint_t>(static_cast<std::make_unsigned_t<char16_t>>(ch)),cio.fp)==WEOF)[[unlikely]]
+		throw_posix_error();
+}
+
 static_assert(buffer_io_stream<c_io_observer_unlocked>);
 static_assert(buffer_io_stream<wc_io_observer_unlocked>);
 }
