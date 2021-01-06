@@ -387,27 +387,7 @@ inline constexpr void print_control(output out,T t)
 					obuffer_set_curr(out,print_reserve_control_define_impl<pci,char_type,value_type>(bcurr,t));
 			}
 			else
-			{
-
 				print_control_reserve_bad_path<line,pci>(out,t);
-#if 0
-				std::array<char_type,size> array;
-				if constexpr(line)
-				{
-					auto it{print_reserve_control_define_impl<pci,char_type,value_type>(array.data(),t)};
-					if constexpr(std::same_as<char,char_type>)
-						*it='\n';
-					else if constexpr(std::same_as<wchar_t,char_type>)
-						*it=L'\n';
-					else
-						*it=u8'\n';
-					write(out,array.data(),++it);
-				}
-				else
-					write(out,array.data(),print_reserve_control_define_impl<pci,char_type,value_type>(array.data(),t));
-#endif
-			}
-//
 		}
 		else if constexpr(reserve_output_stream<output>)	//To do: Remove reserve_output_stream concepts
 		{
@@ -460,10 +440,30 @@ inline constexpr void print_control(output out,T t)
 	{
 		std::size_t size{print_dynamic_reserve_control_size_impl<pci,char_type,value_type>(t)};
 #ifndef __SANITIZE_ADDRESS__
-		if constexpr(buffer_output_stream<output>)
+		if constexpr(contiguous_output_stream<output>)
+		{
+			auto it{dynamic_print_reserve_control_define_impl<pci,char_type,value_type>(obuffer_curr(out),t,size)};
+			if constexpr(line)
+			{
+				if constexpr(std::same_as<char,char_type>)
+					*it='\n';
+				else if constexpr(std::same_as<wchar_t,char_type>)
+					*it=L'\n';
+				else
+					*it=u8'\n';
+				++it;
+			}
+			obuffer_set_curr(out,it);
+		}
+		else if constexpr(buffer_output_stream<output>)
 		{
 			auto curr{obuffer_curr(out)};
-			if constexpr(contiguous_output_stream<output>)
+			std::ptrdiff_t ssizep1(size);
+			if constexpr(line)
+				++ssizep1;
+			auto ed{obuffer_end(out)};
+			std::ptrdiff_t diff(ed-curr);
+			if(static_cast<std::ptrdiff_t>(ssizep1)<diff)
 			{
 				auto it{dynamic_print_reserve_control_define_impl<pci,char_type,value_type>(curr,t,size)};
 				if constexpr(line)
@@ -479,30 +479,7 @@ inline constexpr void print_control(output out,T t)
 				obuffer_set_curr(out,it);
 			}
 			else
-			{
-				std::ptrdiff_t ssizep1(size);
-				if constexpr(line)
-					++ssizep1;
-				auto ed{obuffer_end(out)};
-				std::ptrdiff_t diff(ed-curr);
-				if(static_cast<std::ptrdiff_t>(ssizep1)<diff)
-				{
-					auto it{dynamic_print_reserve_control_define_impl<pci,char_type,value_type>(curr,t,size)};
-					if constexpr(line)
-					{
-						if constexpr(std::same_as<char,char_type>)
-							*it='\n';
-						else if constexpr(std::same_as<wchar_t,char_type>)
-							*it=L'\n';
-						else
-							*it=u8'\n';
-						++it;
-					}
-					obuffer_set_curr(out,it);
-				}
-				else
-					print_control_dynamic_reserve_bad_path<line,pci,value_type>(out,t,size);
-			}
+				print_control_dynamic_reserve_bad_path<line,pci,value_type>(out,t,size);
 		}
 		else
 #endif

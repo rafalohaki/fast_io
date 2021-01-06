@@ -36,11 +36,11 @@ template<std::integral char_type>
 using basic_iobuf_io_io_handle = basic_iobuf<basic_io_io_handle<char_type>>;
 template<std::integral char_type>
 using basic_iobuf_io_file = basic_iobuf<basic_io_file<char_type>>;
-
+#ifndef _MSC_VER
 template<std::integral char_type>
 using basic_io_files = basic_ovector<basic_io_file<char_type>>;
-
 using io_files = basic_io_files<char>;
+#endif
 
 using iobuf_io_io_observer = basic_iobuf_io_io_observer<char>;
 using iobuf_io_io_handle = basic_iobuf_io_io_handle<char>;

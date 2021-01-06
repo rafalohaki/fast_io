@@ -433,8 +433,7 @@ inline std::size_t pread_impl(void* __restrict handle,void* __restrict begin,std
 		if(static_cast<std::size_t>(UINT32_MAX)<to_read)
 			to_read=static_cast<std::size_t>(UINT32_MAX);
 	win32::overlapped overlap{};
-	overlap.Offset=static_cast<std::uint32_t>(u64off);
-	overlap.OffsetHigh=static_cast<std::uint32_t>(u64off>>32);
+	overlap.DUMMYUNIONNAME.DUMMYSTRUCTNAME={static_cast<std::uint32_t>(u64off),static_cast<std::uint32_t>(u64off>>32)};
 	if(!win32::ReadFile(handle,begin,static_cast<std::uint32_t>(to_read),std::addressof(number_of_bytes_read),std::addressof(overlap)))
 	{
 		auto err(win32::GetLastError());
@@ -506,8 +505,7 @@ inline std::uint32_t pwrite_simple_impl(void* __restrict handle,void const* __re
 	}
 	std::uint32_t number_of_bytes_written{};
 	win32::overlapped overlap{};
-	overlap.Offset=static_cast<std::uint32_t>(u64off);
-	overlap.OffsetHigh=static_cast<std::uint32_t>(u64off>>32);
+	overlap.DUMMYUNIONNAME.DUMMYSTRUCTNAME={static_cast<std::uint32_t>(u64off),static_cast<std::uint32_t>(u64off>>32)};
 	if(!win32::WriteFile(handle,cbegin,static_cast<std::uint32_t>(to_write),std::addressof(number_of_bytes_written),std::addressof(overlap)))
 		throw_win32_error();
 	return number_of_bytes_written;

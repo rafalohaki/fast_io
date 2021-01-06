@@ -27,19 +27,44 @@ constexpr
 namespace details
 {
 
+template<std::unsigned_integral U>
+requires (sizeof(U)==1||sizeof(U)==2||sizeof(U)==4||sizeof(U)==8)
+inline constexpr U byte_swap_naive_impl(U a) noexcept
+{
+	if constexpr(sizeof(U)==8)
+	{
+		return  ((a & 0xff00000000000000ULL) >> 56) |
+			((a & 0x00ff000000000000ULL) >> 40) |
+			((a & 0x0000ff0000000000ULL) >> 24) |
+			((a & 0x000000ff00000000ULL) >> 8)  |
+			((a & 0x00000000ff000000ULL) >> 8)  |
+			((a & 0x0000000000ff0000ULL) << 24) |
+			((a & 0x000000000000ff00ULL) << 40) |
+			((a & 0x00000000000000ffULL) << 56) ;
+	}
+	else if constexpr(sizeof(U)==4)
+	{
+		return  ((a & 0xff000000U) >> 24) |
+			((a & 0x00ff0000U) >> 8) |
+			((a & 0x0000ff00U) << 8) |
+			((a & 0x000000ffU) << 24)  ;
+	}
+	else if constexpr(sizeof(U)==2)
+	{
+		return  ((a & 0xff00) >> 8) |
+			((a & 0x00ff) << 8) ;
+	}
+}
 
 template<std::unsigned_integral U>
-requires (sizeof(U)==2||sizeof(U)==4||sizeof(U)==8)
-inline U byte_swap(U a)
+requires (sizeof(U)==1||sizeof(U)==2||sizeof(U)==4||sizeof(U)==8)
+inline constexpr U byte_swap(U a) noexcept
 {
-#ifdef _MSC_VER
-	if constexpr(sizeof(U)==8)
-		return _byteswap_uint64(a);
-	else if constexpr(sizeof(U)==4)
-		return _byteswap_ulong(a);
+	if constexpr(sizeof(U)==1)
+		return a;
 	else
-		return _byteswap_ushort(a);
-#elif (defined(__GNUG__) || defined(__clang__))
+	{
+#if (defined(__GNUG__) || defined(__clang__))
 	if constexpr(sizeof(U)==8)
 		return __builtin_bswap64(a);
 	else if constexpr(sizeof(U)==4)
@@ -47,16 +72,32 @@ inline U byte_swap(U a)
 	else
 		return __builtin_bswap16(a);
 #else
-	std::array<std::byte,sizeof(U)> b;
-	memcpy(b.data(),std::addressof(a),sizeof(U));
-	std::reverse(b.begin(),b.end());
-	memcpy(std::addressof(a),b.data(),sizeof(U));
-	return a;
+
+#if __cpp_lib_is_constant_evaluated>=201811L
+	if (std::is_constant_evaluated())
+	{
+		return byte_swap_naive_impl(a);
+	}
+	else
 #endif
+	{
+#if defined(_MSC_VER)
+	if constexpr(sizeof(U)==8)
+		return _byteswap_uint64(a);
+	else if constexpr(sizeof(U)==4)
+		return _byteswap_ulong(a);
+	else
+		return _byteswap_ushort(a);
+#else
+	return byte_swap_naive_impl(a);
+#endif
+	}
+#endif
+	}
 }
 
 template<std::unsigned_integral U>
-inline constexpr U big_endian(U u)
+inline constexpr U big_endian(U u) noexcept
 {
 	if constexpr(std::endian::little==std::endian::native)
 		return byte_swap(u);
@@ -251,7 +292,7 @@ lock_guard& operator=(lock_guard const&) = delete;
 
 
 template<my_integral T>
-inline constexpr T compile_time_pow(T base,std::size_t pow)
+inline constexpr T compile_time_pow(T base,std::size_t pow) noexcept
 {
 	T t=1;
 	for(std::size_t i{};i!=pow;++i)
@@ -260,21 +301,21 @@ inline constexpr T compile_time_pow(T base,std::size_t pow)
 }
 
 template<my_integral T,std::size_t pow>
-inline constexpr auto compile_pow10()
+inline constexpr auto compile_pow10() noexcept
 {
 	constexpr auto value{compile_time_pow(std::remove_cvref_t<T>(10),pow)};
 	return value;
 }
 
 template<my_integral T,std::size_t pow>
-inline constexpr auto compile_pow5()
+inline constexpr auto compile_pow5() noexcept
 {
 	constexpr auto value{compile_time_pow(std::remove_cvref_t<T>(5),pow)};
 	return value;
 }
 
 template<std::unsigned_integral uint_type>
-inline constexpr auto power10_table_generator()
+inline constexpr auto power10_table_generator() noexcept
 {
 	constexpr std::size_t digits10(std::numeric_limits<uint_type>::digits10+1);
 	std::array<uint_type,digits10> array{};
@@ -460,7 +501,7 @@ inline constexpr std::uint32_t chars_len(U value) noexcept
 }
 
 template<my_integral T>
-inline constexpr my_make_unsigned_t<T> cal_int_max()
+inline constexpr my_make_unsigned_t<T> cal_int_max() noexcept
 {
 	my_make_unsigned_t<T> n{};
 	--n;
@@ -469,19 +510,19 @@ inline constexpr my_make_unsigned_t<T> cal_int_max()
 	return n;
 }
 template<my_integral T>
-inline constexpr T get_int_max()
+inline constexpr T get_int_max() noexcept
 {
 	constexpr T v{static_cast<T>(cal_int_max<T>())};
 	return v;
 }
 template<my_integral T>
-inline constexpr auto get_int_max_unsigned()
+inline constexpr auto get_int_max_unsigned() noexcept
 {
 	constexpr my_make_unsigned_t<std::remove_cvref_t<T>> v{cal_int_max<std::remove_cvref_t<T>>()};
 	return v;
 }
 template<my_integral T,char8_t base = 10>
-inline constexpr std::size_t cal_max_int_size()
+inline constexpr std::size_t cal_max_int_size() noexcept
 {
 	std::size_t i{};
 	auto n(get_int_max_unsigned<T>());

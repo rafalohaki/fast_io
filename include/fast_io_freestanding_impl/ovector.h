@@ -2,7 +2,7 @@
 
 namespace fast_io
 {
-
+#ifndef _MSC_VER
 template<output_stream output,typename vect_type = std::vector<output>>
 class basic_ovector:public vect_type
 {
@@ -18,5 +18,5 @@ inline constexpr void write(basic_ovector<output,vect_type>& vec,Iter begin,Iter
 	for(auto& e : vec)
 		write(e,begin,end);
 }
-
+#endif
 }
