@@ -344,7 +344,8 @@ inline constexpr void print_control(output out,T t)
 	{
 		constexpr std::size_t size{print_reserve_control_size_impl<pci,char_type,value_type>()+static_cast<std::size_t>(line)};
 #ifndef __SANITIZE_ADDRESS__
-		
+
+#if 0	
 		if constexpr(contiguous_output_stream<output>)
 		{
 			auto it{print_reserve_control_define_impl<pci,char_type,value_type>(obuffer_curr(out),t)};
@@ -360,7 +361,9 @@ inline constexpr void print_control(output out,T t)
 			}
 			obuffer_set_curr(out,it);
 		}
-		else if constexpr(buffer_output_stream<output>)
+		else
+#endif
+		if constexpr(buffer_output_stream<output>)
 		{
 			auto bcurr{obuffer_curr(out)};
 			auto bend{obuffer_end(out)};
@@ -440,6 +443,8 @@ inline constexpr void print_control(output out,T t)
 	{
 		std::size_t size{print_dynamic_reserve_control_size_impl<pci,char_type,value_type>(t)};
 #ifndef __SANITIZE_ADDRESS__
+
+#if 0
 		if constexpr(contiguous_output_stream<output>)
 		{
 			auto it{dynamic_print_reserve_control_define_impl<pci,char_type,value_type>(obuffer_curr(out),t,size)};
@@ -455,7 +460,9 @@ inline constexpr void print_control(output out,T t)
 			}
 			obuffer_set_curr(out,it);
 		}
-		else if constexpr(buffer_output_stream<output>)
+		else
+#endif	
+		if constexpr(buffer_output_stream<output>)
 		{
 			auto curr{obuffer_curr(out)};
 			std::ptrdiff_t ssizep1(size);

@@ -40,6 +40,7 @@ inline constexpr std::size_t cal_buffer_size()
 template<output_stream output,input_stream input>
 inline constexpr std::uintmax_t bufferred_transmit_impl(output& outp,input& inp)
 {
+#if 0
 	if constexpr(contiguous_output_stream<output>)
 	{
 		using input_char_type = typename std::remove_cvref_t<input>::char_type;
@@ -79,7 +80,9 @@ inline constexpr std::uintmax_t bufferred_transmit_impl(output& outp,input& inp)
 			}
 		}
 	}
-	else if constexpr(buffer_input_stream<input>)
+	else
+#endif
+	if constexpr(buffer_input_stream<input>)
 	{
 		std::uintmax_t transmitted_chars{};
 		do
@@ -126,6 +129,7 @@ inline constexpr std::uintmax_t bufferred_transmit_impl(output& outp,input& inp)
 template<output_stream output,input_stream input>
 inline constexpr std::uintmax_t bufferred_transmit_impl(output& outp,input& inp,std::uintmax_t chars)
 {
+#if 0
 	if constexpr(contiguous_output_stream<output>)
 	{
 		using input_char_type = typename std::remove_cvref_t<input>::char_type;
@@ -169,7 +173,9 @@ inline constexpr std::uintmax_t bufferred_transmit_impl(output& outp,input& inp,
 			}
 		}
 	}
-	else if constexpr(buffer_input_stream<input>)
+	else
+#endif
+	if constexpr(buffer_input_stream<input>)
 	{
 		std::uintmax_t transmitted_chars{};
 		do

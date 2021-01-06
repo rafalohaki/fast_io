@@ -22,16 +22,18 @@ namespace details
 {
 
 template<std::integral char_type>
-inline constexpr void omemory_map_write_impl(basic_omemory_map<char_type>& bomp,char_type const* begin,char_type const* end) noexcept
+inline constexpr void omemory_map_write_impl(basic_omemory_map<char_type>& bomp,char_type const* begin,char_type const* end)
 {
 	std::size_t const to_write(end-begin);
+	if(static_cast<std::size_t>(bomp.end_ptr-bomp.curr_ptr)<to_write)
+		throw_posix_error(EOVERFLOW);
 	non_overlapped_copy_n(begin,to_write,bomp.curr_ptr);
 	bomp.curr_ptr+=to_write;
 }
 }
 
 template<std::integral char_type,std::contiguous_iterator Iter>
-constexpr void write(basic_omemory_map<char_type>& bomp,Iter begin,Iter end) noexcept
+constexpr void write(basic_omemory_map<char_type>& bomp,Iter begin,Iter end)
 {
 	details::omemory_map_write_impl(bomp,std::to_address(begin),std::to_address(end));
 }
@@ -53,8 +55,9 @@ constexpr char_type* obuffer_end(basic_omemory_map<char_type>& bomp) noexcept
 }
 
 template<std::integral char_type>
-constexpr void overflow(basic_omemory_map<char_type>&,char_type) noexcept
+constexpr void overflow(basic_omemory_map<char_type>&,char_type)
 {
+	throw_posix_error(EOVERFLOW);
 //ub for overflow
 }
 
