@@ -184,10 +184,64 @@ inline constexpr auto l10n_path_prefix_dll_array() noexcept
 		return std::to_array(u8"/usr/local/lib/fast_io_i18n_data/locale/");
 #endif
 }
+template<bool full=false,std::integral char_type>
+inline void sanitize_locale_name(std::basic_string_view<char_type> locale_name)
+{
+	if(locale_name.empty())
+#ifdef _WIN32
+			throw_win32_error(0x00000057);
+#else
+			throw_posix_error(EINVAL);
+#endif
+	if((locale_name.front()==u8'.')|(locale_name.back()==u8'.'))
+	{
+#ifdef _WIN32
+			throw_win32_error(0x00000057);
+#else
+			throw_posix_error(EINVAL);
+#endif
+	}
+	if constexpr(full)
+	{
+		bool happened{};
+		for(auto e : locale_name)
+		{
+			if(e==u8'.')
+			{
+				if(happened)
+#ifdef _WIN32
+					throw_win32_error(0x00000057);
+#else
+					throw_posix_error(EINVAL);
+#endif
+				happened=true;
+			}
+			if((e==u8'\\')|(e==u8'/'))
+#ifdef _WIN32
+				throw_win32_error(0x00000057);
+#else
+				throw_posix_error(EINVAL);
+#endif
+		}
+	}
+	else
+	{
+		for(auto e : locale_name)
+		{
+			if((e==u8'\\')|(e==u8'/')|(e==u8'.'))
+#ifdef _WIN32
+			throw_win32_error(0x00000057);
+#else
+			throw_posix_error(EINVAL);
+#endif
+		}
+	}
+}
 
 template<std::integral char_type>
 inline void* load_l10n_with_real_name_impl(lc_locale& loc,std::basic_string_view<char_type> locale_name)
 {
+	sanitize_locale_name(locale_name);
 	constexpr auto prefix(details::l10n_path_prefix_dll_array<char_type>());
 	constexpr auto encoding{details::exec_encoding_dll_array<char_type>()};
 	constexpr auto prefix_no_0_size{prefix.size()-1};
@@ -201,6 +255,8 @@ inline void* load_l10n_with_real_name_impl(lc_locale& loc,std::basic_string_view
 template<std::integral char_type>
 inline void* load_l10n_with_real_name_impl(lc_locale& loc,std::basic_string_view<char_type> locale_name,std::basic_string_view<char_type> encoding)
 {
+	sanitize_locale_name(locale_name);
+	sanitize_locale_name(encoding);
 	constexpr auto prefix(details::l10n_path_prefix_dll_array<char_type>());
 	constexpr auto prefix_no_0_size{prefix.size()-1};
 	constexpr auto dll_postfix{exec_dll_array<char_type>()};
@@ -217,6 +273,7 @@ inline void* load_l10n_with_real_name_impl(lc_locale& loc,std::basic_string_view
 template<std::integral char_type>
 inline void* load_l10n_with_full_name_impl(lc_locale& loc,std::basic_string_view<char_type> locale_fullname)
 {
+	sanitize_locale_name<true>(locale_fullname);
 	constexpr auto prefix(details::l10n_path_prefix_dll_array<char_type>());
 	constexpr auto prefix_no_0_size{prefix.size()-1};
 	constexpr auto dll_postfix{exec_dll_array<char_type>()};
