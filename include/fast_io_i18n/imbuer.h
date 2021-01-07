@@ -253,7 +253,7 @@ inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type>
 	(!lc_printable<io_reference_wrapper<
 		internal_temporary_buffer<char_type>>,char_type>)))&&...))
 	{
-		print_fallback<line>(out,args...);
+		print_fallback<ln>(out,args...);
 	}
 	else if constexpr(scatter_output_stream<output>&&
 	((reserve_printable<char_type,Args>

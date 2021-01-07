@@ -18,7 +18,7 @@ class posix_dl_error:public fast_io_error
 public:
 	virtual	void report(error_reporter& err) const override
 	{
-		print(err,fast_io::chvw(dlerror()));
+		print(err,manipulators::chvw(dlerror()));
 	}
 };
 
