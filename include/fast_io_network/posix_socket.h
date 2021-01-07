@@ -17,7 +17,7 @@ public:
 #endif
 	void report(error_reporter& report) const override
 	{
-		print_freestanding(report,chvw(gai_strerror(ec)));
+		print_freestanding(report,manipulators::chvw(gai_strerror(ec)));
 	}
 };
 

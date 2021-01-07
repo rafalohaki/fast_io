@@ -160,7 +160,7 @@ inline constexpr void print_define(output& outp,cipher_suite_type const& e)
 	else if(e==tls_aes_128_ccm_8_sha256)
 		print_freestanding(outp,u8"TLS_AES_128_CCM_8_SHA256{0x13,0x05}");
 	else
-		print_freestanding(outp,u8"Unknown TLS cipher suite{",e.array.front(),fast_io::chvw(u8','),e.array.back(),fast_io::chvw(u8'}'));
+		print_freestanding(outp,u8"Unknown TLS cipher suite{",e.array.front(),fast_io::manipulators::chvw(u8','),e.array.back(),fast_io::manipulators::chvw(u8'}'));
 }
 
 }

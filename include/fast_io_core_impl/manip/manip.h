@@ -6,12 +6,6 @@ namespace fast_io
 namespace manip
 {
 
-template<typename T>
-struct chvw
-{
-	using manip_tag = manip_tag_t;
-	T reference;
-};
 
 template<typename T>
 struct whole
@@ -132,17 +126,6 @@ inline constexpr manip::drainage<T&> drainage(T&& age)
 	return {age};
 }
 
-template<std::integral T>
-inline constexpr manip::chvw<T> chvw(T ch)
-{
-	return {ch};
-}
-template<std::integral T>
-inline constexpr manip::chvw<T const*> chvw(T const* ch)
-{
-	return {ch};
-}
-
 template<typename T>
 struct chinese
 {
@@ -216,11 +199,12 @@ inline constexpr manip::representation<T,base,uppercase,space> representation(T 
 template<typename T,typename Func>
 inline constexpr manip::space<T&,Func&> space(T&& f,Func&& func){return {f,func};}
 
+#if 0
 template<character_output_stream output,std::integral T>
 inline void print_define(output& out,manip::chvw<T> a)
 {
 	put(out,static_cast<typename output::char_type>(a.reference));
 }
-
+#endif
 
 }

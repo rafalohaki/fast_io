@@ -13,7 +13,7 @@ public:
 	pulse_audio_error(int e=PA_OK):error(e){}
 	void report(error_reporter& err) const override
 	{
-		print_freestanding(err,fast_io::chvw(pa_strerror(error)));
+		print_freestanding(err,manipulators::chvw(pa_strerror(error)));
 	}
 };
 

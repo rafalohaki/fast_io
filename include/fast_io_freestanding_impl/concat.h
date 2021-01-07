@@ -40,7 +40,7 @@ inline constexpr T deal_with_one(U t)
 	using value_type = typename T::value_type;
 	using no_cvref = std::remove_cvref_t<U>;
 	constexpr auto size{print_reserve_size(io_reserve_type<typename T::value_type,no_cvref>)+static_cast<std::size_t>(ln)};
-	if constexpr(!ln&&std::same_as<no_cvref,fast_io::manip::chvw<typename T::value_type>>)
+	if constexpr(!ln&&std::same_as<no_cvref,::fast_io::manipulators::chvw_t<typename T::value_type>>)
 		return T(1,t.reference);
 	else
 	{
