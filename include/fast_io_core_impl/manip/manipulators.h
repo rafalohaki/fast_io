@@ -17,6 +17,13 @@ struct chvw_t
 	T reference;
 };
 
+template<typename T>
+struct bool_view_t
+{
+	using manip_tag = manip_tag_t;
+	T reference;
+};
+
 template<std::size_t bs,::fast_io::details::my_integral T>
 requires (2<=bs&&bs<=36)
 inline constexpr std::conditional_t<bs==10,parameter<T&>,base_t<bs,false,T&>> base_get(T& reference) noexcept
@@ -182,10 +189,10 @@ inline constexpr chvw_t<T const*> chvw(T const* ch)
 
 
 /*
-pure manipulator allows us ignoring status streams like imbued locales streams
+purify manipulator allows us ignoring status streams like imbued locales streams
 */
 template<typename T>
-struct pure_t
+struct purify_t
 {
 	using manip_tag = manip_tag_t;
 	T reference;
@@ -193,54 +200,60 @@ struct pure_t
 
 template<typename output,typename value_type>
 requires printable<output,std::remove_cvref_t<value_type>>
-constexpr void print_define(output out, pure_t<value_type> wrapper)
+constexpr void print_define(output out, purify_t<value_type> wrapper)
 {
 	print_define(out,wrapper.reference);
 }
 
 template<std::integral char_type,typename value_type>
 requires reserve_printable<char_type,std::remove_cvref_t<value_type>>
-constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,pure_t<value_type>>)
+constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,purify_t<value_type>>)
 {
 	return print_reserve_size(io_reserve_type<char_type,std::remove_cvref_t<value_type>>);
 }
 
 template<std::integral char_type,typename value_type>
 requires dynamic_reserve_printable<char_type,std::remove_cvref_t<value_type>>
-constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,pure_t<value_type>>,pure_t<value_type> para)
+constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,purify_t<value_type>>,purify_t<value_type> para)
 {
 	return print_reserve_size(io_reserve_type<char_type,std::remove_cvref_t<value_type>>,para.reference);
 }
 
 template<std::integral char_type,typename value_type,typename Iter>
 requires reserve_printable<char_type,std::remove_cvref_t<value_type>>
-constexpr auto print_reserve_define(io_reserve_type_t<char_type,pure_t<value_type>>,Iter begin,pure_t<value_type> para)
+constexpr auto print_reserve_define(io_reserve_type_t<char_type,purify_t<value_type>>,Iter begin,purify_t<value_type> para)
 {
 	return print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<value_type>>,begin,para.reference);
 }
 
 template<std::integral char_type,typename value_type,typename Iter>
 requires dynamic_reserve_printable<char_type,std::remove_cvref_t<value_type>>
-constexpr auto print_reserve_define(io_reserve_type_t<char_type,pure_t<value_type>>,Iter begin,pure_t<value_type> para,std::size_t size)
+constexpr auto print_reserve_define(io_reserve_type_t<char_type,purify_t<value_type>>,Iter begin,purify_t<value_type> para,std::size_t size)
 {
 	return print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<value_type>>,begin,para.reference,size);
 }
 
 template<std::integral char_type,typename value_type>
 requires scatter_printable<char_type,std::remove_cvref_t<value_type>>
-constexpr auto print_scatter_define(print_scatter_type_t<char_type>,pure_t<value_type> para)
+constexpr auto print_scatter_define(print_scatter_type_t<char_type>,purify_t<value_type> para)
 {
 	return print_scatter_define(print_scatter_type<char_type>,para.reference);
 }
 
 template<typename T>
-inline constexpr auto pure(T&& ref) noexcept
+inline constexpr auto purify(T&& ref) noexcept
 {
 	using no_cvref_t = std::remove_cvref_t<T>;
 	if constexpr(std::is_trivially_copyable_v<no_cvref_t>&&sizeof(no_cvref_t)<=sizeof(std::max_align_t))
-		return pure_t<no_cvref_t>{ref};
+		return purify_t<no_cvref_t>{ref};
 	else
-		return pure_t<std::remove_reference_t<T> const&>{ref};
+		return purify_t<std::remove_reference_t<T> const&>{ref};
+}
+
+template<std::integral T>
+inline constexpr bool_view_t<bool> bool_view(T value) noexcept
+{
+	return {value};
 }
 
 }

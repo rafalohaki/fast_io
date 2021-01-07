@@ -183,6 +183,62 @@ constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manipulators::
 	return details::process_integer_output<base,uppercase>(iter,std::to_integer<std::uint8_t>(ref.reference));
 }
 
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manipulators::bool_view_t<bool>>) noexcept
+{
+	return 3;
+}
+
+namespace details
+{
+template<std::random_access_iterator caiter>
+inline constexpr caiter print_reserve_bool_view_define_impl(caiter iter,bool v) noexcept
+{
+	using char_type = std::iter_value_t<caiter>;
+	if constexpr(std::same_as<char_type,char>)
+	{
+		if(v)
+			return copy_string_literal("Yes",iter);
+		else
+			return copy_string_literal("No",iter);
+	}
+	else if constexpr(std::same_as<char_type,wchar_t>)
+	{
+		if(v)
+			return copy_string_literal(L"Yes",iter);
+		else
+			return copy_string_literal(L"No",iter);
+	}
+	else if constexpr(std::same_as<char_type,char16_t>)
+	{
+		if(v)
+			return copy_string_literal(u"Yes",iter);
+		else
+			return copy_string_literal(u"No",iter);
+	}
+	else if constexpr(std::same_as<char_type,char32_t>)
+	{
+		if(v)
+			return copy_string_literal(U"Yes",iter);
+		else
+			return copy_string_literal(U"No",iter);
+	}
+	else
+	{
+		if(v)
+			return copy_string_literal(u8"Yes",iter);
+		else
+			return copy_string_literal(u8"No",iter);
+	}
+}
+}
+
+template<std::integral char_type,std::random_access_iterator caiter>
+inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manipulators::bool_view_t<bool>>,caiter iter,manipulators::bool_view_t<bool> ref) noexcept
+{
+	return details::print_reserve_bool_view_define_impl(iter,ref.reference);
+}
+
 namespace details
 {
 
