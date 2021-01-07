@@ -186,14 +186,14 @@ inline constexpr std::size_t calculate_scatter_dynamic_reserve_size(std::size_t*
 		if constexpr(sizeof...(Args)==0)
 			return res;
 		else
-			return res+calculate_scatter_dynamic_reserve_size(eds+1,args...);
+			return res+calculate_scatter_dynamic_reserve_size<char_type>(eds+1,args...);
 	}
 	else
 	{
 		if constexpr(sizeof...(Args)==0)
 			return 0;
 		else
-			return calculate_scatter_dynamic_reserve_size(eds,args...);
+			return calculate_scatter_dynamic_reserve_size<char_type>(eds,args...);
 	}
 }
 
@@ -262,7 +262,7 @@ inline constexpr void scatter_print_with_dynamic_reserve_recursive(io_scatter_t*
 	else
 		*arr=print_scatter_define(print_scatter_type<char_type>,t);
 	if constexpr(sizeof...(Args)!=0)
-		scatter_print_with_reserve_recursive(ptr,arr+1,dynamic_buffer_ptr,sizes,args...);
+		scatter_print_with_dynamic_reserve_recursive(arr+1,ptr,dynamic_buffer_ptr,sizes,args...);
 }
 
 

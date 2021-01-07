@@ -180,4 +180,67 @@ inline constexpr chvw_t<T const*> chvw(T const* ch)
 	return {ch};
 }
 
+
+/*
+pure manipulator allows us ignoring status streams like imbued locales streams
+*/
+template<typename T>
+struct pure_t
+{
+	using manip_tag = manip_tag_t;
+	T reference;
+};
+
+template<typename output,typename value_type>
+requires printable<output,std::remove_cvref_t<value_type>>
+constexpr void print_define(output out, pure_t<value_type> wrapper)
+{
+	print_define(out,wrapper.reference);
+}
+
+template<std::integral char_type,typename value_type>
+requires reserve_printable<char_type,std::remove_cvref_t<value_type>>
+constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,pure_t<value_type>>)
+{
+	return print_reserve_size(io_reserve_type<char_type,std::remove_cvref_t<value_type>>);
+}
+
+template<std::integral char_type,typename value_type>
+requires dynamic_reserve_printable<char_type,std::remove_cvref_t<value_type>>
+constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,pure_t<value_type>>,pure_t<value_type> para)
+{
+	return print_reserve_size(io_reserve_type<char_type,std::remove_cvref_t<value_type>>,para.reference);
+}
+
+template<std::integral char_type,typename value_type,typename Iter>
+requires reserve_printable<char_type,std::remove_cvref_t<value_type>>
+constexpr auto print_reserve_define(io_reserve_type_t<char_type,pure_t<value_type>>,Iter begin,pure_t<value_type> para)
+{
+	return print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<value_type>>,begin,para.reference);
+}
+
+template<std::integral char_type,typename value_type,typename Iter>
+requires dynamic_reserve_printable<char_type,std::remove_cvref_t<value_type>>
+constexpr auto print_reserve_define(io_reserve_type_t<char_type,pure_t<value_type>>,Iter begin,pure_t<value_type> para,std::size_t size)
+{
+	return print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<value_type>>,begin,para.reference,size);
+}
+
+template<std::integral char_type,typename value_type>
+requires scatter_printable<char_type,std::remove_cvref_t<value_type>>
+constexpr auto print_scatter_define(print_scatter_type_t<char_type>,pure_t<value_type> para)
+{
+	return print_scatter_define(print_scatter_type<char_type>,para.reference);
+}
+
+template<typename T>
+inline constexpr auto pure(T&& ref) noexcept
+{
+	using no_cvref_t = std::remove_cvref_t<T>;
+	if constexpr(std::is_trivially_copyable_v<no_cvref_t>&&sizeof(no_cvref_t)<=sizeof(std::max_align_t))
+		return pure_t<no_cvref_t>{ref};
+	else
+		return pure_t<std::remove_reference_t<T> const&>{ref};
+}
+
 }
