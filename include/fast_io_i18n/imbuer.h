@@ -81,6 +81,75 @@ inline constexpr auto print_reserve_define(io_reserve_type_t<char_type,parameter
 namespace details::decay
 {
 
+template<std::integral char_type,typename T,typename... Args>
+inline constexpr std::size_t calculate_lc_scatter_dynamic_reserve_size(
+	basic_lc_all<char_type> const* __restrict all,
+	std::size_t* eds,T t,Args... args)
+{
+	if constexpr(lc_dynamic_reserve_printable<char_type,T>)
+	{
+		std::size_t res{print_reserve_size(lc_reserve_type<char_type,T>,all,t)};
+		*eds=res;
+		if constexpr(sizeof...(Args)==0)
+			return res;
+		else
+			return res+calculate_lc_scatter_dynamic_reserve_size(all,eds+1,args...);
+	}
+	else if constexpr(!reserve_printable<char_type,T>&&
+		dynamic_reserve_printable<char_type,T>)
+	{
+		std::size_t res{print_reserve_size(lc_reserve_type<char_type,T>,all,t)};
+		*eds=res;
+		if constexpr(sizeof...(Args)==0)
+			return res;
+		else
+			return res+calculate_lc_scatter_dynamic_reserve_size(all,eds+1,args...);
+	}
+	else
+	{
+		if constexpr(sizeof...(Args)==0)
+			return 0;
+		else
+			return calculate_lc_scatter_dynamic_reserve_size(eds,args...);
+	}
+}
+
+template<std::integral char_type,typename T,typename... Args>
+inline constexpr void lc_scatter_print_with_dynamic_reserve_recursive(
+	basic_lc_all<char_type> const* __restrict all,
+	io_scatter_t* __restrict arr,
+	char_type* __restrict ptr,
+	char_type* __restrict dynamic_buffer_ptr,std::size_t* __restrict sizes,T t, Args ...args)
+{
+	if constexpr(dynamic_reserve_printable<char_type,T>)
+	{
+		auto end_ptr = print_reserve_define(lc_reserve_type<char_type,T>,dynamic_buffer_ptr,t,*sizes);
+		*arr={dynamic_buffer_ptr,(end_ptr-dynamic_buffer_ptr)*sizeof(*dynamic_buffer_ptr)};
+		++sizes;
+		if constexpr(sizeof...(Args)!=0)
+			dynamic_buffer_ptr = end_ptr;
+	}
+	else if constexpr(reserve_printable<char_type,T>)
+	{
+		auto end_ptr = print_reserve_define(io_reserve_type<char_type,T>,ptr,t);
+		*arr={ptr,(end_ptr-ptr)*sizeof(*ptr)};
+		if constexpr(sizeof...(Args)!=0)
+			ptr=end_ptr;
+	}
+	else if constexpr(dynamic_reserve_printable<char_type,T>)
+	{
+		auto end_ptr = print_reserve_define(io_reserve_type<char_type,T>,dynamic_buffer_ptr,t,*sizes);
+		*arr={dynamic_buffer_ptr,(end_ptr-dynamic_buffer_ptr)*sizeof(*dynamic_buffer_ptr)};
+		++sizes;
+		if constexpr(sizeof...(Args)!=0)
+			dynamic_buffer_ptr = end_ptr;
+	}
+	else
+		*arr=print_scatter_define(print_scatter_type<char_type>,t);
+	if constexpr(sizeof...(Args)!=0)
+		lc_scatter_print_with_reserve_recursive(ptr,arr+1,dynamic_buffer_ptr,sizes,args...);
+}
+
 template<bool line,output_stream output,typename T>
 inline constexpr void lc_print_control_reserve_bad_path(basic_lc_all<typename output::char_type> const* __restrict lc,output out,T t,std::size_t size)
 {
@@ -179,9 +248,10 @@ inline constexpr void lc_print_controls_line(basic_lc_all<typename output::char_
 template<bool ln,output_stream output,typename... Args>
 inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type> const* __restrict lc,output out,Args... args)
 {
-	if constexpr((!lc_dynamic_reserve_printable<char_type,Args>&&
+	using char_type = typename output::char_type;
+	if constexpr((((!lc_dynamic_reserve_printable<char_type,Args>&&
 	(!lc_printable<io_reference_wrapper<
-		internal_temporary_buffer<typename output::char_type>>,char_type>))&&...)
+		internal_temporary_buffer<char_type>>,char_type>)))&&...))
 	{
 		print_fallback<line>(out,args...);
 	}
@@ -194,10 +264,10 @@ inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type>
 	{
 		std::array<io_scatter_t,sizeof...(Args)+static_cast<std::size_t>(ln)> scatters;
 		std::array<char_type,calculate_scatter_reserve_size<char_type,Args...>()> array;
-		scatter_print_with_reserve_recursive(array.data(),scatters.data(),args...);
-		
-
-
+		std::array<std::size_t,
+		(((lc_dynamic_reserve_printable<char_type,Args>)||(dynamic_reserve_printable<char_type,Args>&&!reserve_printable<char_type,Args>))+...)> dynamic_sizes;
+		local_operator_new_array_ptr<char_type> new_ptr(calculate_lc_scatter_dynamic_reserve_size<char_type>(lc,dynamic_sizes.data(),args...));
+		lc_scatter_print_with_dynamic_reserve_recursive(lc,scatters.data(),array.data(),new_ptr.ptr,dynamic_sizes.data(),args...);
 		if constexpr(ln)
 		{
 			if constexpr(std::same_as<char_type,char>)
@@ -242,7 +312,7 @@ inline constexpr void lc_print_status_define_further_decay(basic_lc_all<typename
 	{
 		lock_guard lg{out};
 		decltype(auto) dout{out.unlocked_handle()};
-		details::lc_print_status_define_further_decay<ln>(lc,io_ref(dout),args...);
+		lc_print_status_define_further_decay<ln>(lc,io_ref(dout),args...);
 	}
 	else if constexpr(
 		(buffer_output_stream<output>||((!ln)&&sizeof...(Args)==1))
