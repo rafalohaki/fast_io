@@ -112,7 +112,6 @@ constexpr Iter process_integer_output(Iter iter,int_type i) noexcept
 	}
 }
 
-
 }
 
 template<std::integral char_type,details::my_integral int_type>

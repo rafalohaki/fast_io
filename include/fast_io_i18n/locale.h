@@ -51,7 +51,7 @@ struct close_dll
 inline void load_lc_locale(void* dll_handle,lc_locale& loc)
 {
 #ifdef _WIN32
-	auto func(bit_cast<void __stdcall(*)(lc_locale*) noexcept >(fast_io::win32::GetProcAddress(dll_handle,"export_locale_data")));
+	auto func(bit_cast<void (*)(lc_locale*) noexcept >(fast_io::win32::GetProcAddress(dll_handle,"export_locale_data")));
 #else
 	auto func(bit_cast<void (*)(lc_locale*) noexcept >(dlsym(dll_handle,"export_locale_data")));
 #endif

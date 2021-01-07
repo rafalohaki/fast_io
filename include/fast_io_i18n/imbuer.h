@@ -7,7 +7,7 @@ template<stream stm>
 requires (value_based_stream<stm>&&requires(stm sm)
 {
 	{io_value_handle(sm)}->std::same_as<stm>;
-})
+}&&std::is_trivially_copyable_v<stm>)
 struct lc_imbuer
 {
 	using handle_type = stm;
@@ -29,9 +29,9 @@ inline constexpr auto imbue(basic_lc_all<typename std::remove_cvref_t<stm>::char
 {
 	using char_type = typename std::remove_cvref_t<stm>::char_type;
 	if constexpr(value_based_stream<stm>)
-		return lc_imbuer{all,io_value_handle(out)};
+		return lc_imbuer<decltype(io_value_handle(out))>{all,io_value_handle(out)};
 	else
-		return lc_imbuer{all,io_ref(out)};
+		return lc_imbuer<decltype(io_ref(out))>{all,io_ref(out)};
 }
 
 template<stream stm>

@@ -22,9 +22,9 @@ struct local_operator_new_array_ptr
 #endif
 		{
 			if constexpr(alignof(char_type)>=alignof(std::max_align_t))
-				ptr=reinterpret_cast<char_type*>(operator new[](sz*sizeof(char_type),std::align_val_t{alignof(char_type)}));
+				ptr=reinterpret_cast<char_type*>(operator new(sz*sizeof(char_type),std::align_val_t{alignof(char_type)}));
 			else
-				ptr=reinterpret_cast<char_type*>(operator new[](sz*sizeof(char_type)));
+				ptr=reinterpret_cast<char_type*>(operator new(sz*sizeof(char_type)));
 		}
 	}
 	local_operator_new_array_ptr(local_operator_new_array_ptr const&)=delete;
@@ -42,10 +42,17 @@ struct local_operator_new_array_ptr
 		else
 #endif
 		{
+#if __cpp_sized_deallocation >= 201309
 			if constexpr(alignof(char_type)>=alignof(std::max_align_t))
-				operator delete[](ptr,size*sizeof(char_type),std::align_val_t{alignof(char_type)});
+				operator delete(ptr,size*sizeof(char_type),std::align_val_t{alignof(char_type)});
 			else
-				operator delete[](ptr,size*sizeof(char_type));
+				operator delete(ptr,size*sizeof(char_type));
+#else
+			if constexpr(alignof(char_type)>=alignof(std::max_align_t))
+				operator delete(ptr,std::align_val_t{alignof(char_type)});
+			else
+				operator delete(ptr);
+#endif
 		}
 	}
 };

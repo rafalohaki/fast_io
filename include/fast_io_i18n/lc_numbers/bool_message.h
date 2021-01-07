@@ -3,7 +3,7 @@
 namespace fast_io
 {
 template<std::integral char_type>
-inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* all,manipulators::bool_view_t<bool> val) noexcept
+inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* __restrict all,manipulators::bool_view_t<bool> val) noexcept
 {
 	if(val.reference)
 		return all->messages.yesstr.len;
