@@ -132,35 +132,42 @@ struct parameter
 };
 
 template<typename output,typename value_type>
-requires printable<output,value_type>
+requires printable<output,std::remove_cvref_t<value_type>>
 constexpr void print_define(output out, parameter<value_type> wrapper)
 {
 	print_define(out,wrapper.reference);
 }
 
 template<std::integral char_type,typename value_type>
-requires reserve_printable<char_type,value_type>
+requires reserve_printable<char_type,std::remove_cvref_t<value_type>>
 constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,parameter<value_type>>)
 {
 	return print_reserve_size(io_reserve_type<char_type,std::remove_cvref_t<value_type>>);
 }
 
 template<std::integral char_type,typename value_type>
-requires dynamic_reserve_printable<char_type,value_type>
+requires dynamic_reserve_printable<char_type,std::remove_cvref_t<value_type>>
 constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,parameter<value_type>>,parameter<value_type> para)
 {
 	return print_reserve_size(io_reserve_type<char_type,std::remove_cvref_t<value_type>>,para.reference);
 }
 
 template<std::integral char_type,typename value_type,typename Iter>
-requires reserve_printable<char_type,value_type>
+requires reserve_printable<char_type,std::remove_cvref_t<value_type>>
 constexpr auto print_reserve_define(io_reserve_type_t<char_type,parameter<value_type>>,Iter begin,parameter<value_type> para)
 {
 	return print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<value_type>>,begin,para.reference);
 }
 
+template<std::integral char_type,typename value_type,typename Iter>
+requires dynamic_reserve_printable<char_type,std::remove_cvref_t<value_type>>
+constexpr auto print_reserve_define(io_reserve_type_t<char_type,parameter<value_type>>,Iter begin,parameter<value_type> para,std::size_t size)
+{
+	return print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<value_type>>,begin,para.reference,size);
+}
+
 template<std::integral char_type,typename value_type>
-requires scatter_printable<char_type,value_type>
+requires scatter_printable<char_type,std::remove_cvref_t<value_type>>
 constexpr auto print_scatter_define(print_scatter_type_t<char_type>,parameter<value_type> para)
 {
 	return print_scatter_define(print_scatter_type<char_type>,para.reference);

@@ -173,16 +173,40 @@ inline constexpr std::size_t calculate_scatter_reserve_size()
 		calculate_scatter_reserve_size<char_type,Args...>();
 }
 
+
+
+template<std::integral char_type,typename T,typename... Args>
+inline constexpr std::size_t calculate_scatter_dynamic_reserve_size(std::size_t* eds,T t,Args... args)
+{
+	if constexpr(!reserve_printable<char_type,T>&&
+		dynamic_reserve_printable<char_type,T>)
+	{
+		std::size_t res{print_reserve_size(io_reserve_type<char_type,T>,t)};
+		*eds=res;
+		++eds;
+		if constexpr(sizeof...(Args)==0)
+			return res;
+		else
+		{
+			return res+calculate_scatter_dynamic_reserve_size(eds,args...);
+		}
+	}
+	else
+	{
+		if constexpr(sizeof...(Args)==0)
+			return 0;
+		else
+			return calculate_scatter_dynamic_reserve_size(eds,args...);
+	}
+}
+
+
 template<std::integral char_type,typename T>
 inline constexpr void scatter_print_with_reserve_recursive_unit(char_type*& start_ptr,
 		io_scatter_t* arr,T t)
 {
 	using real_type = std::remove_cvref_t<T>;
-	if constexpr(scatter_printable<char_type,real_type>)
-	{
-		*arr=print_scatter_define(print_scatter_type<char_type>,t);
-	}
-	else
+	if constexpr(reserve_printable<char_type,T>)
 	{
 #ifdef __SANITIZE_ADDRESS__
 		constexpr std::size_t sz{print_reserve_size(io_reserve_type<char_type,real_type>)};
@@ -197,9 +221,11 @@ inline constexpr void scatter_print_with_reserve_recursive_unit(char_type*& star
 		start_ptr=end_ptr;
 #endif
 	}
+	else
+	{
+		*arr=print_scatter_define(print_scatter_type<char_type>,t);
+	}
 }
-
-
 
 template<std::integral char_type,typename T>
 inline constexpr void scatter_print_with_reserve_recursive(char_type* ptr,
@@ -215,6 +241,32 @@ inline constexpr void scatter_print_with_reserve_recursive(char_type* ptr,
 	scatter_print_with_reserve_recursive_unit(ptr,arr,t);
 	scatter_print_with_reserve_recursive(ptr,arr+1,args...);
 }
+
+template<std::integral char_type,typename T,typename... Args>
+inline constexpr void scatter_print_with_dynamic_reserve_recursive(io_scatter_t* arr,char_type* ptr,
+	char_type* dynamic_buffer_ptr,std::size_t* sizes,T t, Args ...args)
+{
+	if constexpr(reserve_printable<char_type,T>)
+	{
+		auto end_ptr = print_reserve_define(io_reserve_type<char_type,T>,ptr,t);
+		*arr={ptr,(end_ptr-ptr)*sizeof(*ptr)};
+		if constexpr(sizeof...(Args)!=0)
+			ptr=end_ptr;
+	}
+	else if constexpr(dynamic_reserve_printable<char_type,T>)
+	{
+		auto end_ptr = print_reserve_define(io_reserve_type<char_type,T>,dynamic_buffer_ptr,t,*sizes);
+		*arr={dynamic_buffer_ptr,(end_ptr-dynamic_buffer_ptr)*sizeof(*dynamic_buffer_ptr)};
+		++sizes;
+		if constexpr(sizeof...(Args)!=0)
+			dynamic_buffer_ptr = end_ptr;
+	}
+	else
+		*arr=print_scatter_define(print_scatter_type<char_type>,t);
+	if constexpr(sizeof...(Args)!=0)
+		scatter_print_with_reserve_recursive(ptr,arr+1,dynamic_buffer_ptr,sizes,args...);
+}
+
 
 template<std::integral char_type,typename T>
 requires scatter_type_printable<char_type,T>
@@ -239,54 +291,6 @@ inline constexpr void print_serialize_size_bad_path(output out,std::size_t sz)
 	++it;
 	write(out,array.data(),it);
 }
-
-template<std::integral char_type>
-struct local_operator_new_array_ptr
-{
-	std::size_t size;
-	char_type* ptr;
-#if __cpp_constexpr >=201907L && __cpp_constexpr_dynamic_alloc >= 201907L && __cpp_lib_is_constant_evaluated >=201811L
-	constexpr
-#endif
-	local_operator_new_array_ptr(std::size_t sz):size(sz)
-	{
-#if __cpp_constexpr >=201907L && __cpp_constexpr_dynamic_alloc >= 201907L && __cpp_lib_is_constant_evaluated >=201811L
-		if(std::is_constant_evaluated())
-		{
-			ptr=new char_type[sz];
-		}
-		else
-#endif
-		{
-			if constexpr(alignof(char_type)>=alignof(std::max_align_t))
-				ptr=reinterpret_cast<char_type*>(operator new[](sz*sizeof(char_type),std::align_val_t{alignof(char_type)}));
-			else
-				ptr=reinterpret_cast<char_type*>(operator new[](sz*sizeof(char_type)));
-		}
-	}
-	local_operator_new_array_ptr(local_operator_new_array_ptr const&)=delete;
-	local_operator_new_array_ptr& operator=(local_operator_new_array_ptr const&)=delete;
-#if __cpp_constexpr >=201907L && __cpp_constexpr_dynamic_alloc >= 201907L && __cpp_lib_is_constant_evaluated >=201811L
-	constexpr
-#endif
-	~local_operator_new_array_ptr()
-	{
-#if __cpp_constexpr >=201907L && __cpp_constexpr_dynamic_alloc >= 201907L && __cpp_lib_is_constant_evaluated >=201811L
-		if(std::is_constant_evaluated())
-		{
-			delete[] ptr;
-		}
-		else
-#endif
-		{
-			if constexpr(alignof(char_type)>=alignof(std::max_align_t))
-				operator delete[](ptr,size*sizeof(char_type),std::align_val_t{alignof(char_type)});
-			else
-				operator delete[](ptr,size*sizeof(char_type));
-		}
-	}
-};
-
 
 template<bool line,print_control_impl pci,output_stream output,typename value_type>
 requires (reserve_printable<typename output::char_type,value_type>)
@@ -513,7 +517,6 @@ inline constexpr void print_control(output out,T t)
 				std::size_t const len{scatter.len};
 				std::size_t sz(end-curr);
 				std::size_t lenp1(len+1);
-
 				constexpr std::size_t size_t_reserve_length{print_reserve_size(io_reserve_type<char_type,std::size_t>)+1};
 				if constexpr(pci==print_control_impl::serialize)
 				{
@@ -611,7 +614,7 @@ template<bool line,output_stream output,typename ...Args>
 inline constexpr void print_fallback(output out,Args ...args)
 {
 	using char_type = typename output::char_type;
-	if constexpr(scatter_output_stream<output>&&((scatter_printable<typename output::char_type,Args>||reserve_printable<typename output::char_type,Args>)&&...))
+	if constexpr(scatter_output_stream<output>&&((scatter_printable<typename output::char_type,Args>||reserve_printable<typename output::char_type,Args>||dynamic_reserve_printable<typename output::char_type,Args>)&&...))
 	{
 		std::array<io_scatter_t,(sizeof...(Args))+static_cast<std::size_t>(line)> scatters;
 		if constexpr((scatter_printable<typename output::char_type,Args>&&...))
@@ -619,15 +622,50 @@ inline constexpr void print_fallback(output out,Args ...args)
 			scatter_print_recursive<typename output::char_type>(scatters.data(),args...);
 			if constexpr(line)
 			{
-				if constexpr(details::exec_charset_is_ebcdic<char_type>())
+				if constexpr(std::same_as<char_type,char>)
 				{
-					typename output::char_type ch(0x25);
+					char_type ch('\n');
+					scatters.back()={std::addressof(ch),sizeof(ch)};
+					scatter_write(out,scatters);
+				}
+				else if constexpr(std::same_as<char_type,wchar_t>)
+				{
+					char_type ch(L'\n');
 					scatters.back()={std::addressof(ch),sizeof(ch)};
 					scatter_write(out,scatters);
 				}
 				else
 				{
-					typename output::char_type ch(u8'\n');
+					char_type ch(u8'\n');
+					scatters.back()={std::addressof(ch),sizeof(ch)};
+					scatter_write(out,scatters);
+				}
+			}
+			else
+				scatter_write(out,scatters);
+		}
+		else if constexpr(((scatter_printable<char_type,Args>||
+			reserve_printable<char_type,Args>)&&...))
+		{
+			std::array<char_type,calculate_scatter_reserve_size<char_type,Args...>()> array;
+			scatter_print_with_reserve_recursive(array.data(),scatters.data(),args...);
+			if constexpr(line)
+			{
+				if constexpr(std::same_as<char_type,char>)
+				{
+					char_type ch('\n');
+					scatters.back()={std::addressof(ch),sizeof(ch)};
+					scatter_write(out,scatters);
+				}
+				else if constexpr(std::same_as<char_type,wchar_t>)
+				{
+					char_type ch(L'\n');
+					scatters.back()={std::addressof(ch),sizeof(ch)};
+					scatter_write(out,scatters);
+				}
+				else
+				{
+					char_type ch(u8'\n');
 					scatters.back()={std::addressof(ch),sizeof(ch)};
 					scatter_write(out,scatters);
 				}
@@ -637,19 +675,28 @@ inline constexpr void print_fallback(output out,Args ...args)
 		}
 		else
 		{
-			std::array<typename output::char_type,calculate_scatter_reserve_size<typename output::char_type,Args...>()+static_cast<std::size_t>(line)> array;
-			scatter_print_with_reserve_recursive(array.data(),scatters.data(),args...);
+			std::array<char_type,calculate_scatter_reserve_size<char_type,Args...>()> array;
+			std::array<std::size_t,
+			((dynamic_reserve_printable<char_type,Args>&&!reserve_printable<char_type,Args>)+...)> dynamic_sizes;
+			local_operator_new_array_ptr<char_type> new_ptr(calculate_scatter_dynamic_reserve_size<char_type>(dynamic_sizes.data(),args...));
+			scatter_print_with_dynamic_reserve_recursive(scatters.data(),array.data(),new_ptr.ptr,dynamic_sizes.data(),args...);
 			if constexpr(line)
 			{
-				if constexpr(details::exec_charset_is_ebcdic<char_type>())
+				if constexpr(std::same_as<char_type,char>)
 				{
-					typename output::char_type ch(0x25);
+					char_type ch('\n');
+					scatters.back()={std::addressof(ch),sizeof(ch)};
+					scatter_write(out,scatters);
+				}
+				else if constexpr(std::same_as<char_type,wchar_t>)
+				{
+					char_type ch(L'\n');
 					scatters.back()={std::addressof(ch),sizeof(ch)};
 					scatter_write(out,scatters);
 				}
 				else
 				{
-					typename output::char_type ch(u8'\n');
+					char_type ch(u8'\n');
 					scatters.back()={std::addressof(ch),sizeof(ch)};
 					scatter_write(out,scatters);
 				}
@@ -719,14 +766,6 @@ inline constexpr void print_freestanding_decay_normal(output out,Args ...args)
 		{
 			if constexpr(pci==print_control_impl::normal)
 			{
-/*				((print_fallback<false,pci>(out,args)),...);
-				if constexpr(line)
-				{
-					if constexpr(details::exec_charset_is_ebcdic<char_type>())
-						put(out,0x25);
-					else
-						put(out,u8'\n');
-				}*/
 				print_fallback<line>(out,args...);
 			}
 			else

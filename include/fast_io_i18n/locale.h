@@ -614,4 +614,10 @@ public:
 	}
 };
 
+template<buffer_output_stream output>
+inline constexpr void print_define(output bos,l10n const& loc)
+{
+	print_freestanding(bos,loc.loc);
+}
+
 }

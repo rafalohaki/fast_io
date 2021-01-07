@@ -45,16 +45,17 @@ inline constexpr auto imbue(l10n& loc,stm&& out) noexcept
 template<std::integral char_type,typename T>
 struct lc_reserve_type_t
 {
+explicit constexpr lc_reserve_type_t() noexcept = default;
 };
 template<std::integral char_type,typename T>
 inline constexpr lc_reserve_type_t<char_type,T> lc_reserve_type{};
 
 template<typename char_type,typename T>
-concept lc_reserve_printable = std::integral<char_type>&&
-	requires(T t,basic_lc_all<char_type> const* all,char_type* ptr)
+concept lc_dynamic_reserve_printable = std::integral<char_type>&&
+	requires(T t,basic_lc_all<char_type> const* all,char_type* ptr,std::size_t size)
 {
-	{print_reserve_size(lc_reserve_type<char_type,std::remove_cvref_t<T>>)}->std::convertible_to<std::size_t>;
-	{print_reserve_define(lc_reserve_type<char_type,std::remove_cvref_t<T>>,all,ptr,t)}->std::convertible_to<char_type*>;
+	{print_reserve_size(lc_reserve_type<char_type,std::remove_cvref_t<T>>,all,size)}->std::convertible_to<std::size_t>;
+	{print_reserve_define(lc_reserve_type<char_type,std::remove_cvref_t<T>>,all,ptr,t,size)}->std::convertible_to<char_type*>;
 };
 
 template<typename output,typename T>
@@ -62,30 +63,181 @@ concept lc_printable = output_stream<output>&&requires(basic_lc_all<typename out
 {
 	print_define(all,out,t);
 };
-#if 0
-namespace details
-{
 
-template<bool ln,output_stream output,typename T>
-requires (std::is_trivially_copyable_v<output>&&std::is_trivially_copyable_v<T>)
-inline constexpr void lc_print_control(basic_lc_all<typename output::char_type> const* lc,output out,T t)
+template<std::integral char_type,typename value_type,typename Iter>
+requires dynamic_reserve_printable<char_type,std::remove_cvref_t<value_type>>
+inline constexpr auto print_reserve_size(io_reserve_type_t<char_type,parameter<value_type>>,basic_lc_all<char_type> const* __restrict all,parameter<value_type> para)
 {
-	using char_type = typename output::char_type;
-	using value_type = std::remove_cvref_t<T>;	
+	return print_reserve_size(io_reserve_type<char_type,std::remove_cvref_t<value_type>>,all,para.reference);
 }
 
-template<bool ln,output_stream output,typename... Args>
-inline constexpr void lc_print_impl(basic_lc_all<typename output::char_type> const* lc,output out,Args... args)
+template<std::integral char_type,typename value_type,typename Iter>
+requires dynamic_reserve_printable<char_type,std::remove_cvref_t<value_type>>
+inline constexpr auto print_reserve_define(io_reserve_type_t<char_type,parameter<value_type>>,Iter begin,basic_lc_all<char_type> const* __restrict all,parameter<value_type> para,std::size_t size)
 {
-	if constexpr((!(lc_printable<output,Args>||lc_reserve_printable<typename output::char_type,Args>))&&...))
+	return print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<value_type>>,all,begin,para.reference,size);
+}
+
+namespace details::decay
+{
+
+template<bool line,output_stream output,typename T>
+inline constexpr void lc_print_control_reserve_bad_path(basic_lc_all<typename output::char_type> const* __restrict lc,output out,T t,std::size_t size)
+{
+	using value_type = std::remove_cvref_t<T>;
+	using char_type = typename output::char_type;
+	std::size_t sizep1{size};
+	if constexpr(line)
+		++sizep1;
+	local_operator_new_array_ptr<char_type> ptr(sizep1);
+	auto it{print_reserve_define(lc_reserve_type<char_type,value_type>,lc,ptr.ptr,t,size)};
+	if constexpr(line)
 	{
-		
+		if constexpr(std::same_as<char,char_type>)
+			*it='\n';
+		else if constexpr(std::same_as<wchar_t,char_type>)
+			*it=L'\n';
+		else
+			*it=u8'\n';
+		++it;
+	}
+	write(out,ptr.ptr,it);
+}
+
+template<bool line,output_stream output,typename T>
+requires (std::is_trivially_copyable_v<output>&&std::is_trivially_copyable_v<T>)
+inline constexpr void lc_print_control(basic_lc_all<typename output::char_type> const* __restrict lc,output out,T t)
+{
+	using char_type = typename output::char_type;
+	using value_type = std::remove_cvref_t<T>;
+	if constexpr(lc_dynamic_reserve_printable<char_type,value_type>)
+	{
+		std::size_t sz{print_reserve_size(lc_reserve_type<char_type,value_type>,lc,t)};
+		if constexpr(buffer_output_stream<output>)
+		{
+			auto bcurr{obuffer_curr(out)};
+			auto bend{obuffer_end(out)};
+			std::ptrdiff_t const diff(bend-bcurr);
+			std::size_t sizep1{sz};
+			if constexpr(line)
+			{
+				++sizep1;
+			}
+			if(static_cast<std::ptrdiff_t>(sizep1)<diff)[[likely]]
+			{
+				//To check whether this affects performance.
+				auto it{print_reserve_define(lc_reserve_type<char_type,value_type>,lc,bcurr,t,sz)};
+				if constexpr(line)
+				{
+					if constexpr(std::same_as<char,char_type>)
+						*it='\n';
+					else if constexpr(std::same_as<wchar_t,char_type>)
+						*it=L'\n';
+					else
+						*it=u8'\n';
+					++it;
+				}	
+				obuffer_set_curr(out,it);
+			}
+			else
+				lc_print_control_reserve_bad_path<line>(lc,out,t);
+		}
+		else
+			lc_print_control_reserve_bad_path<line>(lc,out,t);
+	}
+	else if constexpr(lc_printable<output,value_type>)
+	{
+		print_define(lc,out,t);
+		if constexpr(line)
+		{
+			if constexpr(std::same_as<char_type,char>)
+				put(out,'\n');
+			else if constexpr(std::same_as<char_type,wchar_t>)
+				put(out,L'\n');
+			else
+				put(out,u8'\n');
+		}
+	}
+	else
+		print_control<line>(out,t);
+}
+
+template<output_stream output,typename T,typename... Args>
+inline constexpr void lc_print_controls_line(basic_lc_all<typename output::char_type> const* __restrict lc,output out,T t,Args... args)
+{
+	if constexpr(sizeof...(Args)==0)
+	{
+		lc_print_control<true>(lc,out,t);
+	}
+	else
+	{
+		lc_print_control<false>(lc,out,t);
+		lc_print_controls_line(lc,out,args...);
 	}
 }
 
 template<bool ln,output_stream output,typename... Args>
-inline constexpr void lc_print_status_define_further_decay(basic_lc_all<typename output::char_type> const* lc,output out,Args... args)
+inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type> const* __restrict lc,output out,Args... args)
 {
+	if constexpr((!lc_dynamic_reserve_printable<char_type,Args>&&
+	(!lc_printable<io_reference_wrapper<
+		internal_temporary_buffer<typename output::char_type>>,char_type>))&&...)
+	{
+		print_fallback<line>(out,args...);
+	}
+	else if constexpr(scatter_output_stream<output>&&
+	((reserve_printable<char_type,Args>
+		||dynamic_reserve_printable<char_type,Args>
+		||lc_dynamic_reserve_printable<char_type,Args>
+		||scatter_printable<char_type,Args>
+		)&&...))
+	{
+		std::array<io_scatter_t,sizeof...(Args)+static_cast<std::size_t>(ln)> scatters;
+		std::array<char_type,calculate_scatter_reserve_size<char_type,Args...>()> array;
+		scatter_print_with_reserve_recursive(array.data(),scatters.data(),args...);
+		
+
+
+		if constexpr(ln)
+		{
+			if constexpr(std::same_as<char_type,char>)
+			{
+				char_type ch('\n');
+				scatters.back()={std::addressof(ch),sizeof(ch)};
+				scatter_write(out,scatters);
+			}
+			else if constexpr(std::same_as<char_type,wchar_t>)
+			{
+				char_type ch(L'\n');
+				scatters.back()={std::addressof(ch),sizeof(ch)};
+				scatter_write(out,scatters);
+			}
+			else
+			{
+				char_type ch(u8'\n');
+				scatters.back()={std::addressof(ch),sizeof(ch)};
+				scatter_write(out,scatters);
+			}
+		}
+		else
+			scatter_write(out,scatters);
+	}
+	else
+	{
+		internal_temporary_buffer<typename output::char_type> buffer;
+		auto ref{io_ref(buffer)};
+		if constexpr(!ln)
+			(lc_print_control<false>(lc,ref,args),...);
+		else
+			lc_print_controls_line(lc,ref,args...);
+		write(out,buffer.beg_ptr,buffer.end_ptr);
+	}
+}
+
+template<bool ln,output_stream output,typename... Args>
+inline constexpr void lc_print_status_define_further_decay(basic_lc_all<typename output::char_type> const* __restrict lc,output out,Args... args)
+{
+	using char_type = typename output::char_type;
 	if constexpr(mutex_stream<output>)
 	{
 		lock_guard lg{out};
@@ -93,30 +245,21 @@ inline constexpr void lc_print_status_define_further_decay(basic_lc_all<typename
 		details::lc_print_status_define_further_decay<ln>(lc,io_ref(dout),args...);
 	}
 	else if constexpr(
-		((printable<output,Args>||reserve_printable<typename output::char_type,Args>
-		||lc_printable<output,Args>||lc_reserve_printable<typename output::char_type,Args>
-		)&&...)&&
-		(sizeof...(Args)==1||buffer_output_stream<output>))
+		(buffer_output_stream<output>||((!ln)&&sizeof...(Args)==1))
+		&&((printable<output,Args>||reserve_printable<char_type,Args>
+		||dynamic_reserve_printable<char_type,Args>
+		||lc_printable<output,Args>||lc_dynamic_reserve_printable<char_type,Args>
+		||scatter_type_printable<char_type,Args>
+		)&&...)
+		)
 	{
-		if constexpr(sizeof...(Args)==1||(!maybe_buffer_output_stream<output>))
-		{
-			(lc_print_control(lc,out,args),...);
-		}
+		if constexpr(!ln)
+			(lc_print_control<false>(lc,out,args),...);
 		else
-		{
-			if constexpr(sizeof...(Args)!=1)
-			{
-				if(!obuffer_is_active(out))[[unlikely]]
-				{
-					lc_print_fallback<false>(lc,out,args...);
-					return;
-				}
-			}
-			(lc_print_control(lc,out,args),...);
-		}
+			lc_print_controls_line(lc,out,args...);
 	}
 	else
-		lc_print_fallback(lc,out,args...);
+		lc_print_fallback<ln>(lc,out,args...);
 }
 
 }
@@ -124,13 +267,13 @@ inline constexpr void lc_print_status_define_further_decay(basic_lc_all<typename
 template<output_stream output,typename... Args>
 inline constexpr void print_status_define(lc_imbuer<output> imb,Args... args)
 {
-	details::lc_print_status_define_further_decay<false>(imb.all,imb.handle,args...);
+	details::decay::lc_print_status_define_further_decay<false>(imb.all,imb.handle,args...);
 }
 
 template<output_stream output,typename... Args>
 inline constexpr void println_status_define(lc_imbuer<output> imb,Args... args)
 {
-	details::lc_print_status_define_further_decay<true>(imb.all,imb.handle,args...);
+	details::decay::lc_print_status_define_further_decay<true>(imb.all,imb.handle,args...);
 }
-#endif
+
 }
