@@ -251,10 +251,10 @@ inline constexpr void lc_print_control(basic_lc_all<typename output::char_type> 
 				obuffer_set_curr(out,it);
 			}
 			else
-				lc_print_control_reserve_bad_path<line>(lc,out,t);
+				lc_print_control_reserve_bad_path<line>(lc,out,t,sz);
 		}
 		else
-			lc_print_control_reserve_bad_path<line>(lc,out,t);
+			lc_print_control_reserve_bad_path<line>(lc,out,t,sz);
 	}
 	else if constexpr(lc_printable<output,value_type>)
 	{
@@ -293,7 +293,7 @@ inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type>
 	using char_type = typename output::char_type;
 	if constexpr((((!lc_dynamic_reserve_printable<char_type,Args>&&
 	(!lc_printable<io_reference_wrapper<
-		internal_temporary_buffer<char_type>>,char_type>)))&&...))
+		internal_temporary_buffer<char_type>>,Args>)))&&...))
 	{
 		print_fallback<ln>(out,args...);
 	}
