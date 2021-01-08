@@ -16,14 +16,29 @@ namespace details
 
 #if 0
 
-template<std::random_access_iterator Iter,details::my_integral T>
-constexpr Iter print_as_grouping(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,T t) noexcept
+template<std::random_access_iterator Iter,details::my_unsigned_integral T>
+constexpr Iter print_lc_grouping_unhappy_path_impl(
+	basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,std::iter_value_t<Iter> sep,Iter iter,T t) noexcept
 {
+	std::size_t len{char_lens<10>(t)};
+	std::size_t sum{};
+	std::size_t i{};
+	auto grouping{all->numeric.grouping};
+	for(;i!=grouping.len;++i)
+	{
+		auto e{grouping.base[i]};
+		if(e==SIZE_MAX)
+			break;
+		if(len<(e+sum))
+			break;
+		sum+=e;
+	}
 	
+//	for(std::size_t i)
 }
 
 template<std::random_access_iterator Iter,details::my_integral T>
-constexpr Iter print_lc_grouping_unhappy_path_impl(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,T t) noexcept
+constexpr Iter print_lc_grouping_unhappy_path_impl(,Iter iter,T t) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
 	using unsigned_type = details::my_make_unsigned_t<std::remove_cvref_t<int_type>>;
@@ -42,10 +57,11 @@ constexpr Iter print_lc_grouping_unhappy_path_impl(basic_lc_all<std::iter_value_
 				*iter=u8'-';
 			++iter;
 		}
-		return print_lc_grouping_unhappy_path_impl(seperator,iter,abs_value);
+		return print_lc_grouping_unhappy_path_impl(all,iter,abs_value);
 	}
 	else
-		return print_lc_grouping_unhappy_unsigned_path_impl(seperator,iter,static_cast<unsigned_type>(t));
+	{
+	}
 }
 #endif
 

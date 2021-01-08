@@ -398,7 +398,7 @@ inline constexpr void print_control(output out,T t)
 		else
 #endif
 		{
-			print_control_reserve_bad_path(out,t);
+			print_control_reserve_bad_path<line,pci>(out,t);
 		}
 	}
 	else if constexpr(dynamic_reserve_printable<char_type,value_type>)
