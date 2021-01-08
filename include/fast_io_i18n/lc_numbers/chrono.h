@@ -105,14 +105,17 @@ struct alt_t
 	T reference;
 };
 
-template<bool pm>
+template<typename T>
 struct am_pm_t
 {
 	using manip_tag = manip_tag_t;
+	T reference;
 };
 
-using am = am_pm_t<false>;
-using pm = am_pm_t<false>;
+inline constexpr am_pm_t<bool> am_pm(bool is_pm) noexcept
+{
+	return {is_pm};
+}
 
 inline constexpr abbr_t<std::chrono::weekday> abbr(std::chrono::weekday wkd) noexcept
 {
@@ -146,10 +149,10 @@ inline constexpr alt_t<std::chrono::seconds> alt(std::chrono::seconds s) noexcep
 	return {s};
 }
 
-template<std::integral char_type,bool pm>
-inline constexpr basic_io_scatter_t<char_type> print_scatter_define(basic_lc_all<char_type> const* __restrict all,am_pm_t<pm> wkd) noexcept
+template<std::integral char_type>
+inline constexpr basic_io_scatter_t<char_type> print_scatter_define(basic_lc_all<char_type> const* __restrict all,am_pm_t<bool> ampm) noexcept
 {
-	return all->time.am_pm[pm];
+	return all->time.am_pm[ampm.reference];
 }
 
 template<std::integral char_type>
