@@ -17,6 +17,12 @@ namespace details
 #if 0
 
 template<std::random_access_iterator Iter,details::my_integral T>
+constexpr Iter print_as_grouping(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,T t) noexcept
+{
+	
+}
+
+template<std::random_access_iterator Iter,details::my_integral T>
 constexpr Iter print_lc_grouping_unhappy_path_impl(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,T t) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
@@ -39,19 +45,7 @@ constexpr Iter print_lc_grouping_unhappy_path_impl(basic_lc_all<std::iter_value_
 		return print_lc_grouping_unhappy_path_impl(seperator,iter,abs_value);
 	}
 	else
-	{
 		return print_lc_grouping_unhappy_unsigned_path_impl(seperator,iter,static_cast<unsigned_type>(t));
-	}
-
-	if(all->numeric.thousands_sep.len==1)
-	{
-
-	}
-	else
-	{
-
-	}
-	return iter;
 }
 #endif
 

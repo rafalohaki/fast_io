@@ -12,7 +12,7 @@ Reference to unsigned short??? FUCK FUCK FUCK FUCK FUCK.
 
 std::chrono::year stored as short while returns int? It only works with the year range [-32768,32767].
 Why does WG21 want another Year of 2000 dumbshit?
-You might say 32768 AD does not make sense since a human would probably disappear,
+You might say 32768 AD does not make sense since human being would probably disappear as a race,
 but what about 32769 BC??
 
 What about std::chrono::parse? WTF you parse date time with locale? C++ locale does not even work correctly.
