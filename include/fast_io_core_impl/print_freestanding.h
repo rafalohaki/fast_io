@@ -398,7 +398,7 @@ inline constexpr void print_control(output out,T t)
 		else
 #endif
 		{
-			print_control_reserve_bad_path<line,pci>(out,t);
+			print_control_reserve_bad_path(out,t);
 		}
 	}
 	else if constexpr(dynamic_reserve_printable<char_type,value_type>)
@@ -572,7 +572,20 @@ concept test_print_control = requires(T t,U arg)
 	print_control(t,arg);
 };
 
-template<bool line,output_stream output,typename ...Args>
+template<bool line,print_control_impl pci=print_control_impl::normal,output_stream output,typename T,typename... Args>
+inline constexpr void print_controls_line(output out,T t,Args... args)
+{
+	if constexpr(sizeof...(Args)==0)
+	{
+		print_control<line,pci>(out,t);
+	}
+	else
+	{
+		print_control<false,pci>(out,t);
+		print_controls_line<line,pci>(out,args...);
+	}
+}
+template<bool line,print_control_impl pci=print_control_impl::normal,output_stream output,typename ...Args>
 inline constexpr void print_fallback(output out,Args ...args)
 {
 	using char_type = typename output::char_type;
@@ -670,38 +683,10 @@ inline constexpr void print_fallback(output out,Args ...args)
 		using internal_buffer_type = internal_temporary_buffer<typename output::char_type>;
 		internal_buffer_type buffer;
 		auto ref{io_ref(buffer)};
-		if constexpr((test_print_control<decltype(ref),Args>&&...))
-		{
-			if constexpr(line)
-			{
-				if constexpr((sizeof...(Args)==1)&&(reserve_printable<typename output::char_type,Args>&&...))
-				{
-					((print_control<true>(ref,args)),...);
-				}
-				else
-				{
-					((print_control(ref,args)),...);
-					if constexpr(details::exec_charset_is_ebcdic<char_type>())
-						put(buffer,0x25);
-					else
-						put(buffer,u8'\n');
-				}
-			}
-			else
-			{
-				(print_control(ref,args),...);
-			}
-			write(out,buffer.beg_ptr,buffer.end_ptr);
-		}
-		else if constexpr(buffer_output_stream<internal_buffer_type>)
-		{
-			static_assert(!buffer_output_stream<internal_buffer_type>,
-			"\n\n\tThis type is not defined for printing. Please consider define it with print_define or print_reserve_define."
-			"\n\tSee wiki page https://github.com/expnkx/fast_io/wiki/0018.-custom-type\n");
-		}
+		print_controls_line<line,pci>(ref,args...);
+		write(out,buffer.beg_ptr,buffer.end_ptr);
 	}
 }
-
 
 template<bool line,print_control_impl pci=print_control_impl::normal,output_stream output,typename ...Args>
 requires (std::is_trivially_copyable_v<output>&&(std::is_trivially_copyable_v<Args>&&...))
@@ -714,23 +699,19 @@ inline constexpr void print_freestanding_decay_normal(output out,Args ...args)
 		decltype(auto) dout{out.unlocked_handle()};
 		print_freestanding_decay_normal<line,pci>(io_ref(dout),args...);
 	}
-	else if constexpr(((printable<output,Args>||dynamic_reserve_printable<output,Args>||reserve_printable<char_type,Args>||scatter_type_printable<char_type,Args>)&&...)&&(sizeof...(Args)==1||buffer_output_stream<output>))
+	else if constexpr(buffer_output_stream<output>)
+	{
+		print_controls_line<line,pci>(out,args...);
+	}
+	else if constexpr(sizeof...(Args)==1&&
+		(((!line&&((printable<output,Args>||scatter_type_printable<char_type,Args>)&&...))||
+		((reserve_printable<char_type,Args>||dynamic_reserve_printable<char_type,Args>)&&...))))
 	{
 		(print_control<line,pci>(out,args),...);
 	}
 	else
 	{
-		if constexpr(sizeof...(Args)==1&&(scatter_type_printable<char_type,Args>&&...))
-			((print_fallback<line,pci>(out,args)),...);
-		else
-		{
-			if constexpr(pci==print_control_impl::normal)
-			{
-				print_fallback<line>(out,args...);
-			}
-			else
-				((print_fallback<line,pci>(out,args)),...);
-		}
+		print_fallback<line,pci>(out,args...);
 	}
 }
 
@@ -773,28 +754,8 @@ inline constexpr void println_freestanding_decay(output out,Args ...args)
 	{
 		println_status_define(out,args...);
 	}
-	else if constexpr(mutex_stream<output>)
-	{
-		details::lock_guard lg{out};
-		decltype(auto) dout{out.unlocked_handle()};
-		println_freestanding_decay(io_ref(dout),args...);
-	}
-	else if constexpr((sizeof...(Args)==1||buffer_output_stream<output>)&&((printable<output,Args>||reserve_printable<typename output::char_type,Args>||dynamic_reserve_printable<typename output::char_type,Args>||scatter_type_printable<typename output::char_type,Args>)&&...))
-	{
-		using char_type = typename std::remove_cvref_t<output>::char_type;
-		if constexpr((sizeof...(Args)==1))
-			((details::decay::print_control<true>(out,args)),...);
-		else
-		{
-			((details::decay::print_control(out,args)),...);
-			if constexpr(details::exec_charset_is_ebcdic<char_type>())
-				put(out,0x25);
-			else
-				put(out,u8'\n');
-		}
-	}
-	else if constexpr(output_stream<output>)
-		details::decay::print_fallback<true>(out,args...);
+	else
+		details::decay::print_freestanding_decay_normal<true>(out,args...);
 }
 
 template<output_stream output,typename ...Args>

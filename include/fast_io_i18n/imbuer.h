@@ -333,17 +333,23 @@ inline constexpr void lc_print_control(basic_lc_all<typename output::char_type> 
 		print_control<line>(out,t);
 }
 
-template<output_stream output,typename T,typename... Args>
+template<bool line,output_stream output,typename T,typename... Args>
 inline constexpr void lc_print_controls_line(basic_lc_all<typename output::char_type> const* __restrict lc,output out,T t,Args... args)
 {
 	if constexpr(sizeof...(Args)==0)
 	{
-		lc_print_control<true>(lc,out,t);
+		lc_print_control<line>(lc,out,t);
 	}
 	else
 	{
+		using char_type = typename output::char_type;
 		lc_print_control<false>(lc,out,t);
-		lc_print_controls_line(lc,out,args...);
+		if constexpr(((lc_scatter_printable<char_type,Args>||
+		lc_dynamic_reserve_printable<char_type,Args>||
+		lc_printable<output,Args>)||...))
+			lc_print_controls_line<line>(lc,out,args...);
+		else
+			print_controls_line<line>(out,args...);
 	}
 }
 
@@ -371,7 +377,7 @@ inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type>
 	!lc_printable<io_reference_wrapper<
 		internal_temporary_buffer<char_type>>,Args>&&!lc_scatter_printable<char_type,Args>))&&...))
 	{
-		print_fallback<ln>(out,args...);
+		print_freestanding_decay_normal<ln>(out,args...);
 	}
 	else if constexpr(scatter_output_stream<output>&&
 	((reserve_printable<char_type,Args>
@@ -443,10 +449,7 @@ inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type>
 	{
 		internal_temporary_buffer<typename output::char_type> buffer;
 		auto ref{io_ref(buffer)};
-		if constexpr(!ln)
-			(lc_print_control<false>(lc,ref,args),...);
-		else
-			lc_print_controls_line(lc,ref,args...);
+		lc_print_controls_line<line>(lc,ref,args...);
 		write(out,buffer.beg_ptr,buffer.end_ptr);
 	}
 }
@@ -461,19 +464,23 @@ inline constexpr void lc_print_status_define_further_decay(basic_lc_all<typename
 		decltype(auto) dout{out.unlocked_handle()};
 		lc_print_status_define_further_decay<ln>(lc,io_ref(dout),args...);
 	}
-	else if constexpr(
-		(buffer_output_stream<output>||((!ln)&&sizeof...(Args)==1))
-		&&((printable<output,Args>||reserve_printable<char_type,Args>
-		||dynamic_reserve_printable<char_type,Args>
-		||lc_printable<output,Args>||lc_dynamic_reserve_printable<char_type,Args>
-		||scatter_type_printable<char_type,Args>||lc_scatter_type_printable<char_type,Args>
-		)&&...)
-		)
+	else if constexpr(buffer_output_stream<output>)
 	{
-		if constexpr(!ln)
-			(lc_print_control<false>(lc,out,args),...);
-		else
-			lc_print_controls_line(lc,out,args...);
+		lc_print_controls_line<ln>(lc,out,args...);
+	}
+	else if constexpr(sizeof...(Args)==1&&!ln
+	&&((printable<output,Args>||
+	scatter_type_printable<char_type,Args>||lc_scatter_type_printable<char_type,Args>||
+	lc_dynamic_reserve_printable<char_type,Args>||
+	reserve_printable<char_type,Args>||dynamic_reserve_printable<char_type,Args>
+	)&&...)
+	)
+	{
+		(lc_print_control<false>(lc,out,args),...);
+	}
+	else if constexpr(sizeof...(Args)==1&&ln&&((lc_dynamic_reserve_printable<char_type,Args>)&&...))
+	{
+		(lc_print_control<true>(lc,out,args),...);
 	}
 	else
 		lc_print_fallback<ln>(lc,out,args...);
