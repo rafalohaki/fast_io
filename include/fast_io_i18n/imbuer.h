@@ -275,8 +275,8 @@ inline constexpr void lc_print_control(basic_lc_all<typename output::char_type> 
 				auto curr=obuffer_curr(out);
 				auto end=obuffer_end(out);
 				std::size_t const len{scatter.len};
-				std::ptrdiff_t diff(end-curr);
-				std::size_t lenp1(len+1);
+				std::ptrdiff_t diff(end-curr-1);
+				std::size_t lenp1(len);
 				if(static_cast<std::ptrdiff_t>(lenp1)<len)[[likely]]
 				{
 					curr=details::non_overlapped_copy_n(scatter.base,len,curr);

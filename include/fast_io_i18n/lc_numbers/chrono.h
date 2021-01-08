@@ -105,6 +105,15 @@ struct alt_t
 	T reference;
 };
 
+template<bool pm>
+struct am_pm_t
+{
+	using manip_tag = manip_tag_t;
+};
+
+using am = am_pm_t<false>;
+using pm = am_pm_t<false>;
+
 inline constexpr abbr_t<std::chrono::weekday> abbr(std::chrono::weekday wkd) noexcept
 {
 	return {wkd};
@@ -135,6 +144,12 @@ inline constexpr alt_t<std::chrono::minutes> alt(std::chrono::minutes m) noexcep
 inline constexpr alt_t<std::chrono::seconds> alt(std::chrono::seconds s) noexcept
 {
 	return {s};
+}
+
+template<std::integral char_type,bool pm>
+inline constexpr basic_io_scatter_t<char_type> print_scatter_define(basic_lc_all<char_type> const* __restrict all,am_pm_t<pm> wkd) noexcept
+{
+	return all->time.am_pm[pm];
 }
 
 template<std::integral char_type>
@@ -222,8 +237,19 @@ inline constexpr Iter print_reserve_define(basic_lc_all<char_type> const* __rest
 	else
 		return print_reserve_define(io_reserve_type<char_type,unsigned>,iter,value1);
 }
+#if 0
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* __restrict all,std::chrono::year_month_day m) noexcept
+{
+	constexpr std::size_t unitsize{std::max(print_reserve_size(io_reserve_type<char_type,int>),print_reserve_size(io_reserve_type<char_type,unsigned>))};
+	return unitsize*all->time.d_fmt.len;
+}
 
+template<std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,std::chrono::year_month_day m) noexcept
+{
 
-
+}
+#endif
 }
 }
