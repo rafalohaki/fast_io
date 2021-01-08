@@ -88,5 +88,142 @@ inline constexpr Iter print_reserve_define(basic_lc_all<char_type> const* __rest
 		return print_reserve_define(io_reserve_type<char_type,unsigned>,iter,value1);
 }
 
+namespace manipulators
+{
 
+template<typename T>
+struct abbr_t
+{
+	using manip_tag = manip_tag_t;
+	T reference;
+};
+
+template<typename T>
+struct alt_t
+{
+	using manip_tag = manip_tag_t;
+	T reference;
+};
+
+inline constexpr abbr_t<std::chrono::weekday> abbr(std::chrono::weekday wkd) noexcept
+{
+	return {wkd};
+}
+
+inline constexpr abbr_t<std::chrono::month> abbr(std::chrono::month wkd) noexcept
+{
+	return {wkd};
+}
+
+inline constexpr abbr_t<alt_t<std::chrono::month>> abbr_alt(std::chrono::month wkd) noexcept
+{
+	return {{wkd}};
+}
+
+inline constexpr alt_t<std::chrono::weekday> alt(std::chrono::weekday wkd) noexcept
+{
+	return {wkd};
+}
+inline constexpr alt_t<std::chrono::hours> alt(std::chrono::hours h) noexcept
+{
+	return {h};
+}
+inline constexpr alt_t<std::chrono::minutes> alt(std::chrono::minutes m) noexcept
+{
+	return {m};
+}
+inline constexpr alt_t<std::chrono::seconds> alt(std::chrono::seconds s) noexcept
+{
+	return {s};
+}
+
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* __restrict all,abbr_t<std::chrono::weekday> wkd) noexcept
+{
+	unsigned value(wkd.reference.c_encoding());
+	if(7<value)
+	{
+		constexpr std::size_t unsigned_size{print_reserve_size(io_reserve_type<char_type,unsigned>)};
+		return unsigned_size;
+	}
+	else
+	{
+		if(value==7)
+			value=0;
+		return all->time.abday[value].len;
+	}
+}
+
+template<std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter it,abbr_t<std::chrono::weekday> wkd) noexcept
+{
+	unsigned value(wkd.reference.c_encoding());
+	if(7u<value)
+	{
+		return print_reserve_define(io_reserve_type<std::iter_value_t<Iter>,unsigned>,it,value);
+	}
+	else
+	{
+		if(value==7u)
+			value={};
+		return details::non_overlapped_copy_n(all->time.abday[value].base,all->time.abday[value].len,it);
+	}
+}
+
+
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* __restrict all,abbr_t<std::chrono::month> m) noexcept
+{
+	unsigned value(m.reference);
+	--value;
+	if(value<12u)
+		return all->time.abmon[value].len;
+	else
+	{
+		constexpr std::size_t unsigned_size{print_reserve_size(io_reserve_type<char_type,unsigned>)};
+		return unsigned_size;
+	}
+}
+
+template<std::random_access_iterator Iter,std::integral char_type>
+inline constexpr Iter print_reserve_define(basic_lc_all<char_type> const* __restrict all,Iter iter,abbr_t<std::chrono::month> m) noexcept
+{
+	unsigned value(m.reference);
+	unsigned value1(value);
+	--value;
+	if(value<12u)
+		return details::non_overlapped_copy_n(all->time.abmon[value].base,all->time.abmon[value].len,iter);
+	else
+		return print_reserve_define(io_reserve_type<char_type,unsigned>,iter,value1);
+}
+
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* __restrict all,abbr_t<alt_t<std::chrono::month>> m) noexcept
+{
+	unsigned value(m.reference.reference);
+	--value;
+	if(value<12u)
+		return all->time.ab_alt_mon[value].len;
+	else
+	{
+		constexpr std::size_t unsigned_size{print_reserve_size(io_reserve_type<char_type,unsigned>)};
+		return unsigned_size;
+	}
+}
+
+template<std::random_access_iterator Iter,std::integral char_type>
+inline constexpr Iter print_reserve_define(basic_lc_all<char_type> const* __restrict all,Iter iter,abbr_t<alt_t<std::chrono::month>> m) noexcept
+{
+	unsigned value(m.reference.reference);
+	unsigned value1(value);
+	--value;
+	if(value<12u)
+		return details::non_overlapped_copy_n(all->time.ab_alt_mon[value].base,all->time.ab_alt_mon[value].len,iter);
+	else
+		return print_reserve_define(io_reserve_type<char_type,unsigned>,iter,value1);
+}
+
+
+
+}
 }
