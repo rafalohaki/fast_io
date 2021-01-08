@@ -309,6 +309,7 @@ inline constexpr Iter print_reserve_define_ymd_impl(Iter it,T ymd) noexcept
 			*it=L'-';
 		else
 			*it=u8'-';
+		++it;
 	}
 	else
 	{
@@ -323,7 +324,6 @@ inline constexpr Iter print_reserve_define_ymd_impl(Iter it,T ymd) noexcept
 		else
 			it=details::copy_string_literal(u8"--",it);
 	}
-	++it;
 	it=chrono_two_digits_impl(it,static_cast<unsigned>(ymd.month()));
 	if constexpr(requires()
 	{
