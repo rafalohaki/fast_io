@@ -183,9 +183,9 @@ constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manipulators::
 }
 
 template<std::integral char_type>
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manipulators::bool_view_t<bool>>) noexcept
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manipulators::blvw_t<bool>>) noexcept
 {
-	return 3;
+	return 5;
 }
 
 namespace details
@@ -197,43 +197,43 @@ inline constexpr caiter print_reserve_bool_view_define_impl(caiter iter,bool v) 
 	if constexpr(std::same_as<char_type,char>)
 	{
 		if(v)
-			return copy_string_literal("Yes",iter);
+			return copy_string_literal("true",iter);
 		else
-			return copy_string_literal("No",iter);
+			return copy_string_literal("false",iter);
 	}
 	else if constexpr(std::same_as<char_type,wchar_t>)
 	{
 		if(v)
-			return copy_string_literal(L"Yes",iter);
+			return copy_string_literal(L"true",iter);
 		else
-			return copy_string_literal(L"No",iter);
+			return copy_string_literal(L"false",iter);
 	}
 	else if constexpr(std::same_as<char_type,char16_t>)
 	{
 		if(v)
-			return copy_string_literal(u"Yes",iter);
+			return copy_string_literal(u"true",iter);
 		else
-			return copy_string_literal(u"No",iter);
+			return copy_string_literal(u"false",iter);
 	}
 	else if constexpr(std::same_as<char_type,char32_t>)
 	{
 		if(v)
-			return copy_string_literal(U"Yes",iter);
+			return copy_string_literal(U"true",iter);
 		else
-			return copy_string_literal(U"No",iter);
+			return copy_string_literal(U"false",iter);
 	}
 	else
 	{
 		if(v)
-			return copy_string_literal(u8"Yes",iter);
+			return copy_string_literal(u8"true",iter);
 		else
-			return copy_string_literal(u8"No",iter);
+			return copy_string_literal(u8"false",iter);
 	}
 }
 }
 
 template<std::integral char_type,std::random_access_iterator caiter>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manipulators::bool_view_t<bool>>,caiter iter,manipulators::bool_view_t<bool> ref) noexcept
+inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manipulators::blvw_t<bool>>,caiter iter,manipulators::blvw_t<bool> ref) noexcept
 {
 	return details::print_reserve_bool_view_define_impl(iter,ref.reference);
 }

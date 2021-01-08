@@ -88,6 +88,12 @@ inline constexpr Iter print_reserve_define(basic_lc_all<char_type> const* __rest
 		return print_reserve_define(io_reserve_type<char_type,unsigned>,iter,value1);
 }
 
+/*
+Referenced from IBM
+LC_TIME Category for the Locale Definition Source File Format
+https://www.ibm.com/support/knowledgecenter/ssw_aix_71/filesreference/LC_TIME.html
+*/
+
 namespace manipulators
 {
 
@@ -100,6 +106,13 @@ struct abbr_t
 
 template<typename T>
 struct alt_t
+{
+	using manip_tag = manip_tag_t;
+	T reference;
+};
+
+template<typename T>
+struct alt_num_t
 {
 	using manip_tag = manip_tag_t;
 	T reference;
@@ -132,22 +145,15 @@ inline constexpr abbr_t<alt_t<std::chrono::month>> abbr_alt(std::chrono::month w
 	return {{wkd}};
 }
 
-inline constexpr alt_t<std::chrono::weekday> alt(std::chrono::weekday wkd) noexcept
-{
-	return {wkd};
-}
-inline constexpr alt_t<std::chrono::hours> alt(std::chrono::hours h) noexcept
-{
-	return {h};
-}
-inline constexpr alt_t<std::chrono::minutes> alt(std::chrono::minutes m) noexcept
+template<typename T>
+requires (std::same_as<T,std::chrono::month>||
+std::same_as<T,std::chrono::day>||
+std::same_as<T,std::chrono::weekday>)
+inline constexpr alt_num_t<T> alt_num(T m) noexcept
 {
 	return {m};
 }
-inline constexpr alt_t<std::chrono::seconds> alt(std::chrono::seconds s) noexcept
-{
-	return {s};
-}
+
 
 template<std::integral char_type>
 inline constexpr basic_io_scatter_t<char_type> print_scatter_define(basic_lc_all<char_type> const* __restrict all,am_pm_t<bool> ampm) noexcept
@@ -188,7 +194,6 @@ inline constexpr Iter print_reserve_define(basic_lc_all<std::iter_value_t<Iter>>
 	}
 }
 
-
 template<std::integral char_type>
 inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* __restrict all,abbr_t<std::chrono::month> m) noexcept
 {
@@ -221,7 +226,12 @@ inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* _
 	unsigned value(m.reference.reference);
 	--value;
 	if(value<12u)
-		return all->time.ab_alt_mon[value].len;
+	{
+		if(all->time.ab_alt_mon[value].len==0)
+			return all->time.abmon[value].len;
+		else
+			return all->time.ab_alt_mon[value].len;
+	}
 	else
 	{
 		constexpr std::size_t unsigned_size{print_reserve_size(io_reserve_type<char_type,unsigned>)};
@@ -236,10 +246,76 @@ inline constexpr Iter print_reserve_define(basic_lc_all<char_type> const* __rest
 	unsigned value1(value);
 	--value;
 	if(value<12u)
-		return details::non_overlapped_copy_n(all->time.ab_alt_mon[value].base,all->time.ab_alt_mon[value].len,iter);
+	{
+		if(all->time.ab_alt_mon[value].len==0)
+			return details::non_overlapped_copy_n(all->time.abmon[value].base,all->time.abmon[value].len,iter);
+		else
+			return details::non_overlapped_copy_n(all->time.ab_alt_mon[value].base,all->time.ab_alt_mon[value].len,iter);
+	}
 	else
 		return print_reserve_define(io_reserve_type<char_type,unsigned>,iter,value1);
 }
+
+template<std::integral char_type,typename T>
+requires (std::same_as<T,std::chrono::month>||
+std::same_as<T,std::chrono::day>||
+std::same_as<T,std::chrono::weekday>)
+inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* __restrict all,
+	alt_num_t<T> m) noexcept
+{
+	using namespace std::chrono;
+	if constexpr(std::same_as<month,T>||std::same_as<day,T>)
+	{
+		unsigned value(m.reference);
+		if(value<all->time.alt_digits.len)
+			return all->time.alt_digits.base[value].len;
+		else
+		{
+			constexpr std::size_t unsigned_size{print_reserve_size(io_reserve_type<char_type,T>)};
+			return unsigned_size;
+		}
+	}
+	else
+	{
+		unsigned value(m.reference.iso_encoding());
+		if(value<all->time.alt_digits.len)
+			return all->time.alt_digits.base[value].len;
+		else
+		{
+			constexpr std::size_t unsigned_size{print_reserve_size(io_reserve_type<char_type,T>)};
+			return unsigned_size;
+		}
+	}
+}
+
+template<std::integral char_type,std::random_access_iterator Iter,typename T>
+requires (std::same_as<T,std::chrono::month>||
+std::same_as<T,std::chrono::day>||
+std::same_as<T,std::chrono::weekday>)
+inline constexpr Iter print_reserve_define(basic_lc_all<char_type> const* __restrict all,Iter iter,
+	alt_num_t<T> m) noexcept
+{
+	using namespace std::chrono;
+	if constexpr(std::same_as<month,T>||std::same_as<day,T>)
+	{
+		unsigned value(m.reference);
+		if(value<all->time.alt_digits.len)
+			return details::non_overlapped_copy_n(all->time.alt_digits.base[value].base,
+				all->time.alt_digits.base[value].len,iter);
+		else
+			return print_reserve_define(io_reserve_type<char_type,T>,iter,m.reference);
+	}
+	else
+	{
+		unsigned value(m.reference.iso_encoding());
+		if(value<all->time.alt_digits.len)
+			return details::non_overlapped_copy_n(all->time.alt_digits.base[value].base,
+				all->time.alt_digits.base[value].len,iter);
+		else
+			return print_reserve_define(io_reserve_type<char_type,T>,iter,m.reference);
+	}
+}
+
 #if 0
 template<std::integral char_type>
 inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* __restrict all,std::chrono::year_month_day m) noexcept

@@ -18,7 +18,7 @@ struct chvw_t
 };
 
 template<typename T>
-struct bool_view_t
+struct blvw_t
 {
 	using manip_tag = manip_tag_t;
 	T reference;
@@ -243,8 +243,7 @@ inline constexpr auto purify(T&& ref) noexcept
 		return purify_t<std::remove_reference_t<T> const&>{ref};
 }
 
-template<std::integral T>
-inline constexpr bool_view_t<bool> bool_view(T value) noexcept
+inline constexpr blvw_t<bool> blvw(bool value) noexcept
 {
 	return {value};
 }
