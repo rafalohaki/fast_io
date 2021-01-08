@@ -566,30 +566,42 @@ inline constexpr void print_control(output out,T t)
 	}
 }
 
-template<typename T,typename U>
-concept test_print_control = requires(T t,U arg)
-{
-	print_control(t,arg);
-};
-
-template<bool line,print_control_impl pci=print_control_impl::normal,output_stream output,typename T,typename... Args>
+template<bool ln,print_control_impl pci=print_control_impl::normal,output_stream output,typename T,typename... Args>
 inline constexpr void print_controls_line(output out,T t,Args... args)
 {
 	if constexpr(sizeof...(Args)==0)
 	{
-		print_control<line,pci>(out,t);
+		print_control<ln,pci>(out,t);
 	}
 	else
 	{
 		print_control<false,pci>(out,t);
-		print_controls_line<line,pci>(out,args...);
+		print_controls_line<ln,pci>(out,args...);
 	}
 }
 template<bool line,print_control_impl pci=print_control_impl::normal,output_stream output,typename ...Args>
 inline constexpr void print_fallback(output out,Args ...args)
 {
 	using char_type = typename output::char_type;
-	if constexpr(scatter_output_stream<output>&&((scatter_printable<typename output::char_type,Args>||reserve_printable<typename output::char_type,Args>||dynamic_reserve_printable<typename output::char_type,Args>)&&...))
+	if constexpr(line&&sizeof...(Args)==0)
+	{
+		if constexpr(std::same_as<char_type,char>)
+		{
+			char_type ch('\n');
+			write(out,std::addressof(ch),std::addressof(ch)+1);
+		}
+		else if constexpr(std::same_as<char_type,wchar_t>)
+		{
+			char_type ch(L'\n');
+			write(out,std::addressof(ch),std::addressof(ch)+1);
+		}
+		else
+		{
+			char_type ch(u8'\n');
+			write(out,std::addressof(ch),std::addressof(ch)+1);
+		}
+	}
+	else if constexpr((scatter_output_stream<output>&&((scatter_printable<typename output::char_type,Args>||reserve_printable<typename output::char_type,Args>||dynamic_reserve_printable<typename output::char_type,Args>)&&...)))
 	{
 		std::array<io_scatter_t,(sizeof...(Args))+static_cast<std::size_t>(line)> scatters;
 		if constexpr((scatter_printable<typename output::char_type,Args>&&...))
@@ -693,7 +705,9 @@ requires (std::is_trivially_copyable_v<output>&&(std::is_trivially_copyable_v<Ar
 inline constexpr void print_freestanding_decay_normal(output out,Args ...args)
 {
 	using char_type = typename output::char_type;
-	if constexpr(mutex_stream<output>)
+	if constexpr(sizeof...(Args)==0&&!line)
+		return;
+	else if constexpr(mutex_stream<output>)
 	{
 		lock_guard lg{out};
 		decltype(auto) dout{out.unlocked_handle()};
@@ -701,7 +715,26 @@ inline constexpr void print_freestanding_decay_normal(output out,Args ...args)
 	}
 	else if constexpr(buffer_output_stream<output>)
 	{
-		print_controls_line<line,pci>(out,args...);
+		if constexpr(sizeof...(Args)==0&&line)
+		{
+			if constexpr(std::same_as<char_type,char>)
+			{
+				char_type ch('\n');
+				put(out,ch);
+			}
+			else if constexpr(std::same_as<char_type,wchar_t>)
+			{
+				char_type ch(L'\n');
+				put(out,ch);
+			}
+			else
+			{
+				char_type ch(u8'\n');
+				put(out,ch);
+			}
+		}
+		else
+			print_controls_line<line,pci>(out,args...);
 	}
 	else if constexpr(sizeof...(Args)==1&&
 		(((!line&&((printable<output,Args>||scatter_type_printable<char_type,Args>)&&...))||

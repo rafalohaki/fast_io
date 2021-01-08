@@ -458,7 +458,9 @@ template<bool ln,output_stream output,typename... Args>
 inline constexpr void lc_print_status_define_further_decay(basic_lc_all<typename output::char_type> const* __restrict lc,output out,Args... args)
 {
 	using char_type = typename output::char_type;
-	if constexpr(mutex_stream<output>)
+	if constexpr(sizeof...(Args)==0&&!ln)
+		return;
+	else if constexpr(mutex_stream<output>)
 	{
 		lock_guard lg{out};
 		decltype(auto) dout{out.unlocked_handle()};
@@ -466,7 +468,26 @@ inline constexpr void lc_print_status_define_further_decay(basic_lc_all<typename
 	}
 	else if constexpr(buffer_output_stream<output>)
 	{
-		lc_print_controls_line<ln>(lc,out,args...);
+		if constexpr(sizeof...(Args)==0&&ln)
+		{
+			if constexpr(std::same_as<char_type,char>)
+			{
+				char_type ch('\n');
+				put(out,ch);
+			}
+			else if constexpr(std::same_as<char_type,wchar_t>)
+			{
+				char_type ch(L'\n');
+				put(out,ch);
+			}
+			else
+			{
+				char_type ch(u8'\n');
+				put(out,ch);
+			}
+		}
+		else
+			lc_print_controls_line<ln>(lc,out,args...);
 	}
 	else if constexpr(sizeof...(Args)==1&&!ln
 	&&((printable<output,Args>||
