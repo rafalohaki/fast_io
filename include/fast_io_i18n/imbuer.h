@@ -487,7 +487,12 @@ inline constexpr void lc_print_status_define_further_decay(basic_lc_all<typename
 			}
 		}
 		else
-			lc_print_controls_line<ln>(lc,out,args...);
+		{
+			if constexpr(ln)
+				lc_print_controls_line<ln>(lc,out,args...);
+			else
+				(lc_print_control<ln>(lc,out,args),...);
+		}
 	}
 	else if constexpr(sizeof...(Args)==1&&!ln
 	&&((printable<output,Args>||

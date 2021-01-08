@@ -734,7 +734,12 @@ inline constexpr void print_freestanding_decay_normal(output out,Args ...args)
 			}
 		}
 		else
-			print_controls_line<line,pci>(out,args...);
+		{
+			if constexpr(line)
+				print_controls_line<line,pci>(out,args...);
+			else
+				(print_control<line,pci>(out,args),...);
+		}
 	}
 	else if constexpr(sizeof...(Args)==1&&
 		(((!line&&((printable<output,Args>||scatter_type_printable<char_type,Args>)&&...))||
