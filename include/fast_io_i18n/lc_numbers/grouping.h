@@ -14,32 +14,133 @@ inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* _
 namespace details
 {
 
-#if 0
-
-template<std::random_access_iterator Iter,details::my_unsigned_integral T>
-constexpr Iter print_lc_grouping_unhappy_path_impl(
-	basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,std::iter_value_t<Iter> sep,Iter iter,T t) noexcept
+template<std::size_t base,details::my_unsigned_integral uint_type>
+inline constexpr std::size_t grouping_char_lens(fast_io::basic_io_scatter_t<std::size_t> grouping,uint_type u,std::size_t digits) noexcept
 {
-	std::size_t len{char_lens<10>(t)};
 	std::size_t sum{};
 	std::size_t i{};
-	auto grouping{all->numeric.grouping};
 	for(;i!=grouping.len;++i)
 	{
 		auto e{grouping.base[i]};
-		if(e==SIZE_MAX)
-			break;
-		if(len<(e+sum))
+		if((e==0)|(digits-sum<=e))
 			break;
 		sum+=e;
 	}
-	
-//	for(std::size_t i)
+	if(i==grouping.len)
+		return i+digits+(digits-sum-1)/grouping.base[i-1];
+	return digits+i;
+}
+
+template<std::random_access_iterator Iter,details::my_unsigned_integral T>
+constexpr Iter grouping_single_sep_impl(fast_io::basic_io_scatter_t<std::size_t> grouping,std::iter_value_t<Iter> sep,Iter iter,T t) noexcept
+{
+	using char_type = std::iter_value_t<Iter>;
+	std::size_t i{};
+	for(;i!=grouping.len;++i)
+	{
+		auto e{grouping.base[i]};
+		if(e==0)
+			break;
+		for(std::size_t j{};j!=e;++j)
+		{
+			*--iter=t%10u;
+			if constexpr(std::same_as<char_type,char>)
+				*iter+='0';
+			else if constexpr(std::same_as<char_type,wchar_t>)
+				*iter+=L'0';
+			else
+				*iter+=u8'0';
+			t/=10u;
+			if(t==0)
+				return iter;
+		}
+		*--iter=sep;
+	}
+	if(i!=grouping.len)
+	{
+		for(;;)
+		{
+			*--iter=t%10u;
+			if constexpr(std::same_as<char_type,char>)
+				*iter+='0';
+			else if constexpr(std::same_as<char_type,wchar_t>)
+				*iter+=L'0';
+			else
+				*iter+=u8'0';
+			t/=10u;
+			if(t==0)
+				return iter;
+		}
+	}
+	else
+	{
+		for(std::size_t e{grouping.base[i-1]};;*--iter=sep)
+		{
+			for(std::size_t j{};j!=e;++j)
+			{
+				*--iter=t%10u;
+				if constexpr(std::same_as<char_type,char>)
+					*iter+='0';
+				else if constexpr(std::same_as<char_type,wchar_t>)
+					*iter+=L'0';
+				else
+					*iter+=u8'0';
+				t/=10u;
+				if(t==0)
+					return iter;
+			}
+		}
+	}
+	return iter;
+}
+
+template<std::random_access_iterator Iter,details::my_unsigned_integral T>
+constexpr Iter grouping_mul_sep_impl(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,T t) noexcept
+{
+	using char_type = std::iter_value_t<Iter>;
+	std::array<char_type,print_reserve_size(io_reserve_type<char_type,T>)*2-1> array;
+	char_type sep;
+	if constexpr(std::same_as<char_type,char>)
+		sep=',';
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		sep=L',';
+	else
+		sep=u8',';	
+	auto i{grouping_single_sep_impl(all->numeric.grouping,sep,array.data()+array.size(),t)};
+	for(auto ed{array.data()+array.size()};i!=ed;++i)
+	{
+		if(*i==sep)
+			iter=non_overlapped_copy_n(all->numeric.thousands_sep.base,all->numeric.thousands_sep.len,iter);
+		else
+		{
+			*iter=*i;
+			++iter;
+		}
+	}
+	return iter;
+}
+
+template<std::random_access_iterator Iter,details::my_unsigned_integral T>
+constexpr Iter grouping_sep_impl(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,T t) noexcept
+{
+	using char_type = std::iter_value_t<Iter>;
+	if(all->numeric.thousands_sep.len==1)
+	{
+		auto sep{*all->numeric.thousands_sep.base};
+		std::size_t digits{details::chars_len<10>(t)};
+		auto grouping{all->numeric.grouping};
+		std::size_t const len{grouping_char_lens<10>(grouping,t,digits)};
+		grouping_single_sep_impl(grouping,sep,iter+len,t);
+		return iter+len;
+	}
+	else
+		return grouping_mul_sep_impl(all,iter,t);
 }
 
 template<std::random_access_iterator Iter,details::my_integral T>
-constexpr Iter print_lc_grouping_unhappy_path_impl(,Iter iter,T t) noexcept
+constexpr Iter print_lc_grouping_unhappy_path_impl(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,T t) noexcept
 {
+	using int_type = T;
 	using char_type = std::iter_value_t<Iter>;
 	using unsigned_type = details::my_make_unsigned_t<std::remove_cvref_t<int_type>>;
 	if constexpr(my_signed_integral<int_type>)
@@ -57,13 +158,13 @@ constexpr Iter print_lc_grouping_unhappy_path_impl(,Iter iter,T t) noexcept
 				*iter=u8'-';
 			++iter;
 		}
-		return print_lc_grouping_unhappy_path_impl(all,iter,abs_value);
+		return grouping_sep_impl(all,iter,abs_value);
 	}
 	else
 	{
+		return grouping_sep_impl(all,iter,t);
 	}
 }
-#endif
 
 template<std::random_access_iterator Iter,my_unsigned_integral T>
 requires (sizeof(T)>1)
@@ -214,7 +315,6 @@ template<std::random_access_iterator Iter,details::my_integral T>
 inline constexpr Iter print_reserve_define(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,T t) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
-#if 0
 //To finish grouping
 	if((all->numeric.grouping.len==0)|(all->numeric.thousands_sep.len==0))
 		return print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,iter,t);
@@ -222,12 +322,6 @@ inline constexpr Iter print_reserve_define(basic_lc_all<std::iter_value_t<Iter>>
 		return details::print_lc_grouping_3_path_impl(*all->numeric.thousands_sep.base,iter,t);
 	else
 		return details::print_lc_grouping_unhappy_path_impl(all,iter,t);
-#else
-	if((all->numeric.grouping.len==1&&*all->numeric.grouping.base==3)&(all->numeric.thousands_sep.len==1))
-		return details::print_lc_grouping_3_path_impl(*all->numeric.thousands_sep.base,iter,t);
-	else
-		return print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,iter,t);
-#endif
 }
 
 }
