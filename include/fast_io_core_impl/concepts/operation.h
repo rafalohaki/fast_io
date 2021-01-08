@@ -41,17 +41,17 @@ concept reserve_serializable=reserve_printable<char_type,T>&&requires(T t,char_t
 };
 
 template<typename char_type,typename T>
-concept dynamic_reserve_printable=std::integral<char_type>&&requires(T t,char_type* ptr,std::size_t size)
+concept dynamic_reserve_printable=std::integral<char_type>&&requires(T t,char_type* ptr)
 {
 	{print_reserve_size(io_reserve_type<char_type,std::remove_cvref_t<T>>,t)}->std::convertible_to<std::size_t>;
-	{print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,ptr,t,size)}->std::convertible_to<char_type*>;
+	{print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,ptr,t)}->std::convertible_to<char_type*>;
 };
 
 
 template<typename char_type,typename T>
-concept dynamic_reserve_serializable=dynamic_reserve_printable<char_type,T>&&requires(T t,char_type* ptr,std::size_t size)
+concept dynamic_reserve_serializable=dynamic_reserve_printable<char_type,T>&&requires(T t,char_type* ptr)
 {
-	{print_reserve_define(io_serial_type<char_type,std::remove_cvref_t<T>>,ptr,t,size)}->std::convertible_to<char_type*>;
+	{print_reserve_define(io_serial_type<char_type,std::remove_cvref_t<T>>,ptr,t)}->std::convertible_to<char_type*>;
 };
 
 template<typename char_type,typename T>
@@ -61,9 +61,9 @@ concept reverse_reserve_printable=std::integral<char_type>&&reserve_printable<ch
 };
 
 template<typename char_type,typename T>
-concept reverse_dynamic_reserve_printable=std::integral<char_type>&&dynamic_reserve_printable<char_type,T>&&requires(T t,char_type* ptr,std::size_t size)
+concept reverse_dynamic_reserve_printable=std::integral<char_type>&&dynamic_reserve_printable<char_type,T>&&requires(T t,char_type* ptr)
 {
-	{print_reverse_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,ptr,t,size)}->std::convertible_to<char_type*>;
+	{print_reverse_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,ptr,t)}->std::convertible_to<char_type*>;
 };
 
 template<typename output,typename T>
@@ -153,17 +153,10 @@ constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,parameter<v
 }
 
 template<std::integral char_type,typename value_type,typename Iter>
-requires reserve_printable<char_type,std::remove_cvref_t<value_type>>
+requires (reserve_printable<char_type,std::remove_cvref_t<value_type>>||dynamic_reserve_printable<char_type,std::remove_cvref_t<value_type>>)
 constexpr auto print_reserve_define(io_reserve_type_t<char_type,parameter<value_type>>,Iter begin,parameter<value_type> para)
 {
 	return print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<value_type>>,begin,para.reference);
-}
-
-template<std::integral char_type,typename value_type,typename Iter>
-requires dynamic_reserve_printable<char_type,std::remove_cvref_t<value_type>>
-constexpr auto print_reserve_define(io_reserve_type_t<char_type,parameter<value_type>>,Iter begin,parameter<value_type> para,std::size_t size)
-{
-	return print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<value_type>>,begin,para.reference,size);
 }
 
 template<std::integral char_type,typename value_type>

@@ -1,11 +1,8 @@
 #pragma once
-// Since the library is written before C++20. Will use standard libraries concepts after C++ 20 being official published. PLEASE Do not use these concepts!!!
 
 namespace fast_io
 {
-
-//Since Currently No C++ Compilers have implemented this important stuff. We can only emulate it with memcpy.
-//And unfortuntely, this is not what it should be. It is impossible to correctly implement this without compiler magic.
+//All compilers have supported bit_cast but most people are stick with GCC 10. We provide emulation currently.
 template<typename To,typename From>
 requires (sizeof(To)==sizeof(From) && std::is_trivially_copyable_v<To> && std::is_trivial_v<From>)
 inline

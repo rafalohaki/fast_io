@@ -4,7 +4,7 @@ namespace fast_io
 {
 
 template<std::integral char_type,details::my_integral T>
-inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* __restrict all,T t) noexcept
+inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* __restrict all,T) noexcept
 {
 	constexpr std::size_t static_size{print_reserve_size(io_reserve_type<char_type,T>)};
 	constexpr std::size_t static_sizem1{static_size-1};
@@ -201,7 +201,7 @@ inline constexpr Iter print_lc_grouping_3_path_impl(std::iter_value_t<Iter> sepe
 }
 
 template<std::random_access_iterator Iter,details::my_integral T>
-inline constexpr Iter print_reserve_define(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,T t,std::size_t) noexcept
+inline constexpr Iter print_reserve_define(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,T t) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
 #if 0

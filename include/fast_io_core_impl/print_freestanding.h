@@ -98,41 +98,6 @@ inline constexpr Iter print_reserve_control_define_impl(Iter it,value_type v)
 		return print_reserve_define(io_reserve_type<char_type,value_type>,it,v);
 }
 
-
-template<print_control_impl pci,std::integral char_type,typename value_type,typename Iter>
-inline constexpr Iter dynamic_print_reserve_control_define_impl(Iter it,value_type v,std::size_t size)
-{
-	if constexpr(pci==print_control_impl::serialize)
-	{
-		if constexpr(dynamic_reserve_serializable<char_type,value_type>)
-			return print_reserve_define(io_serial_type<char_type,value_type>,it,v,size);
-		else
-		{
-			constexpr std::size_t sz{print_reserve_size(io_reserve_type<char_type,value_type>)};
-			constexpr std::size_t reserved_sz{reserve_len(sz)};
-			constexpr std::size_t reservedln{reserved_sz+1};
-			auto start{it+reservedln};
-			auto eds{print_reserve_define(io_reserve_type<char_type,value_type>,start,v,size)};
-			std::size_t real_size(eds-start);
-			std::size_t real_size_size{chars_len<10,false,reserved_sz>(real_size)};
-			output_unsigned_with_size(it,real_size,real_size_size);
-			if constexpr(std::same_as<char,char_type>)
-				it[real_size_size]=' ';
-			else if constexpr(std::same_as<wchar_t,char_type>)
-				it[real_size_size]=L' ';
-			else
-				it[real_size_size]=u8' ';
-			auto realszp1{it+real_size_size+1};
-			if(start==realszp1)
-				return eds;
-			return my_copy_n(start,real_size,realszp1);
-		}
-	}
-	else
-		return print_reserve_define(io_reserve_type<char_type,value_type>,it,v,size);
-}
-
-
 template<std::integral char_type,print_control_impl pci=print_control_impl::normal,typename T>
 inline constexpr void scatter_print_recursive(io_scatter_t* arr,T t)
 {
@@ -176,24 +141,23 @@ inline constexpr std::size_t calculate_scatter_reserve_size()
 
 
 template<std::integral char_type,typename T,typename... Args>
-inline constexpr std::size_t calculate_scatter_dynamic_reserve_size(std::size_t* eds,T t,Args... args)
+inline constexpr std::size_t calculate_scatter_dynamic_reserve_size(T t,Args... args)
 {
 	if constexpr(!reserve_printable<char_type,T>&&
 		dynamic_reserve_printable<char_type,T>)
 	{
 		std::size_t res{print_reserve_size(io_reserve_type<char_type,T>,t)};
-		*eds=res;
 		if constexpr(sizeof...(Args)==0)
 			return res;
 		else
-			return res+calculate_scatter_dynamic_reserve_size<char_type>(eds+1,args...);
+			return res+calculate_scatter_dynamic_reserve_size<char_type>(args...);
 	}
 	else
 	{
 		if constexpr(sizeof...(Args)==0)
 			return 0;
 		else
-			return calculate_scatter_dynamic_reserve_size<char_type>(eds,args...);
+			return calculate_scatter_dynamic_reserve_size<char_type>(args...);
 	}
 }
 
@@ -242,7 +206,7 @@ inline constexpr void scatter_print_with_reserve_recursive(char_type* ptr,
 template<std::integral char_type,typename T,typename... Args>
 inline constexpr void scatter_print_with_dynamic_reserve_recursive(io_scatter_t* __restrict arr,
 	char_type* __restrict ptr,
-	char_type* __restrict dynamic_buffer_ptr,std::size_t* __restrict sizes,T t, Args ...args)
+	char_type* __restrict dynamic_buffer_ptr,T t, Args ...args)
 {
 	if constexpr(reserve_printable<char_type,T>)
 	{
@@ -253,16 +217,15 @@ inline constexpr void scatter_print_with_dynamic_reserve_recursive(io_scatter_t*
 	}
 	else if constexpr(dynamic_reserve_printable<char_type,T>)
 	{
-		auto end_ptr = print_reserve_define(io_reserve_type<char_type,T>,dynamic_buffer_ptr,t,*sizes);
+		auto end_ptr = print_reserve_define(io_reserve_type<char_type,T>,dynamic_buffer_ptr,t);
 		*arr={dynamic_buffer_ptr,(end_ptr-dynamic_buffer_ptr)*sizeof(*dynamic_buffer_ptr)};
-		++sizes;
 		if constexpr(sizeof...(Args)!=0)
 			dynamic_buffer_ptr = end_ptr;
 	}
 	else
 		*arr=print_scatter_define(print_scatter_type<char_type>,t);
 	if constexpr(sizeof...(Args)!=0)
-		scatter_print_with_dynamic_reserve_recursive(arr+1,ptr,dynamic_buffer_ptr,sizes,args...);
+		scatter_print_with_dynamic_reserve_recursive(arr+1,ptr,dynamic_buffer_ptr,args...);
 }
 
 
@@ -315,14 +278,11 @@ inline constexpr void print_control_reserve_bad_path(output out,value_type t)
 
 template<bool line,print_control_impl pci,typename value_type,output_stream output>
 requires (!reserve_printable<typename output::char_type,value_type>&&dynamic_reserve_printable<typename output::char_type,value_type>)
-inline constexpr void print_control_dynamic_reserve_bad_path(output out,value_type t,std::size_t size)
+inline constexpr void print_control_dynamic_reserve_bad_path(output out,value_type t,std::size_t sizep1)
 {
 	using char_type = typename output::char_type;
-	std::size_t sizep1{size};
-	if constexpr(line)
-		++sizep1;
 	local_operator_new_array_ptr<char_type> ptr(sizep1);
-	auto it{dynamic_print_reserve_control_define_impl<pci,char_type,value_type>(ptr.ptr,t,size)};
+	auto it{dynamic_print_reserve_control_define_impl<pci,char_type,value_type>(ptr.ptr,t)};
 	if constexpr(line)
 	{
 		if constexpr(std::same_as<char,char_type>)
@@ -444,6 +404,8 @@ inline constexpr void print_control(output out,T t)
 	else if constexpr(dynamic_reserve_printable<char_type,value_type>)
 	{
 		std::size_t size{print_dynamic_reserve_control_size_impl<pci,char_type,value_type>(t)};
+		if constexpr(line)
+			++size;
 #ifndef __SANITIZE_ADDRESS__
 
 #if 0
@@ -467,14 +429,12 @@ inline constexpr void print_control(output out,T t)
 		if constexpr(buffer_output_stream<output>)
 		{
 			auto curr{obuffer_curr(out)};
-			std::ptrdiff_t ssizep1(size);
-			if constexpr(line)
-				++ssizep1;
+
 			auto ed{obuffer_end(out)};
 			std::ptrdiff_t diff(ed-curr);
-			if(static_cast<std::ptrdiff_t>(ssizep1)<diff)
+			if(static_cast<std::ptrdiff_t>(size)<diff)
 			{
-				auto it{dynamic_print_reserve_control_define_impl<pci,char_type,value_type>(curr,t,size)};
+				auto it{print_reserve_control_define_impl<pci,char_type,value_type>(curr,t)};
 				if constexpr(line)
 				{
 					if constexpr(std::same_as<char,char_type>)
@@ -513,14 +473,14 @@ inline constexpr void print_control(output out,T t)
 				auto curr=obuffer_curr(out);
 				auto end=obuffer_end(out);
 				std::size_t const len{scatter.len};
-				std::size_t sz(end-curr);
+				std::ptrdiff_t sz(end-curr);
 				std::size_t lenp1(len+1);
 				constexpr std::size_t size_t_reserve_length{print_reserve_size(io_reserve_type<char_type,std::size_t>)+1};
 				if constexpr(pci==print_control_impl::serialize)
 				{
 					lenp1+=size_t_reserve_length;
 				}
-				if(lenp1<sz)[[likely]]
+				if(static_cast<std::ptrdiff_t>(lenp1)<sz)[[likely]]
 				{
 					if constexpr(pci==print_control_impl::serialize)
 					{
@@ -534,10 +494,12 @@ inline constexpr void print_control(output out,T t)
 					++curr;
 					}
 					curr=details::non_overlapped_copy_n(scatter.base,len,curr);
-					if constexpr(details::exec_charset_is_ebcdic<char_type>())
-						*curr=0x25;
+					if constexpr(std::same_as<char,char_type>)
+						put(out,'\n');
+					else if constexpr(std::same_as<wchar_t,char_type>)
+						put(out,L'\n');
 					else
-						*curr=u8'\n';
+						put(out,u8'\n');
 					++curr;
 					obuffer_set_curr(out,curr);
 				}
@@ -548,8 +510,10 @@ inline constexpr void print_control(output out,T t)
 					print_serialize_size_bad_path(out,scatter.len);
 					}
 					write(out,scatter.base,scatter.base+scatter.len);
-					if constexpr(details::exec_charset_is_ebcdic<char_type>())
-						put(out,0x25);
+					if constexpr(std::same_as<char,char_type>)
+						put(out,'\n');
+					else if constexpr(std::same_as<wchar_t,char_type>)
+						put(out,L'\n');
 					else
 						put(out,u8'\n');
 				}
@@ -674,10 +638,8 @@ inline constexpr void print_fallback(output out,Args ...args)
 		else
 		{
 			std::array<char_type,calculate_scatter_reserve_size<char_type,Args...>()> array;
-			std::array<std::size_t,
-			((dynamic_reserve_printable<char_type,Args>&&!reserve_printable<char_type,Args>)+...)> dynamic_sizes;
-			local_operator_new_array_ptr<char_type> new_ptr(calculate_scatter_dynamic_reserve_size<char_type>(dynamic_sizes.data(),args...));
-			scatter_print_with_dynamic_reserve_recursive(scatters.data(),array.data(),new_ptr.ptr,dynamic_sizes.data(),args...);
+			local_operator_new_array_ptr<char_type> new_ptr(calculate_scatter_dynamic_reserve_size<char_type>(args...));
+			scatter_print_with_dynamic_reserve_recursive(scatters.data(),array.data(),new_ptr.ptr,args...);
 			if constexpr(line)
 			{
 				if constexpr(std::same_as<char_type,char>)
