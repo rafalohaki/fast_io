@@ -2,7 +2,11 @@
 
 namespace fast_io
 {
-
+/*
+Referenced from
+https://eklitzke.org/efficient-file-copying-on-linux
+In response to my last post about dd, a friend of mine noticed that GNU cp always uses a 128 KB buffer size when copying a regular file; this is also the buffer size used by GNU cat. If you use strace to watch what happens when copying a file, you should see a lot of 128 KB read/write sequences:
+*/
 namespace details
 {
 template<std::integral char_type,bool iobuf=false>
@@ -17,7 +21,7 @@ inline constexpr std::size_t cal_buffer_size()
 #ifdef FAST_IO_BUFFER_SIZE
 		FAST_IO_BUFFER_SIZE
 #else
-	65536
+	131072
 #endif
 		/sizeof(char_type);
 	}
@@ -30,7 +34,7 @@ inline constexpr std::size_t cal_buffer_size()
 #ifdef FAST_IO_TRANSMIT_ON_STACK
 	4096
 #else
-	65536
+	131072
 #endif
 #endif
 	/sizeof(char_type);

@@ -231,6 +231,24 @@ constexpr struct timespec to_struct_timespec(filetime ft) noexcept
 	return {static_cast<std::time_t>(unix_time/10000000ULL),static_cast<long>((unix_time%10000000ULL)*100)};
 }
 
+inline constexpr win32_timestamp to_win32_timestamp_ftu64(std::uint64_t ftu64) noexcept
+{
+	std::uint64_t seconds{ftu64/10000000ULL};
+	std::uint64_t subseconds{ftu64%10000000ULL};
+	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/10000000u};
+	return {static_cast<intiso_t>(seconds),static_cast<uintiso_t>(subseconds*mul_factor)};
+}
+
+inline constexpr std::uint64_t filetime_to_uint64_t(filetime ft) noexcept
+{
+	return (static_cast<std::uint64_t>(ft.dwHighDateTime)<<32)|ft.dwLowDateTime;
+}
+
+inline constexpr win32_timestamp to_win32_timestamp(filetime ft) noexcept
+{
+	return to_win32_timestamp_ftu64((static_cast<std::uint64_t>(ft.dwHighDateTime)<<32)|ft.dwLowDateTime);
+}
+
 struct by_handle_file_information
 {
 std::uint32_t    dwFileAttributes;
@@ -250,6 +268,14 @@ int __stdcall GetFileInformationByHandle(void* __restrict,by_handle_file_informa
 int __stdcall GetUserDefaultLocaleName(wchar_t*,int) noexcept;
 
 void* __stdcall LoadLibraryW(wchar_t const*) noexcept;
+
+void __stdcall GetSystemTimePreciseAsFileTime(filetime*) noexcept;
+
+int __stdcall QueryUnbiasedInterruptTime(std::uint64_t* unbiasedtime) noexcept;
+
+int __stdcall GetProcessTimes(void*,filetime*,filetime*,filetime*,filetime*) noexcept;
+
+int __stdcall GetThreadTimes(void*,filetime*,filetime*,filetime*,filetime*) noexcept;
 
 }
 

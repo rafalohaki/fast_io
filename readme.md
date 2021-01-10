@@ -388,3 +388,4 @@ This project is made possible by referencing from other open-source projects. (I
 |ReactOS|https://github.com/reactos/reactos |
 |dirent_h|https://github.com/win32ports/dirent_h|
 |GNU C library|https://www.gnu.org/software/libc/|
+|GNU Newlib |https://sourceware.org/newlib/|

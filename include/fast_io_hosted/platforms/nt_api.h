@@ -907,6 +907,15 @@ inline auto nt_wait_for_single_object(Args&& ...args) noexcept
 	return (get_nt_module_handle<std::uint32_t __stdcall(void*,int,std::uint64_t*) noexcept >(func_name))(std::forward<Args>(args)...);
 }
 
+
+template<bool zw,typename... Args>
+requires (sizeof...(Args)==2)
+inline auto nt_set_system_time(Args&& ...args) noexcept
+{
+	constexpr char8_t const* func_name{zw?u8"ZwSetSystemTime":u8"NtSetSystemTime"};
+	return (get_nt_module_handle<std::uint32_t __stdcall(std::uint64_t*,std::uint64_t*) noexcept >(func_name))(std::forward<Args>(args)...);
+}
+
 struct rtlp_curdir_def
 {
 	std::int32_t ref_count;

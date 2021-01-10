@@ -22,7 +22,7 @@ inline constexpr Iter output_iso8601_subseconds(Iter iter,uintiso_t subseconds) 
 	else
 		*iter=u8'.';
 	++iter;
-	constexpr std::size_t digitsm1(std::numeric_limits<uintiso_t>::digits10-1);
+	constexpr std::size_t digitsm1(std::numeric_limits<uintiso_t>::digits10);
 	std::size_t sz(digitsm1);
 	for(;subseconds%10==0;--sz)
 		subseconds/=10;
@@ -30,7 +30,19 @@ inline constexpr Iter output_iso8601_subseconds(Iter iter,uintiso_t subseconds) 
 	return iter+sz;
 }
 
+inline constexpr uintiso_t cal_uintiso_d10_max() noexcept
+{
+	std::size_t v(std::numeric_limits<uintiso_t>::digits10);
+	uintiso_t value{1};
+	for(std::size_t i{};i!=v;++i)
+		value*=10u;
+	return value;
 }
+
+}
+
+inline constexpr uintiso_t uintiso_subseconds_per_second{details::cal_uintiso_d10_max()};
+
 }
 
 #include"iso3166.h"
