@@ -895,7 +895,7 @@ inline posix_file_status win32_status_impl(void* __restrict handle)
 	if(ft==file_type::fifo||ft==file_type::character)
 		return posix_file_status{0,0,static_cast<perms>(436),ft,1,0,0,
 			static_cast<std::uintmax_t>(reinterpret_cast<std::uintptr_t>(handle)),
-			0,65536,0,{},{},{},0,0};
+			0,131072,0,{},{},{},0,0};
 	by_handle_file_information bhdi;
 	if(!GetFileInformationByHandle(handle,std::addressof(bhdi)))
 		throw_win32_error();
@@ -914,7 +914,7 @@ inline posix_file_status win32_status_impl(void* __restrict handle)
 	static_cast<std::uintmax_t>(bhdi.nNumberOfLinks),
 	0,0,0,
 	file_size,
-	65536,file_size>>9,
+	131072,file_size>>9,
 	to_struct_timespec(bhdi.ftLastAccessTime),
 	to_struct_timespec(bhdi.ftLastWriteTime),
 	to_struct_timespec(bhdi.ftCreationTime),

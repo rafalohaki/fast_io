@@ -269,8 +269,8 @@ inline constexpr Iter print_reserve_iso8601_timestamp_impl(Iter iter,iso8601_tim
 	return iter;
 }
 
-template<std::random_access_iterator Iter,intiso_t off_to_epoch>
-inline constexpr Iter print_reserve_bsc_timestamp_impl(Iter iter,basic_timestamp<off_to_epoch> timestamp) noexcept
+template<std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_bsc_timestamp_impl(Iter iter,unix_timestamp timestamp) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
 	iter=print_reserve_define(io_reserve_type<char_type,intiso_t>,iter,timestamp.seconds);
@@ -285,7 +285,10 @@ template<std::integral char_type,std::random_access_iterator Iter,intiso_t off_t
 inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,basic_timestamp<off_to_epoch>>,
 		Iter iter,basic_timestamp<off_to_epoch> timestamp) noexcept
 {
-	return details::print_reserve_bsc_timestamp_impl(iter,timestamp);
+	if constexpr(off_to_epoch==0)
+		return details::print_reserve_bsc_timestamp_impl(iter,timestamp);
+	else
+		return details::print_reserve_bsc_timestamp_impl(iter,{timestamp.seconds,timestamp.subseconds});
 }
 
 template<std::integral char_type,std::random_access_iterator Iter>

@@ -691,7 +691,6 @@ fstat64
 #endif
 (fd,std::addressof(st))<0)
 		throw_posix_error();
-
 	return {static_cast<std::uintmax_t>(st.st_dev),
 	static_cast<std::uintmax_t>(st.st_ino),
 	st_mode_to_perms(st.st_mode),
@@ -702,7 +701,7 @@ fstat64
 	static_cast<std::uintmax_t>(st.st_rdev),
 	static_cast<std::uintmax_t>(st.st_size),
 #if defined(_WIN32)||defined(__MSDOS__)
-	65536,
+	131072,
 	static_cast<std::uintmax_t>(st.st_size/512),
 	{st.st_atime,{}},{st.st_mtime,{}},{st.st_ctime,{}},
 #else

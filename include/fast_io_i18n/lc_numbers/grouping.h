@@ -309,6 +309,7 @@ inline constexpr Iter print_lc_grouping_3_path_impl(std::iter_value_t<Iter> sepe
 	}
 }
 
+
 }
 
 template<std::random_access_iterator Iter,details::my_integral T>
@@ -323,5 +324,46 @@ inline constexpr Iter print_reserve_define(basic_lc_all<std::iter_value_t<Iter>>
 	else
 		return details::print_lc_grouping_unhappy_path_impl(all,iter,t);
 }
+
+namespace details
+{
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size_grouping_timestamp_impl(basic_lc_all<char_type> const* __restrict all)
+{
+	constexpr std::size_t static_size{print_reserve_size(io_reserve_type<char_type,intiso_t>)};
+	constexpr std::size_t static_sizem1{static_size-1};
+	return static_size+static_sizem1*all->numeric.thousands_sep.len+std::numeric_limits<uintiso_t>::digits10;
+}
+
+template<std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define_grouping_timestamp_impl(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,unix_timestamp timestamp)
+{
+	using char_type = std::iter_value_t<Iter>;
+	iter=print_reserve_define(all,iter,timestamp.seconds);
+	if(timestamp.subseconds)
+		iter=output_iso8601_subseconds(iter,timestamp.subseconds);
+	return iter;
+}
+}
+
+template<std::integral char_type,intiso_t off_to_epoch>
+inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* __restrict all,basic_timestamp<off_to_epoch> iso) noexcept
+{
+	return details::print_reserve_size_grouping_timestamp_impl(all);
+}
+
+template<std::random_access_iterator Iter,intiso_t off_to_epoch>
+inline constexpr Iter print_reserve_define(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,basic_timestamp<off_to_epoch> ts) noexcept
+{
+	if constexpr(off_to_epoch==0)
+	{
+		return details::print_reserve_define_grouping_timestamp_impl(all,iter,ts);
+	}
+	else
+	{
+		return details::print_reserve_define_grouping_timestamp_impl(all,iter,{ts.seconds,ts.subseconds});
+	}
+}
+
 
 }
