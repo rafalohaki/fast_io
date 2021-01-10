@@ -241,7 +241,6 @@ inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manipul
 namespace details
 {
 
-
 template<std::random_access_iterator Iter,my_unsigned_integral U>
 inline constexpr void output_unsigned_with_size(Iter str,U value,std::size_t len) noexcept
 {

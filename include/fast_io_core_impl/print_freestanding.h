@@ -55,10 +55,10 @@ template<print_control_impl pci,std::integral char_type,typename value_type>
 requires dynamic_reserve_printable<char_type,value_type>
 inline constexpr std::size_t print_dynamic_reserve_control_size_impl(value_type v) noexcept
 {
-	constexpr std::size_t sz{print_reserve_size(io_reserve_type<char_type,value_type>,v)};
+	std::size_t sz{print_reserve_size(io_reserve_type<char_type,value_type>,v)};
 	if constexpr(pci==print_control_impl::serialize)
 	{
-		constexpr std::size_t len(reserve_len(sz)+sz+1);
+		std::size_t len(reserve_len(sz)+sz+1);
 		return len;
 	}
 	else
@@ -282,7 +282,7 @@ inline constexpr void print_control_dynamic_reserve_bad_path(output out,value_ty
 {
 	using char_type = typename output::char_type;
 	local_operator_new_array_ptr<char_type> ptr(sizep1);
-	auto it{dynamic_print_reserve_control_define_impl<pci,char_type,value_type>(ptr.ptr,t)};
+	auto it{print_reserve_control_define_impl<pci,char_type,value_type>(ptr.ptr,t)};
 	if constexpr(line)
 	{
 		if constexpr(std::same_as<char,char_type>)

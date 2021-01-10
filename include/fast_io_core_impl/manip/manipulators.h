@@ -24,6 +24,52 @@ struct blvw_t
 	T reference;
 };
 
+template<typename T>
+struct comma_t
+{
+	using manip_tag = manip_tag_t;
+	T reference;
+};
+
+enum class floating_representation
+{
+scientific,fixed,general
+};
+
+/*
+Referenced from dragonbox paper
+https://github.com/jk-jeon/dragonbox/blob/master/other_files/Dragonbox.pdf
+*/
+
+enum class rounding_mode
+{
+round_to_nearest_ties_to_even,
+round_to_nearest_ties_to_odd,
+round_to_nearest_ties_away_from_zero,
+round_to_nearest_ties_to_zero,
+round_to_zero,
+round_away_from_zero,
+round_to_positive_infinity,
+round_to_negative_infinity,
+round_to_nearest_ties_to_positive_infinity,
+round_to_nearest_ties_to_negative_infinity
+};
+
+template<typename T,floating_representation format,rounding_mode mode=rounding_mode::round_to_nearest_ties_to_even,std::size_t base=10>
+struct floating_format_t
+{
+	using manip_tag = manip_tag_t;
+	T reference;
+};
+
+template<typename T,floating_representation format,rounding_mode mode=rounding_mode::round_to_nearest_ties_to_even,std::size_t base=10>
+struct floating_format_precision_t
+{
+	using manip_tag = manip_tag_t;
+	T reference;
+	std::size_t precision;
+};
+
 template<std::size_t bs,::fast_io::details::my_integral T>
 requires (2<=bs&&bs<=36)
 inline constexpr std::conditional_t<bs==10,parameter<T&>,base_t<bs,false,T&>> base_get(T& reference) noexcept
