@@ -34,7 +34,9 @@
 
 #include"fast_io_core_impl/overflow.h"
 #include"fast_io_core_impl/terminate.h"
-
+#if __cpp_lib_three_way_comparison >= 201907L
+#include"fast_io_core_impl/compare.h"
+#endif
 #include"fast_io_core_impl/memptr.h"
 #include"fast_io_core_impl/local_new_array_ptr.h"
 #include"fast_io_core_impl/internal_temporary_buffer.h"

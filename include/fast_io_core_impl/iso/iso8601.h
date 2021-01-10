@@ -27,12 +27,11 @@ template<intiso_t off_to_epoch>
 inline constexpr auto operator<=>(basic_timestamp<off_to_epoch> a,basic_timestamp<off_to_epoch> b) noexcept
 {
 	auto v{a.seconds<=>b.seconds};
-	if(!v)
+	if(v==0)
 	{
-		auto v2{a.subseconds<=>b.subseconds};
 		if(a.seconds<0)
-			return -v2;
-		return v2;
+			return b.subseconds<=>a.subseconds;
+		return a.subseconds<=>b.subseconds;
 	}
 	return v;
 }
@@ -145,7 +144,6 @@ inline constexpr basic_timestamp<off_to_epoch> operator+(basic_timestamp<off_to_
 		else
 		{
 			uintiso_t b_abs(b.seconds);
-			b_abs=0u-b_abs;
 			auto res{details::add_impl({a_abs,a.subseconds},
 				{b_abs,b.subseconds})};
 			return {static_cast<intiso_t>(res.seconds),res.subseconds};
