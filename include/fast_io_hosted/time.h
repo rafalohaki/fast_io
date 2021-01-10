@@ -297,7 +297,7 @@ inline unix_timestamp posix_clock_settime(posix_clock_id pclk_id,unix_timestamp 
 	{
 		win32_timestamp win32ts(timestamp);
 		constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/10000000u};
-		std::uint64_t tms(static_cast<uintiso_t>(win32ts.seconds)*10000000ULL+timestamp.subseconds/mul_factor);
+		std::uint64_t tms(static_cast<uintiso_t>(win32ts.seconds)*10000000ULL+win32ts.subseconds/mul_factor);
 		std::uint64_t old_tms{};
 		auto ntstatus{win32::nt::nt_set_system_time<false>(std::addressof(tms),std::addressof(old_tms))};
 		if(ntstatus)
