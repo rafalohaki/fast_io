@@ -12,6 +12,17 @@ namespace details
 {
 
 template<std::random_access_iterator Iter>
+inline constexpr Iter output_iso8601_subseconds_main(Iter iter,uintiso_t subseconds) noexcept
+{
+	constexpr std::size_t digitsm1(std::numeric_limits<uintiso_t>::digits10);
+	std::size_t sz(digitsm1);
+	for(;subseconds%10==0;--sz)
+		subseconds/=10;
+	with_length_output_unsigned(iter,subseconds,sz);
+	return iter+sz;
+}
+
+template<std::random_access_iterator Iter>
 inline constexpr Iter output_iso8601_subseconds(Iter iter,uintiso_t subseconds) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
@@ -22,12 +33,7 @@ inline constexpr Iter output_iso8601_subseconds(Iter iter,uintiso_t subseconds) 
 	else
 		*iter=u8'.';
 	++iter;
-	constexpr std::size_t digitsm1(std::numeric_limits<uintiso_t>::digits10);
-	std::size_t sz(digitsm1);
-	for(;subseconds%10==0;--sz)
-		subseconds/=10;
-	with_length_output_unsigned(iter,subseconds,sz);
-	return iter+sz;
+	return output_iso8601_subseconds_main(iter,subseconds);
 }
 
 inline constexpr uintiso_t cal_uintiso_d10_max() noexcept

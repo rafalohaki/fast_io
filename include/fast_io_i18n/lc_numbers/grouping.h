@@ -332,7 +332,7 @@ inline constexpr std::size_t print_reserve_size_grouping_timestamp_impl(basic_lc
 {
 	constexpr std::size_t static_size{print_reserve_size(io_reserve_type<char_type,intiso_t>)};
 	constexpr std::size_t static_sizem1{static_size-1};
-	return static_size+static_sizem1*all->numeric.thousands_sep.len+std::numeric_limits<uintiso_t>::digits10;
+	return static_size+static_sizem1*all->numeric.thousands_sep.len+all->numeric.decimal_point.len+std::numeric_limits<uintiso_t>::digits10;
 }
 
 template<std::random_access_iterator Iter>
@@ -341,7 +341,16 @@ inline constexpr Iter print_reserve_define_grouping_timestamp_impl(basic_lc_all<
 	using char_type = std::iter_value_t<Iter>;
 	iter=print_reserve_define(all,iter,timestamp.seconds);
 	if(timestamp.subseconds)
-		iter=output_iso8601_subseconds(iter,timestamp.subseconds);
+	{
+		if(all->numeric.decimal_point.len==1)
+		{
+			*iter=all->numeric.decimal_point.base[0];
+			++iter;
+		}
+		else
+			iter=non_overlapped_copy_n(all->numeric.decimal_point.base,all->numeric.decimal_point.len,iter);
+		iter=output_iso8601_subseconds_main(iter,timestamp.subseconds);
+	}
 	return iter;
 }
 }
