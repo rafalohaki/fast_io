@@ -60,7 +60,7 @@ inline constexpr uintiso_t cal_uintiso_d10_max() noexcept
 template<std::unsigned_integral T>
 inline constexpr auto cal_uintiso_d10_all_table() noexcept
 {
-	std::array<T,std::numeric_limits<T>::digits10-1> array;
+	std::array<T,std::numeric_limits<T>::digits10> array;
 	array.back()=1;
 	for(std::size_t i{array.size()-1};i--;)
 		array[i]=array[i+1]*10u;

@@ -485,7 +485,7 @@ inline constexpr Iter unix_timestamp_fixed_complex_case(Iter iter,::fast_io::man
 		if(carry)
 		{
 			++upper_frac;
-			if(upper_frac*tbv*100==uintiso_subseconds_per_second)
+			if(upper_frac*tbv*100u==uintiso_subseconds_per_second)
 			{
 				++abs;
 				upper_frac=0;
