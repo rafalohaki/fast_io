@@ -41,28 +41,64 @@ Referenced from dragonbox paper
 https://github.com/jk-jeon/dragonbox/blob/master/other_files/Dragonbox.pdf
 */
 
+/*
+https://github.com/jk-jeon/dragonbox
+jkj::dragonbox::policy::rounding_mode::nearest_to_even: This is the default policy. Use round-to-nearest, tie-to-even rounding mode.
+
+jkj::dragonbox::policy::rounding_mode::nearest_to_odd: Use round-to-nearest, tie-to-odd rounding mode.
+
+jkj::dragonbox::policy::rounding_mode::nearest_toward_plus_infinity: Use round-to-nearest, tie-toward-plus-infinity rounding mode.
+
+jkj::dragonbox::policy::rounding_mode::nearest_toward_minus_infinity: Use round-to-nearest, tie-toward-minus-infinity rounding mode.
+
+jkj::dragonbox::policy::rounding_mode::nearest_toward_zero: Use round-to-nearest, tie-toward-zero rounding mode. This will produce the fastest code among all round-to-nearest rounding modes.
+
+jkj::dragonbox::policy::rounding_mode::nearest_away_from_zero: Use round-to-nearest, tie-away-from-zero rounding mode.
+
+jkj::dragonbox::policy::rounding_mode::nearest_to_even_static_boundary: Use round-to-nearest, tie-to-even rounding mode, but there will be completely independent code paths for even inputs and odd inputs. This will produce a bigger binary, but might run faster than jkj::dragonbox::policy::rounding_mode::nearest_to_even for some situation.
+
+jkj::dragonbox::policy::rounding_mode::nearest_to_odd_static_boundary: Use round-to-nearest, tie-to-odd rounding mode, but there will be completely independent code paths for even inputs and odd inputs. This will produce a bigger binary, but might run faster than jkj::dragonbox::policy::rounding_mode::nearest_to_odd for some situation.
+
+jkj::dragonbox::policy::rounding_mode::nearest_toward_plus_infinity_static_boundary: Use round-to-nearest, tie-toward-plus-infinity rounding mode, but there will be completely independent code paths for positive inputs and negative inputs. This will produce a bigger binary, but might run faster than jkj::dragonbox::policy::rounding_mode::nearest_toward_plus_infinity for some situation.
+
+jkj::dragonbox::policy::rounding_mode::nearest_toward_minus_infinity_static_boundary: Use round-to-nearest, tie-toward-plus-infinity rounding mode, but there will be completely independent code paths for positive inputs and negative inputs. This will produce a bigger binary, but might run faster than jkj::dragonbox::policy::rounding_mode::nearest_toward_minus_infinity for some situation.
+
+jkj::dragonbox::policy::rounding_mode::toward_plus_infinity: Use round-toward-plus-infinity rounding mode.
+
+jkj::dragonbox::policy::rounding_mode::toward_minus_infinity: Use round-toward-minus-infinity rounding mode.
+
+jkj::dragonbox::policy::rounding_mode::toward_zero: Use round-toward-zero rounding mode.
+
+jkj::dragonbox::policy::rounding_mode::away_from_zero: Use away-from-zero rounding mode.
+
+*/
+
 enum class rounding_mode
 {
-round_to_nearest_ties_to_even,
-round_to_nearest_ties_to_odd,
-round_to_nearest_ties_away_from_zero,
-round_to_nearest_ties_to_zero,
-round_to_zero,
-round_away_from_zero,
-round_to_positive_infinity,
-round_to_negative_infinity,
-round_to_nearest_ties_to_positive_infinity,
-round_to_nearest_ties_to_negative_infinity
+nearest_to_even,
+nearest_to_odd,
+nearest_toward_plus_infinity,
+nearest_toward_minus_infinity,
+nearest_toward_zero,
+nearest_away_from_zero,
+nearest_to_even_static_boundary,
+nearest_to_odd_static_boundary,
+nearest_toward_plus_infinity_static_boundary,
+nearest_toward_minus_infinity_static_boundary,
+toward_plus_infinity,
+toward_minus_infinity,
+toward_zero,
+away_from_zero,
 };
 
-template<typename T,floating_representation format,rounding_mode mode=rounding_mode::round_to_nearest_ties_to_even,std::size_t base=10>
+template<typename T,floating_representation format,rounding_mode mode=rounding_mode::nearest_to_even,std::size_t base=10>
 struct floating_format_t
 {
 	using manip_tag = manip_tag_t;
 	T reference;
 };
 
-template<typename T,floating_representation format,rounding_mode mode=rounding_mode::round_to_nearest_ties_to_even,std::size_t base=10>
+template<typename T,floating_representation format,rounding_mode mode=rounding_mode::nearest_to_even,std::size_t base=10>
 struct floating_format_precision_t
 {
 	using manip_tag = manip_tag_t;

@@ -313,7 +313,7 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,iso8601_t
 namespace manipulators
 {
 
-template<manipulators::rounding_mode mode=manipulators::rounding_mode::round_to_nearest_ties_to_even,std::size_t base=10,intiso_t off_to_epoch>
+template<manipulators::rounding_mode mode=manipulators::rounding_mode::nearest_to_even,std::size_t base=10,intiso_t off_to_epoch>
 requires (base==10)
 inline constexpr floating_format_precision_t<unix_timestamp,floating_representation::fixed,mode,base>
 	fixed(basic_timestamp<off_to_epoch> ts,std::size_t precision) noexcept
@@ -333,7 +333,7 @@ inline constexpr comma_t<unix_timestamp> comma(basic_timestamp<off_to_epoch> ts)
 		return {{ts.seconds,ts.subseconds}};
 }
 
-template<manipulators::rounding_mode mode=manipulators::rounding_mode::round_to_nearest_ties_to_even,std::size_t base=10,intiso_t off_to_epoch>
+template<manipulators::rounding_mode mode=manipulators::rounding_mode::nearest_to_even,std::size_t base=10,intiso_t off_to_epoch>
 requires (base==10)
 inline constexpr comma_t<floating_format_precision_t<unix_timestamp,floating_representation::fixed,mode,base>>
 	comma_fixed(basic_timestamp<off_to_epoch> ts,std::size_t precision) noexcept
@@ -445,12 +445,12 @@ inline constexpr Iter unix_timestamp_fixed_complex_case(Iter iter,::fast_io::man
 		++iter;
 		abs=0u-abs;
 	}
-	if constexpr(mode!=::fast_io::manipulators::rounding_mode::round_to_zero)
+	if constexpr(mode!=::fast_io::manipulators::rounding_mode::toward_zero)
 	{
 		uintiso_t val_mod{ts.reference.subseconds%tbv};
 		uintiso_t frac{val%10u};
 		bool carry{};
-		if constexpr(mode==::fast_io::manipulators::rounding_mode::round_to_nearest_ties_to_even)
+		if constexpr(mode==::fast_io::manipulators::rounding_mode::nearest_to_even)
 		{
 			if(5<frac)
 			{
@@ -466,7 +466,7 @@ inline constexpr Iter unix_timestamp_fixed_complex_case(Iter iter,::fast_io::man
 				}
 			}
 		}
-		else if constexpr(mode==::fast_io::manipulators::rounding_mode::round_to_nearest_ties_to_odd)
+		else if constexpr(mode==::fast_io::manipulators::rounding_mode::nearest_to_odd)
 		{
 			if(5<frac)
 			{
@@ -527,7 +527,7 @@ inline constexpr Iter unix_timestamp_fixed_print_impl(
 {
 	using char_type = std::iter_value_t<Iter>;
 	constexpr std::size_t digits10m2{static_cast<std::size_t>(std::numeric_limits<uintiso_t>::digits10)-2};
-	if constexpr(mode==::fast_io::manipulators::rounding_mode::round_to_zero)
+	if constexpr(mode==::fast_io::manipulators::rounding_mode::toward_zero)
 	{
 		if(ts.precision==0)
 			return print_reserve_define(io_reserve_type<char_type,intiso_t>,iter,ts.reference.seconds);

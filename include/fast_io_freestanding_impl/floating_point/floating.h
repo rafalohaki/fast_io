@@ -1,175 +1,268 @@
 #pragma once
-#include"jiaendu_fp.h"
 #include"floating_integer_part.h"
-#include"ryu/ryu.h"
-//#include"grisu_exact/grisu_exact.h"
-//#include"grisu_exact/grisu_exact_api.h"
+#include"easy_cases.h"
+#include"dragonbox/dragonbox.h"
 
 namespace fast_io
 {
 
+template<std::integral char_type,std::floating_point fp>
+requires (std::same_as<fp,float>||std::same_as<fp,double>)
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,fp>) noexcept
+{
+	return 25;
+}
+
+namespace manipulators
+{
+
+template<rounding_mode round_mode=rounding_mode::nearest_to_even,
+std::floating_point fp_type>
+requires (std::same_as<fp_type,float>||std::same_as<fp_type,double>)
+inline constexpr 
+comma_t<floating_format_t<fp_type,
+floating_representation::general,
+round_mode>>
+general(fp_type f) noexcept
+{
+	return {f};
+}
+
+template<rounding_mode round_mode=rounding_mode::nearest_to_even,
+std::floating_point fp_type>
+requires (std::same_as<fp_type,float>||std::same_as<fp_type,double>)
+inline constexpr 
+comma_t<floating_format_t<fp_type,
+floating_representation::fixed,
+round_mode>>
+fixed(fp_type f) noexcept
+{
+	return {f};
+}
+
+template<rounding_mode round_mode=rounding_mode::nearest_to_even,
+std::floating_point fp_type>
+requires (std::same_as<fp_type,float>||std::same_as<fp_type,double>)
+inline constexpr 
+comma_t<floating_format_t<fp_type,
+floating_representation::scientific,
+round_mode>>
+scientific(fp_type f) noexcept
+{
+	return {f};
+}
+
+template<rounding_mode round_mode=rounding_mode::nearest_to_even,std::floating_point fp_type>
+requires (std::same_as<fp_type,float>||std::same_as<fp_type,double>)
+inline constexpr 
+comma_t<floating_format_t<fp_type,
+floating_representation::general,
+round_mode>>
+comma_general(fp_type f) noexcept
+{
+	return {f};
+}
+
+template<rounding_mode round_mode=rounding_mode::nearest_to_even,std::floating_point fp_type>
+requires (std::same_as<fp_type,float>||std::same_as<fp_type,double>)
+inline constexpr 
+comma_t<
+floating_format_t<fp_type,
+floating_representation::fixed,
+round_mode>>
+comma_fixed(fp_type f) noexcept
+{
+	return {f};
+}
+
+template<rounding_mode round_mode,std::floating_point fp_type>
+requires (std::same_as<fp_type,float>||std::same_as<fp_type,double>)
+inline constexpr 
+comma_t<floating_format_t<fp_type,
+floating_representation::scientific,
+round_mode>>
+comma_scientific(fp_type f) noexcept
+{
+	return {f};
+}
+
+}
+
+template<std::integral char_type,std::floating_point fp,
+	manipulators::floating_representation rep,
+	manipulators::rounding_mode round_mode>
+requires (std::same_as<fp,float>||std::same_as<fp,double>)
+inline constexpr std::size_t print_reserve_size(
+	io_reserve_type_t<char_type,
+	manipulators::floating_format_t<fp,
+	rep,round_mode>>) noexcept
+{
+	if constexpr(rep==manipulators::floating_representation::fixed)
+		return 360;
+	else
+		return 30;
+}
+
+
+template<std::integral char_type,std::floating_point fp,
+	manipulators::floating_representation rep,
+	manipulators::rounding_mode round_mode>
+requires (std::same_as<fp,float>||std::same_as<fp,double>)
+inline constexpr std::size_t print_reserve_size(
+	io_reserve_type_t<char_type,
+	manipulators::comma_t<manipulators::floating_format_t<fp,
+	rep,round_mode>>>) noexcept
+{
+	if constexpr(rep==manipulators::floating_representation::fixed)
+		return 360;
+	else
+		return 30;
+}
+
+
+template<std::integral char_type,std::floating_point fp>
+requires (std::same_as<fp,float>||std::same_as<fp,double>)
+inline constexpr std::size_t print_reserve_size(
+	io_reserve_type_t<char_type,
+	manipulators::comma_t<fp>>) noexcept
+{
+	return 30;
+}
+
+
 namespace details
 {
 
-template<std::floating_point fp_type,manip::floating_formats fm>
-constexpr std::size_t cal_floating_len()
+template<bool comma,
+::fast_io::manipulators::floating_representation rep,
+::fast_io::manipulators::rounding_mode round,
+bool uppercase_e,std::random_access_iterator Iter,std::floating_point fp_type>
+inline constexpr Iter fp_print_reserve_define_impl(Iter iter,fp_type f) noexcept
 {
-	if constexpr(std::same_as<std::remove_cvref_t<fp_type>,long double>&&8<sizeof(long double))
-	{
-		if constexpr(fm==manip::floating_formats::general||fm==manip::floating_formats::scientific)
-			return 60;
-		else if constexpr(fm==manip::floating_formats::fixed)
-			return 5000;//??Is that enough? To verify
-	}
-	else
-	{
-	if constexpr(fm==manip::floating_formats::general||fm==manip::floating_formats::scientific)
-		return 30;
-	else if constexpr(fm==manip::floating_formats::fixed)
-		return 350;
-	}
-}
-}
-/*
-template<character_input_stream input,std::floating_point T>
-inline constexpr void space_scan_define(input& in,T &t)
-{
-	auto igen{igenerator(in)};
-	if constexpr(std::same_as<std::remove_cvref_t<T>,long double>)
-		t=static_cast<std::remove_cvref_t<T>>(details::ryu::input_floating<u8'.',double>(begin(igen),end(igen)));
-	else
-		t=details::ryu::input_floating<u8'.',std::remove_cvref_t<T>>(begin(igen),end(igen));
-}
 
-template<char32_t dec,character_input_stream input,std::floating_point T>
-inline constexpr void space_scan_define(input& in,manip::decimal_point<T&,dec> t)
-{
-	auto igen{igenerator(in)};
-	if constexpr(std::same_as<std::remove_cvref_t<T>,long double>)
-		t.value=static_cast<std::remove_cvref_t<T>>(details::ryu::input_floating<dec,double>(begin(igen),end(igen)));
-	else
-		t.value=details::ryu::input_floating<dec,std::remove_cvref_t<T>>(begin(igen),end(igen));
-}
-*/
-template<std::integral char_type,manip::floating_formats fm,bool uppercase,std::floating_point T,char32_t dec>
-inline constexpr std::size_t print_reserve_size
-	(io_reserve_type_t<char_type,manip::decimal_point<manip::floating_manip_precision<fm,uppercase,T const>,dec>>)
-{
-	if constexpr(fm==manip::floating_formats::general||fm==manip::floating_formats::fixed)
-		return 2048;
-	else if constexpr(fm==manip::floating_formats::scientific)
-		return 1024;
-}
-
-template<std::integral char_type,std::random_access_iterator raiter,manip::floating_formats fm,std::floating_point T,bool uppercase,char32_t dec,typename U>
-requires (dec<std::numeric_limits<std::iter_value_t<raiter>>::max())
-inline raiter print_reserve_define(io_reserve_type_t<char_type,manip::decimal_point<manip::floating_manip_precision<fm,uppercase,T const>,dec>>,raiter start,U a)
-{
-	if constexpr(fm==manip::floating_formats::fixed)
+	if constexpr(round==::fast_io::manipulators::rounding_mode::nearest_to_even)
 	{
-		if(1024<a.value.precision)
-#ifdef __cpp_exceptions
-			throw fast_io_text_error("precision too large");
-#else
-			fast_terminate();
-#endif
-		return details::ryu::output_fixed<dec,false,uppercase>(start,static_cast<double>(a.value.reference),a.value.precision);
+		auto decm{::fast_io::jkj::dragonbox::to_decimal(f)};
+		return fp::normal_case<rep,uppercase_e,(comma?u8',':u8'.')>(iter,decm.is_negative,decm.significand,decm.exponent);
 	}
-	else if constexpr(fm==manip::floating_formats::scientific)
+	else if constexpr(round==::fast_io::manipulators::rounding_mode::nearest_to_odd)
 	{
-		if(512<a.value.precision)
-#ifdef __cpp_exceptions
-			throw fast_io_text_error("precision too large");
-#else
-			fast_terminate();
-#endif
-		return details::ryu::output_fixed<dec,true,uppercase>(start,static_cast<double>(a.value.reference),a.value.precision);
+		auto decm{::fast_io::jkj::dragonbox::to_decimal(f,jkj::dragonbox::policy::rounding_mode::nearest_to_odd)};
+		return fp::normal_case<rep,uppercase_e,(comma?u8',':u8'.')>(iter,decm.is_negative,decm.significand,decm.exponent);
 	}
-	else if constexpr(fm==manip::floating_formats::general)
+	else if constexpr(round==::fast_io::manipulators::rounding_mode::nearest_toward_plus_infinity)
 	{
-		if(1024<a.value.precision)
-#ifdef __cpp_exceptions
-			throw fast_io_text_error("precision too large");
-#else
-			fast_terminate();
-#endif
-		auto fixed_iter{details::ryu::output_fixed<dec,false,uppercase>(start,static_cast<double>(a.value.reference),a.value.precision)};
-		std::array<std::iter_value_t<raiter>,512> scientific;
-		auto scientific_it{details::ryu::output_fixed<dec,true,uppercase>(scientific.data(),static_cast<double>(a.value.reference),a.value.precision)};
-		if(scientific_it-scientific.data()<fixed_iter-start)[[unlikely]]
-		{
-			details::my_copy(scientific.data(),scientific_it,start);
-			return start+(scientific_it-scientific.data());
-		}
-		return fixed_iter;
+		auto decm{::fast_io::jkj::dragonbox::to_decimal(f,jkj::dragonbox::policy::rounding_mode::nearest_toward_plus_infinity)};
+		return fp::normal_case<rep,uppercase_e,(comma?u8',':u8'.')>(iter,decm.is_negative,decm.significand,decm.exponent);
+	}
+	else if constexpr(round==::fast_io::manipulators::rounding_mode::nearest_toward_minus_infinity)
+	{
+		auto decm{::fast_io::jkj::dragonbox::to_decimal(f,jkj::dragonbox::policy::rounding_mode::nearest_toward_minus_infinity)};
+		return fp::normal_case<rep,uppercase_e,(comma?u8',':u8'.')>(iter,decm.is_negative,decm.significand,decm.exponent);
+	}
+	else if constexpr(round==::fast_io::manipulators::rounding_mode::nearest_toward_zero)
+	{
+		auto decm{::fast_io::jkj::dragonbox::to_decimal(f,jkj::dragonbox::policy::rounding_mode::nearest_toward_zero)};
+		return fp::normal_case<rep,uppercase_e,(comma?u8',':u8'.')>(iter,decm.is_negative,decm.significand,decm.exponent);
+	}
+	else if constexpr(round==::fast_io::manipulators::rounding_mode::nearest_away_from_zero)
+	{
+		auto decm{::fast_io::jkj::dragonbox::to_decimal(f,jkj::dragonbox::policy::rounding_mode::nearest_away_from_zero)};
+		return fp::normal_case<rep,uppercase_e,(comma?u8',':u8'.')>(iter,decm.is_negative,decm.significand,decm.exponent);
+	}
+	else if constexpr(round==::fast_io::manipulators::rounding_mode::nearest_to_even_static_boundary)
+	{
+		auto decm{::fast_io::jkj::dragonbox::to_decimal(f,jkj::dragonbox::policy::rounding_mode::nearest_to_even_static_boundary)};
+		return fp::normal_case<rep,uppercase_e,(comma?u8',':u8'.')>(iter,decm.is_negative,decm.significand,decm.exponent);
+	}
+	else if constexpr(round==::fast_io::manipulators::rounding_mode::nearest_to_odd_static_boundary)
+	{
+		auto decm{::fast_io::jkj::dragonbox::to_decimal(f,jkj::dragonbox::policy::rounding_mode::nearest_to_odd_static_boundary)};
+		return fp::normal_case<rep,uppercase_e,(comma?u8',':u8'.')>(iter,decm.is_negative,decm.significand,decm.exponent);
+	}
+	else if constexpr(round==::fast_io::manipulators::rounding_mode::nearest_toward_plus_infinity_static_boundary)
+	{
+		auto decm{::fast_io::jkj::dragonbox::to_decimal(f,jkj::dragonbox::policy::rounding_mode::nearest_toward_plus_infinity_static_boundary)};
+		return fp::normal_case<rep,uppercase_e,(comma?u8',':u8'.')>(iter,decm.is_negative,decm.significand,decm.exponent);
+	}
+	else if constexpr(round==::fast_io::manipulators::rounding_mode::nearest_toward_minus_infinity_static_boundary)
+	{
+		auto decm{::fast_io::jkj::dragonbox::to_decimal(f,jkj::dragonbox::policy::rounding_mode::nearest_toward_minus_infinity_static_boundary)};
+		return fp::normal_case<rep,uppercase_e,(comma?u8',':u8'.')>(iter,decm.is_negative,decm.significand,decm.exponent);
+	}
+	else if constexpr(round==::fast_io::manipulators::rounding_mode::toward_plus_infinity)
+	{
+		auto decm{::fast_io::jkj::dragonbox::to_decimal(f,jkj::dragonbox::policy::rounding_mode::toward_plus_infinity)};
+		return fp::normal_case<rep,uppercase_e,(comma?u8',':u8'.')>(iter,decm.is_negative,decm.significand,decm.exponent);
+	}
+	else if constexpr(round==::fast_io::manipulators::rounding_mode::toward_minus_infinity)
+	{
+		auto decm{::fast_io::jkj::dragonbox::to_decimal(f,jkj::dragonbox::policy::rounding_mode::toward_minus_infinity)};
+		return fp::normal_case<rep,uppercase_e,(comma?u8',':u8'.')>(iter,decm.is_negative,decm.significand,decm.exponent);
+	}
+	else if constexpr(round==::fast_io::manipulators::rounding_mode::toward_zero)
+	{
+		auto decm{::fast_io::jkj::dragonbox::to_decimal(f,jkj::dragonbox::policy::rounding_mode::toward_zero)};
+		return fp::normal_case<rep,uppercase_e,(comma?u8',':u8'.')>(iter,decm.is_negative,decm.significand,decm.exponent);
+	}
+	else if constexpr(round==::fast_io::manipulators::rounding_mode::away_from_zero)
+	{
+		auto decm{::fast_io::jkj::dragonbox::to_decimal(f,jkj::dragonbox::policy::rounding_mode::away_from_zero)};
+		return fp::normal_case<rep,uppercase_e,(comma?u8',':u8'.')>(iter,decm.is_negative,decm.significand,decm.exponent);
 	}
 }
 
-template<std::integral char_type,std::floating_point T>
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,T>)
-{
-	return details::cal_floating_len<T,manip::floating_formats::general>();
 }
 
-template<std::integral char_type,std::random_access_iterator raiter,std::floating_point T,typename U>
-inline raiter print_reserve_define(io_reserve_type_t<char_type,T>,raiter start,U a)
+template<std::random_access_iterator Iter,std::floating_point fp_type>
+requires (std::same_as<fp_type,float>||std::same_as<fp_type,double>)
+inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,fp_type>,Iter iter,fp_type f) noexcept
 {
-	if constexpr(std::same_as<std::remove_cvref_t<T>,long double>&&sizeof(long double)!=16)
-		return details::ryu::output_shortest<false,0,true>(details::compile_time_floating_v<u8'.'>,start,static_cast<double>(a));	
-	else
-		return details::ryu::output_shortest<false,0,true>(details::compile_time_floating_v<u8'.'>,start,a);
+	return details::fp_print_reserve_define_impl<false,
+	manipulators::floating_representation::general,
+	::fast_io::manipulators::rounding_mode::nearest_to_even,false>(iter,f);
 }
 
-template<std::integral char_type,manip::floating_formats fm,bool uppercase,std::floating_point T,char32_t dec>
-inline constexpr std::size_t print_reserve_size
-	(io_reserve_type_t<char_type,manip::decimal_point<manip::floating_manip<fm,uppercase,T const>,dec>>)
+template<std::random_access_iterator Iter,std::floating_point fp_type>
+requires (std::same_as<fp_type,float>||std::same_as<fp_type,double>)
+inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,manipulators::comma_t<fp_type>>,Iter iter,manipulators::comma_t<fp_type> f) noexcept
 {
-	return details::cal_floating_len<T,fm>();
+	return details::fp_print_reserve_define_impl<true,manipulators::floating_representation::general,
+	::fast_io::manipulators::rounding_mode::nearest_to_even
+	,false>(iter,f);
 }
 
-template<std::integral char_type,std::random_access_iterator raiter,manip::floating_formats fm,std::floating_point T,bool uppercase,char32_t dec,typename U>
-requires (dec<std::numeric_limits<std::iter_value_t<raiter>>::max())
-inline raiter print_reserve_define(io_reserve_type_t<char_type,manip::decimal_point<manip::floating_manip<fm,uppercase,T const>,dec>>,raiter start,U a)
+
+template<std::random_access_iterator Iter,std::floating_point fp,
+	manipulators::floating_representation rep,
+	manipulators::rounding_mode round_mode>
+requires (std::same_as<fp,float>||std::same_as<fp,double>)
+inline constexpr Iter print_reserve_define(
+	io_reserve_type_t<std::iter_value_t<Iter>,
+	manipulators::floating_format_t<fp,rep,round_mode>>,Iter iter,
+	manipulators::floating_format_t<fp,rep,round_mode> f) noexcept
 {
-	if constexpr(std::same_as<std::remove_cvref_t<T>,long double>&&sizeof(long double)!=16)
-	{
-	if constexpr(fm==manip::floating_formats::general)
-		return details::ryu::output_shortest<uppercase,0,true>(details::compile_time_floating_v<dec>,start,static_cast<double>(a.value.reference));
-	else if constexpr(fm==manip::floating_formats::fixed)
-		return details::ryu::output_shortest<false,1,true>(details::compile_time_floating_v<dec>,start,static_cast<double>(a.value.reference));
-	else if constexpr(fm==manip::floating_formats::scientific)
-		return details::ryu::output_shortest<uppercase,2,true>(details::compile_time_floating_v<dec>,start,static_cast<double>(a.value.reference));
-	}
-	else
-	{
-	if constexpr(fm==manip::floating_formats::general)
-		return details::ryu::output_shortest<uppercase,0,true>(details::compile_time_floating_v<dec>,start,a.value.reference);
-	else if constexpr(fm==manip::floating_formats::fixed)
-		return details::ryu::output_shortest<false,1,true>(details::compile_time_floating_v<dec>,start,a.value.reference);
-	else if constexpr(fm==manip::floating_formats::scientific)
-		return details::ryu::output_shortest<uppercase,2,true>(details::compile_time_floating_v<dec>,start,a.value.reference);
-	}
+	return details::fp_print_reserve_define_impl<false,
+	rep,
+	round_mode
+	,false>(iter,f.reference);
 }
 
-template<std::integral char_type,std::floating_point T,char32_t dec>
-inline constexpr std::size_t print_reserve_size
-	(io_reserve_type_t<char_type,manip::decimal_point<T&,dec>>)
+
+template<std::random_access_iterator Iter,std::floating_point fp,
+	manipulators::floating_representation rep,
+	manipulators::rounding_mode round_mode>
+requires (std::same_as<fp,float>||std::same_as<fp,double>)
+inline constexpr Iter print_reserve_define(
+	io_reserve_type_t<std::iter_value_t<Iter>,
+	manipulators::comma_t<manipulators::floating_format_t<fp,rep,round_mode>>>,Iter iter,
+	manipulators::comma_t<manipulators::floating_format_t<fp,rep,round_mode>> f) noexcept
 {
-	return details::cal_floating_len<T,manip::floating_formats::general>();
+	return details::fp_print_reserve_define_impl<true,
+	rep,
+	round_mode
+	,false>(iter,f.reference.reference);
 }
 
-template<std::integral char_type,std::random_access_iterator raiter,std::floating_point T,char32_t dec,typename U>
-requires (dec<std::numeric_limits<std::iter_value_t<raiter>>::max())
-inline raiter print_reserve_define(io_reserve_type_t<char_type,manip::decimal_point<T&,dec>>,raiter start,U a)
-{
-	if constexpr(std::same_as<std::remove_cvref_t<T>,long double>&&sizeof(long double)!=16)
-	{
-	return details::ryu::output_shortest<false,0,true>(details::compile_time_floating_v<dec>,start,static_cast<double>(a.value));
-	}
-	else
-	{
-	return details::ryu::output_shortest<false,0,true>(details::compile_time_floating_v<dec>,start,a.value);
-	}
-}
 
 }
