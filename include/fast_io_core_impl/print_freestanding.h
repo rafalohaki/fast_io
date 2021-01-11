@@ -523,8 +523,10 @@ inline constexpr void print_control(output out,T t)
 				if constexpr(pci==print_control_impl::serialize)
 					print_serialize_size_bad_path(out,scatter.len);
 				write(out,scatter.base,scatter.base+scatter.len);
-				if constexpr(details::exec_charset_is_ebcdic<char_type>())
-					put(out,0x25);
+				if constexpr(std::same_as<char,char_type>)
+					put(out,'\n');
+				else if constexpr(std::same_as<wchar_t,char_type>)
+					put(out,L'\n');
 				else
 					put(out,u8'\n');
 			}
