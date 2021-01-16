@@ -136,11 +136,11 @@ vertical tab (0x0b, '\v')
 Any other exec-charset, besides these 6 characters, they can optionally support others, but too many are not allowed.
 
 For EBCDIC NL should also get supported.
-ASCII: space (0x20, ' '), EBCDIC:32
+ASCII: space (0x20, ' '), EBCDIC:64
 ASCII: form feed (0x0c, '\f'), EBCDIC:12
-ASCII: line feed (0x0a, '\n'), EBCDIC:10
+ASCII: line feed (0x0a, '\n'), EBCDIC:37
 ASCII: carriage return (0x0d, '\r'), EBCDIC:13
-ASCII: horizontal tab (0x09, '\t'), EBCDIC:9
+ASCII: horizontal tab (0x09, '\t'), EBCDIC:5
 ASCII: vertical tab (0x0b, '\v'), EBCDIC:11
 EBCDIC specific: NL:21
 */
