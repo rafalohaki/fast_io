@@ -3,147 +3,160 @@
 namespace fast_io
 {
 
-namespace manip
-{
-
-template<typename T,std::integral char_type>
-struct width
-{
-	using manip_tag = manip_tag_t;
-	T reference;
-	std::size_t width;
-	bool left;
-	char_type indent_character;
-};
-
-}
-
-template<typename T,std::integral ch_type=char8_t>
-requires (!manipulator<T>)
-inline constexpr manip::width<T const&,ch_type> width(T const& t,std::size_t wd,bool left=false,ch_type indent_character=u8' ')
-{
-	return {t,wd,left,indent_character};
-}
-
-template<manipulator T,std::integral ch_type=char8_t>
-inline constexpr manip::width<T,ch_type> width(T t,std::size_t wd,bool left=false,ch_type indent_character=u8' ')
-{
-	return {t,wd,left,indent_character};
-}
-
-template<typename T,std::integral ch_type=char8_t>
-requires (!manipulator<T>)
-inline constexpr manip::width<T const&,ch_type> left_width(T const& t,std::size_t wd,ch_type indent_character=u8' ')
-{
-	return {t,wd,true,indent_character};
-}
-
-template<manipulator T,std::integral ch_type=char8_t>
-inline constexpr manip::width<T,ch_type> left_width(T t,std::size_t wd,ch_type indent_character=u8' ')
-{
-	return {t,wd,true,indent_character};
-}
-
-template<typename T,std::integral ch_type=char8_t>
-requires (!manipulator<T>)
-inline constexpr manip::width<T const&,ch_type> right_width(T const& t,std::size_t wd,ch_type indent_character=u8' ')
-{
-	return {t,wd,false,indent_character};
-}
-
-template<manipulator T,std::integral ch_type=char8_t>
-inline constexpr manip::width<T,ch_type> right_width(T t,std::size_t wd,ch_type indent_character=u8' ')
-{
-	return {t,wd,false,indent_character};
-}
-
-
 namespace details
 {
-template<fast_io::output_stream output,typename T,std::integral ch_type>
-inline constexpr void width_unhappy_case(output& out,manip::width<T,ch_type> wdt)
+
+template<std::integral char_type,typename T>
+requires (reserve_printable<char_type,std::remove_cvref_t<T>>||
+	dynamic_reserve_printable<char_type,std::remove_cvref_t<T>>||
+	scatter_type_printable<char_type,std::remove_cvref_t<T>>)
+inline constexpr std::size_t print_reserve_size_width_impl(T w,std::size_t width) noexcept
 {
-	internal_temporary_buffer<typename output::char_type> buffer;
-	print_freestanding(buffer,wdt.reference);
-	std::size_t const real_width(buffer.end_ptr-buffer.beg_ptr);
-	if(real_width<wdt.width)
+	using value_type = std::remove_cvref_t<T>;
+	if constexpr(reserve_printable<char_type,value_type>)
 	{
-		if(wdt.left)
+		constexpr std::size_t sz{print_reserve_size(io_reserve_type<char_type,value_type>)};
+		if(width<sz)
+			return sz;
+		return width;
+	}
+	else if constexpr(dynamic_reserve_printable<char_type,value_type>)
+	{
+		std::size_t const sz{print_reserve_size(io_reserve_type<char_type,value_type>,w)};
+		if(width<sz)
+			return sz;
+		return width;
+	}
+	else if constexpr(scatter_type_printable<char_type,value_type>)
+	{
+		basic_io_scatter_t<char_type> const scatter{print_scatter_define(print_scatter_type<char_type>,w)};
+		if(width<scatter.len)
+			return scatter.len;
+		return width;
+	}
+}
+
+template<::fast_io::manipulators::width_mode wm,std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_width_fill_unchecked(Iter first,Iter last,std::size_t width,std::iter_difference_t<Iter> diff) noexcept
+{
+	using char_type = std::iter_value_t<Iter>;
+	if constexpr(wm==::fast_io::manipulators::width_mode::left)
+	{
+		if constexpr(std::same_as<char_type,char>)
+			return my_fill_n(last,diff,' ');
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			return my_fill_n(last,diff,L' ');
+		else if constexpr(std::same_as<char_type,char16_t>)
+			return my_fill_n(last,diff,u' ');
+		else if constexpr(std::same_as<char_type,char32_t>)
+			return my_fill_n(last,diff,U' ');
+		else
+			return my_fill_n(last,diff,u8' ');
+	}
+	else
+	{
+		auto d_last{first+width};
+		if constexpr(wm==::fast_io::manipulators::width_mode::middle)
 		{
-			if constexpr(buffer_output_stream<output>)
+			std::size_t gap{width-diff};
+			std::size_t gapdv2{gap>>1};
+			auto md{first+gapdv2+diff};
+			auto new_d_last{my_copy_backward(first,last,md)};
+			if constexpr(std::same_as<char_type,char>)
 			{
-				write(out,buffer.beg_ptr,buffer.end_ptr);
-				print_freestanding(out,fill_nc(wdt.width-real_width,wdt.indent_character));
+				my_fill(first,new_d_last,' ');
+				my_fill(md,d_last,' ');
+			}
+			else if constexpr(std::same_as<char_type,wchar_t>)
+			{
+				my_fill(first,new_d_last,L' ');
+				my_fill(md,d_last,L' ');
+			}
+			else if constexpr(std::same_as<char_type,char16_t>)
+			{
+				my_fill(first,new_d_last,u' ');
+				my_fill(md,d_last,u' ');
+			}
+			else if constexpr(std::same_as<char_type,char32_t>)
+			{
+				my_fill(first,new_d_last,U' ');
+				my_fill(md,d_last,U' ');
 			}
 			else
 			{
-				print_freestanding(buffer,fill_nc(wdt.width-real_width,wdt.indent_character));
-				write(out,buffer.beg_ptr,buffer.end_ptr);
+				my_fill(first,new_d_last,u8' ');
+				my_fill(md,d_last,u8' ');
 			}
+			return d_last;
 		}
 		else
 		{
-			if constexpr(buffer_output_stream<output>)
-			{
-				print_freestanding(out,fill_nc(wdt.width-real_width,wdt.indent_character));
-				write(out,buffer.beg_ptr,buffer.end_ptr);
-			}
+			auto new_d_last{my_copy_backward(first,last,d_last)};
+			if constexpr(std::same_as<char_type,char>)
+				my_fill(first,new_d_last,' ');
+			else if constexpr(std::same_as<char_type,wchar_t>)
+				my_fill(first,new_d_last,L' ');
+			else if constexpr(std::same_as<char_type,char16_t>)
+				my_fill(first,new_d_last,u' ');
+			else if constexpr(std::same_as<char_type,char32_t>)
+				my_fill(first,new_d_last,U' ');
 			else
-			{
-				internal_temporary_buffer<typename output::char_type> buffer2;
-				print_freestanding(buffer2,fill_nc(wdt.width-real_width,wdt.indent_character));
-				write(buffer2,buffer.beg_ptr,buffer.end_ptr);
-				write(out,buffer2.beg_ptr,buffer2.end_ptr);
-			}
+				my_fill(first,new_d_last,u8' ');
+			return d_last;
 		}
 	}
-	else
-		write(out,buffer.beg_ptr,buffer.end_ptr);
 }
-}
-#if 0
-template<fast_io::output_stream output,typename T,std::integral ch_type>
-inline constexpr void print_define(output out,manip::width<T,ch_type> wdt)
+
+template<::fast_io::manipulators::width_mode wm,std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_width_fill(Iter first,Iter last,std::size_t width) noexcept
 {
-	if constexpr(reserve_output_stream<output>&&reserve_printable<T>)
-	{
-		using no_cvref = std::remove_cvref_t<T>;
-		constexpr std::size_t rsize{print_reserve_size(io_reserve_type<no_cvref>)};
-		std::size_t size(wdt.width);
-		if(size<rsize)
-			size=rsize;
-		if constexpr(reserve_output_stream<output>)
-		{
-			auto ptr{oreserve(out,size)};
-			if constexpr(std::is_pointer_v<std::remove_cvref_t<decltype(oreserve(out,size))>>)
-			{
-				if(ptr==nullptr)[[unlikely]]
-				{
-					details::width_unhappy_case(out,wdt);
-					return;
-				}
-			}
-			auto printed(print_reserve_define(io_reserve_type<no_cvref>,ptr,wdt.reference));
-			std::size_t printed_chars_count(printed-ptr);
-			if(printed_chars_count<wdt.width)[[likely]]
-			{
-				if(wdt.left)
-				{
-					details::my_fill_n(printed,wdt.width-printed_chars_count,wdt.indent_character);
-				}
-				else
-				{
-					std::copy_backward(ptr,printed,ptr+wdt.width);
-					details::my_fill_n(ptr,wdt.width-printed_chars_count,wdt.indent_character);
-				}
-				orelease(out,ptr+wdt.width);
-			}
-			else
-				orelease(out,printed);
-		}
-	}
+	if constexpr(::fast_io::manipulators::width_mode::internal==wm)
+		return print_reserve_width_fill<::fast_io::manipulators::width_mode::middle>(first,last,width);
 	else
-		details::width_unhappy_case(out,wdt);
+	{
+		auto diff{last-first};
+		if(diff<width)
+			return print_reserve_width_fill_unchecked<wm>(first,last,width,diff);
+		return last;
+	}
 }
-#endif
+
+template<::fast_io::manipulators::width_mode wm,std::random_access_iterator Iter,typename T>
+requires (reserve_printable<std::iter_value_t<Iter>,std::remove_cvref_t<T>>||
+	dynamic_reserve_printable<std::iter_value_t<Iter>,std::remove_cvref_t<T>>||
+	scatter_type_printable<std::iter_value_t<Iter>,std::remove_cvref_t<T>>)
+inline constexpr Iter print_reserve_define_width_impl(Iter iter,manipulators::width_t<wm,T> t) noexcept
+{
+	using char_type = std::iter_value_t<Iter>;
+	using value_type = std::remove_cvref_t<T>;
+	if constexpr(reserve_printable<char_type,value_type>||dynamic_reserve_printable<char_type,value_type>)
+		return print_reserve_width_fill<wm>(iter,print_reserve_define(io_reserve_type<char_type,value_type>,iter,t.reference),t.width);
+	else if constexpr(scatter_type_printable<char_type,value_type>)
+	{
+		basic_io_scatter_t<char_type> const scatter{print_scatter_define(print_scatter_type<char_type>,t.reference)};
+		return print_reserve_width_fill<wm>(iter,copy_scatter(scatter,iter),t.width);
+	}
+}
+
+}
+
+template<std::integral char_type,manipulators::width_mode wm,typename T>
+requires ((reserve_printable<char_type,std::remove_cvref_t<T>>||
+	dynamic_reserve_printable<char_type,std::remove_cvref_t<T>>||
+	scatter_type_printable<char_type,std::remove_cvref_t<T>>)&&(wm!=manipulators::width_mode::internal))
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manipulators::width_t<wm,T>>,manipulators::width_t<wm,T> w) noexcept
+{
+	return details::print_reserve_size_width_impl<char_type,T>(w.reference,w.width);
+}
+
+template<std::integral char_type,std::random_access_iterator Iter,manipulators::width_mode wm,typename T>
+requires ((reserve_printable<char_type,std::remove_cvref_t<T>>||
+	dynamic_reserve_printable<char_type,std::remove_cvref_t<T>>||
+	scatter_type_printable<char_type,std::remove_cvref_t<T>>)&&(wm!=manipulators::width_mode::internal))
+inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,manipulators::width_t<wm,T>>,Iter iter,manipulators::width_t<wm,T> w) noexcept
+{
+	return details::print_reserve_define_width_impl<wm>(iter,w);
+}
+
+
 }
