@@ -42,7 +42,7 @@ concept lc_dynamic_reserve_printable = std::integral<char_type>&&
 	{print_reserve_define(all,ptr,t)}->std::convertible_to<char_type*>;
 };
 
-template<std::integral char_type,typename value_type,typename Iter>
+template<std::integral char_type,typename value_type>
 requires lc_dynamic_reserve_printable<char_type,std::remove_cvref_t<value_type>>
 inline constexpr auto print_reserve_size(basic_lc_all<char_type> const* __restrict all,parameter<value_type> para)
 {

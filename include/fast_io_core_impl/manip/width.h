@@ -149,11 +149,11 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,mani
 	return details::print_reserve_size_width_impl<char_type,T>(w.reference,w.width);
 }
 
-template<std::integral char_type,std::random_access_iterator Iter,manipulators::width_mode wm,typename T>
-requires ((reserve_printable<char_type,std::remove_cvref_t<T>>||
-	dynamic_reserve_printable<char_type,std::remove_cvref_t<T>>||
-	scatter_type_printable<char_type,std::remove_cvref_t<T>>)&&(wm!=manipulators::width_mode::internal))
-inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,manipulators::width_t<wm,T>>,Iter iter,manipulators::width_t<wm,T> w) noexcept
+template<std::random_access_iterator Iter,manipulators::width_mode wm,typename T>
+requires ((reserve_printable<std::iter_value_t<Iter>,std::remove_cvref_t<T>>||
+	dynamic_reserve_printable<std::iter_value_t<Iter>,std::remove_cvref_t<T>>||
+	scatter_type_printable<std::iter_value_t<Iter>,std::remove_cvref_t<T>>)&&(wm!=manipulators::width_mode::internal))
+inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,manipulators::width_t<wm,T>>,Iter iter,manipulators::width_t<wm,T> w) noexcept
 {
 	return details::print_reserve_define_width_impl<wm>(iter,w);
 }

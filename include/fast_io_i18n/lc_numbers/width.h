@@ -57,10 +57,10 @@ inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* _
 	return details::lc_print_reserve_size_width_impl<char_type,T>(all,w.reference,w.width);
 }
 
-template<std::integral char_type,std::random_access_iterator Iter,manipulators::width_mode wm,typename T>
-requires ((lc_dynamic_reserve_printable<char_type,std::remove_cvref_t<T>>||
-	lc_scatter_type_printable<char_type,std::remove_cvref_t<T>>)&&(wm!=manipulators::width_mode::internal))
-inline constexpr Iter print_reserve_define(basic_lc_all<char_type> const* __restrict all,Iter iter,manipulators::width_t<wm,T> w) noexcept
+template<std::random_access_iterator Iter,manipulators::width_mode wm,typename T>
+requires ((lc_dynamic_reserve_printable<std::iter_value_t<Iter>,std::remove_cvref_t<T>>||
+	lc_scatter_type_printable<std::iter_value_t<Iter>,std::remove_cvref_t<T>>)&&(wm!=manipulators::width_mode::internal))
+inline constexpr Iter print_reserve_define(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,manipulators::width_t<wm,T> w) noexcept
 {
 	return details::lc_print_reserve_define_width_impl<wm>(all,iter,w);
 }
