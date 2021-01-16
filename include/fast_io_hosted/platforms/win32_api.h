@@ -213,6 +213,37 @@ struct filetime
 std::uint32_t dwLowDateTime,dwHighDateTime;
 };
 
+
+struct by_handle_file_information
+{
+std::uint32_t    dwFileAttributes;
+filetime	 ftCreationTime;
+filetime	 ftLastAccessTime;
+filetime	 ftLastWriteTime;
+std::uint32_t    dwVolumeSerialNumber;
+std::uint32_t    nFileSizeHigh;
+std::uint32_t    nFileSizeLow;
+std::uint32_t    nNumberOfLinks;
+std::uint32_t    nFileIndexHigh;
+std::uint32_t    nFileIndexLow;
+};
+
+int __stdcall GetFileInformationByHandle(void* __restrict,by_handle_file_information* __restrict) noexcept;
+
+int __stdcall GetUserDefaultLocaleName(wchar_t*,int) noexcept;
+
+void* __stdcall LoadLibraryW(wchar_t const*) noexcept;
+
+void __stdcall GetSystemTimePreciseAsFileTime(filetime*) noexcept;
+
+int __stdcall QueryUnbiasedInterruptTime(std::uint64_t* unbiasedtime) noexcept;
+
+int __stdcall GetProcessTimes(void*,filetime*,filetime*,filetime*,filetime*) noexcept;
+
+int __stdcall GetThreadTimes(void*,filetime*,filetime*,filetime*,filetime*) noexcept;
+
+}
+
 constexpr struct timespec to_struct_timespec(filetime ft) noexcept
 {
 	std::uint64_t date_time{(static_cast<std::uint64_t>(ft.dwHighDateTime)<<32)|ft.dwLowDateTime};
@@ -248,36 +279,5 @@ inline constexpr win32_timestamp to_win32_timestamp(filetime ft) noexcept
 {
 	return to_win32_timestamp_ftu64((static_cast<std::uint64_t>(ft.dwHighDateTime)<<32)|ft.dwLowDateTime);
 }
-
-struct by_handle_file_information
-{
-std::uint32_t    dwFileAttributes;
-filetime	 ftCreationTime;
-filetime	 ftLastAccessTime;
-filetime	 ftLastWriteTime;
-std::uint32_t    dwVolumeSerialNumber;
-std::uint32_t    nFileSizeHigh;
-std::uint32_t    nFileSizeLow;
-std::uint32_t    nNumberOfLinks;
-std::uint32_t    nFileIndexHigh;
-std::uint32_t    nFileIndexLow;
-};
-
-int __stdcall GetFileInformationByHandle(void* __restrict,by_handle_file_information* __restrict) noexcept;
-
-int __stdcall GetUserDefaultLocaleName(wchar_t*,int) noexcept;
-
-void* __stdcall LoadLibraryW(wchar_t const*) noexcept;
-
-void __stdcall GetSystemTimePreciseAsFileTime(filetime*) noexcept;
-
-int __stdcall QueryUnbiasedInterruptTime(std::uint64_t* unbiasedtime) noexcept;
-
-int __stdcall GetProcessTimes(void*,filetime*,filetime*,filetime*,filetime*) noexcept;
-
-int __stdcall GetThreadTimes(void*,filetime*,filetime*,filetime*,filetime*) noexcept;
-
-}
-
 
 }
