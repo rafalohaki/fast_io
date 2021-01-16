@@ -373,9 +373,9 @@ inline constexpr auto left_width(T&& t,std::size_t w) noexcept
 {
 	using value_type = std::remove_cvref_t<T>;
 	if constexpr(std::is_trivially_copyable_v<value_type>&&sizeof(value_type)<=sizeof(std::max_align_t))
-		return width_t<width_mode::left,value_type>(t,w);
+		return width_t<width_mode::left,value_type>{t,w};
 	else
-		return width_t<width_mode::left,std::remove_reference_t<T> const&>(t,w);
+		return width_t<width_mode::left,std::remove_reference_t<T> const&>{t,w};
 }
 
 template<typename T>
@@ -383,9 +383,9 @@ inline constexpr auto middle_width(T&& t,std::size_t w) noexcept
 {
 	using value_type = std::remove_cvref_t<T>;
 	if constexpr(std::is_trivially_copyable_v<value_type>&&sizeof(value_type)<=sizeof(std::max_align_t))
-		return width_t<width_mode::middle,value_type>(t,w);
+		return width_t<width_mode::middle,value_type>{t,w};
 	else
-		return width_t<width_mode::middle,std::remove_reference_t<T> const&>(t,w);
+		return width_t<width_mode::middle,std::remove_reference_t<T> const&>{t,w};
 }
 
 template<typename T>
