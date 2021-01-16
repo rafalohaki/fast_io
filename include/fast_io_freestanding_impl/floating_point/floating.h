@@ -21,7 +21,7 @@ template<rounding_mode round_mode=rounding_mode::nearest_to_even,
 std::floating_point fp_type>
 requires (std::same_as<fp_type,float>||std::same_as<fp_type,double>)
 inline constexpr 
-comma_t<floating_format_t<fp_type,
+std::conditional_t<round_mode==rounding_mode::nearest_to_even,fp_type,floating_format_t<fp_type,
 floating_representation::general,
 round_mode>>
 general(fp_type f) noexcept
@@ -33,9 +33,9 @@ template<rounding_mode round_mode=rounding_mode::nearest_to_even,
 std::floating_point fp_type>
 requires (std::same_as<fp_type,float>||std::same_as<fp_type,double>)
 inline constexpr 
-comma_t<floating_format_t<fp_type,
+floating_format_t<fp_type,
 floating_representation::fixed,
-round_mode>>
+round_mode>
 fixed(fp_type f) noexcept
 {
 	return {f};
@@ -45,9 +45,9 @@ template<rounding_mode round_mode=rounding_mode::nearest_to_even,
 std::floating_point fp_type>
 requires (std::same_as<fp_type,float>||std::same_as<fp_type,double>)
 inline constexpr 
-comma_t<floating_format_t<fp_type,
+floating_format_t<fp_type,
 floating_representation::scientific,
-round_mode>>
+round_mode>
 scientific(fp_type f) noexcept
 {
 	return {f};
@@ -60,6 +60,17 @@ comma_t<floating_format_t<fp_type,
 floating_representation::general,
 round_mode>>
 comma_general(fp_type f) noexcept
+{
+	return {f};
+}
+
+template<rounding_mode round_mode=rounding_mode::nearest_to_even,std::floating_point fp_type>
+requires (std::same_as<fp_type,float>||std::same_as<fp_type,double>)
+inline constexpr 
+comma_t<floating_format_t<fp_type,
+floating_representation::general,
+round_mode>>
+comma(fp_type f) noexcept
 {
 	return {f};
 }
