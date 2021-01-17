@@ -21,7 +21,7 @@ struct voldmort
 	inline constexpr bool test_eof(parameter<T&> t) noexcept requires(!contiguous_only)
 	{
 		code={};
-		return t.reference.empty();
+		return !t.reference.empty();
 	}
 	inline constexpr void operator()(Iter begin, Iter end,parameter<T&> t) requires(!contiguous_only)
 	{
