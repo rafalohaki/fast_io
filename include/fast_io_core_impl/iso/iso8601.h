@@ -70,7 +70,6 @@ inline constexpr timestamp_u add_impl(timestamp_u a,timestamp_u b) noexcept
 
 inline constexpr timestamp_u sub_impl(timestamp_u a,timestamp_u b) noexcept
 {
-	constexpr uintiso_t max_digit{std::numeric_limits<uintiso_t>::max()/uintiso_subseconds_per_second};
 	uintiso_t res;
 	uintiso_t seconds;
 	bool borrow{intrinsics::sub_borrow(false,a.subseconds,b.subseconds,res)};

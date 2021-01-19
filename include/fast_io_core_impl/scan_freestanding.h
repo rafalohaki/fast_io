@@ -24,7 +24,10 @@ requires std::is_trivially_copyable_v<T>
 struct unget_temp_buffer
 {
 	using char_type = typename T::char_type;
-	[[no_unique_address]] T input;
+#if __has_cpp_attribute(no_unique_address)
+[[no_unique_address]]
+#endif
+	T input;
 	typename T::char_type buffer;
 	char8_t pos{};
 	char8_t pos_end{};

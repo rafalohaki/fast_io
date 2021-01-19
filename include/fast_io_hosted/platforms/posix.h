@@ -424,7 +424,13 @@ inline std::size_t posix_read_impl(int fd,void* address,std::size_t bytes_to_rea
 #else
 		::read
 #endif
-	(fd,address,bytes_to_read));
+	(fd,address,
+#ifdef _WIN32
+	static_cast<std::uint32_t>(bytes_to_read)
+#else
+	bytes_to_read
+#endif
+	));
 	system_call_throw_error(read_bytes);
 	return read_bytes;
 }
@@ -444,7 +450,7 @@ inline io_scatter_status_t posix_scatter_read_impl(int fd,std::span<io_scatter_t
 	return {total_size,sp.size(),0};
 }
 
-inline std::uint32_t posix_write_simple_impl(int fd,void const* address,std::uint32_t bytes_to_write)
+inline std::uint32_t posix_write_simple_impl(int fd,void const* address,std::size_t bytes_to_write)
 {
 	auto ret{_write(fd,address,static_cast<std::uint32_t>(bytes_to_write))};
 	if(ret==-1)

@@ -182,7 +182,6 @@ inline constexpr void ogrow_impl(T& ob,std::size_t new_capacity)
 	{
 		if(ob.beg_ptr!=ob.static_buffer.data())
 		{
-			std::allocator<char_type> alloc;
 			allocator_traits::deallocate(alloc,ob.beg_ptr,ob.capacity_ptr-ob.beg_ptr);
 		}
 	}
@@ -190,7 +189,6 @@ inline constexpr void ogrow_impl(T& ob,std::size_t new_capacity)
 	{
 		if(ob.beg_ptr)[[likely]]
 		{
-			std::allocator<char_type> alloc;
 			allocator_traits::deallocate(alloc,ob.beg_ptr,ob.capacity_ptr-ob.beg_ptr);
 		}
 	}

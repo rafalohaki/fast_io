@@ -403,7 +403,6 @@ inline constexpr Iter integer_case_no_sign(Iter result,mantissa_type v2) noexcep
 template<manipulators::floating_representation flt_mode,bool uppercase_e,char8_t decimal_point,std::random_access_iterator Iter,my_unsigned_integral muint>
 inline constexpr Iter integer_case(Iter result,bool sign,muint v2) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
 	return integer_case_no_sign<flt_mode,uppercase_e,decimal_point>(sign_case(result,sign),v2);
 }
 

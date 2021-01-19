@@ -16,7 +16,10 @@ struct serializer
 {
 	using handle_type = stm;
 	using char_type = typename handle_type::char_type;
-	[[no_unique_address]] handle_type handle{};
+#if __has_cpp_attribute(no_unique_address)
+[[no_unique_address]]
+#endif
+	handle_type handle{};
 };
 
 template<output_stream stm>
@@ -56,7 +59,10 @@ struct deserializer
 {
 	using handle_type = stm;
 	using char_type = typename handle_type::char_type;
-	[[no_unique_address]] handle_type handle{};
+#if __has_cpp_attribute(no_unique_address)
+[[no_unique_address]]
+#endif
+	handle_type handle{};
 };
 
 template<stream stm>

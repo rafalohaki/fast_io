@@ -520,7 +520,7 @@ inline constexpr std::uint32_t chars_len(U value) noexcept
 		constexpr std::uint32_t base2(base  * base);
 		constexpr std::uint32_t base3(base2 * base);
 		constexpr std::uint32_t base4(base3 * base);
-		for (std::size_t n(1);;n+=4)
+		for (std::uint32_t n(1);;n+=4)
 		{
 			if (value < base)
 				return n;

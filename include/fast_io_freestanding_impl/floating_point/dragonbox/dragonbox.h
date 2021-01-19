@@ -2010,7 +2010,7 @@ struct away_from_zero : base {
 	static constexpr auto tag = tag_t::away_from_zero;
 
 	template <class Fp>
-	static constexpr void break_rounding_tie(Fp& fp) noexcept {}
+	static constexpr void break_rounding_tie(Fp&) noexcept {}
 };
 
 struct toward_zero : base {
@@ -2707,7 +2707,7 @@ return ret_value;
 #if defined(__GNUC__) || defined(__clang__)
 [[gnu::always_inline]]
 #elif defined(_MSC_VER)
-[[msvc::force_inline]]
+[[msvc::forceinline]]
 #endif
 static inline constexpr int remove_trailing_zeros(carrier_uint& n) noexcept
 {
@@ -3143,8 +3143,6 @@ __declspec(safebuffers)
 #endif
 #if defined(__GNUC__) || defined(__clang__)
 [[gnu::always_inline]]
-#elif defined(_MSC_VER)
-[[msvc::force_inline]]
 #endif
 inline auto to_decimal(Float x, Policies... policies)
 {

@@ -107,10 +107,10 @@ std::uint64_t umul(std::uint64_t a,std::uint64_t b,std::uint64_t& high) noexcept
 #if __cpp_lib_is_constant_evaluated >= 201811L
 	if(std::is_constant_evaluated())
 	{
-		std::uint32_t a0(a);
-		std::uint32_t a1(a>>32);
-		std::uint32_t b0(b);
-		std::uint32_t b1(b>>32);
+		std::uint32_t a0(static_cast<std::uint32_t>(a));
+		std::uint32_t a1(static_cast<std::uint32_t>(a>>32));
+		std::uint32_t b0(static_cast<std::uint32_t>(b));
+		std::uint32_t b1(static_cast<std::uint32_t>(b>>32));
 		std::uint64_t c0(static_cast<std::uint64_t>(a0)*b0);
 		std::uint64_t c1(static_cast<std::uint64_t>(a1)*b0+static_cast<std::uint64_t>(a0)*b1);
 		c1+=c0>>32;

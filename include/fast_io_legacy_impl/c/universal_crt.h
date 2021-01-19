@@ -62,7 +62,11 @@ inline T* get_fp_ptr(FILE* fp) noexcept
 	return b;
 }
 template<std::integral T>
-inline void set_fp_ptr(FILE* fp,[[gnu::may_alias]] T* b) noexcept
+inline void set_fp_ptr(FILE* fp,
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+T* b) noexcept
 {
 	memcpy(reinterpret_cast<std::byte*>(fp),std::addressof(b),sizeof(T*));
 }
@@ -135,7 +139,7 @@ inline char* ibuffer_end(c_io_observer_unlocked cio)
 inline void ibuffer_set_curr(c_io_observer_unlocked cio,char* ptr)
 {
 	using namespace details::ucrt_hack;
-	set_fp_cnt(cio.fp,get_fp_ptr(cio.fp)-ptr+get_fp_cnt(cio.fp));
+	set_fp_cnt(cio.fp,static_cast<int>(get_fp_ptr(cio.fp)-ptr+get_fp_cnt(cio.fp)));
 	set_fp_ptr(cio.fp,ptr);
 }
 //extern "C" int __stdcall __acrt_stdio_refill_and_read_narrow_nolock(FILE*) noexcept;
@@ -172,7 +176,7 @@ inline char* obuffer_end(c_io_observer_unlocked cio)
 inline void obuffer_set_curr(c_io_observer_unlocked cio,char* ptr)
 {
 	using namespace details::ucrt_hack;
-	set_fp_cnt(cio.fp,get_fp_ptr(cio.fp)-ptr+get_fp_cnt(cio.fp));
+	set_fp_cnt(cio.fp,static_cast<int>(get_fp_ptr(cio.fp)-ptr+get_fp_cnt(cio.fp)));
 	set_fp_ptr(cio.fp,ptr);
 	set_fp_flags(cio.fp,get_fp_flags(cio.fp)|0x010000);
 }
@@ -185,27 +189,40 @@ inline void overflow(c_io_observer_unlocked cio,char ch)
 		throw_posix_error();
 }
 
-[[gnu::may_alias]] inline wchar_t* ibuffer_begin(wc_io_observer_unlocked cio)
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+inline wchar_t* ibuffer_begin(wc_io_observer_unlocked cio)
 {
 	return details::ucrt_hack::get_fp_base<wchar_t>(cio.fp);
 }
 
-[[gnu::may_alias]] inline wchar_t* ibuffer_curr(wc_io_observer_unlocked cio)
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+inline wchar_t* ibuffer_curr(wc_io_observer_unlocked cio)
 {
 	using namespace details::ucrt_hack;
 	return get_fp_ptr<wchar_t>(cio.fp);
 }
 
-[[gnu::may_alias]] inline wchar_t* ibuffer_end(wc_io_observer_unlocked cio)
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+inline wchar_t* ibuffer_end(wc_io_observer_unlocked cio)
 {
 	using namespace details::ucrt_hack;
 	return get_fp_ptr<wchar_t>(cio.fp)+(get_fp_cnt(cio.fp)/sizeof(wchar_t));
 }
 
-inline void ibuffer_set_curr(wc_io_observer_unlocked cio, [[gnu::may_alias]] wchar_t* ptr)
+inline void ibuffer_set_curr(wc_io_observer_unlocked cio, 
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+wchar_t* ptr)
 {
 	using namespace details::ucrt_hack;
-	set_fp_cnt(cio.fp,(get_fp_ptr<wchar_t>(cio.fp)-ptr)*sizeof(wchar_t)+get_fp_cnt(cio.fp));
+	set_fp_cnt(cio.fp,static_cast<int>((get_fp_ptr<wchar_t>(cio.fp)-ptr)*sizeof(wchar_t)+get_fp_cnt(cio.fp)));
 	set_fp_ptr(cio.fp,ptr);
 }
 
@@ -220,28 +237,41 @@ inline bool underflow(wc_io_observer_unlocked cio)
 	return true;
 }
 
-[[gnu::may_alias]] inline wchar_t* obuffer_begin(wc_io_observer_unlocked cio)
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+inline wchar_t* obuffer_begin(wc_io_observer_unlocked cio)
 {
 	using namespace details::ucrt_hack;
 	return get_fp_base<wchar_t>(cio.fp);
 }
 
-[[gnu::may_alias]] inline wchar_t* obuffer_curr(wc_io_observer_unlocked cio)
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+inline wchar_t* obuffer_curr(wc_io_observer_unlocked cio)
 {
 	using namespace details::ucrt_hack;
 	return get_fp_ptr<wchar_t>(cio.fp);
 }
 
-[[gnu::may_alias]] inline wchar_t* obuffer_end(wc_io_observer_unlocked cio)
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+inline wchar_t* obuffer_end(wc_io_observer_unlocked cio)
 {
 	using namespace details::ucrt_hack;
 	return get_fp_base<wchar_t>(cio.fp)+get_fp_bufsiz(cio.fp)/sizeof(wchar_t);
 }
 
-inline void obuffer_set_curr(wc_io_observer_unlocked cio,[[gnu::may_alias]] wchar_t* ptr)
+inline void obuffer_set_curr(wc_io_observer_unlocked cio,
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+wchar_t* ptr)
 {
 	using namespace details::ucrt_hack;
-	set_fp_cnt(cio.fp,(get_fp_ptr<wchar_t>(cio.fp)-ptr)*sizeof(wchar_t)+get_fp_cnt(cio.fp));
+	set_fp_cnt(cio.fp,static_cast<int>((get_fp_ptr<wchar_t>(cio.fp)-ptr)*sizeof(wchar_t)+get_fp_cnt(cio.fp)));
 	set_fp_ptr(cio.fp,ptr);
 	set_fp_flags(cio.fp,get_fp_flags(cio.fp)|0x010000);
 }
@@ -256,27 +286,40 @@ inline void overflow(wc_io_observer_unlocked cio,wchar_t ch)
 		throw_posix_error();
 }
 
-[[gnu::may_alias]] inline char8_t* ibuffer_begin(u8c_io_observer_unlocked cio)
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+inline char8_t* ibuffer_begin(u8c_io_observer_unlocked cio)
 {
 	return details::ucrt_hack::get_fp_base<char8_t>(cio.fp);
 }
 
-[[gnu::may_alias]] inline char8_t* ibuffer_curr(u8c_io_observer_unlocked cio)
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+inline char8_t* ibuffer_curr(u8c_io_observer_unlocked cio)
 {
 	using namespace details::ucrt_hack;
 	return get_fp_ptr<char8_t>(cio.fp);
 }
 
-[[gnu::may_alias]] inline char8_t* ibuffer_end(u8c_io_observer_unlocked cio)
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+inline char8_t* ibuffer_end(u8c_io_observer_unlocked cio)
 {
 	using namespace details::ucrt_hack;
 	return get_fp_ptr<char8_t>(cio.fp)+(get_fp_cnt(cio.fp));
 }
 
-inline void ibuffer_set_curr(u8c_io_observer_unlocked cio, [[gnu::may_alias]] char8_t* ptr)
+inline void ibuffer_set_curr(u8c_io_observer_unlocked cio, 
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+char8_t* ptr)
 {
 	using namespace details::ucrt_hack;
-	set_fp_cnt(cio.fp,(get_fp_ptr<char8_t>(cio.fp)-ptr)+get_fp_cnt(cio.fp));
+	set_fp_cnt(cio.fp,static_cast<int>((get_fp_ptr<char8_t>(cio.fp)-ptr)+get_fp_cnt(cio.fp)));
 	set_fp_ptr(cio.fp,ptr);
 }
 
@@ -291,28 +334,41 @@ inline bool underflow(u8c_io_observer_unlocked cio)
 	return true;
 }
 
-[[gnu::may_alias]] inline char8_t* obuffer_begin(u8c_io_observer_unlocked cio)
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+inline char8_t* obuffer_begin(u8c_io_observer_unlocked cio)
 {
 	using namespace details::ucrt_hack;
 	return get_fp_base<char8_t>(cio.fp);
 }
 
-[[gnu::may_alias]] inline char8_t* obuffer_curr(u8c_io_observer_unlocked cio)
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+inline char8_t* obuffer_curr(u8c_io_observer_unlocked cio)
 {
 	using namespace details::ucrt_hack;
 	return get_fp_ptr<char8_t>(cio.fp);
 }
 
-[[gnu::may_alias]] inline char8_t* obuffer_end(u8c_io_observer_unlocked cio)
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+inline char8_t* obuffer_end(u8c_io_observer_unlocked cio)
 {
 	using namespace details::ucrt_hack;
 	return get_fp_base<char8_t>(cio.fp)+get_fp_bufsiz(cio.fp);
 }
 
-inline void obuffer_set_curr(u8c_io_observer_unlocked cio,[[gnu::may_alias]] char8_t* ptr)
+inline void obuffer_set_curr(u8c_io_observer_unlocked cio,
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+char8_t* ptr)
 {
 	using namespace details::ucrt_hack;
-	set_fp_cnt(cio.fp,(get_fp_ptr<char8_t>(cio.fp)-ptr)+get_fp_cnt(cio.fp));
+	set_fp_cnt(cio.fp,static_cast<int>((get_fp_ptr<char8_t>(cio.fp)-ptr)+get_fp_cnt(cio.fp)));
 	set_fp_ptr(cio.fp,ptr);
 	set_fp_flags(cio.fp,get_fp_flags(cio.fp)|0x010000);
 }
@@ -327,27 +383,40 @@ inline void overflow(u8c_io_observer_unlocked cio,char8_t ch)
 		throw_posix_error();
 }
 
-[[gnu::may_alias]] inline char16_t* ibuffer_begin(u16c_io_observer_unlocked cio)
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+inline char16_t* ibuffer_begin(u16c_io_observer_unlocked cio)
 {
 	return details::ucrt_hack::get_fp_base<char16_t>(cio.fp);
 }
 
-[[gnu::may_alias]] inline char16_t* ibuffer_curr(u16c_io_observer_unlocked cio)
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+inline char16_t* ibuffer_curr(u16c_io_observer_unlocked cio)
 {
 	using namespace details::ucrt_hack;
 	return get_fp_ptr<char16_t>(cio.fp);
 }
 
-[[gnu::may_alias]] inline char16_t* ibuffer_end(u16c_io_observer_unlocked cio)
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+inline char16_t* ibuffer_end(u16c_io_observer_unlocked cio)
 {
 	using namespace details::ucrt_hack;
 	return get_fp_ptr<char16_t>(cio.fp)+(get_fp_cnt(cio.fp)/sizeof(char16_t));
 }
 
-inline void ibuffer_set_curr(u16c_io_observer_unlocked cio, [[gnu::may_alias]] char16_t* ptr)
+inline void ibuffer_set_curr(u16c_io_observer_unlocked cio,
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+char16_t* ptr)
 {
 	using namespace details::ucrt_hack;
-	set_fp_cnt(cio.fp,(get_fp_ptr<char16_t>(cio.fp)-ptr)*sizeof(char16_t)+get_fp_cnt(cio.fp));
+	set_fp_cnt(cio.fp,static_cast<int>((get_fp_ptr<char16_t>(cio.fp)-ptr)*sizeof(char16_t)+get_fp_cnt(cio.fp)));
 	set_fp_ptr(cio.fp,ptr);
 }
 
@@ -362,28 +431,41 @@ inline bool underflow(u16c_io_observer_unlocked cio)
 	return true;
 }
 
-[[gnu::may_alias]] inline char16_t* obuffer_begin(u16c_io_observer_unlocked cio)
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+inline char16_t* obuffer_begin(u16c_io_observer_unlocked cio)
 {
 	using namespace details::ucrt_hack;
 	return get_fp_base<char16_t>(cio.fp);
 }
 
-[[gnu::may_alias]] inline char16_t* obuffer_curr(u16c_io_observer_unlocked cio)
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+inline char16_t* obuffer_curr(u16c_io_observer_unlocked cio)
 {
 	using namespace details::ucrt_hack;
 	return get_fp_ptr<char16_t>(cio.fp);
 }
 
-[[gnu::may_alias]] inline char16_t* obuffer_end(u16c_io_observer_unlocked cio)
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+inline char16_t* obuffer_end(u16c_io_observer_unlocked cio)
 {
 	using namespace details::ucrt_hack;
 	return get_fp_base<char16_t>(cio.fp)+get_fp_bufsiz(cio.fp)/sizeof(char16_t);
 }
 
-inline void obuffer_set_curr(u16c_io_observer_unlocked cio,[[gnu::may_alias]] char16_t* ptr)
+inline void obuffer_set_curr(u16c_io_observer_unlocked cio,
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+char16_t* ptr)
 {
 	using namespace details::ucrt_hack;
-	set_fp_cnt(cio.fp,(get_fp_ptr<char16_t>(cio.fp)-ptr)*sizeof(char16_t)+get_fp_cnt(cio.fp));
+	set_fp_cnt(cio.fp,static_cast<int>((get_fp_ptr<char16_t>(cio.fp)-ptr)*sizeof(char16_t)+get_fp_cnt(cio.fp)));
 	set_fp_ptr(cio.fp,ptr);
 	set_fp_flags(cio.fp,get_fp_flags(cio.fp)|0x010000);
 }

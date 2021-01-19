@@ -71,9 +71,9 @@ inline constexpr auto output_base_number_impl(Iter iter,U a) noexcept
 			else
 			{
 				if constexpr(exec_charset_is_ebcdic<char_type>())
-					*--iter=a+0xF0;
+					*--iter=static_cast<char_type>(a+0xF0);
 				else
-					*--iter=a+0x30;
+					*--iter=static_cast<char_type>(a+0x30);
 			}
 		}
 	}

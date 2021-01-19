@@ -16,7 +16,10 @@ requires (std::invocable<Func,char8_t>)
 struct scan_transmitter
 {
 	using function_type = Func;
-	[[no_unique_address]] function_type reference;
+#if __has_cpp_attribute(no_unique_address)
+[[no_unique_address]]
+#endif
+	function_type reference;
 };
 
 }

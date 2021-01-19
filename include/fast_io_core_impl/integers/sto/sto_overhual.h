@@ -401,9 +401,19 @@ struct voldmort
 {
 	Iter iter;
 	std::errc code{};
-	[[no_unique_address]] std::conditional_t<contiguous_only, details::empty,my_make_unsigned_t<T>> value{};
-	[[no_unique_address]] std::conditional_t<contiguous_only, details::empty,std::size_t> size{};
-	[[no_unique_address]] std::conditional_t<!contiguous_only&&details::my_signed_integral<T>, bool, empty> minus{};
+
+#if __has_cpp_attribute(no_unique_address)
+[[no_unique_address]]
+#endif
+	std::conditional_t<contiguous_only, details::empty,my_make_unsigned_t<T>> value{};
+#if __has_cpp_attribute(no_unique_address)
+[[no_unique_address]]
+#endif
+	std::conditional_t<contiguous_only, details::empty,std::size_t> size{};
+#if __has_cpp_attribute(no_unique_address)
+[[no_unique_address]]
+#endif
+	std::conditional_t<!contiguous_only&&details::my_signed_integral<T>, bool, empty> minus{};
 
 	inline constexpr bool test_eof(P t) noexcept requires(!contiguous_only)
 	{

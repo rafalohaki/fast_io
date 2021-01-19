@@ -110,7 +110,6 @@ inline constexpr Iter print_reserve_width_fill_unchecked(Iter first,Iter last,st
 template<::fast_io::manipulators::width_mode wm,std::random_access_iterator Iter>
 inline constexpr Iter print_reserve_width_ch_fill_unchecked(Iter first,Iter last,std::size_t width,std::iter_value_t<Iter> ch,std::iter_difference_t<Iter> diff) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
 	if constexpr(wm==::fast_io::manipulators::width_mode::left)
 	{
 		return my_fill_n(last,diff,ch);

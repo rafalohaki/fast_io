@@ -12,7 +12,10 @@ template<buffer_input_stream input,typename Func>
 struct scan_iterator
 {
 	using char_type = typename input::char_type;
-	[[no_unique_address]] std::conditional_t<value_based_stream<input>,input,input*> nullable_handle;
+#if __has_cpp_attribute(no_unique_address)
+[[no_unique_address]]
+#endif
+	std::conditional_t<value_based_stream<input>,input,input*> nullable_handle;
 	inline constexpr decltype(auto) reference() const noexcept
 	{
 		if constexpr(value_based_stream<input>)
@@ -20,8 +23,14 @@ struct scan_iterator
 		else
 			return *nullable_handle;
 	}
-	[[no_unique_address]] Func function;
-	[[no_unique_address]] std::conditional_t<contiguous_input_stream<input>,details::empty,internal_temporary_buffer<typename input::char_type>> buffer;
+#if __has_cpp_attribute(no_unique_address)
+[[no_unique_address]]
+#endif
+	Func function;
+#if __has_cpp_attribute(no_unique_address)
+[[no_unique_address]]
+#endif
+	std::conditional_t<contiguous_input_stream<input>,details::empty,internal_temporary_buffer<typename input::char_type>> buffer;
 private:
 	constexpr void scan_iterator_transmit_impl(char_type const* bg,char_type const* ed)
 	{
@@ -126,7 +135,10 @@ template<input_stream input,typename Fun>
 requires (buffer_input_stream<input>||mutex_stream<input>)
 struct scan_generator
 {
-	[[no_unique_address]] std::conditional_t<value_based_stream<input>,input,input&> reference;
+#if __has_cpp_attribute(no_unique_address)
+[[no_unique_address]]
+#endif
+	std::conditional_t<value_based_stream<input>,input,input&> reference;
 	constexpr scan_generator(input pt) requires(value_based_stream<input>):reference(pt)
 	{
 		if constexpr(mutex_stream<input>)

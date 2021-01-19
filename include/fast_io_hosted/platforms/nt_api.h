@@ -8,7 +8,11 @@ inline auto get_nt_module_handle() noexcept
 /*
 Guard against EBCDIC exec charset
 */
-	using wchar_t_alias_const_ptr [[gnu::may_alias]] = wchar_t const*;
+	using wchar_t_alias_const_ptr
+#if __has_cpp_attribute(gnu::may_alias)
+	[[gnu::may_alias]]
+#endif
+	= wchar_t const*;
 	auto mod(GetModuleHandleW(reinterpret_cast<wchar_t_alias_const_ptr>(u"ntdll.dll")));
 	if(mod==nullptr)
 		fast_terminate();
@@ -365,24 +369,24 @@ struct section_image_information
 	std::size_t MaximumStackSize;
 	std::size_t CommittedStackSize;
 	std::uint32_t SubSystemType;
-	union
+	union U
 	{
-		struct
+		struct S
 		{
 			std::uint16_t SubSystemMinorVersion;
 			std::uint16_t SubSystemMajorVersion;
-		};
+		}s;
 		std::uint32_t SubSystemVersion;
-	};
+	}u;
 	std::uint32_t GpValue;
 	std::uint16_t ImageCharacteristics;
 	std::uint16_t DllCharacteristics;
 	std::uint16_t Machine;
 	int ImageContainsCode;
-	union
+	union U1
 	{
 		char unsigned ImageFlags;
-		struct
+		struct S
 		{
 			char unsigned ComPlusNativeReady : 1;
 			char unsigned ComPlusILOnly : 1;
@@ -390,8 +394,8 @@ struct section_image_information
 			char unsigned ImageMappedFlat : 1;
 			char unsigned BaseBelow4gb : 1;
 			char unsigned Reserved : 3;
-		};
-	};
+		}s;
+	}u1;
 	std::uint32_t LoaderFlags;
 	std::uint32_t ImageFileSize;
 	std::uint32_t CheckSum;

@@ -723,9 +723,9 @@ using u32nt_io_observer=basic_nt_io_observer<char32_t>;
 using u32nt_io_handle=basic_nt_io_handle<char32_t>;
 using u32nt_file=basic_nt_file<char32_t>;
 
-inline constexpr std::uint32_t nt_stdin_number(-10);
-inline constexpr std::uint32_t nt_stdout_number(-11);
-inline constexpr std::uint32_t nt_stderr_number(-12);
+inline constexpr std::uint32_t nt_stdin_number(static_cast<std::uint32_t>(-10));
+inline constexpr std::uint32_t nt_stdout_number(static_cast<std::uint32_t>(-11));
+inline constexpr std::uint32_t nt_stderr_number(static_cast<std::uint32_t>(-12));
 
 template<std::integral char_type=char>
 inline basic_nt_io_observer<char_type> nt_stdin() noexcept
@@ -775,9 +775,9 @@ using u32zw_io_observer=basic_zw_io_observer<char32_t>;
 using u32zw_io_handle=basic_zw_io_handle<char32_t>;
 using u32zw_file=basic_zw_file<char32_t>;
 
-inline constexpr std::uint32_t zw_stdin_number(-10);
-inline constexpr std::uint32_t zw_stdout_number(-11);
-inline constexpr std::uint32_t zw_stderr_number(-12);
+inline constexpr std::uint32_t zw_stdin_number(static_cast<std::uint32_t>(-10));
+inline constexpr std::uint32_t zw_stdout_number(static_cast<std::uint32_t>(-11));
+inline constexpr std::uint32_t zw_stderr_number(static_cast<std::uint32_t>(-12));
 
 template<std::integral char_type=char>
 inline basic_zw_io_observer<char_type> zw_stdin() noexcept

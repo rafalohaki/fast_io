@@ -53,7 +53,10 @@ public:
 	using char_type = CharT;
 	using allocator_type = Allocator;
 	char_type *beg{},*curr{},*end{};
-	[[no_unique_address]] Allocator alloc;
+#if __has_cpp_attribute(no_unique_address)
+[[no_unique_address]]
+#endif
+	Allocator alloc;
 private:
 	constexpr inline void cleanse()
 	{

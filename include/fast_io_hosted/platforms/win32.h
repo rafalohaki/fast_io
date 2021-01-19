@@ -1020,39 +1020,39 @@ using u32win32_pipe=basic_win32_pipe<char32_t>;
 using io_async_observer=win32_io_observer;
 using io_async_scheduler=win32_file;
 
-inline constexpr std::uint32_t win32_stdin_number(-10);
-inline constexpr std::uint32_t win32_stdout_number(-11);
-inline constexpr std::uint32_t win32_stderr_number(-12);
+inline constexpr std::uint32_t win32_stdin_number(static_cast<std::uint32_t>(-10));
+inline constexpr std::uint32_t win32_stdout_number(static_cast<std::uint32_t>(-11));
+inline constexpr std::uint32_t win32_stderr_number(static_cast<std::uint32_t>(-12));
 
 template<std::integral char_type=char>
 inline basic_win32_io_observer<char_type> win32_stdin() noexcept
 {
-	return {fast_io::win32::GetStdHandle(-10)};
+	return {fast_io::win32::GetStdHandle(win32_stdin_number)};
 }
 template<std::integral char_type=char>
 inline basic_win32_io_observer<char_type> win32_stdout() noexcept
 {
-	return basic_win32_io_observer<char_type>{fast_io::win32::GetStdHandle(-11)};
+	return basic_win32_io_observer<char_type>{fast_io::win32::GetStdHandle(win32_stdout_number)};
 }
 template<std::integral char_type=char>
 inline basic_win32_io_observer<char_type> win32_stderr() noexcept
 {
-	return basic_win32_io_observer<char_type>{fast_io::win32::GetStdHandle(-12)};
+	return basic_win32_io_observer<char_type>{fast_io::win32::GetStdHandle(win32_stderr_number)};
 }
 template<std::integral char_type=char>
 inline basic_win32_io_observer<char_type> native_stdin() noexcept
 {
-	return {fast_io::win32::GetStdHandle(-10)};
+	return {fast_io::win32::GetStdHandle(win32_stdin_number)};
 }
 template<std::integral char_type=char>
 inline basic_win32_io_observer<char_type> native_stdout() noexcept
 {
-	return {fast_io::win32::GetStdHandle(-11)};
+	return {fast_io::win32::GetStdHandle(win32_stdout_number)};
 }
 template<std::integral char_type=char>
 inline basic_win32_io_observer<char_type> native_stderr() noexcept
 {
-	return {fast_io::win32::GetStdHandle(-12)};
+	return {fast_io::win32::GetStdHandle(win32_stderr_number)};
 }
 
 }

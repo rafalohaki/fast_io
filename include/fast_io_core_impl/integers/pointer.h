@@ -46,7 +46,6 @@ inline constexpr caiter print_reserve_address_impl(caiter iter,std::uintptr_t va
 	return iter+=uisz;
 #else
 	constexpr auto table(details::shared_static_base_table<char_type,16,false,false>::table.data());
-	constexpr std::size_t chars{2};
 	auto bg{iter};
 	for(auto ptr{iter+=uisz};ptr!=bg;)
 	{
