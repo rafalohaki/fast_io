@@ -5,3 +5,4 @@
 #include"stream.h"
 #include"operation_details.h"
 #include"operation.h"
+#include"decorator.h"
