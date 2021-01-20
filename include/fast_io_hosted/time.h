@@ -166,13 +166,9 @@ unix_timestamp posix_clock_getres(posix_clock_id pclk_id)
 #else
 	auto clk{details::posix_clock_id_to_native_value(pclk_id)};
 	struct timespec res;
-#if defined(__linux__) && defined(__x86_64__)
-	system_call_throw_error(system_call<__NR_clock_getres,int>(clk,std::addressof(res)));
-#else
 //vdso
 	if(::clock_getres(clk,std::addressof(res))<0)
 		throw_posix_error();
-#endif
 	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000000u};
 	return {static_cast<intiso_t>(res.tv_sec),static_cast<uintiso_t>(res.tv_nsec)*mul_factor};
 #endif
@@ -273,13 +269,9 @@ inline unix_timestamp posix_clock_gettime(posix_clock_id pclk_id)
 #else
 	struct timespec res;
 	auto clk{details::posix_clock_id_to_native_value(pclk_id)};
-#if defined(__linux__) && defined(__x86_64__)
-	system_call_throw_error(system_call<__NR_clock_gettime,int>(clk,std::addressof(res)));
-#else
 //vdso
 	if(::clock_gettime(clk,std::addressof(res))<0)
 		throw_posix_error();
-#endif
 	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000000u};
 	return {static_cast<intiso_t>(res.tv_sec),static_cast<uintiso_t>(res.tv_nsec)*mul_factor};
 #endif

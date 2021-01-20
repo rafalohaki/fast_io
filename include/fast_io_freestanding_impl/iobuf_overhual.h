@@ -99,19 +99,7 @@ inline constexpr char_type* allocate_iobuf_space() noexcept
 template<typename char_type,std::size_t buffer_size,std::size_t aligmsz>
 inline constexpr void deallocate_iobuf_space(char_type* ptr) noexcept
 {
-#if __cpp_exceptions
-	try
-	{
-#endif
-		operator delete(ptr,buffer_size*sizeof(char_type),std::align_val_t{aligmsz}));
-	}
-#if __cpp_exceptions
-	}
-	catch(...)
-	{
-		fast_terminate();
-	}
-#endif
+	operator delete(ptr,buffer_size*sizeof(char_type),std::align_val_t{aligmsz}));
 }
 
 }
