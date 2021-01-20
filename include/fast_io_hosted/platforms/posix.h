@@ -93,7 +93,7 @@ inline constexpr int calculate_posix_open_mode_for_win32_handle(open_mode value)
 #endif
 
 
-inline constexpr int calculate_posix_open_mode(open_mode value)
+inline constexpr int calculate_posix_open_mode(open_mode value) noexcept
 {
 	int mode
 	{
@@ -147,19 +147,19 @@ inline constexpr int calculate_posix_open_mode(open_mode value)
 #ifdef O_NONBLOCK
 		mode |= O_NONBLOCK;
 #else
-		throw_posix_error(EINVAL);
+		return {};
 #endif
 
 	if((value&open_mode::temporary)!=open_mode::none)
-#ifdef _O_TEMPORARY
+	{
+#if defined(O_TMPFILE)
+		mode |= O_TMPFILE;
+#elif defined(_O_TEMPORARY)
 		mode |= _O_TEMPORARY;
 #else
-		throw_posix_error(EINVAL);
+		return {};
 #endif
-#ifdef O_TMPFILE
-	if((value&open_mode::temporary)!=open_mode::none)
-		mode |= O_TMPFILE;
-#endif
+	}
 #ifdef _O_SEQUENTIAL
 	if((value&open_mode::random_access)!=open_mode::none)
 		mode |= _O_SEQUENTIAL;
@@ -174,7 +174,7 @@ inline constexpr int calculate_posix_open_mode(open_mode value)
 #ifdef O_DIRECTORY
 		mode |= O_DIRECTORY;
 #else
-		throw_posix_error(EINVAL);
+		return {};
 #endif
 
 	using utype = typename std::underlying_type<open_mode>::type;
