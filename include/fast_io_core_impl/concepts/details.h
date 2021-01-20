@@ -4,19 +4,30 @@ namespace fast_io::details
 {
 
 template<typename T>
-concept stream_char_type_requirement = requires(T&&)
+concept stream_char_type_requirement = requires(T)
 {
 	typename std::remove_cvref_t<T>::char_type;
 };
 
 template<typename T>
-concept input_stream_impl = stream_char_type_requirement<T>&&requires(T&& in,typename std::remove_cvref_t<T>::char_type* b)
+concept input_stream_impl = 
+(stream_char_type_requirement<T>||
+(requires(T)
+{
+	typename std::remove_cvref_t<T>::input_char_type;
+})
+)&&requires(T in,typename std::remove_cvref_t<T>::char_type* b)
 {
 	read(in,b,b);
 };
 
 template<typename T>
-concept output_stream_impl = stream_char_type_requirement<T>&&requires(T&& out,typename std::remove_cvref_t<T>::char_type const* b)
+concept output_stream_impl = (stream_char_type_requirement<T>||
+(requires(T)
+{
+	typename std::remove_cvref_t<T>::output_char_type;
+})
+)&&requires(T out,typename std::remove_cvref_t<T>::char_type const* b)
 {
 	{write(out,b,b)};
 };
@@ -30,25 +41,25 @@ concept mutex_stream_impl = requires(T t)
 };
 
 template<typename T>
-concept character_input_stream_impl = requires(T&& in)
+concept character_input_stream_impl = requires(T in)
 {
 	igenerator(in);
 };
 
 template<typename T>
-concept character_output_stream_impl = requires(T&& out,typename std::remove_cvref_t<T>::char_type ch)
+concept character_output_stream_impl = requires(T out,typename std::remove_cvref_t<T>::char_type ch)
 {
 	put(out,ch);
 };
 
 template<typename T>
-concept random_access_stream_impl = requires(T& t)
+concept random_access_stream_impl = requires(T t)
 {
 	seek(t,5);
 };
 
 template<typename T>
-concept buffer_input_stream_impl = requires(T&& in)
+concept buffer_input_stream_impl = requires(T in)
 {
 	{ibuffer_begin(in)}->std::convertible_to<typename std::remove_cvref_t<T>::char_type const*>;
 	ibuffer_set_curr(in,ibuffer_curr(in));
@@ -57,31 +68,31 @@ concept buffer_input_stream_impl = requires(T&& in)
 };
 
 template<typename T>
-concept contiguous_input_stream_impl = requires(T&& in)
+concept contiguous_input_stream_impl = requires(T in)
 {
 	underflow_forever_false(in);
 };
 
 template<typename T>
-concept contiguous_output_stream_impl = requires(T&& out)
+concept contiguous_output_stream_impl = requires(T out)
 {
 	overflow_never(out);
 };
 
 template<typename T>
-concept refill_buffer_input_stream_impl = requires(T&& in)
+concept refill_buffer_input_stream_impl = requires(T in)
 {
 	{irefill(in)}->std::convertible_to<bool>;
 };
 
 template<typename T>
-concept reserve_output_stream_impl = requires(T& out,std::size_t n)
+concept reserve_output_stream_impl = requires(T out,std::size_t n)
 {
 	orelease(out,oreserve(out,n));
 };
 
 template<typename T>
-concept buffer_output_stream_impl = requires(T&& out,typename std::remove_cvref_t<T>::char_type ch)
+concept buffer_output_stream_impl = requires(T out,typename std::remove_cvref_t<T>::char_type ch)
 {
 	{obuffer_begin(out)}->std::convertible_to<typename std::remove_cvref_t<T>::char_type*>;
 	{obuffer_end(out)}->std::convertible_to<typename std::remove_cvref_t<T>::char_type*>;
@@ -89,24 +100,24 @@ concept buffer_output_stream_impl = requires(T&& out,typename std::remove_cvref_
 	overflow(out,ch);
 };
 template<typename T>
-concept maybe_buffer_output_stream_impl = requires(T& out)
+concept maybe_buffer_output_stream_impl = requires(T out)
 {
 	{obuffer_is_active(out)}->std::convertible_to<bool>;
 };
 template<typename T>
-concept flush_output_stream_impl = requires(T& out)
+concept flush_output_stream_impl = requires(T out)
 {
 	flush(out);
 };
 
 template<typename T>
-concept fill_nc_output_stream_impl = requires(T&& out,std::size_t n,typename std::remove_cvref_t<T>::char_type ch)
+concept fill_nc_output_stream_impl = requires(T out,std::size_t n,typename std::remove_cvref_t<T>::char_type ch)
 {
 	fill_nc_define(out,n,ch);
 };
 
 template<typename T>
-concept dynamic_buffer_output_stream_impl = requires(T&& out,std::size_t size,typename std::remove_cvref_t<T>::char_type* ptr)
+concept dynamic_buffer_output_stream_impl = requires(T out,std::size_t size,typename std::remove_cvref_t<T>::char_type* ptr)
 {
 	oallocator(out);
 	ogrow(out,size);
@@ -115,19 +126,19 @@ concept dynamic_buffer_output_stream_impl = requires(T&& out,std::size_t size,ty
 };
 
 template<typename T>
-concept zero_copy_input_stream_impl = requires(T& in)
+concept zero_copy_input_stream_impl = requires(T in)
 {
 	zero_copy_in_handle(in);
 };
 
 template<typename T>
-concept zero_copy_output_stream_impl = requires(T& out)
+concept zero_copy_output_stream_impl = requires(T out)
 {
 	zero_copy_out_handle(out);
 };
 
 template<typename T>
-concept redirect_stream_impl = requires(T& h)
+concept redirect_stream_impl = requires(T h)
 {
 	redirect_handle(h);
 };
@@ -152,13 +163,13 @@ concept status_stream_impl = requires(T stm)
 
 
 template<typename T>
-concept scatter_input_stream_impl = requires(T& in,std::span<io_scatter_t const> sp)
+concept scatter_input_stream_impl = requires(T in,std::span<io_scatter_t const> sp)
 {
 	{scatter_read(in,sp)}->std::same_as<std::size_t>;
 };
 
 template<typename T>
-concept scatter_output_stream_impl = requires(T& out,std::span<io_scatter_t const> sp)
+concept scatter_output_stream_impl = requires(T out,std::span<io_scatter_t const> sp)
 {
 	scatter_write(out,sp);
 };
@@ -168,7 +179,7 @@ concept scatter_output_stream_impl = requires(T& out,std::span<io_scatter_t cons
 
 template<typename T>
 concept async_input_stream_impl = stream_char_type_requirement<T>&&
-	requires(T in,typename T::char_type* b)
+	requires(T in,typename std::remove_cvref_t<T>::char_type* b)
 {
 	requires requires(typename std::remove_cvref_t<decltype(async_scheduler_type(in))>::type sch,
 	typename std::remove_cvref_t<decltype(async_overlapped_type(in))>::type overlapped,std::ptrdiff_t offset)
@@ -179,7 +190,7 @@ concept async_input_stream_impl = stream_char_type_requirement<T>&&
 
 template<typename T>
 concept async_output_stream_impl = stream_char_type_requirement<T>&&
-	requires(T out,typename T::char_type const* b)
+	requires(T out,typename std::remove_cvref_t<T>::char_type const* b)
 {
 	requires requires(typename std::remove_cvref_t<decltype(async_scheduler_type(out))>::type sch,
 	typename std::remove_cvref_t<decltype(async_overlapped_type(out))>::type overlapped,std::ptrdiff_t offset)

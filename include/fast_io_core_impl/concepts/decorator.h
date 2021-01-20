@@ -19,24 +19,24 @@ struct basic_io_decorate_t
 namespace details
 {
 template<typename T>
-concept zero_reserve_decorator_impl=requires(T t,typename T::from_type const* from_iter,typename T::to_type* to_iter)
+concept zero_reserve_decorator_impl=requires(T t,typename std::remove_cvref_t<T>::from_type const* from_iter,typename std::remove_cvref_t<T>::to_type* to_iter)
 {
-	{deco_reserve_define(t,from_iter,from_iter,to_iter)}->std::convertible_to<typename T::to_type*>;
+	{deco_reserve_define(t,from_iter,from_iter,to_iter)}->std::convertible_to<typename std::remove_cvref_t<T>::to_type*>;
 };
 
 template<typename T>
-concept normal_decorator_impl=requires(T t,typename T::from_type const* from_iter,typename T::to_type* to_iter)
+concept normal_decorator_impl=requires(T t,typename std::remove_cvref_t<T>::from_type const* from_iter,typename std::remove_cvref_t<T>::to_type* to_iter)
 {
-	{deco_reserve_define(t,from_iter,from_iter,to_iter)}->std::convertible_to<basic_io_decorate_t<typename T::from_type const*,typename T::to_type*>>;
+	{deco_reserve_define(t,from_iter,from_iter,to_iter)}->std::convertible_to<basic_io_decorate_t<typename std::remove_cvref_t<T>::from_type const*,typename std::remove_cvref_t<T>::to_type*>>;
 };
 
 }
 
 template<typename T>
-concept decorator=std::is_trivially_copyable_v<typename T::from_type>&&std::is_trivially_copyable_v<typename T::to_type>&&requires(T t)
+concept decorator=std::is_trivially_copyable_v<typename std::remove_cvref_t<T>::from_type>&&std::is_trivially_copyable_v<typename std::remove_cvref_t<T>::to_type>&&requires(T t)
 {
-	typename T::from_type;
-	typename T::to_type;
+	typename std::remove_cvref_t<T>::from_type;
+	typename std::remove_cvref_t<T>::to_type;
 	requires (details::zero_reserve_decorator_impl<T>||details::normal_decorator_impl<T>);
 };
 
@@ -52,12 +52,14 @@ concept nop_decorator=decorator<T>&&requires(T t)
 template<typename T>
 concept decorated_input_stream = input_stream<T>&&requires(T t)
 {
+	typename std::remove_cvref_t<T>::input_decorator_type;
 	{get_idecorator(t)}->decorator;
 };
 
 template<typename T>
 concept decorated_output_stream = output_stream<T>&&requires(T t)
 {
+	typename std::remove_cvref_t<T>::output_decorator_type;
 	{get_odecorator(t)}->decorator;
 };
 
