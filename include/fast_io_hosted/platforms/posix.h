@@ -147,11 +147,14 @@ inline constexpr int calculate_posix_open_mode(open_mode value)
 #ifdef O_NONBLOCK
 		mode |= O_NONBLOCK;
 #else
-		throw_posix_error(ENOTSUP);
+		throw_posix_error(EINVAL);
 #endif
-#ifdef _O_TEMPORARY
+
 	if((value&open_mode::temporary)!=open_mode::none)
+#ifdef _O_TEMPORARY
 		mode |= _O_TEMPORARY;
+#else
+		throw_posix_error(EINVAL);
 #endif
 #ifdef O_TMPFILE
 	if((value&open_mode::temporary)!=open_mode::none)
@@ -171,7 +174,7 @@ inline constexpr int calculate_posix_open_mode(open_mode value)
 #ifdef O_DIRECTORY
 		mode |= O_DIRECTORY;
 #else
-		throw_posix_error(ENOTSUP);
+		throw_posix_error(EINVAL);
 #endif
 
 	using utype = typename std::underlying_type<open_mode>::type;
@@ -952,16 +955,23 @@ public:
 	{
 	}
 
-#ifdef __linux__
+#endif
+
+
 /*
 To verify whether O_TMPFILE is a thing on FreeBSD. https://github.com/FreeRDP/FreeRDP/pull/6268
 */
+#if defined(O_TMPFILE)&&defined(__linux__)
 	basic_posix_file(io_temp_t):basic_posix_file(
 		system_call<__NR_openat,int>(AT_FDCWD,"/tmp",O_EXCL|O_RDWR|O_TMPFILE|O_APPEND|O_NOATIME,S_IRUSR | S_IWUSR))
 	{
 		system_call_throw_error(native_handle());
 	}
-#endif
+#else
+	basic_posix_file(io_temp_t)
+	{
+		throw_posix_error(EINVAL);
+	}
 #endif
 
 	constexpr basic_posix_file(basic_posix_file const&)=default;
