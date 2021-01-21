@@ -60,7 +60,7 @@ inline constexpr void iobuf_write_unhappy_impl(T& t,Iter first,Iter last)
 
 template<stream handletype,buffer_mode mde,std::size_t bfs,std::size_t alignsz,std::random_access_iterator Iter>
 requires (((mde&buffer_mode::out)==buffer_mode::out)&&details::allow_iobuf_punning<handletype,Iter>)
-inline constexpr decltype(auto) write(basic_io_buffer<handletype,mde,bfs,alignsz>& bios,Iter first,Iter last)
+inline constexpr void write(basic_io_buffer<handletype,mde,bfs,alignsz>& bios,Iter first,Iter last)
 {
 	using iter_char_type = std::iter_value_t<Iter>;
 	using char_type = typename handletype::char_type;
@@ -68,7 +68,7 @@ inline constexpr decltype(auto) write(basic_io_buffer<handletype,mde,bfs,alignsz
 	{
 		if constexpr(std::contiguous_iterator<Iter>&&!std::is_pointer_v<Iter>)
 			write(bios,std::to_address(first),std::to_address(last));
-		else if constexpr(std::random_access_iterator<Iter>)
+		else
 		{
 			std::size_t diff(static_cast<std::size_t>(last-first));
 			std::size_t remain_space(bios.obuffer.buffer_end-bios.obuffer.buffer_curr);
@@ -120,8 +120,18 @@ inline constexpr void obuffer_set_curr(basic_io_buffer<handletype,mde,bfs,aligns
 
 namespace details
 {
-template<std::size_t bfsz,std::size_t almsz,typename T,std::integral char_type>
-inline constexpr void iobuf_overflow_impl(T handle,basic_io_buffer_pointers<char_type>& pointers,typename T::char_type ch)
+
+template<typename T,std::integral char_type>
+inline constexpr void iobuf_output_flush_impl(T handle,basic_io_buffer_pointers<char_type>& pointers)
+{
+	if(pointers.buffer_curr==pointers.buffer_begin)
+		return;
+	write(handle,pointers.buffer_begin,pointers.buffer_curr);
+	pointers.buffer_curr=pointers.buffer_begin;
+}
+
+template<typename T,std::integral char_type>
+inline constexpr void iobuf_overflow_impl(T handle,basic_io_buffer_pointers<char_type>& pointers,char_type ch,std::size_t bfsz,std::size_t almsz)
 {
 	if(pointers.buffer_begin==nullptr)
 	{
@@ -130,8 +140,7 @@ inline constexpr void iobuf_overflow_impl(T handle,basic_io_buffer_pointers<char
 	}
 	else
 	{
-		write(handle,pointers.buffer_begin,pointers.buffer_curr);
-		pointers.buffer_curr=pointers.buffer_begin;
+		iobuf_output_flush_impl(handle,pointers);
 	}
 	*pointers.buffer_curr=ch;
 	++pointers.buffer_curr;
@@ -143,7 +152,7 @@ requires ((mde&buffer_mode::out)==buffer_mode::out)
 inline constexpr auto overflow(basic_io_buffer<handletype,mde,bfs,alignsz>& bios,
 	typename basic_io_buffer<handletype,mde,bfs,alignsz>::char_type ch)
 {
-	details::iobuf_overflow_impl<bfs,alignsz>(io_ref(bios.handle),bios.obuffer,ch);
+	details::iobuf_overflow_impl(io_ref(bios.handle),bios.obuffer,ch,bfs,alignsz);
 }
 
 template<zero_copy_output_stream handletype,buffer_mode mde,std::size_t bfs,std::size_t alignsz>

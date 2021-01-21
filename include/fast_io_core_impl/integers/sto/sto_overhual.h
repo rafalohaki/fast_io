@@ -249,7 +249,7 @@ inline constexpr bool probe_overflow(Iter& b,Iter e,muint& res,std::size_t& sz) 
 	constexpr muint risky_uint_max{static_cast<muint>(-1)};
 	constexpr muint risky_value{risky_uint_max/base};
 	constexpr unsigned_char_type risky_digit(risky_uint_max%base);
-	constexpr std::size_t npos(-1);
+	constexpr std::size_t npos(static_cast<std::size_t>(-1));
 	if((risky_value<res)||(risky_value==res&&risky_digit<result))
 	{
 		if constexpr (!larger_than_native)
@@ -265,8 +265,8 @@ inline constexpr bool probe_overflow(Iter& b,Iter e,muint& res,std::size_t& sz) 
 		return false;
 	if constexpr (!larger_than_native)
 	{
-		unsigned_char_type result(*b);
-		if(!char_digit_probe_overflow<base,char_type>(result))
+		unsigned_char_type result1(static_cast<unsigned_char_type>(*b));
+		if(!char_digit_probe_overflow<base,char_type>(result1))
 			return false;
 		sz=npos;
 		++b;
@@ -275,17 +275,16 @@ inline constexpr bool probe_overflow(Iter& b,Iter e,muint& res,std::size_t& sz) 
 	}
 	else
 	{
-		unsigned_char_type result(*b);
+		unsigned_char_type result(static_cast<unsigned_char_type>(*b));
 		return char_digit_probe_overflow<base,char_type>(result);
 	}
 }
 
 template<char8_t base,bool larger_than_native = false, bool skip_zeros = true, bool ignore=false, std::random_access_iterator Iter,my_unsigned_integral muint>
-inline
-#if defined(_MSC_VER) && !defined(__clang__)
-__forceinline
+#if __has_cpp_attribute(msvc::forceinline) && !defined(__clang__)
+[[msvc::forceinline]]
 #endif
-constexpr bool from_chars(Iter& b,Iter e,muint& res,std::size_t& sz) noexcept
+inline constexpr bool from_chars(Iter& b,Iter e,muint& res,std::size_t& sz) noexcept
 {
 	constexpr std::size_t max_size{cal_max_int_size<muint,base>()-1};
 	if constexpr(ignore)
@@ -314,7 +313,7 @@ constexpr bool from_chars(Iter& b,Iter e,muint& res,std::size_t& sz) noexcept
 	}
 	else
 	{
-		constexpr std::size_t npos(-1);
+		constexpr std::size_t npos(static_cast<std::size_t>(-1));
 		if(sz==npos)
 		{
 			b=skip_digits<base>(b,e);
@@ -325,7 +324,7 @@ constexpr bool from_chars(Iter& b,Iter e,muint& res,std::size_t& sz) noexcept
 			if(!res)
 				b=skip_zero(b,e);
 		}
-		std::size_t iter_diff(e-b);
+		std::size_t iter_diff(static_cast<std::size_t>(e-b));
 		std::size_t max_size_msz(max_size-sz);
 		if(max_size_msz<iter_diff)[[likely]]
 		{
@@ -417,7 +416,7 @@ struct voldmort
 
 	inline constexpr bool test_eof(P t) noexcept requires(!contiguous_only)
 	{
-		constexpr std::size_t npos(-1);
+		constexpr std::size_t npos(static_cast<std::size_t>(-1));
 		if(size==npos)
 		{
 			code=std::errc::result_out_of_range;
@@ -447,7 +446,7 @@ struct voldmort
 	inline constexpr void operator()(Iter begin, Iter end,P t) noexcept requires(!contiguous_only)
 	{
 		constexpr bool larger_than_native = sizeof(T) > sizeof(std::size_t);
-		constexpr std::size_t npos(-1);
+		constexpr std::size_t npos(static_cast<std::size_t>(-1));
 		iter=begin;
 		if constexpr(larger_than_native)
 		{
@@ -506,7 +505,7 @@ struct voldmort
 	inline constexpr voldmort(Iter begin, Iter end, T& t) noexcept
 	{
 		constexpr bool larger_than_native = sizeof(T) > sizeof(std::size_t);
-		constexpr std::size_t npos(-1);
+		constexpr std::size_t npos(static_cast<std::size_t>(-1));
 		iter = begin;
 		if constexpr (contiguous_only)
 		{

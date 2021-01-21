@@ -2,5 +2,6 @@
 
 #include"mode.h"
 #include"main.h"
-#include"input.h"
 #include"output.h"
+#include"input.h"
+#include"general.h"

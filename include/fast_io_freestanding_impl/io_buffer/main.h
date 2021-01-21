@@ -3,7 +3,7 @@
 namespace fast_io
 {
 
-template<stream handletype,buffer_mode mde,std::size_t bfs = io_default_buffer_size<typename handletype::char_type>,
+template<stream handletype,buffer_mode mde=buffer_mode::io|buffer_mode::secure_clear,std::size_t bfs = io_default_buffer_size<typename handletype::char_type>,
 	std::size_t alignmsz=
 #ifdef FAST_IO_BUFFER_ALIGNMENT
 	FAST_IO_BUFFER_ALIGNMENT
