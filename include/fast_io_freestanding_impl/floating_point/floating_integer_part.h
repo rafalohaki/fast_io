@@ -236,7 +236,8 @@ inline constexpr void fp_output_two_digits(Iter iter,U i)
 #elif defined(FAST_IO_OPTIMIZE_TIME)
 	my_copy_n(jiaendu::static_tables<std::iter_value_t<Iter>>::table2[i].data(),2,iter);
 #else
-	my_copy_n(shared_static_base_table<std::iter_value_t<Iter>,10,false>::table[i].data(),2,iter);
+	constexpr auto tb(get_shared_inline_constexpr_base_table<std::iter_value_t<Iter>,10,false>().data());
+	my_copy_n(tb[i].data(),2,iter);
 #endif
 }
 

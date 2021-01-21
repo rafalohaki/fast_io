@@ -79,7 +79,8 @@ inline constexpr Iter chrono_two_digits_impl(Iter it,U u) noexcept
 		if(100u<=u)[[unlikely]]
 			return process_integer_output<10,false>(it,u);
 	}
-	return non_overlapped_copy_n(shared_static_base_table<char_type,10,false>::table[u].data(),2,it);
+	constexpr auto tb{get_shared_inline_constexpr_base_table<char_type,10,false>().data()};
+	return non_overlapped_copy_n(tb[u].data(),2,it);
 #endif
 }
 
@@ -133,8 +134,9 @@ inline constexpr Iter chrono_year_impl(Iter it,integ i) noexcept
 		return process_integer_output<10,false>(it,u);
 	unsigned_type dv(u/100u);
 	unsigned_type rmd(u%100u);
-	it=non_overlapped_copy_n(shared_static_base_table<char_type,10,false>::table[dv].data(),2,it);
-	return non_overlapped_copy_n(shared_static_base_table<char_type,10,false>::table[rmd].data(),2,it);
+	constexpr auto tb{get_shared_inline_constexpr_base_table<char_type,10,false>().data()};
+	it=non_overlapped_copy_n(tb[dv].data(),2,it);
+	return non_overlapped_copy_n(tb[rmd].data(),2,it);
 #endif
 }
 

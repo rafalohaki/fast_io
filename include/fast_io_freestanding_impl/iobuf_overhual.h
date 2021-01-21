@@ -78,9 +78,8 @@ bool constraint_buffer_mode(buffer_mode mode) noexcept
 }
 
 
-
-template<typename char_type,std::size_t buffer_size,std::size_t aligmsz>
-inline constexpr char_type* allocate_iobuf_space() noexcept
+template<typename char_type>
+inline constexpr char_type* allocate_iobuf_space(std::size_t buffer_size,std::size_t aligmsz) noexcept
 {
 #if __cpp_exceptions
 	try
@@ -100,13 +99,14 @@ inline constexpr char_type* allocate_iobuf_space() noexcept
 	}
 	catch(...)
 	{
+//Let std::bad_aloc to die.
 		fast_terminate();
 	}
 #endif
 }
 
-template<typename char_type,std::size_t buffer_size,std::size_t aligmsz>
-inline constexpr void deallocate_iobuf_space(char_type* ptr) noexcept
+template<typename char_type>
+inline constexpr void deallocate_iobuf_space(char_type* ptr,[[maybe_unused]] std::size_t buffer_size,std::size_t aligmsz) noexcept
 {
 #if __cpp_constexpr >=201907L && __cpp_constexpr_dynamic_alloc >= 201907L && __cpp_lib_is_constant_evaluated >=201811L
 	if(std::is_constant_evaluated())
@@ -273,15 +273,25 @@ private:
 			if(obuffer.buffer_begin)
 			{
 				if constexpr((mode&buffer_mode::secure_clear)==buffer_mode::secure_clear)
-					secure_clear(obuffer.buffer_begin,sizeof(char_type)*buffer_size);
-				details::deallocate_iobuf_space<char_type,buffer_size,buffer_alignment>(obuffer.buffer_begin);
+				{
+#if __cpp_lib_is_constant_evaluated >=201811L
+					if(!std::is_constant_evaluated())
+#endif
+						secure_clear(obuffer.buffer_begin,sizeof(char_type)*buffer_size);
+				}
+				details::deallocate_iobuf_space<char_type>(obuffer.buffer_begin,buffer_size,buffer_alignment);
 			}
 		if constexpr((mode&buffer_mode::in)==buffer_mode::in)
 			if(ibuffer.buffer_begin)
 			{
 				if constexpr((mode&buffer_mode::secure_clear)==buffer_mode::secure_clear)
-					secure_clear(ibuffer.buffer_begin,sizeof(char_type)*buffer_size);
-				details::deallocate_iobuf_space<char_type,buffer_size,buffer_alignment>(ibuffer.buffer_begin);
+				{
+#if __cpp_lib_is_constant_evaluated >=201811L
+					if(!std::is_constant_evaluated())
+#endif
+						secure_clear(ibuffer.buffer_begin,sizeof(char_type)*buffer_size);
+				}
+				details::deallocate_iobuf_space<char_type>(ibuffer.buffer_begin,buffer_size,buffer_alignment);
 			}
 	}
 public:
@@ -289,8 +299,69 @@ public:
 	template<typename... Args>
 	requires (sizeof...(Args)!=0)&&std::constructible_from<handle_type,Args...>
 	explicit constexpr basic_io_buffer(Args&& ...args):handle(std::forward<Args>(args)...){}
-	basic_io_buffer(basic_io_buffer const&)=delete;
-	basic_io_buffer& operator=(basic_io_buffer const&)=delete;
+	constexpr basic_io_buffer(basic_io_buffer const& other) requires std::copyable<handle_type>:handle(other.handle){}
+	constexpr basic_io_buffer(basic_io_buffer const&)=delete;
+	constexpr basic_io_buffer& operator=(basic_io_buffer const& other) requires std::copyable<handle_type>
+	{
+		close_throw_impl();
+		if constexpr((mode&buffer_mode::in)==buffer_mode::in)
+			ibuffer.buffer_curr=ibuffer.buffer_end;
+		if constexpr((mode&buffer_mode::out)==buffer_mode::out)
+			obuffer.buffer_curr=obuffer.buffer_begin;
+		handle=other.handle;
+		return *this;
+	}
+	constexpr basic_io_buffer& operator=(basic_io_buffer const&)=delete;
+#if 0
+	template<typename... Args>
+	requires requires(Args&& ...args)
+	{
+		handle.reopen(std::forward<Args>(args)...);
+	}
+	constexpr void reopen(Args&& ...args)
+	{
+		handle.reopen(std::forward<Args>(args)...);
+	}
+#endif
+	constexpr void close() requires requires()
+	{
+		handle.close();
+	}
+	{
+		close_throw_impl();
+		if constexpr((mode&buffer_mode::in)==buffer_mode::in)
+			ibuffer.buffer_curr=ibuffer.buffer_end;
+		if constexpr((mode&buffer_mode::out)==buffer_mode::out)
+			obuffer.buffer_curr=obuffer.buffer_begin;
+		handle.close();
+	}
+	constexpr basic_io_buffer(basic_io_buffer&& other) noexcept requires(std::movable<handle_type>):
+		ibuffer(other.ibuffer),obuffer(other.obuffer),handle(std::move(other.handle))
+	{
+		other.ibuffer={};
+		other.obuffer={};
+	}
+	constexpr basic_io_buffer(basic_io_buffer&&) noexcept=delete;
+#if __cpp_constexpr_dynamic_alloc >= 201907L
+	constexpr
+#endif
+	basic_io_buffer& operator=(basic_io_buffer&& other) noexcept requires(std::movable<handle_type>)
+	{
+		if(this==std::addressof(other))
+			return *this;
+		cleanup_impl();
+		ibuffer=other.ibuffer;
+		obuffer=other.obuffer;
+		handle=std::move(other.handle);
+		return *this;
+	}
+	constexpr basic_io_buffer& operator=(basic_io_buffer&&)=delete;
+	constexpr void swap(basic_io_buffer&& other) noexcept requires std::swappable<handle_type>
+	{
+		std::ranges::swap(ibuffer,other.ibuffer);
+		std::ranges::swap(obuffer,other.obuffer);
+		std::ranges::swap(handle,other.handle);
+	}
 #if __cpp_constexpr_dynamic_alloc >= 201907L
 	constexpr
 #endif
@@ -312,89 +383,80 @@ concept allow_iobuf_punning = stream<handletype>&&std::forward_iterator<Iter>&&s
 (std::same_as<typename handletype::char_type,std::iter_value_t<Iter>>||
 (std::same_as<typename handletype::char_type,char>&&std::contiguous_iterator<Iter>));
 
-template<typename T,std::forward_iterator Iter>
-inline constexpr void iobuf_write_unhappy_decay_impl(T t,basic_io_buffer_pointers<typename T::char_type>& pointers,Iter first,Iter last)
+template<std::integral char_type,std::random_access_iterator Iter>
+inline constexpr void iobuf_write_unhappy_nullptr_case_impl(basic_io_buffer_pointers<char_type>& obuffer,Iter first,Iter last,std::size_t buffer_size,std::size_t buffer_alignment)
 {
-	if constexpr(std::contiguous_iterator<Iter>)
-	{
-		if constexpr(scatter_output_stream<T>)
-		{
-			io_scatter_t scatters[2]{{pointers.buffer_begin,
-				sizeof(*pointers.buffer_curr)*(pointers.buffer_curr-pointers.buffer_begin)},
-				{first,(last-first)*sizeof(*last)}};
-			scatter_write(t,scatters);
-			pointers.buffer_curr=pointers.buffer_begin;
-		}
-		else
-		{
-			if(pointers.buffer_begin!=pointers.buffer_curr)
-			{
-				write(t,pointers.buffer_begin,pointers.buffer_curr);
-				pointers.buffer_curr=pointers.buffer_begin;
-			}
-			write(t,first,last);
-		}
-	}
-	else
-	{
-		//Todo: deal with non contiguous iterator
-	}
+	obuffer.buffer_end=(obuffer.buffer_curr=obuffer.buffer_begin=
+	allocate_iobuf_space<char_type>(buffer_size,buffer_alignment))+buffer_size;
+	obuffer.buffer_curr=non_overlapped_copy(first,last,obuffer.buffer_curr);
 }
 
-template<typename T,std::forward_iterator Iter>
-inline constexpr void iobuf_write_unhappy_impl(T& t,Iter first,Iter last,std::size_t dis)
+template<typename T,std::integral char_type,std::random_access_iterator Iter>
+inline constexpr void iobuf_write_unhappy_decay_no_alloc_impl(T t,basic_io_buffer_pointers<char_type>& pointers,Iter first,Iter last,std::size_t buffer_size)
 {
-	if(t.obuffer.buffer_begin==nullptr&&dis<T::buffer_size)
+	std::size_t const remain_space(pointers.buffer_end-pointers.buffer_curr);
+	non_overlapped_copy_n(first,remain_space,pointers.buffer_curr);
+	first+=remain_space;
+	write(t,pointers.buffer_begin,pointers.buffer_end);
+	pointers.buffer_curr=pointers.buffer_begin;
+	std::size_t const new_remain_space(last-first);
+	if(buffer_size<new_remain_space)
+		write(t,first,last);
+	else
+		pointers.buffer_curr=non_overlapped_copy_n(first,new_remain_space,pointers.buffer_begin);
+}
+
+template<std::size_t buffer_size,std::size_t buffer_alignment,typename T,std::integral char_type,std::random_access_iterator Iter>
+inline constexpr void iobuf_write_unhappy_decay_impl(T t,basic_io_buffer_pointers<char_type>& pointers,Iter first,Iter last)
+{
+	std::size_t const diff(static_cast<std::size_t>(last-first));
+	if(pointers.buffer_begin==nullptr)
 	{
-		t.obuffer.buffer_end=(t.obuffer.buffer_curr=t.obuffer.buffer_begin=
-			allocate_iobuf_space<typename T::char_type,T::buffer_size,T::buffer_alignment>())+T::buffer_size;
-		t.obuffer.buffer_curr=non_overlapped_copy(first,last,t.obuffer.buffer_curr);
+		if(diff<buffer_size)
+			iobuf_write_unhappy_nullptr_case_impl(pointers,first,last,buffer_size,buffer_alignment);
+		else
+			write(t,first,last);
 		return;
 	}
-	iobuf_write_unhappy_decay_impl(io_ref(t.handle),t.obuffer,first,last);
+	iobuf_write_unhappy_decay_no_alloc_impl(t,pointers,first,last,buffer_size);
 }
-
 
 template<typename T,std::random_access_iterator Iter>
 inline constexpr void iobuf_write_unhappy_impl(T& t,Iter first,Iter last)
 {
-	iobuf_write_unhappy_impl(t,first,last,static_cast<std::size_t>(last-first));
+	iobuf_write_unhappy_decay_impl<T::buffer_size,T::buffer_alignment>(io_ref(t.handle),t.obuffer,first,last);
 }
 
 }
 
-template<stream handletype,buffer_mode mde,std::size_t bfs,std::size_t alignsz,std::forward_iterator Iter>
-requires (output_stream<handletype>&&details::allow_iobuf_punning<handletype,Iter>)
+template<stream handletype,buffer_mode mde,std::size_t bfs,std::size_t alignsz,std::random_access_iterator Iter>
+requires (((mde&buffer_mode::out)==buffer_mode::out)&&details::allow_iobuf_punning<handletype,Iter>)
 inline constexpr decltype(auto) write(basic_io_buffer<handletype,mde,bfs,alignsz>& bios,Iter first,Iter last)
 {
-	if constexpr((mde&buffer_mode::out)==buffer_mode::out)
+	using iter_char_type = std::iter_value_t<Iter>;
+	using char_type = typename handletype::char_type;
+	if constexpr(std::same_as<iter_char_type,char_type>)
 	{
-		using iter_char_type = std::iter_value_t<Iter>;
-		if constexpr(std::same_as<iter_char_type,typename handletype::char_type>)
+		if constexpr(std::contiguous_iterator<Iter>&&!std::is_pointer_v<Iter>)
+			write(bios,std::to_address(first),std::to_address(last));
+		else if constexpr(std::random_access_iterator<Iter>)
 		{
-			auto diff(std::distance(first,last));
-			auto remain_space(bios.obuffer.buffer_end-bios.obuffer.buffer_curr);
+			std::size_t diff(static_cast<std::size_t>(last-first));
+			std::size_t remain_space(bios.obuffer.buffer_end-bios.obuffer.buffer_curr);
 			if(remain_space<diff)[[unlikely]]
 			{
-				if constexpr(std::contiguous_iterator<Iter>)
-					details::iobuf_write_unhappy_impl(bios,std::to_address(first),std::to_address(last));
-				else if constexpr(std::random_access_iterator<Iter>)
-					details::iobuf_write_unhappy_impl(bios,first,last);
-				else
-					details::iobuf_write_unhappy_impl(bios,first,last,diff);
+				details::iobuf_write_unhappy_impl(bios,first,last);
 				return;
 			}
-			else [[likely]]
-				bios.obuffer.buffer_curr=details::non_overlapped_copy_n(first,diff,bios.obuffer.buffer_curr);
+			bios.obuffer.buffer_curr=details::non_overlapped_copy_n(first,diff,bios.obuffer.buffer_curr);
 		}
-		else
-			write(bios,reinterpret_cast<char const*>(std::to_address(first)),
-				reinterpret_cast<char const*>(std::to_address(last)));
+/*
+To do : forward_iterator. Support std::forward_list, std::list, std::set and std::unordered_set
+*/
 	}
 	else
-	{
-		return write(bios.handle,first,last);
-	}
+		write(bios,reinterpret_cast<char const*>(std::to_address(first)),
+			reinterpret_cast<char const*>(std::to_address(last)));
 }
 
 
@@ -435,7 +497,7 @@ inline constexpr void iobuf_overflow_impl(T handle,basic_io_buffer_pointers<char
 	if(pointers.buffer_begin==nullptr)
 	{
 		pointers.buffer_end=(pointers.buffer_curr=pointers.buffer_begin=
-		allocate_iobuf_space<char_type,bfsz,almsz>())+bfsz;
+		allocate_iobuf_space<char_type>(bfsz,almsz))+bfsz;
 	}
 	else
 	{

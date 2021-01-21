@@ -85,7 +85,7 @@ inline constexpr Iter output_exp(std::int32_t exp,Iter result)
 		return non_overlapped_copy_n(jiaendu::static_tables<char_type>::table3[unsigned_exp].data(),3,result);
 	return non_overlapped_copy_n(jiaendu::static_tables<char_type>::table2[unsigned_exp].data(),2,result);
 #else
-	constexpr auto& tb{shared_static_base_table<char_type,10,false>::table};
+	constexpr auto tb(get_shared_inline_constexpr_base_table<char_type,10,false>().data());
 	if constexpr(four_digits)
 	{
 	if(1000<=unsigned_exp)[[unlikely]]

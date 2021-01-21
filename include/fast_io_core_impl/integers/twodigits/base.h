@@ -13,8 +13,9 @@ inline constexpr auto output_base_number_impl(Iter iter,U a) noexcept
 //upper: 65 :A 70: F
 //lower: 97 :a 102 :f
 	using char_type = std::iter_value_t<Iter>;
-	constexpr auto &table(details::shared_static_base_table<char_type,base,uppercase,transparent>::table);
-	constexpr std::uint32_t pw(static_cast<std::uint32_t>(table.size()));
+	constexpr auto &table_v(get_shared_inline_constexpr_base_table<char_type,base,uppercase,transparent>());
+	constexpr std::uint32_t pw(static_cast<std::uint32_t>(table_v.size()));
+	constexpr auto table(table_v.data());
 	constexpr std::size_t chars{2};
 	for(;pw<=a;)
 	{

@@ -92,11 +92,12 @@ inline constexpr Iter print_reserve_define_iso6709_coordinate_impl(Iter iter,iso
 			*iter=u8'0';
 	}
 	++iter;
-	iter=non_overlapped_copy_n(shared_static_base_table<char_type,10,false,false>::table[absolute].data(),2,iter);
+	constexpr auto table(details::get_shared_inline_constexpr_base_table<char_type,10,false,false>().data());
+	iter=non_overlapped_copy_n(table[absolute].data(),2,iter);
 	if(dms.subseconds||dms.seconds||dms.minutes)[[likely]]
-		iter=non_overlapped_copy_n(shared_static_base_table<char_type,10,false,false>::table[dms.minutes].data(),2,iter);
+		iter=non_overlapped_copy_n(table[dms.minutes].data(),2,iter);
 	if(dms.subseconds||dms.seconds)[[likely]]
-		iter=non_overlapped_copy_n(shared_static_base_table<char_type,10,false,false>::table[dms.seconds].data(),2,iter);
+		iter=non_overlapped_copy_n(table[dms.seconds].data(),2,iter);
 #endif
 	if(dms.subseconds)
 		iter=output_iso8601_subseconds(iter,dms.subseconds);

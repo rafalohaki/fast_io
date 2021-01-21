@@ -283,7 +283,10 @@ inline constexpr Iter output_unsigned_serialize_size(std::size_t val,Iter iter) 
 		if(val<10)
 			return output_unsigned_serialize_size<1>(val,iter);
 		else
-			return non_overlapped_copy_n(details::shared_static_base_table<char_type,10,false,false>::table.data(),2,iter);
+		{
+			constexpr auto tb{get_shared_inline_constexpr_base_table<char_type,10,false,false>().data()};
+			return non_overlapped_copy_n(tb,2,iter);
+		}
 	}
 	else
 		return twodigits::output_unsigned(iter,val);

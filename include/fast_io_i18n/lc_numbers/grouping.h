@@ -174,7 +174,7 @@ constexpr void output_unsigned_with_3_seperator_len(std::iter_value_t<Iter> sepe
 #ifdef FAST_IO_OPTIMIZE_TIME
 	constexpr auto table3(jiaendu::static_tables<char_type>::table3.data());
 #elif !defined(FAST_IO_OPTIMIZE_SIZE)
-	constexpr auto table(shared_static_base_table<char_type,10,false>::table.data());
+	constexpr auto table(get_shared_inline_constexpr_base_table<char_type,10,false>().data());
 #endif
 	for(;value>=1000u;*--iter=seperator_ch)
 	{

@@ -46,7 +46,7 @@ inline constexpr void append_nine_digits(Iter str,std::uint32_t value)
 		my_copy_n(jiaendu::static_tables<char_type,start>::table4[remains1].data(),4,++str);
 		my_copy_n(jiaendu::static_tables<char_type,start>::table4[remains0].data(),4,str += 4);
 #else
-		constexpr auto &table(shared_static_base_table<char_type,10,false,start==0>::table);
+		constexpr auto &table(get_shared_inline_constexpr_base_table<char_type,10,false,start==0>());
 		constexpr std::uint32_t pw(static_cast<std::uint32_t>(table.size()));
 		constexpr std::size_t chars(table.front().size());
 		str+=9;

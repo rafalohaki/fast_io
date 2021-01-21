@@ -84,7 +84,8 @@ inline constexpr Iter print_reserve_define_iso3166_numeric_impl(Iter iter,basic_
 	*iter+=v.code/100;
 	v.code%=100;
 	++iter;
-	return non_overlapped_copy_n(shared_static_base_table<char_type,10,false,false>::table[v.code].data(),2,iter);
+	constexpr auto table(details::get_shared_inline_constexpr_base_table<char_type,10,false,false>().data());
+	return non_overlapped_copy_n(table[v.code].data(),2,iter);
 #endif
 }
 

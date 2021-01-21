@@ -75,8 +75,21 @@ http://www.astrodigital.org/digital/ebcdic.html#:~:text=The%20EBCDIC%20Character
 }
 
 template<std::integral char_type,std::size_t base,bool upper,bool transparent=false>
-struct shared_static_base_table
+inline constexpr auto shared_inline_constexpr_base_table_tb{cal_content<char_type,base,upper,transparent>()};
+
+template<std::integral char_type,std::size_t base,bool upper,bool transparent=false>
+inline constexpr auto& get_shared_inline_constexpr_base_table() noexcept
 {
-	inline static constexpr auto table=cal_content<char_type,base,upper,transparent>();
-};
+	if constexpr(exec_charset_is_ebcdic<char_type>())
+		return shared_inline_constexpr_base_table_tb<char_type,base,upper,transparent>;
+	else if constexpr(sizeof(char_type)==1)
+		return shared_inline_constexpr_base_table_tb<char8_t,base,upper,transparent>;
+	else if constexpr(sizeof(char_type)==2)
+		return shared_inline_constexpr_base_table_tb<char16_t,base,upper,transparent>;
+	else if constexpr(sizeof(char_type)==4)
+		return shared_inline_constexpr_base_table_tb<char32_t,base,upper,transparent>;
+	else
+		return shared_inline_constexpr_base_table_tb<char_type,base,upper,transparent>;
+}
+
 }
