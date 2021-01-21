@@ -42,7 +42,7 @@ struct local_operator_new_array_ptr
 		else
 #endif
 		{
-#if __cpp_sized_deallocation >= 201309
+#if __cpp_sized_deallocation >= 201309L
 			if constexpr(alignof(char_type)>=alignof(std::max_align_t))
 				operator delete(ptr,size*sizeof(char_type),std::align_val_t{alignof(char_type)});
 			else

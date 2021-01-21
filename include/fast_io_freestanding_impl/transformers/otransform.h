@@ -129,11 +129,7 @@ inline constexpr void otransform_write(T& ob,Iter cbegin,Iter cend)
 			{
 				auto wrote_pos(ob.handle.second.write_proxy(ob.handle.first, ob.buffer.data(), ob.buffer.data() + ob.buffer.size()));
 				if (wrote_pos == ob.buffer.data()) [[unlikely]]
-#ifdef __cpp_exceptions
-					throw fast_io_text_error("write_proxy failed");
-#else
-					fast_terminate();
-#endif
+					throw_posix_error(EINVAL);
 				std::size_t remain_length(ob.buffer.data() + ob.buffer.size() - wrote_pos);
 				std::copy_n(wrote_pos, remain_length, ob.buffer.data());
 				ob.position = remain_length;

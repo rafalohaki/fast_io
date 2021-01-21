@@ -3,7 +3,7 @@
 namespace fast_io
 {
 
-enum class buffer_flags
+enum class buffer_mode
 {
 in=1<<0,
 out=1<<1,
@@ -12,35 +12,35 @@ io=in|out|tie,
 secure_clear=1<<3
 };
 
-constexpr buffer_flags operator&(buffer_flags x, buffer_flags y) noexcept
+constexpr buffer_mode operator&(buffer_mode x, buffer_mode y) noexcept
 {
-using utype = typename std::underlying_type<buffer_flags>::type;
-return static_cast<buffer_flags>(static_cast<utype>(x) & static_cast<utype>(y));
+using utype = typename std::underlying_type<buffer_mode>::type;
+return static_cast<buffer_mode>(static_cast<utype>(x) & static_cast<utype>(y));
 }
 
-constexpr buffer_flags operator|(buffer_flags x, buffer_flags y) noexcept
+constexpr buffer_mode operator|(buffer_mode x, buffer_mode y) noexcept
 {
-using utype = typename std::underlying_type<buffer_flags>::type;
-return static_cast<buffer_flags>(static_cast<utype>(x) | static_cast<utype>(y));
+using utype = typename std::underlying_type<buffer_mode>::type;
+return static_cast<buffer_mode>(static_cast<utype>(x) | static_cast<utype>(y));
 }
 
-constexpr buffer_flags operator^(buffer_flags x, buffer_flags y) noexcept
+constexpr buffer_mode operator^(buffer_mode x, buffer_mode y) noexcept
 {
-using utype = typename std::underlying_type<buffer_flags>::type;
-return static_cast<buffer_flags>(static_cast<utype>(x) ^ static_cast<utype>(y));
+using utype = typename std::underlying_type<buffer_mode>::type;
+return static_cast<buffer_mode>(static_cast<utype>(x) ^ static_cast<utype>(y));
 }
 
-constexpr buffer_flags operator~(buffer_flags x) noexcept
+constexpr buffer_mode operator~(buffer_mode x) noexcept
 {
-using utype = typename std::underlying_type<buffer_flags>::type;
-return static_cast<buffer_flags>(~static_cast<utype>(x));
+using utype = typename std::underlying_type<buffer_mode>::type;
+return static_cast<buffer_mode>(~static_cast<utype>(x));
 }
 
-inline constexpr buffer_flags& operator&=(buffer_flags& x, buffer_flags y) noexcept{return x=x&y;}
+inline constexpr buffer_mode& operator&=(buffer_mode& x, buffer_mode y) noexcept{return x=x&y;}
 
-inline constexpr buffer_flags& operator|=(buffer_flags& x, buffer_flags y) noexcept{return x=x|y;}
+inline constexpr buffer_mode& operator|=(buffer_mode& x, buffer_mode y) noexcept{return x=x|y;}
 
-inline constexpr buffer_flags& operator^=(buffer_flags& x, buffer_flags y) noexcept{return x=x^y;}
+inline constexpr buffer_mode& operator^=(buffer_mode& x, buffer_mode y) noexcept{return x=x^y;}
 
 
 template<typename char_type>
@@ -66,13 +66,13 @@ consteval
 #else
 constexpr
 #endif
-bool constraint_buffer_flags(buffer_flags mode) noexcept
+bool constraint_buffer_mode(buffer_mode mode) noexcept
 {
-	if(((mode&buffer_flags::in)==buffer_flags::in)&&(!input_stream<handle_type>))
+	if(((mode&buffer_mode::in)==buffer_mode::in)&&(!input_stream<handle_type>))
 		return false;
-	if(((mode&buffer_flags::out)==buffer_flags::out)&&(!output_stream<handle_type>))
+	if(((mode&buffer_mode::out)==buffer_mode::out)&&(!output_stream<handle_type>))
 		return false;
-	if(secure_clear_requirement_stream<handle_type>&&((mode&buffer_flags::secure_clear)!=buffer_flags::secure_clear))
+	if(secure_clear_requirement_stream<handle_type>&&((mode&buffer_mode::secure_clear)!=buffer_mode::secure_clear))
 		return false;
 	return true;
 }
@@ -116,7 +116,11 @@ inline constexpr void deallocate_iobuf_space(char_type* ptr) noexcept
 	else
 #endif
 	{
+#if __cpp_sized_deallocation >= 201309L
 		operator delete(ptr,buffer_size*sizeof(char_type),std::align_val_t{aligmsz});
+#else
+		operator delete(ptr,std::align_val_t{aligmsz});
+#endif
 	}
 }
 
@@ -126,11 +130,11 @@ struct iobuf_char_type_impl
 	using type = T;
 };
 
-template<stream handletype,buffer_flags mde>
+template<stream handletype,buffer_mode mde>
 inline constexpr auto get_iobuf_char_type() noexcept
 {
-	if constexpr(((mde&buffer_flags::out)==buffer_flags::out)&&
-		((mde&buffer_flags::in)==buffer_flags::in))
+	if constexpr(((mde&buffer_mode::out)==buffer_mode::out)&&
+		((mde&buffer_mode::in)==buffer_mode::in))
 	{
 		if constexpr(decorated_output_stream<handletype>)
 		{
@@ -166,25 +170,37 @@ inline constexpr auto get_iobuf_char_type() noexcept
 		else
 			return iobuf_char_type_impl<typename handletype::char_type>{};
 	}
-	else if constexpr((mde&buffer_flags::out)==buffer_flags::out)
+	else if constexpr((mde&buffer_mode::out)==buffer_mode::out)
 	{
-		using output_decorator_type = typename handletype::output_decorator_type;
-		static_assert(std::same_as<typename handletype::char_type,
-			typename output_decorator_type::to_type>);
-		return iobuf_char_type_impl<typename output_decorator_type::from_type>{};
+		if constexpr(decorated_output_stream<handletype>)
+		{
+			using output_decorator_type = typename handletype::output_decorator_type;
+			static_assert(std::same_as<typename handletype::char_type,
+				typename output_decorator_type::to_type>);
+			return iobuf_char_type_impl<typename output_decorator_type::from_type>{};
+		}
+		else
+		{
+			return iobuf_char_type_impl<typename handletype::char_type>{};
+		}
 	}
-	else if constexpr((mde&buffer_flags::in)==buffer_flags::in)
+	else if constexpr((mde&buffer_mode::in)==buffer_mode::in)
 	{
-		using input_decorator_type = typename handletype::input_decorator_type;
-		static_assert(std::same_as<typename handletype::char_type,
-			typename input_decorator_type::to_type>);
-		return iobuf_char_type_impl<typename input_decorator_type::to_type>{};
+		if constexpr(decorated_input_stream<handletype>)
+		{
+			using input_decorator_type = typename handletype::input_decorator_type;
+			static_assert(std::same_as<typename handletype::char_type,
+				typename input_decorator_type::to_type>);
+			return iobuf_char_type_impl<typename input_decorator_type::to_type>{};
+		}
+		else
+			return iobuf_char_type_impl<typename handletype::char_type>{};
 	}
 }
 
 }
 
-template<stream handletype,buffer_flags mde,std::size_t bfs = io_default_buffer_size<typename handletype::char_type>,
+template<stream handletype,buffer_mode mde,std::size_t bfs = io_default_buffer_size<typename handletype::char_type>,
 	std::size_t alignmsz=
 #ifdef FAST_IO_BUFFER_ALIGNMENT
 	FAST_IO_BUFFER_ALIGNMENT
@@ -192,7 +208,7 @@ template<stream handletype,buffer_flags mde,std::size_t bfs = io_default_buffer_
 	4096
 #endif
 	>
-requires (details::constraint_buffer_flags<handletype>(mde)&&alignmsz!=0&&
+requires (details::constraint_buffer_mode<handletype>(mde)&&alignmsz!=0&&
 	(alignmsz%(__STDCPP_DEFAULT_NEW_ALIGNMENT__)==0))
 class basic_io_buffer
 {
@@ -201,18 +217,18 @@ public:
 	using char_type = typename decltype(details::get_iobuf_char_type<handle_type,mde>())::type;
 	using pointer = char_type*;
 	using const_pointer = char_type const*;
-	inline static constexpr buffer_flags mode = mde;
+	inline static constexpr buffer_mode mode = mde;
 	inline static constexpr std::size_t buffer_size = bfs;
 	inline static constexpr std::size_t buffer_alignment = alignmsz;
 #if __has_cpp_attribute(no_unique_address) >= 201803L
 	[[no_unique_address]]
 #endif
-	std::conditional_t<(mode&buffer_flags::in)==buffer_flags::in,basic_io_buffer_pointers<char_type>,empty_buffer_pointers> ibuffer;
+	std::conditional_t<(mode&buffer_mode::in)==buffer_mode::in,basic_io_buffer_pointers<char_type>,empty_buffer_pointers> ibuffer;
 
 #if __has_cpp_attribute(no_unique_address) >= 201803L
 	[[no_unique_address]]
 #endif
-	std::conditional_t<(mode&buffer_flags::out)==buffer_flags::out,basic_io_buffer_pointers<char_type>,empty_buffer_pointers> obuffer;
+	std::conditional_t<(mode&buffer_mode::out)==buffer_mode::out,basic_io_buffer_pointers<char_type>,empty_buffer_pointers> obuffer;
 
 #if __has_cpp_attribute(no_unique_address) >= 201803L
 	[[no_unique_address]]
@@ -222,15 +238,15 @@ public:
 private:
 	constexpr void close_throw_impl()
 	{
-		if(obuffer.beg!=obuffer.curr)
-			write(handle,obuffer.beg,obuffer.curr);
+		if(obuffer.buffer_begin!=obuffer.buffer_curr)
+			write(handle,obuffer.buffer_begin,obuffer.buffer_curr);
 	}
 	constexpr void close_impl() noexcept
 	{
-		if constexpr((mode&buffer_flags::out)==buffer_flags::out)
+		if constexpr((mode&buffer_mode::out)==buffer_mode::out)
 		{
 			if constexpr(noexcept(
-				write(handle,obuffer.beg,obuffer.curr)
+				write(handle,obuffer.buffer_begin,obuffer.buffer_curr)
 			))
 			{
 				close_throw_impl();
@@ -253,22 +269,26 @@ private:
 	}
 	constexpr void cleanup_impl() noexcept
 	{
-		if constexpr((mode&buffer_flags::out)==buffer_flags::out)
+		if constexpr((mode&buffer_mode::out)==buffer_mode::out)
 			if(obuffer.buffer_begin)
 			{
-				if constexpr((mode&buffer_flags::secure_clear)==buffer_flags::secure_clear)
+				if constexpr((mode&buffer_mode::secure_clear)==buffer_mode::secure_clear)
 					secure_clear(obuffer.buffer_begin,sizeof(char_type)*buffer_size);
-				details::deallocate_iobuf_space<buffer_size,buffer_alignment>(obuffer.buffer_begin);
+				details::deallocate_iobuf_space<char_type,buffer_size,buffer_alignment>(obuffer.buffer_begin);
 			}
-		if constexpr((mode&buffer_flags::in)==buffer_flags::in)
+		if constexpr((mode&buffer_mode::in)==buffer_mode::in)
 			if(ibuffer.buffer_begin)
 			{
-				if constexpr((mode&buffer_flags::secure_clear)==buffer_flags::secure_clear)
+				if constexpr((mode&buffer_mode::secure_clear)==buffer_mode::secure_clear)
 					secure_clear(ibuffer.buffer_begin,sizeof(char_type)*buffer_size);
-				details::deallocate_iobuf_space<buffer_size,buffer_alignment>(ibuffer.buffer_begin);
+				details::deallocate_iobuf_space<char_type,buffer_size,buffer_alignment>(ibuffer.buffer_begin);
 			}
 	}
 public:
+	constexpr basic_io_buffer()=default;
+	template<typename... Args>
+	requires (sizeof...(Args)!=0)&&std::constructible_from<handle_type,Args...>
+	explicit constexpr basic_io_buffer(Args&& ...args):handle(std::forward<Args>(args)...){}
 	basic_io_buffer(basic_io_buffer const&)=delete;
 	basic_io_buffer& operator=(basic_io_buffer const&)=delete;
 #if __cpp_constexpr_dynamic_alloc >= 201907L
@@ -276,7 +296,7 @@ public:
 #endif
 	~basic_io_buffer()
 	{
-		if constexpr((mode&buffer_flags::out)==buffer_flags::out)
+		if constexpr((mode&buffer_mode::out)==buffer_mode::out)
 			close_impl();
 		cleanup_impl();
 	}
@@ -299,7 +319,7 @@ inline constexpr void iobuf_write_unhappy_decay_impl(T t,basic_io_buffer_pointer
 	{
 		if constexpr(scatter_output_stream<T>)
 		{
-			std::array<io_scatter_t,2> scatters{{pointers.buffer_begin,
+			io_scatter_t scatters[2]{{pointers.buffer_begin,
 				sizeof(*pointers.buffer_curr)*(pointers.buffer_curr-pointers.buffer_begin)},
 				{first,(last-first)*sizeof(*last)}};
 			scatter_write(t,scatters);
@@ -322,39 +342,39 @@ inline constexpr void iobuf_write_unhappy_decay_impl(T t,basic_io_buffer_pointer
 }
 
 template<typename T,std::forward_iterator Iter>
-inline constexpr void iobuf_write_unhappy_impl(T& t,Iter first,Iter last,std::ptrdiff_t dis)
+inline constexpr void iobuf_write_unhappy_impl(T& t,Iter first,Iter last,std::size_t dis)
 {
-	if(t.pointers.buffer_begin==nullptr&&dis<T::buffer_size)
+	if(t.obuffer.buffer_begin==nullptr&&dis<T::buffer_size)
 	{
-		t.pointers.buffer_end=(t.pointers.buffer_curr=t.pointers.buffer_begin=
+		t.obuffer.buffer_end=(t.obuffer.buffer_curr=t.obuffer.buffer_begin=
 			allocate_iobuf_space<typename T::char_type,T::buffer_size,T::buffer_alignment>())+T::buffer_size;
-		t.pointers.buffer_curr=non_overlapped_copy(first,last,t.pointers.buffer_curr);
+		t.obuffer.buffer_curr=non_overlapped_copy(first,last,t.obuffer.buffer_curr);
 		return;
 	}
-	iobuf_write_unhappy_decay_impl(io_ref(t),t.pointers,first,last);
+	iobuf_write_unhappy_decay_impl(io_ref(t.handle),t.obuffer,first,last);
 }
 
 
 template<typename T,std::random_access_iterator Iter>
 inline constexpr void iobuf_write_unhappy_impl(T& t,Iter first,Iter last)
 {
-	iobuf_write_unhappy_impl(t,first,last,last-first);
+	iobuf_write_unhappy_impl(t,first,last,static_cast<std::size_t>(last-first));
 }
 
 }
 
-template<stream handletype,buffer_flags mde,std::size_t bfs,std::size_t alignsz,std::forward_iterator Iter>
+template<stream handletype,buffer_mode mde,std::size_t bfs,std::size_t alignsz,std::forward_iterator Iter>
 requires (output_stream<handletype>&&details::allow_iobuf_punning<handletype,Iter>)
 inline constexpr decltype(auto) write(basic_io_buffer<handletype,mde,bfs,alignsz>& bios,Iter first,Iter last)
 {
-	if constexpr((mde&buffer_flags::out)==buffer_flags::out)
+	if constexpr((mde&buffer_mode::out)==buffer_mode::out)
 	{
 		using iter_char_type = std::iter_value_t<Iter>;
 		if constexpr(std::same_as<iter_char_type,typename handletype::char_type>)
 		{
 			auto diff(std::distance(first,last));
 			auto remain_space(bios.obuffer.buffer_end-bios.obuffer.buffer_curr);
-			if(remain_space<diff)
+			if(remain_space<diff)[[unlikely]]
 			{
 				if constexpr(std::contiguous_iterator<Iter>)
 					details::iobuf_write_unhappy_impl(bios,std::to_address(first),std::to_address(last));
@@ -364,7 +384,8 @@ inline constexpr decltype(auto) write(basic_io_buffer<handletype,mde,bfs,alignsz
 					details::iobuf_write_unhappy_impl(bios,first,last,diff);
 				return;
 			}
-			bios.obuffer.buffer_curr=details::non_overlapped_copy(first,last,bios.obuffer.buffer_curr);
+			else [[likely]]
+				bios.obuffer.buffer_curr=details::non_overlapped_copy_n(first,diff,bios.obuffer.buffer_curr);
 		}
 		else
 			write(bios,reinterpret_cast<char const*>(std::to_address(first)),
@@ -377,44 +398,48 @@ inline constexpr decltype(auto) write(basic_io_buffer<handletype,mde,bfs,alignsz
 }
 
 
-template<stream handletype,buffer_flags mde,std::size_t bfs,std::size_t alignsz,std::forward_iterator Iter>
-requires ((mde&buffer_flags::out)==buffer_flags::out)
+template<stream handletype,buffer_mode mde,std::size_t bfs,std::size_t alignsz>
+requires ((mde&buffer_mode::out)==buffer_mode::out)
 inline constexpr auto obuffer_begin(basic_io_buffer<handletype,mde,bfs,alignsz>& bios) noexcept
 {
 	return bios.obuffer.buffer_begin;
 }
 
 
-template<stream handletype,buffer_flags mde,std::size_t bfs,std::size_t alignsz,std::forward_iterator Iter>
-requires ((mde&buffer_flags::out)==buffer_flags::out)
+template<stream handletype,buffer_mode mde,std::size_t bfs,std::size_t alignsz>
+requires ((mde&buffer_mode::out)==buffer_mode::out)
 inline constexpr auto obuffer_curr(basic_io_buffer<handletype,mde,bfs,alignsz>& bios) noexcept
 {
 	return bios.obuffer.buffer_curr;
 }
 
-template<stream handletype,buffer_flags mde,std::size_t bfs,std::size_t alignsz,std::forward_iterator Iter>
-requires ((mde&buffer_flags::out)==buffer_flags::out)
+template<stream handletype,buffer_mode mde,std::size_t bfs,std::size_t alignsz>
+requires ((mde&buffer_mode::out)==buffer_mode::out)
 inline constexpr auto obuffer_end(basic_io_buffer<handletype,mde,bfs,alignsz>& bios) noexcept
 {
 	return bios.obuffer.buffer_end;
 }
 
+template<stream handletype,buffer_mode mde,std::size_t bfs,std::size_t alignsz>
+requires ((mde&buffer_mode::out)==buffer_mode::out)
+inline constexpr void obuffer_set_curr(basic_io_buffer<handletype,mde,bfs,alignsz>& bios,typename basic_io_buffer<handletype,mde,bfs,alignsz>::char_type* ptr) noexcept
+{
+	bios.obuffer.buffer_curr=ptr;
+}
+
 namespace details
 {
 template<std::size_t bfsz,std::size_t almsz,typename T,std::integral char_type>
-inline constexpr void iobuf_overflow_impl(T bios,basic_io_buffer_pointers<char_type>& pointers,typename T::char_type ch)
+inline constexpr void iobuf_overflow_impl(T handle,basic_io_buffer_pointers<char_type>& pointers,typename T::char_type ch)
 {
-	if(pointers.buffer_begin==pointers.buffer_curr)[[likely]]
+	if(pointers.buffer_begin==nullptr)
 	{
-		if(pointers.buffer_begin==nullptr)
-		{
-			bios.pointers.buffer_end=(bios.pointers.buffer_curr=bios.pointers.buffer_begin=
-			allocate_iobuf_space<char_type,bfsz,almsz>())+T::buffer_size;
-		}
+		pointers.buffer_end=(pointers.buffer_curr=pointers.buffer_begin=
+		allocate_iobuf_space<char_type,bfsz,almsz>())+bfsz;
 	}
 	else
 	{
-		write(bios.handle,pointers.buffer_begin,pointers.buffer_curr);
+		write(handle,pointers.buffer_begin,pointers.buffer_curr);
 		pointers.buffer_curr=pointers.buffer_begin;
 	}
 	*pointers.buffer_curr=ch;
@@ -422,8 +447,8 @@ inline constexpr void iobuf_overflow_impl(T bios,basic_io_buffer_pointers<char_t
 }
 }
 
-template<stream handletype,buffer_flags mde,std::size_t bfs,std::size_t alignsz>
-requires ((mde&buffer_flags::out)==buffer_flags::out)
+template<stream handletype,buffer_mode mde,std::size_t bfs,std::size_t alignsz>
+requires ((mde&buffer_mode::out)==buffer_mode::out)
 inline constexpr auto overflow(basic_io_buffer<handletype,mde,bfs,alignsz>& bios,
 	typename basic_io_buffer<handletype,mde,bfs,alignsz>::char_type ch)
 {

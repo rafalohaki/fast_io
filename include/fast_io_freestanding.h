@@ -18,7 +18,6 @@
 #include"fast_io_freestanding_impl/floating_point/floating.h"
 #include"fast_io_freestanding_impl/iobuf.h"
 #include"fast_io_freestanding_impl/io_io_file.h"
-#include"fast_io_freestanding_impl/send_receive.h"
 //#include"fast_io_freestanding_impl/natural.h"
 
 #include"fast_io_freestanding_impl/transformers/transformers.h"

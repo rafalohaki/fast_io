@@ -190,24 +190,4 @@ constexpr void print_define(output& out,fast_io_error const& err)
 		details::print_define_to_fast_io_error(out,err);
 }
 
-class fast_io_text_error:public fast_io_error
-{
-public:
-	std::string_view text;
-	explicit fast_io_text_error(std::string_view txt):text(txt){}
-	virtual
-#if __cpp_constexpr >= 201907L
-	constexpr
-#endif
-	void report(error_reporter& err) const override
-	{
-		write(err,text.data(),text.data()+text.size());
-	}
-};
-
-
-inline void throw_malformed_input();
-
-inline void throw_input_overflow_error();
-
 }

@@ -38,7 +38,7 @@ inline constexpr auto io_ref(strm& stm) noexcept
 	if constexpr(value_based_stream<std::remove_cvref_t<strm>>)
 		return io_value_handle(stm);
 	else
-		return io_reference_wrapper<strm>{std::addressof(stm)};
+		return io_reference_wrapper<std::remove_cvref_t<strm>>{std::addressof(stm)};
 }
 
 template<stream stm>
