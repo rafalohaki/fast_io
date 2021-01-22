@@ -51,14 +51,14 @@ public:
 	basic_qt_file(basic_c_io_handle_unlocked<ch_type>&& cioh,open_mode mode)
 	{
 		basic_qt_file<ch_type> hd(new QFile);
-		this->qdevice->open(cioh.fp,static_cast<QIODevice::OpenModeFlag>(details::to_qt_open_mode(mode)),QFileDevice::AutoCloseHandle);
+		hd.qdevice->open(cioh.fp,static_cast<QIODevice::OpenModeFlag>(details::to_qt_open_mode(mode)),QFileDevice::AutoCloseHandle);
 		cioh.release();
 		this->qdevice=hd.release();
 	}
 	basic_qt_file(basic_posix_io_handle<ch_type>&& pioh,open_mode mode)
 	{
 		basic_qt_file<ch_type> hd(new QFile);
-		this->qdevice->open(pioh.fd,static_cast<QIODevice::OpenModeFlag>(details::to_qt_open_mode(mode)),QFileDevice::AutoCloseHandle);
+		hd.qdevice->open(pioh.fd,static_cast<QIODevice::OpenModeFlag>(details::to_qt_open_mode(mode)),QFileDevice::AutoCloseHandle);
 		pioh.release();
 		this->qdevice=hd.release();
 	}
