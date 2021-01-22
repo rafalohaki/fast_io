@@ -6,9 +6,9 @@ namespace fast_io
 namespace details
 {
 
-inline constexpr QIODevice::OpenModeFlag to_qt_open_mode(open_mode mode) noexcept
+inline constexpr int to_qt_open_mode(open_mode mode) noexcept
 {
-	QIODevice::OpenModeFlag res{};
+	int res{};
 	if((mode&open_mode::in)==open_mode::in)
 		res|=QIODevice::ReadOnly;
 	if((mode&open_mode::out)==open_mode::out)
@@ -38,21 +38,29 @@ public:
 	using char_type = ch_type;
 	using native_handle_type = typename basic_qt_io_observer<ch_type>::native_handle_type;
 	constexpr basic_qt_file()=default;
-
-	basic_qt_file(basic_c_io_handle_unlocked<ch_type>&& cioh,open_mode mode):
-		basic_qt_io_observer<ch_type>{new QFile(cioh.fp,details::to_qt_open_mode(mode),QFileDevice::CloseHandle)}
+	template<typename native_hd>
+	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
+	constexpr basic_qt_file(native_hd qdevice):basic_qt_io_observer<char_type>{qdevice}{}
+	basic_qt_file(basic_c_io_handle<ch_type>&& cioh,open_mode mode)
 	{
+		basic_qt_file<ch_type> hd(new QFile);
+		hd.qdevice->open(cioh.fp,static_cast<QIODevice::OpenModeFlag>(details::to_qt_open_mode(mode)),QFileDevice::AutoCloseHandle);
 		cioh.release();
+		this->qdevice=hd.release();
 	}
-	basic_qt_file(basic_c_io_handle_unlocked<ch_type>&& cioh,open_mode mode):
-		basic_qt_io_observer<ch_type>{new QFile(cioh.fp,details::to_qt_open_mode(mode),QFileDevice::CloseHandle)}
+	basic_qt_file(basic_c_io_handle_unlocked<ch_type>&& cioh,open_mode mode)
 	{
+		basic_qt_file<ch_type> hd(new QFile);
+		this->qdevice->open(cioh.fp,static_cast<QIODevice::OpenModeFlag>(details::to_qt_open_mode(mode)),QFileDevice::AutoCloseHandle);
 		cioh.release();
+		this->qdevice=hd.release();
 	}
-	basic_qt_file(basic_posix_io_handle<ch_type>&& pioh,open_mode mode):
-		basic_qt_io_observer<ch_type>{new QFile(pioh.fd,details::to_qt_open_mode(mode),QFileDevice::CloseHandle)}
+	basic_qt_file(basic_posix_io_handle<ch_type>&& pioh,open_mode mode)
 	{
+		basic_qt_file<ch_type> hd(new QFile);
+		this->qdevice->open(pioh.fd,static_cast<QIODevice::OpenModeFlag>(details::to_qt_open_mode(mode)),QFileDevice::AutoCloseHandle);
 		pioh.release();
+		this->qdevice=hd.release();
 	}
 #ifdef _WIN32
 	basic_qt_file(basic_win32_io_handle<ch_type>&& wioh,open_mode mode):
@@ -84,7 +92,7 @@ public:
 	{
 		if(this->qdevice)[[likely]]
 		{
-			this->qdevice.close();
+			this->qdevice->close();
 			delete this->qdevice;
 		}
 	}
@@ -98,7 +106,7 @@ private:
 			try
 			{
 #endif
-				this->qdevice.close();
+				this->qdevice->close();
 #ifdef __cpp_exceptions
 			}
 			catch(...)
@@ -126,5 +134,13 @@ public:
 		close_nothrow();
 	}
 };
+
+using qt_file = basic_qt_file<char>;
+#ifndef __MSDOS__
+using wqt_file = basic_qt_file<wchar_t>;
+#endif
+using u8qt_file = basic_qt_file<char8_t>;
+using u16qt_file = basic_qt_file<char16_t>;
+using u32qt_file = basic_qt_file<char32_t>;
 
 }

@@ -7,6 +7,7 @@ class basic_general_qdevice_io_observer
 {
 public:
 	using char_type = ch_type;
+	using value_type = T;
 	using native_handle_type = T*;
 	native_handle_type qdevice{};
 
@@ -37,9 +38,9 @@ inline std::size_t qio_device_write_impl(QIODevice* __restrict qdevice,void cons
 	return static_cast<std::size_t>(res);
 }
 
-inline std::size_t qio_device_read_impl(QIODevice* __restrict qdevice,void const* data,std::size_t bytes)
+inline std::size_t qio_device_read_impl(QIODevice* __restrict qdevice,void* data,std::size_t bytes)
 {
-	std::int64_t res{qdevice->read(reinterpret_cast<char const*>(data),static_cast<std::int64_t>(bytes))};
+	std::int64_t res{qdevice->read(reinterpret_cast<char*>(data),static_cast<std::int64_t>(bytes))};
 	if(res<0)
 		throw_posix_error(EIO);
 	return static_cast<std::size_t>(res);
@@ -50,7 +51,7 @@ inline std::uintmax_t qio_device_seek_impl(QIODevice* __restrict qdevice,std::in
 {
 	if(dir==seekdir::beg)
 		offset=static_cast<std::intmax_t>(qdevice->pos())+offset;
-	else(dir==seekdir::end)
+	else if(dir==seekdir::end)
 		offset=static_cast<std::intmax_t>(qdevice->size()-qdevice->pos())+offset;
 	if(!qdevice->seek(static_cast<std::int64_t>(offset)))
 		throw_posix_error(EIO);
@@ -59,14 +60,14 @@ inline std::uintmax_t qio_device_seek_impl(QIODevice* __restrict qdevice,std::in
 
 }
 
-template<std::integral ch_type,typename T,std::contiguous_access_iterator Iter>
+template<std::integral ch_type,typename T,std::contiguous_iterator Iter>
 inline Iter write(basic_general_qdevice_io_observer<ch_type,T> qiob,Iter begin,Iter end)
 {
 	return begin+details::qio_device_write_impl(qiob.qdevice,std::to_address(begin),
 		(std::to_address(end)-std::to_address(begin))*sizeof(*begin))/sizeof(*begin);
 }
 
-template<std::integral ch_type,typename T,std::contiguous_access_iterator Iter>
+template<std::integral ch_type,typename T,std::contiguous_iterator Iter>
 inline Iter read(basic_general_qdevice_io_observer<ch_type,T> qiob,Iter begin,Iter end)
 {
 	return begin+details::qio_device_read_impl(qiob.qdevice,std::to_address(begin),
@@ -80,7 +81,7 @@ inline void try_unget(basic_general_qdevice_io_observer<ch_type,T> qiob,ch_type 
 	qiob->qdevice->ungetChar(ch);
 }
 
-template<std::integral char_type,typename T>
+template<std::integral ch_type,typename T>
 inline std::uintmax_t seek(basic_general_qdevice_io_observer<ch_type,T> qiob,std::intmax_t offset=0,seekdir s=seekdir::cur)
 {
 	return qio_device_seek_impl(qiob->qdevice,offset,s);
