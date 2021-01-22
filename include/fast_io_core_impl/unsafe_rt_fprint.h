@@ -87,6 +87,7 @@ inline constexpr void unsafe_rt_fprint_fallback(output out,Args ...args)
 }
 
 #endif
+
 }
 
 template<typename output,typename... Args>
@@ -177,14 +178,16 @@ inline constexpr void unsafe_rt_fprint_freestanding_decay(output out,
 			}
 			else
 			{
-#if 0
-				auto res{scan_context_define(io_context<char_type,std::size_t,true>,next_it+1,ed,parameter<std::size_t&>(n))};
-				if(res>=)
-				if(number_it==next_it)
-				{
-
-				}
-#endif
+				std::size_t n;
+				auto res{scan_context_define(scan_context<true>,next_it+1,ed,parameter<std::size_t&>(n))};
+				if((res.code!=std::errc{})|(res.iter==ed||*res.iter!=right_bracket))
+					break;
+				if(sizeof...(Args)<=n)
+					break;
+				write(out,it,next_it);
+				details::print_para_at_pos(out,static_cast<std::size_t>(n),args...);
+				++swap_parameters;
+				it=res.iter+1;
 			}
 		}
 		if(it!=ed)
