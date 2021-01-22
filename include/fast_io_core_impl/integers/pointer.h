@@ -153,7 +153,12 @@ requires (std::contiguous_iterator<Iter>||std::is_pointer_v<Iter>)
 inline constexpr void const* print_alias_define(io_alias_t,Iter it) noexcept
 {
 	if constexpr(std::is_pointer_v<std::remove_cvref_t<Iter>>)
-		return it;
+	{
+		if constexpr(std::convertible_to<std::remove_cvref_t<Iter>,void const*>)
+			return it;
+		else
+			return bit_cast<void const*>(it);
+	}
 	else
 		return std::to_address(it);
 }

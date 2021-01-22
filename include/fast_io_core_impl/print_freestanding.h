@@ -273,7 +273,6 @@ inline constexpr void print_control_reserve_bad_path(output out,value_type t)
 	}
 	else
 		write(out,array.data(),print_reserve_control_define_impl<pci,char_type,value_type>(array.data(),t));
-
 }
 
 template<bool line,print_control_impl pci,typename value_type,output_stream output>

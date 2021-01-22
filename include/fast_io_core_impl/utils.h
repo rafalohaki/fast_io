@@ -271,6 +271,14 @@ inline constexpr void my_fill(fwd_iter first,fwd_iter last,T const& value)
 		std::fill(first,last,value);
 }
 
+template<std::forward_iterator fwd_iter,typename T>
+requires std::is_trivially_copyable_v<T>
+inline constexpr fwd_iter my_trivial_find(fwd_iter first,fwd_iter last,T value)
+{
+	return std::find(first,last,value);
+}
+
+
 template<typename T>
 using my_make_signed_t=
 #ifdef __SIZEOF_INT128__
