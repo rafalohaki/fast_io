@@ -121,6 +121,7 @@ A general purpose I/O library to replace stdio.h and iostream
 - zlib compression/decompression support
 - Non crypto hash algorithms support. Jenkins Hash
 - Filesystem
+- OpenSSL BIO, Qt QFile, MFC CFile support
 
 ## Post C++20 Plan
   1. Module support
@@ -389,3 +390,4 @@ This project is made possible by referencing from other open-source projects. (I
 |dirent_h|https://github.com/win32ports/dirent_h|
 |GNU C library|https://www.gnu.org/software/libc/|
 |GNU Newlib |https://sourceware.org/newlib/|
+|Dragonbox|https://github.com/jk-jeon/dragonbox|
