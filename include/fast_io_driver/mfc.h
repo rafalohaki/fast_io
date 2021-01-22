@@ -74,7 +74,7 @@ public:
 };
 
 template<std::integral T,std::contiguous_iterator Iter>
-inline Iter write(basic_mfc_io_observer<T>& hd,Iter begin,Iter end)
+inline Iter write(basic_mfc_io_observer<T> hd,Iter begin,Iter end)
 {
 	std::size_t const to_write{(end-begin)*sizeof(*begin)};
 	if constexpr(sizeof(std::size_t)>4)
@@ -96,7 +96,7 @@ inline void flush(basic_mfc_io_observer<T>& hd)
 }
 
 template<std::integral T,std::contiguous_iterator Iter>
-inline Iter read(basic_mfc_io_observer<T>& hd,Iter begin,Iter end)
+inline Iter read(basic_mfc_io_observer<T& hd,Iter begin,Iter end)
 {
 	std::size_t to_read{(end-begin)*sizeof(*begin)};
 	if constexpr(sizeof(std::size_t)>4)

@@ -186,7 +186,9 @@ public:
 	using native_handle_type = BIO*;
 	using char_type = ch_type;
 	constexpr basic_bio_file()=default;
-	constexpr basic_bio_file(native_handle_type bio):basic_bio_io_observer<char_type>(bio){}
+	template<typename native_hd>
+	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
+	explicit constexpr basic_bio_file(native_hd bio):basic_bio_io_observer<char_type>{bio}{}
 #ifdef __cpp_rtti
 	template<stream stm,typename ...Args>
 	requires std::constructible_from<stm,Args...>

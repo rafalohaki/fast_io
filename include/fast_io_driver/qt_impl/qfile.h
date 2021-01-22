@@ -40,7 +40,7 @@ public:
 	constexpr basic_qt_file()=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	constexpr basic_qt_file(native_hd qdevice):basic_qt_io_observer<char_type>{qdevice}{}
+	explicit constexpr basic_qt_file(native_hd qdevice):basic_qt_io_observer<char_type>{qdevice}{}
 	basic_qt_file(basic_c_io_handle<ch_type>&& cioh,open_mode mode)
 	{
 		basic_qt_file<ch_type> hd(new QFile);
