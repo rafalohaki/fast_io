@@ -525,7 +525,7 @@ inline std::uintmax_t c_io_seek_no_lock_impl(std::FILE* fp,std::intmax_t offset,
 #endif
 }
 
-template<std::integral ch_type,std::integral U>
+template<std::integral ch_type>
 inline std::uintmax_t seek(basic_c_io_observer_unlocked<ch_type> cfhd,std::intmax_t offset=0,seekdir s=seekdir::cur)
 {
 #if defined(_WIN32)
@@ -670,7 +670,7 @@ inline void flush(basic_c_io_observer<T> cfhd)
 		throw_posix_error();
 }
 
-template<std::integral ch_type,std::integral U>
+template<std::integral ch_type>
 inline std::uintmax_t seek(basic_c_io_observer<ch_type> cfhd,std::intmax_t offset=0,seekdir s=seekdir::cur)
 {
 	return details::c_io_seek_impl(cfhd.fp,offset,s);
