@@ -25,6 +25,35 @@ public:
 		qdevice=nullptr;
 		return temp;
 	}
+
+	inline operator basic_posix_io_observer<char_type>() requires requires()
+	{
+		{this->qdevice->handle()}->std::same_as<int>;
+	}
+	{
+		return basic_posix_io_observer<char_type>{this->qdevice->handle()};
+	}
+#ifdef _WIN32
+	inline operator basic_win32_io_observer<char_type>() requires requires()
+	{
+		{this->qdevice->handle()}->std::same_as<int>;
+	}
+	{
+		return static_cast<basic_win32_io_observer<char_type>>(
+			static_cast<basic_posix_io_observer<char_type>>(*this)
+		);
+	}
+	template<nt_family family>
+	inline operator basic_nt_family_io_observer<family,char_type>() requires requires()
+	{
+		{this->qdevice->handle()}->std::same_as<int>;
+	}
+	{
+		return static_cast<basic_nt_family_io_observer<family,char_type>>(
+			static_cast<basic_posix_io_observer<char_type>>(*this)
+		);
+	}
+#endif
 };
 
 namespace details
@@ -76,9 +105,18 @@ inline Iter read(basic_general_qdevice_io_observer<ch_type,T> qiob,Iter begin,It
 
 template<std::integral ch_type,typename T>
 requires (sizeof(ch_type)==1)
-inline void try_unget(basic_general_qdevice_io_observer<ch_type,T> qiob,ch_type ch)
+inline std::pair<ch_type,bool> try_get(basic_general_qdevice_io_observer<ch_type,T> qiob)
 {
-	qiob->qdevice->ungetChar(ch);
+	char ch;
+	bool ef{qiob.qdevice->getChar(&ch)};
+	return {static_cast<ch_type>(ch),ef};
+}
+
+template<std::integral ch_type,typename T>
+requires (sizeof(ch_type)==1)
+inline void try_unget(basic_general_qdevice_io_observer<ch_type,T> qiob,ch_type ch) noexcept
+{
+	qiob.qdevice->ungetChar(ch);
 }
 
 template<std::integral ch_type,typename T>
@@ -90,6 +128,12 @@ template<std::integral char_type>
 using basic_qiodevice_io_observer = basic_general_qdevice_io_observer<char_type,QIODevice>;
 template<std::integral char_type>
 using basic_qt_io_observer = basic_general_qdevice_io_observer<char_type,QFile>;
+
+template<std::integral ch_type,typename T>
+inline constexpr basic_qiodevice_io_observer<ch_type> io_value_handle(basic_general_qdevice_io_observer<ch_type,T> gqiob) noexcept
+{
+	return {gqiob.qdevice};
+}
 
 
 using qiodevice_io_observer = basic_qiodevice_io_observer<char>;
@@ -107,6 +151,5 @@ using wqt_io_observer = basic_qt_io_observer<wchar_t>;
 using u8qt_io_observer = basic_qt_io_observer<char8_t>;
 using u16qt_io_observer = basic_qt_io_observer<char16_t>;
 using u32qt_io_observer = basic_qt_io_observer<char32_t>;
-
 
 }

@@ -56,12 +56,7 @@ public:
 		this->qdevice=hd.release();
 	}
 	basic_qt_file(basic_posix_io_handle<ch_type>&& pioh,open_mode mode)
-	{
-		basic_qt_file<ch_type> hd(new QFile);
-		hd.qdevice->open(pioh.fd,static_cast<QIODevice::OpenModeFlag>(details::to_qt_open_mode(mode)),QFileDevice::AutoCloseHandle);
-		pioh.release();
-		this->qdevice=hd.release();
-	}
+		:basic_qt_file(basic_c_file_unlocked<ch_type>(std::move(pioh),mode),mode){}
 #ifdef _WIN32
 	basic_qt_file(basic_win32_io_handle<ch_type>&& wioh,open_mode mode):
 		basic_qt_file(basic_posix_file<ch_type>(std::move(wioh),mode),mode)
