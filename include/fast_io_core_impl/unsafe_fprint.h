@@ -171,7 +171,7 @@ inline constexpr void unsafe_fprint_impl(char_type* it,char_type* ed,write_funct
 
 template<typename output,typename... Args>
 requires (sizeof...(Args)!=0)
-inline constexpr void unsafe_rt_fprint_freestanding_decay_impl(output out,
+inline constexpr void unsafe_fprint_freestanding_decay_impl(output out,
 	std::basic_string_view<typename output::char_type> view,
 	Args ...args)
 {
@@ -258,7 +258,7 @@ inline constexpr void scatter_fprint_write(output out,
 
 
 template<output_stream output,typename ...Args>
-inline constexpr void unsafe_rt_fprint_fallback(output out,std::basic_string_view<typename output::char_type> view,Args ...args)
+inline constexpr void unsafe_fprint_fallback(output out,std::basic_string_view<typename output::char_type> view,Args ...args)
 {
 	using char_type = typename output::char_type;
 	if constexpr((scatter_output_stream<output>&&((scatter_printable<typename output::char_type,Args>||reserve_printable<typename output::char_type,Args>||dynamic_reserve_printable<typename output::char_type,Args>)&&...)))
@@ -289,7 +289,7 @@ inline constexpr void unsafe_rt_fprint_fallback(output out,std::basic_string_vie
 		using internal_buffer_type = internal_temporary_buffer<typename output::char_type>;
 		internal_buffer_type buffer;
 		auto ref{io_ref(buffer)};
-		unsafe_rt_fprint_freestanding_decay_impl(ref,view,args...);
+		unsafe_fprint_freestanding_decay_impl(ref,view,args...);
 	}
 }
 
@@ -298,35 +298,35 @@ inline constexpr void unsafe_rt_fprint_fallback(output out,std::basic_string_vie
 
 template<typename output,typename... Args>
 requires ((output_stream<output>||status_output_stream<output>)&&(std::is_trivially_copyable_v<output>&&(std::is_trivially_copyable_v<Args>&&...))&&(sizeof...(Args)!=0))
-inline constexpr void unsafe_rt_fprint_freestanding_decay(output out,
+inline constexpr void unsafe_fprint_freestanding_decay(output out,
 	std::basic_string_view<typename output::char_type> view,
 	Args ...args)
 {
 	if constexpr(status_output_stream<output>)
 	{
-		unsafe_rt_fprint_status_define(out,view,args...);
+		unsafe_fprint_status_define(out,view,args...);
 	}
 	else if constexpr(mutex_stream<output>)
 	{
 		details::lock_guard lg{out};
 		decltype(auto) dout{out.unlocked_handle()};
-		unsafe_rt_fprint_freestanding_decay(io_ref(dout),view,args...);
+		unsafe_fprint_freestanding_decay(io_ref(dout),view,args...);
 	}
 	else if constexpr(buffer_output_stream<output>)
 	{
-		details::unsafe_rt_fprint_freestanding_decay_impl(out,view,args...);
+		details::unsafe_fprint_freestanding_decay_impl(out,view,args...);
 	}
 	else
 	{
-		details::unsafe_rt_fprint_fallback(out,view,args...);
+		details::unsafe_fprint_fallback(out,view,args...);
 	}
 }
 
 template<typename output,typename... Args>
 requires ((output_stream<output>||status_output_stream<output>)&&(sizeof...(Args)!=0))
-inline constexpr void unsafe_rt_fprint(output&& out,std::basic_string_view<typename std::remove_cvref_t<output>::char_type> view,Args&& ...args)
+inline constexpr void unsafe_fprint(output&& out,std::basic_string_view<typename std::remove_cvref_t<output>::char_type> view,Args&& ...args)
 {
-	unsafe_rt_fprint_freestanding_decay(io_ref(out),view,io_forward(io_print_alias<typename std::remove_cvref_t<output>::char_type>(args))...);
+	unsafe_fprint_freestanding_decay(io_ref(out),view,io_forward(io_print_alias<typename std::remove_cvref_t<output>::char_type>(args))...);
 }
 
 

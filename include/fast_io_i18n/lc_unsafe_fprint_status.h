@@ -31,7 +31,7 @@ inline constexpr void lc_print_para_at_pos(basic_lc_all<typename output::char_ty
 
 template<typename output,typename... Args>
 requires (sizeof...(Args)!=0)
-inline constexpr void lc_unsafe_rt_fprint_freestanding_decay_impl(basic_lc_all<typename output::char_type> const* __restrict lc,
+inline constexpr void lc_unsafe_fprint_freestanding_decay_impl(basic_lc_all<typename output::char_type> const* __restrict lc,
 	output out,
 	std::basic_string_view<typename output::char_type> view,
 	Args ...args)
@@ -64,7 +64,7 @@ inline constexpr void lc_unsafe_rt_fprint_freestanding_decay_impl(basic_lc_all<t
 
 
 template<output_stream output,typename... Args>
-inline constexpr void lc_unsafe_rt_fprint_fallback(basic_lc_all<typename output::char_type> const* __restrict lc,output out,
+inline constexpr void lc_unsafe_fprint_fallback(basic_lc_all<typename output::char_type> const* __restrict lc,output out,
 	std::basic_string_view<typename output::char_type> view,Args... args)
 {
 	using char_type = typename output::char_type;
@@ -72,7 +72,7 @@ inline constexpr void lc_unsafe_rt_fprint_fallback(basic_lc_all<typename output:
 	!lc_printable<io_reference_wrapper<
 		internal_temporary_buffer<char_type>>,Args>&&!lc_scatter_printable<char_type,Args>))&&...))
 	{
-		unsafe_rt_fprint_freestanding_decay(out,view,args...);
+		unsafe_fprint_freestanding_decay(out,view,args...);
 	}
 	else if constexpr(scatter_output_stream<output>&&
 	((reserve_printable<char_type,Args>
@@ -100,14 +100,14 @@ inline constexpr void lc_unsafe_rt_fprint_fallback(basic_lc_all<typename output:
 	{
 		internal_temporary_buffer<typename output::char_type> buffer;
 		auto ref{io_ref(buffer)};
-		lc_unsafe_rt_fprint_freestanding_decay_impl(lc,ref,view,args...);
+		lc_unsafe_fprint_freestanding_decay_impl(lc,ref,view,args...);
 		write(out,buffer.beg_ptr,buffer.end_ptr);
 	}
 
 }
 
 template<output_stream output,typename... Args>
-inline constexpr void lc_unsafe_rt_fprint_status_define_further_decay(basic_lc_all<typename output::char_type> const* __restrict lc,
+inline constexpr void lc_unsafe_fprint_status_define_further_decay(basic_lc_all<typename output::char_type> const* __restrict lc,
 	output out,
 	std::basic_string_view<typename output::char_type> view,
 	Args... args)
@@ -116,22 +116,22 @@ inline constexpr void lc_unsafe_rt_fprint_status_define_further_decay(basic_lc_a
 	{
 		lock_guard lg{out};
 		decltype(auto) dout{out.unlocked_handle()};
-		lc_unsafe_rt_fprint_status_define_further_decay(lc,io_ref(dout),view,args...);
+		lc_unsafe_fprint_status_define_further_decay(lc,io_ref(dout),view,args...);
 	}
 	else if constexpr(buffer_output_stream<output>)
 	{
-		lc_unsafe_rt_fprint_freestanding_decay_impl(lc,out,view,args...);
+		lc_unsafe_fprint_freestanding_decay_impl(lc,out,view,args...);
 	}
 	else
-		lc_unsafe_rt_fprint_fallback(lc,out,view,args...);
+		lc_unsafe_fprint_fallback(lc,out,view,args...);
 }
 }
 
 template<output_stream output,typename... Args>
 requires (sizeof...(Args)!=0)
-inline constexpr void unsafe_rt_fprint_status_define(lc_imbuer<output> imb,std::basic_string_view<typename output::char_type> view,Args... args)
+inline constexpr void unsafe_fprint_status_define(lc_imbuer<output> imb,std::basic_string_view<typename output::char_type> view,Args... args)
 {
-	details::lc_unsafe_rt_fprint_status_define_further_decay(imb.all,imb.handle,view,args...);
+	details::lc_unsafe_fprint_status_define_further_decay(imb.all,imb.handle,view,args...);
 }
 
 }
