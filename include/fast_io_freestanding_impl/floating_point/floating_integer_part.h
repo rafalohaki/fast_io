@@ -172,11 +172,11 @@ inline constexpr std::size_t fp_output_unsigned_point_no_dcm(U value,Iter str) n
 	else
 	{
 		if constexpr(std::same_as<char_type,char>)
-			*str = value+'0';
+			*str = static_cast<char_type>(value+'0');
 		else if constexpr(std::same_as<char_type,wchar_t>)
-			*str = value+L'0';
+			*str = static_cast<char_type>(value+L'0');
 		else
-			*str = value+u8'0';
+			*str = static_cast<char_type>(value+u8'0');
 		return 1;
 	}
 }

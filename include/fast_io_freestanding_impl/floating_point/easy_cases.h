@@ -64,14 +64,14 @@ inline constexpr Iter output_exp(std::int32_t exp,Iter result)
 	auto str{result+len};
 	for(std::size_t i{};i!=len;++i)
 	{
-		std::make_unsigned_t<T> const temp(unsigned_exp/10);
-		char_type const res(unsigned_exp%10);
+		std::uint32_t const temp(static_cast<std::uint32_t>(unsigned_exp/10));
+		char_type const res(static_cast<char_type>(unsigned_exp%10));
 		if constexpr(std::same_as<char_type,char>)
-			*--str='0'+res;
+			*--str=static_cast<char_type>('0'+res);
 		else if constexpr(std::same_as<char_type,wchar_t>)
-			*--str=L'0'+res;
+			*--str=static_cast<char_type>(L'0'+res);
 		else
-			*--str=u8'0'+res;
+			*--str=static_cast<char_type>(u8'0'+res);
 		unsigned_exp=temp;
 	}
 	return result+len;
@@ -101,11 +101,11 @@ inline constexpr Iter output_exp(std::int32_t exp,Iter result)
 	{
 		auto u{unsigned_exp%100u};
 		if constexpr(std::same_as<char_type,char>)
-			*result=unsigned_exp/100u+'0';
+			*result=static_cast<char_type>(unsigned_exp/100u+'0');
 		else if constexpr(std::same_as<char_type,wchar_t>)
-			*result=unsigned_exp/100u+L'0';
+			*result=static_cast<char_type>(unsigned_exp/100u+L'0');
 		else
-			*result=unsigned_exp/100u+u8'0';
+			*result=static_cast<char_type>(unsigned_exp/100u+u8'0');
 		non_overlapped_copy_n(tb[u].data(),2,result+1);
 		return result+3;
 	}
@@ -636,14 +636,14 @@ inline constexpr Iter normal_case_no_sign(Iter result,mantissa_type vr,exponent_
 		 - 1));
 		if(vr<10)
 		{
-			std::size_t olength(fp_output_unsigned(result,vr));
+			std::uint32_t olength(static_cast<std::uint32_t>(fp_output_unsigned(result,vr)));
 			real_exp+=olength;
 			result+=olength;
 		}
 		else
 		{
-			std::size_t olength(fp_output_unsigned(result+1,vr));
-			real_exp+=static_cast<std::int32_t>(olength);
+			std::uint32_t olength(static_cast<std::uint32_t>(fp_output_unsigned(result+1,vr)));
+			real_exp+=olength;
 			*result=result[1];
 			if constexpr(decimal_point==u8'.')
 			{

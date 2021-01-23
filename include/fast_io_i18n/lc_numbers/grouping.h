@@ -14,8 +14,7 @@ inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* _
 namespace details
 {
 
-template<std::size_t base,details::my_unsigned_integral uint_type>
-inline constexpr std::size_t grouping_char_lens(fast_io::basic_io_scatter_t<std::size_t> grouping,uint_type u,std::size_t digits) noexcept
+inline constexpr std::size_t grouping_char_lens(::fast_io::basic_io_scatter_t<std::size_t> grouping,std::size_t digits) noexcept
 {
 	std::size_t sum{};
 	std::size_t i{};
@@ -91,7 +90,6 @@ constexpr Iter grouping_single_sep_impl(fast_io::basic_io_scatter_t<std::size_t>
 			}
 		}
 	}
-	return iter;
 }
 
 template<std::random_access_iterator Iter,details::my_unsigned_integral T>
@@ -123,13 +121,12 @@ constexpr Iter grouping_mul_sep_impl(basic_lc_all<std::iter_value_t<Iter>> const
 template<std::random_access_iterator Iter,details::my_unsigned_integral T>
 constexpr Iter grouping_sep_impl(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,T t) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
 	if(all->numeric.thousands_sep.len==1)
 	{
 		auto sep{*all->numeric.thousands_sep.base};
 		std::size_t digits{details::chars_len<10>(t)};
 		auto grouping{all->numeric.grouping};
-		std::size_t const len{grouping_char_lens<10>(grouping,t,digits)};
+		std::size_t const len{grouping_char_lens(grouping,digits)};
 		grouping_single_sep_impl(grouping,sep,iter+len,t);
 		return iter+len;
 	}
@@ -188,11 +185,11 @@ constexpr void output_unsigned_with_3_seperator_len(std::iter_value_t<Iter> sepe
 			auto remained{value%10u};
 			value/=10;
 			if constexpr(std::same_as<char_type,char>)
-				*--iter=remained+'0';
+				*--iter=static_cast<char_type>(remained+'0');
 			else if constexpr(std::same_as<char_type,wchar_t>)
-				*--iter=remained+L'0';
+				*--iter=static_cast<char_type>(remained+L'0');
 			else
-				*--iter=remained+u8'0';
+				*--iter=static_cast<char_type>(remained+u8'0');
 		}
 #else
 		auto low3digits{value%1000u};
@@ -201,11 +198,11 @@ constexpr void output_unsigned_with_3_seperator_len(std::iter_value_t<Iter> sepe
 		auto highdigit{low3digits/100u};
 		non_overlapped_copy_n(table[low2digits].data(),2,iter-=2);
 		if constexpr(std::same_as<char_type,char>)
-			*--iter=highdigit+'0';
+			*--iter=static_cast<char_type>(highdigit+'0');
 		else if constexpr(std::same_as<char_type,wchar_t>)
-			*--iter=highdigit+L'0';
+			*--iter=static_cast<char_type>(highdigit+L'0');
 		else
-			*--iter=highdigit+u8'0';
+			*--iter=static_cast<char_type>(highdigit+u8'0');
 #endif
 	}
 #ifdef FAST_IO_OPTIMIZE_TIME
@@ -220,11 +217,11 @@ constexpr void output_unsigned_with_3_seperator_len(std::iter_value_t<Iter> sepe
 	else
 	{
 		if constexpr(std::same_as<char_type,char>)
-			*--iter=value+'0';
+			*--iter=static_cast<char_type>(value+'0');
 		else if constexpr(std::same_as<char_type,wchar_t>)
-			*--iter=value+L'0';
+			*--iter=static_cast<char_type>(value+L'0');
 		else
-			*--iter=value+u8'0';
+			*--iter=static_cast<char_type>(value+u8'0');
 	}
 #elif defined(FAST_IO_OPTIMIZE_SIZE)
 	for(;value;)
@@ -232,11 +229,11 @@ constexpr void output_unsigned_with_3_seperator_len(std::iter_value_t<Iter> sepe
 		auto remained{value%10u};
 		value/=10u;
 		if constexpr(std::same_as<char_type,char>)
-			*--iter=remained+'0';
+			*--iter=static_cast<char_type>(remained+'0');
 		else if constexpr(std::same_as<char_type,wchar_t>)
-			*--iter=remained+L'0';
+			*--iter=static_cast<char_type>(remained+L'0');
 		else
-			*--iter=remained+u8'0';
+			*--iter=static_cast<char_type>(remained+u8'0');
 	}
 #else
 	if(value>=100u)
@@ -245,22 +242,22 @@ constexpr void output_unsigned_with_3_seperator_len(std::iter_value_t<Iter> sepe
 		auto highdigit{value/100u};
 		non_overlapped_copy_n(table[low2digits].data(),2,iter-=2);
 		if constexpr(std::same_as<char_type,char>)
-			*--iter=highdigit+'0';
+			*--iter=static_cast<char_type>(highdigit+'0');
 		else if constexpr(std::same_as<char_type,wchar_t>)
-			*--iter=highdigit+L'0';
+			*--iter=static_cast<char_type>(highdigit+L'0');
 		else
-			*--iter=highdigit+u8'0';
+			*--iter=static_cast<char_type>(highdigit+u8'0');
 	}
 	else if(value>=10u)
 		non_overlapped_copy_n(table[value].data(),2,iter-=2);
 	else
 	{
 		if constexpr(std::same_as<char_type,char>)
-			*--iter=value+'0';
+			*--iter=static_cast<char_type>(value+'0');
 		else if constexpr(std::same_as<char_type,wchar_t>)
-			*--iter=value+L'0';
+			*--iter=static_cast<char_type>(value+L'0');
 		else
-			*--iter=value+u8'0';
+			*--iter=static_cast<char_type>(value+u8'0');
 	}
 #endif
 }
@@ -338,7 +335,6 @@ inline constexpr std::size_t print_reserve_size_grouping_timestamp_impl(basic_lc
 template<std::random_access_iterator Iter>
 inline constexpr Iter print_reserve_define_grouping_timestamp_impl(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,unix_timestamp timestamp)
 {
-	using char_type = std::iter_value_t<Iter>;
 	iter=print_reserve_define(all,iter,timestamp.seconds);
 	if(timestamp.subseconds)
 	{
@@ -356,7 +352,7 @@ inline constexpr Iter print_reserve_define_grouping_timestamp_impl(basic_lc_all<
 }
 
 template<std::integral char_type,intiso_t off_to_epoch>
-inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* __restrict all,basic_timestamp<off_to_epoch> iso) noexcept
+inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* __restrict all,basic_timestamp<off_to_epoch>) noexcept
 {
 	return details::print_reserve_size_grouping_timestamp_impl(all);
 }

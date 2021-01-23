@@ -289,7 +289,7 @@ inline void* load_l10n_with_full_name_impl(lc_locale& loc,std::basic_string_view
 inline std::string_view get_win32_lang_env(std::array<char,64>& buffer) noexcept
 {
 	std::array<wchar_t,64> wbuffer;
-	std::size_t size(win32::GetUserDefaultLocaleName(wbuffer.data(),wbuffer.size()));
+	std::size_t size(win32::GetUserDefaultLocaleName(wbuffer.data(),static_cast<int>(wbuffer.size())));
 	if(!size)
 		return reinterpret_cast<char const*>(u8"C");
 	--size;

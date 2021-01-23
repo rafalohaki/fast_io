@@ -562,7 +562,7 @@ constexpr int floor_log10_pow2_minus_log10_4_over_3(int e) noexcept {
 
 namespace div {
 template <class UInt, UInt a>
-constexpr UInt modular_inverse(int bit_width = int(value_bits<UInt>)) noexcept {
+constexpr UInt modular_inverse(int bit_width = static_cast<int>(value_bits<UInt>)) noexcept {
 	// By Euler's theorem, a^phi(2^n) == 1 (mod 2^n),
 	// where phi(2^n) = 2^(n-1), so the modular inverse of a is
 	// a^(2^(n-1) - 1) = a^(1 + 2 + 2^2 + ... + 2^(n-2))
@@ -570,7 +570,7 @@ constexpr UInt modular_inverse(int bit_width = int(value_bits<UInt>)) noexcept {
 	for (int i = 1; i < bit_width; ++i) {
 		mod_inverse = mod_inverse * mod_inverse * a;
 	}
-	if (bit_width < value_bits<UInt>) {
+	if (bit_width < static_cast<int>(value_bits<UInt>)) {
 		auto mask = UInt((UInt(1) << bit_width) - 1);
 		return UInt(mod_inverse & mask);
 	}

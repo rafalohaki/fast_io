@@ -160,7 +160,9 @@ inline constexpr void lc_scatter_print_with_dynamic_reserve_recursive(
 template<bool line,output_stream output,typename T>
 inline constexpr void lc_print_control_reserve_bad_path(basic_lc_all<typename output::char_type> const* __restrict lc,output out,T t,std::size_t size)
 {
+#if 0
 	using value_type = std::remove_cvref_t<T>;
+#endif
 	using char_type = typename output::char_type;
 	local_operator_new_array_ptr<char_type> ptr(size);
 #if 0
@@ -237,9 +239,8 @@ inline constexpr void lc_print_control(basic_lc_all<typename output::char_type> 
 				auto curr=obuffer_curr(out);
 				auto end=obuffer_end(out);
 				std::size_t const len{scatter.len};
-				std::ptrdiff_t diff(end-curr-1);
-				std::size_t lenp1(len);
-				if(static_cast<std::ptrdiff_t>(lenp1)<len)[[likely]]
+				std::ptrdiff_t const diff(end-curr-1);
+				if(static_cast<std::ptrdiff_t>(len)<diff)[[likely]]
 				{
 					curr=details::non_overlapped_copy_n(scatter.base,len,curr);
 					if constexpr(std::same_as<char,char_type>)
