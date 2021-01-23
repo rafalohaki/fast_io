@@ -473,7 +473,7 @@ inline constexpr auto at(basic_nt_family_io_observer<family,ch_type> niob) noexc
 }
 
 template<nt_family family,std::integral ch_type>
-inline constexpr basic_nt_family_io_observer<family,ch_type> io_value_handle(basic_nt_family_io_observer<family,ch_type> other)
+inline constexpr basic_nt_family_io_observer<family,ch_type> io_value_handle(basic_nt_family_io_observer<family,ch_type> other) noexcept
 {
 	return other;
 }

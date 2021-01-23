@@ -135,6 +135,15 @@ inline constexpr basic_qiodevice_io_observer<ch_type> io_value_handle(basic_gene
 	return {gqiob.qdevice};
 }
 
+template<std::integral ch_type>
+requires requires(basic_general_qdevice_io_observer<ch_type> piob)
+{
+	{piob.qdevice->handle()}->std::same_as<int>;
+}
+inline constexpr posix_at_entry at(basic_general_qdevice_io_observer<ch_type> piob) noexcept
+{
+	return posix_at_entry{piob.qdevice->handle()};
+}
 
 using qiodevice_io_observer = basic_qiodevice_io_observer<char>;
 #ifndef __MSDOS__

@@ -324,7 +324,7 @@ inline constexpr nt_at_entry at(basic_win32_io_observer<ch_type> wiob) noexcept
 }
 
 template<std::integral ch_type>
-inline constexpr basic_win32_io_observer<ch_type> io_value_handle(basic_win32_io_observer<ch_type> other)
+inline constexpr basic_win32_io_observer<ch_type> io_value_handle(basic_win32_io_observer<ch_type> other) noexcept
 {
 	return other;
 }
