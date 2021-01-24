@@ -304,6 +304,7 @@ inline constexpr void print_control(output out,T t)
 	if constexpr(reserve_printable<char_type,value_type>)
 	{
 		constexpr std::size_t size{print_reserve_control_size_impl<pci,char_type,value_type>()+static_cast<std::size_t>(line)};
+		static_assert(size!=0);
 #ifndef __SANITIZE_ADDRESS__
 
 #if 0	

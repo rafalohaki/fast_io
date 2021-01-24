@@ -320,7 +320,7 @@ inline constexpr floating_format_precision_t<unix_timestamp,floating_representat
 	if constexpr(off_to_epoch==0)
 		return {ts,precision};
 	else
-		return {{ts.seconds,ts.subseconds},precision};
+		return {{ts.seconds,ts.subseconds},truncate_size(precision)};
 }
 
 template<intiso_t off_to_epoch>
@@ -340,7 +340,7 @@ inline constexpr comma_t<floating_format_precision_t<unix_timestamp,floating_rep
 	if constexpr(off_to_epoch==0)
 		return {{ts,precision}};
 	else
-		return {{{ts.seconds,ts.subseconds},precision}};
+		return {{{ts.seconds,ts.subseconds},truncate_size(precision)}};
 }
 
 }
