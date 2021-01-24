@@ -63,7 +63,7 @@ inline std::size_t qio_device_write_impl(QIODevice* __restrict qdevice,void cons
 {
 	std::int64_t res{qdevice->write(reinterpret_cast<char const*>(data),static_cast<std::int64_t>(bytes))};
 	if(res<0)
-		throw_posix_error(EIO);
+		throw_qt_error(qdevice->errorString());
 	return static_cast<std::size_t>(res);
 }
 
@@ -71,7 +71,7 @@ inline std::size_t qio_device_read_impl(QIODevice* __restrict qdevice,void* data
 {
 	std::int64_t res{qdevice->read(reinterpret_cast<char*>(data),static_cast<std::int64_t>(bytes))};
 	if(res<0)
-		throw_posix_error(EIO);
+		throw_qt_error(qdevice->errorString());
 	return static_cast<std::size_t>(res);
 }
 
@@ -83,7 +83,7 @@ inline std::uintmax_t qio_device_seek_impl(QIODevice* __restrict qdevice,std::in
 	else if(dir==seekdir::end)
 		offset=static_cast<std::intmax_t>(qdevice->size()-qdevice->pos())+offset;
 	if(!qdevice->seek(static_cast<std::int64_t>(offset)))
-		throw_posix_error(EIO);
+		throw_qt_error(qdevice->errorString());
 	return static_cast<std::uintmax_t>(qdevice->pos());
 }
 
@@ -135,12 +135,12 @@ inline constexpr basic_qiodevice_io_observer<ch_type> io_value_handle(basic_gene
 	return {gqiob.qdevice};
 }
 
-template<std::integral ch_type>
-requires requires(basic_general_qdevice_io_observer<ch_type> piob)
+template<typename T,std::integral ch_type>
+requires requires(basic_general_qdevice_io_observer<T,ch_type> piob)
 {
 	{piob.qdevice->handle()}->std::same_as<int>;
 }
-inline constexpr posix_at_entry at(basic_general_qdevice_io_observer<ch_type> piob) noexcept
+inline constexpr posix_at_entry at(basic_general_qdevice_io_observer<T,ch_type> piob) noexcept
 {
 	return posix_at_entry{piob.qdevice->handle()};
 }

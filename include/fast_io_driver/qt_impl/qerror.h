@@ -11,18 +11,18 @@ public:
 	QString qstr;
 	qt_error(QString str):qstr(std::move(str)){}
 
-	void report(error_reporter& reporter) override
+	void report(error_reporter& reporter) const override
 	{
-
+		print_freestanding(reporter,fast_io::manipulators::cdcvt(qstr));
 	}
 };
 
 inline void throw_qt_error(QString qstr)
 {
-#if __cpp_exceptions
-
+#ifdef __cpp_exceptions
+	throw qt_error(std::move(qstr));
 #else
-
+	fast_terminate();
 #endif
 }
 
