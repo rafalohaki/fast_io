@@ -10,7 +10,7 @@
 
 namespace fast_io
 {
-#if !defined(__NEWLIB__) && !defined(__MSDOS__)
+#if !defined(__NEWLIB__) && !defined(__MSDOS__) && (_BSD_SOURCE || _SVID_SOURCE || (_POSIX_C_SOURCE >= 200809L || _XOPEN_SOURCE >= 700) || _WIN32)
 template<std::integral char_type>
 requires std::same_as<char_type,char>||std::same_as<char_type,native_char_type>
 inline constexpr auto print_alias_define(io_alias_type_t<char_type>,directory_entry dir) noexcept
