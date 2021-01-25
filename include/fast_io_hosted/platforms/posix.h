@@ -129,7 +129,7 @@ inline constexpr int calculate_posix_open_mode(open_mode value) noexcept
 #endif
 #ifdef O_TTY_INIT
 	if((value&open_mode::tty_init)!=open_mode::none)
-		mode != O_TTY_INIT;
+		mode |= O_TTY_INIT;
 #endif
 #ifdef O_NOCTTY
 	if((value&open_mode::no_ctty)!=open_mode::none)

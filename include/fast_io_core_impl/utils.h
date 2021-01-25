@@ -768,7 +768,7 @@ inline constexpr std::size_t truncate_size(std::size_t sz) noexcept
 	else
 	{
 		constexpr std::size_t newdigits{std::numeric_limits<std::size_t>::digits/4*3};
-		constexpr std::size_t mask{static_cast<std::size_t>(1)<<newdigits-1};
+		constexpr std::size_t mask{(static_cast<std::size_t>(1)<<newdigits)-1};
 		return sz&mask;
 	}
 }
