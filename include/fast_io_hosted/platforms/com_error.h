@@ -4,6 +4,7 @@
 
 namespace fast_io
 {
+#if 0
 namespace details
 {
 
@@ -19,8 +20,8 @@ inline void report_com_error(error_reporter& report, auto hresult) requires(std:
 	print_freestanding(report,fast_io::code_cvt(std::wstring_view{ce.ErrorMessage()}));
 }
 }
-
-class com_error : public fast_io_error
+#endif
+class com_error : public std::exception
 {
 public:
 	HRESULT hresult{};
@@ -29,10 +30,12 @@ public:
 	{
 		return hresult;
 	}
+#if 0
 	void report(error_reporter& report) const override
 	{
 		details::report_com_error(report,hresult);
 	}
+#endif
 };
 
 }

@@ -38,6 +38,13 @@ struct cdcvt_t
 	T reference;
 };
 
+template<typename T>
+struct pos_sign_t
+{
+	using manip_tag = manip_tag_t;
+	T reference;
+};
+
 enum class floating_representation
 {
 scientific,fixed,general

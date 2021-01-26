@@ -5,6 +5,7 @@ namespace fast_io
 
 namespace details
 {
+#if 0
 inline constexpr void report_win32_error(error_reporter& report,std::uint32_t ec)
 {
 	constexpr std::size_t buffer_size{32768};
@@ -21,9 +22,10 @@ inline constexpr void report_win32_error(error_reporter& report,std::uint32_t ec
 		return ptr+buffer_length;
 	});
 }
+#endif
 }
 
-class win32_error : public fast_io_error
+class win32_error : public std::exception
 {
 	std::uint32_t ec;
 public:
@@ -32,6 +34,7 @@ public:
 	{
 		return ec;
 	}
+#if 0
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
@@ -39,6 +42,7 @@ public:
 	{
 		details::report_win32_error(report,ec);
 	}
+#endif
 };
 [[noreturn]] inline void throw_win32_error()
 {
@@ -56,4 +60,5 @@ public:
 	fast_terminate();
 #endif
 }
+
 }

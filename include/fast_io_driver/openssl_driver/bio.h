@@ -392,7 +392,7 @@ inline void print_define(output& out,openssl_error const& err)
 	bio_file bf(io_cookie,out);
 	ERR_print_errors(bf.native_handle());
 }
-#ifdef __cpp_exceptions
+#if 0
 inline void openssl_error::report(error_reporter& err) const
 {
 	bio_file bf(io_cookie,err);
