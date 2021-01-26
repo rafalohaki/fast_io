@@ -13,14 +13,16 @@ namespace fast_io
 
 #ifndef _WIN32
 
-class posix_dl_error:public fast_io_error
+class posix_dl_error:public std::exception
 {
 public:
-	virtual	void report(error_reporter& err) const override
-	{
-		print(err,manipulators::chvw(dlerror()));
-	}
 };
+
+inline basic_io_scatter_t<char> print_alias_define(io_alias_t,posix_dl_error const &e)
+{
+	auto const c_str{dlerror()};
+	return {c_str,strlen(c_str)};
+}
 
 [[noreturn]] inline void throw_posix_dl_error()
 {
