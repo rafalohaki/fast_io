@@ -173,4 +173,19 @@ concept status_input_stream = requires(T in)
 	{scan_status_define(in)}->std::convertible_to<bool>;
 };
 
+namespace details
+{
+template<std::integral ch_type>
+struct dummy_stream
+{
+	using char_type = ch_type;
+};
+
+template<std::input_or_output_iterator Iter>
+inline constexpr Iter read(Iter,Iter) noexcept{}
+
+template<std::input_or_output_iterator Iter>
+inline constexpr void write(Iter,Iter) noexcept{}
+
+}
 }

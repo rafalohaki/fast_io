@@ -169,28 +169,6 @@ inline constexpr manip::follow_character<T,ch_type> follow(T &f,ch_type ch){retu
 template<typename T,std::integral ch_type>
 inline constexpr manip::follow_character<T const,ch_type> follow(T const &f,ch_type ch){return {f,ch};}
 
-/*template<status_stream stm,typename T>
-inline constexpr manip::status_tag<typename stm::status_type,T const> status(stm const& t,T ch)
-{
-	return {f,ch};
-}*/
-template<typename T>
-inline constexpr manip::representation<T,2,false,true> bin_rep(T const&f){return {f};}
-
-template<typename T>
-inline constexpr manip::representation<T,16,false,true> hex_rep(T const&f){return {f};}
-
-template<typename T>
-inline constexpr manip::representation<T,16,true,true> hexupper_rep(T const&f){return {f};}
-
-template<typename T>
-inline constexpr manip::representation<T,2,false,false> bin_pure(T const&f){return {f};}
-
-template<typename T>
-inline constexpr manip::representation<T,16,false,false> hex_pure(T const&f){return {f};}
-
-template<typename T>
-inline constexpr manip::representation<T,16,true,false> hexupper_pure(T const&f){return {f};}
 
 template<char8_t base,bool uppercase=false,bool space=true,typename T>
 requires ((base==2&&!uppercase)||base==16)

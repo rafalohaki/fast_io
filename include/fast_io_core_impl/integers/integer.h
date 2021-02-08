@@ -1,6 +1,5 @@
 #pragma once
 
-#include"manip.h"
 #include"twodigits/shared_base_table.h"
 #include"twodigits/base.h"
 #include"optimize_size/impl.h"

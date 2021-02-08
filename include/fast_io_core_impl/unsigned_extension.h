@@ -695,6 +695,8 @@ inline void output_base_extension_number(output& out,basic_unsigned_extension<T>
 }
 }
 
+
+/*
 template<output_stream output,typename T>
 inline constexpr void print_define(output& out,basic_unsigned_extension<T> const& a)
 {
@@ -711,7 +713,6 @@ inline constexpr void print_define(output& out,manip::base_t<base,uppercase,basi
 {
 	details::output_base_extension_number<base,uppercase>(out,v.reference);
 }
-/*
 namespace details
 {
 template<char8_t base,character_input_stream input,typename T>

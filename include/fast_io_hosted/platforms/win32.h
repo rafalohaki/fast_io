@@ -205,12 +205,23 @@ does not exist
 		mode.dwFlagsAndAttributes|=0x40000000;//FILE_FLAG_OVERLAPPED
 	if((value&open_mode::follow)!=open_mode::none)
 		mode.dwFlagsAndAttributes|=0x00200000;	//FILE_FLAG_OPEN_REPARSE_POINT
+/*
+Referenced from:
+https://stackoverflow.com/questions/4495767/create-a-directory-and-get-the-handle-by-issuing-one-irp
+
+CreateFile actually can create a directory. Set the disposition to CREATE_NEW and the flags to FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_POSIX_SEMANTICS | FILE_ATTRIBUTE_DIRECTORY. Since this isn't documented, it probably isn't implemented in ReactOS and Wine. Note that if you're in a scripting environment such as Python, make sure to use the correct value of FILE_FLAG_POSIX_SEMANTICS from the headers (0x01000000). The value listed on MSDN has always been wrong.
+– Eryk Sun Jan 25 '17 at 4:14
+
+I tried this. Oh no. It cannot
+
+*/
 	if((value&open_mode::directory)!=open_mode::none)
 	{
 		mode.dwFlagsAndAttributes|=0x02000000;	//FILE_FLAG_BACKUP_SEMANTICS
+		mode.dwFlagsAndAttributes|=0x10;	//FILE_ATTRIBUTE_DIRECTORY
 		if(mode.dwCreationDisposition==0)
 		{
-			mode.dwDesiredAccess|=0x80000000;	//GENERIC_READ
+			mode.dwDesiredAccess|=0x120116|0x120089;	//GENERIC_WRITE|GENERIC_READ
 			mode.dwCreationDisposition=3;		//OPEN_EXISTING
 		}
 	}
@@ -248,7 +259,10 @@ does not exist
 	if(set_normal)[[likely]]
 		mode.dwFlagsAndAttributes|=0x80;						//FILE_ATTRIBUTE_NORMAL
 	if((value&open_mode::random_access)==open_mode::none)
-		mode.dwFlagsAndAttributes|=0x10000000;		//FILE_FLAG_SEQUENTIAL_SCAN
+	{
+		if((value&open_mode::directory)==open_mode::none)
+			mode.dwFlagsAndAttributes|=0x10000000;		//FILE_FLAG_SEQUENTIAL_SCAN
+	}
 	else
 		mode.dwFlagsAndAttributes|=0x08000000;		//FILE_FLAG_RANDOM_ACCESS
 	if((value&open_mode::no_recall)!=open_mode::none)

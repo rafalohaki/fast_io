@@ -70,13 +70,13 @@ struct io_async_overlapped_t
 	using type = typename std::remove_cvref_t<decltype(async_overlapped_type(*static_cast<T*>(nullptr)))>::type;
 };
 
-template<std::integral char_type,typename T,bool end_test=false>
+template<std::integral char_type,typename T>
 struct io_reserve_type_t
 {
 explicit constexpr io_reserve_type_t() noexcept =default;
 };
-template<std::integral char_type,typename T,bool end_test=false>
-inline constexpr io_reserve_type_t<char_type,T,end_test> io_reserve_type{};
+template<std::integral char_type,typename T>
+inline constexpr io_reserve_type_t<char_type,T> io_reserve_type{};
 
 
 template<std::integral char_type,typename T>

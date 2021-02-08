@@ -8,6 +8,19 @@ concept scanable=input_stream<input>&&requires(input& in,T t)
 	{scan_define(in,t)}->std::convertible_to<bool>;
 };
 
+#if 0
+template<typename char_type, typename T>
+concept reserve_scanable = requires(char_type const* begin,char_type* result, T t)
+{
+	requires requires()
+	{
+		constexpr std::size_t sz{scan_reserve_size(io_reserve_type<char_type,T>)};
+	}
+	{scan_reserve_define(begin,begin,result,t,t,io_reserve_type<char_type,T>)}
+	{scan_reserve_ctx_define(begin,begin,result,result,t,io_reserve_type<char_type,T>)}
+};
+#endif
+
 template<typename char_type, typename T, bool contiguous_only = false>
 concept context_scanable = requires(char_type const* begin, char_type const* end, T t)
 {

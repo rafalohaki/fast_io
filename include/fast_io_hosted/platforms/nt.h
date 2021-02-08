@@ -84,7 +84,6 @@ inline constexpr nt_open_mode calculate_nt_open_mode(open_mode value,perms pm) n
 			generic_write=true;
 		}
 	}
-
 /*
 
 https://doxygen.reactos.org/d6/d0e/ndk_2iotypes_8h.html
@@ -207,20 +206,26 @@ does not exist
 			mode.CreateDisposition=0x00000001;	//OPEN_EXISTING
 		}
 		mode.CreateOptions |= 0x00004000;		//FILE_OPEN_FOR_BACKUP_INTENT
+		mode.CreateOptions |= 0x00000001;		//FILE_DIRECTORY_FILE
 		if(generic_write)
 			mode.CreateOptions |= 0x00000400;		//FILE_OPEN_REMOTE_INSTANCE
+		if((value&open_mode::creat)!=open_mode::none)
+			mode.DesiredAccess |= 0x120116|0x120089;	//GENERIC_READ | GENERIC_WRITE
 	}
 	if((value&open_mode::no_block)==open_mode::none)
 		mode.CreateOptions|=0x00000020;	//FILE_SYNCHRONOUS_IO_NONALERT 0x00000020
 	else
 		mode.CreateOptions|=0x00000010;	//FILE_SYNCHRONOUS_IO_ALERT 0x00000010
+	
 	if((value&open_mode::random_access)==open_mode::none)
-		mode.CreateOptions|=0x00000004;	//FILE_SEQUENTIAL_ONLY 0x00000004
+	{
+		if((value&open_mode::directory)==open_mode::none)
+			mode.CreateOptions|=0x00000004;	//FILE_SEQUENTIAL_ONLY 0x00000004
+	}
 	else
 		mode.CreateOptions|=0x00000800;
 	if((value&open_mode::no_recall)!=open_mode::none)
 		mode.CreateOptions|=0x00400000;	//FILE_OPEN_NO_RECALL 0x00400000
-
 	if((value&open_mode::case_insensitive)==open_mode::none)
 		mode.ObjAttributes|=0x00000040;	//OBJ_CASE_INSENSITIVE
 	if((value&open_mode::inherit)!=open_mode::none)
