@@ -494,11 +494,11 @@ inline constexpr void print_control(output out,T t)
 					}
 					curr=details::non_overlapped_copy_n(scatter.base,len,curr);
 					if constexpr(std::same_as<char,char_type>)
-						put(out,'\n');
+						*curr='\n';
 					else if constexpr(std::same_as<wchar_t,char_type>)
-						put(out,L'\n');
+						*curr=L'\n';
 					else
-						put(out,u8'\n');
+						*curr=u8'\n';
 					++curr;
 					obuffer_set_curr(out,curr);
 				}
