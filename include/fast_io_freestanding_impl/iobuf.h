@@ -339,14 +339,18 @@ public:
 	inline constexpr void close_impl() noexcept
 	{
 #ifdef __cpp_exceptions
+#if !defined(_MSC_VER) || (_HAS_EXCEPTIONS != 0)
 		try
 		{
+#endif
 #endif
 			if(obuffer.beg!=obuffer.curr)
 				write(oh,obuffer.beg,obuffer.curr);
 #ifdef __cpp_exceptions
+#if !defined(_MSC_VER) || (_HAS_EXCEPTIONS != 0)
 		}
 		catch(...){}
+#endif
 #endif
 	}
 public:

@@ -42,7 +42,11 @@ inline void system_call_throw_error(I v)
 		else
 		{
 #ifdef __cpp_exceptions
+#if defined(_MSC_VER) && (!defined(_HAS_EXCEPTIONS) || _HAS_EXCEPTIONS == 0)
+			fast_terminate();
+#else
 			throw posix_error();
+#endif
 #else
 			fast_terminate();
 #endif
