@@ -87,7 +87,11 @@ public:
 [[noreturn]] inline void throw_posix_error()
 {
 #ifdef __cpp_exceptions
+#if defined(_MSC_VER) && (!defined(_HAS_EXCEPTIONS) || _HAS_EXCEPTIONS == 0)
+	fast_terminate();
+#else
 	throw posix_error();
+#endif
 #else
 	fast_terminate();
 #endif
@@ -95,7 +99,11 @@ public:
 [[noreturn]] inline void throw_posix_error([[maybe_unused]] int err)
 {
 #ifdef __cpp_exceptions
+#if defined(_MSC_VER) && (!defined(_HAS_EXCEPTIONS) || _HAS_EXCEPTIONS == 0)
+	fast_terminate();
+#else
 	throw posix_error(err);
+#endif
 #else
 	fast_terminate();
 #endif
@@ -121,7 +129,11 @@ public:
 [[noreturn]] inline void throw_scan_error([[maybe_unused]] std::errc ec)
 {
 #ifdef __cpp_exceptions
+#if defined(_MSC_VER) && (!defined(_HAS_EXCEPTIONS) || _HAS_EXCEPTIONS == 0)
+	fast_terminate();
+#else
 	throw scan_error(ec);
+#endif
 #else
 	fast_terminate();
 #endif

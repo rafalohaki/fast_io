@@ -21,7 +21,11 @@ public:
 inline void throw_qt_error(QString qstr)
 {
 #ifdef __cpp_exceptions
+#if defined(_MSC_VER) && (!defined(_HAS_EXCEPTIONS) || _HAS_EXCEPTIONS == 0)
+	fast_terminate();
+#else
 	throw qt_error(std::move(qstr));
+#endif
 #else
 	fast_terminate();
 #endif

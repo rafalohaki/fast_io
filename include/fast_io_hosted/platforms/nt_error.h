@@ -22,7 +22,11 @@ public:
 [[noreturn]] inline void throw_nt_error([[maybe_unused]] std::uint32_t err)
 {
 #ifdef __cpp_exceptions
+#if defined(_MSC_VER) && (!defined(_HAS_EXCEPTIONS) || _HAS_EXCEPTIONS == 0)
+	fast_terminate();
+#else
 	throw nt_error(err);
+#endif
 #else
 	fast_terminate();
 #endif

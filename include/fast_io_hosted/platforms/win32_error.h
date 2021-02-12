@@ -47,7 +47,11 @@ public:
 [[noreturn]] inline void throw_win32_error()
 {
 #ifdef __cpp_exceptions
+#if defined(_MSC_VER) && (!defined(_HAS_EXCEPTIONS) || _HAS_EXCEPTIONS == 0)
+	fast_terminate();
+#else
 	throw win32_error();
+#endif
 #else
 	fast_terminate();
 #endif
@@ -55,7 +59,11 @@ public:
 [[noreturn]] inline void throw_win32_error([[maybe_unused]] std::uint32_t err)
 {
 #ifdef __cpp_exceptions
+#if defined(_MSC_VER) && (!defined(_HAS_EXCEPTIONS) || _HAS_EXCEPTIONS == 0)
+	fast_terminate();
+#else
 	throw win32_error(err);
+#endif
 #else
 	fast_terminate();
 #endif
