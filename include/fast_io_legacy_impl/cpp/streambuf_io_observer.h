@@ -1,11 +1,5 @@
 #pragma once
-#ifdef __GLIBCXX__
-#include"fp_hack/libstdc++.h"
-#elif defined(_MSVC_STL_UPDATE)
-#include"fp_hack/msvc_stl.h"
-#elif defined(__LIBCPP_VERSION)
-#include"fp_hack/libc++.h"
-#endif
+#include"fp_hack/impl.h"
 
 namespace fast_io
 {
@@ -217,11 +211,9 @@ inline constexpr posix_at_entry at(basic_filebuf_io_observer<char_type> other) n
 #endif
 }
 
-
 #if defined(__GLIBCXX__) || defined(__LIBCPP_VERSION) || defined(_MSVC_STL_UPDATE)
-#include"general.h"
+#include"bp_hack/impl.h"
 #endif
-
 
 namespace fast_io
 {
