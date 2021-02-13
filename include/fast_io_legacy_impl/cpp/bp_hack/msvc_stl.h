@@ -74,7 +74,7 @@ requires (position==1||position==4)
 inline void hack_set_buffer_curr(T* fb,typename T::char_type* ptr) noexcept
 {
 	auto& pptr{hack_first_next<4+static_cast<std::size_t>(position==4)>(fb)};
-	hack_last<static_cast<std::size_t>(position==4)>(fb)-=ptr-pptr;
+	hack_last<static_cast<std::size_t>(position==4)>(fb)-=static_cast<int>(ptr-pptr);
 	pptr=ptr;
 }
 }
