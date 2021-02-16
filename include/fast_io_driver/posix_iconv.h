@@ -91,12 +91,12 @@ inline void reset_state(posix_iconv_io_observer piciob)
 namespace details
 {
 
-inline std::size_t iconv_print_reserve_define_impl(iconv_t cd,char const* inbyteptr,std::size_t inbytesize,char* outbyteptr)
+inline std::size_t iconv_print_reserve_define_impl(iconv_t cd,char const* inbyteptr,std::size_t inbytesize,char* outbyteptr) noexcept
 {
 	char* inbyteptr_no_const{const_cast<char*>(inbyteptr)};
 	std::size_t const output_buffer_size{inbytesize*8};
 	std::size_t unconverted_char_counts{output_buffer_size};
-	do_iconv_impl(cd,std::addressof(inbyteptr_no_const),std::addressof(inbytesize),std::addressof(outbyteptr),std::addressof(unconverted_char_counts));
+	iconv(cd,std::addressof(inbyteptr_no_const),std::addressof(inbytesize),std::addressof(outbyteptr),std::addressof(unconverted_char_counts));
 	return output_buffer_size-unconverted_char_counts;
 }
 
@@ -149,7 +149,7 @@ inline std::size_t print_reserve_size(
 
 template<std::contiguous_iterator Iter>
 inline Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,iconv_code_cvt_t<io_scatter_t>>,
-	Iter iter,iconv_code_cvt_t<io_scatter_t> v)
+	Iter iter,iconv_code_cvt_t<io_scatter_t> v) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
 	std::size_t const sz{::fast_io::details::iconv_print_reserve_define_impl(v.cd,
