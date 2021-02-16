@@ -114,48 +114,48 @@ struct iconv_code_cvt_t
 };
 
 template<std::integral char_type>
-constexpr iconv_code_cvt_t<basic_io_scatter_t<char_type>> iconv_code_cvt(posix_iconv_io_observer piiob,basic_io_scatter_t<char_type> scatter) noexcept
+constexpr iconv_code_cvt_t<io_scatter_t> iconv_code_cvt(posix_iconv_io_observer piiob,basic_io_scatter_t<char_type> scatter) noexcept
 {
 	return {piiob.cd,scatter};
 }
 
 template<typename rg>
 requires (std::ranges::contiguous_range<std::remove_cvref_t<rg>>&&std::integral<std::ranges::range_value_t<std::remove_cvref_t<rg>>>)
-constexpr iconv_code_cvt_t<basic_io_scatter_t<std::ranges::range_value_t<std::remove_cvref_t<rg>>>> iconv_code_cvt(posix_iconv_io_observer piiob,rg&& t)
+constexpr iconv_code_cvt_t<io_scatter_t> iconv_code_cvt(posix_iconv_io_observer piiob,rg&& t)
 {
 	if constexpr(std::is_array_v<std::remove_cvref_t<rg>>)
-		return {piiob.cd,{std::ranges::data(t),std::ranges::size(t)-1}};
+		return {piiob.cd,{std::ranges::data(t),sizeof(std::ranges::range_value_t<std::remove_cvref_t<rg>>)*(std::ranges::size(t)-1)}};
 	else
-		return {piiob.cd,{std::ranges::data(t),std::ranges::size(t)}};
+		return {piiob.cd,{std::ranges::data(t),sizeof(std::ranges::range_value_t<std::remove_cvref_t<rg>>)*std::ranges::size(t)}};
 }
 
 template<std::integral char_type>
-constexpr iconv_code_cvt_t<basic_io_scatter_t<char_type>> iconv_code_cvt(posix_iconv_io_observer piiob,chvw_t<char_type const*> t)
+constexpr iconv_code_cvt_t<io_scatter_t> iconv_code_cvt(posix_iconv_io_observer piiob,chvw_t<char_type const*> t) noexcept
 {
 	std::basic_string_view<char_type> view(t.reference);
-	return {piiob.cd,{view.data(),view.size()}};
+	return {piiob.cd,{view.data(),sizeof(char_type)*view.size()}};
 }
-template<std::integral char_type,std::integral char_type2>
+template<std::integral char_type>
 inline std::size_t print_reserve_size(
 	io_reserve_type_t<char_type,
-	iconv_code_cvt_t<basic_io_scatter_t<char_type2>>>,iconv_code_cvt_t<basic_io_scatter_t<char_type2>> v) noexcept
+	iconv_code_cvt_t<io_scatter_t>>,iconv_code_cvt_t<io_scatter_t> v) noexcept
 {
 	static_assert(sizeof(char_type)<=8);
-	constexpr std::size_t maximum_size_sentinel{std::numeric_limits<std::size_t>::max()/sizeof(char_type2)/8*sizeof(char_type)};
+	constexpr std::size_t maximum_size_sentinel{std::numeric_limits<std::size_t>::max()/8*sizeof(char_type)};
 	if(v.reference.len>maximum_size_sentinel)[[unlikely]]
 		fast_terminate();
-	return v.reference.len*sizeof(char_type2)*8/sizeof(char_type);
+	return v.reference.len*8/sizeof(char_type);
 }
 
-template<std::contiguous_iterator Iter,std::integral char_type2>
-inline Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,iconv_code_cvt_t<basic_io_scatter_t<char_type2>>>,
-	Iter iter,iconv_code_cvt_t<basic_io_scatter_t<char_type2>> v)
+template<std::contiguous_iterator Iter>
+inline Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,iconv_code_cvt_t<io_scatter_t>>,
+	Iter iter,iconv_code_cvt_t<io_scatter_t> v)
 {
 	using char_type = std::iter_value_t<Iter>;
-	std::size_t sz{::fast_io::details::iconv_print_reserve_define_impl(v.cd,
+	std::size_t const sz{::fast_io::details::iconv_print_reserve_define_impl(v.cd,
 	reinterpret_cast<char const*>(std::to_address(v.reference.base)),
-	v.reference.len*sizeof(char_type2),reinterpret_cast<char*>(std::to_address(iter)))};
-	return iter+sz*sizeof(char_type2)/sizeof(char_type);
+	v.reference.len,reinterpret_cast<char*>(std::to_address(iter)))};
+	return iter+sz/sizeof(char_type);
 }
 }
 
