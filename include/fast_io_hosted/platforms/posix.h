@@ -1282,9 +1282,6 @@ inline constexpr basic_posix_io_observer<char_type> native_stderr()
 namespace details
 {
 
-struct __attribute__((__may_alias__)) iovec_may_alias:iovec
-{};
-
 inline std::size_t posix_scatter_read_size_impl(int fd,std::span<io_scatter_t const> sp)
 {
 #if defined(__linux__)
@@ -1296,7 +1293,12 @@ inline std::size_t posix_scatter_read_size_impl(int fd,std::span<io_scatter_t co
 	std::size_t sz{sp.size()};
 	if(static_cast<std::size_t>(std::numeric_limits<int>::max())<sz)
 		sz=static_cast<std::size_t>(std::numeric_limits<int>::max());
-	auto ptr{reinterpret_cast<iovec_may_alias const*>(sp.data())};
+	using iovec_may_alias_const_ptr
+#if __has_cpp_attribute(gnu::may_alias)
+	[[gnu::may_alias]]
+#endif
+	= iovec const*;
+	auto ptr{reinterpret_cast<iovec_may_alias_const_ptr>(sp.data())};
 	std::ptrdiff_t val{::readv(fd,ptr,static_cast<int>(sz))};
 	if(val<0)
 		throw_posix_error();
@@ -1315,7 +1317,12 @@ inline std::size_t posix_scatter_write_size_impl(int fd,std::span<io_scatter_t c
 	std::size_t sz{sp.size()};
 	if(static_cast<std::size_t>(std::numeric_limits<int>::max())<sz)
 		sz=static_cast<std::size_t>(std::numeric_limits<int>::max());
-	auto ptr{reinterpret_cast<iovec_may_alias const*>(sp.data())};
+	using iovec_may_alias_const_ptr
+#if __has_cpp_attribute(gnu::may_alias)
+	[[gnu::may_alias]]
+#endif
+	= iovec const*;
+	auto ptr{reinterpret_cast<iovec_may_alias_const_ptr>(sp.data())};
 	std::ptrdiff_t val{::writev(fd,ptr,static_cast<int>(sz))};
 	if(val<0)
 		throw_posix_error();

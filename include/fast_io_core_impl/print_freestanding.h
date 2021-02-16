@@ -53,7 +53,7 @@ inline constexpr std::size_t print_reserve_control_size_impl() noexcept
 
 template<print_control_impl pci,std::integral char_type,typename value_type>
 requires dynamic_reserve_printable<char_type,value_type>
-inline constexpr std::size_t print_dynamic_reserve_control_size_impl(value_type v) noexcept
+inline constexpr std::size_t print_dynamic_reserve_control_size_impl(value_type v)
 {
 	std::size_t sz{print_reserve_size(io_reserve_type<char_type,value_type>,v)};
 	if constexpr(pci==print_control_impl::serialize)
