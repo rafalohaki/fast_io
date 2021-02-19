@@ -3,15 +3,13 @@
 namespace fast_io
 {
 
-template<std::integral ch_type>
 struct empty_decorator
 {
-	using char_type = ch_type;
 };
 
 template<std::integral ch_type,
-typename internaltype=empty_decorator<ch_type>,
-typename externaltype=empty_decorator<ch_type>>
+typename internaltype=empty_decorator,
+typename externaltype=empty_decorator>
 struct basic_decorators
 {
 	using char_type = ch_type;
@@ -22,14 +20,14 @@ struct basic_decorators
 };
 
 template<std::integral char_type,typename internaltype,typename externaltype>
-requires (!std::same_as<internaltype,empty_decorator<char_type>>)
+requires (!std::same_as<internaltype,empty_decorator>)
 inline constexpr internaltype& internal(basic_decorators<char_type,internaltype,externaltype>& decos) noexcept
 {
 	return decos.internal;
 }
 
 template<std::integral char_type,typename internaltype,typename externaltype>
-requires (!std::same_as<externaltype,empty_decorator<char_type>>)
+requires (!std::same_as<externaltype,empty_decorator>)
 inline constexpr externaltype& external(basic_decorators<char_type,internaltype,externaltype>& decos) noexcept
 {
 	return decos.external;
