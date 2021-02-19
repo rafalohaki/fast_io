@@ -57,6 +57,14 @@ struct basic_io_buffer_pointers
 	pointer buffer_begin{},buffer_curr{},buffer_end{};
 };
 
+template<typename T>
+struct basic_io_buffer_pointers_with_cap
+{
+	using value_type = T;
+	using pointer = T*;
+	pointer buffer_begin{},buffer_curr{},buffer_end{},buffer_cap{};
+};
+
 namespace details
 {
 template<stream handle_type>
@@ -127,12 +135,6 @@ inline constexpr void deallocate_iobuf_space(char_type* ptr,[[maybe_unused]] std
 #endif
 	}
 }
-
-template<typename T>
-struct iobuf_char_type_impl
-{
-	using type = T;
-};
 
 }
 

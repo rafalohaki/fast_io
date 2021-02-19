@@ -449,9 +449,9 @@ typename rg>
 constexpr code_cvt_t<encoding_scheme::execution_charset,encoding_scheme::execution_charset,std::ranges::range_value_t<std::remove_cvref_t<rg>>> code_cvt(rg&& t)
 {
 	if constexpr(std::is_array_v<std::remove_cvref_t<rg>>)
-		return {{std::ranges::data(t),sizeof(std::ranges::range_value_t<std::remove_cvref_t<rg>>)*(std::ranges::size(t)-1)}};
+		return {{std::ranges::data(t),std::ranges::size(t)-1}};
 	else
-		return {{std::ranges::data(t),sizeof(std::ranges::range_value_t<std::remove_cvref_t<rg>>)*std::ranges::size(t)}};
+		return {{std::ranges::data(t),std::ranges::size(t)}};
 }
 
 template<
@@ -461,7 +461,7 @@ std::integral char_type>
 constexpr code_cvt_t<encoding_scheme::execution_charset,encoding_scheme::execution_charset,char_type> code_cvt(chvw_t<char_type const*> t) noexcept
 {
 	std::basic_string_view<char_type> view(t.reference);
-	return {{view.data(),sizeof(char_type)*view.size()}};
+	return {{view.data(),view.size()}};
 }
 
 template<
@@ -473,7 +473,7 @@ inline constexpr std::size_t print_reserve_size(
 io_reserve_type_t<dst_char_type,code_cvt_t<src_scheme,dst_scheme,src_char_type>>,
 code_cvt_t<src_scheme,dst_scheme,src_char_type> v) noexcept
 {
-	return details::cal_full_reserve_size<sizeof(dst_char_type),sizeof(src_char_type)>(v.reference.len);
+	return details::cal_full_reserve_size<sizeof(src_char_type),sizeof(dst_char_type)>(v.reference.len);
 }
 
 template<

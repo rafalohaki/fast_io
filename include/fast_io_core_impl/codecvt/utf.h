@@ -496,7 +496,7 @@ inline constexpr advance_with_big_table_result<T> advance_with_big_table(T const
 			//- Look up the next state
 		}
 		else
-			return {true};
+			return {true,nullptr,0};
 	}
 	if(curr==12)[[unlikely]]
 		cdpt=0xFFFD;

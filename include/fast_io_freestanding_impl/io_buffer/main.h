@@ -73,6 +73,20 @@ inline constexpr void write_with_deco(T t,decot& deco,Iter first,Iter last,std::
 		first+=this_round;
 	}
 }
+
+template<typename decorators_type>
+concept has_internal_decorator_impl = requires(decorators_type& decos)
+{
+	internal(decos);
+};
+
+template<typename decorators_type>
+concept has_external_decorator_impl = requires(decorators_type& decos)
+{
+	external(decos);
+};
+
+
 }
 
 template<stream handletype,
@@ -103,7 +117,9 @@ public:
 #if __has_cpp_attribute(no_unique_address) >= 201803L
 	[[no_unique_address]]
 #endif
-	std::conditional_t<(mode&buffer_mode::in)==buffer_mode::in,basic_io_buffer_pointers<char_type>,empty_buffer_pointers> ibuffer;
+	std::conditional_t<(mode&buffer_mode::in)==buffer_mode::in,
+	std::conditional_t<details::has_internal_decorator_impl<decorators_type>,basic_io_buffer_pointers_with_cap<char_type>,basic_io_buffer_pointers<char_type>>,
+	empty_buffer_pointers> ibuffer;
 
 #if __has_cpp_attribute(no_unique_address) >= 201803L
 	[[no_unique_address]]
@@ -170,14 +186,29 @@ private:
 		if constexpr((mode&buffer_mode::in)==buffer_mode::in)
 			if(ibuffer.buffer_begin)
 			{
-				if constexpr((mode&buffer_mode::secure_clear)==buffer_mode::secure_clear)
+				if constexpr(details::has_internal_decorator_impl<decorators_type>)
 				{
+					std::size_t real_buffer_cap{static_cast<std::size_t>(ibuffer.buffer_cap-ibuffer.buffer_begin)};
+					if constexpr((mode&buffer_mode::secure_clear)==buffer_mode::secure_clear)
+					{
 #if __cpp_lib_is_constant_evaluated >=201811L
-					if(!std::is_constant_evaluated())
+						if(!std::is_constant_evaluated())
 #endif
-						secure_clear(ibuffer.buffer_begin,sizeof(char_type)*buffer_size);
+							secure_clear(ibuffer.buffer_begin,real_buffer_cap);
+					}
+					details::deallocate_iobuf_space<char_type>(ibuffer.buffer_begin,real_buffer_cap,buffer_alignment);
 				}
-				details::deallocate_iobuf_space<char_type>(ibuffer.buffer_begin,buffer_size,buffer_alignment);
+				else
+				{
+					if constexpr((mode&buffer_mode::secure_clear)==buffer_mode::secure_clear)
+					{
+#if __cpp_lib_is_constant_evaluated >=201811L
+						if(!std::is_constant_evaluated())
+#endif
+							secure_clear(ibuffer.buffer_begin,sizeof(char_type)*buffer_size);
+					}
+					details::deallocate_iobuf_space<char_type>(ibuffer.buffer_begin,buffer_size,buffer_alignment);
+				}
 			}
 	}
 public:
@@ -185,14 +216,14 @@ public:
 	template<typename... Args>
 	requires (std::is_default_constructible_v<decorators_type>&&std::constructible_from<handle_type,Args...>)
 	explicit constexpr basic_io_buffer(Args&& ...args):handle(std::forward<Args>(args)...){}
-/*
+#if 0
 	template<typename dectype,typename... Args>
 	requires (!std::is_empty_v<decorators_type>
 	&&std::constructible_from<decorators_type,dectype>
 	&&std::constructible_from<handle_type,Args...>)
 	explicit constexpr basic_io_buffer(dectype&& decos,Args&& ...args):handle(std::forward<Args>(args)...),
 		decorators(std::forward<dectype>(decos)){}
-*/
+#endif
 	constexpr basic_io_buffer(basic_io_buffer const& other) requires std::copyable<handle_type>:handle(other.handle),decorators(other.decorators){}
 	constexpr basic_io_buffer(basic_io_buffer const&)=delete;
 	constexpr basic_io_buffer& operator=(basic_io_buffer const& other) requires std::copyable<handle_type>
