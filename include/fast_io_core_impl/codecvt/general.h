@@ -1,23 +1,5 @@
 #pragma once
 
-/*#include"utf_util_table.h"
-#ifdef __SSE__
-#include <emmintrin.h>
-#include <immintrin.h>
-#include <xmmintrin.h>
-#endif*/
-/*
-CppCon 2018: Bob Steagall “Fast Conversion From UTF-8 with C++, DFAs, and SSE Intrinsics”
-
-https://www.youtube.com/watch?v=5FQ87-Ecb-A
-https://github.com/BobSteagall/utf_utils/blob/master/src/utf_utils.cpp
-
-*/
-#include"gb18030.h"
-#include"utf_ebcdic.h"
-#include"utf_util_table.h"
-#include"utf.h"
-
 namespace fast_io
 {
 

@@ -9,6 +9,32 @@ struct empty_decorator
 	using char_type = ch_type;
 };
 
+template<std::integral ch_type,
+typename internaltype=empty_decorator<ch_type>,
+typename externaltype=empty_decorator<ch_type>>
+struct basic_decorators
+{
+	using char_type = ch_type;
+	using internal_decorator_type=internaltype;
+	using external_decorator_type=externaltype;
+	[[no_unique_address]] internal_decorator_type internal;
+	[[no_unique_address]] external_decorator_type external;
+};
+
+template<std::integral char_type,typename internaltype,typename externaltype>
+requires (!std::same_as<internaltype,empty_decorator<char_type>>)
+inline constexpr internaltype& internal(basic_decorators<char_type,internaltype,externaltype>& decos) noexcept
+{
+	return decos.internal;
+}
+
+template<std::integral char_type,typename internaltype,typename externaltype>
+requires (!std::same_as<externaltype,empty_decorator<char_type>>)
+inline constexpr externaltype& external(basic_decorators<char_type,internaltype,externaltype>& decos) noexcept
+{
+	return decos.external;
+}
+
 namespace details
 {
 
@@ -38,7 +64,7 @@ inline constexpr void write_with_deco(T t,decot& deco,Iter first,Iter last,std::
 	std::size_t diff{static_cast<std::size_t>(last-first)};
 	if(diff<internal_size)
 		internal_size=diff;
-	buffer_alloc_arr_ptr<char_type> alloc_ptr{deco_reserve_size(io_reserve_type<char_type,decot_no_cvref_t>,diff)};
+	buffer_alloc_arr_ptr<char_type> alloc_ptr{deco_reserve_size(io_reserve_type<char_type,decot_no_cvref_t>,deco,diff)};
 	for(;first!=last;)
 	{
 		std::size_t this_round{internal_size};
@@ -51,8 +77,8 @@ inline constexpr void write_with_deco(T t,decot& deco,Iter first,Iter last,std::
 }
 
 template<stream handletype,
-typename internaldecorator=empty_decorator<typename handletype::char_type>,
-typename externaldecorator=empty_decorator<typename handletype::char_type>,
+typename decoratorstypr=
+basic_decorators<typename handletype::char_type>,
 buffer_mode mde=buffer_mode::io|buffer_mode::secure_clear,std::size_t bfs = io_default_buffer_size<typename handletype::char_type>,
 	std::size_t alignmsz=
 #ifdef FAST_IO_BUFFER_ALIGNMENT
@@ -67,9 +93,8 @@ class basic_io_buffer
 {
 public:
 	using handle_type = handletype;
-	using internal_decorator_type = internaldecorator;
-	using external_decorator_type = externaldecorator;
-	using char_type = typename internaldecorator::char_type;
+	using decorators_type = decoratorstypr;
+	using char_type = typename decorators_type::char_type;
 	using pointer = char_type*;
 	using const_pointer = char_type const*;
 	inline static constexpr buffer_mode mode = mde;
@@ -92,19 +117,18 @@ public:
 #if __has_cpp_attribute(no_unique_address) >= 201803L
 	[[no_unique_address]]
 #endif
-	internal_decorator_type internal_decorator;
-#if __has_cpp_attribute(no_unique_address) >= 201803L
-	[[no_unique_address]]
-#endif
-	external_decorator_type external_decorator;
+	decorators_type decorators;
 private:
 	constexpr void close_throw_impl()
 	{
 		if(obuffer.buffer_begin!=obuffer.buffer_curr)
 		{
-			if constexpr(std::same_as<external_decorator_type,empty_decorator<typename handletype::char_type>>)
+			if constexpr(requires()
 			{
-				write_with_deco(handle,external_decorator,obuffer.buffer_begin,obuffer.buffer_curr,bfs);
+				external(decorators);
+			})
+			{
+				write_with_deco(handle,external(decorators),obuffer.buffer_begin,obuffer.buffer_curr,bfs);
 			}
 			else
 			{
@@ -159,38 +183,20 @@ private:
 public:
 	constexpr basic_io_buffer()=default;
 	template<typename... Args>
-	requires (std::is_empty_v<internal_decorator_type>&&std::is_empty_v<external_decorator_type>
+	requires (std::is_empty_v<decorators_type>&&std::is_empty_v<decorators_type>
 	&&(sizeof...(Args)!=0)&&std::constructible_from<handle_type,Args...>)
 	explicit constexpr basic_io_buffer(Args&& ...args):handle(std::forward<Args>(args)...){}
-
-	template<typename indtype,
-	typename endtype,
-	typename... Args>
-	requires (!std::is_empty_v<internal_decorator_type>&&!std::is_empty_v<external_decorator_type>
-	&&std::constructible_from<internal_decorator_type,indtype>
+#if 0
+	template<typename indtype,typename... Args>
+	requires (!std::is_empty_v<decorators_type>
 	&&std::constructible_from<external_decorator_type,endtype>
 	&&std::constructible_from<handle_type,Args...>)
 	explicit constexpr basic_io_buffer(indtype&& ideco,
 	endtype&& edeco,Args&& ...args):handle(std::forward<Args>(args)...),
-		internal_decorator_type(std::forward<indtype>(ideco)),
+		decorators(std::forward<indtype>(ideco)),
 		external_decorator_type(std::forward<endtype>(edeco)){}
-
-	template<typename indtype,typename... Args>
-	requires (!std::is_empty_v<internal_decorator_type>&&std::is_empty_v<external_decorator_type>
-	&&std::constructible_from<internal_decorator_type,indtype>
-	&&std::constructible_from<handle_type,Args...>)
-	explicit constexpr basic_io_buffer(indtype&& ideco,Args&& ...args):handle(std::forward<Args>(args)...),
-		internal_decorator_type(std::forward<indtype>(ideco)){}
-
-	template<typename endtype,typename... Args>
-	requires (std::is_empty_v<internal_decorator_type>&&!std::is_empty_v<external_decorator_type>
-	&&std::constructible_from<external_decorator_type,endtype>
-	&&std::constructible_from<handle_type,Args...>)
-	explicit constexpr basic_io_buffer(endtype&& edeco,Args&& ...args):handle(std::forward<Args>(args)...),
-		external_decorator_type(std::forward<endtype>(edeco)){}
-
-
-	constexpr basic_io_buffer(basic_io_buffer const& other) requires std::copyable<handle_type>:handle(other.handle){}
+#endif
+	constexpr basic_io_buffer(basic_io_buffer const& other) requires std::copyable<handle_type>:handle(other.handle),decorators(other.decorators){}
 	constexpr basic_io_buffer(basic_io_buffer const&)=delete;
 	constexpr basic_io_buffer& operator=(basic_io_buffer const& other) requires std::copyable<handle_type>
 	{
@@ -200,6 +206,7 @@ public:
 		if constexpr((mode&buffer_mode::out)==buffer_mode::out)
 			obuffer.buffer_curr=obuffer.buffer_begin;
 		handle=other.handle;
+		decorators=other.decorators;
 		return *this;
 	}
 	constexpr basic_io_buffer& operator=(basic_io_buffer const&)=delete;
@@ -227,7 +234,7 @@ public:
 		handle.close();
 	}
 	constexpr basic_io_buffer(basic_io_buffer&& other) noexcept requires(std::movable<handle_type>):
-		ibuffer(other.ibuffer),obuffer(other.obuffer),handle(std::move(other.handle))
+		ibuffer(other.ibuffer),obuffer(other.obuffer),handle(std::move(other.handle)),decorators(std::move(other.decorators))
 	{
 		other.ibuffer={};
 		other.obuffer={};
@@ -244,6 +251,7 @@ public:
 		ibuffer=other.ibuffer;
 		obuffer=other.obuffer;
 		handle=std::move(other.handle);
+		decorators=std::move(other.decorators);
 		return *this;
 	}
 	constexpr basic_io_buffer& operator=(basic_io_buffer&&)=delete;
@@ -252,6 +260,7 @@ public:
 		std::ranges::swap(ibuffer,other.ibuffer);
 		std::ranges::swap(obuffer,other.obuffer);
 		std::ranges::swap(handle,other.handle);
+		std::ranges::swap(decorators,other.decorators);
 	}
 #if __cpp_constexpr_dynamic_alloc >= 201907L
 	constexpr

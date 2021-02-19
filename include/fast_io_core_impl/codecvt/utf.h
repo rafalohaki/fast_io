@@ -58,6 +58,12 @@ gb18030,
 utf_ebcdic,
 utf=std::endian::big==std::endian::native?utf_be:(std::endian::little==std::endian::native?utf_le:5)
 };
+/*
+CppCon 2018: Bob Steagall “Fast Conversion From UTF-8 with C++, DFAs, and SSE Intrinsics”
+
+https://www.youtube.com/watch?v=5FQ87-Ecb-A
+https://github.com/BobSteagall/utf_utils/blob/master/src/utf_utils.cpp
+*/
 
 namespace details
 {
