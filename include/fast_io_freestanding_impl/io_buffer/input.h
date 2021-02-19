@@ -3,37 +3,52 @@
 namespace fast_io
 {
 
-template<zero_copy_input_stream handletype,buffer_mode mde,std::size_t bfs,std::size_t alignsz>
+template<zero_copy_input_stream handletype,
+typename internaldecorator,
+typename externaldecorator,
+buffer_mode mde,std::size_t bfs,std::size_t alignsz>
 requires ((mde&buffer_mode::in)==buffer_mode::in)
-inline constexpr decltype(auto) zero_copy_in_handle(basic_io_buffer<handletype,mde,bfs,alignsz>& bios)
+inline constexpr decltype(auto) zero_copy_in_handle(basic_io_buffer<handletype,internaldecorator,externaldecorator,mde,bfs,alignsz>& bios)
 {
 	return zero_copy_in_handle(bios.handle);
 }
 
-template<stream handletype,buffer_mode mde,std::size_t bfs,std::size_t alignsz>
+template<stream handletype,
+typename internaldecorator,
+typename externaldecorator,
+buffer_mode mde,std::size_t bfs,std::size_t alignsz>
 requires ((mde&buffer_mode::in)==buffer_mode::in)
-inline constexpr auto ibuffer_begin(basic_io_buffer<handletype,mde,bfs,alignsz>& bios) noexcept
+inline constexpr auto ibuffer_begin(basic_io_buffer<handletype,internaldecorator,externaldecorator,mde,bfs,alignsz>& bios) noexcept
 {
 	return bios.ibuffer.buffer_begin;
 }
 
-template<stream handletype,buffer_mode mde,std::size_t bfs,std::size_t alignsz>
+template<stream handletype,
+typename internaldecorator,
+typename externaldecorator,
+buffer_mode mde,std::size_t bfs,std::size_t alignsz>
 requires ((mde&buffer_mode::in)==buffer_mode::in)
-inline constexpr auto ibuffer_curr(basic_io_buffer<handletype,mde,bfs,alignsz>& bios) noexcept
+inline constexpr auto ibuffer_curr(basic_io_buffer<handletype,internaldecorator,externaldecorator,mde,bfs,alignsz>& bios) noexcept
 {
 	return bios.ibuffer.buffer_curr;
 }
 
-template<stream handletype,buffer_mode mde,std::size_t bfs,std::size_t alignsz>
+template<stream handletype,
+typename internaldecorator,
+typename externaldecorator,
+buffer_mode mde,std::size_t bfs,std::size_t alignsz>
 requires ((mde&buffer_mode::in)==buffer_mode::in)
-inline constexpr auto ibuffer_end(basic_io_buffer<handletype,mde,bfs,alignsz>& bios) noexcept
+inline constexpr auto ibuffer_end(basic_io_buffer<handletype,internaldecorator,externaldecorator,mde,bfs,alignsz>& bios) noexcept
 {
 	return bios.ibuffer.buffer_end;
 }
 
-template<stream handletype,buffer_mode mde,std::size_t bfs,std::size_t alignsz>
+template<stream handletype,
+typename internaldecorator,
+typename externaldecorator,
+buffer_mode mde,std::size_t bfs,std::size_t alignsz>
 requires ((mde&buffer_mode::in)==buffer_mode::in)
-inline constexpr void ibuffer_set_curr(basic_io_buffer<handletype,mde,bfs,alignsz>& bios,typename basic_io_buffer<handletype,mde,bfs,alignsz>::char_type* ptr) noexcept
+inline constexpr void ibuffer_set_curr(basic_io_buffer<handletype,internaldecorator,externaldecorator,mde,bfs,alignsz>& bios,typename basic_io_buffer<handletype,internaldecorator,externaldecorator,mde,bfs,alignsz>::char_type* ptr) noexcept
 {
 	bios.ibuffer.buffer_curr=ptr;
 }
@@ -91,9 +106,12 @@ inline constexpr Iter iobuf_read_unhappy_impl(T& bios,Iter first,Iter last)
 
 }
 
-template<stream handletype,buffer_mode mde,std::size_t bfs,std::size_t alignsz>
+template<stream handletype,
+typename internaldecorator,
+typename externaldecorator,
+buffer_mode mde,std::size_t bfs,std::size_t alignsz>
 requires ((mde&buffer_mode::in)==buffer_mode::in)
-inline constexpr bool underflow(basic_io_buffer<handletype,mde,bfs,alignsz>& bios)
+inline constexpr bool underflow(basic_io_buffer<handletype,internaldecorator,externaldecorator,mde,bfs,alignsz>& bios)
 {
 	if constexpr(((mde&buffer_mode::out)==buffer_mode::out)&&
 	((mde&buffer_mode::tie)==buffer_mode::tie))
@@ -101,9 +119,12 @@ inline constexpr bool underflow(basic_io_buffer<handletype,mde,bfs,alignsz>& bio
 	return details::underflow_impl<bfs,alignsz>(io_ref(bios.handle),bios.ibuffer);
 }
 
-template<stream handletype,buffer_mode mde,std::size_t bfs,std::size_t alignsz,std::random_access_iterator Iter>
+template<stream handletype,
+typename internaldecorator,
+typename externaldecorator,
+buffer_mode mde,std::size_t bfs,std::size_t alignsz,std::random_access_iterator Iter>
 requires (((mde&buffer_mode::in)==buffer_mode::in)&&details::allow_iobuf_punning<handletype,Iter>)
-inline constexpr Iter read(basic_io_buffer<handletype,mde,bfs,alignsz>& bios,Iter first,Iter last)
+inline constexpr Iter read(basic_io_buffer<handletype,internaldecorator,externaldecorator,mde,bfs,alignsz>& bios,Iter first,Iter last)
 {
 	using iter_char_type = std::iter_value_t<Iter>;
 	using char_type = typename handletype::char_type;

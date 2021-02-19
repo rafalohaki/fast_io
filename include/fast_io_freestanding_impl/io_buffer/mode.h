@@ -12,25 +12,25 @@ io=in|out|tie,
 secure_clear=1<<3
 };
 
-constexpr buffer_mode operator&(buffer_mode x, buffer_mode y) noexcept
+inline constexpr buffer_mode operator&(buffer_mode x, buffer_mode y) noexcept
 {
 using utype = typename std::underlying_type<buffer_mode>::type;
 return static_cast<buffer_mode>(static_cast<utype>(x) & static_cast<utype>(y));
 }
 
-constexpr buffer_mode operator|(buffer_mode x, buffer_mode y) noexcept
+inline constexpr buffer_mode operator|(buffer_mode x, buffer_mode y) noexcept
 {
 using utype = typename std::underlying_type<buffer_mode>::type;
 return static_cast<buffer_mode>(static_cast<utype>(x) | static_cast<utype>(y));
 }
 
-constexpr buffer_mode operator^(buffer_mode x, buffer_mode y) noexcept
+inline constexpr buffer_mode operator^(buffer_mode x, buffer_mode y) noexcept
 {
 using utype = typename std::underlying_type<buffer_mode>::type;
 return static_cast<buffer_mode>(static_cast<utype>(x) ^ static_cast<utype>(y));
 }
 
-constexpr buffer_mode operator~(buffer_mode x) noexcept
+inline constexpr buffer_mode operator~(buffer_mode x) noexcept
 {
 using utype = typename std::underlying_type<buffer_mode>::type;
 return static_cast<buffer_mode>(~static_cast<utype>(x));
@@ -82,28 +82,31 @@ bool constraint_buffer_mode(buffer_mode mode) noexcept
 template<typename char_type>
 inline constexpr char_type* allocate_iobuf_space(std::size_t buffer_size,std::size_t aligmsz) noexcept
 {
+#if __cpp_constexpr >=201907L && __cpp_constexpr_dynamic_alloc >= 201907L && __cpp_lib_is_constant_evaluated >=201811L
+	if(std::is_constant_evaluated())
+	{
+		return new char_type[buffer_size];
+	}
+	else
+#endif
+	{
 #if __cpp_exceptions
 	try
 	{
 #endif
-#if __cpp_constexpr >=201907L && __cpp_constexpr_dynamic_alloc >= 201907L && __cpp_lib_is_constant_evaluated >=201811L
-		if(std::is_constant_evaluated())
-		{
-			return new char_type[buffer_size];
-		}
-		else
-#endif
-		{
-			return static_cast<char_type*>(operator new(buffer_size*sizeof(char_type),std::align_val_t{aligmsz}));
-		}
+//capable for AVX512
+		constexpr std::size_t max_size{SIZE_MAX/sizeof(char_type)};
+		if(buffer_size>max_size)
+			fast_terminate();
+		return static_cast<char_type*>(operator new(buffer_size*sizeof(char_type),std::align_val_t{aligmsz}));
 #if __cpp_exceptions
 	}
 	catch(...)
 	{
-//Let std::bad_aloc to die.
 		fast_terminate();
 	}
 #endif
+	}
 }
 
 template<typename char_type>

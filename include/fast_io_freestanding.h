@@ -19,6 +19,7 @@
 #include"fast_io_freestanding_impl/iobuf.h"
 #include"fast_io_freestanding_impl/io_io_file.h"
 //#include"fast_io_freestanding_impl/natural.h"
+#include"fast_io_freestanding_impl/io_buffer/impl.h"
 
 #include"fast_io_freestanding_impl/transformers/transformers.h"
 #include"fast_io_freestanding_impl/indirect_ibuffer.h"
