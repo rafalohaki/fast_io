@@ -68,22 +68,22 @@ https://github.com/BobSteagall/utf_utils/blob/master/src/utf_utils.cpp
 namespace details
 {
 
-template<std::size_t extern_char_type_size,std::size_t internal_char_type_size>
-requires ((extern_char_type_size<=4)&&(internal_char_type_size<=4))
+template<std::size_t src_char_type_size,std::size_t dest_char_type_size>
+requires ((dest_char_type_size<=4)&&(src_char_type_size<=4))
 inline constexpr std::size_t cal_full_reserve_size(std::size_t internal_size) noexcept
 {
-	constexpr std::size_t external_max{std::numeric_limits<std::size_t>::max()/extern_char_type_size};
-	constexpr std::size_t internal_max{std::numeric_limits<std::size_t>::max()/internal_char_type_size};
-	if constexpr(internal_char_type_size==4)
+	constexpr std::size_t external_max{std::numeric_limits<std::size_t>::max()/dest_char_type_size};
+	constexpr std::size_t internal_max{std::numeric_limits<std::size_t>::max()/src_char_type_size};
+	if constexpr(src_char_type_size==4)
 	{
-		if constexpr(extern_char_type_size==4)
+		if constexpr(dest_char_type_size==4)
 		{
 			constexpr std::size_t imax{external_max};
 			if(internal_size>=imax)
 				fast_terminate();
 			return internal_size;
 		}
-		else if constexpr(extern_char_type_size==2)
+		else if constexpr(dest_char_type_size==2)
 		{
 			constexpr std::size_t imax{external_max/2};
 			if(internal_size>=imax)
@@ -98,16 +98,16 @@ inline constexpr std::size_t cal_full_reserve_size(std::size_t internal_size) no
 			return internal_size*8;
 		}
 	}
-	else if constexpr(internal_char_type_size==2)
+	else if constexpr(src_char_type_size==2)
 	{
-		if constexpr(extern_char_type_size==4)
+		if constexpr(dest_char_type_size==4)
 		{
 			constexpr std::size_t imax{external_max};
 			if(internal_size>=imax)
 				fast_terminate();
 			return internal_size;
 		}
-		else if constexpr(extern_char_type_size==2)
+		else if constexpr(dest_char_type_size==2)
 		{
 			constexpr std::size_t imax{external_max/2};
 			if(internal_size>=imax)
@@ -124,14 +124,14 @@ inline constexpr std::size_t cal_full_reserve_size(std::size_t internal_size) no
 	}
 	else
 	{
-		if constexpr(extern_char_type_size==4)
+		if constexpr(dest_char_type_size==4)
 		{
 			constexpr std::size_t imax{external_max};
 			if(internal_size>=imax)
 				fast_terminate();
 			return internal_size;
 		}
-		else if constexpr(extern_char_type_size==2)
+		else if constexpr(dest_char_type_size==2)
 		{
 			constexpr std::size_t imax{internal_max/2};
 			if(internal_size>=imax)
@@ -148,22 +148,22 @@ inline constexpr std::size_t cal_full_reserve_size(std::size_t internal_size) no
 	}
 }
 
-template<std::size_t extern_char_type_size,std::size_t internal_char_type_size>
-requires ((extern_char_type_size<=4)&&(internal_char_type_size<=4))
+template<std::size_t src_char_type_size,std::size_t dest_char_type_size>
+requires ((dest_char_type_size<=4)&&(src_char_type_size<=4))
 inline constexpr std::size_t cal_decorated_reserve_size(std::size_t internal_size) noexcept
 {
-	constexpr std::size_t external_max{std::numeric_limits<std::size_t>::max()/extern_char_type_size};
-	constexpr std::size_t internal_max{std::numeric_limits<std::size_t>::max()/internal_char_type_size};
-	if constexpr(internal_char_type_size==4)
+	constexpr std::size_t external_max{std::numeric_limits<std::size_t>::max()/dest_char_type_size};
+	constexpr std::size_t internal_max{std::numeric_limits<std::size_t>::max()/src_char_type_size};
+	if constexpr(src_char_type_size==4)
 	{
-		if constexpr(extern_char_type_size==4)
+		if constexpr(dest_char_type_size==4)
 		{
 			constexpr std::size_t imax{external_max};
 			if(internal_size>=imax)
 				fast_terminate();
 			return internal_size;
 		}
-		else if constexpr(extern_char_type_size==2)
+		else if constexpr(dest_char_type_size==2)
 		{
 			constexpr std::size_t imax{external_max/2};
 			if(internal_size>=imax)
@@ -178,16 +178,16 @@ inline constexpr std::size_t cal_decorated_reserve_size(std::size_t internal_siz
 			return internal_size*8;
 		}
 	}
-	else if constexpr(internal_char_type_size==2)
+	else if constexpr(src_char_type_size==2)
 	{
-		if constexpr(extern_char_type_size==4)
+		if constexpr(dest_char_type_size==4)
 		{
 			constexpr std::size_t imax{external_max-1};
 			if(internal_size>=imax)
 				fast_terminate();
 			return internal_size+1;
 		}
-		else if constexpr(extern_char_type_size==2)
+		else if constexpr(dest_char_type_size==2)
 		{
 			constexpr std::size_t imax{external_max/2-1};
 			if(internal_size>=imax)
@@ -204,14 +204,14 @@ inline constexpr std::size_t cal_decorated_reserve_size(std::size_t internal_siz
 	}
 	else
 	{
-		if constexpr(extern_char_type_size==4)
+		if constexpr(dest_char_type_size==4)
 		{
 			constexpr std::size_t imax{external_max-7};
 			if(internal_size>=imax)
 				fast_terminate();
 			return internal_size+7;
 		}
-		else if constexpr(extern_char_type_size==2)
+		else if constexpr(dest_char_type_size==2)
 		{
 			constexpr std::size_t imax{internal_max/2-7};
 			if(internal_size>=imax)

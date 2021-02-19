@@ -12,7 +12,7 @@ inline constexpr void flush(basic_io_buffer<handletype,decorators_type,mde,bfs,a
 		{
 			external(bios.decorators);
 		})
-			details::iobuf_output_flush_impl(io_ref(bios.handle),external(bios.decorators),bios.obuffer);
+			details::iobuf_output_flush_impl_deco(io_ref(bios.handle),external(bios.decorators),bios.obuffer);
 		else
 			details::iobuf_output_flush_impl(io_ref(bios.handle),bios.obuffer);
 	}

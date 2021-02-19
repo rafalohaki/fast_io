@@ -44,7 +44,7 @@ struct buffer_alloc_arr_ptr
 	T* ptr{};
 	std::size_t size{};
 	constexpr buffer_alloc_arr_ptr() noexcept = default;
-	constexpr buffer_alloc_arr_ptr(std::size_t sz) noexcept:ptr(allocate_iobuf_space<T>(size,64)),size(sz){}
+	constexpr buffer_alloc_arr_ptr(std::size_t sz) noexcept:ptr(allocate_iobuf_space<T>(sz,64)),size(sz){}
 
 	buffer_alloc_arr_ptr(buffer_alloc_arr_ptr const&)=delete;
 	buffer_alloc_arr_ptr& operator=(buffer_alloc_arr_ptr const&)=delete;
@@ -68,9 +68,10 @@ inline constexpr void write_with_deco(T t,decot& deco,Iter first,Iter last,std::
 	for(;first!=last;)
 	{
 		std::size_t this_round{internal_size};
-		if(static_cast<std::size_t>(last-first)<this_round)
-			this_round=static_cast<std::size_t>(last-first);
- 		write(t,alloc_ptr.ptr,deco_reserve_define(io_reserve_type<char_type,decot_no_cvref_t>,deco,first,first+this_round,alloc_ptr.ptr));
+		diff=static_cast<std::size_t>(last-first);
+		if(diff<this_round)
+			this_round=diff;
+		write(t,alloc_ptr.ptr,deco_reserve_define(io_reserve_type<char_type,decot_no_cvref_t>,deco,first,first+this_round,alloc_ptr.ptr));
 		first+=this_round;
 	}
 }
@@ -79,7 +80,8 @@ inline constexpr void write_with_deco(T t,decot& deco,Iter first,Iter last,std::
 template<stream handletype,
 typename decoratorstypr=
 basic_decorators<typename handletype::char_type>,
-buffer_mode mde=buffer_mode::io|buffer_mode::secure_clear,std::size_t bfs = io_default_buffer_size<typename handletype::char_type>,
+buffer_mode mde=buffer_mode::io|buffer_mode::secure_clear,
+std::size_t bfs = io_default_buffer_size<typename decoratorstypr::char_type>,
 	std::size_t alignmsz=
 #ifdef FAST_IO_BUFFER_ALIGNMENT
 	FAST_IO_BUFFER_ALIGNMENT
@@ -128,11 +130,11 @@ private:
 				external(decorators);
 			})
 			{
-				write_with_deco(handle,external(decorators),obuffer.buffer_begin,obuffer.buffer_curr,bfs);
+				details::write_with_deco(io_ref(handle),external(decorators),obuffer.buffer_begin,obuffer.buffer_curr,bfs);
 			}
 			else
 			{
-				write(handle,obuffer.buffer_begin,obuffer.buffer_curr);
+				write(io_ref(handle),obuffer.buffer_begin,obuffer.buffer_curr);
 			}
 		}
 	}
@@ -183,19 +185,16 @@ private:
 public:
 	constexpr basic_io_buffer()=default;
 	template<typename... Args>
-	requires (std::is_empty_v<decorators_type>&&std::is_empty_v<decorators_type>
-	&&(sizeof...(Args)!=0)&&std::constructible_from<handle_type,Args...>)
+	requires (std::is_default_constructible_v<decorators_type>&&std::constructible_from<handle_type,Args...>)
 	explicit constexpr basic_io_buffer(Args&& ...args):handle(std::forward<Args>(args)...){}
-#if 0
-	template<typename indtype,typename... Args>
+/*
+	template<typename dectype,typename... Args>
 	requires (!std::is_empty_v<decorators_type>
-	&&std::constructible_from<external_decorator_type,endtype>
+	&&std::constructible_from<decorators_type,dectype>
 	&&std::constructible_from<handle_type,Args...>)
-	explicit constexpr basic_io_buffer(indtype&& ideco,
-	endtype&& edeco,Args&& ...args):handle(std::forward<Args>(args)...),
-		decorators(std::forward<indtype>(ideco)),
-		external_decorator_type(std::forward<endtype>(edeco)){}
-#endif
+	explicit constexpr basic_io_buffer(dectype&& decos,Args&& ...args):handle(std::forward<Args>(args)...),
+		decorators(std::forward<dectype>(decos)){}
+*/
 	constexpr basic_io_buffer(basic_io_buffer const& other) requires std::copyable<handle_type>:handle(other.handle),decorators(other.decorators){}
 	constexpr basic_io_buffer(basic_io_buffer const&)=delete;
 	constexpr basic_io_buffer& operator=(basic_io_buffer const& other) requires std::copyable<handle_type>

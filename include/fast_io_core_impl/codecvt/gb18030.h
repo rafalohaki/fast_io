@@ -182,7 +182,6 @@ inline constexpr char32_t lookup_gb18030_to_uni4_func(char32_t index) noexcept
 
 inline constexpr char32_t utf32cp_by_gb18030_index(char32_t index) noexcept
 {
-	constexpr char32_t maximum_index{linear(0x90308130)};
 	char32_t sum{linear_18030_base+820};
 	for(std::size_t i{};i!=13;++i)
 	{

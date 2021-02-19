@@ -77,7 +77,7 @@ inline constexpr void iobuf_write_unhappy_decay_impl_deco(T t,decot& deco,basic_
 	if(pointers.buffer_begin==nullptr)
 	{
 		if(diff<buffer_size)
-			iobuf_write_unhappy_nullptr_case_impl(pointers,deco,first,last,buffer_size,buffer_alignment);
+			iobuf_write_unhappy_nullptr_case_impl(pointers,first,last,buffer_size,buffer_alignment);
 		else
 			write_with_deco(t,deco,first,last,buffer_size);
 		return;
@@ -107,7 +107,7 @@ requires (((mde&buffer_mode::out)==buffer_mode::out)&&details::allow_iobuf_punni
 inline constexpr void write(basic_io_buffer<handletype,decorators,mde,bfs,alignsz>& bios,Iter first,Iter last)
 {
 	using iter_char_type = std::iter_value_t<Iter>;
-	using char_type = typename handletype::char_type;
+	using char_type = typename decorators::char_type;
 	if constexpr(std::same_as<iter_char_type,char_type>)
 	{
 		if constexpr(std::contiguous_iterator<Iter>&&!std::is_pointer_v<Iter>)
@@ -217,7 +217,7 @@ inline constexpr void iobuf_overflow_impl_deco(T handle,decot& deco,basic_io_buf
 	}
 	else
 	{
-		iobuf_output_flush_impl(handle,deco,pointers,bfsz);
+		iobuf_output_flush_impl_deco(handle,deco,pointers,bfsz);
 	}
 	*pointers.buffer_curr=ch;
 	++pointers.buffer_curr;
