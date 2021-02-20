@@ -256,7 +256,7 @@ inline void nt_file_rtl_path(wcstring_view filename,win32::nt::unicode_string& n
 
 inline void nt_file_rtl_path(cstring_view filename,wchar_t* buffer_data,win32::nt::unicode_string& nt_name,wchar_t const*& part_name,win32::nt::rtl_relative_name_u& relative_name)
 {
-	*utf_code_convert(filename.data(),filename.data()+filename.size(),buffer_data)=0;
+	*::fast_io::details::codecvt::general_code_cvt_full(filename.data(),filename.data()+filename.size(),buffer_data)=0;
 	if(!win32::nt::rtl_dos_path_name_to_nt_path_name_u(buffer_data,std::addressof(nt_name),std::addressof(part_name),std::addressof(relative_name)))
 		throw_nt_error(0xC0000039);
 }
@@ -298,7 +298,7 @@ inline void* nt_create_file_directory_impl(void* directory,basic_cstring_view<ch
 	if constexpr(std::same_as<char_type,char>)
 	{
 		std::unique_ptr<wchar_t[]> buffer(new wchar_t[filename.size()]);
-		auto buffer_data_end=utf_code_convert(filename.data(),filename.data()+filename.size(),buffer.get());
+		auto buffer_data_end=::fast_io::details::codecvt::general_code_cvt_full(filename.data(),filename.data()+filename.size(),buffer.get());
 		std::uint16_t const bytes(filename_bytes(buffer_data_end-buffer.get()));
 		win32::nt::unicode_string relative_path{
 			.Length=bytes,

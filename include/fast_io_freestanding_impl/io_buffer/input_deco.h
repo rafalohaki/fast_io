@@ -54,7 +54,6 @@ inline constexpr bool underflow_impl_deco(T t,decot deco,basic_io_buffer_pointer
 }
 
 template<typename T,typename decot,std::integral char_type,std::contiguous_iterator Iter>
-//requires (std::same_as<std::iter_value_t<Iter>,char_type>&&std::is_pointer_v<Iter>)
 inline constexpr Iter iobuf_read_unhappy_decay_impl_deco(T t,decot deco,basic_io_buffer_pointers_with_cap<char_type>& ibuffer,Iter first,Iter last,std::size_t bfsz,std::size_t alignsz)
 {
 	using external_char_type = typename T::char_type;

@@ -98,10 +98,11 @@ inline constexpr void iobuf_write_unhappy_impl(T& t,Iter first,Iter last)
 }
 
 template<stream handletype,
+buffer_mode mde,
 typename decorators,
-buffer_mode mde,std::size_t bfs,std::size_t alignsz,std::random_access_iterator Iter>
+std::size_t bfs,std::size_t alignsz,std::random_access_iterator Iter>
 requires (((mde&buffer_mode::out)==buffer_mode::out)&&details::allow_iobuf_punning<typename decorators::internal_type,Iter>)
-inline constexpr void write(basic_io_buffer<handletype,decorators,mde,bfs,alignsz>& bios,Iter first,Iter last)
+inline constexpr void write(basic_io_buffer<handletype,mde,decorators,bfs,alignsz>& bios,Iter first,Iter last)
 {
 	using iter_char_type = std::iter_value_t<Iter>;
 	using char_type = typename decorators::internal_type;
@@ -131,38 +132,42 @@ To do : forward_iterator. Support std::forward_list, std::list, std::set and std
 
 
 template<stream handletype,
+buffer_mode mde,
 typename decorators,
-buffer_mode mde,std::size_t bfs,std::size_t alignsz>
+std::size_t bfs,std::size_t alignsz>
 requires ((mde&buffer_mode::out)==buffer_mode::out)
-inline constexpr auto obuffer_begin(basic_io_buffer<handletype,decorators,mde,bfs,alignsz>& bios) noexcept
+inline constexpr auto obuffer_begin(basic_io_buffer<handletype,mde,decorators,bfs,alignsz>& bios) noexcept
 {
 	return bios.obuffer.buffer_begin;
 }
 
 
 template<stream handletype,
+buffer_mode mde,
 typename decorators,
-buffer_mode mde,std::size_t bfs,std::size_t alignsz>
+std::size_t bfs,std::size_t alignsz>
 requires ((mde&buffer_mode::out)==buffer_mode::out)
-inline constexpr auto obuffer_curr(basic_io_buffer<handletype,decorators,mde,bfs,alignsz>& bios) noexcept
+inline constexpr auto obuffer_curr(basic_io_buffer<handletype,mde,decorators,bfs,alignsz>& bios) noexcept
 {
 	return bios.obuffer.buffer_curr;
 }
 
 template<stream handletype,
+buffer_mode mde,
 typename decorators,
-buffer_mode mde,std::size_t bfs,std::size_t alignsz>
+std::size_t bfs,std::size_t alignsz>
 requires ((mde&buffer_mode::out)==buffer_mode::out)
-inline constexpr auto obuffer_end(basic_io_buffer<handletype,decorators,mde,bfs,alignsz>& bios) noexcept
+inline constexpr auto obuffer_end(basic_io_buffer<handletype,mde,decorators,bfs,alignsz>& bios) noexcept
 {
 	return bios.obuffer.buffer_end;
 }
 
 template<stream handletype,
+buffer_mode mde,
 typename decorators,
-buffer_mode mde,std::size_t bfs,std::size_t alignsz>
+std::size_t bfs,std::size_t alignsz>
 requires ((mde&buffer_mode::out)==buffer_mode::out)
-inline constexpr void obuffer_set_curr(basic_io_buffer<handletype,decorators,mde,bfs,alignsz>& bios,typename basic_io_buffer<handletype,decorators,mde,bfs,alignsz>::char_type* ptr) noexcept
+inline constexpr void obuffer_set_curr(basic_io_buffer<handletype,mde,decorators,bfs,alignsz>& bios,typename basic_io_buffer<handletype,mde,decorators,bfs,alignsz>::char_type* ptr) noexcept
 {
 	bios.obuffer.buffer_curr=ptr;
 }
@@ -223,11 +228,12 @@ inline constexpr void iobuf_overflow_impl_deco(T handle,decot deco,basic_io_buff
 }
 
 template<stream handletype,
+buffer_mode mde,
 typename decorators,
-buffer_mode mde,std::size_t bfs,std::size_t alignsz>
+std::size_t bfs,std::size_t alignsz>
 requires ((mde&buffer_mode::out)==buffer_mode::out)
-inline constexpr auto overflow(basic_io_buffer<handletype,decorators,mde,bfs,alignsz>& bios,
-	typename basic_io_buffer<handletype,decorators,mde,bfs,alignsz>::char_type ch)
+inline constexpr auto overflow(basic_io_buffer<handletype,mde,decorators,bfs,alignsz>& bios,
+	typename basic_io_buffer<handletype,mde,decorators,bfs,alignsz>::char_type ch)
 {
 	if constexpr(details::has_external_decorator_impl<decorators>)
 		details::iobuf_overflow_impl_deco(io_ref(bios.handle),external_decorator(bios.decorators),bios.obuffer,ch,bfs,alignsz);
@@ -236,10 +242,11 @@ inline constexpr auto overflow(basic_io_buffer<handletype,decorators,mde,bfs,ali
 }
 
 template<zero_copy_output_stream handletype,
+buffer_mode mde,
 typename decorators,
-buffer_mode mde,std::size_t bfs,std::size_t alignsz>
+std::size_t bfs,std::size_t alignsz>
 requires ((mde&buffer_mode::out)==buffer_mode::out&&!details::has_internal_decorator_impl<decorators>)
-inline constexpr decltype(auto) zero_copy_out_handle(basic_io_buffer<handletype,decorators,mde,bfs,alignsz>& bios)
+inline constexpr decltype(auto) zero_copy_out_handle(basic_io_buffer<handletype,mde,decorators,bfs,alignsz>& bios)
 {
 	return zero_copy_out_handle(bios.handle);
 }

@@ -355,47 +355,6 @@ inline constexpr void print_control(output out,T t)
 			else
 				print_control_reserve_bad_path<line,pci>(out,t);
 		}
-		else if constexpr(reserve_output_stream<output>)	//To do: Remove reserve_output_stream concepts
-		{
-			if constexpr(std::is_pointer_v<std::remove_cvref_t<decltype(oreserve(out,size))>>)
-			{
-				auto ptr{oreserve(out,size)};
-				if(ptr==nullptr)[[unlikely]]
-				{
-					print_control_reserve_bad_path<line,pci>(out,t);
-					return;
-				}
-				if constexpr(line)
-				{
-					auto it{print_reserve_control_define_impl<pci,char_type,value_type>(ptr,t)};
-					if constexpr(std::same_as<char,char_type>)
-						*it='\n';
-					else if constexpr(std::same_as<wchar_t,char_type>)
-						*it=L'\n';
-					else
-						*it=u8'\n';
-					orelease(out,++it);
-				}
-				else
-					orelease(out,print_reserve_control_define_impl<pci,char_type,value_type>(ptr,t));
-			}
-			else
-			{
-				if constexpr(line)
-				{
-					auto it{print_reserve_control_define_impl<pci,char_type,value_type>(oreserve(out,size),t)};
-					if constexpr(std::same_as<char,char_type>)
-						*it='\n';
-					else if constexpr(std::same_as<wchar_t,char_type>)
-						*it=L'\n';
-					else
-						*it=u8'\n';
-					orelease(out,++it);
-				}
-				else
-					orelease(out,print_reserve_control_define_impl<pci,char_type,value_type>(oreserve(out,size),t));
-			}
-		}
 		else
 #endif
 		{

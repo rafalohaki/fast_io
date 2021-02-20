@@ -86,7 +86,7 @@ inline void* win32_create_file_impl(basic_cstring_view<char_type> path,win32_ope
 	if constexpr(std::same_as<char_type,char>)
 	{
 		std::unique_ptr<wchar_t[]> buffer(new wchar_t[path.size()+1]);
-		*utf_code_convert(path.data(),path.data()+path.size(),buffer.get())=0;
+		*::fast_io::details::codecvt::general_code_cvt_full(path.data(),path.data()+path.size(),buffer.get())=0;
 		return win32_create_file_a_impld(buffer.get(),mode);
 	}
 	else

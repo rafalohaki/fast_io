@@ -87,13 +87,12 @@ concept has_external_decorator_impl = requires(decorators_type&& decos)
 	external_decorator(decos);
 };
 
-
 }
 
 template<stream handletype,
+buffer_mode mde=buffer_mode::io|buffer_mode::secure_clear|buffer_mode::construct_decorator,
 typename decoratorstypr=
 basic_decorators<typename handletype::char_type>,
-buffer_mode mde=buffer_mode::io|buffer_mode::secure_clear|buffer_mode::construct_decorator,
 std::size_t bfs = io_default_buffer_size<typename decoratorstypr::internal_type>,
 	std::size_t alignmsz=
 #ifdef FAST_IO_BUFFER_ALIGNMENT

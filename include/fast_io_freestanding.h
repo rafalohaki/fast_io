@@ -3,32 +3,60 @@
 //fast_io_freestanding.h is usable when the underlining system implements dynamic memory allocations and exceptions
 
 #include"fast_io_core.h"
-#include<stdexcept>
+//#include<stdexcept>
 #include<string>
-#include<bitset>
+//#include<bitset>
 //#include<system_error>
 //#include<cmath>
-#include"fast_io_freestanding_impl/string/impl.h"
-#include"fast_io_freestanding_impl/concat.h"
 #include"fast_io_freestanding_impl/exception.h"
-#include"fast_io_freestanding_impl/reserve_read_write.h"
 #include"fast_io_freestanding_impl/code_cvt/utf.h"
 #include"fast_io_freestanding_impl/posix_error.h"
 //compile floating point is slow since it requires algorithms like ryu
 #include"fast_io_freestanding_impl/floating_point/floating.h"
-#include"fast_io_freestanding_impl/iobuf.h"
 #include"fast_io_freestanding_impl/io_io_file.h"
 //#include"fast_io_freestanding_impl/natural.h"
 #include"fast_io_freestanding_impl/io_buffer/impl.h"
 
-#include"fast_io_freestanding_impl/transformers/transformers.h"
-#include"fast_io_freestanding_impl/indirect_ibuffer.h"
-#include"fast_io_freestanding_impl/indirect_obuffer.h"
 #include"fast_io_freestanding_impl/ovector.h"
 #include"fast_io_freestanding_impl/serialize.h"
 
 namespace fast_io
 {
+
+template<input_stream input>
+using basic_ibuf = basic_io_buffer<input,buffer_mode::in>;
+template<output_stream output>
+using basic_obuf = basic_io_buffer<output,buffer_mode::out>;
+template<io_stream strm>
+using basic_iobuf = basic_io_buffer<strm,buffer_mode::in|buffer_mode::out|buffer_mode::tie>;
+
+template<std::integral internal_char_type,
+	input_stream input,
+	encoding_scheme internal_scheme=encoding_scheme::execution_charset>
+using basic_ibuf_code_cvt = basic_io_buffer<input,
+	buffer_mode::in,
+	basic_decorators<internal_char_type,
+	basic_code_converter<internal_char_type,internal_scheme>,
+	empty_decorator>>;
+
+template<std::integral internal_char_type,
+	output_stream output,
+	encoding_scheme external_scheme=encoding_scheme::execution_charset>
+using basic_obuf_code_cvt = basic_io_buffer<output,
+	buffer_mode::out,
+	basic_decorators<internal_char_type,
+	empty_decorator,
+	basic_code_converter<internal_char_type,external_scheme>>>;
+
+template<std::integral internal_char_type,
+	io_stream input_output,
+	encoding_scheme internal_scheme=encoding_scheme::execution_charset,
+	encoding_scheme external_scheme=encoding_scheme::execution_charset>
+using basic_iobuf_code_cvt = basic_io_buffer<input_output,
+	buffer_mode::in|buffer_mode::out|buffer_mode::tie,
+	basic_decorators<internal_char_type,
+	basic_code_converter<typename input_output::char_type,internal_scheme>,
+	basic_code_converter<internal_char_type,external_scheme>>>;
 
 template<std::integral char_type>
 using basic_iobuf_io_io_observer = basic_iobuf<basic_io_io_observer<char_type>>;

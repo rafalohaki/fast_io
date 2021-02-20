@@ -40,8 +40,6 @@
 #include"fast_io_core_impl/memptr.h"
 #include"fast_io_core_impl/local_new_array_ptr.h"
 #include"fast_io_core_impl/internal_temporary_buffer.h"
-#include"fast_io_core_impl/vector_buffer.h"
-#include"fast_io_core_impl/eof.h"
 #include"fast_io_core_impl/manip/impl.h"
 #include"fast_io_core_impl/mode.h"
 #include"fast_io_core_impl/perms.h"
@@ -82,8 +80,6 @@
 #include"fast_io_core_impl/transmit_once.h"
 #include"fast_io_core_impl/unsigned_extension.h"
 #include"fast_io_core_impl/flush.h"
-#include"fast_io_core_impl/read_write_all.h"
-#include"fast_io_core_impl/crtp/crtp.h"
 
 
 #if __cpp_lib_source_location >= 201907L

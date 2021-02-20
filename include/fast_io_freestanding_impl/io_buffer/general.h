@@ -3,8 +3,8 @@
 namespace fast_io
 {
 
-template<stream handletype,typename decorators_type,buffer_mode mde,std::size_t bfs,std::size_t alignsz>
-inline constexpr void flush(basic_io_buffer<handletype,decorators_type,mde,bfs,alignsz>& bios)
+template<stream handletype,buffer_mode mde,typename decorators_type,std::size_t bfs,std::size_t alignsz>
+inline constexpr void flush(basic_io_buffer<handletype,mde,decorators_type,bfs,alignsz>& bios)
 {
 	if constexpr((mde&buffer_mode::out)==buffer_mode::out)
 	{
@@ -16,8 +16,8 @@ inline constexpr void flush(basic_io_buffer<handletype,decorators_type,mde,bfs,a
 	if constexpr((mde&buffer_mode::in)==buffer_mode::in)
 		bios.ibuffer.buffer_end=bios.ibuffer.buffer_curr=bios.ibuffer.buffer_begin;
 }
-#if 0
-template<stream handletype,typename internaldecorator,typename externaldecorator,buffer_mode mde,std::size_t bfs,std::size_t alignsz>
-inline constexpr void require_secure_clear(basic_io_buffer<handletype,internaldecorator,externaldecorator,mde,bfs,alignsz>&){}
-#endif
+
+template<stream handletype,buffer_mode mde,typename decorators_type,std::size_t bfs,std::size_t alignsz>
+requires ((mde&buffer_mode::secure_clear)==buffer_mode::secure_clear)
+inline constexpr void require_secure_clear(basic_io_buffer<handletype,mde,decorators_type,bfs,alignsz>&){}
 }
