@@ -12,25 +12,25 @@ typename internaltype=empty_decorator,
 typename externaltype=empty_decorator>
 struct basic_decorators
 {
-	using char_type = ch_type;
+	using internal_type = ch_type;
 	using internal_decorator_type=internaltype;
 	using external_decorator_type=externaltype;
-	[[no_unique_address]] internal_decorator_type internal;
-	[[no_unique_address]] external_decorator_type external;
+	[[no_unique_address]] internal_decorator_type internal_decorator;
+	[[no_unique_address]] external_decorator_type external_decorator;
 };
 
 template<std::integral char_type,typename internaltype,typename externaltype>
 requires (!std::same_as<internaltype,empty_decorator>)
-inline constexpr internaltype& internal(basic_decorators<char_type,internaltype,externaltype>& decos) noexcept
+inline constexpr internaltype& internal_decorator(basic_decorators<char_type,internaltype,externaltype>& decos) noexcept
 {
-	return decos.internal;
+	return decos.internal_decorator;
 }
 
 template<std::integral char_type,typename internaltype,typename externaltype>
 requires (!std::same_as<externaltype,empty_decorator>)
-inline constexpr externaltype& external(basic_decorators<char_type,internaltype,externaltype>& decos) noexcept
+inline constexpr externaltype& external_decorator(basic_decorators<char_type,internaltype,externaltype>& decos) noexcept
 {
-	return decos.external;
+	return decos.external_decorator;
 }
 
 namespace details
@@ -78,13 +78,13 @@ inline constexpr void write_with_deco(T t,decot deco,Iter first,Iter last,std::s
 template<typename decorators_type>
 concept has_internal_decorator_impl = requires(decorators_type& decos)
 {
-	internal(decos);
+	internal_decorator(decos);
 };
 
 template<typename decorators_type>
 concept has_external_decorator_impl = requires(decorators_type& decos)
 {
-	external(decos);
+	external_decorator(decos);
 };
 
 
@@ -92,9 +92,9 @@ concept has_external_decorator_impl = requires(decorators_type& decos)
 
 template<stream handletype,
 typename decoratorstypr=
-basic_decorators<typename handletype::char_type>,
+basic_decorators<typename handletype::internal_type>,
 buffer_mode mde=buffer_mode::io|buffer_mode::secure_clear,
-std::size_t bfs = io_default_buffer_size<typename decoratorstypr::char_type>,
+std::size_t bfs = io_default_buffer_size<typename decoratorstypr::internal_type>,
 	std::size_t alignmsz=
 #ifdef FAST_IO_BUFFER_ALIGNMENT
 	FAST_IO_BUFFER_ALIGNMENT
@@ -109,7 +109,7 @@ class basic_io_buffer
 public:
 	using handle_type = handletype;
 	using decorators_type = decoratorstypr;
-	using char_type = typename decorators_type::char_type;
+	using char_type = typename decorators_type::internal_type;
 	using pointer = char_type*;
 	using const_pointer = char_type const*;
 	inline static constexpr buffer_mode mode = mde;
@@ -142,7 +142,7 @@ private:
 		{
 			if constexpr(details::has_external_decorator_impl<decorators_type>)
 			{
-				details::write_with_deco(io_ref(handle),io_deco_ref(external(decorators)),obuffer.buffer_begin,obuffer.buffer_curr,bfs);
+				details::write_with_deco(io_ref(handle),io_deco_ref(external_decorator(decorators)),obuffer.buffer_begin,obuffer.buffer_curr,bfs);
 			}
 			else
 			{

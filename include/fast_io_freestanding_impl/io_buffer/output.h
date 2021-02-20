@@ -6,11 +6,11 @@ namespace fast_io
 namespace details
 {
 
-template<typename handletype,typename Iter>
-concept allow_iobuf_punning = stream<handletype>&&std::forward_iterator<Iter>&&std::contiguous_iterator<Iter>&&
+template<typename char_type,typename Iter>
+concept allow_iobuf_punning = std::contiguous_iterator<Iter>&&
 //temporary only allow contiguous_iterator before we finish this part
-(std::same_as<typename handletype::char_type,std::iter_value_t<Iter>>||
-(std::same_as<typename handletype::char_type,char>&&std::contiguous_iterator<Iter>));
+(std::same_as<char_type,std::iter_value_t<Iter>>||
+(std::same_as<char_type,char>&&std::contiguous_iterator<Iter>));
 
 template<std::integral char_type,std::random_access_iterator Iter>
 inline constexpr void iobuf_write_unhappy_nullptr_case_impl(basic_io_buffer_pointers<char_type>& obuffer,Iter first,Iter last,std::size_t buffer_size,std::size_t buffer_alignment)
@@ -89,11 +89,8 @@ inline constexpr void iobuf_write_unhappy_decay_impl_deco(T t,decot deco,basic_i
 template<typename T,std::random_access_iterator Iter>
 inline constexpr void iobuf_write_unhappy_impl(T& t,Iter first,Iter last)
 {
-	if constexpr(requires()
-	{
-		external(t.decorators);
-	})
-		iobuf_write_unhappy_decay_impl_deco<T::buffer_size,T::buffer_alignment>(io_ref(t.handle),external(t.decorators),t.obuffer,first,last);
+	if constexpr(has_external_decorator_impl<typename T::decorators_type>)
+		iobuf_write_unhappy_decay_impl_deco<T::buffer_size,T::buffer_alignment>(io_ref(t.handle),external_decorator(t.decorators),t.obuffer,first,last);
 	else
 		iobuf_write_unhappy_decay_impl<T::buffer_size,T::buffer_alignment>(io_ref(t.handle),t.obuffer,first,last);
 }
@@ -103,11 +100,11 @@ inline constexpr void iobuf_write_unhappy_impl(T& t,Iter first,Iter last)
 template<stream handletype,
 typename decorators,
 buffer_mode mde,std::size_t bfs,std::size_t alignsz,std::random_access_iterator Iter>
-requires (((mde&buffer_mode::out)==buffer_mode::out)&&details::allow_iobuf_punning<handletype,Iter>)
+requires (((mde&buffer_mode::out)==buffer_mode::out)&&details::allow_iobuf_punning<typename decorators::internal_type,Iter>)
 inline constexpr void write(basic_io_buffer<handletype,decorators,mde,bfs,alignsz>& bios,Iter first,Iter last)
 {
 	using iter_char_type = std::iter_value_t<Iter>;
-	using char_type = typename decorators::char_type;
+	using char_type = typename decorators::internal_type;
 	if constexpr(std::same_as<iter_char_type,char_type>)
 	{
 		if constexpr(std::contiguous_iterator<Iter>&&!std::is_pointer_v<Iter>)
@@ -233,7 +230,7 @@ inline constexpr auto overflow(basic_io_buffer<handletype,decorators,mde,bfs,ali
 	typename basic_io_buffer<handletype,decorators,mde,bfs,alignsz>::char_type ch)
 {
 	if constexpr(details::has_external_decorator_impl<decorators>)
-		details::iobuf_overflow_impl_deco(io_ref(bios.handle),external(bios.decorators),bios.obuffer,ch,bfs,alignsz);
+		details::iobuf_overflow_impl_deco(io_ref(bios.handle),external_decorator(bios.decorators),bios.obuffer,ch,bfs,alignsz);
 	else
 		details::iobuf_overflow_impl(io_ref(bios.handle),bios.obuffer,ch,bfs,alignsz);
 }

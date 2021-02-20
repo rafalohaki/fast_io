@@ -61,12 +61,12 @@ inline constexpr bool underflow(basic_io_buffer<handletype,decoratorstype,mde,bf
 	((mde&buffer_mode::tie)==buffer_mode::tie))
 	{
 		if constexpr(details::has_external_decorator_impl<decoratorstype>)
-			details::iobuf_output_flush_impl_deco(io_ref(bios.handle),external(bios.decorators),bios.obuffer,bfs);
+			details::iobuf_output_flush_impl_deco(io_ref(bios.handle),external_decorator(bios.decorators),bios.obuffer,bfs);
 		else
 			details::iobuf_output_flush_impl(io_ref(bios.handle),bios.obuffer);
 	}
 	if constexpr(details::has_internal_decorator_impl<decoratorstype>)
-		return details::underflow_impl_deco<bfs,alignsz>(io_ref(bios.handle),internal(bios.decorators),bios.ibuffer);
+		return details::underflow_impl_deco<bfs,alignsz>(io_ref(bios.handle),internal_decorator(bios.decorators),bios.ibuffer);
 	else
 		return details::underflow_impl<bfs,alignsz>(io_ref(bios.handle),bios.ibuffer);
 }
@@ -81,14 +81,14 @@ inline constexpr Iter iobuf_read_unhappy_impl(T& bios,Iter first,Iter last)
 	if constexpr(((T::mode&buffer_mode::out)==buffer_mode::out)&&((T::mode&buffer_mode::tie)==buffer_mode::tie))
 	{
 		if constexpr(details::has_external_decorator_impl<typename T::decorators_type>)
-			iobuf_output_flush_impl_deco(io_ref(bios.handle),io_deco_ref(external(bios.decorators)),bios.obuffer,T::buffer_size);
+			iobuf_output_flush_impl_deco(io_ref(bios.handle),io_deco_ref(external_decorator(bios.decorators)),bios.obuffer,T::buffer_size);
 		else
 			iobuf_output_flush_impl(io_ref(bios.handle),bios.obuffer);
 	}
 	first=non_overlapped_copy(bios.ibuffer.buffer_curr,bios.ibuffer.buffer_end,first);
 	bios.ibuffer.buffer_curr=bios.ibuffer.buffer_end;
 	if constexpr(details::has_internal_decorator_impl<typename T::decorators_type>)
-		return iobuf_read_unhappy_decay_impl_deco(io_ref(bios.handle),io_deco_ref(internal(bios.decorators)),bios.ibuffer,first,last,T::buffer_size,T::buffer_alignment);
+		return iobuf_read_unhappy_decay_impl_deco(io_ref(bios.handle),io_deco_ref(internal_decorator(bios.decorators)),bios.ibuffer,first,last,T::buffer_size,T::buffer_alignment);
 	else
 		return iobuf_read_unhappy_decay_impl(io_ref(bios.handle),bios.ibuffer,first,last,T::buffer_size,T::buffer_alignment);
 }
@@ -98,11 +98,11 @@ inline constexpr Iter iobuf_read_unhappy_impl(T& bios,Iter first,Iter last)
 template<stream handletype,
 typename decorators,
 buffer_mode mde,std::size_t bfs,std::size_t alignsz,std::random_access_iterator Iter>
-requires (((mde&buffer_mode::in)==buffer_mode::in)&&details::allow_iobuf_punning<handletype,Iter>)
+requires (((mde&buffer_mode::in)==buffer_mode::in)&&details::allow_iobuf_punning<typename decorators::internal_type,Iter>)
 inline constexpr Iter read(basic_io_buffer<handletype,decorators,mde,bfs,alignsz>& bios,Iter first,Iter last)
 {
 	using iter_char_type = std::iter_value_t<Iter>;
-	using char_type = typename decorators::char_type;
+	using char_type = typename decorators::internal_type;
 	if constexpr(std::same_as<iter_char_type,char_type>)
 	{
 		if constexpr(std::contiguous_iterator<Iter>&&!std::is_pointer_v<Iter>)
