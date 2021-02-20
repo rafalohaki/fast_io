@@ -3,64 +3,53 @@
 namespace fast_io
 {
 
-template<std::input_or_output_iterator FromIter,std::input_or_output_iterator ToIter>
-requires (std::is_trivially_copyable_v<std::iter_value_t<FromIter>>&&
-	std::is_trivially_copyable_v<std::iter_value_t<ToIter>>)
-struct basic_io_decorate_t
+template<typename to_value_type,typename T>
+concept decorator=requires(T t)
 {
-	using from_iter_type = FromIter;
-	using to_iter_type = ToIter;
-	using from_value_type = std::iter_value_t<from_iter_type>;
-	using to_value_type = std::iter_value_t<to_iter_type>;
-	from_iter_type from_iter;
-	to_iter_type to_iter;
-};
-
-namespace details
-{
-template<typename T>
-concept zero_reserve_decorator_impl=requires(T t,typename std::remove_cvref_t<T>::from_type const* from_iter,typename std::remove_cvref_t<T>::to_type* to_iter)
-{
-	{deco_reserve_define(t,from_iter,from_iter,to_iter)}->std::convertible_to<typename std::remove_cvref_t<T>::to_type*>;
-};
-
-template<typename T>
-concept normal_decorator_impl=requires(T t,typename std::remove_cvref_t<T>::from_type const* from_iter,typename std::remove_cvref_t<T>::to_type* to_iter)
-{
-	{deco_reserve_define(t,from_iter,from_iter,to_iter)}->std::convertible_to<basic_io_decorate_t<typename std::remove_cvref_t<T>::from_type const*,typename std::remove_cvref_t<T>::to_type*>>;
-};
-
+	typename T::char_type;
 }
-
-template<typename T>
-concept decorator=std::is_trivially_copyable_v<typename std::remove_cvref_t<T>::from_type>&&std::is_trivially_copyable_v<typename std::remove_cvref_t<T>::to_type>&&requires(T t)
+&&requires(T t,typename T::char_type const* ptr,to_value_type* dest,std::size_t size)
 {
-	typename std::remove_cvref_t<T>::from_type;
-	typename std::remove_cvref_t<T>::to_type;
-	requires (details::zero_reserve_decorator_impl<T>||details::normal_decorator_impl<T>);
+	{deco_reserve_size(io_reserve_type<to_value_type,T>,t,size)}->std::same_as<std::size_t>;
+	{deco_reserve_define(io_reserve_type<to_value_type,T>,t,ptr,ptr,dest)}->std::convertible_to<to_value_type*>;
+};
+
+template<typename to_value_type,typename T>
+concept maybe_noop_decorator=decorator<to_value_type,T>&&requires(T t)
+{
+	{deco_maybe_noop(io_reserve_type<to_value_type,T>,t)}->std::convertible_to<bool>;
+};
+
+template<typename to_value_type,typename T>
+concept always_noop_decorator=decorator<to_value_type,T>&&requires()
+{
+	deco_always_noop(io_reserve_type<to_value_type,T>);//must be consteval
+};
+
+template<typename to_value_type,typename T>
+concept reserve_inverse_size_decorator=decorator<to_value_type,T>&&requires(T t,std::size_t size)
+{
+	{deco_reserve_inverse_size(io_reserve_type<to_value_type,T>,t,size)}->std::same_as<std::size_t>;
 };
 
 template<typename T>
-concept zero_reserve_decorator=decorator<T>&&details::zero_reserve_decorator_impl<T>;
-
-template<typename T>
-concept nop_decorator=decorator<T>&&requires(T t)
+concept value_based_decorator = requires(T t)
 {
-	{deco_is_nop(t)}->std::convertible_to<bool>;
+	{deco_value_handle(t)};
+};
+
+template<typename to_value_type,typename T>
+concept unshift_decorator = requires(T t,to_value_type const* from_iter,to_value_type const* to_iter)
+{
+	{deco_unshift_size(io_reserve_type<to_value_type,T>,t)};
+	{deco_unshift_define(io_reserve_type<to_value_type,T>,t,from_iter,to_iter)};
 };
 
 template<typename T>
-concept decorated_input_stream = input_stream<T>&&requires(T t)
+concept no_need_construct_decorator = requires(T t)
 {
-	typename std::remove_cvref_t<T>::input_decorator_type;
-	{get_idecorator(t)}->decorator;
+	{deco_no_need_construct(t)};
 };
 
-template<typename T>
-concept decorated_output_stream = output_stream<T>&&requires(T t)
-{
-	typename std::remove_cvref_t<T>::output_decorator_type;
-	{get_odecorator(t)}->decorator;
-};
 
 }

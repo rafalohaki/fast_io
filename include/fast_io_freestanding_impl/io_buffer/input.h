@@ -8,10 +8,7 @@ namespace fast_io
 template<zero_copy_input_stream handletype,
 typename decorators,
 buffer_mode mde,std::size_t bfs,std::size_t alignsz>
-requires ((mde&buffer_mode::in)==buffer_mode::in&&requires(basic_io_buffer<handletype,decorators,mde,bfs,alignsz>& bios)
-{
-	internal(bios.decorators);
-})
+requires ((mde&buffer_mode::in)==buffer_mode::in&&!details::has_internal_decorator_impl<decorators>)
 inline constexpr decltype(auto) zero_copy_in_handle(basic_io_buffer<handletype,decorators,mde,bfs,alignsz>& bios)
 {
 	return zero_copy_in_handle(bios.handle);
@@ -83,21 +80,15 @@ inline constexpr Iter iobuf_read_unhappy_impl(T& bios,Iter first,Iter last)
 {
 	if constexpr(((T::mode&buffer_mode::out)==buffer_mode::out)&&((T::mode&buffer_mode::tie)==buffer_mode::tie))
 	{
-		if constexpr(requires()
-		{
-			external(bios.decorators);
-		})
-			iobuf_output_flush_impl_deco(io_ref(bios.handle),external(bios.decorators),bios.obuffer,T::buffer_size);
+		if constexpr(details::has_external_decorator_impl<typename T::decorators_type>)
+			iobuf_output_flush_impl_deco(io_ref(bios.handle),io_deco_ref(external(bios.decorators)),bios.obuffer,T::buffer_size);
 		else
 			iobuf_output_flush_impl(io_ref(bios.handle),bios.obuffer);
 	}
 	first=non_overlapped_copy(bios.ibuffer.buffer_curr,bios.ibuffer.buffer_end,first);
 	bios.ibuffer.buffer_curr=bios.ibuffer.buffer_end;
-	if constexpr(requires()
-	{
-		internal(bios.decorators);
-	})
-		return iobuf_read_unhappy_decay_impl_deco(io_ref(bios.handle),internal(bios.decorators),bios.ibuffer,first,last,T::buffer_size,T::buffer_alignment);
+	if constexpr(details::has_internal_decorator_impl<typename T::decorators_type>)
+		return iobuf_read_unhappy_decay_impl_deco(io_ref(bios.handle),io_deco_ref(internal(bios.decorators)),bios.ibuffer,first,last,T::buffer_size,T::buffer_alignment);
 	else
 		return iobuf_read_unhappy_decay_impl(io_ref(bios.handle),bios.ibuffer,first,last,T::buffer_size,T::buffer_alignment);
 }

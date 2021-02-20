@@ -54,7 +54,7 @@ struct buffer_alloc_arr_ptr
 };
 
 template<typename T,typename decot,std::random_access_iterator Iter>
-inline constexpr void write_with_deco(T t,decot& deco,Iter first,Iter last,std::size_t buffer_size)
+inline constexpr void write_with_deco(T t,decot deco,Iter first,Iter last,std::size_t buffer_size)
 {
 	using char_type = typename T::char_type;
 	using decot_no_cvref_t = std::remove_cvref_t<decot>;
@@ -62,7 +62,8 @@ inline constexpr void write_with_deco(T t,decot& deco,Iter first,Iter last,std::
 	std::size_t diff{static_cast<std::size_t>(last-first)};
 	if(diff<internal_size)
 		internal_size=diff;
-	buffer_alloc_arr_ptr<char_type> alloc_ptr{deco_reserve_size(io_reserve_type<char_type,decot_no_cvref_t>,deco,diff)};
+
+	buffer_alloc_arr_ptr<char_type> alloc_ptr{deco_reserve_size(io_reserve_type<char_type,decot_no_cvref_t>,deco,internal_size)};
 	for(;first!=last;)
 	{
 		std::size_t this_round{internal_size};
@@ -139,12 +140,9 @@ private:
 	{
 		if(obuffer.buffer_begin!=obuffer.buffer_curr)
 		{
-			if constexpr(requires()
+			if constexpr(details::has_external_decorator_impl<decorators_type>)
 			{
-				external(decorators);
-			})
-			{
-				details::write_with_deco(io_ref(handle),external(decorators),obuffer.buffer_begin,obuffer.buffer_curr,bfs);
+				details::write_with_deco(io_ref(handle),io_deco_ref(external(decorators)),obuffer.buffer_begin,obuffer.buffer_curr,bfs);
 			}
 			else
 			{

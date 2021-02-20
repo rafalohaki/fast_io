@@ -4,7 +4,7 @@ namespace fast_io::details
 {
 
 template<stream T,typename decot,std::integral char_type>
-inline constexpr bool underflow_rl_impl_deco(T t,decot& deco,basic_io_buffer_pointers_with_cap<char_type>& ibuffer,std::size_t bfsz,std::size_t alignsz)
+inline constexpr bool underflow_rl_impl_deco(T t,decot deco,basic_io_buffer_pointers_with_cap<char_type>& ibuffer,std::size_t bfsz,std::size_t alignsz)
 {
 	using external_char_type = typename T::char_type;
 
@@ -37,6 +37,8 @@ inline constexpr bool underflow_rl_impl_deco(T t,decot& deco,basic_io_buffer_poi
 	else
 		ibuffer.buffer_end=ibuffer.buffer_curr=ibuffer.buffer_begin;
 	using decot_nocvref_t = std::remove_cvref_t<decot>;
+	static_assert(std::same_as<char_type,char32_t>);
+	static_assert(decorator<char_type,decot_nocvref_t>);
 	ibuffer.buffer_end=deco_reserve_define(io_reserve_type<char_type,decot_nocvref_t>,deco,buffer_begin,readed,ibuffer.buffer_begin);
 	if(ibuffer.buffer_begin==ibuffer.buffer_end)
 		return false;
@@ -44,14 +46,18 @@ inline constexpr bool underflow_rl_impl_deco(T t,decot& deco,basic_io_buffer_poi
 }
 
 template<std::size_t bfsz,std::size_t alignsz,stream T,typename decot,std::integral char_type>
-inline constexpr bool underflow_impl_deco(T t,decot& deco,basic_io_buffer_pointers_with_cap<char_type>& ibuffer)
+inline constexpr bool underflow_impl_deco(T t,decot deco,basic_io_buffer_pointers_with_cap<char_type>& ibuffer)
 {
+	if constexpr(maybe_noop_decorator<char_type,decot>)
+	{
+
+	}
 	return underflow_rl_impl_deco(t,deco,ibuffer,bfsz,alignsz);
 }
 
 template<typename T,typename decot,std::integral char_type,std::contiguous_iterator Iter>
 //requires (std::same_as<std::iter_value_t<Iter>,char_type>&&std::is_pointer_v<Iter>)
-inline constexpr Iter iobuf_read_unhappy_decay_impl_deco(T t,decot& deco,basic_io_buffer_pointers_with_cap<char_type>& ibuffer,Iter first,Iter last,std::size_t bfsz,std::size_t alignsz)
+inline constexpr Iter iobuf_read_unhappy_decay_impl_deco(T t,decot deco,basic_io_buffer_pointers_with_cap<char_type>& ibuffer,Iter first,Iter last,std::size_t bfsz,std::size_t alignsz)
 {
 	using external_char_type = typename T::char_type;
 	using internal_char_type = char_type;

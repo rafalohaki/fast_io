@@ -29,6 +29,20 @@ basic_code_converter<from_char_type,from_scheme,to_scheme>&,std::size_t from_siz
 	return details::cal_decorated_reserve_size<sizeof(from_char_type),sizeof(to_char_type)>(from_size);
 }
 
+#if 0
+template<std::integral from_char_type,std::integral to_char_type,
+encoding_scheme from_scheme,encoding_scheme to_scheme>
+inline constexpr std::size_t deco_reserve_inverse_size(io_reserve_type_t<to_char_type,
+basic_code_converter<from_char_type,from_scheme,to_scheme>>,
+basic_code_converter<from_char_type,from_scheme,to_scheme>&,std::size_t from_size) noexcept
+{
+	return details::cal_decorated_reserve_size<sizeof(from_char_type),sizeof(to_char_type)>(from_size);
+}
+#endif
+
+template<std::integral from_char_type,encoding_scheme from_scheme,encoding_scheme to_scheme>
+inline constexpr void deco_no_need_construct(basic_code_converter<from_char_type,from_scheme,to_scheme>){}
+
 template<encoding_scheme from_scheme,encoding_scheme to_scheme,
 std::contiguous_iterator from_iter,std::contiguous_iterator to_iter>
 inline constexpr to_iter deco_reserve_define(io_reserve_type_t<std::iter_value_t<to_iter>,

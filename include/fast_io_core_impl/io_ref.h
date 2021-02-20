@@ -83,18 +83,6 @@ constexpr decltype(auto) zero_copy_out_handle(io_reference_wrapper<output> out)
 	return zero_copy_out_handle(*out.ptr);
 }
 
-template<decorated_output_stream output>
-constexpr decltype(auto) get_odecorator(io_reference_wrapper<output> out)
-{
-	return get_odecorator(*out.ptr);
-}
-
-template<decorated_input_stream input>
-constexpr decltype(auto) get_idecorator(io_reference_wrapper<input> in)
-{
-	return get_idecorator(*in.ptr);
-}
-
 template<buffer_output_stream output,typename... Args>
 constexpr void obuffer_set_curr(io_reference_wrapper<output> out,Args&& ...args)
 {
