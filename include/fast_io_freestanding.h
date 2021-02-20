@@ -9,7 +9,6 @@
 //#include<system_error>
 //#include<cmath>
 #include"fast_io_freestanding_impl/exception.h"
-#include"fast_io_freestanding_impl/code_cvt/utf.h"
 #include"fast_io_freestanding_impl/posix_error.h"
 //compile floating point is slow since it requires algorithms like ryu
 #include"fast_io_freestanding_impl/floating_point/floating.h"
