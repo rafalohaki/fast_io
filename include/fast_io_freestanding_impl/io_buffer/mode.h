@@ -9,7 +9,8 @@ in=1<<0,
 out=1<<1,
 tie=1<<2,
 io=in|out|tie,
-secure_clear=1<<3
+secure_clear=1<<3,
+construct_decorator=1<<4
 };
 
 inline constexpr buffer_mode operator&(buffer_mode x, buffer_mode y) noexcept

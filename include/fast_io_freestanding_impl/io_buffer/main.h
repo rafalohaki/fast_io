@@ -76,13 +76,13 @@ inline constexpr void write_with_deco(T t,decot deco,Iter first,Iter last,std::s
 }
 
 template<typename decorators_type>
-concept has_internal_decorator_impl = requires(decorators_type& decos)
+concept has_internal_decorator_impl = requires(decorators_type&& decos)
 {
 	internal_decorator(decos);
 };
 
 template<typename decorators_type>
-concept has_external_decorator_impl = requires(decorators_type& decos)
+concept has_external_decorator_impl = requires(decorators_type&& decos)
 {
 	external_decorator(decos);
 };
@@ -92,8 +92,8 @@ concept has_external_decorator_impl = requires(decorators_type& decos)
 
 template<stream handletype,
 typename decoratorstypr=
-basic_decorators<typename handletype::internal_type>,
-buffer_mode mde=buffer_mode::io|buffer_mode::secure_clear,
+basic_decorators<typename handletype::char_type>,
+buffer_mode mde=buffer_mode::io|buffer_mode::secure_clear|buffer_mode::construct_decorator,
 std::size_t bfs = io_default_buffer_size<typename decoratorstypr::internal_type>,
 	std::size_t alignmsz=
 #ifdef FAST_IO_BUFFER_ALIGNMENT
@@ -210,18 +210,18 @@ private:
 			}
 	}
 public:
+
 	constexpr basic_io_buffer()=default;
 	template<typename... Args>
-	requires (std::is_default_constructible_v<decorators_type>&&std::constructible_from<handle_type,Args...>)
+	requires (((mode&buffer_mode::construct_decorator)!=buffer_mode::construct_decorator)&&std::constructible_from<handle_type,Args...>)
 	explicit constexpr basic_io_buffer(Args&& ...args):handle(std::forward<Args>(args)...){}
-#if 0
-	template<typename dectype,typename... Args>
-	requires (!std::is_empty_v<decorators_type>
-	&&std::constructible_from<decorators_type,dectype>
+
+	template<typename... Args>
+	requires (((mode&buffer_mode::construct_decorator)==buffer_mode::construct_decorator)
 	&&std::constructible_from<handle_type,Args...>)
-	explicit constexpr basic_io_buffer(dectype&& decos,Args&& ...args):handle(std::forward<Args>(args)...),
-		decorators(std::forward<dectype>(decos)){}
-#endif
+	explicit constexpr basic_io_buffer(decorators_type&& decos,Args&& ...args):handle(std::forward<Args>(args)...),
+		decorators(std::move(decos)){}
+
 	constexpr basic_io_buffer(basic_io_buffer const& other) requires std::copyable<handle_type>:handle(other.handle),decorators(other.decorators){}
 	constexpr basic_io_buffer(basic_io_buffer const&)=delete;
 	constexpr basic_io_buffer& operator=(basic_io_buffer const& other) requires std::copyable<handle_type>

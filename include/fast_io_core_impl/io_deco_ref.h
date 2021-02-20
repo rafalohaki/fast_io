@@ -7,7 +7,6 @@ template<typename decot>
 struct deco_reference_wrapper
 {
 	using decorator_type = decot;
-	using char_type=typename decorator_type::char_type;
 	decorator_type* ptr{};
 };
 
@@ -34,7 +33,7 @@ constexpr std::size_t deco_reserve_size(io_reserve_type_t<to_char_type,deco_refe
 };
 
 template<std::random_access_iterator srcIter,std::random_access_iterator toIter,typename decot>
-requires decorator<std::iter_value_t<toIter>,decot>
+requires decoratable<std::iter_value_t<srcIter>,std::iter_value_t<toIter>,decot>
 constexpr toIter deco_reserve_define(io_reserve_type_t<std::iter_value_t<toIter>,deco_reference_wrapper<decot>>,deco_reference_wrapper<decot> deco,srcIter first,srcIter last,toIter iter)
 {
 	return deco_reserve_define(io_reserve_type<std::iter_value_t<toIter>,decot>,*deco.ptr,first,last,iter);

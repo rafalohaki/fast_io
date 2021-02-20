@@ -271,6 +271,131 @@ inline constexpr parameter<
 		return {reference};
 }
 
+
+
+
+template<std::size_t bs,bool upper=false,typename T>
+requires (2<=bs&&bs<=36&&(::fast_io::details::my_integral<T>||
+	(std::is_pointer_v<T>||std::contiguous_iterator<T>)))
+inline constexpr std::conditional_t<bs==10,
+	parameter<std::conditional_t<std::is_pointer_v<T>||std::contiguous_iterator<T>,std::uintptr_t,
+	std::make_unsigned_t<std::remove_cvref_t<T>>>>,
+	base_t<bs,upper&&(10<bs),
+	std::conditional_t<std::is_pointer_v<T>||std::contiguous_iterator<T>,std::uintptr_t,
+	std::make_unsigned_t<std::remove_cvref_t<T>>>
+	>> ubase(T reference) noexcept
+{
+	if constexpr(std::contiguous_iterator<T>)
+		return {bit_cast<std::uintptr_t>(std::to_address(reference))};
+	else if constexpr(std::is_pointer_v<T>)
+		return {bit_cast<std::uintptr_t>(reference)};
+	else
+		return {static_cast<std::make_unsigned_t<std::remove_cvref_t<T>>>(reference)};
+}
+
+
+template<std::size_t bs,typename T>
+requires (2<=bs&&bs<=36&&(::fast_io::details::my_integral<T>||
+	(std::is_pointer_v<T>||std::contiguous_iterator<T>)))
+inline constexpr std::conditional_t<bs==10,
+	parameter<std::conditional_t<std::is_pointer_v<T>||std::contiguous_iterator<T>,std::uintptr_t,
+	std::make_unsigned_t<std::remove_cvref_t<T>>>>,
+	base_t<bs,10<bs,
+	std::conditional_t<std::is_pointer_v<T>||std::contiguous_iterator<T>,std::uintptr_t,
+	std::make_unsigned_t<std::remove_cvref_t<T>>>
+	>> ubase_upper(T reference) noexcept
+{
+	if constexpr(std::contiguous_iterator<T>)
+		return {bit_cast<std::uintptr_t>(std::to_address(reference))};
+	else if constexpr(std::is_pointer_v<T>)
+		return {bit_cast<std::uintptr_t>(reference)};
+	else
+		return {static_cast<std::make_unsigned_t<std::remove_cvref_t<T>>>(reference)};
+}
+
+template<typename T>
+requires (::fast_io::details::my_integral<T>||
+	(std::is_pointer_v<T>||std::contiguous_iterator<T>))
+inline constexpr base_t<16,false,
+	std::conditional_t<std::is_pointer_v<T>||std::contiguous_iterator<T>,std::uintptr_t,
+	std::make_unsigned_t<std::remove_cvref_t<T>>>
+	> uhex(T reference) noexcept
+{
+	if constexpr(std::contiguous_iterator<T>)
+		return {bit_cast<std::uintptr_t>(std::to_address(reference))};
+	else if constexpr(std::is_pointer_v<T>)
+		return {bit_cast<std::uintptr_t>(reference)};
+	else
+		return {static_cast<std::make_unsigned_t<std::remove_cvref_t<T>>>(reference)};
+}
+
+template<typename T>
+requires (::fast_io::details::my_integral<T>||
+	(std::is_pointer_v<T>||std::contiguous_iterator<T>))
+inline constexpr base_t<16,true,
+	std::conditional_t<std::is_pointer_v<T>||std::contiguous_iterator<T>,std::uintptr_t,
+	std::make_unsigned_t<std::remove_cvref_t<T>>>
+	> uhex_upper(T reference) noexcept
+{
+	if constexpr(std::contiguous_iterator<T>)
+		return {bit_cast<std::uintptr_t>(std::to_address(reference))};
+	else if constexpr(std::is_pointer_v<T>)
+		return {bit_cast<std::uintptr_t>(reference)};
+	else
+		return {static_cast<std::make_unsigned_t<std::remove_cvref_t<T>>>(reference)};
+}
+
+
+template<typename T>
+requires (::fast_io::details::my_integral<T>||
+	(std::is_pointer_v<T>||std::contiguous_iterator<T>))
+inline constexpr base_t<2,false,
+	std::conditional_t<std::is_pointer_v<T>||std::contiguous_iterator<T>,std::uintptr_t,
+	std::make_unsigned_t<std::remove_cvref_t<T>>>
+	> ubin(T reference) noexcept
+{
+	if constexpr(std::contiguous_iterator<T>)
+		return {bit_cast<std::uintptr_t>(std::to_address(reference))};
+	else if constexpr(std::is_pointer_v<T>)
+		return {bit_cast<std::uintptr_t>(reference)};
+	else
+		return {static_cast<std::make_unsigned_t<std::remove_cvref_t<T>>>(reference)};
+}
+
+template<typename T>
+requires (::fast_io::details::my_integral<T>||
+	(std::is_pointer_v<T>||std::contiguous_iterator<T>))
+inline constexpr base_t<8,false,
+	std::conditional_t<std::is_pointer_v<T>||std::contiguous_iterator<T>,std::uintptr_t,
+	std::make_unsigned_t<std::remove_cvref_t<T>>>
+	> uoct(T reference) noexcept
+{
+	if constexpr(std::contiguous_iterator<T>)
+		return {bit_cast<std::uintptr_t>(std::to_address(reference))};
+	else if constexpr(std::is_pointer_v<T>)
+		return {bit_cast<std::uintptr_t>(reference)};
+	else
+		return {static_cast<std::make_unsigned_t<std::remove_cvref_t<T>>>(reference)};
+}
+
+template<typename T>
+requires (::fast_io::details::my_integral<T>||
+	(std::is_pointer_v<T>||std::contiguous_iterator<T>))
+inline constexpr parameter<
+	std::conditional_t<std::is_pointer_v<T>||std::contiguous_iterator<T>,std::uintptr_t,
+	std::make_unsigned_t<std::remove_cvref_t<T>>>
+	> udec(T reference) noexcept
+{
+	if constexpr(std::contiguous_iterator<T>)
+		return {bit_cast<std::uintptr_t>(std::to_address(reference))};
+	else if constexpr(std::is_pointer_v<T>)
+		return {bit_cast<std::uintptr_t>(reference)};
+	else
+		return {static_cast<std::make_unsigned_t<std::remove_cvref_t<T>>>(reference)};
+}
+
+
+
 template<std::integral T>
 inline constexpr chvw_t<T> chvw(T ch)
 {
