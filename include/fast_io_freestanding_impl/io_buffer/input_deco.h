@@ -37,8 +37,6 @@ inline constexpr bool underflow_rl_impl_deco(T t,decot deco,basic_io_buffer_poin
 	else
 		ibuffer.buffer_end=ibuffer.buffer_curr=ibuffer.buffer_begin;
 	using decot_nocvref_t = std::remove_cvref_t<decot>;
-	static_assert(std::same_as<char_type,char32_t>);
-	static_assert(decorator<char_type,decot_nocvref_t>);
 	ibuffer.buffer_end=deco_reserve_define(io_reserve_type<char_type,decot_nocvref_t>,deco,buffer_begin,readed,ibuffer.buffer_begin);
 	if(ibuffer.buffer_begin==ibuffer.buffer_end)
 		return false;
