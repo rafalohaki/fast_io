@@ -32,21 +32,23 @@ using basic_iobuf = basic_io_buffer<strm,buffer_mode::in|buffer_mode::out|buffer
 
 template<std::integral internal_char_type,
 	input_stream input,
-	encoding_scheme internal_scheme=encoding_scheme::execution_charset>
+	encoding_scheme internal_scheme=encoding_scheme::execution_charset,
+	encoding_scheme external_scheme=encoding_scheme::execution_charset>
 using basic_ibuf_code_cvt = basic_io_buffer<input,
 	buffer_mode::in,
 	basic_decorators<internal_char_type,
-	basic_code_converter<internal_char_type,internal_scheme>,
+	basic_code_converter<typename input::char_type,external_scheme,internal_scheme>,
 	empty_decorator>>;
 
 template<std::integral internal_char_type,
 	output_stream output,
+	encoding_scheme internal_scheme=encoding_scheme::execution_charset,
 	encoding_scheme external_scheme=encoding_scheme::execution_charset>
 using basic_obuf_code_cvt = basic_io_buffer<output,
 	buffer_mode::out,
 	basic_decorators<internal_char_type,
 	empty_decorator,
-	basic_code_converter<internal_char_type,external_scheme>>>;
+	basic_code_converter<internal_char_type,internal_scheme,external_scheme>>>;
 
 template<std::integral internal_char_type,
 	io_stream input_output,
@@ -55,8 +57,8 @@ template<std::integral internal_char_type,
 using basic_iobuf_code_cvt = basic_io_buffer<input_output,
 	buffer_mode::in|buffer_mode::out|buffer_mode::tie,
 	basic_decorators<internal_char_type,
-	basic_code_converter<typename input_output::char_type,internal_scheme>,
-	basic_code_converter<internal_char_type,external_scheme>>>;
+	basic_code_converter<typename input_output::char_type,external_scheme,internal_scheme>,
+	basic_code_converter<internal_char_type,internal_scheme,external_scheme>>>;
 
 template<std::integral char_type>
 using basic_iobuf_io_io_observer = basic_iobuf<basic_io_io_observer<char_type>>;

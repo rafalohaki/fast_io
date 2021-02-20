@@ -228,11 +228,13 @@ inline constexpr std::size_t cal_decorated_reserve_size(std::size_t internal_siz
 	}
 }
 
+}
+
 template<std::integral char_type>
 inline constexpr encoding_scheme execution_charset_encoding_scheme() noexcept
 {
 	using char_type_no_cvref_t = std::remove_cvref_t<char_type>;
-	if constexpr(exec_charset_is_ebcdic<char_type_no_cvref_t>())
+	if constexpr(details::exec_charset_is_ebcdic<char_type_no_cvref_t>())
 		return encoding_scheme::utf_ebcdic;
 	else
 	{
@@ -265,10 +267,8 @@ inline constexpr encoding_scheme execution_charset_encoding_scheme() noexcept
 			return encoding_scheme::utf;
 	}
 }
-}
 
-
-template<std::integral char_type,encoding_scheme scheme=details::execution_charset_encoding_scheme<char_type>()>
+template<std::integral char_type,encoding_scheme scheme=execution_charset_encoding_scheme<char_type>()>
 using basic_mb_state=basic_utf_mb_state<char_type>;
 
 template<std::integral src_char_type,std::integral dest_char_type>

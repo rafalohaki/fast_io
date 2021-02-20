@@ -4,7 +4,7 @@ namespace fast_io
 {
 
 template<std::integral src_char_type,
-	encoding_scheme src_scheme=details::execution_charset_encoding_scheme<src_char_type>(),
+	encoding_scheme src_scheme=execution_charset_encoding_scheme<src_char_type>(),
 	encoding_scheme dst_scheme=encoding_scheme::execution_charset>
 struct basic_code_converter
 {

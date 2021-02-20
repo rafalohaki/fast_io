@@ -161,54 +161,62 @@ using u32iobuf_file_mutex = basic_iobuf_file_mutex<char32_t>;
 #endif
 #endif
 
+
 /*
-UTF-8 region
+code_cvt file template region
 */
-template<std::integral internal_char_type,
-	std::integral external_char_type,
-	encoding_scheme internal_scheme=encoding_scheme::execution_charset>
-using basic_ibuf_code_cvt_file = basic_ibuf_code_cvt<internal_char_type,basic_inative_file<external_char_type>,internal_scheme>;
-template<std::integral internal_char_type>
-using basic_ibuf_utf8_file = std::conditional_t<std::same_as<internal_char_type,char8_t>,basic_ibuf<basic_inative_file<char8_t>>,basic_ibuf_code_cvt_file<internal_char_type,char8_t>>;
-using ibuf_utf8_file = basic_ibuf_utf8_file<char>;
-#ifndef __MSDOS__
-using wibuf_utf8_file = basic_ibuf_utf8_file<wchar_t>;
-#endif
-using u8ibuf_utf8_file = basic_ibuf_utf8_file<char8_t>;
-using u16ibuf_utf8_file = basic_ibuf_utf8_file<char16_t>;
-using u32ibuf_utf8_file = basic_ibuf_utf8_file<char32_t>;
-
-
-
-template<std::integral internal_char_type,
-	std::integral external_char_type,
-	encoding_scheme external_scheme=encoding_scheme::execution_charset>
-using basic_obuf_code_cvt_file = basic_obuf_code_cvt<internal_char_type,basic_onative_file<external_char_type>,external_scheme>;
-template<std::integral internal_char_type>
-using basic_obuf_utf8_file = std::conditional_t<std::same_as<internal_char_type,char8_t>,basic_obuf<basic_onative_file<char8_t>>,basic_obuf_code_cvt_file<internal_char_type,char8_t>>;
-using obuf_utf8_file = basic_obuf_utf8_file<char>;
-#ifndef __MSDOS__
-using wobuf_utf8_file = basic_obuf_utf8_file<wchar_t>;
-#endif
-using u8obuf_utf8_file = basic_obuf_utf8_file<char8_t>;
-using u16obuf_utf8_file = basic_obuf_utf8_file<char16_t>;
-using u32obuf_utf8_file = basic_obuf_utf8_file<char32_t>;
-
 
 template<std::integral internal_char_type,
 	std::integral external_char_type,
 	encoding_scheme internal_scheme=encoding_scheme::execution_charset,
 	encoding_scheme external_scheme=encoding_scheme::execution_charset>
-using basic_iobuf_code_cvt_file = basic_iobuf_code_cvt<internal_char_type,basic_native_file<external_char_type>,internal_scheme,external_scheme>;
+using basic_icode_cvt_file = basic_ibuf_code_cvt<internal_char_type,basic_inative_file<external_char_type>,internal_scheme,external_scheme>;
+template<std::integral internal_char_type,
+	std::integral external_char_type,
+	encoding_scheme internal_scheme=encoding_scheme::execution_charset,
+	encoding_scheme external_scheme=encoding_scheme::execution_charset>
+using basic_ocode_cvt_file = basic_obuf_code_cvt<internal_char_type,basic_onative_file<external_char_type>,internal_scheme,external_scheme>;
+template<std::integral internal_char_type,
+	std::integral external_char_type,
+	encoding_scheme internal_scheme=encoding_scheme::execution_charset,
+	encoding_scheme external_scheme=encoding_scheme::execution_charset>
+using basic_code_cvt_file = basic_iobuf_code_cvt<internal_char_type,basic_native_file<external_char_type>,internal_scheme,external_scheme>;
+
+
+
+/*
+UTF-8 region
+*/
+
 template<std::integral internal_char_type>
-using basic_iobuf_utf8_file = std::conditional_t<std::same_as<internal_char_type,char8_t>,basic_iobuf<basic_native_file<char8_t>>,basic_iobuf_code_cvt_file<internal_char_type,char8_t>>;
-using iobuf_utf8_file = basic_iobuf_utf8_file<char>;
+using basic_iutf8_file = std::conditional_t<std::same_as<internal_char_type,char8_t>,basic_ibuf<basic_inative_file<char8_t>>,basic_icode_cvt_file<internal_char_type,char8_t>>;
+using iutf8_file = basic_iutf8_file<char>;
 #ifndef __MSDOS__
-using wiobuf_utf8_file = basic_iobuf_utf8_file<wchar_t>;
+using wiutf8_file = basic_iutf8_file<wchar_t>;
 #endif
-using u8iobuf_utf8_file = basic_iobuf_utf8_file<char8_t>;
-using u16iobuf_utf8_file = basic_iobuf_utf8_file<char16_t>;
-using u32iobuf_utf8_file = basic_iobuf_utf8_file<char32_t>;
+using u8iutf8_file = basic_iutf8_file<char8_t>;
+using u16iutf8_file = basic_iutf8_file<char16_t>;
+using u32iutf8_file = basic_iutf8_file<char32_t>;
+
+template<std::integral internal_char_type>
+using basic_outf8_file = std::conditional_t<std::same_as<internal_char_type,char8_t>,basic_obuf<basic_onative_file<char8_t>>,basic_ocode_cvt_file<internal_char_type,char8_t>>;
+using outf8_file = basic_outf8_file<char>;
+#ifndef __MSDOS__
+using woutf8_file = basic_outf8_file<wchar_t>;
+#endif
+using u8outf8_file = basic_outf8_file<char8_t>;
+using u16outf8_file = basic_outf8_file<char16_t>;
+using u32outf8_file = basic_outf8_file<char32_t>;
+
+template<std::integral internal_char_type>
+using basic_utf8_file = std::conditional_t<std::same_as<internal_char_type,char8_t>,basic_iobuf<basic_native_file<char8_t>>,basic_code_cvt_file<internal_char_type,char8_t>>;
+using utf8_file = basic_utf8_file<char>;
+#ifndef __MSDOS__
+using wutf8_file = basic_utf8_file<wchar_t>;
+#endif
+using u8utf8_file = basic_utf8_file<char8_t>;
+using u16utf8_file = basic_utf8_file<char16_t>;
+using u32utf8_file = basic_utf8_file<char32_t>;
 
 
 /*
@@ -216,224 +224,43 @@ GB18030 region
 */
 
 template<std::integral internal_char_type>
-using basic_ibuf_gb18030_file = basic_ibuf_code_cvt_file<internal_char_type,char,encoding_scheme::gb18030>;
-using ibuf_gb18030_file = basic_ibuf_gb18030_file<char>;
+using basic_igb18030_file = std::conditional_t<std::same_as<char,internal_char_type>
+&&execution_charset_encoding_scheme<char>()==encoding_scheme::gb18030,
+basic_ibuf<basic_inative_file<char>>,
+basic_icode_cvt_file<internal_char_type,char,encoding_scheme::gb18030>>;
+using igb18030_file = basic_igb18030_file<char>;
 #ifndef __MSDOS__
-using wibuf_gb18030_file = basic_ibuf_gb18030_file<wchar_t>;
+using wigb18030_file = basic_igb18030_file<wchar_t>;
 #endif
-using u8ibuf_gb18030_file = basic_ibuf_gb18030_file<char8_t>;
-using u16ibuf_gb18030_file = basic_ibuf_gb18030_file<char16_t>;
-using u32ibuf_gb18030_file = basic_ibuf_gb18030_file<char32_t>;
+using u8igb18030_file = basic_igb18030_file<char8_t>;
+using u16igb18030_file = basic_igb18030_file<char16_t>;
+using u32igb18030_file = basic_igb18030_file<char32_t>;
 
 template<std::integral internal_char_type>
-using basic_obuf_gb18030_file = basic_obuf_code_cvt_file<internal_char_type,char,encoding_scheme::gb18030>;
-using obuf_gb18030_file = basic_obuf_gb18030_file<char>;
+using basic_ogb18030_file = std::conditional_t<std::same_as<char,internal_char_type>
+&&execution_charset_encoding_scheme<char>()==encoding_scheme::gb18030,
+basic_obuf<basic_onative_file<char>>,
+basic_ocode_cvt_file<internal_char_type,char,encoding_scheme::execution_charset,encoding_scheme::gb18030>>;
+using ogb18030_file = basic_ogb18030_file<char>;
 #ifndef __MSDOS__
-using wobuf_gb18030_file = basic_obuf_gb18030_file<wchar_t>;
+using wogb18030_file = basic_ogb18030_file<wchar_t>;
 #endif
-using u8obuf_gb18030_file = basic_obuf_gb18030_file<char8_t>;
-using u16obuf_gb18030_file = basic_obuf_gb18030_file<char16_t>;
-using u32obuf_gb18030_file = basic_obuf_gb18030_file<char32_t>;
+using u8ogb18030_file = basic_ogb18030_file<char8_t>;
+using u16ogb18030_file = basic_ogb18030_file<char16_t>;
+using u32ogb18030_file = basic_ogb18030_file<char32_t>;
 
 template<std::integral internal_char_type>
-using basic_iobuf_gb18030_file = basic_iobuf_code_cvt_file<internal_char_type,char,encoding_scheme::gb18030>;
-using iobuf_gb18030_file = basic_iobuf_gb18030_file<char>;
+using basic_gb18030_file = std::conditional_t<std::same_as<char,internal_char_type>
+&&execution_charset_encoding_scheme<char>()==encoding_scheme::gb18030,
+basic_iobuf<basic_native_file<char>>,
+basic_code_cvt_file<internal_char_type,char,encoding_scheme::execution_charset,encoding_scheme::gb18030>>;
+using gb18030_file = basic_gb18030_file<char>;
 #ifndef __MSDOS__
-using wiobuf_gb18030_file = basic_iobuf_gb18030_file<wchar_t>;
+using wgb18030_file = basic_gb18030_file<wchar_t>;
 #endif
-using u8iobuf_gb18030_file = basic_iobuf_gb18030_file<char8_t>;
-using u16iobuf_gb18030_file = basic_iobuf_gb18030_file<char16_t>;
-using u32iobuf_gb18030_file = basic_iobuf_gb18030_file<char32_t>;
+using u8gb18030_file = basic_gb18030_file<char8_t>;
+using u16gb18030_file = basic_gb18030_file<char16_t>;
+using u32gb18030_file = basic_gb18030_file<char32_t>;
 
 
-
-#if 0
-/*
-Comment out since we have not yet supported bom
-*/
-/*
-UTF-16LE region
-*/
-
-template<std::integral internal_char_type>
-using basic_ibuf_utf16le_file =
-std::conditional_t<std::same_as<internal_char_type,char16_t>&&std::endian::little==std::endian::native,
-basic_ibuf<basic_inative_file<char16_t>>,
-basic_ibuf_code_cvt_file<internal_char_type,char16_t,encoding_scheme::utf_le>>;
-using ibuf_utf16le_file = basic_ibuf_utf16le_file<char>;
-#ifndef __MSDOS__
-using wibuf_utf16le_file = basic_ibuf_utf16le_file<wchar_t>;
-#endif
-using u8ibuf_utf16le_file = basic_ibuf_utf16le_file<char8_t>;
-using u16ibuf_utf16le_file = basic_ibuf_utf16le_file<char16_t>;
-using u32ibuf_utf16le_file = basic_ibuf_utf16le_file<char32_t>;
-
-
-
-template<std::integral internal_char_type>
-using basic_obuf_utf16le_file =
-std::conditional_t<std::same_as<internal_char_type,char16_t>&&std::endian::little==std::endian::native,
-basic_obuf<basic_onative_file<char16_t>>,
-basic_obuf_code_cvt_file<internal_char_type,char16_t,encoding_scheme::utf_le>>;
-using obuf_utf16le_file = basic_obuf_utf16le_file<char>;
-#ifndef __MSDOS__
-using wobuf_utf16le_file = basic_obuf_utf16le_file<wchar_t>;
-#endif
-using u8obuf_utf16le_file = basic_obuf_utf16le_file<char8_t>;
-using u16obuf_utf16le_file = basic_obuf_utf16le_file<char16_t>;
-using u32obuf_utf16le_file = basic_obuf_utf16le_file<char32_t>;
-
-
-
-template<std::integral internal_char_type>
-using basic_iobuf_utf16le_file = 
-std::conditional_t<std::same_as<internal_char_type,char16_t>&&std::endian::little==std::endian::native,
-basic_iobuf<basic_native_file<char16_t>>,
-basic_iobuf_code_cvt_file<internal_char_type,char16_t,encoding_scheme::utf_le>>;
-using iobuf_utf16le_file = basic_iobuf_utf16le_file<char>;
-#ifndef __MSDOS__
-using wiobuf_utf16le_file = basic_iobuf_utf16le_file<wchar_t>;
-#endif
-using u8iobuf_utf16le_file = basic_iobuf_utf16le_file<char8_t>;
-using u16iobuf_utf16le_file = basic_iobuf_utf16le_file<char16_t>;
-using u32iobuf_utf16le_file = basic_iobuf_utf16le_file<char32_t>;
-
-
-
-/*
-UTF-32LE region
-*/
-template<std::integral internal_char_type>
-using basic_ibuf_utf32le_file =
-std::conditional_t<std::same_as<internal_char_type,char32_t>&&std::endian::little==std::endian::native,
-basic_ibuf<basic_inative_file<char32_t>>,
-basic_ibuf_code_cvt_file<internal_char_type,char32_t,encoding_scheme::utf_le>>;
-using ibuf_utf32le_file = basic_ibuf_utf32le_file<char>;
-#ifndef __MSDOS__
-using wibuf_utf32le_file = basic_ibuf_utf32le_file<wchar_t>;
-#endif
-using u8ibuf_utf32le_file = basic_ibuf_utf32le_file<char8_t>;
-using u16ibuf_utf32le_file = basic_ibuf_utf32le_file<char16_t>;
-using u32ibuf_utf32le_file = basic_ibuf_utf32le_file<char32_t>;
-
-template<std::integral internal_char_type>
-using basic_obuf_utf32le_file =
-std::conditional_t<std::same_as<internal_char_type,char32_t>&&std::endian::little==std::endian::native,
-basic_obuf<basic_onative_file<char32_t>>,
-basic_obuf_code_cvt_file<internal_char_type,char32_t,encoding_scheme::utf_le>>;
-using obuf_utf32le_file = basic_obuf_utf32le_file<char>;
-#ifndef __MSDOS__
-using wobuf_utf32le_file = basic_obuf_utf32le_file<wchar_t>;
-#endif
-using u8obuf_utf32le_file = basic_obuf_utf32le_file<char8_t>;
-using u16obuf_utf32le_file = basic_obuf_utf32le_file<char16_t>;
-using u32obuf_utf32le_file = basic_obuf_utf32le_file<char32_t>;
-
-template<std::integral internal_char_type>
-using basic_iobuf_utf32le_file = 
-std::conditional_t<std::same_as<internal_char_type,char32_t>&&std::endian::little==std::endian::native,
-basic_iobuf<basic_native_file<char32_t>>,
-basic_iobuf_code_cvt_file<internal_char_type,char32_t,encoding_scheme::utf_le>>;
-using iobuf_utf32le_file = basic_iobuf_utf32le_file<char>;
-#ifndef __MSDOS__
-using wiobuf_utf32le_file = basic_iobuf_utf32le_file<wchar_t>;
-#endif
-using u8iobuf_utf32le_file = basic_iobuf_utf32le_file<char8_t>;
-using u16iobuf_utf32le_file = basic_iobuf_utf32le_file<char16_t>;
-using u32iobuf_utf32le_file = basic_iobuf_utf32le_file<char32_t>;
-
-
-/*
-UTF-16BE region
-*/
-
-
-template<std::integral internal_char_type>
-using basic_ibuf_utf16le_file =
-std::conditional_t<std::same_as<internal_char_type,char16_t>&&std::endian::big==std::endian::native,
-basic_ibuf<basic_inative_file<char16_t>>,
-basic_ibuf_code_cvt_file<internal_char_type,char16_t,encoding_scheme::utf_be>>;
-using ibuf_utf16le_file = basic_ibuf_utf16le_file<char>;
-#ifndef __MSDOS__
-using wibuf_utf16le_file = basic_ibuf_utf16le_file<wchar_t>;
-#endif
-using u8ibuf_utf16le_file = basic_ibuf_utf16le_file<char8_t>;
-using u16ibuf_utf16le_file = basic_ibuf_utf16le_file<char16_t>;
-using u32ibuf_utf16le_file = basic_ibuf_utf16le_file<char32_t>;
-
-
-
-template<std::integral internal_char_type>
-using basic_obuf_utf16le_file =
-std::conditional_t<std::same_as<internal_char_type,char16_t>&&std::endian::big==std::endian::native,
-basic_obuf<basic_onative_file<char16_t>>,
-basic_obuf_code_cvt_file<internal_char_type,char16_t,encoding_scheme::utf_be>>;
-using obuf_utf16le_file = basic_obuf_utf16le_file<char>;
-#ifndef __MSDOS__
-using wobuf_utf16le_file = basic_obuf_utf16le_file<wchar_t>;
-#endif
-using u8obuf_utf16le_file = basic_obuf_utf16le_file<char8_t>;
-using u16obuf_utf16le_file = basic_obuf_utf16le_file<char16_t>;
-using u32obuf_utf16le_file = basic_obuf_utf16le_file<char32_t>;
-
-
-
-template<std::integral internal_char_type>
-using basic_iobuf_utf16le_file = 
-std::conditional_t<std::same_as<internal_char_type,char16_t>&&std::endian::big==std::endian::native,
-basic_iobuf<basic_native_file<char16_t>>,
-basic_iobuf_code_cvt_file<internal_char_type,char16_t,encoding_scheme::utf_be>>;
-using iobuf_utf16le_file = basic_iobuf_utf16le_file<char>;
-#ifndef __MSDOS__
-using wiobuf_utf16le_file = basic_iobuf_utf16le_file<wchar_t>;
-#endif
-using u8iobuf_utf16le_file = basic_iobuf_utf16le_file<char8_t>;
-using u16iobuf_utf16le_file = basic_iobuf_utf16le_file<char16_t>;
-using u32iobuf_utf16le_file = basic_iobuf_utf16le_file<char32_t>;
-
-
-
-/*
-UTF-32BE region
-*/
-template<std::integral internal_char_type>
-using basic_ibuf_utf32le_file =
-std::conditional_t<std::same_as<internal_char_type,char32_t>&&std::endian::big==std::endian::native,
-basic_ibuf<basic_inative_file<char32_t>>,
-basic_ibuf_code_cvt_file<internal_char_type,char32_t,encoding_scheme::utf_be>>;
-using ibuf_utf32le_file = basic_ibuf_utf32le_file<char>;
-#ifndef __MSDOS__
-using wibuf_utf32le_file = basic_ibuf_utf32le_file<wchar_t>;
-#endif
-using u8ibuf_utf32le_file = basic_ibuf_utf32le_file<char8_t>;
-using u16ibuf_utf32le_file = basic_ibuf_utf32le_file<char16_t>;
-using u32ibuf_utf32le_file = basic_ibuf_utf32le_file<char32_t>;
-
-template<std::integral internal_char_type>
-using basic_obuf_utf32le_file =
-std::conditional_t<std::same_as<internal_char_type,char32_t>&&std::endian::big==std::endian::native,
-basic_obuf<basic_onative_file<char32_t>>,
-basic_obuf_code_cvt_file<internal_char_type,char32_t,encoding_scheme::utf_be>>;
-using obuf_utf32le_file = basic_obuf_utf32le_file<char>;
-#ifndef __MSDOS__
-using wobuf_utf32le_file = basic_obuf_utf32le_file<wchar_t>;
-#endif
-using u8obuf_utf32le_file = basic_obuf_utf32le_file<char8_t>;
-using u16obuf_utf32le_file = basic_obuf_utf32le_file<char16_t>;
-using u32obuf_utf32le_file = basic_obuf_utf32le_file<char32_t>;
-
-template<std::integral internal_char_type>
-using basic_iobuf_utf32le_file = 
-std::conditional_t<std::same_as<internal_char_type,char32_t>&&std::endian::big==std::endian::native,
-basic_iobuf<basic_native_file<char32_t>>,
-basic_iobuf_code_cvt_file<internal_char_type,char32_t,encoding_scheme::utf_be>>;
-using iobuf_utf32le_file = basic_iobuf_utf32le_file<char>;
-#ifndef __MSDOS__
-using wiobuf_utf32le_file = basic_iobuf_utf32le_file<wchar_t>;
-#endif
-using u8iobuf_utf32le_file = basic_iobuf_utf32le_file<char8_t>;
-using u16iobuf_utf32le_file = basic_iobuf_utf32le_file<char16_t>;
-using u32iobuf_utf32le_file = basic_iobuf_utf32le_file<char32_t>;
-
-#endif
 }
