@@ -168,4 +168,59 @@ std::uint64_t umul(std::uint64_t a,std::uint64_t b,std::uint64_t& high) noexcept
 #endif
 }
 
+inline constexpr std::size_t add_or_overflow_die(std::size_t a,std::size_t b) noexcept
+{
+
+#if defined(_MSC_VER)
+#if __cpp_lib_is_constant_evaluated >= 201811L
+	if(!std::is_constant_evaluated())
+	{
+#if defined(_M_X64)
+		std::size_t res;
+		if(_addcarry_u64(false,a,b,&res))[[unlikely]]
+			__debugbreak();
+		return res;
+#elif defined(_M_X32)
+		std::size_t size{a+b};
+		if(size<a)[[unlikely]]
+			__debugbreak();
+		return size;
+#else
+		std::size_t size{a+b};
+		if(size<a)[[unlikely]]
+			__debugbreak();
+		return size;
+#endif
+	}
+	else
+#endif
+	{
+		std::size_t size{a+b};
+		if(size<a)[[unlikely]]
+			__debugbreak();
+		return size;
+	}
+#elif __has_builtin(__builtin_add_overflow)&& __has_builtin(__builtin_trap)
+	std::size_t size;
+	if(__builtin_add_overflow(a,b,&size))[[unlikely]]
+		__builtin_trap();
+	return size;
+#else
+	std::size_t size{a+b};
+	if(size<a)[[unlikely]]
+		fast_terminate();
+	return size;
+#endif
+}
+
+template<typename... Args>
+requires (std::same_as<std::size_t,std::remove_cvref_t<Args>>&&...)
+inline constexpr std::size_t add_or_overflow_die_chain(std::size_t size,Args... args) noexcept
+{
+	if constexpr(sizeof...(Args)==0)
+		return size;
+	else
+		return add_or_overflow_die(size,add_or_overflow_die_chain(args...));
+}
+
 }
