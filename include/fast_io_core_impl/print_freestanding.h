@@ -134,8 +134,8 @@ template<std::integral char_type,typename T,typename... Args>
 requires (sizeof...(Args)!=0)
 inline constexpr std::size_t calculate_scatter_reserve_size()
 {
-	return calculate_scatter_reserve_size_unit<char_type,T>()+
-		calculate_scatter_reserve_size<char_type,Args...>();
+	return add_or_overflow_die(calculate_scatter_reserve_size_unit<char_type,T>(),
+		calculate_scatter_reserve_size<char_type,Args...>());
 }
 
 
@@ -150,7 +150,7 @@ inline constexpr std::size_t calculate_scatter_dynamic_reserve_size([[maybe_unus
 		if constexpr(sizeof...(Args)==0)
 			return res;
 		else
-			return res+calculate_scatter_dynamic_reserve_size<char_type>(args...);
+			return ::fast_io::details::intrinsics::add_or_overflow_die(res,calculate_scatter_dynamic_reserve_size<char_type>(args...));
 	}
 	else
 	{
@@ -303,8 +303,9 @@ inline constexpr void print_control(output out,T t)
 	using value_type = std::remove_cvref_t<T>;
 	if constexpr(reserve_printable<char_type,value_type>)
 	{
-		constexpr std::size_t size{print_reserve_control_size_impl<pci,char_type,value_type>()+static_cast<std::size_t>(line)};
-		static_assert(size!=0);
+		constexpr std::size_t real_size{print_reserve_control_size_impl<pci,char_type,value_type>()};
+		constexpr std::size_t size{real_size+static_cast<std::size_t>(line)};
+		static_assert(real_size!=SIZE_MAX);
 #ifndef __SANITIZE_ADDRESS__
 
 #if 0	
@@ -405,7 +406,18 @@ inline constexpr void print_control(output out,T t)
 	{
 		std::size_t size{print_dynamic_reserve_control_size_impl<pci,char_type,value_type>(t)};
 		if constexpr(line)
+		{
+			constexpr std::size_t mx{std::numeric_limits<std::ptrdiff_t>::max()-1};
+			if(size>=mx)
+				fast_terminate();
 			++size;
+		}
+		else
+		{
+			constexpr std::size_t mx{std::numeric_limits<std::ptrdiff_t>::max()};
+			if(mx<size)
+				fast_terminate();
+		}
 #ifndef __SANITIZE_ADDRESS__
 
 #if 0

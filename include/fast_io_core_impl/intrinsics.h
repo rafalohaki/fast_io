@@ -223,4 +223,54 @@ inline constexpr std::size_t add_or_overflow_die_chain(std::size_t size,Args... 
 		return add_or_overflow_die(size,add_or_overflow_die_chain(args...));
 }
 
+inline constexpr std::size_t mul_or_overflow_die(std::size_t a,std::size_t b) noexcept
+{
+#if defined(_MSC_VER)
+    std::size_t const max{SIZE_MAX/b};
+		if(max<a)[[unlikely]]
+			__debugbreak();
+		return a*b;
+#elif __has_builtin(__builtin_mul_overflow)&& __has_builtin(__builtin_trap)
+	std::size_t size;
+	if(__builtin_mul_overflow(a,b,&size))[[unlikely]]
+		__builtin_trap();
+	return size;
+#else
+	std::size_t size{a+b};
+	if(size<a)[[unlikely]]
+		fast_terminate();
+	return size;
+#endif
+}
+
+template<typename... Args>
+requires (std::same_as<std::size_t,std::remove_cvref_t<Args>>&&...)
+inline constexpr std::size_t mul_or_overflow_die_chain(std::size_t size,Args... args) noexcept
+{
+	if constexpr(sizeof...(Args)==0)
+		return size;
+	else
+		return mul_or_overflow_die(size,mul_or_overflow_die_chain(args...));
+}
+
+template<typename T>
+inline constexpr std::size_t cal_allocation_size_or_die(std::size_t size) noexcept
+{
+#if defined(_MSC_VER)
+	constexpr std::size_t max_size{SIZE_MAX/sizeof(T)};
+	if(size>max_size)
+		__debugbreak();
+	return size*sizeof(T);
+#elif __has_builtin(__builtin_mul_overflow) && __has_builtin(__builtin_trap)
+	if(__builtin_mul_overflow(size,sizeof(T),&size))[[unlikely]]
+		__builtin_trap();
+	return size;
+#else
+	constexpr std::size_t max_size{SIZE_MAX/sizeof(T)};
+	if(size>max_size)
+		fast_terminate();
+	return size*sizeof(T);
+#endif
+}
+
 }

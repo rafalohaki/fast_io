@@ -104,10 +104,7 @@ inline constexpr char_type* allocate_iobuf_space(std::size_t buffer_size,std::si
 	{
 #endif
 //capable for AVX512
-		constexpr std::size_t max_size{SIZE_MAX/sizeof(char_type)};
-		if(buffer_size>max_size)
-			fast_terminate();
-		return static_cast<char_type*>(operator new(buffer_size*sizeof(char_type),std::align_val_t{aligmsz}));
+		return static_cast<char_type*>(operator new(intrinsics::cal_allocation_size_or_die<char_type>(buffer_size),std::align_val_t{aligmsz}));
 #if __cpp_exceptions
 	}
 	catch(...)

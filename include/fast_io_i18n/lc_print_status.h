@@ -90,7 +90,7 @@ inline constexpr std::size_t calculate_lc_scatter_dynamic_reserve_size(
 		if constexpr(sizeof...(Args)==0)
 			return res;
 		else
-			return res+calculate_lc_scatter_dynamic_reserve_size(all,args...);
+			return ::fast_io::details::intrinsics::add_or_overflow_die(res,calculate_lc_scatter_dynamic_reserve_size(all,args...));
 	}
 	else if constexpr(!reserve_printable<char_type,T>&&
 		dynamic_reserve_printable<char_type,T>)
@@ -99,7 +99,7 @@ inline constexpr std::size_t calculate_lc_scatter_dynamic_reserve_size(
 		if constexpr(sizeof...(Args)==0)
 			return res;
 		else
-			return res+calculate_lc_scatter_dynamic_reserve_size(all,args...);
+			return ::fast_io::details::intrinsics::add_or_overflow_die(res,calculate_lc_scatter_dynamic_reserve_size(all,args...));
 	}
 	else
 	{
@@ -142,7 +142,7 @@ inline constexpr void lc_scatter_print_with_dynamic_reserve_recursive(
 	else if constexpr(dynamic_reserve_printable<char_type,T>)
 	{
 		auto end_ptr = print_reserve_define(io_reserve_type<char_type,T>,dynamic_buffer_ptr,t);
-		*arr={dynamic_buffer_ptr,(end_ptr-dynamic_buffer_ptr)*sizeof(*dynamic_buffer_ptr)};
+		*arr={dynamic_buffer_ptr,static_cast<std::size_t>(end_ptr-dynamic_buffer_ptr)*sizeof(*dynamic_buffer_ptr)};
 		if constexpr(sizeof...(Args)!=0)
 			dynamic_buffer_ptr = end_ptr;
 	}
