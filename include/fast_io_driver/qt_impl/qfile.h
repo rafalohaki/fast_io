@@ -65,12 +65,6 @@ public:
 	basic_qt_file(basic_nt_family_io_handle<family,ch_type>&& wioh,open_mode mode):
 		basic_qt_file(basic_posix_file<ch_type>(std::move(wioh),mode),mode)
 	{}
-	basic_qt_file(wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_qt_file(basic_posix_file<char_type>(file,om,pm),om)
-	{}
-	basic_qt_file(native_at_entry nate,wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_qt_file(basic_posix_file<char_type>(nate,file,om,pm),om)
-	{}
 #endif
 
 	basic_qt_file(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
@@ -79,7 +73,30 @@ public:
 	basic_qt_file(native_at_entry nate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_qt_file(basic_posix_file<char_type>(nate,file,om,pm),om)
 	{}
-
+	basic_qt_file(wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_qt_file(basic_posix_file<char_type>(file,om,pm),om)
+	{}
+	basic_qt_file(native_at_entry nate,wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_qt_file(basic_posix_file<char_type>(nate,file,om,pm),om)
+	{}
+	basic_qt_file(u8cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_qt_file(basic_posix_file<char_type>(file,om,pm),om)
+	{}
+	basic_qt_file(native_at_entry nate,u8cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_qt_file(basic_posix_file<char_type>(nate,file,om,pm),om)
+	{}
+	basic_qt_file(u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_qt_file(basic_posix_file<char_type>(file,om,pm),om)
+	{}
+	basic_qt_file(native_at_entry nate,u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_qt_file(basic_posix_file<char_type>(nate,file,om,pm),om)
+	{}
+	basic_qt_file(u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_qt_file(basic_posix_file<char_type>(file,om,pm),om)
+	{}
+	basic_qt_file(native_at_entry nate,u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_qt_file(basic_posix_file<char_type>(nate,file,om,pm),om)
+	{}
 	basic_qt_file(basic_qt_file const&)=delete;
 	basic_qt_file& operator=(basic_qt_file const&)=delete;
 	

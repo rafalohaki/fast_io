@@ -251,26 +251,47 @@ public:
 		basic_bio_file(basic_posix_file(std::move(bmv),om),om)
 	{
 	}
-
-	template<typename... Args>
-	basic_bio_file(wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_bio_file(basic_c_file<char_type>(file,om,pm),om)
-	{}
-
-	basic_bio_file(native_at_entry nate,wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_bio_file(basic_c_file<char_type>(nate,file,om,pm),om)
-	{}
-
+	template<nt_family family>
+	basic_bio_file(basic_nt_family_io_handle<family,char_type>&& nt_handle,open_mode om):
+		basic_bio_file(basic_posix_file<char_type>(std::move(nt_handle),om),to_native_c_mode(om))
+	{
+	}
 #endif
 	template<typename... Args>
 	basic_bio_file(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_bio_file(basic_c_file<char_type>(file,om,pm),om)
 	{}
-
 	basic_bio_file(native_at_entry nate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_bio_file(basic_c_file<char_type>(nate,file,om,pm),om)
 	{}
-
+	template<typename... Args>
+	basic_bio_file(wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_bio_file(basic_c_file<char_type>(file,om,pm),om)
+	{}
+	basic_bio_file(native_at_entry nate,wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_bio_file(basic_c_file<char_type>(nate,file,om,pm),om)
+	{}
+	template<typename... Args>
+	basic_bio_file(u8cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_bio_file(basic_c_file<char_type>(file,om,pm),om)
+	{}
+	basic_bio_file(native_at_entry nate,u8cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_bio_file(basic_c_file<char_type>(nate,file,om,pm),om)
+	{}
+	template<typename... Args>
+	basic_bio_file(u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_bio_file(basic_c_file<char_type>(file,om,pm),om)
+	{}
+	basic_bio_file(native_at_entry nate,u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_bio_file(basic_c_file<char_type>(nate,file,om,pm),om)
+	{}
+	template<typename... Args>
+	basic_bio_file(u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_bio_file(basic_c_file<char_type>(file,om,pm),om)
+	{}
+	basic_bio_file(native_at_entry nate,u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_bio_file(basic_c_file<char_type>(nate,file,om,pm),om)
+	{}
 	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
 	{
 		if(this->native_handle())[[likely]]

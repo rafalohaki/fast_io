@@ -790,8 +790,6 @@ public:
 		basic_c_file_impl(basic_posix_file<char_type>(std::move(nt_handle),om),to_native_c_mode(om))
 	{
 	}
-
-
 #endif
 	basic_c_file_impl(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_c_file_impl(basic_posix_file<typename T::char_type>(file,om,pm),om)
