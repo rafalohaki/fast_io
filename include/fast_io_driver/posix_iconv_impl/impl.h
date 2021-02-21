@@ -46,7 +46,7 @@ inline constexpr std::size_t deco_reserve_size(io_reserve_type_t<to_char_type,po
 namespace details
 {
 
-inline std::size_t iconv_deco_reserve_define_impl(iconv_t cd,char const* inbyteptr,std::size_t inbytesize,char* outbyteptr,std::size_t output_buffer_size) noexcept
+inline std::size_t iconv_deco_reserve_define_impl(iconv_t cd,char const* inbyteptr,std::size_t inbytesize,char* outbyteptr,std::size_t output_buffer_size)
 {
 	char* inbyteptr_no_const{const_cast<char*>(inbyteptr)};
 	std::size_t unconverted_char_counts{output_buffer_size};

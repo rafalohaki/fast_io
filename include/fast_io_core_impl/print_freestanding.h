@@ -134,7 +134,7 @@ template<std::integral char_type,typename T,typename... Args>
 requires (sizeof...(Args)!=0)
 inline constexpr std::size_t calculate_scatter_reserve_size()
 {
-	return add_or_overflow_die(calculate_scatter_reserve_size_unit<char_type,T>(),
+	return ::fast_io::details::intrinsics::add_or_overflow_die(calculate_scatter_reserve_size_unit<char_type,T>(),
 		calculate_scatter_reserve_size<char_type,Args...>());
 }
 
