@@ -248,16 +248,21 @@ struct nt_file_openmode
 	inline static constexpr nt_open_mode mode = calculate_nt_open_mode(om,pm);
 };
 
-inline void nt_file_rtl_path(wcstring_view filename,win32::nt::unicode_string& nt_name,wchar_t const*& part_name,win32::nt::rtl_relative_name_u& relative_name)
+inline void nt_file_rtl_path(wchar_t const* filename,win32::nt::unicode_string& nt_name,wchar_t const*& part_name,win32::nt::rtl_relative_name_u& relative_name)
 {
-	if(!win32::nt::rtl_dos_path_name_to_nt_path_name_u(filename.c_str(),std::addressof(nt_name),std::addressof(part_name),std::addressof(relative_name)))
+	if(!win32::nt::rtl_dos_path_name_to_nt_path_name_u(filename,std::addressof(nt_name),std::addressof(part_name),std::addressof(relative_name)))
 		throw_nt_error(0xC0000039);
 }
 
-inline void nt_file_rtl_path(cstring_view filename,wchar_t* buffer_data,win32::nt::unicode_string& nt_name,wchar_t const*& part_name,win32::nt::rtl_relative_name_u& relative_name)
+inline void nt_file_rtl_path_code_cvt(cstring_view filename,char16_t* buffer_data,win32::nt::unicode_string& nt_name,wchar_t const*& part_name,win32::nt::rtl_relative_name_u& relative_name)
 {
 	*::fast_io::details::codecvt::general_code_cvt_full(filename.data(),filename.data()+filename.size(),buffer_data)=0;
-	if(!win32::nt::rtl_dos_path_name_to_nt_path_name_u(buffer_data,std::addressof(nt_name),std::addressof(part_name),std::addressof(relative_name)))
+	using wchar_t_may_alias_ptr
+#if __has_cpp_attribute(gnu::may_alias)
+	[[gnu::may_alias]]
+#endif
+	= wchar_t*;
+	if(!win32::nt::rtl_dos_path_name_to_nt_path_name_u(reinterpret_cast<wchar_t_may_alias_ptr>(buffer_data),std::addressof(nt_name),std::addressof(part_name),std::addressof(relative_name)))
 		throw_nt_error(0xC0000039);
 }
 
@@ -292,21 +297,9 @@ inline std::uint16_t filename_bytes(std::size_t sz)
 }
 
 template<bool zw,std::integral char_type>
-requires (std::same_as<char_type,char>||std::same_as<char_type,wchar_t>)
 inline void* nt_create_file_directory_impl(void* directory,basic_cstring_view<char_type> filename,nt_open_mode const& mode)
 {
-	if constexpr(std::same_as<char_type,char>)
-	{
-		std::unique_ptr<wchar_t[]> buffer(new wchar_t[filename.size()]);
-		auto buffer_data_end=::fast_io::details::codecvt::general_code_cvt_full(filename.data(),filename.data()+filename.size(),buffer.get());
-		std::uint16_t const bytes(filename_bytes(buffer_data_end-buffer.get()));
-		win32::nt::unicode_string relative_path{
-			.Length=bytes,
-			.MaximumLength=bytes,
-			.Buffer=buffer.get()};
-		return nt_create_file_common_impl<zw>(directory,std::addressof(relative_path),mode);
-	}
-	else
+	if constexpr(std::same_as<char_type,wchar_t>)
 	{
 		std::uint16_t const bytes(filename_bytes(filename.size()));
 		win32::nt::unicode_string relative_path{
@@ -315,23 +308,71 @@ inline void* nt_create_file_directory_impl(void* directory,basic_cstring_view<ch
 			.Buffer=const_cast<wchar_t*>(filename.c_str())};
 		return nt_create_file_common_impl<zw>(directory,std::addressof(relative_path),mode);
 	}
+	else if constexpr(std::same_as<char_type,char16_t>)
+	{
+		using wchar_t_may_alias_ptr
+#if __has_cpp_attribute(gnu::may_alias)
+		[[gnu::may_alias]]
+#endif
+		= wchar_t*;
+		using wchar_t_may_alias_const_ptr
+#if __has_cpp_attribute(gnu::may_alias)
+		[[gnu::may_alias]]
+#endif
+		= wchar_t const*;
+		std::uint16_t const bytes(filename_bytes(filename.size()));
+		win32::nt::unicode_string relative_path{
+			.Length=bytes,
+			.MaximumLength=bytes,
+			.Buffer=const_cast<wchar_t_may_alias_ptr>(
+				reinterpret_cast<wchar_t_may_alias_const_ptr>(filename.c_str()))};
+		return nt_create_file_common_impl<zw>(directory,std::addressof(relative_path),mode);
+	}
+	else
+	{
+		::fast_io::details::local_operator_new_array_ptr<char16_t> buffer(
+			::fast_io::details::cal_decorated_reserve_size<sizeof(char_type),sizeof(char16_t)>(filename.size()));
+		auto buffer_data_end=::fast_io::details::codecvt::general_code_cvt_full(filename.data(),filename.data()+filename.size(),buffer.ptr);
+		std::uint16_t const bytes(filename_bytes(buffer_data_end-buffer.ptr));
+		using wchar_t_may_alias_ptr
+#if __has_cpp_attribute(gnu::may_alias)
+		[[gnu::may_alias]]
+#endif
+		= wchar_t*;
+		win32::nt::unicode_string relative_path{
+			.Length=bytes,
+			.MaximumLength=bytes,
+			.Buffer=reinterpret_cast<wchar_t_may_alias_ptr>(buffer.ptr)};
+		return nt_create_file_common_impl<zw>(directory,std::addressof(relative_path),mode);
+	}
+
 }
 
 template<bool zw,std::integral char_type>
-requires (std::same_as<char_type,char>||std::same_as<char_type,wchar_t>)
 inline void* nt_create_file_impl(basic_cstring_view<char_type> filename,nt_open_mode const& mode)
 {
 	wchar_t const* part_name{};
 	win32::nt::rtl_relative_name_u relative_name{};
 	win32::nt::unicode_string nt_name{};
-	if constexpr(std::same_as<char_type,char>)
+	if constexpr(std::same_as<char_type,wchar_t>)
 	{
-		std::unique_ptr<wchar_t[]> buffer(new wchar_t[filename.size()+1]);
-		nt_file_rtl_path(filename,buffer.get(),nt_name,part_name,relative_name);
+		nt_file_rtl_path(filename.c_str(),nt_name,part_name,relative_name);
+	}
+	else if constexpr(std::same_as<char_type,char16_t>)
+	{
+		using wchar_t_may_alias_ptr
+#if __has_cpp_attribute(gnu::may_alias)
+		[[gnu::may_alias]]
+#endif
+		= wchar_t*;
+		nt_file_rtl_path(reinterpret_cast<wchar_t_may_alias_ptr>(filename.c_str()),nt_name,part_name,relative_name);
 	}
 	else
 	{
-		nt_file_rtl_path(filename,nt_name,part_name,relative_name);
+		::fast_io::details::local_operator_new_array_ptr<char16_t> buffer(
+			::fast_io::details::intrinsics::add_or_overflow_die(
+			::fast_io::details::cal_decorated_reserve_size<sizeof(char_type),sizeof(char16_t)>(filename.size()),1));
+		nt_file_rtl_path_code_cvt(filename,buffer.ptr,nt_name,part_name,relative_name);
 	}
 	win32::nt::rtl_unicode_string_unique_ptr us_ptr{std::addressof(nt_name)};
 	return nt_create_file_common_impl<zw>(nullptr,std::addressof(nt_name),mode);
@@ -685,6 +726,30 @@ public:
 	{
 	}
 	explicit basic_nt_family_file(nt_at_entry nate,wcstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_directory_impl<family==nt_family::zw>(nate.handle,filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
+	{
+	}
+	explicit basic_nt_family_file(u8cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_create_file_impl<family==nt_family::zw>(filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
+	{
+	}
+	explicit basic_nt_family_file(nt_at_entry nate,u8cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_directory_impl<family==nt_family::zw>(nate.handle,filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
+	{
+	}
+	explicit basic_nt_family_file(u16cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_create_file_impl<family==nt_family::zw>(filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
+	{
+	}
+	explicit basic_nt_family_file(nt_at_entry nate,u16cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_directory_impl<family==nt_family::zw>(nate.handle,filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
+	{
+	}
+	explicit basic_nt_family_file(u32cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_create_file_impl<family==nt_family::zw>(filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
+	{
+	}
+	explicit basic_nt_family_file(nt_at_entry nate,u32cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_directory_impl<family==nt_family::zw>(nate.handle,filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
 	{
 	}

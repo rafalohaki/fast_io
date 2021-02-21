@@ -24,7 +24,7 @@ __declspec(dllexport) __stdcall
 export_locale_data(lc_locale* lc_ptr) noexcept
 {
 	using lc_all_ptr
-#ifndef _MSC_VER
+#if __has_cpp_attribute(gnu::may_alias)
 	[[gnu::may_alias]]
 #endif
 	= lc_all const*;
@@ -34,7 +34,7 @@ export_locale_data(lc_locale* lc_ptr) noexcept
 	else
 		ptr=&lc_all_global;
 	using wlc_all_ptr
-#ifndef _MSC_VER
+#if __has_cpp_attribute(gnu::may_alias)
 	[[gnu::may_alias]]
 #endif
 	= wlc_all const*;

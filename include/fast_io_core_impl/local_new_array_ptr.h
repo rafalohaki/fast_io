@@ -23,9 +23,9 @@ char_type* local_operator_new_array_allocate(std::size_t size) noexcept
 		{
 #endif
 			if constexpr(alignof(char_type)>=alignof(std::max_align_t))
-				return static_cast<char_type*>(operator new(size*sizeof(char_type),std::align_val_t{alignof(char_type)}));
+				return static_cast<char_type*>(operator new(intrinsics::cal_allocation_size_or_die<char_type>(size),std::align_val_t{alignof(char_type)}));
 			else
-				return static_cast<char_type*>(operator new(size*sizeof(char_type)));
+				return static_cast<char_type*>(operator new(intrinsics::cal_allocation_size_or_die<char_type>(size)));
 #if (defined(_MSC_VER)&&_HAS_EXCEPTIONS!=0) || (!defined(_MSC_VER)&&__cpp_exceptions)
 		}
 		catch(...)

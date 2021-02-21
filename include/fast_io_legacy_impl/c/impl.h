@@ -102,11 +102,6 @@ From microsoft's document. _fdopen only supports
 	return to_c_mode(m);
 #endif
 }
-struct io_c_mode
-{
-	char const* mode{};
-	explicit constexpr io_c_mode(cstring_view view):mode(view.c_str()){}
-};
 
 #if defined(_GNU_SOURCE) || defined(__MUSL__) || defined(__NEED___isoc_va_list)
 template<typename stm>
@@ -777,12 +772,6 @@ public:
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	explicit constexpr basic_c_file_impl(native_hd hd):T(hd){}
-	basic_c_file_impl(io_c_mode cmode,basic_posix_io_handle<char_type>&& posix_handle,open_mode):
-		T(my_fdopen_impl(posix_handle.fd,cmode.mode))
-	{
-		posix_handle.release();
-	}
-
 
 	basic_c_file_impl(basic_posix_io_handle<char_type>&& posix_handle,open_mode om):
 		T(my_fdopen_impl(posix_handle.fd,to_native_c_mode(om)))
@@ -801,28 +790,8 @@ public:
 		basic_c_file_impl(basic_posix_file<char_type>(std::move(nt_handle),om),to_native_c_mode(om))
 	{
 	}
-	basic_c_file_impl(io_c_mode cmode,basic_win32_io_handle<char_type>&& win32_handle,open_mode om)
-		:basic_c_file_impl(cmode,basic_posix_file<char_type>(std::move(win32_handle),om),om)
-	{
-	}
 
-	template<nt_family family>
-	basic_c_file_impl(io_c_mode cmode,basic_nt_family_io_handle<family,char_type>&& nt_handle,open_mode om)
-		:basic_c_file_impl(cmode,basic_posix_file<char_type>(std::move(nt_handle),om),om)
-	{
-	}
-	basic_c_file_impl(wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_c_file_impl(basic_posix_file<typename T::char_type>(file,om,pm),om)
-	{}
-	basic_c_file_impl(native_at_entry nate,wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_c_file_impl(basic_posix_file<typename T::char_type>(nate,file,om,pm),om)
-	{}
-	basic_c_file_impl(io_c_mode cmode,wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_c_file_impl(cmode,basic_posix_file<typename T::char_type>(file,om,pm),om)
-	{}
-	basic_c_file_impl(io_c_mode cmode,native_at_entry nate,wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_c_file_impl(cmode,basic_posix_file<typename T::char_type>(nate,file,om,pm),om)
-	{}
+
 #endif
 	basic_c_file_impl(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_c_file_impl(basic_posix_file<typename T::char_type>(file,om,pm),om)
@@ -830,16 +799,30 @@ public:
 	basic_c_file_impl(native_at_entry nate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_c_file_impl(basic_posix_file<typename T::char_type>(nate,file,om,pm),om)
 	{}
-
-
-	basic_c_file_impl(io_c_mode cmode,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_c_file_impl(cmode,basic_posix_file<typename T::char_type>(file,om,pm),om)
+	basic_c_file_impl(wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(file,om,pm),om)
 	{}
-	basic_c_file_impl(io_c_mode cmode,native_at_entry nate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_c_file_impl(cmode,basic_posix_file<typename T::char_type>(nate,file,om,pm),om)
+	basic_c_file_impl(native_at_entry nate,wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(nate,file,om,pm),om)
 	{}
-
-
+	basic_c_file_impl(u8cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(file,om,pm),om)
+	{}
+	basic_c_file_impl(native_at_entry nate,u8cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(nate,file,om,pm),om)
+	{}
+	basic_c_file_impl(u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(file,om,pm),om)
+	{}
+	basic_c_file_impl(native_at_entry nate,u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(nate,file,om,pm),om)
+	{}
+	basic_c_file_impl(u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(file,om,pm),om)
+	{}
+	basic_c_file_impl(native_at_entry nate,u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(nate,file,om,pm),om)
+	{}
 	template<stream stm,typename... Args>
 	basic_c_file_impl(io_cookie_t,[[maybe_unused]] cstring_view mode,std::in_place_type_t<stm>,[[maybe_unused]] Args&& ...args)
 	{

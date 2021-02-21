@@ -893,7 +893,7 @@ An Example of Multiple Inheritance in C++: A Model of the Iostream Library
 			throw_posix_error();
 	}
 	return fd;
-#elif defined(__NEWLIB__)
+#elif defined(__NEWLIB__) && !defined(AT_FDCWD)
 	int fd{::open(pathname,flags,mode)};
 	system_call_throw_error<always_terminate>(fd);
 	return fd;
@@ -901,7 +901,66 @@ An Example of Multiple Inheritance in C++: A Model of the Iostream Library
 	return my_posix_openat<always_terminate>(AT_FDCWD,pathname,flags,mode);
 #endif
 }
+
+
+inline int my_posix_openat_file_internal_impl(int dirfd,char const* filepath,open_mode om,perms pm)
+{
+	return my_posix_openat(dirfd,filepath,details::calculate_posix_open_mode(om),static_cast<mode_t>(pm));
+}
+
+template<std::integral char_type>
+inline int my_posix_openat_file_impl(int dirfd,basic_cstring_view<char_type> filepath,open_mode om,perms pm)
+{
+	if constexpr(std::same_as<char_type,char>)
+	{
+		return my_posix_openat_file_internal_impl(dirfd,filepath.c_str(),om,pm);
+	}
+	else if constexpr(std::same_as<char_type,char8_t>)
+	{
+		return my_posix_openat_file_internal_impl(dirfd,reinterpret_cast<char const*>(filepath.c_str()),om,pm);
+	}
+	else
+	{
+		::fast_io::details::local_operator_new_array_ptr<char8_t> buffer(
+			::fast_io::details::intrinsics::add_or_overflow_die(
+			::fast_io::details::cal_decorated_reserve_size<sizeof(char_type),sizeof(char8_t)>(filepath.size()),1));
+		*::fast_io::details::codecvt::general_code_cvt_full(filepath.data(),filepath.data()+filepath.size(),buffer.ptr)=0;
+		return my_posix_openat_file_internal_impl(dirfd,reinterpret_cast<char const*>(buffer.ptr),om,pm);
+	}
+}
+
+inline int my_posix_open_file_internal_impl(char const* filepath,open_mode om,perms pm)
+{
+	return my_posix_open(filepath,details::calculate_posix_open_mode(om),static_cast<mode_t>(pm));
+}
+
+template<std::integral char_type>
+inline int my_posix_open_file_impl(basic_cstring_view<char_type> filepath,open_mode om,perms pm)
+{
+#if defined(__MSDOS__) || (defined(__NEWLIB__) && !defined(AT_FDCWD))
+	if constexpr(std::same_as<char_type,char>)
+	{
+		return my_posix_open_file_internal_impl(filepath.c_str(),om,pm);
+	}
+	else if constexpr(std::same_as<char_type,char8_t>)
+	{
+		return my_posix_open_file_internal_impl(reinterpret_cast<char const*>(filepath.c_str()),om,pm);
+	}
+	else
+	{
+		::fast_io::details::local_operator_new_array_ptr<char8_t> buffer(
+			::fast_io::details::intrinsics::add_or_overflow_die(
+			::fast_io::details::cal_decorated_reserve_size<sizeof(char_type),sizeof(char8_t)>(filepath.size()),1));
+		*::fast_io::details::codecvt::general_code_cvt_full(filepath.data(),filepath.data()+filepath.size(),buffer.ptr)=0;
+		return my_posix_open_file_internal_impl(reinterpret_cast<char const*>(buffer.ptr),om,pm);
+	}
+#else
+	return my_posix_openat_file_impl(AT_FDCWD,filepath,om,pm);
 #endif
+}
+
+#endif
+
 }
 
 template<std::integral ch_type>
@@ -940,21 +999,43 @@ public:
 	basic_posix_file(wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_posix_file(basic_win32_file<char_type>(file,om,pm),om)
 	{}
+	basic_posix_file(u8cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_posix_file(basic_win32_file<char_type>(file,om,pm),om)
+	{}
+	basic_posix_file(u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_posix_file(basic_win32_file<char_type>(file,om,pm),om)
+	{}
+	basic_posix_file(u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_posix_file(basic_win32_file<char_type>(file,om,pm),om)
+	{}
 	basic_posix_file(nt_at_entry nate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_posix_file(basic_win32_file<char_type>(nate,file,om,pm),om)
 	{}
 	basic_posix_file(nt_at_entry nate,wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_posix_file(basic_win32_file<char_type>(nate,file,om,pm),om)
 	{}
-#else
-	//potential support modification prv in the future
-	basic_posix_file(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_open(file.data(),details::calculate_posix_open_mode(om),static_cast<mode_t>(pm)))
-	{
-	}
-	basic_posix_file(posix_at_entry pate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_openat(pate.fd,file.data(),details::calculate_posix_open_mode(om),static_cast<mode_t>(pm)))
-	{
-	}
+	basic_posix_file(nt_at_entry nate,u8string_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_posix_file(basic_win32_file<char_type>(nate,file,om,pm),om)
+	{}
+	basic_posix_file(nt_at_entry nate,u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_posix_file(basic_win32_file<char_type>(nate,file,om,pm),om)
+	{}
+	basic_posix_file(nt_at_entry nate,u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_posix_file(basic_win32_file<char_type>(nate,file,om,pm),om)
+	{}
 
+#else
+
+	basic_posix_file(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_open_file_impl(file,om,pm)){}
+	basic_posix_file(posix_at_entry pate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_openat_file_impl(pate.fd,file,om,pm)){}
+	basic_posix_file(wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_open_file_impl(file,om,pm)){}
+	basic_posix_file(posix_at_entry pate,wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_openat_file_impl(pate.fd,file,om,pm)){}
+	basic_posix_file(u8cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_open_file_impl(file,om,pm)){}
+	basic_posix_file(posix_at_entry pate,u8cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_openat_file_impl(pate.fd,file,om,pm)){}
+	basic_posix_file(u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_open_file_impl(file,om,pm)){}
+	basic_posix_file(posix_at_entry pate,u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_openat_file_impl(pate.fd,file,om,pm)){}
+	basic_posix_file(u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_open_file_impl(file,om,pm)){}
+	basic_posix_file(posix_at_entry pate,u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_openat_file_impl(pate.fd,file,om,pm)){}
 #endif
 
 
@@ -963,7 +1044,7 @@ To verify whether O_TMPFILE is a thing on FreeBSD. https://github.com/FreeRDP/Fr
 */
 #if defined(O_TMPFILE)&&defined(__linux__)
 	basic_posix_file(io_temp_t):basic_posix_file(
-		system_call<__NR_openat,int>(AT_FDCWD,"/tmp",O_EXCL|O_RDWR|O_TMPFILE|O_APPEND|O_NOATIME,S_IRUSR | S_IWUSR))
+		system_call<__NR_openat,int>(AT_FDCWD,u8"/tmp",O_EXCL|O_RDWR|O_TMPFILE|O_APPEND|O_NOATIME,S_IRUSR | S_IWUSR))
 	{
 		system_call_throw_error(native_handle());
 	}
