@@ -1014,7 +1014,7 @@ public:
 	basic_posix_file(nt_at_entry nate,wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_posix_file(basic_win32_file<char_type>(nate,file,om,pm),om)
 	{}
-	basic_posix_file(nt_at_entry nate,u8string_view file,open_mode om,perms pm=static_cast<perms>(436)):
+	basic_posix_file(nt_at_entry nate,u8cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_posix_file(basic_win32_file<char_type>(nate,file,om,pm),om)
 	{}
 	basic_posix_file(nt_at_entry nate,u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
