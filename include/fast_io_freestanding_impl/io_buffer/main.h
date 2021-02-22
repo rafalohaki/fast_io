@@ -42,14 +42,14 @@ struct buffer_alloc_arr_ptr
 	T* ptr{};
 	std::size_t size{};
 	constexpr buffer_alloc_arr_ptr() noexcept = default;
-	constexpr buffer_alloc_arr_ptr(std::size_t sz) noexcept:ptr(allocate_iobuf_space<T>(sz,64)),size(sz){}
+	constexpr buffer_alloc_arr_ptr(std::size_t sz) noexcept:ptr(allocate_iobuf_space<T>(sz)),size(sz){}
 
 	buffer_alloc_arr_ptr(buffer_alloc_arr_ptr const&)=delete;
 	buffer_alloc_arr_ptr& operator=(buffer_alloc_arr_ptr const&)=delete;
 
 	constexpr ~buffer_alloc_arr_ptr()
 	{
-		deallocate_iobuf_space<T>(ptr,size,64);
+		deallocate_iobuf_space<T>(ptr,size);
 	}
 };
 
@@ -93,16 +93,8 @@ template<stream handletype,
 buffer_mode mde=buffer_mode::io|buffer_mode::secure_clear|buffer_mode::construct_decorator,
 typename decoratorstypr=
 basic_decorators<typename handletype::char_type>,
-std::size_t bfs = io_default_buffer_size<typename decoratorstypr::internal_type>,
-	std::size_t alignmsz=
-#ifdef FAST_IO_BUFFER_ALIGNMENT
-	FAST_IO_BUFFER_ALIGNMENT
-#else
-	4096
-#endif
-	>
-requires (details::constraint_buffer_mode<handletype>(mde)&&alignmsz!=0&&
-	(alignmsz%(__STDCPP_DEFAULT_NEW_ALIGNMENT__)==0))
+std::size_t bfs = io_default_buffer_size<typename decoratorstypr::internal_type>>
+requires (details::constraint_buffer_mode<handletype>(mde))
 class basic_io_buffer
 {
 public:
@@ -113,7 +105,6 @@ public:
 	using const_pointer = char_type const*;
 	inline static constexpr buffer_mode mode = mde;
 	inline static constexpr std::size_t buffer_size = bfs;
-	inline static constexpr std::size_t buffer_alignment = alignmsz;
 #if __has_cpp_attribute(no_unique_address) >= 201803L
 	[[no_unique_address]]
 #endif
@@ -178,7 +169,7 @@ private:
 #endif
 						secure_clear(obuffer.buffer_begin,sizeof(char_type)*buffer_size);
 				}
-				details::deallocate_iobuf_space<char_type>(obuffer.buffer_begin,buffer_size,buffer_alignment);
+				details::deallocate_iobuf_space<char_type>(obuffer.buffer_begin,buffer_size);
 			}
 		if constexpr((mode&buffer_mode::in)==buffer_mode::in)
 			if(ibuffer.buffer_begin)
@@ -193,7 +184,7 @@ private:
 #endif
 							secure_clear(ibuffer.buffer_begin,real_buffer_cap);
 					}
-					details::deallocate_iobuf_space<char_type>(ibuffer.buffer_begin,real_buffer_cap,buffer_alignment);
+					details::deallocate_iobuf_space<char_type>(ibuffer.buffer_begin,real_buffer_cap);
 				}
 				else
 				{
@@ -204,7 +195,7 @@ private:
 #endif
 							secure_clear(ibuffer.buffer_begin,sizeof(char_type)*buffer_size);
 					}
-					details::deallocate_iobuf_space<char_type>(ibuffer.buffer_begin,buffer_size,buffer_alignment);
+					details::deallocate_iobuf_space<char_type>(ibuffer.buffer_begin,buffer_size);
 				}
 			}
 	}

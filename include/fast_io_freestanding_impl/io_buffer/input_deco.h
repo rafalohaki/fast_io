@@ -4,7 +4,7 @@ namespace fast_io::details
 {
 
 template<stream T,typename decot,std::integral char_type>
-inline constexpr bool underflow_rl_impl_deco(T t,decot deco,basic_io_buffer_pointers_with_cap<char_type>& ibuffer,std::size_t bfsz,std::size_t alignsz)
+inline constexpr bool underflow_rl_impl_deco(T t,decot deco,basic_io_buffer_pointers_with_cap<char_type>& ibuffer,std::size_t bfsz)
 {
 	using external_char_type = typename T::char_type;
 
@@ -29,10 +29,10 @@ inline constexpr bool underflow_rl_impl_deco(T t,decot deco,basic_io_buffer_poin
 	std::size_t cap{static_cast<std::size_t>(ibuffer.buffer_cap-ibuffer.buffer_begin)};
 	if(cap<new_size)
 	{
-		deallocate_iobuf_space<char_type>(ibuffer.buffer_begin,cap,alignsz);
+		deallocate_iobuf_space<char_type>(ibuffer.buffer_begin,cap);
 		ibuffer.buffer_cap=ibuffer.buffer_end=ibuffer.buffer_curr=ibuffer.buffer_begin=nullptr;
 		ibuffer.buffer_cap=(ibuffer.buffer_end=ibuffer.buffer_curr=ibuffer.buffer_begin=
-		allocate_iobuf_space<char_type>(new_size,alignsz))+new_size;
+		allocate_iobuf_space<char_type>(new_size))+new_size;
 	}
 	else
 		ibuffer.buffer_end=ibuffer.buffer_curr=ibuffer.buffer_begin;
@@ -43,18 +43,18 @@ inline constexpr bool underflow_rl_impl_deco(T t,decot deco,basic_io_buffer_poin
 	return true;
 }
 
-template<std::size_t bfsz,std::size_t alignsz,stream T,typename decot,std::integral char_type>
+template<std::size_t bfsz,stream T,typename decot,std::integral char_type>
 inline constexpr bool underflow_impl_deco(T t,decot deco,basic_io_buffer_pointers_with_cap<char_type>& ibuffer)
 {
 	if constexpr(maybe_noop_decorator<char_type,decot>)
 	{
 
 	}
-	return underflow_rl_impl_deco(t,deco,ibuffer,bfsz,alignsz);
+	return underflow_rl_impl_deco(t,deco,ibuffer,bfsz);
 }
 
 template<typename T,typename decot,std::integral char_type,std::contiguous_iterator Iter>
-inline constexpr Iter iobuf_read_unhappy_decay_impl_deco(T t,decot deco,basic_io_buffer_pointers_with_cap<char_type>& ibuffer,Iter first,Iter last,std::size_t bfsz,std::size_t alignsz)
+inline constexpr Iter iobuf_read_unhappy_decay_impl_deco(T t,decot deco,basic_io_buffer_pointers_with_cap<char_type>& ibuffer,Iter first,Iter last,std::size_t bfsz)
 {
 	using external_char_type = typename T::char_type;
 	using internal_char_type = char_type;
@@ -88,10 +88,10 @@ inline constexpr Iter iobuf_read_unhappy_decay_impl_deco(T t,decot deco,basic_io
 			std::size_t cap{static_cast<std::size_t>(ibuffer.buffer_cap-ibuffer.buffer_begin)};
 			if(cap<new_size)
 			{
-				deallocate_iobuf_space<char_type>(ibuffer.buffer_begin,cap,alignsz);
+				deallocate_iobuf_space<char_type>(ibuffer.buffer_begin,cap);
 				ibuffer.buffer_cap=ibuffer.buffer_end=ibuffer.buffer_curr=ibuffer.buffer_begin=nullptr;
 				ibuffer.buffer_cap=(ibuffer.buffer_end=ibuffer.buffer_curr=ibuffer.buffer_begin=
-				allocate_iobuf_space<char_type>(new_size,alignsz))+new_size;
+				allocate_iobuf_space<char_type>(new_size))+new_size;
 			}
 			else
 				ibuffer.buffer_end=ibuffer.buffer_curr=ibuffer.buffer_begin;
