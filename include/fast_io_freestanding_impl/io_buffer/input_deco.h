@@ -7,17 +7,18 @@ template<stream T,typename decot,std::integral char_type>
 inline constexpr bool underflow_rl_impl_deco(T t,decot deco,basic_io_buffer_pointers_with_cap<char_type>& ibuffer,std::size_t bfsz,std::size_t alignsz)
 {
 	using external_char_type = typename T::char_type;
-
+	std::size_t remain_size_last_round{};
 	buffer_alloc_arr_ptr<external_char_type> buffer(bfsz);
 	auto buffer_begin{buffer.ptr};
+	auto buffer_real_begin{buffer_begin};
+	auto readed{buffer_real_begin};
 	auto buffer_end{buffer_begin+bfsz};
-	auto readed=buffer_begin;
 	for(;readed!=buffer_end;)
 	{
 		auto readed_after_this_round=read(t,readed,buffer_end);
 		if(readed_after_this_round==readed)
 		{
-			if(readed==buffer_begin)
+			if(readed==buffer_real_begin)
 				return false;
 			break;
 		}
@@ -46,10 +47,12 @@ inline constexpr bool underflow_rl_impl_deco(T t,decot deco,basic_io_buffer_poin
 template<std::size_t bfsz,std::size_t alignsz,stream T,typename decot,std::integral char_type>
 inline constexpr bool underflow_impl_deco(T t,decot deco,basic_io_buffer_pointers_with_cap<char_type>& ibuffer)
 {
+/*
 	if constexpr(maybe_noop_decorator<char_type,decot>)
 	{
 
 	}
+*/
 	return underflow_rl_impl_deco(t,deco,ibuffer,bfsz,alignsz);
 }
 

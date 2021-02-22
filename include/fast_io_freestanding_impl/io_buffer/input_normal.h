@@ -4,23 +4,23 @@ namespace fast_io::details
 {
 
 template<stream T,std::integral char_type>
-inline constexpr bool underflow_rl_impl(T t,basic_io_buffer_pointers<char_type>& ibuffer,std::size_t bfsz,std::size_t alignsz)
+inline constexpr bool underflow_rl_impl(T t,basic_io_buffer_pointers<char_type>& ibuffer,std::size_t bfsz)
 {
 	if(ibuffer.buffer_begin==nullptr)
-		ibuffer.buffer_end=ibuffer.buffer_curr=ibuffer.buffer_begin=allocate_iobuf_space<char_type>(bfsz,alignsz);
+		ibuffer.buffer_end=ibuffer.buffer_curr=ibuffer.buffer_begin=allocate_iobuf_space<char_type>(bfsz);
 	ibuffer.buffer_end=read(t,ibuffer.buffer_begin,ibuffer.buffer_begin+bfsz);
 	ibuffer.buffer_curr=ibuffer.buffer_begin;
 	return ibuffer.buffer_begin!=ibuffer.buffer_end;
 }
 
-template<std::size_t bfsz,std::size_t alignsz,stream T,std::integral char_type>
+template<std::size_t bfsz,stream T,std::integral char_type>
 inline constexpr bool underflow_impl(T t,basic_io_buffer_pointers<char_type>& ibuffer)
 {
-	return underflow_rl_impl(t,ibuffer,bfsz,alignsz);
+	return underflow_rl_impl(t,ibuffer,bfsz);
 }
 
 template<typename T,std::integral char_type,std::random_access_iterator Iter>
-inline constexpr Iter iobuf_read_unhappy_decay_impl(T t,basic_io_buffer_pointers<char_type>& ibuffer,Iter first,Iter last,std::size_t buffer_size,std::size_t buffer_alignment)
+inline constexpr Iter iobuf_read_unhappy_decay_impl(T t,basic_io_buffer_pointers<char_type>& ibuffer,Iter first,Iter last,std::size_t buffer_size)
 {
 	std::size_t iter_diff(static_cast<std::size_t>(last-first));
 	if(buffer_size<=iter_diff)
@@ -28,7 +28,7 @@ inline constexpr Iter iobuf_read_unhappy_decay_impl(T t,basic_io_buffer_pointers
 	if(ibuffer.buffer_begin==nullptr)
 	{
 		ibuffer.buffer_end=ibuffer.buffer_begin=
-		allocate_iobuf_space<char_type>(buffer_size,buffer_alignment);
+		allocate_iobuf_space<char_type>(buffer_size);
 	}
 	ibuffer.buffer_end=read(t,ibuffer.buffer_begin,ibuffer.buffer_begin+buffer_size);
 	ibuffer.buffer_curr=ibuffer.buffer_begin;
