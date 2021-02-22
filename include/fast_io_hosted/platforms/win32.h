@@ -21,10 +21,8 @@ inline void* create_win32_temp_file()
 		fast_io::hash_processor processor(sha);
 		write(processor,buffer1.begin(),buffer1.end());
 		processor.do_final();
-		ospan osp(arr);
-		obuffer_set_curr(osp,arr.data()+temp_path_size);
-		print_freestanding(osp,sha,L".tmp");
-		put(osp,0);
+		auto ptr{print_reserve_define(io_reserve_type<wchar_t,fast_io::sha256>,arr.data()+temp_path_size,sha)};
+		non_overlapped_copy_n(L".tmp",sizeof(L".tmp"),ptr);
 		void* handle = win32::CreateFileW(arr.data(),
 		0x40000000|0x80000000,	//GENERIC_READ|GENERIC_WRITE
 		0,		//Prevents other processes from opening a file or device if they request delete, read, or write access.

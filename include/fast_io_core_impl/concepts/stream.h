@@ -33,10 +33,6 @@ concept character_io_stream = character_input_stream<T>&&character_output_stream
 template<typename T>
 concept flush_output_stream = output_stream<T>&&details::flush_output_stream_impl<T>;
 
-
-template<typename T>
-concept reserve_output_stream = output_stream<T>&&details::reserve_output_stream_impl<T>;
-
 template<typename T>
 concept buffer_input_stream = input_stream<T>&&details::buffer_input_stream_impl<T>;
 
@@ -54,10 +50,6 @@ concept contiguous_output_stream = buffer_output_stream<T>&&details::contiguous_
 
 template<typename T>
 concept fill_nc_output_stream = output_stream<T>&&details::fill_nc_output_stream_impl<T>;
-
-//Unfortunately, FILE* is a mess here. We have to support this to prevent the operating system not buffering anything
-template<typename T>
-concept maybe_buffer_output_stream = buffer_output_stream<T>&&details::maybe_buffer_output_stream_impl<T>;
 
 template<typename T>
 concept buffer_io_stream = buffer_input_stream<T>&&buffer_output_stream<T>&&io_stream<T>;

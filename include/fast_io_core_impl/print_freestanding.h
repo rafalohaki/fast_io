@@ -208,7 +208,10 @@ inline constexpr void scatter_print_with_dynamic_reserve_recursive(io_scatter_t*
 	[[maybe_unused]] char_type* __restrict ptr,
 	[[maybe_unused]] char_type* __restrict dynamic_buffer_ptr,[[maybe_unused]] T t, Args ...args)
 {
-	if constexpr(reserve_printable<char_type,T>)
+	
+	if constexpr(scatter_type_printable<char_type,T>)
+		*arr=print_scatter_define(print_scatter_type<char_type>,t);
+	else if constexpr(reserve_printable<char_type,T>)
 	{
 		auto end_ptr = print_reserve_define(io_reserve_type<char_type,T>,ptr,t);
 		*arr={ptr,(end_ptr-ptr)*sizeof(*ptr)};
@@ -222,8 +225,6 @@ inline constexpr void scatter_print_with_dynamic_reserve_recursive(io_scatter_t*
 		if constexpr(sizeof...(Args)!=0)
 			dynamic_buffer_ptr = end_ptr;
 	}
-	else
-		*arr=print_scatter_define(print_scatter_type<char_type>,t);
 	if constexpr(sizeof...(Args)!=0)
 		scatter_print_with_dynamic_reserve_recursive(arr+1,ptr,dynamic_buffer_ptr,args...);
 }
@@ -301,145 +302,30 @@ inline constexpr void print_control(output out,T t)
 {
 	using char_type = typename output::char_type;
 	using value_type = std::remove_cvref_t<T>;
-	if constexpr(reserve_printable<char_type,value_type>)
-	{
-		constexpr std::size_t real_size{print_reserve_control_size_impl<pci,char_type,value_type>()};
-		constexpr std::size_t size{real_size+static_cast<std::size_t>(line)};
-		static_assert(real_size!=SIZE_MAX);
-#ifndef __SANITIZE_ADDRESS__
-
-#if 0	
-		if constexpr(contiguous_output_stream<output>)
-		{
-			auto it{print_reserve_control_define_impl<pci,char_type,value_type>(obuffer_curr(out),t)};
-			if constexpr(line)
-			{
-				if constexpr(std::same_as<char,char_type>)
-					*it='\n';
-				else if constexpr(std::same_as<wchar_t,char_type>)
-					*it=L'\n';
-				else
-					*it=u8'\n';
-				++it;
-			}
-			obuffer_set_curr(out,it);
-		}
-		else
-#endif
-		if constexpr(buffer_output_stream<output>)
-		{
-			auto bcurr{obuffer_curr(out)};
-			auto bend{obuffer_end(out)};
-			std::ptrdiff_t const diff(bend-bcurr);
-			if(static_cast<std::ptrdiff_t>(size)<diff)[[likely]]
-			{
-				//To check whether this affects performance.
-				if constexpr(line)
-				{
-					auto it{print_reserve_control_define_impl<pci,char_type,value_type>(bcurr,t)};
-					if constexpr(line)
-					{
-						if constexpr(std::same_as<char,char_type>)
-							*it='\n';
-						else if constexpr(std::same_as<wchar_t,char_type>)
-							*it=L'\n';
-						else
-							*it=u8'\n';
-						++it;
-					}	
-					obuffer_set_curr(out,it);
-				}
-				else
-					obuffer_set_curr(out,print_reserve_control_define_impl<pci,char_type,value_type>(bcurr,t));
-			}
-			else
-				print_control_reserve_bad_path<line,pci>(out,t);
-		}
-		else
-#endif
-		{
-			print_control_reserve_bad_path<line,pci>(out,t);
-		}
-	}
-	else if constexpr(dynamic_reserve_printable<char_type,value_type>)
-	{
-		std::size_t size{print_dynamic_reserve_control_size_impl<pci,char_type,value_type>(t)};
-		if constexpr(line)
-		{
-			constexpr std::size_t mx{std::numeric_limits<std::ptrdiff_t>::max()-1};
-			if(size>=mx)
-				fast_terminate();
-			++size;
-		}
-		else
-		{
-			constexpr std::size_t mx{std::numeric_limits<std::ptrdiff_t>::max()};
-			if(mx<size)
-				fast_terminate();
-		}
-#ifndef __SANITIZE_ADDRESS__
-
-#if 0
-		if constexpr(contiguous_output_stream<output>)
-		{
-			auto it{dynamic_print_reserve_control_define_impl<pci,char_type,value_type>(obuffer_curr(out),t,size)};
-			if constexpr(line)
-			{
-				if constexpr(std::same_as<char,char_type>)
-					*it='\n';
-				else if constexpr(std::same_as<wchar_t,char_type>)
-					*it=L'\n';
-				else
-					*it=u8'\n';
-				++it;
-			}
-			obuffer_set_curr(out,it);
-		}
-		else
-#endif	
-		if constexpr(buffer_output_stream<output>)
-		{
-			auto curr{obuffer_curr(out)};
-
-			auto ed{obuffer_end(out)};
-			std::ptrdiff_t diff(ed-curr);
-			if(static_cast<std::ptrdiff_t>(size)<diff)
-			{
-				auto it{print_reserve_control_define_impl<pci,char_type,value_type>(curr,t)};
-				if constexpr(line)
-				{
-					if constexpr(std::same_as<char,char_type>)
-						*it='\n';
-					else if constexpr(std::same_as<wchar_t,char_type>)
-						*it=L'\n';
-					else
-						*it=u8'\n';
-					++it;
-				}
-				obuffer_set_curr(out,it);
-			}
-			else
-				print_control_dynamic_reserve_bad_path<line,pci,value_type>(out,t,size);
-		}
-		else
-#endif
-		{
-			print_control_dynamic_reserve_bad_path<line,pci,value_type>(out,t,size);
-		}
-	}
-	else if constexpr(scatter_type_printable<char_type,value_type>)
+	if constexpr(scatter_type_printable<char_type,value_type>)
 	{
 		basic_io_scatter_t<char_type> scatter{print_scatter_define(print_scatter_type<char_type>,t)};
 		if constexpr(line)
 		{
-#if 0
 			if constexpr(contiguous_output_stream<output>)
 			{
-				obuffer_set_curr(out,non_overlapped_copy_n(scatter.base,scatter.len,obuffer_curr(out)));
+				auto curr=obuffer_curr(out);
+				auto end=obuffer_end(out);
+				std::ptrdiff_t sz(end-curr-1);
+				std::size_t const len{scatter.len};
+				if(static_cast<std::ptrdiff_t>(len)<sz)
+					fast_terminate();
+				curr=non_overlapped_copy_n(scatter.base,scatter.len,curr);
+				if constexpr(std::same_as<char,char_type>)
+					*curr=' ';
+				else if constexpr(std::same_as<wchar_t,char_type>)
+					*curr=L' ';
+				else
+					*curr=u8' ';
+				++curr;
+				obuffer_set_curr(out,curr);
 			}
-			else
-#endif			
-			if constexpr(buffer_output_stream<output>)
+			else if constexpr(buffer_output_stream<output>)
 			{
 				auto curr=obuffer_curr(out);
 				auto end=obuffer_end(out);
@@ -506,6 +392,135 @@ inline constexpr void print_control(output out,T t)
 			if constexpr(pci==print_control_impl::serialize)
 				print_serialize_size_bad_path(out,scatter.len);
 			write(out,scatter.base,scatter.base+scatter.len);
+		}
+	}
+	else if constexpr(reserve_printable<char_type,value_type>)
+	{
+		constexpr std::size_t real_size{print_reserve_control_size_impl<pci,char_type,value_type>()};
+		constexpr std::size_t size{real_size+static_cast<std::size_t>(line)};
+		static_assert(real_size!=SIZE_MAX);
+
+		if constexpr(contiguous_output_stream<output>)
+		{
+			auto bcurr{obuffer_curr(out)};
+			auto bend{obuffer_end(out)};
+			std::size_t diff{static_cast<std::size_t>(bend-bcurr)};
+			if(diff<size)[[unlikely]]
+				fast_terminate();
+			auto it{print_reserve_control_define_impl<pci,char_type,value_type>(bcurr,t)};
+			if constexpr(line)
+			{
+				if constexpr(std::same_as<char,char_type>)
+					*it='\n';
+				else if constexpr(std::same_as<wchar_t,char_type>)
+					*it=L'\n';
+				else
+					*it=u8'\n';
+				++it;
+			}
+			obuffer_set_curr(out,it);
+		}
+#ifndef __SANITIZE_ADDRESS__
+		else if constexpr(buffer_output_stream<output>)
+		{
+			auto bcurr{obuffer_curr(out)};
+			auto bend{obuffer_end(out)};
+			std::ptrdiff_t const diff(bend-bcurr);
+			if(static_cast<std::ptrdiff_t>(size)<diff)[[likely]]
+			{
+				//To check whether this affects performance.
+				if constexpr(line)
+				{
+					auto it{print_reserve_control_define_impl<pci,char_type,value_type>(bcurr,t)};
+					if constexpr(line)
+					{
+						if constexpr(std::same_as<char,char_type>)
+							*it='\n';
+						else if constexpr(std::same_as<wchar_t,char_type>)
+							*it=L'\n';
+						else
+							*it=u8'\n';
+						++it;
+					}	
+					obuffer_set_curr(out,it);
+				}
+				else
+					obuffer_set_curr(out,print_reserve_control_define_impl<pci,char_type,value_type>(bcurr,t));
+			}
+			else
+				print_control_reserve_bad_path<line,pci>(out,t);
+		}
+#endif
+		else
+		{
+			print_control_reserve_bad_path<line,pci>(out,t);
+		}
+	}
+	else if constexpr(dynamic_reserve_printable<char_type,value_type>)
+	{
+		std::size_t size{print_dynamic_reserve_control_size_impl<pci,char_type,value_type>(t)};
+		if constexpr(line)
+		{
+			constexpr std::size_t mx{std::numeric_limits<std::ptrdiff_t>::max()-1};
+			if(size>=mx)
+				fast_terminate();
+			++size;
+		}
+		else
+		{
+			constexpr std::size_t mx{std::numeric_limits<std::ptrdiff_t>::max()};
+			if(mx<size)
+				fast_terminate();
+		}
+		if constexpr(contiguous_output_stream<output>)
+		{
+			auto bcurr{obuffer_curr(out)};
+			auto bend{obuffer_end(out)};
+			auto it{dynamic_print_reserve_control_define_impl<pci,char_type,value_type>(bcurr,t,size)};
+			std::size_t diff{static_cast<std::size_t>(bend-bcurr)};
+			if(diff<size)[[unlikely]]
+				fast_terminate();
+			if constexpr(line)
+			{
+				if constexpr(std::same_as<char,char_type>)
+					*it='\n';
+				else if constexpr(std::same_as<wchar_t,char_type>)
+					*it=L'\n';
+				else
+					*it=u8'\n';
+				++it;
+			}
+			obuffer_set_curr(out,it);
+		}
+#ifndef __SANITIZE_ADDRESS__
+		else if constexpr(buffer_output_stream<output>)
+		{
+			auto curr{obuffer_curr(out)};
+
+			auto ed{obuffer_end(out)};
+			std::ptrdiff_t diff(ed-curr);
+			if(static_cast<std::ptrdiff_t>(size)<diff)
+			{
+				auto it{print_reserve_control_define_impl<pci,char_type,value_type>(curr,t)};
+				if constexpr(line)
+				{
+					if constexpr(std::same_as<char,char_type>)
+						*it='\n';
+					else if constexpr(std::same_as<wchar_t,char_type>)
+						*it=L'\n';
+					else
+						*it=u8'\n';
+					++it;
+				}
+				obuffer_set_curr(out,it);
+			}
+			else
+				print_control_dynamic_reserve_bad_path<line,pci,value_type>(out,t,size);
+		}
+#endif
+		else
+		{
+			print_control_dynamic_reserve_bad_path<line,pci,value_type>(out,t,size);
 		}
 	}
 	else if constexpr(printable<output,value_type>)
@@ -742,8 +757,6 @@ inline constexpr decltype(auto) io_print_alias(T&& t)
 {
 	if constexpr(alias_printable<std::remove_cvref_t<T>>)
 		return print_alias_define(io_alias,std::forward<T>(t));
-	else if constexpr(alias_type_printable<char_type,std::remove_cvref_t<T>>)
-		return print_alias_define(io_alias_type<char_type>,std::forward<T>(t));
 	else
 		return std::forward<T>(t);
 }

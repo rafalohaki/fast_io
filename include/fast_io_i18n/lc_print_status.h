@@ -117,7 +117,11 @@ inline constexpr void lc_scatter_print_with_dynamic_reserve_recursive(
 	char_type* __restrict ptr,
 	char_type* __restrict dynamic_buffer_ptr,T t, Args ...args)
 {
-	if constexpr(lc_dynamic_reserve_printable<char_type,T>)
+	if constexpr(lc_scatter_printable<char_type,T>)
+	{
+		*arr=print_scatter_define(all,t);
+	}
+	else if constexpr(lc_dynamic_reserve_printable<char_type,T>)
 	{
 #if 0
 		auto end_ptr = print_reserve_define(lc_reserve_type<char_type,T>,all,dynamic_buffer_ptr,t);
@@ -128,10 +132,8 @@ inline constexpr void lc_scatter_print_with_dynamic_reserve_recursive(
 		if constexpr(sizeof...(Args)!=0)
 			dynamic_buffer_ptr = end_ptr;
 	}
-	else if constexpr(lc_scatter_printable<char_type,T>)
-	{
-		*arr=print_scatter_define(all,t);
-	}
+	else if constexpr(scatter_type_printable<char_type,T>)
+		*arr=print_scatter_define(print_scatter_type<char_type>,t);
 	else if constexpr(reserve_printable<char_type,T>)
 	{
 		auto end_ptr = print_reserve_define(io_reserve_type<char_type,T>,ptr,t);
@@ -139,15 +141,13 @@ inline constexpr void lc_scatter_print_with_dynamic_reserve_recursive(
 		if constexpr(sizeof...(Args)!=0)
 			ptr=end_ptr;
 	}
-	else if constexpr(dynamic_reserve_printable<char_type,T>)
+	else
 	{
 		auto end_ptr = print_reserve_define(io_reserve_type<char_type,T>,dynamic_buffer_ptr,t);
 		*arr={dynamic_buffer_ptr,static_cast<std::size_t>(end_ptr-dynamic_buffer_ptr)*sizeof(*dynamic_buffer_ptr)};
 		if constexpr(sizeof...(Args)!=0)
 			dynamic_buffer_ptr = end_ptr;
 	}
-	else
-		*arr=print_scatter_define(print_scatter_type<char_type>,t);
 	if constexpr(sizeof...(Args)!=0)
 	{
 		if constexpr(((!lc_dynamic_reserve_printable<char_type,Args>&&!lc_scatter_printable<char_type,Args>)&&...))
@@ -189,47 +189,7 @@ inline constexpr void lc_print_control(basic_lc_all<typename output::char_type> 
 {
 	using char_type = typename output::char_type;
 	using value_type = std::remove_cvref_t<T>;
-	if constexpr(lc_dynamic_reserve_printable<char_type,value_type>)
-	{
-#if 0
-		std::size_t sz{print_reserve_size(lc_reserve_type<char_type,value_type>,lc,t)};
-#else
-		std::size_t sz{print_reserve_size(lc,t)};
-#endif
-		if constexpr(line)
-			++sz;
-		if constexpr(buffer_output_stream<output>)
-		{
-			auto bcurr{obuffer_curr(out)};
-			auto bend{obuffer_end(out)};
-			std::ptrdiff_t const diff(bend-bcurr);
-			if(static_cast<std::ptrdiff_t>(sz)<diff)[[likely]]
-			{
-				//To check whether this affects performance.
-#if 0
-				auto it{print_reserve_define(lc_reserve_type<char_type,value_type>,lc,bcurr,t)};
-#else
-				auto it{print_reserve_define(lc,bcurr,t)};
-#endif
-				if constexpr(line)
-				{
-					if constexpr(std::same_as<char,char_type>)
-						*it='\n';
-					else if constexpr(std::same_as<wchar_t,char_type>)
-						*it=L'\n';
-					else
-						*it=u8'\n';
-					++it;
-				}	
-				obuffer_set_curr(out,it);
-			}
-			else
-				lc_print_control_reserve_bad_path<line>(lc,out,t,sz);
-		}
-		else
-			lc_print_control_reserve_bad_path<line>(lc,out,t,sz);
-	}
-	else if constexpr(lc_scatter_type_printable<char_type,value_type>)
+	if constexpr(lc_scatter_type_printable<char_type,value_type>)
 	{
 		basic_io_scatter_t<char_type> scatter{print_scatter_define(lc,t)};
 		if constexpr(line)
@@ -278,6 +238,46 @@ inline constexpr void lc_print_control(basic_lc_all<typename output::char_type> 
 		{
 			write(out,scatter.base,scatter.base+scatter.len);
 		}
+	}
+	else if constexpr(lc_dynamic_reserve_printable<char_type,value_type>)
+	{
+#if 0
+		std::size_t sz{print_reserve_size(lc_reserve_type<char_type,value_type>,lc,t)};
+#else
+		std::size_t sz{print_reserve_size(lc,t)};
+#endif
+		if constexpr(line)
+			++sz;
+		if constexpr(buffer_output_stream<output>)
+		{
+			auto bcurr{obuffer_curr(out)};
+			auto bend{obuffer_end(out)};
+			std::ptrdiff_t const diff(bend-bcurr);
+			if(static_cast<std::ptrdiff_t>(sz)<diff)[[likely]]
+			{
+				//To check whether this affects performance.
+#if 0
+				auto it{print_reserve_define(lc_reserve_type<char_type,value_type>,lc,bcurr,t)};
+#else
+				auto it{print_reserve_define(lc,bcurr,t)};
+#endif
+				if constexpr(line)
+				{
+					if constexpr(std::same_as<char,char_type>)
+						*it='\n';
+					else if constexpr(std::same_as<wchar_t,char_type>)
+						*it=L'\n';
+					else
+						*it=u8'\n';
+					++it;
+				}	
+				obuffer_set_curr(out,it);
+			}
+			else
+				lc_print_control_reserve_bad_path<line>(lc,out,t,sz);
+		}
+		else
+			lc_print_control_reserve_bad_path<line>(lc,out,t,sz);
 	}
 	else if constexpr(lc_printable<output,value_type>)
 	{

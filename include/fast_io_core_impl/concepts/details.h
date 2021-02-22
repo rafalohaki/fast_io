@@ -86,12 +86,6 @@ concept refill_buffer_input_stream_impl = requires(T&& in)
 };
 
 template<typename T>
-concept reserve_output_stream_impl = requires(T&& out,std::size_t n)
-{
-	orelease(out,oreserve(out,n));
-};
-
-template<typename T>
 concept buffer_output_stream_impl = requires(T&& out,typename std::remove_cvref_t<T>::char_type ch)
 {
 	{obuffer_begin(out)}->std::convertible_to<typename std::remove_cvref_t<T>::char_type*>;

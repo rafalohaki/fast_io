@@ -238,12 +238,6 @@ constexpr decltype(auto) overflow_never(io_reference_wrapper<cos> co)
 	return overflow_never(*co.ptr);
 }
 
-template<maybe_buffer_output_stream output>
-constexpr decltype(auto) obuffer_is_active(io_reference_wrapper<output> co)
-{
-	return obuffer_is_active(*co.ptr);
-}
-
 template<flush_output_stream output>
 constexpr void flush(io_reference_wrapper<output> co)
 {

@@ -46,14 +46,11 @@
 #include"fast_io_core_impl/seek.h"
 #include"fast_io_core_impl/drain.h"
 
-#include"fast_io_core_impl/ospan.h"
-
 #include"fast_io_core_impl/igenerator.h"
 #include"fast_io_core_impl/unit_character_input_buffer.h"
 #include"fast_io_core_impl/io_ref.h"
 #include"fast_io_core_impl/print_scan.h"
 #include"fast_io_core_impl/print_freestanding.h"
-//#include"fast_io_core_impl/print_reserver.h"
 #include"fast_io_core_impl/scan_transmit/scan_transmit.h"
 
 
@@ -89,3 +86,6 @@
 
 #include"fast_io_core_impl/codecvt/impl.h"
 #include"fast_io_core_impl/io_deco_ref.h"
+
+
+#include"fast_io_core_impl/unsafe_fprint.h"
