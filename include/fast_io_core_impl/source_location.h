@@ -30,6 +30,13 @@ inline constexpr Iter print_reserve_define_source_location_impl(Iter iter,source
 	return non_overlapped_copy_n(location.function_name.base,location.function_name.len,++iter);
 }
 
+inline constexpr source_location_scatter print_alias_define_source_location_impl(std::source_location location) noexcept
+{
+	return {{location.file_name(),std::strlen(location.file_name())},
+	{location.function_name(),std::strlen(location.function_name())},
+	location.line(),location.column()};
+}
+
 }
 
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char,source_location_scatter>,source_location_scatter location) noexcept
@@ -45,9 +52,7 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<char,source_locatio
 
 inline constexpr source_location_scatter print_alias_define(io_alias_t,std::source_location location) noexcept
 {
-	return {{location.file_name(),std::strlen(location.file_name())},
-	{location.function_name(),std::strlen(location.function_name())},
-	location.line(),location.column()};
+	return details::print_alias_define_source_location_impl(location);
 }
 
 }
