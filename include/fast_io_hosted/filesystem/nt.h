@@ -293,7 +293,7 @@ inline nt_family_recursive_directory_iterator<family>& operator++(nt_family_recu
 		}
 		if(prdit.entry->d_type==file_type::directory)
 		{
-			wcstring_view name{prdit.entry->d_name()};
+			wcstring_view name{prdit.entry->native_d_name()};
 			if((name.size()==1&&name.front()==u'.')||(name.size()==2&&name.front()==u'.'&&name[1]==u'.'))
 				continue;
 			prdit.stack.emplace_back(nt_at_entry{prdit.stack.empty()?prdit.root_handle:prdit.stack.back().handle},name,
@@ -317,14 +317,14 @@ inline void pop(nt_family_recursive_directory_iterator<family>& prdit)
 }
 
 template<nt_family family>
-inline nt_family_recursive_directory_iterator<family> begin(nt_family_recursive_directory_iterator<family> const& prg) noexcept
+inline nt_family_recursive_directory_iterator<family> begin(nt_family_recursive_directory_generator<family> const& prg) noexcept
 {
 	nt_family_recursive_directory_iterator<family> prdit{prg.root_handle,prg.entry.get()};
 	prdit.entry->d_handle=prg.root_handle;
 	prdit.entry=win32::nt::details::set_nt_dirent_first<family>(prdit.entry);
 	if(prdit.entry&&prdit.entry->d_type==file_type::directory)
 	{
-		wcstring_view name{prdit.entry->d_name()};
+		wcstring_view name{prdit.entry->native_d_name()};
 		if((name.size()==1&&name.front()==u'.')||(name.size()==2&&name.front()==u'.'&&name[1]==u'.'))
 			++prdit;
 		else
