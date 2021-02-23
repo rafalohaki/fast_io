@@ -177,22 +177,42 @@ inline std::uintmax_t tell(posix_directory_io_observer pdiob)
 
 struct posix_directory_entry
 {
+	using native_char_type = char;
+	using char_type = char8_t;
 	DIR* dirp{};
 	struct dirent* entry{};
+	std::size_t d_namlen{};
 	explicit operator posix_io_observer() const noexcept
 	{
 		return {details::dirp_to_fd(dirp)};
 	}
 };
 
+inline posix_fs_dirent fs_dirent(posix_directory_entry ndet) noexcept
+{
+	return posix_fs_dirent{details::dirp_to_fd(ndet.dirp),ndet.entry->d_name};
+}
+
 inline posix_at_entry at(posix_directory_entry ndet) noexcept
 {
 	return posix_at_entry{details::dirp_to_fd(ndet.dirp)};
 }
 
-inline constexpr cstring_view filename(posix_directory_entry pioe) noexcept
+inline constexpr cstring_view native_filename(posix_directory_entry pioe) noexcept
 {
-	return pioe.entry->d_name;
+	return cstring_view(null_terminated,pioe.entry->d_name,pioe.d_namlen);
+}
+
+inline u8cstring_view filename(posix_directory_entry pioe) noexcept
+{
+	using char8_may_alias_const_ptr
+#if __has_cpp_attribute(gnu::may_alias)
+	[[gnu::may_alias]]
+#endif
+	=char8_t const*;
+	return u8cstring_view(null_terminated,
+		reinterpret_cast<char8_may_alias_const_ptr>(pioe.entry->d_name),
+		pioe.d_namlen);
 }
 
 inline constexpr std::uintmax_t inode(posix_directory_entry pioe) noexcept
@@ -229,6 +249,7 @@ struct posix_directory_iterator
 {
 	DIR* dirp{};
 	struct dirent* entry{};
+	std::size_t d_namlen{};
 };
 
 struct posix_directory_generator
@@ -238,7 +259,7 @@ struct posix_directory_generator
 
 inline posix_directory_entry operator*(posix_directory_iterator pdit) noexcept
 {
-	return {pdit.dirp,pdit.entry};
+	return {pdit.dirp,pdit.entry,pdit.d_namlen};
 }
 
 inline posix_directory_iterator& operator++(posix_directory_iterator& pdit)
@@ -248,6 +269,11 @@ inline posix_directory_iterator& operator++(posix_directory_iterator& pdit)
 	if(entry==nullptr&&errno)
 		throw_posix_error();
 	pdit.entry=entry;
+#if defined(_DIRENT_HAVE_D_NAMLEN)
+	pdit.d_namlen=entry->d_namlen;
+#else
+	pdit.d_namlen=std::strlen(entry->d_name);
+#endif
 	return pdit;
 }
 
@@ -298,7 +324,8 @@ struct posix_recursive_directory_iterator
 {
 	DIR* dirp{};
 	struct dirent* entry{};
-	std::vector<posix_directory_file> stack;
+	std::size_t d_namlen{};
+	details::naive_vector<posix_directory_file> stack;
 	posix_recursive_directory_iterator()=default;
 	posix_recursive_directory_iterator(DIR* dp):dirp(dp){}
 	posix_recursive_directory_iterator(posix_recursive_directory_iterator const&)=delete;
@@ -353,6 +380,18 @@ inline posix_recursive_directory_iterator& operator++(posix_recursive_directory_
 				continue;
 			prdit.stack.emplace_back(posix_at_entry{details::dirp_to_fd(prdit.stack.empty()?prdit.dirp:prdit.stack.back().dirp)},name);
 		}
+		if(prdit.entry)[[likely]]
+		{
+#if defined(_DIRENT_HAVE_D_NAMLEN)
+			prdit.d_namlen=prdit.entry->d_namlen;
+#else
+			prdit.d_namlen=std::strlen(prdit.entry->d_name);
+#endif
+		}
+		else
+		{
+			prdit.d_namlen=0;
+		}
 		return prdit;
 	}
 }
@@ -384,7 +423,7 @@ inline std::default_sentinel_t end(posix_recursive_directory_generator const&) n
 
 inline posix_directory_entry operator*(posix_recursive_directory_iterator const& prdit) noexcept
 {
-	return {prdit.stack.empty()?prdit.dirp:prdit.stack.back().dirp,prdit.entry};
+	return {prdit.stack.empty()?prdit.dirp:prdit.stack.back().dirp,prdit.entry,prdit.d_namlen};
 }
 
 inline bool operator==(std::default_sentinel_t, posix_recursive_directory_iterator const& b) noexcept

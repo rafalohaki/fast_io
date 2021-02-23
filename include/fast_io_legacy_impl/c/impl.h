@@ -791,6 +791,11 @@ public:
 	{
 	}
 #endif
+
+	basic_c_file_impl(native_fs_dirent ent,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_c_file_impl(basic_posix_file<typename T::char_type>(ent,om,pm),om)
+	{}
+
 	basic_c_file_impl(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_c_file_impl(basic_posix_file<typename T::char_type>(file,om,pm),om)
 	{}

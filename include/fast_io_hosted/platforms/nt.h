@@ -451,6 +451,14 @@ struct nt_family_at_entry:nt_at_entry
 	explicit constexpr nt_family_at_entry(void* mhandle) noexcept:nt_at_entry{mhandle}{}
 };
 
+struct nt_fs_dirent
+{
+	void* handle{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
+	wcstring_view filename{};
+	explicit constexpr nt_fs_dirent() noexcept = default;
+	explicit constexpr nt_fs_dirent(void* mhandle,wcstring_view mfilename) noexcept:handle(mhandle),filename(mfilename){}
+};
+
 using zw_at_entry=nt_family_at_entry<nt_family::zw>;
 
 template<std::integral ch_type>
@@ -713,6 +721,8 @@ public:
 	explicit basic_nt_family_file(io_dup_t,basic_nt_family_io_observer<family,ch_type> wiob):
 		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_dup_impl<family==nt_family::zw>(wiob.handle))
 	{}
+	explicit basic_nt_family_file(nt_fs_dirent fsdirent,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_directory_impl<family==nt_family::zw>(fsdirent.handle,fsdirent.filename,win32::nt::details::calculate_nt_open_mode(om,pm))){}
 	explicit basic_nt_family_file(cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_create_file_impl<family==nt_family::zw>(filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
 	{

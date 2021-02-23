@@ -104,6 +104,10 @@ This function never fails. but what if fdopen fails?
 	{
 	}
 #endif
+
+	basic_filebuf_file(native_fs_dirent fsdirent,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_filebuf_file(basic_posix_file<char_type>(fsdirent,om,pm),om)
+	{}
 	basic_filebuf_file(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_filebuf_file(basic_posix_file<char_type>(file,om,pm),om)
 	{}

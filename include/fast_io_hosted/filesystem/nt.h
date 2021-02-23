@@ -21,11 +21,17 @@ struct nt_dirent
 {
 	void* d_handle{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
 	file_type d_type{};
-	std::array<wchar_t,0x2001> d_name_array{};
+	std::array<wchar_t,0x2001> native_d_name_array{};
+	std::size_t native_d_name_size{};
+	std::array<char8_t,0x8004> d_name_array{};
 	std::size_t d_name_size{};
-	inline constexpr wcstring_view d_name() const noexcept
+	inline constexpr wcstring_view native_d_name() const noexcept
 	{
-		return wcstring_view(null_terminated,d_name_array.data(),d_name_size);
+		return wcstring_view(null_terminated,native_d_name_array.data(),native_d_name_size);
+	}
+	inline constexpr u8cstring_view d_name() const noexcept
+	{
+		return u8cstring_view(null_terminated,d_name_array.data(),d_name_size);
 	}
 };
 
@@ -49,9 +55,19 @@ inline nt_dirent* set_nt_dirent(nt_dirent* entry,bool start)
 		throw_nt_error(status);
 	}
 	auto ful_dir_info{d_info.FullDirInfo};
-	entry->d_name_size=ful_dir_info->FileNameLength/sizeof(wchar_t);
+	entry->native_d_name_size=ful_dir_info->FileNameLength/sizeof(wchar_t);
 	if(ful_dir_info->FileNameLength)
-		memcpy(entry->d_name_array.data(),ful_dir_info->FileName,ful_dir_info->FileNameLength);
+		memcpy(entry->native_d_name_array.data(),ful_dir_info->FileName,ful_dir_info->FileNameLength);
+	entry->native_d_name_array[entry->native_d_name_size]=0;
+
+	using char16_may_alias_pointer
+#if __has_cpp_attribute(gnu::may_alias)
+	[[gnu::may_alias]]
+#endif
+	= char16_t const*;
+	char16_may_alias_pointer enstart{reinterpret_cast<char16_may_alias_pointer>(entry->native_d_name_array.data())};
+	char16_may_alias_pointer enend{enstart+entry->native_d_name_size};
+	entry->d_name_size=static_cast<std::size_t>(::fast_io::details::codecvt::general_code_cvt_full(enstart,enend,entry->d_name_array.data())-entry->d_name_array.data());
 	entry->d_name_array[entry->d_name_size]=0;
 /*
 Referenced from win32 port dirent.h
@@ -96,6 +112,8 @@ inline nt_dirent* nt_dirent_next(nt_dirent* entry)
 
 struct nt_directory_entry
 {
+	using native_char_type = wchar_t;
+	using char_type = char8_t;
 	nt_dirent* entry{};
 	template<nt_family family>
 	explicit constexpr operator basic_nt_family_io_observer<family,char>() const noexcept
@@ -113,7 +131,17 @@ inline constexpr nt_at_entry at(nt_directory_entry ndet) noexcept
 	return nt_at_entry{ndet.entry->d_handle};
 }
 
-inline constexpr wcstring_view filename(nt_directory_entry pioe) noexcept
+inline constexpr wcstring_view native_filename(nt_directory_entry pioe) noexcept
+{
+	return pioe.entry->native_d_name();
+}
+
+inline constexpr nt_fs_dirent fs_dirent(nt_directory_entry pioe) noexcept
+{
+	return nt_fs_dirent{pioe.entry->d_handle,pioe.entry->native_d_name()};
+}
+
+inline constexpr u8cstring_view filename(nt_directory_entry pioe) noexcept
 {
 	return pioe.entry->d_name();
 }
@@ -219,7 +247,7 @@ struct nt_family_recursive_directory_iterator
 {
 	void* root_handle{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
 	nt_dirent* entry{};
-	std::vector<basic_nt_family_file<family,char>> stack;
+	details::naive_vector<basic_nt_family_file<family,char>> stack;
 	nt_family_recursive_directory_iterator()=default;
 	nt_family_recursive_directory_iterator(void* root_han,nt_dirent* ent):root_handle(root_han),entry(ent){}
 	nt_family_recursive_directory_iterator(nt_family_recursive_directory_iterator const&)=delete;

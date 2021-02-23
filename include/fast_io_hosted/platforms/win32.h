@@ -786,6 +786,8 @@ public:
 #ifndef _MSC_VER
 	explicit basic_win32_file(io_temp_t):basic_win32_io_handle<char_type>(details::create_win32_temp_file()){}
 #endif
+	explicit basic_win32_file(nt_fs_dirent fsdirent,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_win32_io_handle<char_type>(win32::nt::details::nt_create_file_directory_impl<false>(fsdirent.handle,fsdirent.filename,win32::nt::details::calculate_nt_open_mode(om,pm))){}
 	explicit basic_win32_file(nt_at_entry nate,cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
 				basic_win32_io_handle<char_type>(win32::nt::details::nt_create_file_directory_impl<false>(nate.handle,filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
 	{}

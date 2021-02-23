@@ -36,6 +36,7 @@ inline wc_io_observer wc_stderr() noexcept
 {
 	return {stderr};
 }
+
 #endif
 inline
 #ifndef _WIN32
@@ -63,6 +64,36 @@ decltype(auto) err() noexcept
 {
 	return native_stderr();
 }
+
+
+inline
+#ifndef _WIN32
+constexpr
+#endif
+decltype(auto) u8in() noexcept
+{
+	return native_stdin<char8_t>();
+}
+
+inline
+#ifndef _WIN32
+constexpr
+#endif
+decltype(auto) u8out() noexcept
+{
+	return native_stdout<char8_t>();
+}
+
+inline
+#ifndef _WIN32
+constexpr
+#endif
+decltype(auto) u8err() noexcept
+{
+	return native_stderr<char8_t>();
+}
+
+
 
 using in_buf_type = basic_ibuf<native_io_observer>;
 using out_buf_type = basic_obuf<native_io_observer>;

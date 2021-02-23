@@ -230,7 +230,13 @@ struct posix_file_openmode
 
 }
 
-
+struct posix_fs_dirent
+{
+	int fd{-1};
+	char const* filename{};
+	explicit constexpr posix_fs_dirent() = default;
+	explicit constexpr posix_fs_dirent(int fdd,char const* fnm):fd(fdd),filename(fnm){}
+};
 
 struct posix_io_redirection
 {
@@ -993,6 +999,8 @@ public:
 	{
 		hd.release();
 	}
+	basic_posix_file(nt_fs_dirent fsdirent,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_posix_file(basic_win32_file<char_type>(fsdirent,om,pm),om){}
 	basic_posix_file(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_posix_file(basic_win32_file<char_type>(file,om,pm),om)
 	{}
@@ -1025,7 +1033,8 @@ public:
 	{}
 
 #else
-
+	basic_posix_file(posix_fs_dirent fsdirent,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_posix_file(details::my_posix_openat_file_internal_impl(fsdirent.fd,fsdirent.filename,om,pm)){}
 	basic_posix_file(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_open_file_impl(file,om,pm)){}
 	basic_posix_file(posix_at_entry pate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_openat_file_impl(pate.fd,file,om,pm)){}
 	basic_posix_file(wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_open_file_impl(file,om,pm)){}
