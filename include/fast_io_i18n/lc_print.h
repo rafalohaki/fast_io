@@ -86,7 +86,7 @@ inline constexpr Iter print_reserve_define_lc_measurement_impl(Iter iter,basic_l
 }
 
 template<std::random_access_iterator Iter>
-inline constexpr print_reserve_define(io_reserve_type_t<
+inline constexpr Iter print_reserve_define(io_reserve_type_t<
 	std::iter_value_t<Iter>,
 	basic_lc_measurement<std::iter_value_t<Iter>>>,
 	Iter iter,
