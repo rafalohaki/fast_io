@@ -415,6 +415,14 @@ public:
 	}
 };
 
+#if !defined(_WIN32) && defined(AT_FDCWD)
+
+inline constexpr posix_at_entry at_fdcwd() noexcept
+{
+	return posix_at_entry(AT_FDCWD);
+}
+
+#endif
 namespace details
 {
 

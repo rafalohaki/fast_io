@@ -43,7 +43,8 @@ utimensat,//to do
 fchmodat,
 fchownat,
 fstatat,
-mkdirat
+mkdirat,
+mknodat
 };
 
 template<posix_api_22 dsp>
@@ -135,14 +136,33 @@ inline void posix_mkdirat_impl(int dirfd, const char *pathname, mode_t mode)
 	system_call_throw_error(
 #if defined(__linux__)
 	system_call<
-#if __NR_mkdirat
 	__NR_mkdirat
-#endif
 	,int>
 #else
 	::mkdirat
 #endif
 	(dirfd,pathname,mode));
+}
+
+inline void posix_mknodat_impl(int dirfd, const char *pathname, mode_t mode,std::uintmax_t dev)
+{
+	if constexpr(sizeof(std::uintmax_t)>sizeof(dev_t))
+	{
+		constexpr std::uintmax_t mx{std::numeric_limits<dev_t>::max()};
+		if(static_cast<std::uintmax_t>(dev)>mx)
+			throw_posix_error(EOVERFLOW);
+	}
+	system_call_throw_error(
+#if defined(__linux__)
+	system_call<
+#if __NR_mknodat
+	__NR_mknodat
+#endif
+	,int>
+#else
+	::mknodat
+#endif
+	(dirfd,pathname,mode,dev));
 }
 
 template<posix_api_1x dsp,typename... Args>
@@ -157,6 +177,8 @@ inline auto posix1x_api_dispatcher(int dirfd,char const* path,Args... args)
 	else if constexpr(dsp==posix_api_1x::fstatat)
 		posix_fstatat_impl(dirfd,path,args...);
 	else if constexpr(dsp==posix_api_1x::mkdirat)
+		posix_mkdirat_impl(dirfd,path,args...);
+	else if constexpr(dsp==posix_api_1x::mknodat)
 		posix_mkdirat_impl(dirfd,path,args...);
 }
 
@@ -377,6 +399,125 @@ template<constructible_to_path path_type>
 inline void posix_mkdirat(native_at_entry ent,path_type&& path,perms perm=static_cast<perms>(436))
 {
 	return details::posix_deal_with1x<details::posix_api_1x::mkdirat>(ent.fd,details::to_its_cstring_view(path),static_cast<mode_t>(perm));
+}
+
+template<constructible_to_path path_type>
+inline void posix_mknodat(native_at_entry ent,path_type&& path,perms perm,std::uintmax_t dev)
+{
+	return details::posix_deal_with1x<details::posix_api_1x::mknodat>(ent.fd,details::to_its_cstring_view(path),static_cast<mode_t>(perm),dev);
+}
+
+template<std::integral ch_type>
+struct basic_posix_readlinkat_t
+{
+	using char_type = ch_type;
+	int dirfd{-1};
+	std::conditional_t<sizeof(ch_type)==1,char_type const*,basic_cstring_view<ch_type>> path;
+};
+
+template<constructible_to_path path_type>
+inline constexpr auto posix_readlinkat(
+	posix_at_entry ent,
+	path_type&& path) noexcept
+{
+	auto strvw{details::to_its_cstring_view(path)};
+	using value_type = typename std::remove_cvref_t<decltype(strvw)>::value_type;
+	if constexpr(sizeof(value_type)==1)
+		return basic_posix_readlinkat_t<value_type>{ent.fd,strvw.c_str()};
+	else
+		return basic_posix_readlinkat_t<value_type>{ent.fd,strvw};
+}
+
+namespace details
+{
+
+inline constexpr std::size_t read_linkbuffer_size() noexcept
+{
+#if defined(PATH_MAX)
+	if constexpr(PATH_MAX<4096)
+		return 4096;
+	else
+		return PATH_MAX;
+#else
+	return 4096;
+#endif
+}
+
+inline std::size_t posix_readlinkat_common_impl(int dirfd,char const* pathname,char* buffer)
+{
+	constexpr std::size_t buffer_size{read_linkbuffer_size()};
+	int bytes{
+#if defined(__linux__)
+	system_call<
+#if __NR_readlinkat
+	__NR_readlinkat
+#endif
+	,int>
+#else
+	::readlinkat
+#endif
+	(dirfd,pathname,buffer,buffer_size)
+	};
+	system_call_throw_error(bytes);
+	return static_cast<std::size_t>(bytes);
+}
+
+template<std::integral path_char_type>
+inline std::size_t read_linkat_impl_phase2(char* dst,basic_posix_readlinkat_t<path_char_type> rlkat)
+{
+	if constexpr(sizeof(path_char_type)==1)
+	{
+		return posix_readlinkat_common_impl(rlkat.dirfd,reinterpret_cast<char const*>(rlkat.path),dst);
+	}
+	else
+	{
+		posix_path_dealer dealer(rlkat.path.data(),rlkat.path.size());
+		return posix_readlinkat_common_impl(rlkat.dirfd,dealer.c_str(),dst);
+	}
+}
+
+template<
+std::integral to_char_type,
+std::integral path_char_type>
+inline to_char_type* read_linkat_impl_phase1(to_char_type* dst,basic_posix_readlinkat_t<path_char_type> rlkat)
+{
+	if constexpr(sizeof(path_char_type)==1)
+	{
+		return dst+read_linkat_impl_phase2(reinterpret_cast<char*>(dst),rlkat);
+	}
+	else
+	{
+		constexpr std::size_t buffer_size{read_linkbuffer_size()};
+		local_operator_new_array_ptr<char8_t> dynamic_buffer(buffer_size);
+		std::size_t bytes{read_linkat_impl_phase2(reinterpret_cast<char*>(dynamic_buffer.ptr),rlkat)};
+		return details::codecvt::general_code_cvt_full(dynamic_buffer.ptr,dynamic_buffer.ptr+bytes,dst);
+	}
+}
+
+}
+
+
+template<std::integral char_type,std::integral path_char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,basic_posix_readlinkat_t<path_char_type>>,
+	basic_posix_readlinkat_t<path_char_type>) noexcept
+{
+	if constexpr(sizeof(char_type)==1)
+		return details::read_linkbuffer_size();
+	else
+	{
+		constexpr std::size_t sz{details::read_linkbuffer_size()};
+		constexpr std::size_t decorated_size{details::cal_decorated_reserve_size<1,sizeof(char_type)>(sz)};
+		return decorated_size;
+	}
+}
+
+template<std::contiguous_iterator Iter,std::integral char_type>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,
+	basic_posix_readlinkat_t<char_type>>,
+	Iter iter,
+	basic_posix_readlinkat_t<char_type> rlkat)
+{
+	return details::read_linkat_impl_phase1(iter,rlkat);
 }
 
 }
