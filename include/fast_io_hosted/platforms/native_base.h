@@ -13,7 +13,10 @@
 #include"nt.h"
 #include"win32_iocp_overlapped.h"
 #include"win32.h"
+#include"win32_path_dealer.h"
 //#include"com_error.h"
+#else
+#include"posix_path_dealer.h"
 #endif
 #include"linux/system_call.h"
 #include"posix.h"
