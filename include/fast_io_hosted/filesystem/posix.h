@@ -188,7 +188,7 @@ struct posix_directory_entry
 	}
 };
 
-inline posix_fs_dirent fs_dirent(posix_directory_entry ndet) noexcept
+inline posix_fs_dirent drt(posix_directory_entry ndet) noexcept
 {
 	return posix_fs_dirent{details::dirp_to_fd(ndet.dirp),ndet.entry->d_name};
 }

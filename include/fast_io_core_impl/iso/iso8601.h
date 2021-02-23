@@ -320,7 +320,7 @@ inline constexpr floating_format_precision_t<unix_timestamp,floating_representat
 	if constexpr(off_to_epoch==0)
 		return {ts,precision};
 	else
-		return {{ts.seconds,ts.subseconds},truncate_size(precision)};
+		return {{ts.seconds,ts.subseconds},precision};
 }
 
 template<intiso_t off_to_epoch>
@@ -340,7 +340,7 @@ inline constexpr comma_t<floating_format_precision_t<unix_timestamp,floating_rep
 	if constexpr(off_to_epoch==0)
 		return {{ts,precision}};
 	else
-		return {{{ts.seconds,ts.subseconds},truncate_size(precision)}};
+		return {{{ts.seconds,ts.subseconds},precision}};
 }
 
 }
@@ -354,7 +354,7 @@ inline constexpr std::size_t print_reserve_size(
 {
 	constexpr std::size_t value{print_reserve_size(io_reserve_type<char_type,intiso_t>)+3};
 	constexpr std::size_t val1{std::numeric_limits<uintiso_t>::digits10};
-	return value+std::max(ts.precision,val1);
+	return details::intrinsics::add_or_overflow_die(value,std::max(ts.precision,val1));
 }
 
 

@@ -55,10 +55,7 @@ public:
 
 	constexpr string_view_type substr(size_type pos, size_type n=std::basic_string_view<ch_type,tr_type>::npos) const = delete;
 	constexpr basic_cstring_view substr(size_type pos=0) const = delete;
-#if __cpp_lib_filesystem >= 201703L
-	basic_cstring_view(std::filesystem::path const& pth) noexcept requires(std::same_as<std::filesystem::path::value_type,ch_type>):
-		string_view_type(pth.native()){}
-#endif
+
 
 	constexpr void remove_suffix(size_type n)=delete;
 
@@ -79,5 +76,13 @@ using native_char_type = wchar_t;
 #else
 using native_char_type = char;
 #endif
+
+template<typename T>
+concept constructible_to_path =
+	std::constructible_from<cstring_view,T>||
+	std::constructible_from<wcstring_view,T>||
+	std::constructible_from<u8cstring_view,T>||
+	std::constructible_from<u16cstring_view,T>||
+	std::constructible_from<u32cstring_view,T>;
 
 }

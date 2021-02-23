@@ -43,6 +43,7 @@
 #include"fast_io_core_impl/manip/impl.h"
 #include"fast_io_core_impl/mode.h"
 #include"fast_io_core_impl/perms.h"
+#include"fast_io_core_impl/enums/impl.h"
 #include"fast_io_core_impl/seek.h"
 #include"fast_io_core_impl/drain.h"
 

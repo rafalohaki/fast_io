@@ -760,23 +760,4 @@ static_assert(cal_max_int_size<std::uint32_t,10>()==10);
 } // end details
 
 
-inline constexpr std::size_t truncate_size(std::size_t sz) noexcept
-{
-	static_assert(sizeof(std::size_t)>=2);
-	if constexpr(sizeof(std::size_t)==2)
-	{
-		return static_cast<std::size_t>(static_cast<std::uint8_t>(sz));
-	}
-	else if constexpr(sizeof(std::size_t)==4)
-	{
-		return static_cast<std::size_t>(static_cast<std::uint16_t>(sz));
-	}
-	else
-	{
-		constexpr std::size_t newdigits{std::numeric_limits<std::size_t>::digits/4*3};
-		constexpr std::size_t mask{(static_cast<std::size_t>(1)<<newdigits)-1};
-		return sz&mask;
-	}
-}
-
 }

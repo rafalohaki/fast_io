@@ -687,25 +687,9 @@ https://github.com/Alexpux/mingw-w64/blob/master/mingw-w64-headers/crt/sys/stat.
 #endif
 }
 
-inline posix_file_status fstat_impl(int fd)
+template<typename stat_model>
+inline constexpr posix_file_status struct_stat_to_posix_file_status(stat_model& st) noexcept
 {
-#ifdef _WIN32
-	struct __stat64 st;
-#elif defined(__MSDOS__)
-	struct stat st;
-#else
-	struct stat64 st;
-#endif
-	if(
-#ifdef _WIN32
-_fstat64
-#elif defined(__MSDOS__)
-fstat
-#else
-fstat64
-#endif
-(fd,std::addressof(st))<0)
-		throw_posix_error();
 	return {static_cast<std::uintmax_t>(st.st_dev),
 	static_cast<std::uintmax_t>(st.st_ino),
 	st_mode_to_perms(st.st_mode),
@@ -729,6 +713,28 @@ fstat64
 	0,0
 #endif
 };
+}
+
+inline posix_file_status fstat_impl(int fd)
+{
+#ifdef _WIN32
+	struct __stat64 st;
+#elif defined(__MSDOS__)
+	struct stat st;
+#else
+	struct stat64 st;
+#endif
+	if(
+#ifdef _WIN32
+_fstat64
+#elif defined(__MSDOS__)
+fstat
+#else
+fstat64
+#endif
+(fd,std::addressof(st))<0)
+		throw_posix_error();
+	return struct_stat_to_posix_file_status(st);
 }
 
 }

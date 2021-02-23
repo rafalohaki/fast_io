@@ -297,6 +297,36 @@ inline std::uint16_t filename_bytes(std::size_t sz)
 }
 
 template<bool zw,std::integral char_type>
+inline void* nt_create_file_impl(basic_cstring_view<char_type> filename,nt_open_mode const& mode)
+{
+	wchar_t const* part_name{};
+	win32::nt::rtl_relative_name_u relative_name{};
+	win32::nt::unicode_string nt_name{};
+	if constexpr(std::same_as<char_type,wchar_t>)
+	{
+		nt_file_rtl_path(filename.c_str(),nt_name,part_name,relative_name);
+	}
+	else if constexpr(std::same_as<char_type,char16_t>)
+	{
+		using wchar_t_may_alias_ptr
+#if __has_cpp_attribute(gnu::may_alias)
+		[[gnu::may_alias]]
+#endif
+		= wchar_t*;
+		nt_file_rtl_path(reinterpret_cast<wchar_t_may_alias_ptr>(filename.c_str()),nt_name,part_name,relative_name);
+	}
+	else
+	{
+		::fast_io::details::local_operator_new_array_ptr<char16_t> buffer(
+			::fast_io::details::intrinsics::add_or_overflow_die(
+			::fast_io::details::cal_decorated_reserve_size<sizeof(char_type),sizeof(char16_t)>(filename.size()),1));
+		nt_file_rtl_path_code_cvt(filename,buffer.ptr,nt_name,part_name,relative_name);
+	}
+	win32::nt::rtl_unicode_string_unique_ptr us_ptr{std::addressof(nt_name)};
+	return nt_create_file_common_impl<zw>(nullptr,std::addressof(nt_name),mode);
+}
+
+template<bool zw,std::integral char_type>
 inline void* nt_create_file_directory_impl(void* directory,basic_cstring_view<char_type> filename,nt_open_mode const& mode)
 {
 	if constexpr(std::same_as<char_type,wchar_t>)
@@ -348,35 +378,6 @@ inline void* nt_create_file_directory_impl(void* directory,basic_cstring_view<ch
 
 }
 
-template<bool zw,std::integral char_type>
-inline void* nt_create_file_impl(basic_cstring_view<char_type> filename,nt_open_mode const& mode)
-{
-	wchar_t const* part_name{};
-	win32::nt::rtl_relative_name_u relative_name{};
-	win32::nt::unicode_string nt_name{};
-	if constexpr(std::same_as<char_type,wchar_t>)
-	{
-		nt_file_rtl_path(filename.c_str(),nt_name,part_name,relative_name);
-	}
-	else if constexpr(std::same_as<char_type,char16_t>)
-	{
-		using wchar_t_may_alias_ptr
-#if __has_cpp_attribute(gnu::may_alias)
-		[[gnu::may_alias]]
-#endif
-		= wchar_t*;
-		nt_file_rtl_path(reinterpret_cast<wchar_t_may_alias_ptr>(filename.c_str()),nt_name,part_name,relative_name);
-	}
-	else
-	{
-		::fast_io::details::local_operator_new_array_ptr<char16_t> buffer(
-			::fast_io::details::intrinsics::add_or_overflow_die(
-			::fast_io::details::cal_decorated_reserve_size<sizeof(char_type),sizeof(char16_t)>(filename.size()),1));
-		nt_file_rtl_path_code_cvt(filename,buffer.ptr,nt_name,part_name,relative_name);
-	}
-	win32::nt::rtl_unicode_string_unique_ptr us_ptr{std::addressof(nt_name)};
-	return nt_create_file_common_impl<zw>(nullptr,std::addressof(nt_name),mode);
-}
 
 template<bool zw>
 inline std::size_t nt_read_impl(void* __restrict handle,void* __restrict begin,std::size_t size)

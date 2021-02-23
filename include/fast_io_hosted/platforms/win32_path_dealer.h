@@ -31,7 +31,7 @@ struct win32_path_dealer
 #if __has_cpp_attribute(gnu::may_alias)
 			[[gnu::may_alias]]
 #endif
-			= char16_t const*;
+			= char16_t*;
 			*(buffer_data_end=codecvt::general_code_cvt_full(p,p+sz,
 				reinterpret_cast<char16_may_alias_ptr>(buffer_data)))=0;
 		}

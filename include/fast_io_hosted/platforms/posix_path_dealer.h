@@ -26,13 +26,14 @@ struct posix_path_dealer
 		else
 #endif
 		{
+
 			using char8_may_alias_ptr
 #if __has_cpp_attribute(gnu::may_alias)
 			[[gnu::may_alias]]
 #endif
-			= char8_t const*;
+			= char8_t*;
 			*codecvt::general_code_cvt_full(p,p+sz,
-			reinterpret_cast<char8_may_alias_ptr>(buffer_data))=0;
+			reinterpret_cast<char8_may_alias_ptr>(buffer_data))=0;			
 		}
 	}
 	inline constexpr char_type const* c_str() noexcept

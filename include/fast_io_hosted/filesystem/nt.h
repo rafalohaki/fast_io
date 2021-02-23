@@ -136,7 +136,7 @@ inline constexpr wcstring_view native_filename(nt_directory_entry pioe) noexcept
 	return pioe.entry->native_d_name();
 }
 
-inline constexpr nt_fs_dirent fs_dirent(nt_directory_entry pioe) noexcept
+inline constexpr nt_fs_dirent drt(nt_directory_entry pioe) noexcept
 {
 	return nt_fs_dirent{pioe.entry->d_handle,pioe.entry->native_d_name()};
 }
