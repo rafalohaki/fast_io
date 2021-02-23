@@ -30,7 +30,8 @@ inline constexpr auto to_its_cstring_view(path_type&& pth) noexcept
 
 enum class posix_api_22
 {
-renameat
+renameat,
+linkat
 };
 enum class posix_api_12
 {
@@ -44,22 +45,46 @@ fchmodat,
 fchownat,
 fstatat,
 mkdirat,
-mknodat
+mknodat,
+unlinkat
 };
 
-template<posix_api_22 dsp>
-inline auto posix22_api_dispatcher(int olddirfd,char const* oldpath,
+inline void posix_renameat_impl(int olddirfd,char const* oldpath,
 	int newdirfd,char const* newpath)
+{
+	system_call_throw_error(
+#if defined(__linux__)
+	system_call<__NR_renameat,int>
+#else
+	::renameat
+#endif
+	(olddirfd,oldpath,newdirfd,newpath));
+}
+
+inline void posix_linkat_impl(int olddirfd,char const* oldpath,
+	int newdirfd,char const* newpath,int flags)
+{
+	system_call_throw_error(
+#if defined(__linux__)
+	system_call<__NR_linkat,int>
+#else
+	::linkat
+#endif
+	(olddirfd,oldpath,newdirfd,newpath,flags));
+}
+
+template<posix_api_22 dsp,typename... Args>
+inline auto posix22_api_dispatcher(int olddirfd,char const* oldpath,
+	int newdirfd,char const* newpath,Args... args)
 {
 	if constexpr(dsp==posix_api_22::renameat)
 	{
-		system_call_throw_error(
-#if defined(__linux__)
-		system_call<__NR_renameat,int>
-#else
-		::renameat
-#endif
-		(olddirfd,oldpath,newdirfd,newpath));
+		static_assert(sizeof...(Args)==0);
+		posix_renameat_impl(olddirfd,oldpath,newdirfd,newpath);
+	}
+	else if constexpr(dsp==posix_api_22::linkat)
+	{
+		posix_linkat_impl(olddirfd,oldpath,newdirfd,newpath,args...);
 	}
 }
 template<posix_api_12 dsp>
@@ -165,6 +190,19 @@ inline void posix_mknodat_impl(int dirfd, const char *pathname, mode_t mode,std:
 	(dirfd,pathname,mode,dev));
 }
 
+
+
+inline void posix_unlinkat_impl(int dirfd,char const* path,int flags)
+{
+	system_call_throw_error(
+#if defined(__linux__)
+	system_call<__NR_unlinkat,int>
+#else
+	::unlinkat
+#endif
+	(dirfd,path,flags));
+}
+
 template<posix_api_1x dsp,typename... Args>
 inline auto posix1x_api_dispatcher(int dirfd,char const* path,Args... args)
 {
@@ -180,6 +218,8 @@ inline auto posix1x_api_dispatcher(int dirfd,char const* path,Args... args)
 		posix_mkdirat_impl(dirfd,path,args...);
 	else if constexpr(dsp==posix_api_1x::mknodat)
 		posix_mkdirat_impl(dirfd,path,args...);
+	else if constexpr(dsp==posix_api_1x::unlinkat)
+		posix_unlinkat_impl(dirfd,path,args...);
 }
 
 template<posix_api_22 dsp,std::integral char_type2>
@@ -197,9 +237,9 @@ inline auto posix_deal_with22(int olddirfd,char const* oldpath,
 	}
 }
 
-template<posix_api_22 dsp,std::integral char_type1,std::integral char_type2>
+template<posix_api_22 dsp,std::integral char_type1,std::integral char_type2,typename... Args>
 inline auto posix_deal_with22(int olddirfd,basic_cstring_view<char_type1> oldpath,
-	int newdirfd,basic_cstring_view<char_type2> newpath)
+	int newdirfd,basic_cstring_view<char_type2> newpath,Args... args)
 {
 	if constexpr(sizeof(char_type1)==1&&sizeof(char_type2)==1)
 	{
@@ -318,22 +358,29 @@ inline void posix_symlinkat(old_path_type&& oldpath,
 enum class at_flags
 {
 eaccess=
-#if AT_EACCESS
+#ifdef AT_EACCESS
 AT_EACCESS
 #else
 0
 #endif
 ,
 symlink_nofollow=
-#if AT_SYMLINK_NOFOLLOW
+#ifdef AT_SYMLINK_NOFOLLOW
 AT_SYMLINK_NOFOLLOW
 #else
 0
 #endif
 ,
 no_automount=
-#if AT_NO_AUTOMOUNT
+#ifdef AT_NO_AUTOMOUNT
 AT_NO_AUTOMOUNT
+#else
+0
+#endif
+,
+removedir=
+#ifdef AT_REMOVEDIR
+AT_REMOVEDIR
 #else
 0
 #endif
@@ -406,6 +453,20 @@ inline void posix_mknodat(native_at_entry ent,path_type&& path,perms perm,std::u
 {
 	return details::posix_deal_with1x<details::posix_api_1x::mknodat>(ent.fd,details::to_its_cstring_view(path),static_cast<mode_t>(perm),dev);
 }
+
+template<constructible_to_path path_type>
+inline void posix_unlinkat(native_at_entry ent,path_type&& path,at_flags flags={})
+{
+	details::posix_deal_with1x<details::posix_api_1x::unlinkat>(ent.fd,details::to_its_cstring_view(path),static_cast<int>(flags));
+}
+
+template<constructible_to_path old_path_type,constructible_to_path new_path_type>
+inline void posix_linkat(native_at_entry oldent,old_path_type&& oldpath,native_at_entry newent,new_path_type&& newpath,at_flags flags=at_flags::symlink_nofollow)
+{
+	details::posix_deal_with22<details::posix_api_22::linkat>(oldent.fd,details::to_its_cstring_view(oldpath),
+	newent.fd,details::to_its_cstring_view(newpath),static_cast<int>(flags));
+}
+
 
 template<std::integral ch_type>
 struct basic_posix_readlinkat_t
@@ -519,5 +580,6 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<I
 {
 	return details::read_linkat_impl_phase1(iter,rlkat);
 }
+
 
 }
