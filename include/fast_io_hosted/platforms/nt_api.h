@@ -19,6 +19,15 @@ Guard against EBCDIC exec charset
 	return mod;
 }
 
+template<typename func>
+inline func* get_funcptr(void* module,char8_t const* funname) noexcept
+{
+	auto proc_addr(GetProcAddress(module,reinterpret_cast<char const*>(funname)));
+	if(proc_addr==nullptr)
+		fast_terminate();
+	return bit_cast<func*>(proc_addr);
+}
+
 /*
 Guard against EBCDIC execution charset
 */

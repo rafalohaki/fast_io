@@ -143,8 +143,8 @@ inline posix_file_status posix_fstatat_impl(int dirfd, const char *pathname, int
 	system_call_throw_error(
 #if defined(__linux__)
 	system_call<
-#if defined(__NR_newfstatat64)
-	__NR_newfstatat64
+#if defined(__NR_newfstatat)
+	__NR_newfstatat
 #else
 	__NR_fstatat64
 #endif
