@@ -123,6 +123,16 @@ inline constexpr std::size_t output_unsigned(Iter str,U value) noexcept
 	return len;
 }
 
+template<char8_t base=10,bool uppercase=false,std::random_access_iterator Iter,my_unsigned_integral uint_type>
+inline constexpr Iter output_unsigned_full(Iter str,uint_type value) noexcept
+{
+	constexpr std::size_t len{cal_max_int_size<uint_type,base>()};
+	if constexpr(sizeof(uint_type)<=sizeof(unsigned))
+		with_length::output_unsigned<base,uppercase>(str,static_cast<unsigned>(value),len);
+	else
+		with_length::output_unsigned<base,uppercase>(str,value,len);
+	return str+len;
+}
 
 }
 

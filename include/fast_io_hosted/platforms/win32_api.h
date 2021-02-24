@@ -11,7 +11,7 @@ std::uint32_t __stdcall GetLastError(void) noexcept;
 void * __stdcall LoadLibraryW(wchar_t const*) noexcept;
 
 // Used to retrieve a locale-specific message string for some error code
-std::uint32_t __stdcall FormatMessageA(std::uint32_t, void const*, std::uint32_t,std::uint32_t, char*, std::uint32_t, void /*va_list*/ *) noexcept;
+std::uint32_t __stdcall FormatMessageW(std::uint32_t, void const*, std::uint32_t,std::uint32_t, wchar_t*, std::uint32_t, void /*va_list*/ *) noexcept;
 
 struct security_attributes
 {

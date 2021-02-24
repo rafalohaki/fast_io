@@ -111,6 +111,31 @@ constexpr Iter process_integer_output(Iter iter,int_type i) noexcept
 	}
 }
 
+template<char8_t base,bool uppercase,std::random_access_iterator Iter,my_unsigned_integral int_type>
+constexpr Iter process_full_integer_output(Iter iter,int_type i) noexcept
+{
+	namespace algo_decision = 
+#ifdef FAST_IO_OPTIMIZE_SIZE
+		details::optimize_size;
+#else
+		details::twodigits;
+#endif
+	using char_type = std::iter_value_t<Iter>;
+	if constexpr(std::same_as<std::remove_cvref_t<int_type>,bool>)
+	{
+		if constexpr(std::same_as<char_type,char>)
+			*iter='0'+static_cast<char>(i);
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			*iter=L'0'+static_cast<wchar_t>(i);
+		else
+			*iter=u8'0'+static_cast<char8_t>(i);
+		++iter;
+		return iter;
+	}
+	else
+		return algo_decision::output_unsigned_full<base,uppercase>(iter,i);
+}
+
 }
 
 template<std::integral char_type,details::my_integral int_type>
@@ -154,6 +179,25 @@ template<std::integral char_type,std::random_access_iterator caiter,std::size_t 
 constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manipulators::base_t<base,uppercase,int_type>>,caiter iter,manipulators::base_t<base,uppercase,int_type> ref) noexcept
 {
 	return details::process_integer_output<base,uppercase>(iter,ref.reference);
+}
+
+
+template<std::integral char_type,std::size_t base,bool uppercase,details::my_unsigned_integral int_type>
+constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manipulators::base_full_t<base,uppercase,int_type>>) noexcept
+{
+	return details::cal_max_int_size<int_type,base>();
+}
+
+template<std::random_access_iterator caiter,
+	std::size_t base,
+	bool uppercase,
+	details::my_unsigned_integral int_type>
+constexpr caiter print_reserve_define(
+	io_reserve_type_t<std::iter_value_t<caiter>,manipulators::base_full_t<base,uppercase,int_type>>,
+	caiter iter,
+	manipulators::base_full_t<base,uppercase,int_type> ref) noexcept
+{
+	return details::process_full_integer_output<base,uppercase>(iter,ref.reference);
 }
 
 

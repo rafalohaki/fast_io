@@ -6,6 +6,31 @@ namespace fast_io
 namespace details
 {
 
+
+template<char8_t base,bool uppercase,std::random_access_iterator Iter,my_unsigned_integral U>
+[[gnu::noinline]] inline constexpr auto output_base_number_full_impl(Iter iter,U a) noexcept
+{
+	using char_type = std::iter_value_t<Iter>;
+	constexpr auto &table_v(get_shared_inline_constexpr_base_table<char_type,base,uppercase,false>());
+	constexpr std::uint32_t pw(static_cast<std::uint32_t>(table_v.size()));
+	constexpr auto table(table_v.data());
+	constexpr std::size_t chars{2};
+	constexpr std::size_t len{cal_max_int_size<U,base>()};
+	constexpr std::size_t lendiv2{len/chars};
+	auto start{iter};
+	auto res{iter+len};
+	iter=res;
+	for(std::size_t i{};i!=lendiv2;++i)
+	{
+		auto const rem(a%pw);
+		a/=pw;
+		non_overlapped_copy_n(table[rem].data(),chars,iter-=chars);
+	}
+	if constexpr(len%2!=0)
+		*start=table[a][1];
+	return res;
+}
+
 template<char8_t base,bool uppercase,bool point=false,char32_t dec=u8'.',bool transparent=false,std::random_access_iterator Iter,my_unsigned_integral U>
 inline constexpr auto output_base_number_impl(Iter iter,U a) noexcept
 {
@@ -171,6 +196,13 @@ inline constexpr void output_unsigned(Iter str,U value,std::size_t len) noexcept
 		output_base_number_impl<10,false,false,u8'.',start==0>(str+len,value);
 }
 }
+
+template<char8_t base=10,bool uppercase=false,std::random_access_iterator Iter,my_unsigned_integral uint_type>
+inline constexpr Iter output_unsigned_full(Iter str,uint_type value) noexcept
+{
+	return output_base_number_full_impl<base,uppercase>(str,value);
+}
+
 
 }
 }

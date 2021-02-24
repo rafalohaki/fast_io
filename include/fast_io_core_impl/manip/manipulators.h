@@ -4,6 +4,13 @@ namespace fast_io::manipulators
 {
 
 template<std::size_t base,bool uppercase,typename T>
+struct base_full_t
+{
+	using manip_tag = manip_tag_t;
+	T reference;
+};
+
+template<std::size_t base,bool uppercase,typename T>
 struct base_t
 {
 	using manip_tag = manip_tag_t;
@@ -345,6 +352,37 @@ inline constexpr base_t<16,true,
 		return {static_cast<std::make_unsigned_t<std::remove_cvref_t<T>>>(reference)};
 }
 
+template<typename T>
+requires (::fast_io::details::my_integral<T>||
+	(std::is_pointer_v<T>||std::contiguous_iterator<T>))
+inline constexpr base_full_t<16,false,
+	std::conditional_t<std::is_pointer_v<T>||std::contiguous_iterator<T>,std::uintptr_t,
+	std::make_unsigned_t<std::remove_cvref_t<T>>>
+	> uhex_full(T reference) noexcept
+{
+	if constexpr(std::contiguous_iterator<T>)
+		return {bit_cast<std::uintptr_t>(std::to_address(reference))};
+	else if constexpr(std::is_pointer_v<T>)
+		return {bit_cast<std::uintptr_t>(reference)};
+	else
+		return {static_cast<std::make_unsigned_t<std::remove_cvref_t<T>>>(reference)};
+}
+
+template<typename T>
+requires (::fast_io::details::my_integral<T>||
+	(std::is_pointer_v<T>||std::contiguous_iterator<T>))
+inline constexpr base_full_t<16,true,
+	std::conditional_t<std::is_pointer_v<T>||std::contiguous_iterator<T>,std::uintptr_t,
+	std::make_unsigned_t<std::remove_cvref_t<T>>>
+	> uhex_upper_full(T reference) noexcept
+{
+	if constexpr(std::contiguous_iterator<T>)
+		return {bit_cast<std::uintptr_t>(std::to_address(reference))};
+	else if constexpr(std::is_pointer_v<T>)
+		return {bit_cast<std::uintptr_t>(reference)};
+	else
+		return {static_cast<std::make_unsigned_t<std::remove_cvref_t<T>>>(reference)};
+}
 
 template<typename T>
 requires (::fast_io::details::my_integral<T>||
@@ -393,8 +431,6 @@ inline constexpr parameter<
 	else
 		return {static_cast<std::make_unsigned_t<std::remove_cvref_t<T>>>(reference)};
 }
-
-
 
 template<std::integral T>
 inline constexpr chvw_t<T> chvw(T ch)

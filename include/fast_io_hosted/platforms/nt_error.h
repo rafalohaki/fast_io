@@ -19,6 +19,7 @@ public:
 	}
 #endif
 };
+
 [[noreturn]] inline void throw_nt_error([[maybe_unused]] std::uint32_t err)
 {
 #ifdef __cpp_exceptions
@@ -31,4 +32,58 @@ public:
 	fast_terminate();
 #endif
 }
+
+namespace details
+{
+
+template<std::contiguous_iterator Iter>
+inline constexpr Iter print_reserve_nt_error_impl(Iter iter,std::uint32_t ntstatus) noexcept
+{
+	using char_type = std::iter_value_t<Iter>;
+	if constexpr(std::same_as<char_type,char>)
+		iter=copy_string_literal("[nt:0x",iter);
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		iter=copy_string_literal(L"[nt:0x",iter);
+	else if constexpr(std::same_as<char_type,char16_t>)
+		iter=copy_string_literal(u"[nt:0x",iter);
+	else if constexpr(std::same_as<char_type,char32_t>)
+		iter=copy_string_literal(U"[nt:0x",iter);
+	else
+		iter=copy_string_literal(u8"[nt:0x",iter);
+	iter=print_reserve_define(io_reserve_type<char_type,::fast_io::manipulators::base_full_t<16,true,std::uint32_t>>,iter,{ntstatus});
+
+	if constexpr(std::same_as<char_type,char>)
+		*iter=']';
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		*iter=L']';
+	else
+		*iter=u8']';
+	++iter;
+	return print_reserve_define_win32_error_impl(iter,win32::nt::rtl_nt_status_to_dos_error(ntstatus));
+}
+
+}
+
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,nt_error>) noexcept
+{
+	constexpr std::size_t full_size(print_reserve_size(io_reserve_type<char_type,::fast_io::manipulators::base_full_t<16,true,std::uint32_t>>)+print_reserve_size(io_reserve_type<char_type,win32_error>));
+	if constexpr(std::same_as<char_type,char>)
+	{
+		return full_size+details::string_literal_size("[nt:0x]");
+	}
+	else if constexpr(std::same_as<char_type,wchar_t>)
+	{
+		return full_size+details::string_literal_size(L"[nt:0x]");
+	}
+	else
+		return full_size+details::string_literal_size(u8"[nt:0x]");
+}
+
+template<std::contiguous_iterator Iter>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,nt_error>,Iter iter,nt_error const& e) noexcept
+{
+	return details::print_reserve_nt_error_impl(iter,e.code());
+}
+
 }
