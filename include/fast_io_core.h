@@ -43,7 +43,6 @@
 #include"fast_io_core_impl/manip/impl.h"
 #include"fast_io_core_impl/mode.h"
 #include"fast_io_core_impl/perms.h"
-#include"fast_io_core_impl/enums/impl.h"
 #include"fast_io_core_impl/seek.h"
 #include"fast_io_core_impl/drain.h"
 
@@ -85,6 +84,7 @@
 #include"fast_io_core_impl/posix_error_scatter.h"
 #include"fast_io_core_impl/iso/isos.h"
 
+#include"fast_io_core_impl/enums/impl.h"
 #include"fast_io_core_impl/codecvt/impl.h"
 #include"fast_io_core_impl/io_deco_ref.h"
 

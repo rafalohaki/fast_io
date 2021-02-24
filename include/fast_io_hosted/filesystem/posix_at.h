@@ -40,7 +40,7 @@ symlinkat
 enum class posix_api_1x
 {
 faccessat,
-utimensat,//to do
+utimensat,
 fchmodat,
 fchownat,
 fstatat,
@@ -143,10 +143,10 @@ inline posix_file_status posix_fstatat_impl(int dirfd, const char *pathname, int
 	system_call_throw_error(
 #if defined(__linux__)
 	system_call<
-#if __NR_newfstatat64
+#if defined(__NR_newfstatat64)
 	__NR_newfstatat64
 #else
-	__NR_newfstatat
+	__NR_fstatat64
 #endif
 	,int>
 #else
@@ -190,8 +190,6 @@ inline void posix_mknodat_impl(int dirfd, const char *pathname, mode_t mode,std:
 	(dirfd,pathname,mode,dev));
 }
 
-
-
 inline void posix_unlinkat_impl(int dirfd,char const* path,int flags)
 {
 	system_call_throw_error(
@@ -201,6 +199,58 @@ inline void posix_unlinkat_impl(int dirfd,char const* path,int flags)
 	::unlinkat
 #endif
 	(dirfd,path,flags));
+}
+
+namespace details
+{
+inline constexpr struct timespec unix_timestamp_to_struct_timespec64(unix_timestamp stmp) noexcept
+{
+	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000000u};
+	return {static_cast<std::time_t>(stmp.seconds),static_cast<long>(static_cast<long unsigned>((stmp.subseconds)/mul_factor))};
+}
+
+inline constexpr struct timespec unix_timestamp_to_struct_timespec64(unix_timestamp_option opt) noexcept
+{
+	switch(opt.flags)
+	{
+	case utime_flags::now:
+		return {.tv_nsec=UTIME_NOW};
+	case utime_flags::omit:
+		return {.tv_nsec=UTIME_OMIT};
+	default:
+		return unix_timestamp_to_struct_timespec64(opt.timestamp);
+	}
+}
+
+}
+
+inline void posix_utimensat_impl(int dirfd,char const* path,
+unix_timestamp_option creation_time,
+unix_timestamp_option last_access_time,
+unix_timestamp_option last_modification_time,
+int flags)
+{
+	if(creation_time.flags!=utime_flags::omit)
+		throw_posix_error(EINVAL);
+	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000000u};
+	struct timespec ts[2]{
+		details::unix_timestamp_to_struct_timespec64(last_access_time),
+		details::unix_timestamp_to_struct_timespec64(last_modification_time),
+	};
+	struct timespec* tsptr{ts};
+	system_call_throw_error(
+#if defined(__linux__)
+
+#if defined(__NR__utimensat64)
+	system_call<__NR_utimensat64,int>
+#else
+	system_call<__NR_utimensat,int>
+#endif
+
+#else
+	::utimensat64
+#endif
+	(dirfd,path,tsptr,flags));
 }
 
 template<posix_api_1x dsp,typename... Args>
@@ -220,6 +270,8 @@ inline auto posix1x_api_dispatcher(int dirfd,char const* path,Args... args)
 		posix_mkdirat_impl(dirfd,path,args...);
 	else if constexpr(dsp==posix_api_1x::unlinkat)
 		posix_unlinkat_impl(dirfd,path,args...);
+	else if constexpr(dsp==posix_api_1x::utimensat)
+		posix_utimensat_impl(dirfd,path,args...);
 }
 
 template<posix_api_22 dsp,std::integral char_type2>
@@ -384,6 +436,13 @@ AT_REMOVEDIR
 #else
 0
 #endif
+,
+empty_path=
+#ifdef AT_EMPTY_PATH
+AT_EMPTY_PATH
+#else
+0
+#endif
 };
 
 constexpr at_flags operator&(at_flags x, at_flags y) noexcept
@@ -465,6 +524,17 @@ inline void posix_linkat(native_at_entry oldent,old_path_type&& oldpath,native_a
 {
 	details::posix_deal_with22<details::posix_api_22::linkat>(oldent.fd,details::to_its_cstring_view(oldpath),
 	newent.fd,details::to_its_cstring_view(newpath),static_cast<int>(flags));
+}
+
+template<constructible_to_path path_type>
+inline void posix_utimensat(native_at_entry ent,path_type&& path,
+	unix_timestamp_option creation_time,
+	unix_timestamp_option last_access_time,
+	unix_timestamp_option last_modification_time,
+	at_flags flags=at_flags::symlink_nofollow)
+{
+	details::posix_deal_with1x<details::posix_api_1x::utimensat>(ent.fd,details::to_its_cstring_view(path),
+	creation_time,last_access_time,last_modification_time,static_cast<int>(flags));
 }
 
 
@@ -551,7 +621,7 @@ inline to_char_type* read_linkat_impl_phase1(to_char_type* dst,basic_posix_readl
 		constexpr std::size_t buffer_size{read_linkbuffer_size()};
 		local_operator_new_array_ptr<char8_t> dynamic_buffer(buffer_size);
 		std::size_t bytes{read_linkat_impl_phase2(reinterpret_cast<char*>(dynamic_buffer.ptr),rlkat)};
-		return details::codecvt::general_code_cvt_full(dynamic_buffer.ptr,dynamic_buffer.ptr+bytes,dst);
+		return codecvt::general_code_cvt_full(dynamic_buffer.ptr,dynamic_buffer.ptr+bytes,dst);
 	}
 }
 
