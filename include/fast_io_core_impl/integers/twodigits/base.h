@@ -8,7 +8,7 @@ namespace details
 
 
 template<char8_t base,bool uppercase,std::random_access_iterator Iter,my_unsigned_integral U>
-[[gnu::noinline]] inline constexpr auto output_base_number_full_impl(Iter iter,U a) noexcept
+inline constexpr auto output_base_number_full_impl(Iter iter,U a) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
 	constexpr auto &table_v(get_shared_inline_constexpr_base_table<char_type,base,uppercase,false>());
