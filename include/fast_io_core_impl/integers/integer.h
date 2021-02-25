@@ -12,6 +12,21 @@ namespace fast_io
 
 namespace details
 {
+
+template<std::forward_iterator Iter>
+constexpr Iter process_bool_output(Iter iter,bool b) noexcept
+{
+	using char_type = std::iter_value_t<Iter>;
+	if constexpr(std::same_as<char_type,char>)
+		*iter=static_cast<char>(b)+'0';
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		*iter=static_cast<wchar_t>(b)+L'0';
+	else
+		*iter=static_cast<char8_t>(b)+u8'0';
+	++iter;
+	return iter;
+}
+
 template<char8_t base,bool uppercase,bool ignore_sign=false,std::random_access_iterator Iter,my_integral int_type>
 constexpr Iter process_integer_output(Iter iter,int_type i) noexcept
 {
@@ -153,15 +168,7 @@ template<std::integral char_type,std::random_access_iterator caiter,details::my_
 constexpr caiter print_reserve_define(io_reserve_type_t<char_type,int_type>,caiter iter,U i) noexcept
 {
 	if constexpr(std::same_as<std::remove_cvref_t<int_type>,bool>)
-	{
-		if constexpr(std::same_as<char_type,char>)
-			*iter=static_cast<char>(i)+'0';
-		else if constexpr(std::same_as<char_type,wchar_t>)
-			*iter=static_cast<wchar_t>(i)+L'0';
-		else
-			*iter=static_cast<char8_t>(i)+u8'0';
-		return ++iter;
-	}
+		return details::process_bool_output(iter,i);
 	else
 		return details::process_integer_output<10,false>(iter,i);
 }
@@ -169,7 +176,9 @@ constexpr caiter print_reserve_define(io_reserve_type_t<char_type,int_type>,cait
 template<std::integral char_type,std::size_t base,bool uppercase,details::my_integral int_type>
 constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manipulators::base_t<base,uppercase,int_type>>) noexcept
 {
-	if constexpr(details::my_unsigned_integral<int_type>)
+	if constexpr(std::same_as<std::remove_cvref_t<int_type>,bool>)
+		return 1;
+	else if constexpr(details::my_unsigned_integral<int_type>)
 		return details::cal_max_int_size<int_type,base>();
 	else
 		return details::cal_max_int_size<details::my_make_unsigned_t<int_type>,base>()+1;
@@ -178,7 +187,10 @@ constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manipulator
 template<std::integral char_type,std::random_access_iterator caiter,std::size_t base,bool uppercase,details::my_integral int_type>
 constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manipulators::base_t<base,uppercase,int_type>>,caiter iter,manipulators::base_t<base,uppercase,int_type> ref) noexcept
 {
-	return details::process_integer_output<base,uppercase>(iter,ref.reference);
+	if constexpr(std::same_as<std::remove_cvref_t<int_type>,bool>)
+		return details::process_bool_output(iter,ref.reference);
+	else 
+		return details::process_integer_output<base,uppercase>(iter,ref.reference);
 }
 
 
