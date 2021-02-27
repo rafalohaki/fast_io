@@ -37,17 +37,13 @@ requires (sizeof(char_type)<=4)
 using basic_utf_mb_state = std::conditional_t<sizeof(char_type)==4,u32utf_mb_state,
 std::conditional_t<sizeof(char_type)==2,u16utf_mb_state,u8utf_mb_state>>;
 using utf_mb_state = basic_utf_mb_state<char>;
-#ifndef __MSDOS__
 using wutf_mb_state = basic_utf_mb_state<wchar_t>;
-#endif
 
 using gb18030_mb_state = utf_mb_state;
 using ebcdic_mb_state = utf_mb_state;
 
 using execution_charset_mb_state = utf_mb_state;
-#ifndef __MSDOS__
 using wexecution_charset_mb_state = wutf_mb_state;
-#endif
 
 enum class encoding_scheme
 {

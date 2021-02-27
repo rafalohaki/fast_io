@@ -325,10 +325,8 @@ public:
 
 using bio_io_observer =  basic_bio_io_observer<char>;
 using bio_file =  basic_bio_file<char>;
-#ifndef __MSDOS__
 using wbio_io_observer =  basic_bio_io_observer<wchar_t>;
 using wbio_file =  basic_bio_file<wchar_t>;
-#endif
 using u8bio_io_observer =  basic_bio_io_observer<char8_t>;
 using u8bio_file =  basic_bio_file<char8_t>;
 using u16bio_io_observer =  basic_bio_io_observer<char16_t>;

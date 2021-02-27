@@ -175,9 +175,7 @@ public:
 };
 
 using filebuf_file=basic_filebuf_file<char>;
-#ifndef __MSDOS__
 using wfilebuf_file=basic_filebuf_file<wchar_t>;
-#endif
 #if defined(_MSVC_STL_UPDATE)
 #pragma warning(push, _STL_WARNING_LEVEL)
 #pragma warning(disable : 4996)

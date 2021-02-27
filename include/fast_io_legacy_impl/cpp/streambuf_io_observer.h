@@ -130,11 +130,9 @@ using streambuf_io_observer = basic_streambuf_io_observer<char>;
 using filebuf_io_observer = basic_filebuf_io_observer<char>;
 using stringbuf_io_observer = basic_stringbuf_io_observer<char>;
 
-#ifndef __MSDOS__
 using wstreambuf_io_observer = basic_streambuf_io_observer<wchar_t>;
 using wfilebuf_io_observer = basic_filebuf_io_observer<wchar_t>;
 using wstringbuf_io_observer = basic_stringbuf_io_observer<wchar_t>;
-#endif
 
 #if defined(_MSVC_STL_UPDATE)
 #pragma warning(push, _STL_WARNING_LEVEL)

@@ -64,12 +64,10 @@ using native_io_handle = basic_native_io_handle<char>;
 using native_file = basic_native_file<char>;
 using native_pipe = basic_native_pipe<char>;
 
-#ifndef __MSDOS__
 using wnative_io_observer = basic_native_io_observer<wchar_t>;
 using wnative_io_handle = basic_native_io_handle<wchar_t>;
 using wnative_file = basic_native_file<wchar_t>;
 using wnative_pipe = basic_native_pipe<wchar_t>;
-#endif
 
 using u8native_io_observer = basic_native_io_observer<char8_t>;
 using u8native_io_handle = basic_native_io_handle<char8_t>;

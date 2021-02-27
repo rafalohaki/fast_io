@@ -79,10 +79,7 @@ using u8iobuf_io_io_observer = basic_iobuf_io_io_observer<char8_t>;
 using u8iobuf_io_io_handle = basic_iobuf_io_io_handle<char8_t>;
 using u8iobuf_io_file = basic_iobuf_io_file<char8_t>;
 
-
-#ifndef __MSDOS__
 using wiobuf_io_io_observer = basic_iobuf_io_io_observer<wchar_t>;
 using wiobuf_io_io_handle = basic_iobuf_io_io_handle<wchar_t>;
 using wiobuf_io_file = basic_iobuf_io_file<wchar_t>;
-#endif
 }

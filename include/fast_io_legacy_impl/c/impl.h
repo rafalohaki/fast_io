@@ -978,15 +978,12 @@ using c_io_handle_unlocked = basic_c_io_handle_unlocked<char>;
 using c_io_handle = basic_c_io_handle<char>;
 using c_file = basic_c_file<char>;
 using c_file_unlocked = basic_c_file_unlocked<char>;
-#ifndef __MSDOS__
 using wc_io_observer_unlocked=basic_c_io_observer_unlocked<wchar_t>;
 using wc_io_observer=basic_c_io_observer<wchar_t>;
 using wc_io_handle_unlocked = basic_c_io_handle_unlocked<wchar_t>;
 using wc_io_handle = basic_c_io_handle<wchar_t>;
 using wc_file = basic_c_file<wchar_t>;
 using wc_file_unlocked = basic_c_file_unlocked<wchar_t>;
-#endif
-
 using u8c_io_observer_unlocked=basic_c_io_observer_unlocked<char8_t>;
 using u8c_io_observer=basic_c_io_observer<char8_t>;
 using u8c_io_handle_unlocked = basic_c_io_handle_unlocked<char8_t>;

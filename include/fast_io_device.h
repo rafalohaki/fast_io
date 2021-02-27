@@ -38,13 +38,14 @@ using basic_obuf_file = basic_obuf<basic_onative_file<char_type>>;
 template<std::integral char_type>
 using basic_iobuf_file = basic_iobuf<basic_native_file<char_type>>;
 
+#if (!defined(__MSDOS__)&&!defined(__NEWLIB__))||defined(_GLIBCXX_HAS_GTHREADS)
 template<std::integral char_type>
 using basic_ibuf_file_mutex = basic_iomutex<basic_ibuf_file<char_type>>;
 template<std::integral char_type>
 using basic_obuf_file_mutex = basic_iomutex<basic_obuf_file<char_type>>;
 template<std::integral char_type>
 using basic_iobuf_file_mutex = basic_iomutex<basic_iobuf_file<char_type>>;
-
+#endif
 /*
 char region
 */
@@ -70,7 +71,6 @@ using iobuf_file_mutex = basic_iobuf_file_mutex<char>;
 /*
 wchar_t region
 */
-#ifndef __MSDOS__
 /*
 libstdc++ bug on GCC 10. wchar_t does not satisfy the std::integral concept on MSDOS DJGPP toolchain.
 Remove restriction after GCC 11.0 is released.
@@ -86,13 +86,10 @@ using wibuf_file = basic_ibuf_file<wchar_t>;
 using wobuf_file = basic_obuf_file<wchar_t>;
 using wiobuf_file = basic_iobuf_file<wchar_t>;
 
-#if !defined(__NEWLIB__)||defined(_GLIBCXX_HAS_GTHREADS)
-#ifndef __MSDOS__
+#if (!defined(__MSDOS__)&&!defined(__NEWLIB__))||defined(_GLIBCXX_HAS_GTHREADS)
 using wibuf_file_mutex = basic_ibuf_file_mutex<wchar_t>;
 using wobuf_file_mutex = basic_obuf_file_mutex<wchar_t>;
 using wiobuf_file_mutex = basic_iobuf_file_mutex<wchar_t>;
-#endif
-#endif
 #endif
 
 /*
@@ -109,12 +106,10 @@ using u8ibuf_file = basic_ibuf_file<char8_t>;
 using u8obuf_file = basic_obuf_file<char8_t>;
 using u8iobuf_file = basic_iobuf_file<char8_t>;
 
-#if !defined(__NEWLIB__)||defined(_GLIBCXX_HAS_GTHREADS)
-#ifndef __MSDOS__
+#if (!defined(__MSDOS__)&&!defined(__NEWLIB__))||defined(_GLIBCXX_HAS_GTHREADS)
 using u8ibuf_file_mutex = basic_ibuf_file_mutex<char8_t>;
 using u8obuf_file_mutex = basic_obuf_file_mutex<char8_t>;
 using u8iobuf_file_mutex = basic_iobuf_file_mutex<char8_t>;
-#endif
 #endif
 
 /*
@@ -131,12 +126,10 @@ using u16ibuf_file = basic_ibuf_file<char16_t>;
 using u16obuf_file = basic_obuf_file<char16_t>;
 using u16iobuf_file = basic_iobuf_file<char16_t>;
 
-#if !defined(__NEWLIB__)||defined(_GLIBCXX_HAS_GTHREADS)
-#ifndef __MSDOS__
+#if (!defined(__MSDOS__)&&!defined(__NEWLIB__))||defined(_GLIBCXX_HAS_GTHREADS)
 using u16ibuf_file_mutex = basic_ibuf_file_mutex<char16_t>;
 using u16obuf_file_mutex = basic_obuf_file_mutex<char16_t>;
 using u16iobuf_file_mutex = basic_iobuf_file_mutex<char16_t>;
-#endif
 #endif
 
 /*
@@ -153,12 +146,10 @@ using u32ibuf_file = basic_ibuf_file<char32_t>;
 using u32obuf_file = basic_obuf_file<char32_t>;
 using u32iobuf_file = basic_iobuf_file<char32_t>;
 
-#if !defined(__NEWLIB__)||defined(_GLIBCXX_HAS_GTHREADS)
-#ifndef __MSDOS__
+#if (!defined(__MSDOS__)&&!defined(__NEWLIB__))||defined(_GLIBCXX_HAS_GTHREADS)
 using u32ibuf_file_mutex = basic_ibuf_file_mutex<char32_t>;
 using u32obuf_file_mutex = basic_obuf_file_mutex<char32_t>;
 using u32iobuf_file_mutex = basic_iobuf_file_mutex<char32_t>;
-#endif
 #endif
 
 
@@ -191,9 +182,7 @@ UTF-8 region
 template<std::integral internal_char_type>
 using basic_iutf8_file = std::conditional_t<std::same_as<internal_char_type,char8_t>,basic_ibuf<basic_inative_file<char8_t>>,basic_icode_cvt_file<internal_char_type,char8_t>>;
 using iutf8_file = basic_iutf8_file<char>;
-#ifndef __MSDOS__
 using wiutf8_file = basic_iutf8_file<wchar_t>;
-#endif
 using u8iutf8_file = basic_iutf8_file<char8_t>;
 using u16iutf8_file = basic_iutf8_file<char16_t>;
 using u32iutf8_file = basic_iutf8_file<char32_t>;
@@ -201,9 +190,7 @@ using u32iutf8_file = basic_iutf8_file<char32_t>;
 template<std::integral internal_char_type>
 using basic_outf8_file = std::conditional_t<std::same_as<internal_char_type,char8_t>,basic_obuf<basic_onative_file<char8_t>>,basic_ocode_cvt_file<internal_char_type,char8_t>>;
 using outf8_file = basic_outf8_file<char>;
-#ifndef __MSDOS__
 using woutf8_file = basic_outf8_file<wchar_t>;
-#endif
 using u8outf8_file = basic_outf8_file<char8_t>;
 using u16outf8_file = basic_outf8_file<char16_t>;
 using u32outf8_file = basic_outf8_file<char32_t>;
@@ -211,9 +198,7 @@ using u32outf8_file = basic_outf8_file<char32_t>;
 template<std::integral internal_char_type>
 using basic_utf8_file = std::conditional_t<std::same_as<internal_char_type,char8_t>,basic_iobuf<basic_native_file<char8_t>>,basic_code_cvt_file<internal_char_type,char8_t>>;
 using utf8_file = basic_utf8_file<char>;
-#ifndef __MSDOS__
 using wutf8_file = basic_utf8_file<wchar_t>;
-#endif
 using u8utf8_file = basic_utf8_file<char8_t>;
 using u16utf8_file = basic_utf8_file<char16_t>;
 using u32utf8_file = basic_utf8_file<char32_t>;
@@ -229,9 +214,7 @@ using basic_igb18030_file = std::conditional_t<std::same_as<char,internal_char_t
 basic_ibuf<basic_inative_file<char>>,
 basic_icode_cvt_file<internal_char_type,char,encoding_scheme::gb18030>>;
 using igb18030_file = basic_igb18030_file<char>;
-#ifndef __MSDOS__
 using wigb18030_file = basic_igb18030_file<wchar_t>;
-#endif
 using u8igb18030_file = basic_igb18030_file<char8_t>;
 using u16igb18030_file = basic_igb18030_file<char16_t>;
 using u32igb18030_file = basic_igb18030_file<char32_t>;
@@ -242,9 +225,7 @@ using basic_ogb18030_file = std::conditional_t<std::same_as<char,internal_char_t
 basic_obuf<basic_onative_file<char>>,
 basic_ocode_cvt_file<internal_char_type,char,encoding_scheme::execution_charset,encoding_scheme::gb18030>>;
 using ogb18030_file = basic_ogb18030_file<char>;
-#ifndef __MSDOS__
 using wogb18030_file = basic_ogb18030_file<wchar_t>;
-#endif
 using u8ogb18030_file = basic_ogb18030_file<char8_t>;
 using u16ogb18030_file = basic_ogb18030_file<char16_t>;
 using u32ogb18030_file = basic_ogb18030_file<char32_t>;
@@ -255,9 +236,7 @@ using basic_gb18030_file = std::conditional_t<std::same_as<char,internal_char_ty
 basic_iobuf<basic_native_file<char>>,
 basic_code_cvt_file<internal_char_type,char,encoding_scheme::execution_charset,encoding_scheme::gb18030>>;
 using gb18030_file = basic_gb18030_file<char>;
-#ifndef __MSDOS__
 using wgb18030_file = basic_gb18030_file<wchar_t>;
-#endif
 using u8gb18030_file = basic_gb18030_file<char8_t>;
 using u16gb18030_file = basic_gb18030_file<char16_t>;
 using u32gb18030_file = basic_gb18030_file<char32_t>;

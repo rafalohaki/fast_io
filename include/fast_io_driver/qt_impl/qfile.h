@@ -148,9 +148,7 @@ public:
 };
 
 using qt_file = basic_qt_file<char>;
-#ifndef __MSDOS__
 using wqt_file = basic_qt_file<wchar_t>;
-#endif
 using u8qt_file = basic_qt_file<char8_t>;
 using u16qt_file = basic_qt_file<char16_t>;
 using u32qt_file = basic_qt_file<char32_t>;

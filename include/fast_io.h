@@ -21,7 +21,6 @@ inline c_io_observer c_stderr() noexcept
 {
 	return {stderr};
 }
-#ifndef __MSDOS__
 inline wc_io_observer wc_stdin() noexcept
 {
 	return {stdin};
@@ -37,7 +36,6 @@ inline wc_io_observer wc_stderr() noexcept
 	return {stderr};
 }
 
-#endif
 inline
 #ifndef _WIN32
 constexpr
