@@ -9,7 +9,7 @@ MSDOS should not contain any issues with multiple write calls
 namespace details
 {
 
-inline io_scatter_status_t posix_scatter_read_impl_with_normal_read(int fd,io_scatters_t scatters) noexcept
+inline io_scatter_status_t posix_scatter_read_impl_with_normal_read(int fd,io_scatters_t scatters)
 {
 	std::size_t total_size{};
 	for(std::size_t i{};i!=scatters.len;++i)
@@ -26,7 +26,7 @@ inline io_scatter_status_t posix_scatter_read_impl_with_normal_read(int fd,io_sc
 	return {total_size,scatters.len,0};
 }
 
-inline io_scatter_status_t posix_scatter_write_impl_with_normal_write(int fd,io_scatters_t scatters) noexcept
+inline io_scatter_status_t posix_scatter_write_impl_with_normal_write(int fd,io_scatters_t scatters)
 {
 	std::size_t total_size{};
 	for(std::size_t i{};i!=scatters.len;++i)
