@@ -163,7 +163,7 @@ unix_timestamp posix_clock_getres(posix_clock_id pclk_id)
 	default:
 		throw_posix_error(EINVAL);
 	};
-#else
+#elif !defined(__NEWLIB__) || defined(_POSIX_TIMERS)
 	auto clk{details::posix_clock_id_to_native_value(pclk_id)};
 	struct timespec res;
 //vdso
@@ -171,6 +171,8 @@ unix_timestamp posix_clock_getres(posix_clock_id pclk_id)
 		throw_posix_error();
 	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000000u};
 	return {static_cast<intiso_t>(res.tv_sec),static_cast<uintiso_t>(res.tv_nsec)*mul_factor};
+#else
+	throw_posix_error(EINVAL);
 #endif
 }
 
@@ -266,7 +268,7 @@ inline unix_timestamp posix_clock_gettime(posix_clock_id pclk_id)
 	default:
 		throw_posix_error(EINVAL);
 	}
-#else
+#elif !defined(__NEWLIB__) || defined(_POSIX_TIMERS)
 	struct timespec res;
 	auto clk{details::posix_clock_id_to_native_value(pclk_id)};
 //vdso
@@ -274,6 +276,8 @@ inline unix_timestamp posix_clock_gettime(posix_clock_id pclk_id)
 		throw_posix_error();
 	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000000u};
 	return {static_cast<intiso_t>(res.tv_sec),static_cast<uintiso_t>(res.tv_nsec)*mul_factor};
+#else
+	throw_posix_error(EINVAL);
 #endif
 }
 
@@ -322,7 +326,7 @@ inline unix_timestamp posix_clock_settime(posix_clock_id pclk_id,unix_timestamp 
 	default:
 		throw_posix_error(EINVAL);
 	};
-#else
+#elif !defined(__NEWLIB__) || defined(_POSIX_TIMERS)
 	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000000u};
 	struct timespec res{static_cast<std::time_t>(timestamp.seconds),
 	static_cast<long>(timestamp.subseconds/mul_factor)};
@@ -334,6 +338,8 @@ inline unix_timestamp posix_clock_settime(posix_clock_id pclk_id,unix_timestamp 
 		throw_posix_error();
 #endif
 	return {static_cast<intiso_t>(res.tv_sec),static_cast<uintiso_t>(res.tv_nsec)*mul_factor};
+#else
+	throw_posix_error(EINVAL);
 #endif
 }
 
