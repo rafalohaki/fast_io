@@ -45,13 +45,13 @@ inline Iter read(basic_rtl_gen_random<char_type>,Iter bg,Iter ed)
 }
 
 template<std::integral char_type>
-inline std::size_t scatter_read(basic_rtl_gen_random<char_type>,std::span<io_scatter_t const> sp)
+inline std::size_t scatter_read(basic_rtl_gen_random<char_type>,io_scatters_t sp)
 {
 	std::size_t total_bytes{};
-	for(auto const& e : sp)
+	for(std::size_t i{};i!=sp.len;++i)
 	{
-		win32::details::rtl_gen_random_read(const_cast<void*>(e.base),e.len);
-		total_bytes+=e.len;
+		win32::details::rtl_gen_random_read(const_cast<void*>(sp.base[i].base),sp.base[i].len);
+		total_bytes+=sp.base[i].len;
 	}
 	return total_bytes;
 }

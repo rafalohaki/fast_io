@@ -77,7 +77,7 @@ inline constexpr auto operator<=>(basic_general_streambuf_io_observer<T> a,basic
 }
 
 #endif
-
+#if 0
 template<typename T>
 requires async_stream<basic_c_io_observer_unlocked<typename T::char_type>>
 inline constexpr io_async_scheduler_t<basic_c_io_observer_unlocked<typename T::char_type>>
@@ -107,6 +107,8 @@ inline void async_read_callback(io_async_observer ioa,basic_general_streambuf_io
 {
 	async_read_callback(ioa,static_cast<basic_c_io_observer_unlocked<typename T::char_type>>(h),std::forward<Args>(args)...);
 }
+#endif
+
 #endif
 template<typename T>
 inline constexpr basic_general_streambuf_io_observer<T> io_value_handle(basic_general_streambuf_io_observer<T> other) noexcept

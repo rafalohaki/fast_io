@@ -180,16 +180,16 @@ inline std::size_t recv_message(basic_socket_io_observer<ch_type> soc,message_hd
 
 #ifndef _WIN32
 template<std::integral ch_type>
-inline std::size_t scatter_read(basic_socket_io_observer<ch_type> soc,std::span<io_scatter_t const> sp)
+inline std::size_t scatter_read(basic_socket_io_observer<ch_type> soc,io_scatters_t sp)
 {
-	message_hdr hdr{nullptr,0,sp.data(),sp.size(),nullptr,0,0};
+	message_hdr hdr{nullptr,0,sp.base,sp.len,nullptr,0,0};
 	return recv_message(soc,hdr,{});
 }
 
 template<std::integral ch_type>
-inline std::size_t scatter_write(basic_socket_io_observer<ch_type> soc,std::span<io_scatter_t const> sp)
+inline std::size_t scatter_write(basic_socket_io_observer<ch_type> soc,io_scatters_t sp)
 {
-	return send_message(soc,message_hdr{nullptr,0,sp.data(),sp.size(),nullptr,0,0},{});
+	return send_message(soc,message_hdr{nullptr,0,sp.base,sp.len,nullptr,0,0},{});
 }
 #endif
 template<std::integral ch_type>
@@ -343,15 +343,15 @@ inline Iter read(packet<char_type> pack,Iter begin,Iter end)
 }
 
 template<std::integral char_type>
-inline std::size_t scatter_write(packet<char_type> pack,std::span<io_scatter_t const> sp)
+inline std::size_t scatter_write(packet<char_type> pack,io_scatters_t sp)
 {
-	return send_message(pack.siob,message_hdr{std::addressof(pack.addr.storage.sock),static_cast<std::size_t>(pack.addr.storage_size),sp.data(),sp.size(),nullptr,0,0},{});
+	return send_message(pack.siob,message_hdr{std::addressof(pack.addr.storage.sock),static_cast<std::size_t>(pack.addr.storage_size),sp.base,sp.len,nullptr,0,0},{});
 }
 
 template<std::integral char_type>
-inline std::size_t scatter_read(packet<char_type> pack,std::span<io_scatter_t const> sp)
+inline std::size_t scatter_read(packet<char_type> pack,io_scatters_t sp)
 {
-	message_hdr hdr{std::addressof(pack.addr.storage.sock),static_cast<std::size_t>(pack.addr.storage_size),sp.data(),sp.size(),nullptr,0,0};
+	message_hdr hdr{std::addressof(pack.addr.storage.sock),static_cast<std::size_t>(pack.addr.storage_size),sp.base,sp.len,nullptr,0,0};
 	return recv_message(pack.siob,hdr,{});
 }
 #endif

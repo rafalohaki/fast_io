@@ -454,17 +454,17 @@ inline std::size_t posix_read_impl(int fd,void* address,std::size_t bytes_to_rea
 
 #ifdef _WIN32
 
-inline io_scatter_status_t posix_scatter_read_impl(int fd,std::span<io_scatter_t const> sp)
+inline io_scatter_status_t posix_scatter_read_impl(int fd,io_scatters_t sp)
 {
 	std::size_t total_size{};
-	for(std::size_t i{};i!=sp.size();++i)
+	for(std::size_t i{};i!=sp.len;++i)
 	{
-		std::size_t pos_in_span{posix_read_impl(fd,const_cast<void*>(sp[i].base),sp[i].len)};
-		total_size+=pos_in_span;
-		if(pos_in_span<sp[i].len)[[unlikely]]
-			return {total_size,i,pos_in_span};
+		std::size_t pos_in{posix_read_impl(fd,const_cast<void*>(sp.base[i].base),sp.base[i].len)};
+		total_size+=pos_in;
+		if(pos_in<sp.base[i].len)[[unlikely]]
+			return {total_size,i,pos_in};
 	}
-	return {total_size,sp.size(),0};
+	return {total_size,sp.len,0};
 }
 
 inline std::uint32_t posix_write_simple_impl(int fd,void const* address,std::size_t bytes_to_write)
@@ -497,7 +497,6 @@ inline std::size_t posix_write_nolock_impl(int fd,void const* address,std::size_
 		return posix_write_simple_impl(fd,address,to_write);
 }
 
-
 inline std::size_t posix_write_lock_impl(int fd,void const* address,std::size_t to_write)
 {
 	auto handle{reinterpret_cast<void*>(_get_osfhandle(fd))};
@@ -510,8 +509,7 @@ inline std::size_t posix_write_lock_impl(int fd,void const* address,std::size_t 
 	return posix_write_nolock_impl(fd,address,to_write);
 }
 
-
-inline io_scatter_status_t posix_scatter_write_impl(int fd,std::span<io_scatter_t const> sp)
+inline io_scatter_status_t posix_scatter_write_impl(int fd,io_scatters_t sp)
 {
 	auto handle{reinterpret_cast<void*>(_get_osfhandle(fd))};
 	fast_io::win32::overlapped overlap{};
@@ -521,14 +519,14 @@ inline io_scatter_status_t posix_scatter_write_impl(int fd,std::span<io_scatter_
 		reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))
 	};
 	std::size_t total_size{};
-	for(std::size_t i{};i!=sp.size();++i)
+	for(std::size_t i{};i!=sp.len;++i)
 	{
-		std::size_t written{posix_write_nolock_impl(fd,sp[i].base,sp[i].len)};
+		std::size_t written{posix_write_nolock_impl(fd,sp.base[i].base,sp.base[i].len)};
 		total_size+=written;
-		if(sp[i].len<written)[[unlikely]]
+		if(sp.base[i].len<written)[[unlikely]]
 			return {total_size,i,written};
 	}
-	return {total_size,sp.size(),0};
+	return {total_size,sp.len,0};
 }
 #endif
 
@@ -1340,7 +1338,7 @@ inline constexpr basic_posix_io_observer<char_type> posix_stderr()
 }
 
 #if defined(__WINNT__) || defined(_MSC_VER)
-
+#if 0
 template<std::integral char_type>
 inline constexpr io_type_t<win32_io_observer> async_scheduler_type(basic_posix_io_observer<char_type>)
 {
@@ -1364,7 +1362,7 @@ inline void async_read_callback(io_async_observer ioa,basic_posix_io_observer<ch
 {
 	async_read_callback(ioa,static_cast<basic_win32_io_observer<char_type>>(h),std::forward<Args>(args)...);
 }
-
+#endif
 #else
 template<std::integral char_type=char>
 inline constexpr basic_posix_io_observer<char_type> native_stdin()
@@ -1386,15 +1384,15 @@ inline constexpr basic_posix_io_observer<char_type> native_stderr()
 namespace details
 {
 
-inline std::size_t posix_scatter_read_size_impl(int fd,std::span<io_scatter_t const> sp)
+inline std::size_t posix_scatter_read_size_impl(int fd,io_scatters_t sp)
 {
 #if defined(__linux__)
 	static_assert(sizeof(unsigned long)==sizeof(std::size_t));
-	auto val{system_call<__NR_readv,std::ptrdiff_t>(static_cast<unsigned int>(fd),sp.data(),sp.size())};
+	auto val{system_call<__NR_readv,std::ptrdiff_t>(static_cast<unsigned int>(fd),sp.base,sp.len)};
 	system_call_throw_error(val);
 	return val;
 #else
-	std::size_t sz{sp.size()};
+	std::size_t sz{sp.len};
 	if(static_cast<std::size_t>(std::numeric_limits<int>::max())<sz)
 		sz=static_cast<std::size_t>(std::numeric_limits<int>::max());
 	using iovec_may_alias_const_ptr
@@ -1402,7 +1400,7 @@ inline std::size_t posix_scatter_read_size_impl(int fd,std::span<io_scatter_t co
 	[[gnu::may_alias]]
 #endif
 	= iovec const*;
-	auto ptr{reinterpret_cast<iovec_may_alias_const_ptr>(sp.data())};
+	auto ptr{reinterpret_cast<iovec_may_alias_const_ptr>(sp.base)};
 	std::ptrdiff_t val{::readv(fd,ptr,static_cast<int>(sz))};
 	if(val<0)
 		throw_posix_error();
@@ -1410,15 +1408,15 @@ inline std::size_t posix_scatter_read_size_impl(int fd,std::span<io_scatter_t co
 #endif
 }
 
-inline std::size_t posix_scatter_write_size_impl(int fd,std::span<io_scatter_t const> sp)
+inline std::size_t posix_scatter_write_size_impl(int fd,io_scatters_t sp)
 {
 #if defined(__linux__)
 	static_assert(sizeof(unsigned long)==sizeof(std::size_t));
-	auto val{system_call<__NR_writev,std::ptrdiff_t>(static_cast<unsigned int>(fd),sp.data(),sp.size())};
+	auto val{system_call<__NR_writev,std::ptrdiff_t>(static_cast<unsigned int>(fd),sp.base,sp.len)};
 	system_call_throw_error(val);
 	return val;
 #else
-	std::size_t sz{sp.size()};
+	std::size_t sz{sp.len};
 	if(static_cast<std::size_t>(std::numeric_limits<int>::max())<sz)
 		sz=static_cast<std::size_t>(std::numeric_limits<int>::max());
 	using iovec_may_alias_const_ptr
@@ -1426,7 +1424,7 @@ inline std::size_t posix_scatter_write_size_impl(int fd,std::span<io_scatter_t c
 	[[gnu::may_alias]]
 #endif
 	= iovec const*;
-	auto ptr{reinterpret_cast<iovec_may_alias_const_ptr>(sp.data())};
+	auto ptr{reinterpret_cast<iovec_may_alias_const_ptr>(sp.base)};
 	std::ptrdiff_t val{::writev(fd,ptr,static_cast<int>(sz))};
 	if(val<0)
 		throw_posix_error();
@@ -1434,24 +1432,24 @@ inline std::size_t posix_scatter_write_size_impl(int fd,std::span<io_scatter_t c
 #endif
 }
 
-inline constexpr io_scatter_status_t scatter_size_to_status(std::size_t sz,std::span<io_scatter_t const> sp) noexcept
+inline constexpr io_scatter_status_t scatter_size_to_status(std::size_t sz,io_scatters_t sp) noexcept
 {
 	std::size_t total{sz};
-	for(std::size_t i{};i!=sp.size();++i)
+	for(std::size_t i{};i!=sp.len;++i)
 	{
-		if(total<sp[i].len)[[unlikely]]
+		if(total<sp.base[i].len)[[unlikely]]
 			return {sz,i,total};
-		total-=sp[i].len;
+		total-=sp.base[i].len;
 	}
-	return {sz,sp.size(),0};
+	return {sz,sp.len,0};
 }
 
-inline io_scatter_status_t posix_scatter_write_impl(int fd,std::span<io_scatter_t const> sp)
+inline io_scatter_status_t posix_scatter_write_impl(int fd,io_scatters_t sp)
 {
 	return scatter_size_to_status(posix_scatter_write_size_impl(fd,sp),sp);
 }
 
-[[nodiscard]] inline io_scatter_status_t posix_scatter_read_impl(int fd,std::span<io_scatter_t const> sp)
+[[nodiscard]] inline io_scatter_status_t posix_scatter_read_impl(int fd,io_scatters_t sp)
 {
 	return scatter_size_to_status(posix_scatter_read_size_impl(fd,sp),sp);
 }
@@ -1464,25 +1462,25 @@ inline io_scatter_status_t posix_scatter_write_impl(int fd,std::span<io_scatter_
 #if !defined(__NEWLIB__) && !defined(__MSDOS__)
 
 template<std::integral ch_type>
-[[nodiscard]] inline io_scatter_status_t scatter_read(basic_posix_io_observer<ch_type> h,std::span<io_scatter_t const> sp)
+[[nodiscard]] inline io_scatter_status_t scatter_read(basic_posix_io_observer<ch_type> h,io_scatters_t sp)
 {
 	return details::posix_scatter_read_impl(h.fd,sp);
 }
 
 template<std::integral ch_type>
-inline io_scatter_status_t scatter_write(basic_posix_io_observer<ch_type> h,std::span<io_scatter_t const> sp)
+inline io_scatter_status_t scatter_write(basic_posix_io_observer<ch_type> h,io_scatters_t sp)
 {
 	return details::posix_scatter_write_impl(h.fd,sp);
 }
 
 template<std::integral ch_type>
-inline io_scatter_status_t scatter_read(basic_posix_pipe<ch_type>& h,std::span<io_scatter_t const> sp)
+inline io_scatter_status_t scatter_read(basic_posix_pipe<ch_type>& h,io_scatters_t sp)
 {
 	return details::posix_scatter_read_impl(h.in().fd,sp);
 }
 
 template<std::integral ch_type>
-inline io_scatter_status_t scatter_write(basic_posix_pipe<ch_type>& h,std::span<io_scatter_t const> sp)
+inline io_scatter_status_t scatter_write(basic_posix_pipe<ch_type>& h,io_scatters_t sp)
 {
 	return details::posix_scatter_write_impl(h.out().fd,sp);
 }
@@ -1552,7 +1550,7 @@ inline std::size_t posix_pwrite_impl(int fd,void const* address,std::size_t byte
 	return written_bytes;
 }
 
-inline std::size_t posix_scatter_pread_size_impl(int fd,std::span<io_scatter_t const> sp,std::uintmax_t offset)
+inline std::size_t posix_scatter_pread_size_impl(int fd,io_scatters_t sp,std::uintmax_t offset)
 {
 	if constexpr(sizeof(std::uintmax_t)>sizeof(off_t))
 	{
@@ -1561,14 +1559,14 @@ inline std::size_t posix_scatter_pread_size_impl(int fd,std::span<io_scatter_t c
 	}
 #if defined(__linux__)
 //	static_assert(sizeof(unsigned long)==sizeof(std::size_t));
-	auto val{system_call<__NR_preadv,std::ptrdiff_t>(static_cast<unsigned int>(fd),sp.data(),sp.size(),static_cast<off_t>(offset))};
+	auto val{system_call<__NR_preadv,std::ptrdiff_t>(static_cast<unsigned int>(fd),sp.base,sp.len,static_cast<off_t>(offset))};
 	system_call_throw_error(val);
 	return val;
 #else
-	std::size_t sz{sp.size()};
-	if(static_cast<std::size_t>(std::numeric_limits<int>::max())<sz)
+	std::size_t sz{sp.len};
+	if(static_cast<std::size_t>(std::numeric_limits<int>::max())<len)
 		sz=static_cast<std::size_t>(std::numeric_limits<int>::max());
-	auto ptr{reinterpret_cast<iovec_may_alias const*>(sp.data())};
+	auto ptr{reinterpret_cast<iovec_may_alias const*>(sp.base)};
 	std::ptrdiff_t val{::preadv(fd,ptr,static_cast<int>(sz),static_cast<off_t>(offset))};
 	if(val<0)
 		throw_posix_error();
@@ -1576,7 +1574,7 @@ inline std::size_t posix_scatter_pread_size_impl(int fd,std::span<io_scatter_t c
 #endif
 }
 
-inline std::size_t posix_scatter_pwrite_size_impl(int fd,std::span<io_scatter_t const> sp,std::uintmax_t offset)
+inline std::size_t posix_scatter_pwrite_size_impl(int fd,io_scatters_t sp,std::uintmax_t offset)
 {
 	if constexpr(sizeof(std::uintmax_t)>sizeof(off_t))
 	{
@@ -1585,14 +1583,14 @@ inline std::size_t posix_scatter_pwrite_size_impl(int fd,std::span<io_scatter_t 
 	}
 #if defined(__linux__)
 //	static_assert(sizeof(unsigned long)==sizeof(std::size_t));
-	auto val{system_call<__NR_pwritev,std::ptrdiff_t>(static_cast<unsigned int>(fd),sp.data(),sp.size(),static_cast<off_t>(offset))};
+	auto val{system_call<__NR_pwritev,std::ptrdiff_t>(static_cast<unsigned int>(fd),sp.base,sp.len,static_cast<off_t>(offset))};
 	system_call_throw_error(val);
 	return val;
 #else
-	std::size_t sz{sp.size()};
+	std::size_t sz{sp.len};
 	if(static_cast<std::size_t>(std::numeric_limits<int>::max())<sz)
 		sz=static_cast<std::size_t>(std::numeric_limits<int>::max());
-	auto ptr{reinterpret_cast<iovec_may_alias const*>(sp.data())};
+	auto ptr{reinterpret_cast<iovec_may_alias const*>(sp.base)};
 	std::ptrdiff_t val{::pwritev(fd,ptr,static_cast<int>(sz),static_cast<off_t>(offset))};
 	if(val<0)
 		throw_posix_error();
@@ -1600,12 +1598,12 @@ inline std::size_t posix_scatter_pwrite_size_impl(int fd,std::span<io_scatter_t 
 #endif
 }
 
-inline io_scatter_status_t posix_scatter_pwrite_impl(int fd,std::span<io_scatter_t const> sp,std::uintmax_t offset)
+inline io_scatter_status_t posix_scatter_pwrite_impl(int fd,io_scatters_t sp,std::uintmax_t offset)
 {
 	return scatter_size_to_status(posix_scatter_pwrite_size_impl(fd,sp,offset),sp);
 }
 
-[[nodiscard]] inline io_scatter_status_t posix_scatter_pread_impl(int fd,std::span<io_scatter_t const> sp,std::uintmax_t offset)
+[[nodiscard]] inline io_scatter_status_t posix_scatter_pread_impl(int fd,io_scatters_t sp,std::uintmax_t offset)
 {
 	return scatter_size_to_status(posix_scatter_pread_size_impl(fd,sp,offset),sp);
 }
@@ -1625,13 +1623,13 @@ inline constexpr Iter write(basic_posix_pio_entry<char_type> ppioent,Iter begin,
 }
 
 template<std::integral ch_type>
-[[nodiscard]] inline io_scatter_status_t scatter_read(basic_posix_pio_entry<ch_type> ppioent,std::span<io_scatter_t const> sp)
+[[nodiscard]] inline io_scatter_status_t scatter_read(basic_posix_pio_entry<ch_type> ppioent,io_scatters_t sp)
 {
 	return details::posix_scatter_pread_impl(ppioent.fd,sp,ppioent.offset);
 }
 
 template<std::integral ch_type>
-inline io_scatter_status_t scatter_write(basic_posix_pio_entry<ch_type> ppioent,std::span<io_scatter_t const> sp)
+inline io_scatter_status_t scatter_write(basic_posix_pio_entry<ch_type> ppioent,io_scatters_t sp)
 {
 	return details::posix_scatter_pwrite_impl(ppioent.fd,sp,ppioent.offset);
 }

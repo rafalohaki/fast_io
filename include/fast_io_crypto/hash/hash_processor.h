@@ -98,10 +98,10 @@ inline void write(basic_hash_processor<ch_type,Func>& out,Iter begin,Iter end)
 }
 
 template<std::integral ch_type,typename Func>
-inline void scatter_write(basic_hash_processor<ch_type,Func>& out,std::span<io_scatter_t const> sp)
+inline void scatter_write(basic_hash_processor<ch_type,Func>& out,io_scatters_t sp)
 {
-	for(auto const& e : sp)
-		write(out,reinterpret_cast<char const*>(e.base),reinterpret_cast<char const*>(e.base)+e.len);
+	for(std::size_t i{};i!=sp.len;++i)
+		write(out,reinterpret_cast<char const*>(sp.base[i].base),reinterpret_cast<char const*>(sp.base[i].base)+sp.base[i].len);
 }
 
 template<typename Func>

@@ -300,7 +300,6 @@ class basic_win32_io_observer
 public:
 	using native_handle_type = void*;
 	using char_type = ch_type;
-	using async_scheduler_type = basic_win32_io_observer<char>;
 	native_handle_type handle{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
 	constexpr auto& native_handle() noexcept
 	{
@@ -383,14 +382,13 @@ class basic_win32_io_handle:public basic_win32_io_observer<ch_type>
 public:
 	using native_handle_type = void*;
 	using char_type = ch_type;
-	using async_scheduler_type = basic_win32_io_observer<char>;
 	constexpr basic_win32_io_handle() noexcept =default;
 
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	explicit constexpr basic_win32_io_handle(native_hd handle) noexcept:
 		basic_win32_io_observer<ch_type>{handle}{}
-	basic_win32_io_handle(basic_win32_io_handle const& other):basic_win32_io_observer<ch_type>{win32::details::win32_dup_impl(other.native_handle())}{}
+	basic_win32_io_handle(basic_win32_io_handle const& other):basic_win32_io_observer<ch_type>{win32::details::win32_dup_impl(other.handle)}{}
 	basic_win32_io_handle& operator=(basic_win32_io_handle const& other)
 	{
 		this->handle=win32::details::win32_dup2_impl(other.handle,this->handle);
@@ -404,25 +402,25 @@ public:
 		if(std::addressof(b)!=this)
 		{
 			if(*this)[[likely]]
-				fast_io::win32::CloseHandle(this->native_handle());
-			this->native_handle() = b.native_handle();
-			b.native_handle()=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
+				fast_io::win32::CloseHandle(this->handle);
+			this->handle = b.handle;
+			b.handle=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
 		}
 		return *this;
 	}
 	void reset(native_handle_type newhandle=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))) noexcept
 	{
 		if(*this)[[likely]]
-			fast_io::win32::CloseHandle(this->native_handle());
-		this->native_handle()=newhandle;
+			fast_io::win32::CloseHandle(this->handle);
+		this->handle=newhandle;
 	}
 	void close()
 	{
 		if(*this)[[likely]]
 		{
-			if(!fast_io::win32::CloseHandle(this->native_handle()))[[unlikely]]
+			if(!fast_io::win32::CloseHandle(this->handle))[[unlikely]]
 				throw_win32_error();
-			this->native_handle()=nullptr;
+			this->handle=nullptr;
 		}
 	}
 };
@@ -430,7 +428,7 @@ public:
 template<std::integral ch_type>
 inline constexpr auto redirect_handle(basic_win32_io_observer<ch_type> hd)
 {
-	return hd.native_handle();
+	return hd.handle;
 }
 
 namespace win32::details
@@ -486,17 +484,17 @@ struct file_lock_guard
 	}
 };
 
-inline io_scatter_status_t scatter_read_impl(void* __restrict handle,std::span<io_scatter_t const> sp)
+inline io_scatter_status_t scatter_read_impl(void* __restrict handle,io_scatters_t sp)
 {
 	std::size_t total_size{};
-	for(std::size_t i{};i!=sp.size();++i)
+	for(std::size_t i{};i!=sp.len;++i)
 	{
-		std::size_t pos_in_span{read_impl(handle,const_cast<void*>(sp[i].base),sp[i].len)};
+		std::size_t pos_in_span{read_impl(handle,const_cast<void*>(sp.base[i].base),sp.base[i].len)};
 		total_size+=pos_in_span;
-		if(pos_in_span<sp[i].len)[[unlikely]]
+		if(pos_in_span<sp.base[i].len)[[unlikely]]
 			return {total_size,i,pos_in_span};
 	}
-	return {total_size,sp.size(),0};
+	return {total_size,sp.len,0};
 }
 
 inline std::uint32_t write_simple_impl(void* __restrict handle,void const* __restrict cbegin,std::size_t to_write)
@@ -507,18 +505,18 @@ inline std::uint32_t write_simple_impl(void* __restrict handle,void const* __res
 	return number_of_bytes_written;
 }
 
-inline io_scatter_status_t scatter_pread_impl(void* __restrict handle,std::span<io_scatter_t const> sp,std::uintmax_t offset)
+inline io_scatter_status_t scatter_pread_impl(void* __restrict handle,io_scatters_t sp,std::uintmax_t offset)
 {
 	std::size_t total_size{};
-	for(std::size_t i{};i!=sp.size();++i)
+	for(std::size_t i{};i!=sp.len;++i)
 	{
-		std::size_t pos_in_span{pread_impl(handle,const_cast<void*>(sp[i].base),sp[i].len,offset)};
+		std::size_t pos_in_span{pread_impl(handle,const_cast<void*>(sp.base[i].base),sp.base[i].len,offset)};
 		total_size+=pos_in_span;
 		offset+=pos_in_span;
-		if(pos_in_span<sp[i].len)[[unlikely]]
+		if(pos_in_span<sp.base[i].len)[[unlikely]]
 			return {total_size,i,pos_in_span};
 	}
-	return {total_size,sp.size(),0};
+	return {total_size,sp.len,0};
 }
 
 inline std::uint32_t pwrite_simple_impl(void* __restrict handle,void const* __restrict cbegin,std::size_t to_write,std::uintmax_t offset)
@@ -560,18 +558,18 @@ inline std::size_t pwrite_impl(void* __restrict handle,void const* __restrict cb
 		return pwrite_simple_impl(handle,cbegin,to_write,offset);
 }
 
-inline io_scatter_status_t scatter_pwrite_impl(void* __restrict handle,std::span<io_scatter_t const> sp,std::uintmax_t offset)
+inline io_scatter_status_t scatter_pwrite_impl(void* __restrict handle,io_scatters_t sp,std::uintmax_t offset)
 {
 	std::size_t total_size{};
-	for(std::size_t i{};i!=sp.size();++i)
+	for(std::size_t i{};i!=sp.len;++i)
 	{
-		std::size_t written{pwrite_impl(handle,sp[i].base,sp[i].len,offset)};
+		std::size_t written{pwrite_impl(handle,sp.base[i].base,sp.base[i].len,offset)};
 		total_size+=written;
 		offset+=written;
-		if(sp[i].len<written)[[unlikely]]
+		if(sp.base[i].len<written)[[unlikely]]
 			return {total_size,i,written};
 	}
-	return {total_size,sp.size(),0};
+	return {total_size,sp.len,0};
 }
 
 inline std::size_t write_nolock_impl(void* __restrict handle,void const* __restrict cbegin,std::size_t to_write)
@@ -630,7 +628,7 @@ inline std::uintmax_t seek_impl(void* handle,std::intmax_t offset,seekdir s)
 	return distance_to_move_high;
 }
 
-inline io_scatter_status_t scatter_write_impl(void* __restrict handle,std::span<io_scatter_t const> sp)
+inline io_scatter_status_t scatter_write_impl(void* __restrict handle,io_scatters_t sp)
 {
 	win32::overlapped overlap{};
 	file_lock_guard gd{
@@ -639,14 +637,14 @@ inline io_scatter_status_t scatter_write_impl(void* __restrict handle,std::span<
 		reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))
 	};
 	std::size_t total_size{};
-	for(std::size_t i{};i!=sp.size();++i)
+	for(std::size_t i{};i!=sp.len;++i)
 	{
-		std::size_t written{write_nolock_impl(handle,sp[i].base,sp[i].len)};
+		std::size_t written{write_nolock_impl(handle,sp.base[i].base,sp.base[i].len)};
 		total_size+=written;
-		if(sp[i].len<written)[[unlikely]]
+		if(sp.base[i].len<written)[[unlikely]]
 			return {total_size,i,written};
 	}
-	return {total_size,sp.size(),0};
+	return {total_size,sp.len,0};
 }
 
 
@@ -671,17 +669,17 @@ inline Iter write(basic_win32_io_observer<ch_type> handle,Iter cbegin,Iter cend)
 }
 
 template<std::integral ch_type>
-inline io_scatter_status_t scatter_read(basic_win32_io_observer<ch_type> handle,std::span<io_scatter_t const> sp)
+inline io_scatter_status_t scatter_read(basic_win32_io_observer<ch_type> handle,io_scatters_t sp)
 {
 	return win32::details::scatter_read_impl(handle.handle,sp);
 }
 
 template<std::integral ch_type>
-inline io_scatter_status_t scatter_write(basic_win32_io_observer<ch_type> handle,std::span<io_scatter_t const> sp)
+inline io_scatter_status_t scatter_write(basic_win32_io_observer<ch_type> handle,io_scatters_t sp)
 {
 	return win32::details::scatter_write_impl(handle.handle,sp);
 }
-
+#if 0
 template<std::integral ch_type,std::contiguous_iterator Iter>
 inline void async_read_callback(basic_win32_io_observer<char>,basic_win32_io_observer<ch_type> h,Iter cbegin,Iter cend,
 	iocp_overlapped_observer callback,std::ptrdiff_t offset=0)
@@ -692,15 +690,15 @@ inline void async_read_callback(basic_win32_io_observer<char>,basic_win32_io_obs
 			to_read=static_cast<std::size_t>(UINT32_MAX);
 	if constexpr(4<sizeof(std::size_t))
 	{
-		callback.native_handle()->dummy_union_name.dummy_struct_name.Offset=static_cast<std::size_t>(offset)&std::numeric_limits<std::uint32_t>::max();
-		callback.native_handle()->dummy_union_name.dummy_struct_name.OffsetHigh=static_cast<std::size_t>(offset)>>static_cast<std::size_t>(32);
+		callback.handle->dummy_union_name.dummy_struct_name.Offset=static_cast<std::size_t>(offset)&std::numeric_limits<std::uint32_t>::max();
+		callback.handle->dummy_union_name.dummy_struct_name.OffsetHigh=static_cast<std::size_t>(offset)>>static_cast<std::size_t>(32);
 	}
 	else
 	{
-		callback.native_handle()->dummy_union_name.dummy_struct_name.Offset=static_cast<std::uint32_t>(offset);
-		callback.native_handle()->dummy_union_name.dummy_struct_name.OffsetHigh=0;
+		callback.handle->dummy_union_name.dummy_struct_name.Offset=static_cast<std::uint32_t>(offset);
+		callback.handle->dummy_union_name.dummy_struct_name.OffsetHigh=0;
 	}
-	if(!win32::ReadFile(h.native_handle(),std::to_address(cbegin),static_cast<std::uint32_t>(to_read),nullptr,callback.native_handle()))[[likely]]
+	if(!win32::ReadFile(h.handle,std::to_address(cbegin),static_cast<std::uint32_t>(to_read),nullptr,callback.handle))[[likely]]
 	{
 		auto err(win32::GetLastError());
 		if(err==997)[[likely]]
@@ -731,15 +729,15 @@ inline void async_write_callback(basic_win32_io_observer<char>,basic_win32_io_ob
 			to_write=static_cast<std::size_t>(UINT32_MAX);
 	if constexpr(4<sizeof(std::size_t))
 	{
-		callback.native_handle()->dummy_union_name.dummy_struct_name.Offset=static_cast<std::size_t>(offset)&std::numeric_limits<std::uint32_t>::max();
-		callback.native_handle()->dummy_union_name.dummy_struct_name.OffsetHigh=static_cast<std::size_t>(offset)>>static_cast<std::size_t>(32);
+		callback.handle->dummy_union_name.dummy_struct_name.Offset=static_cast<std::size_t>(offset)&std::numeric_limits<std::uint32_t>::max();
+		callback.handle->dummy_union_name.dummy_struct_name.OffsetHigh=static_cast<std::size_t>(offset)>>static_cast<std::size_t>(32);
 	}
 	else
 	{
-		callback.native_handle()->dummy_union_name.dummy_struct_name.Offset=static_cast<std::uint32_t>(offset);
-		callback.native_handle()->dummy_union_name.dummy_struct_name.OffsetHigh=0;
+		callback.handle->dummy_union_name.dummy_struct_name.Offset=static_cast<std::uint32_t>(offset);
+		callback.handle->dummy_union_name.dummy_struct_name.OffsetHigh=0;
 	}
-	if(!win32::WriteFile(h.native_handle(),std::to_address(cbegin),static_cast<std::uint32_t>(to_write),nullptr,callback.native_handle()))[[likely]]
+	if(!win32::WriteFile(h.handle,std::to_address(cbegin),static_cast<std::uint32_t>(to_write),nullptr,callback.handle))[[likely]]
 	{
 		auto err(win32::GetLastError());
 		if(err==997)[[likely]]
@@ -747,22 +745,22 @@ inline void async_write_callback(basic_win32_io_observer<char>,basic_win32_io_ob
 		throw_win32_error(err);
 	}
 }
-
+#endif
 template<std::integral ch_type>
 inline void cancel(basic_win32_io_observer<ch_type> h)
 {
-	if(!fast_io::win32::CancelIo(h.native_handle()))
+	if(!fast_io::win32::CancelIo(h.handle))
 		throw_win32_error();
 }
 
 template<std::integral ch_type,typename... Args>
 requires requires(basic_win32_io_observer<ch_type> h,Args&& ...args)
 {
-	fast_io::win32::DeviceIoControl(h.native_handle(),std::forward<Args>(args)...);
+	fast_io::win32::DeviceIoControl(h.handle,std::forward<Args>(args)...);
 }
 inline void io_control(basic_win32_io_observer<ch_type> h,Args&& ...args)
 {
-	if(!fast_io::win32::DeviceIoControl(h.native_handle(),std::forward<Args>(args)...))
+	if(!fast_io::win32::DeviceIoControl(h.handle,std::forward<Args>(args)...))
 		throw_win32_error();
 }
 
@@ -773,13 +771,12 @@ public:
 	using char_type=ch_type;
 	using native_handle_type = typename basic_win32_io_handle<ch_type>::native_handle_type;
 	using basic_win32_io_handle<ch_type>::native_handle;
-	using async_scheduler_type = basic_win32_io_observer<char>;
 	explicit constexpr basic_win32_file()=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	explicit constexpr basic_win32_file(native_hd handle) noexcept:basic_win32_io_handle<ch_type>(handle){}
 
-	basic_win32_file(io_dup_t,basic_win32_io_observer<ch_type> wiob):basic_win32_io_handle<ch_type>(win32::details::win32_dup_impl(wiob.native_handle()))
+	basic_win32_file(io_dup_t,basic_win32_io_observer<ch_type> wiob):basic_win32_io_handle<ch_type>(win32::details::win32_dup_impl(wiob.handle))
 	{}
 
 
@@ -838,15 +835,15 @@ public:
 	template<typename... Args>
 	basic_win32_file(io_async_t,basic_win32_io_observer<char> iob,nt_at_entry nate,basic_cstring_view<filename_char_type auto> filename,Args&& ...args):basic_win32_file(nate,filename,std::forward<Args>(args)...)
 	{
-		basic_win32_file<ch_type> guard(this->native_handle());
-		details::create_io_completion_port(this->native_handle(),iob.native_handle(),bit_cast<std::uintptr_t>(this->native_handle()),0);
+		basic_win32_file<ch_type> guard(this->handle);
+		details::create_io_completion_port(this->handle,iob.handle,bit_cast<std::uintptr_t>(this->handle),0);
 		guard.release();
 	}
 #endif
 	~basic_win32_file()
 	{
 		if(*this)[[likely]]
-			fast_io::win32::CloseHandle(this->native_handle());
+			fast_io::win32::CloseHandle(this->handle);
 	}
 	constexpr basic_win32_file(basic_win32_file const&)=default;
 	constexpr basic_win32_file& operator=(basic_win32_file const&)=default;
@@ -896,7 +893,7 @@ inline constexpr Iter write(basic_win32_pio_entry<char_type> wpioent,Iter begin,
 }
 
 template<std::integral ch_type>
-inline io_scatter_status_t scatter_write(basic_win32_pio_entry<ch_type> wpioent,std::span<io_scatter_t const> sp)
+inline io_scatter_status_t scatter_write(basic_win32_pio_entry<ch_type> wpioent,io_scatters_t sp)
 {
 	return win32::details::scatter_pwrite_impl(wpioent.handle,sp,wpioent.offset);
 }
@@ -908,7 +905,7 @@ inline constexpr Iter read(basic_win32_pio_entry<char_type> wpioent,Iter begin,I
 }
 
 template<std::integral ch_type>
-inline io_scatter_status_t scatter_read(basic_win32_pio_entry<ch_type> wpioent,std::span<io_scatter_t const> sp)
+inline io_scatter_status_t scatter_read(basic_win32_pio_entry<ch_type> wpioent,io_scatters_t sp)
 {
 	return win32::details::scatter_pread_impl(wpioent.handle,sp,wpioent.offset);
 }
@@ -997,8 +994,8 @@ public:
 	{
 		win32::security_attributes sec_attr{sizeof(win32::security_attributes),nullptr,true};
 		if(!win32::CreatePipe(
-			std::addressof(pipes.front().native_handle()),
-			std::addressof(pipes.back().native_handle()),
+			std::addressof(pipes.front().handle),
+			std::addressof(pipes.back().handle),
 			std::addressof(sec_attr),0))
 			throw_win32_error();
 	}
@@ -1029,13 +1026,13 @@ inline Iter write(basic_win32_pipe<ch_type>& h,Iter begin,Iter end)
 }
 
 template<std::integral ch_type>
-inline io_scatter_status_t scatter_read(basic_win32_pipe<ch_type>& h,std::span<io_scatter_t const> sp)
+inline io_scatter_status_t scatter_read(basic_win32_pipe<ch_type>& h,io_scatters_t sp)
 {
 	return scatter_read(h.in(),sp);
 }
 
 template<std::integral ch_type>
-inline io_scatter_status_t scatter_write(basic_win32_pipe<ch_type>& h,std::span<io_scatter_t const> sp)
+inline io_scatter_status_t scatter_write(basic_win32_pipe<ch_type>& h,io_scatters_t sp)
 {
 	return scatter_write(h.out(),sp);
 }
@@ -1043,7 +1040,7 @@ inline io_scatter_status_t scatter_write(basic_win32_pipe<ch_type>& h,std::span<
 template<std::integral ch_type>
 inline std::array<void*,2> redirect_handle(basic_win32_pipe<ch_type>& hd)
 {
-	return {hd.in().native_handle(),hd.out().native_handle()};
+	return {hd.in().handle,hd.out().handle};
 }
 
 template<std::integral ch_type>
@@ -1073,8 +1070,10 @@ using u32win32_io_handle=basic_win32_io_handle<char32_t>;
 using u32win32_file=basic_win32_file<char32_t>;
 using u32win32_pipe=basic_win32_pipe<char32_t>;
 
+#if 0
 using io_async_observer=win32_io_observer;
 using io_async_scheduler=win32_file;
+#endif
 
 inline constexpr std::uint32_t win32_stdin_number(static_cast<std::uint32_t>(-10));
 inline constexpr std::uint32_t win32_stdout_number(static_cast<std::uint32_t>(-11));

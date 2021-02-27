@@ -17,12 +17,13 @@ struct basic_io_scatter_t
 //should be binary compatible with POSIX's iovec
 
 using io_scatter_t = basic_io_scatter_t<void>;
+using io_scatters_t = basic_io_scatter_t<io_scatter_t>;
 
 struct io_scatter_status_t
 {
 	std::size_t total_size;
-	std::size_t span_position;
-	std::size_t pos_in_span;
+	std::size_t position;
+	std::size_t position_in_scatter;
 };
 
 template<typename T>

@@ -139,11 +139,12 @@ inline void write(sha_context<ctx_type>& ctx,Iter begin,Iter end)
 }
 
 template<sha_type ctx_type>
-inline std::size_t scatter_write(sha_context<ctx_type>& ctx,std::span<io_scatter_t const> sp)
+inline std::size_t scatter_write(sha_context<ctx_type>& ctx,io_scatters_t sp)
 {
 	std::size_t sz{};
-	for(auto const& e : sp)
+	for(std::size_t i{};i!=sp.len;++i)
 	{
+		auto e{sp.base[i]};
 		write(ctx,reinterpret_cast<char const*>(e.base),reinterpret_cast<char const*>(e.base)+e.len);
 		sz+=e.len;
 	}

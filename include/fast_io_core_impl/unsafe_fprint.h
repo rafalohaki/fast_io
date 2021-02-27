@@ -245,14 +245,14 @@ inline constexpr void scatter_fprint_write(output out,
 	if constexpr(args_num==1)
 	{
 		auto res{scatter_fprint_impl(view,scatters,new_scatters.data(),fprint_args_num_para<fprint_args_num_para_enum::one>{})};
-		scatter_write(out,std::span<io_scatter_t>(new_scatters.data(),res));
+		scatter_write(out,{new_scatters.data(),res-new_scatters.data()});
 	}
 	else
 	{
 		auto res{scatter_fprint_impl(view,scatters,new_scatters.data(),
 			fprint_args_num_para<args_num<11?
 			fprint_args_num_para_enum::less_than_11:fprint_args_num_para_enum::other>{args_num})};
-		scatter_write(out,std::span<io_scatter_t>(new_scatters.data(),res));
+		scatter_write(out,{new_scatters.data(),res-new_scatters.data()});
 	}
 }
 

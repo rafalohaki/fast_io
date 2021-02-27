@@ -155,21 +155,22 @@ concept status_stream_impl = requires(T&& stm)
 	typename std::remove_cvref_t<T>::status_type;
 };
 
-
 template<typename T>
-concept scatter_input_stream_impl = requires(T&& in,std::span<io_scatter_t const> sp)
+concept scatter_input_stream_impl = requires(T&& in,io_scatters_t sp)
 {
 	{scatter_read(in,sp)}->std::same_as<std::size_t>;
 };
 
 template<typename T>
-concept scatter_output_stream_impl = requires(T&& out,std::span<io_scatter_t const> sp)
+concept scatter_output_stream_impl = requires(T&& out,io_scatters_t sp)
 {
 	scatter_write(out,sp);
 };
 
-
+#if 0
 //async stream concepts
+
+
 
 template<typename T>
 concept async_input_stream_impl = stream_char_type_requirement<T>&&
@@ -212,5 +213,7 @@ concept async_scatter_output_stream_impl = requires(T&& out,std::span<io_scatter
 		async_scatter_write_callback(sch,out,sp,overlapped,offset);
 	};
 };
+
+#endif
 
 }

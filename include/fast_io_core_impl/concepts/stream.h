@@ -95,6 +95,8 @@ concept scatter_input_stream = input_stream<T>&&details::scatter_input_stream_im
 template<typename T>
 concept scatter_output_stream = output_stream<T>&&details::scatter_output_stream_impl<T>;
 
+#if 0
+
 template<typename T>
 concept async_stream = details::async_input_stream_impl<T>||details::async_output_stream_impl<T>;
 
@@ -115,6 +117,8 @@ concept async_scatter_output_stream = async_stream<T>&&details::async_scatter_ou
 
 template<typename T>
 concept async_scatter_io_stream = async_input_stream<T>&&async_scatter_output_stream<T>;
+
+#endif
 
 template<typename T>
 concept closable_stream = stream<T>&&requires(T t)

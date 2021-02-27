@@ -913,7 +913,7 @@ inline auto redirect_handle(basic_c_io_observer<ch_type> h)
 	return static_cast<basic_posix_io_observer<ch_type>>(h).native_handle();
 #endif
 }
-
+#if 0
 template<std::integral char_type>
 requires async_stream<basic_posix_io_observer<char_type>>
 inline constexpr io_async_scheduler_t<basic_posix_io_observer<char_type>> async_scheduler_type(basic_c_io_observer<char_type>)
@@ -970,6 +970,8 @@ inline void async_read_callback(io_async_observer ioa,basic_c_io_observer_unlock
 	async_read_callback(ioa,static_cast<basic_posix_io_observer<char_type>>(h),std::forward<Args>(args)...);
 }
 #endif
+#endif
+
 using c_io_observer_unlocked=basic_c_io_observer_unlocked<char>;
 using c_io_observer=basic_c_io_observer<char>;
 using c_io_handle_unlocked = basic_c_io_handle_unlocked<char>;
