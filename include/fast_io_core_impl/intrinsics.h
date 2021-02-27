@@ -1,7 +1,7 @@
 #pragma once
 #if defined(_MSC_VER)
 #include <intrin.h>
-#elif defined(__x86_64__) || defined(__i386__)
+#elif (defined(__x86_64__) || defined(__i386__)) && !defined(__MSDOS__)
 #include <immintrin.h>
 #endif
 
@@ -13,7 +13,7 @@ requires (std::unsigned_integral<T>)
 #endif
 inline constexpr bool add_carry(bool carry,T a,T b,T& out) noexcept
 {
-#if defined(_MSC_VER) || defined(__x86_64__) || defined(__i386__)
+#if (defined(_MSC_VER) || defined(__x86_64__) || defined(__i386__)) && (!defined(__MSDOS__))
 #if __cpp_lib_is_constant_evaluated >= 201811L
 	if(std::is_constant_evaluated())
 		return (out=a+b+carry)<=a;
@@ -50,7 +50,7 @@ requires (std::unsigned_integral<T>)
 #endif
 inline constexpr bool sub_borrow(bool borrow,T a,T b,T& out) noexcept
 {
-#if defined(_MSC_VER) || defined(__x86_64__) || defined(__i386__)
+#if (defined(_MSC_VER) || defined(__x86_64__) || defined(__i386__)) && (!defined(__MSDOS__))
 #if __cpp_lib_is_constant_evaluated >= 201811L
 	if(std::is_constant_evaluated())
 		return (out=a-b-borrow)>=a;

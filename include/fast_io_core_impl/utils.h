@@ -51,6 +51,8 @@ inline constexpr U byte_swap_naive_impl(U a) noexcept
 		return  ((a & 0xff00) >> 8) |
 			((a & 0x00ff) << 8) ;
 	}
+	else
+		return a;
 }
 
 template<std::unsigned_integral U>

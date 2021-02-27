@@ -839,7 +839,7 @@ public:
 		this->native_handle()=details::funopen_wrapper<std::remove_cvref_t<stm>>(up.get());
 		up.release();
 #else
-		throw_posix_error(EOPNOTSUPP);
+		throw_posix_error(EINVAL);
 #endif
 	}
 
@@ -852,7 +852,7 @@ public:
 #elif defined(__BSD_VISIBLE) || defined(__BIONIC__) || defined(__NEWLIB__)
 		this->native_handle()=details::funopen_wrapper<stm&>(std::addressof(reff));
 #else
-		throw_posix_error(EOPNOTSUPP);
+		throw_posix_error(EINVAL);
 #endif
 	}
 	template<stream stm>

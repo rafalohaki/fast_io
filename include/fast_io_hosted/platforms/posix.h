@@ -856,16 +856,20 @@ inline int open_fd_from_handle(void* handle,open_mode md)
 }
 
 #else
+#if defined(__NEWLIB__)||defined(__MSDOS__)
 
 template<bool always_terminate=false>
-inline int my_posix_openat(int dirfd,char const* pathname,int flags,mode_t mode)
+inline int my_posix_openat(int,char const*,int,mode_t)
 {
-#if defined(__NEWLIB__)||defined(__MSDOS__)
 	if constexpr(always_terminate)
 		fast_terminate();
 	else
-		throw_posix_error(ENOTSUP);
+		throw_posix_error(EINVAL);
+}
 #else
+template<bool always_terminate=false>
+inline int my_posix_openat(int dirfd,char const* pathname,int flags,mode_t mode)
+{
 	int fd{
 #if defined(__linux__)
 	system_call<__NR_openat,int>
@@ -875,16 +879,19 @@ inline int my_posix_openat(int dirfd,char const* pathname,int flags,mode_t mode)
 	(dirfd,pathname,flags,mode)};
 	system_call_throw_error<always_terminate>(fd);
 	return fd;
-#endif
 }
-
+#endif
 #ifdef __MSDOS__
 extern "C" unsigned int _dos_creat(char const*,short unsigned,int*) noexcept;
 extern "C" unsigned int _dos_creatnew(char const*,short unsigned,int*) noexcept;
 extern "C" unsigned int _dos_open(char const*,short unsigned,int*) noexcept;
 #endif
 template<bool always_terminate=false>
-inline int my_posix_open(char const* pathname,int flags,mode_t mode)
+inline int my_posix_open(char const* pathname,int flags,
+#if __has_cpp_attribute(maybe_unused)
+[[maybe_unused]]
+#endif
+mode_t mode)
 {
 #ifdef __MSDOS__
 /*
@@ -1637,3 +1644,6 @@ inline io_scatter_status_t scatter_write(basic_posix_pio_entry<ch_type> ppioent,
 #endif
 
 }
+#ifdef __MSDOS__
+#include"msdos.h"
+#endif

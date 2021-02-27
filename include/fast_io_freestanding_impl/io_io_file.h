@@ -59,7 +59,7 @@ public:
 		if constexpr(input_stream<value_type>)
 			return read(io,b,e);
 		else
-			throw_posix_error(EOPNOTSUPP);
+			throw_posix_error(EINVAL);
 	}
 #if __cpp_constexpr >= 201907L
 	constexpr
@@ -79,7 +79,7 @@ public:
 			}			
 		}
 		else
-			throw_posix_error(EOPNOTSUPP);
+			throw_posix_error(EINVAL);
 	}
 #if __cpp_constexpr >= 201907L
 	constexpr
@@ -92,7 +92,7 @@ public:
 				flush(io);
 		}
 		else
-			throw_posix_error(EOPNOTSUPP);
+			throw_posix_error(EINVAL);
 	}
 #if __cpp_constexpr >= 201907L
 	constexpr
@@ -102,7 +102,7 @@ public:
 		if constexpr(random_access_stream<value_type>)
 			return seek(io,off,dir);
 		else
-			throw_posix_error(EOPNOTSUPP);
+			throw_posix_error(EINVAL);
 	}
 #if __cpp_constexpr >= 201907L
 	constexpr
@@ -112,7 +112,7 @@ public:
 		if constexpr(std::is_reference_v<stm>||std::copyable<stm>)
 			return new derv(std::in_place_type<stm>,this->io);
 		else
-			throw_posix_error(EOPNOTSUPP);
+			throw_posix_error(EINVAL);
 	}
 };
 
