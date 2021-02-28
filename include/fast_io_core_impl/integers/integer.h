@@ -45,7 +45,7 @@ constexpr Iter process_integer_output(Iter iter,int_type i) noexcept
 				abs_value = 0u - abs_value;
 				if constexpr(!ignore_sign)
 				{
-					if constexpr(std::same_as<char_type,char8_t>)
+					if constexpr(std::same_as<char_type,char>)
 						*iter='-';
 					else if constexpr(std::same_as<char_type,wchar_t>)
 						*iter=L'-';
@@ -80,7 +80,7 @@ constexpr Iter process_integer_output(Iter iter,int_type i) noexcept
 					abs_value = 0 - abs_value;
 					if constexpr(!ignore_sign)
 					{
-						if constexpr(std::same_as<char_type,char8_t>)
+						if constexpr(std::same_as<char_type,char>)
 							*iter='-';
 						else if constexpr(std::same_as<char_type,wchar_t>)
 							*iter=L'-';
@@ -111,7 +111,7 @@ constexpr Iter process_integer_output(Iter iter,int_type i) noexcept
 					abs_value = 0 - abs_value;
 					if constexpr(!ignore_sign)
 					{
-						if constexpr(std::same_as<char_type,char8_t>)
+						if constexpr(std::same_as<char_type,char>)
 							*iter='-';
 						else if constexpr(std::same_as<char_type,wchar_t>)
 							*iter=L'-';
