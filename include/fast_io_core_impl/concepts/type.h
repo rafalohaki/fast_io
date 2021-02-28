@@ -52,25 +52,13 @@ using type = T;
 };
 template<typename T>
 inline constexpr io_type_t<T> io_type{};
-
+#if 0
 template<typename T>
 struct io_message_t
 {
 	using type = typename std::remove_cvref_t<decltype(io_message_type(*static_cast<T*>(nullptr)))>::type;
 };
-
-template<typename T>
-struct io_async_scheduler_t
-{
-	using type = typename std::remove_cvref_t<decltype(async_scheduler_type(*static_cast<T*>(nullptr)))>::type;
-};
-
-template<typename T>
-struct io_async_overlapped_t
-{
-	using type = typename std::remove_cvref_t<decltype(async_overlapped_type(*static_cast<T*>(nullptr)))>::type;
-};
-
+#endif
 template<std::integral char_type,typename T>
 struct io_reserve_type_t
 {
