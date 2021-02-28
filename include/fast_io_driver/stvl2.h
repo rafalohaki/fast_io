@@ -212,7 +212,9 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,stvl
 template<std::integral char_type>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,stvl2::stvl2_header>) noexcept
 {
-	constexpr std::size_t tag_size{print_reserve_size(io_reserve_type<char_type,stvl2::stvl2_header_tag>)};
+	constexpr std::size_t tag_size{print_reserve_size(io_reserve_type<char_type,stvl2::stvl2_header_tag>)
+	+print_resrve_size(io_reserve_type<char_type,void const*>)*2
+	+print_resrve_size(io_reserve_type<char_type,std::uint64_t>)};
 	if constexpr(std::same_as<char_type,char>)
 		return tag_size+details::string_literal_size("entry_point: \nstack: \nflags: \ntags: ");
 	else if constexpr(std::same_as<char_type,wchar_t>)
