@@ -525,8 +525,7 @@ inline constexpr Iter print_reserve_define_impl_for_stvl2_struct(Iter iter,stvl2
 		iter=deal_with_stvl2_cstr(iter,st.bootloader_brand);
 		iter=copy_string_literal("\nbootloader_version: ",iter);
 		iter=deal_with_stvl2_cstr(iter,st.bootloader_version);
-		iter=copy_string_literal("\ntags: ",iter);
-		return print_reserve_define_impl_for_stvl2_struct_tag(iter,st.tags);
+		iter=copy_string_literal("\ntags_root: ",iter);
 	}
 	else if constexpr(std::same_as<char_type,wchar_t>)
 	{
@@ -534,8 +533,7 @@ inline constexpr Iter print_reserve_define_impl_for_stvl2_struct(Iter iter,stvl2
 		iter=deal_with_stvl2_cstr(iter,st.bootloader_brand);
 		iter=copy_string_literal(L"\nbootloader_version: ",iter);
 		iter=deal_with_stvl2_cstr(iter,st.bootloader_version);
-		iter=copy_string_literal(L"\ntags: ",iter);
-		return print_reserve_define_impl_for_stvl2_struct_tag(iter,st.tags);
+		iter=copy_string_literal(L"\ntags_root: ",iter);
 	}
 	else if constexpr(std::same_as<char_type,char16_t>)
 	{
@@ -543,8 +541,7 @@ inline constexpr Iter print_reserve_define_impl_for_stvl2_struct(Iter iter,stvl2
 		iter=deal_with_stvl2_cstr(iter,st.bootloader_brand);
 		iter=copy_string_literal(u"\nbootloader_version: ",iter);
 		iter=deal_with_stvl2_cstr(iter,st.bootloader_version);
-		iter=copy_string_literal(u"\ntags: ",iter);
-		return print_reserve_define_impl_for_stvl2_struct_tag(iter,st.tags);
+		iter=copy_string_literal(u"\ntags_root: ",iter);
 	}
 	else if constexpr(std::same_as<char_type,char32_t>)
 	{
@@ -552,8 +549,7 @@ inline constexpr Iter print_reserve_define_impl_for_stvl2_struct(Iter iter,stvl2
 		iter=deal_with_stvl2_cstr(iter,st.bootloader_brand);
 		iter=copy_string_literal(U"\nbootloader_version: ",iter);
 		iter=deal_with_stvl2_cstr(iter,st.bootloader_version);
-		iter=copy_string_literal(U"\ntags: ",iter);
-		return print_reserve_define_impl_for_stvl2_struct_tag(iter,st.tags);
+		iter=copy_string_literal(U"\ntags_root: ",iter);
 	}
 	else
 	{
@@ -561,9 +557,9 @@ inline constexpr Iter print_reserve_define_impl_for_stvl2_struct(Iter iter,stvl2
 		iter=deal_with_stvl2_cstr(iter,st.bootloader_brand);
 		iter=copy_string_literal(u8"\nbootloader_version: ",iter);
 		iter=deal_with_stvl2_cstr(iter,st.bootloader_version);
-		iter=copy_string_literal(u8"\ntags: ",iter);
-		return print_reserve_define_impl_for_stvl2_struct_tag(iter,st.tags);
+		iter=copy_string_literal(u8"\ntags_root: ",iter);
 	}
+	return print_reserve_define(io_reserve_type<char_type,void const*>,iter,st.tags_root);
 }
 
 template<std::random_access_iterator Iter>
@@ -1160,20 +1156,19 @@ template<std::integral char_type>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,stvl2::stvl2_struct>) noexcept
 {
 	constexpr std::size_t tag_size{
-		print_reserve_size(io_reserve_type<char_type,stvl2::stvl2_struct_tag>)+
-		details::cal_stvl2_cstr_reserved_size<char_type>(stvl2::stvl2_struct::bootloader_brand_size+
-		stvl2::stvl2_struct::bootloader_version_size)
+		print_reserve_size(io_reserve_type<char_type,void const*>)+
+		details::cal_stvl2_cstr_reserved_size<char_type>(stvl2::stvl2_struct::bootloader_brand_size)*2
 		};
 	if constexpr(std::same_as<char_type,char>)
-		return tag_size+details::string_literal_size("bootloader_brand: \nbootloader_version: \ntags: ");
+		return tag_size+details::string_literal_size("bootloader_brand: \nbootloader_version: \ntags_root: ");
 	else if constexpr(std::same_as<char_type,wchar_t>)
-		return tag_size+details::string_literal_size(L"bootloader_brand: \nbootloader_version: \ntags: ");
+		return tag_size+details::string_literal_size(L"bootloader_brand: \nbootloader_version: \ntags_root: ");
 	else if constexpr(std::same_as<char_type,char16_t>)
-		return tag_size+details::string_literal_size(u"bootloader_brand: \nbootloader_version: \ntags: ");
+		return tag_size+details::string_literal_size(u"bootloader_brand: \nbootloader_version: \ntags_root: ");
 	else if constexpr(std::same_as<char_type,char32_t>)
-		return tag_size+details::string_literal_size(U"bootloader_brand: \nbootloader_version: \ntags: ");
+		return tag_size+details::string_literal_size(U"bootloader_brand: \nbootloader_version: \ntags_root: ");
 	else
-		return tag_size+details::string_literal_size(u8"bootloader_brand: \nbootloader_version: \ntags: ");
+		return tag_size+details::string_literal_size(u8"bootloader_brand: \nbootloader_version: \ntags_root: ");
 }
 
 template<std::integral char_type>

@@ -99,7 +99,7 @@ struct [[gnu::packed]] stvl2_struct
 	inline static constexpr std::size_t bootloader_version_size{64};
 	char8_t bootloader_brand[bootloader_brand_size];
 	char8_t bootloader_version[bootloader_version_size];
-	stvl2_struct_tag tags;
+	stvl2_tag* tags_root;
 };
 
 struct [[gnu::packed]] stvl2_struct_tag_cmdline:stvl2_tag
@@ -219,3 +219,5 @@ struct [[gnu::packed]] stvl2_struct_vmap:stvl2_tag
 };
 
 }
+
+#include"stvl2_struct_iterator.h"
