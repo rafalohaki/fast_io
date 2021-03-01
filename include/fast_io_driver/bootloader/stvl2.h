@@ -66,18 +66,19 @@ use stvl2 instead of stivale2 to avoid collision with stivale2.h
 */
 struct [[gnu::packed]] stvl2_tag
 {
-	std::uint64_t identifier;
-	std::uint64_t next;
+	stvl2_header_tag identifier;
+	stvl2_tag* next;
 };
 
 struct [[gnu::packed]] stvl2_header
 {
-	[[no_unique_address]] stvl2_pointer_padding entry_point_pointer_pading;
+	[[no_unique_address]] stvl2_pointer_padding entry_point_pointer_padding;
 	void* entry_point;
-	[[no_unique_address]] stvl2_pointer_padding stack_pointer_pading;
+	[[no_unique_address]] stvl2_pointer_padding stack_pointer_padding;
 	void* stack;
 	std::uint64_t flags;
-	stvl2_header_tag tags;
+	[[no_unique_address]] stvl2_pointer_padding tags_root_padding;
+	stvl2_tag* tags_root;
 };
 
 struct [[gnu::packed]] stvl2_header_tag_framebuffer : stvl2_tag

@@ -2,10 +2,8 @@
 
 fast_io is a new C++20 library for extremely fast input/output and aims to replace iostream and cstdio. It is header-only (module only in the future) for easy inclusion in your project. It requires a capable C++20 compiler supporting concepts.
 
-## QQ群二维码
-
-![image](fast_io_qr_code.png)
-
+## QQ group
+1076846339
 
 ## Discord URL.
 
