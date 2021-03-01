@@ -592,22 +592,136 @@ inline constexpr Iter print_reserve_define_impl_for_stvl2_struct_tag_cmdline(Ite
 	return print_reserve_define(io_reserve_type<char_type,std::uint64_t>,iter,st.cmdline);
 }
 
-template<std::random_access_iterator Iter>
-inline constexpr Iter print_reserve_define_impl_for_stvl2_struct_tag_memmap(Iter iter,stvl2::stvl2_struct_tag_memmap st) noexcept
+template<std::random_access_iterator Iter,typename T>
+requires (
+	std::same_as<T,stvl2::stvl2_struct_tag_modules>||
+	std::same_as<T,stvl2::stvl2_struct_tag_memmap>||
+	std::same_as<T,stvl2::stvl2_struct_tag_rsdp>||
+	std::same_as<T,stvl2::stvl2_struct_tag_epoch>||
+	std::same_as<T,stvl2::stvl2_struct_tag_firmware>||
+	std::same_as<T,stvl2::stvl2_struct_tag_pxe_server_info>||
+	std::same_as<T,stvl2::stvl2_struct_tag_mmio32_uart>||
+	std::same_as<T,stvl2::stvl2_struct_vmap>||
+	std::same_as<T,stvl2::stvl2_struct_tag_dtb>)
+inline constexpr Iter print_reserve_define_impl_for_stvl2_struct_tag_single(Iter iter,T st) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
 	iter=print_reserve_define_impl_for_stvl2_tag(iter,st);
-	if constexpr(std::same_as<char_type,char>)
-		iter=copy_string_literal("\nentries: ",iter);
-	else if constexpr(std::same_as<char_type,wchar_t>)
-		iter=copy_string_literal(L"\nentries: ",iter);
-	else if constexpr(std::same_as<char_type,char16_t>)
-		iter=copy_string_literal(u"\nentries: ",iter);
-	else if constexpr(std::same_as<char_type,char32_t>)
-		iter=copy_string_literal(U"\nentries: ",iter);
-	else
-		iter=copy_string_literal(u8"\nentries: ",iter);
-	return print_reserve_define(io_reserve_type<char_type,std::uint64_t>,iter,st.entries);
+	if constexpr(std::same_as<T,stvl2::stvl2_struct_tag_modules>)
+	{
+		if constexpr(std::same_as<char_type,char>)
+			iter=copy_string_literal("\nmodule_count: ",iter);
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			iter=copy_string_literal(L"\nmodule_count: ",iter);
+		else if constexpr(std::same_as<char_type,char16_t>)
+			iter=copy_string_literal(u"\nmodule_count: ",iter);
+		else if constexpr(std::same_as<char_type,char32_t>)
+			iter=copy_string_literal(U"\nmodule_count: ",iter);
+		else
+			iter=copy_string_literal(u8"\nmodule_count: ",iter);
+		return print_reserve_define(io_reserve_type<char_type,std::size_t>,iter,st.module_count);		
+	}
+	else if constexpr(std::same_as<T,stvl2::stvl2_struct_tag_memmap>)
+	{
+		if constexpr(std::same_as<char_type,char>)
+			iter=copy_string_literal("\nentries: ",iter);
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			iter=copy_string_literal(L"\nentries: ",iter);
+		else if constexpr(std::same_as<char_type,char16_t>)
+			iter=copy_string_literal(u"\nentries: ",iter);
+		else if constexpr(std::same_as<char_type,char32_t>)
+			iter=copy_string_literal(U"\nentries: ",iter);
+		else
+			iter=copy_string_literal(u8"\nentries: ",iter);
+		return print_reserve_define(io_reserve_type<char_type,std::uint64_t>,iter,st.entries);
+	}
+	else if constexpr(std::same_as<T,stvl2::stvl2_struct_tag_rsdp>)
+	{
+		if constexpr(std::same_as<char_type,char>)
+			iter=copy_string_literal("\nrdsp: ",iter);
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			iter=copy_string_literal(L"\nrdsp: ",iter);
+		else if constexpr(std::same_as<char_type,char16_t>)
+			iter=copy_string_literal(u"\nrdsp: ",iter);
+		else if constexpr(std::same_as<char_type,char32_t>)
+			iter=copy_string_literal(U"\nrdsp: ",iter);
+		else
+			iter=copy_string_literal(u8"\nrdsp: ",iter);
+		return print_reserve_define(io_reserve_type<char_type,std::uint64_t>,iter,st.rdsp);
+	}
+	else if constexpr(std::same_as<T,stvl2::stvl2_struct_tag_epoch>)
+	{
+		if constexpr(std::same_as<char_type,char>)
+			iter=copy_string_literal("\nepoch: ",iter);
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			iter=copy_string_literal(L"\nepoch: ",iter);
+		else if constexpr(std::same_as<char_type,char16_t>)
+			iter=copy_string_literal(u"\nepoch: ",iter);
+		else if constexpr(std::same_as<char_type,char32_t>)
+			iter=copy_string_literal(U"\nepoch: ",iter);
+		else
+			iter=copy_string_literal(u8"\nepoch: ",iter);
+		return print_reserve_define(io_reserve_type<char_type,std::uint64_t>,iter,st.epoch);
+	}
+	else if constexpr(std::same_as<T,stvl2::stvl2_struct_tag_firmware>)
+	{
+		if constexpr(std::same_as<char_type,char>)
+			iter=copy_string_literal("\ntag: ",iter);
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			iter=copy_string_literal(L"\ntag: ",iter);
+		else if constexpr(std::same_as<char_type,char16_t>)
+			iter=copy_string_literal(u"\ntag: ",iter);
+		else if constexpr(std::same_as<char_type,char32_t>)
+			iter=copy_string_literal(U"\ntag: ",iter);
+		else
+			iter=copy_string_literal(u8"\ntag: ",iter);
+		return print_reserve_define_impl_for_stvl2_firmware_flags(iter,st.tag);
+	}
+	else if constexpr(std::same_as<T,stvl2::stvl2_struct_tag_pxe_server_info>)
+	{
+		if constexpr(std::same_as<char_type,char>)
+			iter=copy_string_literal("\nserver_ip: ",iter);
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			iter=copy_string_literal(L"\nserver_ip: ",iter);
+		else if constexpr(std::same_as<char_type,char16_t>)
+			iter=copy_string_literal(u"\nserver_ip: ",iter);
+		else if constexpr(std::same_as<char_type,char32_t>)
+			iter=copy_string_literal(U"\nserver_ip: ",iter);
+		else
+			iter=copy_string_literal(u8"\nserver_ip: ",iter);
+		return print_reserve_define(io_reserve_type<char_type,std::uint32_t>,iter,st.server_ip);
+	}
+	else if constexpr(std::same_as<T,stvl2::stvl2_struct_tag_mmio32_uart>||
+	std::same_as<T,stvl2::stvl2_struct_vmap>||
+	std::same_as<T,stvl2::stvl2_struct_tag_dtb>)
+	{
+		if constexpr(std::same_as<char_type,char>)
+			iter=copy_string_literal("\naddr: ",iter);
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			iter=copy_string_literal(L"\naddr: ",iter);
+		else if constexpr(std::same_as<char_type,char16_t>)
+			iter=copy_string_literal(u"\naddr: ",iter);
+		else if constexpr(std::same_as<char_type,char32_t>)
+			iter=copy_string_literal(U"\naddr: ",iter);
+		else
+			iter=copy_string_literal(u8"\naddr: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,void const*>,iter,st.addr);
+		if constexpr(std::same_as<T,stvl2::stvl2_struct_tag_dtb>)
+		{
+		if constexpr(std::same_as<char_type,char>)
+			iter=copy_string_literal("\nsize: ",iter);
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			iter=copy_string_literal(L"\nsize: ",iter);
+		else if constexpr(std::same_as<char_type,char16_t>)
+			iter=copy_string_literal(u"\nsize: ",iter);
+		else if constexpr(std::same_as<char_type,char32_t>)
+			iter=copy_string_literal(U"\nsize: ",iter);
+		else
+			iter=copy_string_literal(u8"\nsize: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::size_t>,iter,st.size);
+		}
+		return iter;
+	}
 }
 
 template<std::random_access_iterator Iter>
@@ -796,6 +910,188 @@ inline constexpr Iter print_reserve_define_impl_for_stvl2_module(Iter iter,stvl2
 	return deal_with_stvl2_cstr(iter,st.module_string);
 }
 
+template<std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define_impl_for_stvl2_mmap_entry(Iter iter,stvl2::stvl2_mmap_entry st) noexcept
+{
+	using char_type = std::iter_value_t<Iter>;
+	if constexpr(std::same_as<char_type,char>)
+	{
+		iter=copy_string_literal("base: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,void const*>,iter,st.base);
+		iter=copy_string_literal("\nlength: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::size_t>,iter,st.length);
+		iter=copy_string_literal("\ntype: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,stvl2::stvl2_mmap_type>,iter,st.type);
+		iter=copy_string_literal("\nunused: ",iter);
+	}
+	else if constexpr(std::same_as<char_type,wchar_t>)
+	{
+		iter=copy_string_literal(L"base: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,void const*>,iter,st.base);
+		iter=copy_string_literal(L"\nlength: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::size_t>,iter,st.length);
+		iter=copy_string_literal(L"\ntype: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,stvl2::stvl2_mmap_type>,iter,st.type);
+		iter=copy_string_literal(L"\nunused: ",iter);
+	}
+	else if constexpr(std::same_as<char_type,char16_t>)
+	{
+		iter=copy_string_literal(u"base: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,void const*>,iter,st.base);
+		iter=copy_string_literal(u"\nlength: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::size_t>,iter,st.length);
+		iter=copy_string_literal(u"\ntype: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,stvl2::stvl2_mmap_type>,iter,st.type);
+		iter=copy_string_literal(u"\nunused: ",iter);
+	}
+	else if constexpr(std::same_as<char_type,char32_t>)
+	{
+		iter=copy_string_literal(U"base: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,void const*>,iter,st.base);
+		iter=copy_string_literal(U"\nlength: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::size_t>,iter,st.length);
+		iter=copy_string_literal(U"\ntype: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,stvl2::stvl2_mmap_type>,iter,st.type);
+		iter=copy_string_literal(U"\nunused: ",iter);
+	}
+	else
+	{
+		iter=copy_string_literal(u8"base: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,void const*>,iter,st.base);
+		iter=copy_string_literal(u8"\nlength: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::size_t>,iter,st.length);
+		iter=copy_string_literal(u8"\ntype: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,stvl2::stvl2_mmap_type>,iter,st.type);
+		iter=copy_string_literal(u8"\nunused: ",iter);
+	}
+	return print_reserve_define(io_reserve_type<char_type,std::uint32_t>,iter,st.unused);
+}
+
+template<std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define_impl_for_stvl2_smp_info(Iter iter,stvl2::stvl2_smp_info st) noexcept
+{
+	using char_type = std::iter_value_t<Iter>;
+	if constexpr(std::same_as<char_type,char>)
+	{
+		iter=copy_string_literal("process_id: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint32_t>,iter,st.process_id);
+		iter=copy_string_literal("\nlapic_id: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint32_t>,iter,st.lapic_id);
+		iter=copy_string_literal("\ntarget_stack: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,void const*>,iter,st.target_stack);
+		iter=copy_string_literal("\ngoto_address: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,void const*>,iter,st.goto_address);
+		iter=copy_string_literal("\nextra_argument: ",iter);
+	}
+	else if constexpr(std::same_as<char_type,wchar_t>)
+	{
+		iter=copy_string_literal(L"process_id: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint32_t>,iter,st.process_id);
+		iter=copy_string_literal(L"\nlapic_id: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint32_t>,iter,st.lapic_id);
+		iter=copy_string_literal(L"\ntarget_stack: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,void const*>,iter,st.target_stack);
+		iter=copy_string_literal(L"\ngoto_address: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,void const*>,iter,st.goto_address);
+		iter=copy_string_literal(L"\nextra_argument: ",iter);
+	}
+	else if constexpr(std::same_as<char_type,char16_t>)
+	{
+		iter=copy_string_literal(u"process_id: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint32_t>,iter,st.process_id);
+		iter=copy_string_literal(u"\nlapic_id: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint32_t>,iter,st.lapic_id);
+		iter=copy_string_literal(u"\ntarget_stack: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,void const*>,iter,st.target_stack);
+		iter=copy_string_literal(u"\ngoto_address: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,void const*>,iter,st.goto_address);
+		iter=copy_string_literal(u"\nextra_argument: ",iter);
+	}
+	else if constexpr(std::same_as<char_type,char32_t>)
+	{
+		iter=copy_string_literal(U"process_id: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint32_t>,iter,st.process_id);
+		iter=copy_string_literal(U"\nlapic_id: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint32_t>,iter,st.lapic_id);
+		iter=copy_string_literal(U"\ntarget_stack: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,void const*>,iter,st.target_stack);
+		iter=copy_string_literal(U"\ngoto_address: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,void const*>,iter,st.goto_address);
+		iter=copy_string_literal(U"\nextra_argument: ",iter);
+	}
+	else
+	{
+		iter=copy_string_literal(u8"process_id: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint32_t>,iter,st.process_id);
+		iter=copy_string_literal(u8"\nlapic_id: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint32_t>,iter,st.lapic_id);
+		iter=copy_string_literal(u8"\ntarget_stack: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,void const*>,iter,st.target_stack);
+		iter=copy_string_literal(u8"\ngoto_address: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,void const*>,iter,st.goto_address);
+		iter=copy_string_literal(u8"\nextra_argument: ",iter);
+	}
+	return print_reserve_define(io_reserve_type<char_type,void const*>,iter,st.extra_argument);
+}
+
+template<std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define_impl_for_stvl2_struct_tag_smp(Iter iter,stvl2::stvl2_struct_tag_smp st) noexcept
+{
+	using char_type = std::iter_value_t<Iter>;
+	iter=print_reserve_define_impl_for_stvl2_tag(iter,st);
+	if constexpr(std::same_as<char_type,char>)
+	{
+		iter=copy_string_literal("\nflags: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint64_t>,iter,st.flags);
+		iter=copy_string_literal("\nbsp_lapic_id: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint32_t>,iter,st.bsp_lapic_id);
+		iter=copy_string_literal("\nunused: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint32_t>,iter,st.unused);
+		iter=copy_string_literal("\ncpu_count: ",iter);
+	}
+	else if constexpr(std::same_as<char_type,wchar_t>)
+	{
+		iter=copy_string_literal(L"\nflags: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint64_t>,iter,st.flags);
+		iter=copy_string_literal(L"\nbsp_lapic_id: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint32_t>,iter,st.bsp_lapic_id);
+		iter=copy_string_literal(L"\nunused: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint32_t>,iter,st.unused);
+		iter=copy_string_literal(L"\ncpu_count: ",iter);
+	}
+	else if constexpr(std::same_as<char_type,char16_t>)
+	{
+		iter=copy_string_literal(u"\nflags: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint64_t>,iter,st.flags);
+		iter=copy_string_literal(u"\nbsp_lapic_id: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint32_t>,iter,st.bsp_lapic_id);
+		iter=copy_string_literal(u"\nunused: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint32_t>,iter,st.unused);
+		iter=copy_string_literal(u"\ncpu_count: ",iter);
+	}
+	else if constexpr(std::same_as<char_type,char32_t>)
+	{
+		iter=copy_string_literal(U"\nflags: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint64_t>,iter,st.flags);
+		iter=copy_string_literal(U"\nbsp_lapic_id: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint32_t>,iter,st.bsp_lapic_id);
+		iter=copy_string_literal(U"\nunused: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint32_t>,iter,st.unused);
+		iter=copy_string_literal(U"\ncpu_count: ",iter);
+	}
+	else
+	{
+		iter=copy_string_literal(u8"\nflags: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint64_t>,iter,st.flags);
+		iter=copy_string_literal(u8"\nbsp_lapic_id: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint32_t>,iter,st.bsp_lapic_id);
+		iter=copy_string_literal(u8"\nunused: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint32_t>,iter,st.unused);
+		iter=copy_string_literal(u8"\ncpu_count: ",iter);
+	}
+	return print_reserve_define(io_reserve_type<char_type,std::uint64_t>,iter,st.cpu_count);
+}
+
 }
 
 template<std::integral char_type>
@@ -904,21 +1200,136 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,stvl
 		return tag_size+details::string_literal_size(u8"\ncmdline: ");
 }
 
-template<std::integral char_type>
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,stvl2::stvl2_struct_tag_memmap>) noexcept
+template<std::integral char_type,typename T>
+requires (std::same_as<T,stvl2::stvl2_struct_tag_modules>||
+	std::same_as<T,stvl2::stvl2_struct_tag_memmap>||
+	std::same_as<T,stvl2::stvl2_struct_tag_rsdp>||
+	std::same_as<T,stvl2::stvl2_struct_tag_epoch>||
+	std::same_as<T,stvl2::stvl2_struct_tag_firmware>||
+	std::same_as<T,stvl2::stvl2_struct_tag_pxe_server_info>||
+	std::same_as<T,stvl2::stvl2_struct_tag_mmio32_uart>||
+	std::same_as<T,stvl2::stvl2_struct_vmap>||
+	std::same_as<T,stvl2::stvl2_struct_tag_dtb>)
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,T>) noexcept
 {
-	constexpr std::size_t tag_size{print_reserve_size(io_reserve_type<char_type,stvl2::stvl2_tag>)
-	+print_reserve_size(io_reserve_type<char_type,std::uint64_t>)};
-	if constexpr(std::same_as<char_type,char>)
-		return tag_size+details::string_literal_size("\nentries: ");
-	else if constexpr(std::same_as<char_type,wchar_t>)
-		return tag_size+details::string_literal_size(L"\nentries: ");
-	else if constexpr(std::same_as<char_type,char16_t>)
-		return tag_size+details::string_literal_size(u"\nentries: ");
-	else if constexpr(std::same_as<char_type,char32_t>)
-		return tag_size+details::string_literal_size(U"\nentries: ");
-	else
-		return tag_size+details::string_literal_size(u8"\nentries: ");
+	constexpr std::size_t tagbase_size{print_reserve_size(io_reserve_type<char_type,stvl2::stvl2_tag>)};
+	if constexpr(std::same_as<T,stvl2::stvl2_struct_tag_modules>)
+	{
+		constexpr std::size_t tag_size{tagbase_size+print_reserve_size(io_reserve_type<char_type,std::size_t>)};
+		if constexpr(std::same_as<char_type,char>)
+			return tag_size+details::string_literal_size("\nmodule_count: ");
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			return tag_size+details::string_literal_size(L"\nmodule_count: ");
+		else if constexpr(std::same_as<char_type,char16_t>)
+			return tag_size+details::string_literal_size(u"\nmodule_count: ");
+		else if constexpr(std::same_as<char_type,char32_t>)
+			return tag_size+details::string_literal_size(U"\nmodule_count: ");
+		else
+			return tag_size+details::string_literal_size(u8"\nmodule_count: ");
+	}
+	else if constexpr(std::same_as<T,stvl2::stvl2_struct_tag_memmap>||
+	std::same_as<T,stvl2::stvl2_struct_tag_rsdp>||
+	std::same_as<T,stvl2::stvl2_struct_tag_epoch>
+	)
+	{
+		constexpr std::size_t tag_size{tagbase_size+print_reserve_size(io_reserve_type<char_type,std::uint64_t>)};
+		if constexpr(std::same_as<T,stvl2::stvl2_struct_tag_memmap>)
+		{
+		if constexpr(std::same_as<char_type,char>)
+			return tag_size+details::string_literal_size("\nentries: ");
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			return tag_size+details::string_literal_size(L"\nentries: ");
+		else if constexpr(std::same_as<char_type,char16_t>)
+			return tag_size+details::string_literal_size(u"\nentries: ");
+		else if constexpr(std::same_as<char_type,char32_t>)
+			return tag_size+details::string_literal_size(U"\nentries: ");
+		else
+			return tag_size+details::string_literal_size(u8"\nentries: ");
+		}
+		else if constexpr(std::same_as<T,stvl2::stvl2_struct_tag_rsdp>)
+		{
+		if constexpr(std::same_as<char_type,char>)
+			return tag_size+details::string_literal_size("\nrdsp: ");
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			return tag_size+details::string_literal_size(L"\nrdsp: ");
+		else if constexpr(std::same_as<char_type,char16_t>)
+			return tag_size+details::string_literal_size(u"\nrdsp: ");
+		else if constexpr(std::same_as<char_type,char32_t>)
+			return tag_size+details::string_literal_size(U"\nrdsp: ");
+		else
+			return tag_size+details::string_literal_size(u8"\nrdsp: ");
+		}
+		else if constexpr(std::same_as<T,stvl2::stvl2_struct_tag_epoch>)
+		{
+		if constexpr(std::same_as<char_type,char>)
+			return tag_size+details::string_literal_size("\nepoch: ");
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			return tag_size+details::string_literal_size(L"\nepoch: ");
+		else if constexpr(std::same_as<char_type,char16_t>)
+			return tag_size+details::string_literal_size(u"\nepoch: ");
+		else if constexpr(std::same_as<char_type,char32_t>)
+			return tag_size+details::string_literal_size(U"\nepoch: ");
+		else
+			return tag_size+details::string_literal_size(u8"\nepoch: ");
+		}
+	}
+	else if constexpr(std::same_as<T,stvl2::stvl2_struct_tag_firmware>)
+	{
+		constexpr std::size_t tag_size{tagbase_size+print_reserve_size(io_reserve_type<char_type,stvl2::stvl2_firmware_flags>)};
+		if constexpr(std::same_as<char_type,char>)
+			return tag_size+details::string_literal_size("\ntag: ");
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			return tag_size+details::string_literal_size(L"\ntag: ");
+		else if constexpr(std::same_as<char_type,char16_t>)
+			return tag_size+details::string_literal_size(u"\ntag: ");
+		else if constexpr(std::same_as<char_type,char32_t>)
+			return tag_size+details::string_literal_size(U"\ntag: ");
+		else
+			return tag_size+details::string_literal_size(u8"\ntag: ");
+	}
+	else if constexpr(std::same_as<T,stvl2::stvl2_struct_tag_pxe_server_info>)
+	{
+		constexpr std::size_t tag_size{tagbase_size+print_reserve_size(io_reserve_type<char_type,std::uint32_t>)};
+		if constexpr(std::same_as<char_type,char>)
+			return tag_size+details::string_literal_size("\nserver_ip: ");
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			return tag_size+details::string_literal_size(L"\nserver_ip: ");
+		else if constexpr(std::same_as<char_type,char16_t>)
+			return tag_size+details::string_literal_size(u"\nserver_ip: ");
+		else if constexpr(std::same_as<char_type,char32_t>)
+			return tag_size+details::string_literal_size(U"\nserver_ip: ");
+		else
+			return tag_size+details::string_literal_size(u8"\nserver_ip: ");
+	}
+	else if constexpr(std::same_as<T,stvl2::stvl2_struct_tag_mmio32_uart>||
+	std::same_as<T,stvl2::stvl2_struct_vmap>)
+	{
+		constexpr std::size_t tag_size{tagbase_size+print_reserve_size(io_reserve_type<char_type,void const*>)};
+		if constexpr(std::same_as<char_type,char>)
+			return tag_size+details::string_literal_size("\naddr: ");
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			return tag_size+details::string_literal_size(L"\naddr: ");
+		else if constexpr(std::same_as<char_type,char16_t>)
+			return tag_size+details::string_literal_size(u"\naddr: ");
+		else if constexpr(std::same_as<char_type,char32_t>)
+			return tag_size+details::string_literal_size(U"\naddr: ");
+		else
+			return tag_size+details::string_literal_size(u8"\naddr: ");
+	}
+	else if constexpr(std::same_as<T,stvl2::stvl2_struct_tag_dtb>)
+	{
+		constexpr std::size_t tag_size{tagbase_size+print_reserve_size(io_reserve_type<char_type,std::size_t>)};
+		if constexpr(std::same_as<char_type,char>)
+			return tag_size+details::string_literal_size("\naddr: \nsize: ");
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			return tag_size+details::string_literal_size(L"\naddr: \nsize: ");
+		else if constexpr(std::same_as<char_type,char16_t>)
+			return tag_size+details::string_literal_size(u"\naddr: \nsize: ");
+		else if constexpr(std::same_as<char_type,char32_t>)
+			return tag_size+details::string_literal_size(U"\naddr: \nsize: ");
+		else
+			return tag_size+details::string_literal_size(u8"\naddr: \nsize: ");
+	}
 }
 
 template<std::integral char_type>
@@ -957,6 +1368,63 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,stvl
 		return tag_size+details::string_literal_size(U"module_begin: \nmodule_end: \nmodule_string: ");
 	else
 		return tag_size+details::string_literal_size(u8"module_begin: \nmodule_end: \nmodule_string: ");
+}
+
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,stvl2::stvl2_mmap_entry>) noexcept
+{
+	constexpr std::size_t tag_size{
+	print_reserve_size(io_reserve_type<char_type,std::size_t>)
+	+print_reserve_size(io_reserve_type<char_type,void const*>)
+	+print_reserve_size(io_reserve_type<char_type,stvl2::stvl2_mmap_type>)
+	+print_reserve_size(io_reserve_type<char_type,std::uint32_t>)};
+	if constexpr(std::same_as<char_type,char>)
+		return tag_size+details::string_literal_size("base: \nlength: \ntype: \nunused: ");
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		return tag_size+details::string_literal_size(L"base: \nlength: \ntype: \nunused: ");
+	else if constexpr(std::same_as<char_type,char16_t>)
+		return tag_size+details::string_literal_size(u"base: \nlength: \ntype: \nunused: ");
+	else if constexpr(std::same_as<char_type,char32_t>)
+		return tag_size+details::string_literal_size(U"base: \nlength: \ntype: \nunused: ");
+	else
+		return tag_size+details::string_literal_size(u8"base: \nlength: \ntype: \nunused: ");
+}
+
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,stvl2::stvl2_smp_info>) noexcept
+{
+	constexpr std::size_t tag_size{
+	print_reserve_size(io_reserve_type<char_type,void const*>)*3
+	+print_reserve_size(io_reserve_type<char_type,std::uint32_t>)*2};
+	if constexpr(std::same_as<char_type,char>)
+		return tag_size+details::string_literal_size("process_id: \nlapic_id: \ntarget_stack: \ngoto_address: \nextra_argument: ");
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		return tag_size+details::string_literal_size(L"process_id: \nlapic_id: \ntarget_stack: \ngoto_address: \nextra_argument: ");
+	else if constexpr(std::same_as<char_type,char16_t>)
+		return tag_size+details::string_literal_size(u"process_id: \nlapic_id: \ntarget_stack: \ngoto_address: \nextra_argument: ");
+	else if constexpr(std::same_as<char_type,char32_t>)
+		return tag_size+details::string_literal_size(U"process_id: \nlapic_id: \ntarget_stack: \ngoto_address: \nextra_argument: ");
+	else
+		return tag_size+details::string_literal_size(u8"process_id: \nlapic_id: \ntarget_stack: \ngoto_address: \nextra_argument: ");
+}
+
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,stvl2::stvl2_struct_tag_smp>) noexcept
+{
+	constexpr std::size_t tag_size{
+	print_reserve_size(io_reserve_type<char_type,stvl2::stvl2_tag>)
+	+print_reserve_size(io_reserve_type<char_type,std::uint32_t>)*2
+	+print_reserve_size(io_reserve_type<char_type,std::uint64_t>)*2};
+	if constexpr(std::same_as<char_type,char>)
+		return tag_size+details::string_literal_size("\nflags: \nbsp_lapic_id: \nunused: \ncpu_count: ");
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		return tag_size+details::string_literal_size(L"\nflags: \nbsp_lapic_id: \nunused: \ncpu_count: ");
+	else if constexpr(std::same_as<char_type,char16_t>)
+		return tag_size+details::string_literal_size(u"\nflags: \nbsp_lapic_id: \nunused: \ncpu_count: ");
+	else if constexpr(std::same_as<char_type,char32_t>)
+		return tag_size+details::string_literal_size(U"\nflags: \nbsp_lapic_id: \nunused: \ncpu_count: ");
+	else
+		return tag_size+details::string_literal_size(u8"\nflags: \nbsp_lapic_id: \nunused: \ncpu_count: ");
 }
 
 template<std::random_access_iterator Iter>
@@ -1014,10 +1482,19 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<I
 }
 static_assert(reserve_printable<char8_t,stvl2::stvl2_struct_tag_cmdline>);
 
-template<std::random_access_iterator Iter>
-inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,stvl2::stvl2_struct_tag_memmap>,Iter iter,stvl2::stvl2_struct_tag_memmap hd) noexcept
+template<std::random_access_iterator Iter,typename T>
+requires (std::same_as<T,stvl2::stvl2_struct_tag_modules>||
+	std::same_as<T,stvl2::stvl2_struct_tag_memmap>||
+	std::same_as<T,stvl2::stvl2_struct_tag_rsdp>||
+	std::same_as<T,stvl2::stvl2_struct_tag_epoch>||
+	std::same_as<T,stvl2::stvl2_struct_tag_firmware>||
+	std::same_as<T,stvl2::stvl2_struct_tag_pxe_server_info>||
+	std::same_as<T,stvl2::stvl2_struct_tag_mmio32_uart>||
+	std::same_as<T,stvl2::stvl2_struct_vmap>||
+	std::same_as<T,stvl2::stvl2_struct_tag_dtb>)
+inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,T>,Iter iter,T hd) noexcept
 {
-	return details::print_reserve_define_impl_for_stvl2_struct_tag_memmap(iter,hd);
+	return details::print_reserve_define_impl_for_stvl2_struct_tag_single(iter,hd);
 }
 static_assert(reserve_printable<char8_t,stvl2::stvl2_struct_tag_memmap>);
 
@@ -1048,5 +1525,26 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<I
 	return details::print_reserve_define_impl_for_stvl2_module(iter,hd);
 }
 static_assert(reserve_printable<char8_t,stvl2::stvl2_module>);
+static_assert(reserve_printable<char8_t,stvl2::stvl2_struct_tag_dtb>);
 
+template<std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,stvl2::stvl2_mmap_entry>,Iter iter,stvl2::stvl2_mmap_entry hd) noexcept
+{
+	return details::print_reserve_define_impl_for_stvl2_mmap_entry(iter,hd);
+}
+static_assert(reserve_printable<char8_t,stvl2::stvl2_mmap_entry>);
+
+template<std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,stvl2::stvl2_smp_info>,Iter iter,stvl2::stvl2_smp_info hd) noexcept
+{
+	return details::print_reserve_define_impl_for_stvl2_smp_info(iter,hd);
+}
+static_assert(reserve_printable<char8_t,stvl2::stvl2_smp_info>);
+
+template<std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,stvl2::stvl2_struct_tag_smp>,Iter iter,stvl2::stvl2_struct_tag_smp hd) noexcept
+{
+	return details::print_reserve_define_impl_for_stvl2_struct_tag_smp(iter,hd);
+}
+static_assert(reserve_printable<char8_t,stvl2::stvl2_struct_tag_smp>);
 }

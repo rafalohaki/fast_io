@@ -151,6 +151,7 @@ struct [[gnu::packed]] stvl2_module
 
 struct [[gnu::packed]] stvl2_struct_tag_modules:stvl2_tag
 {
+	[[no_unique_address]] stvl2_pointer_padding module_count_padding;
 	std::size_t module_count;
 	[[no_unique_address]] stvl2_module modules[];
 };
