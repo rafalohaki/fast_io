@@ -234,6 +234,25 @@ inline constexpr Iter print_reserve_define_impl_for_stvl2_header_tag_framebuffer
 	return print_reserve_define(io_reserve_type<char_type,std::uint16_t>,iter,tg.framebuffer_bpp);
 }
 
+template<std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define_impl_for_stvl2_header_tag_smp(Iter iter,stvl2::stvl2_header_tag_smp tg) noexcept
+{
+	using char_type = std::iter_value_t<Iter>;
+	iter=print_reserve_define_impl_for_stvl2_tag(iter,tg);
+	if constexpr(std::same_as<char_type,char>)
+		iter=copy_string_literal("\nflags: ",iter);
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		iter=copy_string_literal(L"\nflags: ",iter);
+	else if constexpr(std::same_as<char_type,char16_t>)
+		iter=copy_string_literal(u"\nflags: ",iter);
+	else if constexpr(std::same_as<char_type,char32_t>)
+		iter=copy_string_literal(U"\nflags: ",iter);
+	else
+		iter=copy_string_literal(u8"\nflags: ",iter);
+	return print_reserve_define(io_reserve_type<char_type,std::uint64_t>,iter,tg.flags);
+}
+
+
 }
 
 template<std::integral char_type>
@@ -287,6 +306,22 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,stvl
 		return tag_size+details::string_literal_size(u8"\nframebuffer_width: \nframebuffer_height: \nframebuffer_bpp: ");
 }
 
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,stvl2::stvl2_header_tag_smp>) noexcept
+{
+	constexpr std::size_t tag_size
+	{
+		print_reserve_size(io_reserve_type<char_type,stvl2::stvl2_tag>)+
+		print_reserve_size(io_reserve_type<char_type,std::uint64_t>)
+	};
+	if constexpr(std::same_as<char_type,char>)
+		return tag_size+details::string_literal_size("\nflags: ");
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		return tag_size+details::string_literal_size(L"\nflags: ");
+	else
+		return tag_size+details::string_literal_size(u8"\nflags: ");
+}
+
 template<std::random_access_iterator Iter>
 inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,stvl2::stvl2_tag>,Iter iter,stvl2::stvl2_tag tg) noexcept
 {
@@ -313,4 +348,12 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<I
 	return details::print_reserve_define_impl_for_stvl2_header_tag_framebuffer(iter,hd);
 }
 static_assert(reserve_printable<char8_t,stvl2::stvl2_header_tag_framebuffer>);
+
+template<std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,stvl2::stvl2_header_tag_smp>,Iter iter,stvl2::stvl2_header_tag_smp hd) noexcept
+{
+	return details::print_reserve_define_impl_for_stvl2_header_tag_smp(iter,hd);
+}
+static_assert(reserve_printable<char8_t,stvl2::stvl2_header_tag_smp>);
+
 }
