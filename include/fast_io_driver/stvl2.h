@@ -186,6 +186,54 @@ inline constexpr Iter print_reserve_define_impl_for_stvl2_header(Iter iter,stvl2
 	}
 }
 
+template<std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define_impl_for_stvl2_header_tag_framebuffer(Iter iter,stvl2::stvl2_header_tag_framebuffer tg) noexcept
+{
+	using char_type = std::iter_value_t<Iter>;
+	iter=print_reserve_define_impl_for_stvl2_tag(iter,tg);
+	if constexpr(std::same_as<char_type,char>)
+	{
+		iter=copy_string_literal("\nframebuffer_width: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint16_t>,iter,tg.framebuffer_width);
+		iter=copy_string_literal("\nframebuffer_height: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint16_t>,iter,tg.framebuffer_height);
+		iter=copy_string_literal("\nframebuffer_bpp: ",iter);
+	}
+	else if constexpr(std::same_as<char_type,wchar_t>)
+	{
+		iter=copy_string_literal(L"\nframebuffer_width: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint16_t>,iter,tg.framebuffer_width);
+		iter=copy_string_literal(L"\nframebuffer_height: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint16_t>,iter,tg.framebuffer_height);
+		iter=copy_string_literal(L"\nframebuffer_bpp: ",iter);
+	}
+	else if constexpr(std::same_as<char_type,char16_t>)
+	{
+		iter=copy_string_literal(u"\nframebuffer_width: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint16_t>,iter,tg.framebuffer_width);
+		iter=copy_string_literal(u"\nframebuffer_height: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint16_t>,iter,tg.framebuffer_height);
+		iter=copy_string_literal(u"\nframebuffer_bpp: ",iter);
+	}
+	else if constexpr(std::same_as<char_type,char32_t>)
+	{
+		iter=copy_string_literal(U"\nframebuffer_width: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint16_t>,iter,tg.framebuffer_width);
+		iter=copy_string_literal(U"\nframebuffer_height: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint16_t>,iter,tg.framebuffer_height);
+		iter=copy_string_literal(U"\nframebuffer_bpp: ",iter);
+	}
+	else
+	{
+		iter=copy_string_literal(u8"\nframebuffer_width: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint16_t>,iter,tg.framebuffer_width);
+		iter=copy_string_literal(u8"\nframebuffer_height: ",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint16_t>,iter,tg.framebuffer_height);
+		iter=copy_string_literal(u8"\nframebuffer_bpp: ",iter);
+	}
+	return print_reserve_define(io_reserve_type<char_type,std::uint16_t>,iter,tg.framebuffer_bpp);
+}
+
 }
 
 template<std::integral char_type>
@@ -213,14 +261,30 @@ template<std::integral char_type>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,stvl2::stvl2_header>) noexcept
 {
 	constexpr std::size_t tag_size{print_reserve_size(io_reserve_type<char_type,stvl2::stvl2_header_tag>)
-	+print_resrve_size(io_reserve_type<char_type,void const*>)*2
-	+print_resrve_size(io_reserve_type<char_type,std::uint64_t>)};
+	+print_reserve_size(io_reserve_type<char_type,void const*>)*2
+	+print_reserve_size(io_reserve_type<char_type,std::uint64_t>)};
 	if constexpr(std::same_as<char_type,char>)
 		return tag_size+details::string_literal_size("entry_point: \nstack: \nflags: \ntags: ");
 	else if constexpr(std::same_as<char_type,wchar_t>)
 		return tag_size+details::string_literal_size(L"entry_point: \nstack: \nflags: \ntags: ");
 	else
 		return tag_size+details::string_literal_size(u8"entry_point: \nstack: \nflags: \ntags: ");
+}
+
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,stvl2::stvl2_header_tag_framebuffer>) noexcept
+{
+	constexpr std::size_t tag_size
+	{
+		print_reserve_size(io_reserve_type<char_type,stvl2::stvl2_tag>)+
+		print_reserve_size(io_reserve_type<char_type,std::uint16_t>)*3
+	};
+	if constexpr(std::same_as<char_type,char>)
+		return tag_size+details::string_literal_size("\nframebuffer_width: \nframebuffer_height: \nframebuffer_bpp: ");
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		return tag_size+details::string_literal_size(L"\nframebuffer_width: \nframebuffer_height: \nframebuffer_bpp: ");
+	else
+		return tag_size+details::string_literal_size(u8"\nframebuffer_width: \nframebuffer_height: \nframebuffer_bpp: ");
 }
 
 template<std::random_access_iterator Iter>
@@ -243,4 +307,10 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<I
 
 static_assert(reserve_printable<char8_t,stvl2::stvl2_header>);
 
+template<std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,stvl2::stvl2_header_tag_framebuffer>,Iter iter,stvl2::stvl2_header_tag_framebuffer hd) noexcept
+{
+	return details::print_reserve_define_impl_for_stvl2_header_tag_framebuffer(iter,hd);
+}
+static_assert(reserve_printable<char8_t,stvl2::stvl2_header_tag_framebuffer>);
 }

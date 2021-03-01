@@ -80,7 +80,7 @@ struct [[gnu::packed]] stvl2_header
 	stvl2_header_tag tags;
 };
 
-struct [[gnu::packed]] stvl2_header_tag_framebuffer:stvl2_tag
+struct [[gnu::packed]] stvl2_header_tag_framebuffer : stvl2_tag
 {
 	std::uint16_t framebuffer_width;
 	std::uint16_t framebuffer_height;
