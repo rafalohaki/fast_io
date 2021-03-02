@@ -1,4 +1,6 @@
 #pragma once
+#include"output_normal.h"
+#include"output_deco.h"
 
 namespace fast_io
 {
@@ -6,89 +8,15 @@ namespace fast_io
 namespace details
 {
 
-template<typename char_type,typename Iter>
-concept allow_iobuf_punning = std::contiguous_iterator<Iter>&&
-//temporary only allow contiguous_iterator before we finish this part
-(std::same_as<char_type,std::iter_value_t<Iter>>||
-(std::same_as<char_type,char>&&std::contiguous_iterator<Iter>));
-
-template<std::integral char_type,std::random_access_iterator Iter>
-inline constexpr void iobuf_write_unhappy_nullptr_case_impl(basic_io_buffer_pointers<char_type>& obuffer,Iter first,Iter last,std::size_t buffer_size)
-{
-	obuffer.buffer_end=(obuffer.buffer_curr=obuffer.buffer_begin=
-	allocate_iobuf_space<char_type>(buffer_size))+buffer_size;
-	obuffer.buffer_curr=non_overlapped_copy(first,last,obuffer.buffer_curr);
-}
-
-template<bool nsecure,typename T,typename decot,std::integral char_type,std::random_access_iterator Iter>
-inline constexpr void iobuf_write_unhappy_decay_no_alloc_impl_deco(T t,decot deco,basic_io_buffer_pointers<char_type>& pointers,Iter first,Iter last,std::size_t buffer_size)
-{
-	std::size_t const remain_space(pointers.buffer_end-pointers.buffer_curr);
-	non_overlapped_copy_n(first,remain_space,pointers.buffer_curr);
-	first+=remain_space;
-	write_with_deco<nsecure>(t,deco,pointers.buffer_begin,pointers.buffer_end,buffer_size);
-	pointers.buffer_curr=pointers.buffer_begin;
-	std::size_t const new_remain_space(last-first);
-	if(buffer_size<new_remain_space)
-		write_with_deco<nsecure>(t,deco,first,last,buffer_size);
-	else
-		pointers.buffer_curr=non_overlapped_copy_n(first,new_remain_space,pointers.buffer_begin);
-
-}
-
-template<typename T,std::integral char_type,std::random_access_iterator Iter>
-inline constexpr void iobuf_write_unhappy_decay_no_alloc_impl(T t,basic_io_buffer_pointers<char_type>& pointers,Iter first,Iter last,std::size_t buffer_size)
-{
-	std::size_t const remain_space(pointers.buffer_end-pointers.buffer_curr);
-	non_overlapped_copy_n(first,remain_space,pointers.buffer_curr);
-	first+=remain_space;
-	write(t,pointers.buffer_begin,pointers.buffer_end);
-	pointers.buffer_curr=pointers.buffer_begin;
-	std::size_t const new_remain_space(last-first);
-	if(buffer_size<new_remain_space)
-	{
-		write(t,first,last);
-	}
-	else
-		pointers.buffer_curr=non_overlapped_copy_n(first,new_remain_space,pointers.buffer_begin);
-}
-
-template<std::size_t buffer_size,typename T,std::integral char_type,std::random_access_iterator Iter>
-inline constexpr void iobuf_write_unhappy_decay_impl(T t,basic_io_buffer_pointers<char_type>& pointers,Iter first,Iter last)
-{
-	std::size_t const diff(static_cast<std::size_t>(last-first));
-	if(pointers.buffer_begin==nullptr)
-	{
-		if(diff<buffer_size)
-			iobuf_write_unhappy_nullptr_case_impl(pointers,first,last,buffer_size);
-		else
-			write(t,first,last);
-		return;
-	}
-	iobuf_write_unhappy_decay_no_alloc_impl(t,pointers,first,last,buffer_size);
-}
-
-template<bool nsecure,std::size_t buffer_size,typename T,typename decot,std::integral char_type,std::random_access_iterator Iter>
-inline constexpr void iobuf_write_unhappy_decay_impl_deco(T t,decot deco,basic_io_buffer_pointers<char_type>& pointers,Iter first,Iter last)
-{
-	std::size_t const diff(static_cast<std::size_t>(last-first));
-	if(pointers.buffer_begin==nullptr)
-	{
-		if(diff<buffer_size)
-			iobuf_write_unhappy_nullptr_case_impl(pointers,first,last,buffer_size);
-		else
-			write_with_deco<nsecure>(t,deco,first,last,buffer_size);
-		return;
-	}
-	iobuf_write_unhappy_decay_no_alloc_impl_deco<nsecure>(t,deco,pointers,first,last,buffer_size);
-}
-
-
 template<typename T,std::random_access_iterator Iter>
 inline constexpr void iobuf_write_unhappy_impl(T& t,Iter first,Iter last)
 {
 	if constexpr(has_external_decorator_impl<typename T::decorators_type>)
-		iobuf_write_unhappy_decay_impl_deco<T::need_secure_clear,T::buffer_size>(io_ref(t.handle),external_decorator(t.decorators),t.obuffer,first,last);
+		iobuf_write_unhappy_decay_impl_deco<T::buffer_size>(io_ref(t.handle),
+		external_decorator(t.decorators),
+		t.obuffer,
+		t.obuffer_external,
+		first,last);
 	else
 		iobuf_write_unhappy_decay_impl<T::buffer_size>(io_ref(t.handle),t.obuffer,first,last);
 }
@@ -170,61 +98,6 @@ inline constexpr void obuffer_set_curr(basic_io_buffer<handletype,mde,decorators
 	bios.obuffer.buffer_curr=ptr;
 }
 
-namespace details
-{
-
-template<typename T,std::integral char_type>
-inline constexpr void iobuf_output_flush_impl(T handle,basic_io_buffer_pointers<char_type>& pointers)
-{
-	if(pointers.buffer_curr==pointers.buffer_begin)
-		return;
-	write(handle,pointers.buffer_begin,pointers.buffer_curr);
-	pointers.buffer_curr=pointers.buffer_begin;
-}
-
-template<typename T,std::integral char_type>
-inline constexpr void iobuf_overflow_impl(T handle,basic_io_buffer_pointers<char_type>& pointers,char_type ch,std::size_t bfsz)
-{
-	if(pointers.buffer_begin==nullptr)
-	{
-		pointers.buffer_end=(pointers.buffer_curr=pointers.buffer_begin=
-		allocate_iobuf_space<char_type>(bfsz))+bfsz;
-	}
-	else
-	{
-		iobuf_output_flush_impl(handle,pointers);
-	}
-	*pointers.buffer_curr=ch;
-	++pointers.buffer_curr;
-}
-
-template<bool nsecure,typename T,typename decot,std::integral char_type>
-inline constexpr void iobuf_output_flush_impl_deco(T handle,decot deco,basic_io_buffer_pointers<char_type>& pointers,std::size_t bfsz)
-{
-	if(pointers.buffer_curr==pointers.buffer_begin)
-		return;
-	write_with_deco<nsecure>(handle,deco,pointers.buffer_begin,pointers.buffer_curr,bfsz);
-	pointers.buffer_curr=pointers.buffer_begin;
-}
-
-template<bool nsecure,typename T,typename decot,std::integral char_type>
-inline constexpr void iobuf_overflow_impl_deco(T handle,decot deco,basic_io_buffer_pointers<char_type>& pointers,char_type ch,std::size_t bfsz)
-{
-	if(pointers.buffer_begin==nullptr)
-	{
-		pointers.buffer_end=(pointers.buffer_curr=pointers.buffer_begin=
-		allocate_iobuf_space<char_type>(bfsz))+bfsz;
-	}
-	else
-	{
-		iobuf_output_flush_impl_deco<nsecure>(handle,deco,pointers,bfsz);
-	}
-	*pointers.buffer_curr=ch;
-	++pointers.buffer_curr;
-}
-
-}
-
 template<stream handletype,
 buffer_mode mde,
 typename decorators,
@@ -234,7 +107,7 @@ inline constexpr auto overflow(basic_io_buffer<handletype,mde,decorators,bfs>& b
 	typename basic_io_buffer<handletype,mde,decorators,bfs>::char_type ch)
 {
 	if constexpr(details::has_external_decorator_impl<decorators>)
-		details::iobuf_overflow_impl_deco<basic_io_buffer<handletype,mde,decorators,bfs>::need_secure_clear>(io_ref(bios.handle),external_decorator(bios.decorators),bios.obuffer,ch,bfs);
+		details::iobuf_overflow_impl_deco(io_ref(bios.handle),external_decorator(bios.decorators),bios.obuffer,bios.obuffer_external,ch,bfs);
 	else
 		details::iobuf_overflow_impl(io_ref(bios.handle),bios.obuffer,ch,bfs);
 }

@@ -36,23 +36,26 @@ inline constexpr auto external_decorator(basic_decorators<char_type,internaltype
 namespace details
 {
 
-template<bool nsecure_clear,typename T,typename decot,std::random_access_iterator Iter>
-inline constexpr void write_with_deco(T t,decot deco,Iter first,Iter last,std::size_t buffer_size)
+template<typename T,typename decot,std::random_access_iterator Iter>
+inline constexpr void write_with_deco(T t,decot deco,Iter first,Iter last,
+	basic_io_buffer_pointers_no_curr<typename T::char_type>& external_buffer,
+	std::size_t buffer_size)
 {
-	using char_type = typename T::char_type;
+	using external_char_type = typename T::char_type;
 	using decot_no_cvref_t = std::remove_cvref_t<decot>;
-	std::size_t internal_size{buffer_size};
-	std::size_t diff{static_cast<std::size_t>(last-first)};
-	if(diff<internal_size)
-		internal_size=diff;
-	buffer_alloc_arr_ptr<char_type,nsecure_clear> alloc_ptr{deco_reserve_size(io_reserve_type<char_type,decot_no_cvref_t>,deco,internal_size)};
-	for(;first!=last;)
+	if(external_buffer.buffer_begin==nullptr)
 	{
-		std::size_t this_round{internal_size};
-		diff=static_cast<std::size_t>(last-first);
+		std::size_t size{deco_reserve_size(io_reserve_type<external_char_type,decot_no_cvref_t>,deco,buffer_size)};
+		external_buffer.buffer_begin=allocate_iobuf_space<external_char_type>(size);
+		external_buffer.buffer_end=external_buffer.buffer_begin+size;
+	}
+	for(auto buffer_begin{external_buffer.buffer_begin};first!=last;)
+	{
+		std::size_t this_round{buffer_size};
+		std::size_t diff{static_cast<std::size_t>(last-first)};
 		if(diff<this_round)
 			this_round=diff;
-		write(t,alloc_ptr.ptr,deco_reserve_define(io_reserve_type<char_type,decot_no_cvref_t>,deco,first,first+this_round,alloc_ptr.ptr));
+		write(t,buffer_begin,deco_reserve_define(io_reserve_type<external_char_type,decot_no_cvref_t>,deco,first,first+this_round,buffer_begin));
 		first+=this_round;
 	}
 }
@@ -83,6 +86,7 @@ public:
 	using handle_type = handletype;
 	using decorators_type = decoratorstypr;
 	using char_type = typename decorators_type::internal_type;
+	using external_char_type = typename handle_type::char_type;
 	using pointer = char_type*;
 	using const_pointer = char_type const*;
 	inline static constexpr buffer_mode mode = mde;
@@ -94,11 +98,26 @@ public:
 	std::conditional_t<(mode&buffer_mode::in)==buffer_mode::in,
 	std::conditional_t<details::has_internal_decorator_impl<decorators_type>,basic_io_buffer_pointers_with_cap<char_type>,basic_io_buffer_pointers<char_type>>,
 	empty_buffer_pointers> ibuffer;
-
 #if __has_cpp_attribute(no_unique_address) >= 201803L
 	[[no_unique_address]]
 #endif
 	std::conditional_t<(mode&buffer_mode::out)==buffer_mode::out,basic_io_buffer_pointers<char_type>,empty_buffer_pointers> obuffer;
+
+#if __has_cpp_attribute(no_unique_address) >= 201803L
+	[[no_unique_address]]
+#endif
+	std::conditional_t<(mode&buffer_mode::in)==buffer_mode::in&&details::has_internal_decorator_impl<decorators_type>,
+	basic_io_buffer_pointers_only_begin<char_type>,
+	empty_buffer_pointers> ibuffer_external;
+
+#if __has_cpp_attribute(no_unique_address) >= 201803L
+	[[no_unique_address]]
+#endif
+	std::conditional_t<(
+	(mode&buffer_mode::out)==buffer_mode::out&&
+	details::has_external_decorator_impl<decorators_type>),
+	basic_io_buffer_pointers_no_curr<external_char_type>,
+	empty_buffer_pointers> obuffer_external;
 
 #if __has_cpp_attribute(no_unique_address) >= 201803L
 	[[no_unique_address]]
@@ -115,7 +134,10 @@ private:
 		{
 			if constexpr(details::has_external_decorator_impl<decorators_type>)
 			{
-				details::write_with_deco<need_secure_clear>(io_ref(handle),external_decorator(decorators),obuffer.buffer_begin,obuffer.buffer_curr,bfs);
+				details::write_with_deco(io_ref(handle),
+				external_decorator(decorators),
+				obuffer.buffer_begin,obuffer.buffer_curr,
+				obuffer_external,bfs);
 			}
 			else
 			{
@@ -143,9 +165,19 @@ private:
 	constexpr void cleanup_impl() noexcept
 	{
 		if constexpr((mode&buffer_mode::out)==buffer_mode::out)
+		{
 			if(obuffer.buffer_begin)
 				details::deallocate_iobuf_space<need_secure_clear,char_type>(obuffer.buffer_begin,buffer_size);
+			if constexpr(details::has_external_decorator_impl<decorators_type>)
+			{
+				if(obuffer_external.buffer_begin)
+					details::deallocate_iobuf_space<need_secure_clear,external_char_type>(
+						obuffer_external.buffer_begin,
+						obuffer_external.buffer_end-obuffer_external.buffer_begin);
+			}
+		}
 		if constexpr((mode&buffer_mode::in)==buffer_mode::in)
+		{
 			if(ibuffer.buffer_begin)
 			{
 				if constexpr(details::has_internal_decorator_impl<decorators_type>)
@@ -158,6 +190,14 @@ private:
 					details::deallocate_iobuf_space<need_secure_clear,char_type>(ibuffer.buffer_begin,buffer_size);
 				}
 			}
+			if constexpr(details::has_internal_decorator_impl<decorators_type>)
+			{
+				if(ibuffer_external.buffer_begin)
+					details::deallocate_iobuf_space<need_secure_clear,external_char_type>(
+						ibuffer_external.buffer_begin,
+						buffer_size);
+			}
+		}
 	}
 public:
 
@@ -210,10 +250,14 @@ public:
 		handle.close();
 	}
 	constexpr basic_io_buffer(basic_io_buffer&& other) noexcept requires(std::movable<handle_type>):
-		ibuffer(other.ibuffer),obuffer(other.obuffer),handle(std::move(other.handle)),decorators(std::move(other.decorators))
+		ibuffer(other.ibuffer),obuffer(other.obuffer),
+		ibuffer_external(other.ibuffer_external),obuffer_external(other.obuffer_external),
+		handle(std::move(other.handle)),decorators(std::move(other.decorators))
 	{
 		other.ibuffer={};
 		other.obuffer={};
+		other.ibuffer_external={};
+		other.obuffer_external={};
 	}
 	constexpr basic_io_buffer(basic_io_buffer&&) noexcept=delete;
 #if __cpp_constexpr_dynamic_alloc >= 201907L
@@ -225,7 +269,13 @@ public:
 			return *this;
 		cleanup_impl();
 		ibuffer=other.ibuffer;
+		other.ibuffer={};
 		obuffer=other.obuffer;
+		other.obuffer={};
+		ibuffer_external=other.ibuffer_external;
+		other.ibuffer_external={};
+		obuffer_external=other.obuffer_external;
+		other.obuffer_external={};
 		handle=std::move(other.handle);
 		decorators=std::move(other.decorators);
 		return *this;
@@ -235,6 +285,8 @@ public:
 	{
 		std::ranges::swap(ibuffer,other.ibuffer);
 		std::ranges::swap(obuffer,other.obuffer);
+		std::ranges::swap(ibuffer_external,other.ibuffer_external);
+		std::ranges::swap(obuffer_external,other.obuffer_external);
 		std::ranges::swap(handle,other.handle);
 		std::ranges::swap(decorators,other.decorators);
 	}

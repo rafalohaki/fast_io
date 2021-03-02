@@ -10,7 +10,8 @@ out=1<<1,
 tie=1<<2,
 io=in|out|tie,
 secure_clear=1<<3,
-construct_decorator=1<<4
+construct_decorator=1<<4,
+deco_out_no_internal=(1<<5)|(out)
 };
 
 inline constexpr buffer_mode operator&(buffer_mode x, buffer_mode y) noexcept
@@ -64,6 +65,22 @@ struct basic_io_buffer_pointers_with_cap
 	using value_type = T;
 	using pointer = T*;
 	pointer buffer_begin{},buffer_curr{},buffer_end{},buffer_cap{};
+};
+
+template<typename T>
+struct basic_io_buffer_pointers_only_begin
+{
+	using value_type = T;
+	using pointer = T*;
+	pointer buffer_begin{};
+};
+
+template<typename T>
+struct basic_io_buffer_pointers_no_curr
+{
+	using value_type = T;
+	using pointer = T*;
+	pointer buffer_begin{},buffer_end{};
 };
 
 namespace details

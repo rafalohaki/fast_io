@@ -212,7 +212,9 @@ template<std::integral internal_char_type>
 using basic_igb18030_file = std::conditional_t<std::same_as<char,internal_char_type>
 &&execution_charset_encoding_scheme<char>()==encoding_scheme::gb18030,
 basic_ibuf<basic_inative_file<char>>,
-basic_icode_cvt_file<internal_char_type,char,encoding_scheme::gb18030>>;
+basic_icode_cvt_file<internal_char_type,char,
+encoding_scheme::execution_charset,
+encoding_scheme::gb18030>>;
 using igb18030_file = basic_igb18030_file<char>;
 using wigb18030_file = basic_igb18030_file<wchar_t>;
 using u8igb18030_file = basic_igb18030_file<char8_t>;
