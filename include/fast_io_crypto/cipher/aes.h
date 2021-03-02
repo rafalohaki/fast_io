@@ -73,7 +73,33 @@ struct aes
 		}
 		else if constexpr(keysize==24)
 		{
-			/*To do*/
+			__m128i temp[2]{};
+			key_schedule[0] = _mm_loadu_si128(reinterpret_cast<__m128i const*>(key)); // load 16 bytes
+			key_schedule[1] = _mm_loadu_si128(reinterpret_cast<__m128i const*>(key + 8)); // load 8 bytes
+			key_schedule[1] = _mm_srli_si128(key_schedule[1], 8); // right shift 64 bits
+			temp[0] = detail::aes_192_key_exp(key_schedule[0], key_schedule[1], 0x01);
+			temp[1] = detail::aes_192_key_exp_2(temp[0], key_schedule[1]);
+			key_schedule[1] = reinterpret_cast<__m128i>(_mm_shuffle_pd(reinterpret_cast<__m128d>(key_schedule[1]), reinterpret_cast<__m128d>(temp[0]), 0));
+			key_schedule[2] = reinterpret_cast<__m128i>(_mm_shuffle_pd(reinterpret_cast<__m128d>(temp[0]), reinterpret_cast<__m128d>(temp[1]), 1));
+			key_schedule[3] = detail::aes_192_key_exp(temp[0], temp[1], 0x02);
+			key_schedule[4] = detail::aes_192_key_exp_2(key_schedule[3], temp[1]);
+			temp[0] = detail::aes_192_key_exp(key_schedule[3], key_schedule[4], 0x04);
+			temp[1] = detail::aes_192_key_exp_2(temp[0], key_schedule[4]);
+			key_schedule[4] = reinterpret_cast<__m128i>(_mm_shuffle_pd(reinterpret_cast<__m128d>(key_schedule[4]), reinterpret_cast<__m128d>(temp[0]), 0));
+			key_schedule[5] = reinterpret_cast<__m128i>(_mm_shuffle_pd(reinterpret_cast<__m128d>(temp[0]), reinterpret_cast<__m128d>(temp[1]), 1));
+			key_schedule[6] = detail::aes_192_key_exp(temp[0], temp[1], 0x08);
+			key_schedule[7] = detail::aes_192_key_exp_2(key_schedule[6], temp[1]);
+			temp[0] = detail::aes_192_key_exp(key_schedule[6], key_schedule[7], 0x10);
+			temp[1] = detail::aes_192_key_exp_2(temp[0], key_schedule[7]);
+			key_schedule[7] = reinterpret_cast<__m128i>(_mm_shuffle_pd(reinterpret_cast<__m128d>(key_schedule[7]), reinterpret_cast<__m128d>(temp[0]), 0));
+			key_schedule[8] = reinterpret_cast<__m128i>(_mm_shuffle_pd(reinterpret_cast<__m128d>(temp[0]), reinterpret_cast<__m128d>(temp[1]), 1));
+			key_schedule[9] = detail::aes_192_key_exp(temp[0], temp[1], 0x20);
+			key_schedule[10] = detail::aes_192_key_exp_2(key_schedule[9], temp[1]);
+			temp[0] = detail::aes_192_key_exp(key_schedule[9], key_schedule[10], 0x40);
+			temp[1] = detail::aes_192_key_exp_2(temp[0], key_schedule[10]);
+			key_schedule[10] = reinterpret_cast<__m128i>(_mm_shuffle_pd(reinterpret_cast<__m128d>(key_schedule[10]), reinterpret_cast<__m128d>(temp[0]), 0));
+			key_schedule[11] = reinterpret_cast<__m128i>(_mm_shuffle_pd(reinterpret_cast<__m128d>(temp[0]),reinterpret_cast<__m128d>(temp[1]), 1));
+			key_schedule[12] = detail::aes_192_key_exp(temp[0], temp[1], 0x80);
 		}
 		else
 		{
