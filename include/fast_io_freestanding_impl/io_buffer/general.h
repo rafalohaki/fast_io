@@ -9,7 +9,7 @@ inline constexpr void flush(basic_io_buffer<handletype,mde,decorators_type,bfs>&
 	if constexpr((mde&buffer_mode::out)==buffer_mode::out)
 	{
 		if constexpr(details::has_external_decorator_impl<decorators_type>)
-			details::iobuf_output_flush_impl_deco(io_ref(bios.handle),io_deco_ref(external_decorator(bios.decorators)),bios.obuffer);
+			details::iobuf_output_flush_impl_deco(io_ref(bios.handle),external_decorator(bios.decorators),bios.obuffer);
 		else
 			details::iobuf_output_flush_impl(io_ref(bios.handle),bios.obuffer);
 	}

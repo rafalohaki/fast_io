@@ -21,16 +21,16 @@ struct basic_decorators
 
 template<std::integral char_type,typename internaltype,typename externaltype>
 requires (!std::same_as<internaltype,empty_decorator>)
-inline constexpr internaltype& internal_decorator(basic_decorators<char_type,internaltype,externaltype>& decos) noexcept
+inline constexpr auto internal_decorator(basic_decorators<char_type,internaltype,externaltype>& decos) noexcept
 {
-	return decos.internal_decorator;
+	return io_deco_ref(decos.internal_decorator);
 }
 
 template<std::integral char_type,typename internaltype,typename externaltype>
 requires (!std::same_as<externaltype,empty_decorator>)
-inline constexpr externaltype& external_decorator(basic_decorators<char_type,internaltype,externaltype>& decos) noexcept
+inline constexpr auto external_decorator(basic_decorators<char_type,internaltype,externaltype>& decos) noexcept
 {
-	return decos.external_decorator;
+	return io_deco_ref(decos.external_decorator);
 }
 
 namespace details
@@ -132,7 +132,7 @@ private:
 		{
 			if constexpr(details::has_external_decorator_impl<decorators_type>)
 			{
-				details::write_with_deco(io_ref(handle),io_deco_ref(external_decorator(decorators)),obuffer.buffer_begin,obuffer.buffer_curr,bfs);
+				details::write_with_deco(io_ref(handle),external_decorator(decorators),obuffer.buffer_begin,obuffer.buffer_curr,bfs);
 			}
 			else
 			{
