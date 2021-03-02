@@ -87,52 +87,6 @@ bool constraint_buffer_mode(buffer_mode mode) noexcept
 	return true;
 }
 
-
-template<typename char_type>
-inline constexpr char_type* allocate_iobuf_space(std::size_t buffer_size) noexcept
-{
-#if __cpp_constexpr >=201907L && __cpp_constexpr_dynamic_alloc >= 201907L && __cpp_lib_is_constant_evaluated >=201811L
-	if(std::is_constant_evaluated())
-	{
-		return new char_type[buffer_size];
-	}
-	else
-#endif
-	{
-#if __cpp_exceptions
-	try
-	{
-#endif
-		return static_cast<char_type*>(operator new(intrinsics::cal_allocation_size_or_die<char_type>(buffer_size)));
-#if __cpp_exceptions
-	}
-	catch(...)
-	{
-		fast_terminate();
-	}
-#endif
-	}
-}
-
-template<typename char_type>
-inline constexpr void deallocate_iobuf_space(char_type* ptr,[[maybe_unused]] std::size_t buffer_size) noexcept
-{
-#if __cpp_constexpr >=201907L && __cpp_constexpr_dynamic_alloc >= 201907L && __cpp_lib_is_constant_evaluated >=201811L
-	if(std::is_constant_evaluated())
-	{
-		delete[] ptr;
-	}
-	else
-#endif
-	{
-#if __cpp_sized_deallocation >= 201309L
-		operator delete(ptr,buffer_size*sizeof(char_type));
-#else
-		operator delete(ptr);
-#endif
-	}
-}
-
 }
 
 }

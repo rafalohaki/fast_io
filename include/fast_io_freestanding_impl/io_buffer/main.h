@@ -36,24 +36,7 @@ inline constexpr auto external_decorator(basic_decorators<char_type,internaltype
 namespace details
 {
 
-template<typename T>
-struct buffer_alloc_arr_ptr
-{
-	T* ptr{};
-	std::size_t size{};
-	constexpr buffer_alloc_arr_ptr() noexcept = default;
-	constexpr buffer_alloc_arr_ptr(std::size_t sz) noexcept:ptr(allocate_iobuf_space<T>(sz)),size(sz){}
-
-	buffer_alloc_arr_ptr(buffer_alloc_arr_ptr const&)=delete;
-	buffer_alloc_arr_ptr& operator=(buffer_alloc_arr_ptr const&)=delete;
-
-	constexpr ~buffer_alloc_arr_ptr()
-	{
-		deallocate_iobuf_space<T>(ptr,size);
-	}
-};
-
-template<typename T,typename decot,std::random_access_iterator Iter>
+template<bool nsecure_clear,typename T,typename decot,std::random_access_iterator Iter>
 inline constexpr void write_with_deco(T t,decot deco,Iter first,Iter last,std::size_t buffer_size)
 {
 	using char_type = typename T::char_type;
@@ -62,8 +45,7 @@ inline constexpr void write_with_deco(T t,decot deco,Iter first,Iter last,std::s
 	std::size_t diff{static_cast<std::size_t>(last-first)};
 	if(diff<internal_size)
 		internal_size=diff;
-
-	buffer_alloc_arr_ptr<char_type> alloc_ptr{deco_reserve_size(io_reserve_type<char_type,decot_no_cvref_t>,deco,internal_size)};
+	buffer_alloc_arr_ptr<char_type,nsecure_clear> alloc_ptr{deco_reserve_size(io_reserve_type<char_type,decot_no_cvref_t>,deco,internal_size)};
 	for(;first!=last;)
 	{
 		std::size_t this_round{internal_size};
@@ -105,6 +87,7 @@ public:
 	using const_pointer = char_type const*;
 	inline static constexpr buffer_mode mode = mde;
 	inline static constexpr std::size_t buffer_size = bfs;
+	inline static constexpr bool need_secure_clear = (mode&buffer_mode::secure_clear)==buffer_mode::secure_clear;
 #if __has_cpp_attribute(no_unique_address) >= 201803L
 	[[no_unique_address]]
 #endif
@@ -132,7 +115,7 @@ private:
 		{
 			if constexpr(details::has_external_decorator_impl<decorators_type>)
 			{
-				details::write_with_deco(io_ref(handle),external_decorator(decorators),obuffer.buffer_begin,obuffer.buffer_curr,bfs);
+				details::write_with_deco<need_secure_clear>(io_ref(handle),external_decorator(decorators),obuffer.buffer_begin,obuffer.buffer_curr,bfs);
 			}
 			else
 			{
@@ -161,41 +144,18 @@ private:
 	{
 		if constexpr((mode&buffer_mode::out)==buffer_mode::out)
 			if(obuffer.buffer_begin)
-			{
-				if constexpr((mode&buffer_mode::secure_clear)==buffer_mode::secure_clear)
-				{
-#if __cpp_lib_is_constant_evaluated >=201811L
-					if(!std::is_constant_evaluated())
-#endif
-						secure_clear(obuffer.buffer_begin,sizeof(char_type)*buffer_size);
-				}
-				details::deallocate_iobuf_space<char_type>(obuffer.buffer_begin,buffer_size);
-			}
+				details::deallocate_iobuf_space<need_secure_clear,char_type>(obuffer.buffer_begin,buffer_size);
 		if constexpr((mode&buffer_mode::in)==buffer_mode::in)
 			if(ibuffer.buffer_begin)
 			{
 				if constexpr(details::has_internal_decorator_impl<decorators_type>)
 				{
 					std::size_t real_buffer_cap{static_cast<std::size_t>(ibuffer.buffer_cap-ibuffer.buffer_begin)};
-					if constexpr((mode&buffer_mode::secure_clear)==buffer_mode::secure_clear)
-					{
-#if __cpp_lib_is_constant_evaluated >=201811L
-						if(!std::is_constant_evaluated())
-#endif
-							secure_clear(ibuffer.buffer_begin,real_buffer_cap);
-					}
-					details::deallocate_iobuf_space<char_type>(ibuffer.buffer_begin,real_buffer_cap);
+					details::deallocate_iobuf_space<need_secure_clear,char_type>(ibuffer.buffer_begin,real_buffer_cap);
 				}
 				else
 				{
-					if constexpr((mode&buffer_mode::secure_clear)==buffer_mode::secure_clear)
-					{
-#if __cpp_lib_is_constant_evaluated >=201811L
-						if(!std::is_constant_evaluated())
-#endif
-							secure_clear(ibuffer.buffer_begin,sizeof(char_type)*buffer_size);
-					}
-					details::deallocate_iobuf_space<char_type>(ibuffer.buffer_begin,buffer_size);
+					details::deallocate_iobuf_space<need_secure_clear,char_type>(ibuffer.buffer_begin,buffer_size);
 				}
 			}
 	}

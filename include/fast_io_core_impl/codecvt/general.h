@@ -276,7 +276,7 @@ inline constexpr dest_char_type* general_code_cvt(state_type& __restrict__ state
 	}
 	else if constexpr(encoding==encoding_scheme::execution_charset)
 	{
-		return general_code_cvt<encoding,
+		return general_code_cvt<src_encoding,
 			get_execution_charset_encoding_scheme<dest_char_type>(encoding)>(state,src_first,src_last,dst);
 	}
 	else if constexpr(sizeof(src_char_type)==4)
@@ -324,7 +324,7 @@ inline constexpr dest_char_type* general_code_cvt(state_type& __restrict__ state
 					dst+=get_general_invalid_code_units<encoding>(dst);
 			}
 		}
-		auto [new_src,new_dst]=general_code_cvt(src_first,src_last,dst);
+		auto [new_src,new_dst]=general_code_cvt<src_encoding,encoding>(src_first,src_last,dst);
 		if((state.state=(new_src!=src_last)))
 			state.value=*new_src;
 		return new_dst;
@@ -393,7 +393,8 @@ inline constexpr dest_char_type* general_code_cvt(state_type& __restrict__ state
 		non_overlapped_copy_n(new_src,diff,state.bytes);
 		return new_dst;
 	}
-	return dst;
+	else
+		return dst;
 }
 
 template<

@@ -214,9 +214,9 @@ inline constexpr struct timespec unix_timestamp_to_struct_timespec64(unix_timest
 	switch(opt.flags)
 	{
 	case utime_flags::now:
-		return {.tv_nsec=UTIME_NOW};
+		return {.tv_sec=0,.tv_nsec=UTIME_NOW};
 	case utime_flags::omit:
-		return {.tv_nsec=UTIME_OMIT};
+		return {.tv_sec=0,.tv_nsec=UTIME_OMIT};
 	default:
 		return unix_timestamp_to_struct_timespec64(opt.timestamp);
 	}
@@ -232,7 +232,6 @@ int flags)
 {
 	if(creation_time.flags!=utime_flags::omit)
 		throw_posix_error(EINVAL);
-	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000000u};
 	struct timespec ts[2]{
 		details::unix_timestamp_to_struct_timespec64(last_access_time),
 		details::unix_timestamp_to_struct_timespec64(last_modification_time),

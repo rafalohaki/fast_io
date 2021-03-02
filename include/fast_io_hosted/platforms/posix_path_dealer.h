@@ -16,7 +16,7 @@ struct posix_path_dealer
 	posix_path_dealer(from_char_type const* p,std::size_t sz) noexcept:
 		capacity(::fast_io::details::intrinsics::add_or_overflow_die(
 			::fast_io::details::cal_decorated_reserve_size<sizeof(from_char_type),sizeof(char_type)>(sz),1)),
-		buffer_data(local_operator_new_array_allocate<char_type>(capacity))
+		buffer_data(allocate_iobuf_space<char_type>(capacity))
 	{
 #if __cpp_lib_is_constant_evaluated >=201811L
 		if(std::is_constant_evaluated())
@@ -47,7 +47,7 @@ struct posix_path_dealer
 #endif
 	~posix_path_dealer()
 	{
-		local_operator_new_array_deallocate(buffer_data,capacity);
+		deallocate_iobuf_space<false>(buffer_data,capacity);
 	}
 };
 

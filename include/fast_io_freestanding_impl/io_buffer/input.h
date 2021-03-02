@@ -67,12 +67,12 @@ inline constexpr bool underflow(basic_io_buffer<handletype,mde,decoratorstype,bf
 	((mde&buffer_mode::tie)==buffer_mode::tie))
 	{
 		if constexpr(details::has_external_decorator_impl<decoratorstype>)
-			details::iobuf_output_flush_impl_deco(io_ref(bios.handle),external_decorator(bios.decorators),bios.obuffer,bfs);
+			details::iobuf_output_flush_impl_deco<basic_io_buffer<handletype,mde,decoratorstype,bfs>::need_secure_clear>(io_ref(bios.handle),external_decorator(bios.decorators),bios.obuffer,bfs);
 		else
 			details::iobuf_output_flush_impl(io_ref(bios.handle),bios.obuffer);
 	}
 	if constexpr(details::has_internal_decorator_impl<decoratorstype>)
-		return details::underflow_impl_deco<bfs>(io_ref(bios.handle),internal_decorator(bios.decorators),bios.ibuffer);
+		return details::underflow_impl_deco<basic_io_buffer<handletype,mde,decoratorstype,bfs>::need_secure_clear,bfs>(io_ref(bios.handle),internal_decorator(bios.decorators),bios.ibuffer);
 	else
 		return details::underflow_impl<bfs>(io_ref(bios.handle),bios.ibuffer);
 }
@@ -87,14 +87,14 @@ inline constexpr Iter iobuf_read_unhappy_impl(T& bios,Iter first,Iter last)
 	if constexpr(((T::mode&buffer_mode::out)==buffer_mode::out)&&((T::mode&buffer_mode::tie)==buffer_mode::tie))
 	{
 		if constexpr(details::has_external_decorator_impl<typename T::decorators_type>)
-			iobuf_output_flush_impl_deco(io_ref(bios.handle),external_decorator(bios.decorators),bios.obuffer,T::buffer_size);
+			iobuf_output_flush_impl_deco<T::need_secure_clear>(io_ref(bios.handle),external_decorator(bios.decorators),bios.obuffer,T::buffer_size);
 		else
 			iobuf_output_flush_impl(io_ref(bios.handle),bios.obuffer);
 	}
 	first=non_overlapped_copy(bios.ibuffer.buffer_curr,bios.ibuffer.buffer_end,first);
 	bios.ibuffer.buffer_curr=bios.ibuffer.buffer_end;
 	if constexpr(details::has_internal_decorator_impl<typename T::decorators_type>)
-		return iobuf_read_unhappy_decay_impl_deco(io_ref(bios.handle),internal_decorator(bios.decorators),bios.ibuffer,first,last,T::buffer_size);
+		return iobuf_read_unhappy_decay_impl_deco<T::need_secure_clear>(io_ref(bios.handle),internal_decorator(bios.decorators),bios.ibuffer,first,last,T::buffer_size);
 	else
 		return iobuf_read_unhappy_decay_impl(io_ref(bios.handle),bios.ibuffer,first,last,T::buffer_size);
 }
