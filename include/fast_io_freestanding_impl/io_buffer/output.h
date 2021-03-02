@@ -38,14 +38,24 @@ inline constexpr void write(basic_io_buffer<handletype,mde,decorators,bfs>& bios
 			write(bios,std::to_address(first),std::to_address(last));
 		else
 		{
-			std::size_t diff(static_cast<std::size_t>(last-first));
-			std::size_t remain_space(bios.obuffer.buffer_end-bios.obuffer.buffer_curr);
-			if(remain_space<diff)[[unlikely]]
+			if constexpr((mde&buffer_mode::deco_out_no_internal)==buffer_mode::deco_out_no_internal)
 			{
-				details::iobuf_write_unhappy_impl(bios,first,last);
-				return;
+				details::write_with_deco(io_ref(bios.handle),
+					external_decorator(bios.decorators),
+					first,last,
+					bios.obuffer_external,bfs);
 			}
-			bios.obuffer.buffer_curr=details::non_overlapped_copy_n(first,diff,bios.obuffer.buffer_curr);
+			else
+			{
+				std::size_t diff(static_cast<std::size_t>(last-first));
+				std::size_t remain_space(bios.obuffer.buffer_end-bios.obuffer.buffer_curr);
+				if(remain_space<diff)[[unlikely]]
+				{
+					details::iobuf_write_unhappy_impl(bios,first,last);
+					return;
+				}
+				bios.obuffer.buffer_curr=details::non_overlapped_copy_n(first,diff,bios.obuffer.buffer_curr);
+			}
 		}
 /*
 To do : forward_iterator. Support std::forward_list, std::list, std::set and std::unordered_set
@@ -61,7 +71,8 @@ template<stream handletype,
 buffer_mode mde,
 typename decorators,
 std::size_t bfs>
-requires ((mde&buffer_mode::out)==buffer_mode::out)
+requires ((mde&buffer_mode::out)==buffer_mode::out&&
+(mde&buffer_mode::deco_out_no_internal)!=buffer_mode::deco_out_no_internal)
 inline constexpr auto obuffer_begin(basic_io_buffer<handletype,mde,decorators,bfs>& bios) noexcept
 {
 	return bios.obuffer.buffer_begin;
@@ -72,7 +83,8 @@ template<stream handletype,
 buffer_mode mde,
 typename decorators,
 std::size_t bfs>
-requires ((mde&buffer_mode::out)==buffer_mode::out)
+requires ((mde&buffer_mode::out)==buffer_mode::out&&
+(mde&buffer_mode::deco_out_no_internal)!=buffer_mode::deco_out_no_internal)
 inline constexpr auto obuffer_curr(basic_io_buffer<handletype,mde,decorators,bfs>& bios) noexcept
 {
 	return bios.obuffer.buffer_curr;
@@ -92,7 +104,8 @@ template<stream handletype,
 buffer_mode mde,
 typename decorators,
 std::size_t bfs>
-requires ((mde&buffer_mode::out)==buffer_mode::out)
+requires ((mde&buffer_mode::out)==buffer_mode::out&&
+(mde&buffer_mode::deco_out_no_internal)!=buffer_mode::deco_out_no_internal)
 inline constexpr void obuffer_set_curr(basic_io_buffer<handletype,mde,decorators,bfs>& bios,typename basic_io_buffer<handletype,mde,decorators,bfs>::char_type* ptr) noexcept
 {
 	bios.obuffer.buffer_curr=ptr;
@@ -102,7 +115,8 @@ template<stream handletype,
 buffer_mode mde,
 typename decorators,
 std::size_t bfs>
-requires ((mde&buffer_mode::out)==buffer_mode::out)
+requires ((mde&buffer_mode::out)==buffer_mode::out&&
+(mde&buffer_mode::deco_out_no_internal)!=buffer_mode::deco_out_no_internal)
 inline constexpr auto overflow(basic_io_buffer<handletype,mde,decorators,bfs>& bios,
 	typename basic_io_buffer<handletype,mde,decorators,bfs>::char_type ch)
 {

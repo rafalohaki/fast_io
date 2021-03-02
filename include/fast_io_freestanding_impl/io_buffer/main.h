@@ -101,7 +101,9 @@ public:
 #if __has_cpp_attribute(no_unique_address) >= 201803L
 	[[no_unique_address]]
 #endif
-	std::conditional_t<(mode&buffer_mode::out)==buffer_mode::out,basic_io_buffer_pointers<char_type>,empty_buffer_pointers> obuffer;
+	std::conditional_t<(mode&buffer_mode::out)==buffer_mode::out&&
+		(mode&buffer_mode::deco_out_no_internal)!=buffer_mode::deco_out_no_internal,
+		basic_io_buffer_pointers<char_type>,empty_buffer_pointers> obuffer;
 
 #if __has_cpp_attribute(no_unique_address) >= 201803L
 	[[no_unique_address]]
@@ -130,6 +132,9 @@ public:
 private:
 	constexpr void close_throw_impl()
 	{
+		if constexpr((mode&buffer_mode::out)==buffer_mode::out&&
+			(mode&buffer_mode::deco_out_no_internal)!=buffer_mode::deco_out_no_internal)
+		{
 		if(obuffer.buffer_begin!=obuffer.buffer_curr)
 		{
 			if constexpr(details::has_external_decorator_impl<decorators_type>)
@@ -143,6 +148,7 @@ private:
 			{
 				write(io_ref(handle),obuffer.buffer_begin,obuffer.buffer_curr);
 			}
+		}
 		}
 	}
 	constexpr void close_impl() noexcept
@@ -166,8 +172,11 @@ private:
 	{
 		if constexpr((mode&buffer_mode::out)==buffer_mode::out)
 		{
+			if constexpr((mode&buffer_mode::deco_out_no_internal)!=buffer_mode::deco_out_no_internal)
+			{
 			if(obuffer.buffer_begin)
 				details::deallocate_iobuf_space<need_secure_clear,char_type>(obuffer.buffer_begin,buffer_size);
+			}
 			if constexpr(details::has_external_decorator_impl<decorators_type>)
 			{
 				if(obuffer_external.buffer_begin)
@@ -219,7 +228,8 @@ public:
 		close_throw_impl();
 		if constexpr((mode&buffer_mode::in)==buffer_mode::in)
 			ibuffer.buffer_curr=ibuffer.buffer_end;
-		if constexpr((mode&buffer_mode::out)==buffer_mode::out)
+		if constexpr((mode&buffer_mode::out)==buffer_mode::out&&
+			(mode&buffer_mode::deco_out_no_internal)!=buffer_mode::deco_out_no_internal)
 			obuffer.buffer_curr=obuffer.buffer_begin;
 		handle=other.handle;
 		decorators=other.decorators;
@@ -245,7 +255,8 @@ public:
 		close_throw_impl();
 		if constexpr((mode&buffer_mode::in)==buffer_mode::in)
 			ibuffer.buffer_curr=ibuffer.buffer_end;
-		if constexpr((mode&buffer_mode::out)==buffer_mode::out)
+		if constexpr((mode&buffer_mode::out)==buffer_mode::out&&
+			(mode&buffer_mode::deco_out_no_internal)!=buffer_mode::deco_out_no_internal)
 			obuffer.buffer_curr=obuffer.buffer_begin;
 		handle.close();
 	}
