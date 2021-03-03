@@ -22,6 +22,7 @@ struct cxa_demangle
 				errn=ENOMEM;
 			throw_posix_error(errn);
 		}
+		length=strlen(buffer);
 	}
 	cxa_demangle(cxa_demangle const& other) noexcept:
 		buffer(reinterpret_cast<char*>(malloc(other.length+1))),
