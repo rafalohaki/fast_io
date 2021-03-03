@@ -48,7 +48,7 @@ public:
 		memcpy(nonce_block.data()+(cipher_type::block_size-8),std::addressof(counter),8);
 	}
 };
-
+/*
 template<buffer_output_stream T, typename Enc, std::size_t sz = 4096>
 using octr_little_endian = otransform<T, block_processor<block_cipher<ctr<Enc,false>>>, typename T::char_type, sz>;
 
@@ -60,5 +60,5 @@ using octr_big_endian = otransform<T, block_processor<block_cipher<ctr<Enc,true>
 
 template<buffer_input_stream T, typename Enc, std::size_t sz = 4096>
 using ictr_big_endian = itransform<T, block_processor<block_cipher<ctr<Enc,true>>>, typename T::char_type, sz>;
-
+*/
 }
