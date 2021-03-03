@@ -91,6 +91,7 @@ generate a ``std::string`` with multiple different type args:
    }
 
 generate a ``std::string`` ending with newline character:
+
 .. code-block:: c++
 
    #include<fast_io.h>
@@ -121,6 +122,7 @@ generate a ``std::string`` ending with newline character:
    }
 
 perform with single character and ``char const*``:
+
 .. code-block:: c++
 
    #include<fast_io.h>
@@ -147,6 +149,7 @@ generate ``std::wstring``:
    }
 
 perform the same action of ``concat()`` with functions: ``print()`` 
+
 .. code-block:: c++
 
    #include<fast_io.h>
