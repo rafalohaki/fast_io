@@ -18,7 +18,7 @@ class posix_dl_error:public std::exception
 public:
 };
 
-inline basic_io_scatter_t<char> print_alias_define(io_alias_t,posix_dl_error const &e)
+inline basic_io_scatter_t<char> print_alias_define(io_alias_t,posix_dl_error const &)
 {
 	auto const c_str{dlerror()};
 	return {c_str,strlen(c_str)};

@@ -330,7 +330,7 @@ concept my_unsigned_integral = my_integral<T>&&!my_signed_integral<T>;
 
 template<std::integral char_type,std::size_t n>
 requires(n!=0)
-inline constexpr std::size_t string_literal_size(char_type const(&s)[n])
+inline constexpr std::size_t string_literal_size(char_type const(&)[n])
 {
 	return n-1;
 }
