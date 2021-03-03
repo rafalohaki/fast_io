@@ -45,7 +45,7 @@ inline constexpr void lc_unsafe_fprint_freestanding_decay_impl(basic_lc_all<type
 			write(out,beg_ptr,end_ptr);
 		},[&]()
 		{
-			((details::decay::lc_print_control(lc,out,args)),...);
+			((decay::lc_print_control(lc,out,args)),...);
 		},fprint_args_num_para<fprint_args_num_para_enum::one>{});
 	}
 	else
@@ -70,7 +70,7 @@ inline constexpr void lc_unsafe_fprint_fallback(basic_lc_all<typename output::ch
 	using char_type = typename output::char_type;
 	if constexpr((((!lc_dynamic_reserve_printable<char_type,Args>&&
 	!lc_printable<io_reference_wrapper<
-		internal_temporary_buffer<char_type>>,Args>&&!lc_scatter_printable<char_type,Args>))&&...))
+		dynamic_io_buffer<char_type>>,Args>&&!lc_scatter_printable<char_type,Args>))&&...))
 	{
 		unsafe_fprint_freestanding_decay(out,view,args...);
 	}
@@ -98,7 +98,7 @@ inline constexpr void lc_unsafe_fprint_fallback(basic_lc_all<typename output::ch
 	}
 	else
 	{
-		internal_temporary_buffer<typename output::char_type> buffer;
+		dynamic_io_buffer<typename output::char_type> buffer;
 		auto ref{io_ref(buffer)};
 		lc_unsafe_fprint_freestanding_decay_impl(lc,ref,view,args...);
 		write(out,buffer.beg_ptr,buffer.end_ptr);

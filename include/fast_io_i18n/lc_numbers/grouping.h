@@ -31,7 +31,7 @@ inline constexpr std::size_t grouping_char_lens(::fast_io::basic_io_scatter_t<st
 	return digits+i;
 }
 
-template<std::random_access_iterator Iter,details::my_unsigned_integral T>
+template<std::random_access_iterator Iter,my_unsigned_integral T>
 constexpr Iter grouping_single_sep_impl(fast_io::basic_io_scatter_t<std::size_t> grouping,std::iter_value_t<Iter> sep,Iter iter,T t) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
@@ -93,7 +93,7 @@ constexpr Iter grouping_single_sep_impl(fast_io::basic_io_scatter_t<std::size_t>
 	}
 }
 
-template<std::random_access_iterator Iter,details::my_unsigned_integral T>
+template<std::random_access_iterator Iter,my_unsigned_integral T>
 constexpr Iter grouping_mul_sep_impl(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,T t) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
@@ -119,13 +119,13 @@ constexpr Iter grouping_mul_sep_impl(basic_lc_all<std::iter_value_t<Iter>> const
 	return iter;
 }
 
-template<std::random_access_iterator Iter,details::my_unsigned_integral T>
+template<std::random_access_iterator Iter,my_unsigned_integral T>
 constexpr Iter grouping_sep_impl(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,T t) noexcept
 {
 	if(all->numeric.thousands_sep.len==1)
 	{
 		auto sep{*all->numeric.thousands_sep.base};
-		std::size_t digits{details::chars_len<10>(t)};
+		std::size_t digits{chars_len<10>(t)};
 		auto grouping{all->numeric.grouping};
 		std::size_t const len{grouping_char_lens(grouping,digits)};
 		grouping_single_sep_impl(grouping,sep,iter+len,t);
@@ -135,12 +135,12 @@ constexpr Iter grouping_sep_impl(basic_lc_all<std::iter_value_t<Iter>> const* __
 		return grouping_mul_sep_impl(all,iter,t);
 }
 
-template<std::random_access_iterator Iter,details::my_integral T>
+template<std::random_access_iterator Iter,my_integral T>
 constexpr Iter print_lc_grouping_unhappy_path_impl(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,T t) noexcept
 {
 	using int_type = T;
 	using char_type = std::iter_value_t<Iter>;
-	using unsigned_type = details::my_make_unsigned_t<std::remove_cvref_t<int_type>>;
+	using unsigned_type = my_make_unsigned_t<std::remove_cvref_t<int_type>>;
 	if constexpr(my_signed_integral<int_type>)
 	{
 		unsigned_type abs_value(t);
@@ -276,11 +276,11 @@ constexpr Iter output_unsigned_with_3_seperator(std::iter_value_t<Iter> seperato
 	return result;
 }
 
-template<std::random_access_iterator Iter,details::my_integral int_type>
+template<std::random_access_iterator Iter,my_integral int_type>
 inline constexpr Iter print_lc_grouping_3_path_impl(std::iter_value_t<Iter> seperator,Iter iter,int_type t) noexcept
 {
 	using char_type = std::iter_value_t<Iter>;
-	using unsigned_type = details::my_make_unsigned_t<std::remove_cvref_t<int_type>>;
+	using unsigned_type = my_make_unsigned_t<std::remove_cvref_t<int_type>>;
 	if constexpr(my_signed_integral<int_type>)
 	{
 		unsigned_type abs_value(t);

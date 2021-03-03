@@ -101,7 +101,7 @@ public:
 	typename io_async_overlapped_t<stm>::type overlapped;
 	std::size_t transferred_bytes{};
 	int err{};
-	internal_temporary_buffer<typename stm::char_type> buffer;
+	dynamic_io_buffer<typename stm::char_type> buffer;
 	template<typename ...Args>
 	async_print_coroutine(typename io_async_scheduler_t<stm>::type& sh,std::ptrdiff_t off,stm& s,Args&& ...args):scheduler(sh),stream(s)
 	{

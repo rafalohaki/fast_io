@@ -43,42 +43,42 @@ inline constexpr Iter print_reserve_define_lc_measurement_impl(Iter iter,basic_l
 	using char_type = std::iter_value_t<Iter>;
 	if constexpr(std::same_as<char_type,char>)
 	{
-		iter=details::copy_string_literal("LC_MEASUREMENT\n"
+		iter=copy_string_literal("LC_MEASUREMENT\n"
 			"measurement\t",iter);
 		iter=print_reserve_define(io_reserve_type<char_type,uintiso_t>,iter,measurement.measurement);
-		return details::copy_string_literal("\n"
+		return copy_string_literal("\n"
 			"END LC_MEASUREMENT",iter);
 	}
 	else if constexpr(std::same_as<char_type,wchar_t>)
 	{
-		iter=details::copy_string_literal(L"LC_MEASUREMENT\n"
+		iter=copy_string_literal(L"LC_MEASUREMENT\n"
 			L"measurement\t",iter);
 		iter=print_reserve_define(io_reserve_type<char_type,uintiso_t>,iter,measurement.measurement);
-		return details::copy_string_literal(L"\n"
+		return copy_string_literal(L"\n"
 			L"END LC_MEASUREMENT",iter);
 	}
 	else if constexpr(std::same_as<char_type,char16_t>)
 	{
-		iter=details::copy_string_literal(u"LC_MEASUREMENT\n"
+		iter=copy_string_literal(u"LC_MEASUREMENT\n"
 			u"measurement\t",iter);
 		iter=print_reserve_define(io_reserve_type<char_type,uintiso_t>,iter,measurement.measurement);
-		return details::copy_string_literal(u"\n"
+		return copy_string_literal(u"\n"
 			u"END LC_MEASUREMENT",iter);
 	}
 	else if constexpr(std::same_as<char_type,char32_t>)
 	{
-		iter=details::copy_string_literal(U"LC_MEASUREMENT\n"
+		iter=copy_string_literal(U"LC_MEASUREMENT\n"
 			U"measurement\t",iter);
 		iter=print_reserve_define(io_reserve_type<char_type,uintiso_t>,iter,measurement.measurement);
-		return details::copy_string_literal(U"\n"
+		return copy_string_literal(U"\n"
 			U"END LC_MEASUREMENT",iter);
 	}
 	else
 	{
-		iter=details::copy_string_literal(u8"LC_MEASUREMENT\n"
+		iter=copy_string_literal(u8"LC_MEASUREMENT\n"
 			u8"measurement\t",iter);
 		iter=print_reserve_define(io_reserve_type<char_type,uintiso_t>,iter,measurement.measurement);
-		return details::copy_string_literal(u8"\n"
+		return copy_string_literal(u8"\n"
 			u8"END LC_MEASUREMENT",iter);
 	}
 }

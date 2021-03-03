@@ -30,7 +30,7 @@ struct scan_iterator
 #if __has_cpp_attribute(no_unique_address)
 [[no_unique_address]]
 #endif
-	std::conditional_t<contiguous_input_stream<input>,details::empty,internal_temporary_buffer<typename input::char_type>> buffer;
+	std::conditional_t<contiguous_input_stream<input>,details::empty,dynamic_io_buffer<typename input::char_type>> buffer;
 private:
 	constexpr void scan_iterator_transmit_impl(char_type const* bg,char_type const* ed)
 	{

@@ -58,7 +58,7 @@ inline constexpr bool ocan_takeover(ostring_ref<char_type,traits_type,allocator_
 }
 
 template<std::integral char_type,typename traits_type,typename allocator_type>
-inline constexpr void ogrow(ostring_ref<char_type,traits_type,allocator_type> ob,std::size_t newsz)
+inline constexpr void oreserve(ostring_ref<char_type,traits_type,allocator_type> ob,std::size_t newsz)
 {
 	ob.reference.reserve(newsz);
 }
@@ -67,6 +67,12 @@ template<std::integral char_type,typename traits_type,typename allocator_type>
 inline constexpr void overflow(ostring_ref<char_type,traits_type,allocator_type> ob,char_type ch)
 {
 	ob.reference.push_back(ch);
+}
+
+template<std::integral char_type,typename traits_type,typename allocator_type>
+inline constexpr void oshrink_to_fit(ostring_ref<char_type,traits_type,allocator_type> ob)
+{
+	ob.reference.shrink_to_fit();
 }
 
 template<std::integral char_type,typename traits_type,typename allocator_type,std::contiguous_iterator Iter>

@@ -144,7 +144,7 @@ inline constexpr auto exec_encoding_dll_array() noexcept
 	{
 		if constexpr('A'!=u8'A')
 			return std::to_array(u".IBM12712.so");
-		else if constexpr(details::compile_time_compare("我",u8"我"))
+		else if constexpr(compile_time_compare("我",u8"我"))
 			return std::to_array(u".UTF-8.so");
 		else
 			return std::to_array(u".GB18030.so");
@@ -153,7 +153,7 @@ inline constexpr auto exec_encoding_dll_array() noexcept
 	{
 	if constexpr('A'!=u8'A')
 		return std::to_array(u8".IBM12712.so");
-	else if constexpr(details::compile_time_compare("我",u8"我"))
+	else if constexpr(compile_time_compare("我",u8"我"))
 		return std::to_array(u8".UTF-8.so");
 	else
 		return std::to_array(u8".GB18030.so");
@@ -244,14 +244,14 @@ template<std::integral char_type>
 inline void* load_l10n_with_real_name_impl(lc_locale& loc,std::basic_string_view<char_type> locale_name)
 {
 	sanitize_locale_name(locale_name);
-	constexpr auto prefix(details::l10n_path_prefix_dll_array<char_type>());
-	constexpr auto encoding{details::exec_encoding_dll_array<char_type>()};
+	constexpr auto prefix(l10n_path_prefix_dll_array<char_type>());
+	constexpr auto encoding{exec_encoding_dll_array<char_type>()};
 	constexpr auto prefix_no_0_size{prefix.size()-1};
 	std::unique_ptr<char_type[]> arrptr(new char_type[prefix_no_0_size+locale_name.size()+encoding.size()]);
 	memcpy(arrptr.get(),prefix.data(),prefix_no_0_size*sizeof(char_type));
 	memcpy(arrptr.get()+prefix_no_0_size,locale_name.data(),locale_name.size()*sizeof(char_type));
 	memcpy(arrptr.get()+prefix_no_0_size+locale_name.size(),encoding.data(),encoding.size()*sizeof(char_type));
-	return details::load_dll(arrptr.get(),loc);
+	return load_dll(arrptr.get(),loc);
 }
 
 template<std::integral char_type>
@@ -259,7 +259,7 @@ inline void* load_l10n_with_real_name_impl(lc_locale& loc,std::basic_string_view
 {
 	sanitize_locale_name(locale_name);
 	sanitize_locale_name(encoding);
-	constexpr auto prefix(details::l10n_path_prefix_dll_array<char_type>());
+	constexpr auto prefix(l10n_path_prefix_dll_array<char_type>());
 	constexpr auto prefix_no_0_size{prefix.size()-1};
 	constexpr auto dll_postfix{exec_dll_array<char_type>()};
 	std::unique_ptr<char_type[]> arrptr(new char_type[prefix_no_0_size+locale_name.size()+1+encoding.size()+dll_postfix.size()]);
@@ -269,21 +269,21 @@ inline void* load_l10n_with_real_name_impl(lc_locale& loc,std::basic_string_view
 	if(encoding.size())
 		memcpy(arrptr.get()+prefix_no_0_size+locale_name.size()+1,encoding.data(),encoding.size()*sizeof(char_type));
 	memcpy(arrptr.get()+prefix_no_0_size+locale_name.size()+1+encoding.size(),dll_postfix.data(),dll_postfix.size()*sizeof(char_type));
-	return details::load_dll(arrptr.get(),loc);
+	return load_dll(arrptr.get(),loc);
 }
 
 template<std::integral char_type>
 inline void* load_l10n_with_full_name_impl(lc_locale& loc,std::basic_string_view<char_type> locale_fullname)
 {
 	sanitize_locale_name<true>(locale_fullname);
-	constexpr auto prefix(details::l10n_path_prefix_dll_array<char_type>());
+	constexpr auto prefix(l10n_path_prefix_dll_array<char_type>());
 	constexpr auto prefix_no_0_size{prefix.size()-1};
 	constexpr auto dll_postfix{exec_dll_array<char_type>()};
 	std::unique_ptr<char_type[]> arrptr(new char_type[prefix_no_0_size+locale_fullname.size()+dll_postfix.size()]);
 	memcpy(arrptr.get(),prefix.data(),prefix_no_0_size*sizeof(char_type));
 	memcpy(arrptr.get()+prefix_no_0_size,locale_fullname.data(),locale_fullname.size()*sizeof(char_type));
 	memcpy(arrptr.get()+prefix_no_0_size+locale_fullname.size(),dll_postfix.data(),dll_postfix.size()*sizeof(char_type));
-	return details::load_dll(arrptr.get(),loc);
+	return load_dll(arrptr.get(),loc);
 }
 
 #ifdef _WIN32
@@ -463,7 +463,7 @@ inline constexpr std::u8string_view exec_encoding_u8strvw() noexcept
 {
 	if constexpr('A'!=u8'A')
 		return u8"IBM12712";
-	else if constexpr(details::compile_time_compare("我",u8"我"))
+	else if constexpr(compile_time_compare("我",u8"我"))
 		return u8"UTF-8";
 	else
 		return u8"GB18030";

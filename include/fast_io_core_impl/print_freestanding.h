@@ -527,7 +527,7 @@ inline constexpr void print_control(output out,T t)
 	{
 		if constexpr(pci==print_control_impl::serialize)
 		{
-			internal_temporary_buffer<char_type> buffer;
+			dynamic_io_buffer<char_type> buffer;
 			print_control(io_ref(buffer),t);
 			auto beg{obuffer_begin(buffer)};
 			auto curr{obuffer_curr(buffer)};
@@ -679,11 +679,10 @@ inline constexpr void print_fallback(output out,Args ...args)
 	}
 	else
 	{
-		using internal_buffer_type = internal_temporary_buffer<typename output::char_type>;
-		internal_buffer_type buffer;
+		dynamic_io_buffer<typename output::char_type> buffer;
 		auto ref{io_ref(buffer)};
 		print_controls_line<line,pci>(ref,args...);
-		write(out,buffer.beg_ptr,buffer.end_ptr);
+		write(out,buffer.buffer_begin,buffer.buffer_curr);
 	}
 }
 

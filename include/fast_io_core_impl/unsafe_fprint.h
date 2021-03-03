@@ -286,8 +286,7 @@ inline constexpr void unsafe_fprint_fallback(output out,std::basic_string_view<t
 	}
 	else
 	{
-		using internal_buffer_type = internal_temporary_buffer<typename output::char_type>;
-		internal_buffer_type buffer;
+		dynamic_io_buffer<typename output::char_type> buffer;
 		auto ref{io_ref(buffer)};
 		unsafe_fprint_freestanding_decay_impl(ref,view,args...);
 	}
