@@ -107,7 +107,7 @@ public:
 		basic_io_buffer_pointers<char_type>,empty_buffer_pointers>;
 
 	using ibuffer_external_type = std::conditional_t<has_ibuffer&&details::has_internal_decorator_impl<decorators_type>,
-	basic_io_buffer_pointers_only_begin<char_type>,
+	basic_io_buffer_pointers_only_begin<external_char_type>,
 	empty_buffer_pointers>;
 
 	using obuffer_external_type = std::conditional_t<(

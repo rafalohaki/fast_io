@@ -48,7 +48,7 @@ inline constexpr bool underflow_rl_impl_deco(T t,decot deco,
 
 template<bool nsecure,std::size_t bfsz,stream T,typename decot,std::integral char_type>
 inline constexpr bool underflow_impl_deco(T t,decot deco,basic_io_buffer_pointers_with_cap<char_type>& ibuffer,
-	basic_io_buffer_pointers_only_begin<char_type>& ibuffer_external)
+	basic_io_buffer_pointers_only_begin<typename T::char_type>& ibuffer_external)
 {
 	if constexpr(maybe_noop_decorator<char_type,decot>)
 	{
@@ -60,7 +60,7 @@ inline constexpr bool underflow_impl_deco(T t,decot deco,basic_io_buffer_pointer
 template<bool nsecure,typename T,typename decot,std::integral char_type,std::contiguous_iterator Iter>
 inline constexpr Iter iobuf_read_unhappy_decay_impl_deco(T t,decot deco,
 	basic_io_buffer_pointers_with_cap<char_type>& ibuffer,
-	basic_io_buffer_pointers_only_begin<char_type>& ibuffer_external,
+	basic_io_buffer_pointers_only_begin<typename T::char_type>& ibuffer_external,
 	Iter first,Iter last,std::size_t bfsz)
 {
 	using external_char_type = typename T::char_type;

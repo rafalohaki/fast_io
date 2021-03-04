@@ -243,5 +243,22 @@ using u8gb18030_file = basic_gb18030_file<char8_t>;
 using u16gb18030_file = basic_gb18030_file<char16_t>;
 using u32gb18030_file = basic_gb18030_file<char32_t>;
 
+template<std::integral internal_char_type>
+using basic_iutf_ebcdic_file = std::conditional_t<std::same_as<char,internal_char_type>
+&&execution_charset_encoding_scheme<char>()==encoding_scheme::gb18030,
+basic_ibuf<basic_inative_file<char>>,
+basic_icode_cvt_file<internal_char_type,char,
+encoding_scheme::execution_charset,
+encoding_scheme::gb18030>>;
+
+using u8iutf_ebcdic_file = basic_iutf_ebcdic_file<char8_t>;
+
+template<std::integral internal_char_type>
+using basic_outf_ebcdic_file = std::conditional_t<std::same_as<char,internal_char_type>
+&&execution_charset_encoding_scheme<char>()==encoding_scheme::utf_ebcdic,
+basic_obuf<basic_onative_file<char>>,
+basic_ocode_cvt_file<internal_char_type,char,encoding_scheme::execution_charset,encoding_scheme::utf_ebcdic>>;
+
+using u8outf_ebcdic_file = basic_outf_ebcdic_file<char8_t>;
 
 }
