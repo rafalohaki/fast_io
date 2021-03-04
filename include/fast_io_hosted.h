@@ -23,7 +23,6 @@ For hosted implementations the set of standard library headers required by the C
 #include"fast_io_hosted/posix_status.h"
 #include"fast_io_hosted/platforms/native.h"
 
-
 #if !defined(__NEWLIB__)||defined(_GLIBCXX_HAS_GTHREADS)
 #ifndef __MSDOS__
 #include"fast_io_hosted/iomutex.h"
@@ -37,6 +36,7 @@ For hosted implementations the set of standard library headers required by the C
 #else
 #include"fast_io_hosted/process/native.h"
 #endif
+
 #include"fast_io_hosted/white_hole/white_hole.h"
 //#include<memory_resource>
 //#include"fast_io_hosted/pmr_resource.h"

@@ -245,11 +245,11 @@ using u32gb18030_file = basic_gb18030_file<char32_t>;
 
 template<std::integral internal_char_type>
 using basic_iutf_ebcdic_file = std::conditional_t<std::same_as<char,internal_char_type>
-&&execution_charset_encoding_scheme<char>()==encoding_scheme::gb18030,
+&&execution_charset_encoding_scheme<char>()==encoding_scheme::utf_ebcdic,
 basic_ibuf<basic_inative_file<char>>,
 basic_icode_cvt_file<internal_char_type,char,
 encoding_scheme::execution_charset,
-encoding_scheme::gb18030>>;
+encoding_scheme::utf_ebcdic>>;
 
 using u8iutf_ebcdic_file = basic_iutf_ebcdic_file<char8_t>;
 

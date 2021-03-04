@@ -6,22 +6,6 @@ namespace fast_io::details
 This is an extremely naive vector merely for filesystem stack iterative. No std::vector because it uses allocators and throws bad_alloc and length_error which are nonsense.
 */
 
-inline void* naive_allocate_or_die(std::size_t size) noexcept
-{
-#if (defined(_MSC_VER)&&_HAS_EXCEPTIONS!=0) || (!defined(_MSC_VER)&&__cpp_exceptions)
-	try
-	{
-#endif
-		return operator new(size);
-#if (defined(_MSC_VER)&&_HAS_EXCEPTIONS!=0) || (!defined(_MSC_VER)&&__cpp_exceptions)
-	}
-	catch(...)
-	{
-		fast_terminate();
-	}
-#endif
-}
-
 inline constexpr std::size_t naive_vector_initial_size(16);
 
 template<typename T>
@@ -29,10 +13,15 @@ requires (sizeof(T)<=128)
 class naive_vector
 {
 public:
+	using value_type = T;
 	T* beg_ptr{};
 	T* end_ptr{};
 	T* cap_ptr{};
-	explicit naive_vector() noexcept:beg_ptr(static_cast<T*>(naive_allocate_or_die(naive_vector_initial_size*sizeof(T)))),end_ptr(beg_ptr),cap_ptr(beg_ptr+naive_vector_initial_size){}
+	explicit
+#if __cpp_constexpr_dynamic_alloc >= 201907L
+	constexpr
+#endif
+	naive_vector() noexcept:beg_ptr(allocate_iobuf_space<T>(naive_vector_initial_size)),end_ptr(beg_ptr),cap_ptr(beg_ptr+naive_vector_initial_size){}
 
 	naive_vector(naive_vector const&)=delete;
 	naive_vector& operator=(naive_vector const&)=delete;
@@ -55,7 +44,7 @@ private:
 		if(beg_ptr)[[likely]]
 		{
 			clear();
-			operator delete(beg_ptr,sizeof(T)*static_cast<std::size_t>(cap_ptr-beg_ptr));
+			deallocate_iobuf_space<false>(beg_ptr,static_cast<std::size_t>(cap_ptr-beg_ptr));
 		}
 	}
 public:
@@ -166,7 +155,7 @@ public:
 		if(!new_cap)[[unlikely]]
 			new_cap=1;
 		new_cap<<=1;
-		auto newptr{static_cast<T*>(naive_allocate_or_die(new_cap*sizeof(T)))};
+		auto newptr{allocate_iobuf_space<T>(new_cap)};
 		auto newi{newptr};
 		for(auto oldi{beg_ptr};oldi!=end_ptr;++oldi)
 		{
@@ -174,7 +163,7 @@ public:
 			oldi->~T();
 			++newi;
 		}
-		operator delete(beg_ptr,sizeof(T)*static_cast<std::size_t>(cap_ptr-beg_ptr));
+		deallocate_iobuf_space<false>(beg_ptr,cap_ptr-beg_ptr);
 		beg_ptr=newptr;
 		end_ptr=newi;
 		cap_ptr=newptr+new_cap;
@@ -188,6 +177,9 @@ public:
 		::new (end_ptr) T(std::forward<Args>(args)...);
 		++end_ptr;
 	}
+#if __cpp_constexpr_dynamic_alloc >= 201907L
+	constexpr
+#endif
 	~naive_vector()
 	{
 		destroy();
