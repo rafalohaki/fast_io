@@ -76,7 +76,7 @@ inline iconv_deco_from_chars_result iconv_do_impl(iconv_t cd,
 			goto lable_end;
 		case EILSEQ:
 			if(from_first==from_last)
-				goto lable_end;
+				break;
 			*to_first=0;
 			++to_first;
 			++from_first;
