@@ -12,3 +12,8 @@
 #include"manipulators.h"
 #include"skippers.h"
 #include"width.h"
+
+namespace fast_io
+{
+namespace mnp=manipulators;
+}
