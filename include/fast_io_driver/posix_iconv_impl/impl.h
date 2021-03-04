@@ -27,56 +27,156 @@ public:
 	}
 };
 
+struct iconv_deco_t
+{
+	iconv_t cd{std::bit_cast<iconv_t>(static_cast<uintptr_t>(-1))}; 
+	char buffer[32]{};
+	std::size_t len{};
+	iconv_deco_t(posix_iconv_io_observer piiob) noexcept:cd(piiob.cd){}
+};
+
 inline constexpr posix_iconv_io_observer deco_value_handle(posix_iconv_io_observer piiob) noexcept
 {
 	return piiob;
 }
 
-template<std::integral to_char_type>
-inline constexpr std::size_t deco_reserve_size(io_reserve_type_t<to_char_type,posix_iconv_io_observer>,
-	posix_iconv_io_observer,std::size_t size) noexcept
-{
-	constexpr std::size_t factor{8/sizeof(to_char_type)};
-	constexpr std::size_t mxsize{SIZE_MAX/sizeof(to_char_type)/factor};
-	if(size>mxsize)
-		fast_terminate();
-	return size*factor;
-}
-
 namespace details
 {
 
-inline std::size_t iconv_deco_reserve_define_impl(iconv_t cd,char const* inbyteptr,std::size_t inbytesize,char* outbyteptr,std::size_t output_buffer_size)
+struct iconv_deco_from_chars_result
 {
-	char* inbyteptr_no_const{const_cast<char*>(inbyteptr)};
-	std::size_t unconverted_char_counts{output_buffer_size};
-	iconv(cd,
-	std::addressof(inbyteptr_no_const),
-	std::addressof(inbytesize),
-	std::addressof(outbyteptr),
-	std::addressof(unconverted_char_counts));
-	return output_buffer_size-unconverted_char_counts;
+	char const* from;
+	char* to;
+};
+
+inline iconv_deco_from_chars_result iconv_do_impl(iconv_t cd,
+	char const* from_first2,
+	char const* from_last2,
+	char* to_first,
+	char* to_last) noexcept
+{
+	char* from_first{const_cast<char*>(from_first2)};
+	char* from_last{const_cast<char*>(from_last2)};
+	while(from_first!=from_last)
+	{
+		std::size_t inbytes_left{static_cast<std::size_t>(from_last-from_first)};
+		std::size_t outbytes_left{static_cast<std::size_t>(to_last-to_first)};
+		std::size_t ret{iconv(cd,
+		std::addressof(from_first),
+		std::addressof(inbytes_left),
+		std::addressof(to_first),
+		std::addressof(outbytes_left))};
+		from_first=from_last-inbytes_left;
+		to_first=to_last-outbytes_left;
+		if(ret!=static_cast<std::size_t>(-1))
+			break;
+		switch(errno)
+		{
+		case EINVAL:
+			goto lable_end;
+		case EILSEQ:
+			if(from_first==from_last)
+				goto lable_end;
+			*to_first=0;
+			++to_first;
+			++from_first;
+		break;
+		default:
+			fast_terminate();
+		};
+	}
+lable_end:
+	if(16<from_last-from_first)[[unlikely]]
+		fast_terminate();
+	return {from_first,to_first};
 }
 
-inline std::size_t iconv_print_reserve_define_impl(iconv_t cd,char const* inbyteptr,std::size_t inbytesize,char* outbyteptr) noexcept
+inline std::size_t iconv_print_reserve_define_impl(iconv_t cd,
+	char const* inbyteptr,
+	std::size_t inbytesize,
+	char* outbyteptr) noexcept
 {
-	return iconv_deco_reserve_define_impl(cd,inbyteptr,inbytesize,outbyteptr,inbytesize*8);
+	auto out_bytes{inbytesize*8};
+	auto end_ptr{inbyteptr+inbytesize};
+	auto [src_it,dst_it]=iconv_do_impl(cd,inbyteptr,end_ptr,outbyteptr,outbyteptr+out_bytes);
+	if(src_it!=end_ptr)
+	{
+		*dst_it=0;
+		++dst_it;
+	}
+	return dst_it-outbyteptr;
+}
+
+inline char* iconv_dst_impl(
+	iconv_deco_t& icdt,char const* first,char const* last,
+	char* dst_first,char* dst_last) noexcept
+{
+	std::size_t len{icdt.len};
+	std::size_t diff{static_cast<std::size_t>(last-first)};
+
+	if(len)
+	{
+		std::size_t to_copy{32-len};
+		if(diff<to_copy)
+			to_copy=diff;
+		std::size_t total_len{len+to_copy};
+		non_overlapped_copy_n(first,to_copy,icdt.buffer+len);
+		auto buffer_total_ed{icdt.buffer+total_len};
+		auto [src_it,dst_it]=iconv_do_impl(icdt.cd,
+			icdt.buffer,
+			buffer_total_ed,
+			dst_first,
+			dst_last);
+		std::size_t converted{static_cast<std::size_t>(src_it-icdt.buffer)};
+		if(converted<len)
+		{
+			std::size_t remained{static_cast<std::size_t>(buffer_total_ed-src_it)};
+			my_copy_n(src_it,remained,icdt.buffer);
+			return dst_it;
+		}
+		else
+		{
+			icdt.len=0;
+			first+=converted-len;
+			dst_first=dst_it;
+		}
+	}
+	auto [src2_it,dst2_it]=iconv_do_impl(icdt.cd,first,last,dst_first,dst_last);
+	diff=static_cast<std::size_t>(last-src2_it);
+	non_overlapped_copy_n(src2_it,diff,icdt.buffer);
+	icdt.len=diff;
+	return dst2_it;
+}
+
+inline std::size_t iconv_deco_reserve_define_impl(iconv_deco_t& icdt,
+	char const* first,std::size_t insize,char* outbyteptr,std::size_t size)
+{
+	return iconv_dst_impl(icdt,first,first+insize,outbyteptr,outbyteptr+size*8)-outbyteptr;
 }
 
 
+}
+
+template<std::integral to_char_type>
+inline constexpr std::size_t deco_reserve_size(io_reserve_type_t<to_char_type,iconv_deco_t>,
+	iconv_deco_t& icdt,std::size_t size) noexcept
+{
+	constexpr std::size_t factor{8/sizeof(to_char_type)};
+	return details::intrinsics::mul_or_overflow_die(
+		details::intrinsics::add_or_overflow_die(size,32),factor);
 }
 
 template<std::contiguous_iterator fromIter,std::contiguous_iterator toIter>
-inline toIter deco_reserve_define(io_reserve_type_t<std::iter_value_t<toIter>,posix_iconv_io_observer>,
-	posix_iconv_io_observer piob,fromIter first,fromIter last,toIter iter) noexcept
+inline toIter deco_reserve_define(io_reserve_type_t<std::iter_value_t<toIter>,iconv_deco_t>,
+	iconv_deco_t& icdt,fromIter first,fromIter last,toIter iter)
 {
 	using to_char_type = std::iter_value_t<toIter>;
 	using from_char_type = std::iter_value_t<fromIter>;
 	constexpr std::size_t factor{8/sizeof(to_char_type)};
 	std::size_t dis{static_cast<std::size_t>(last-first)};
 	std::size_t inbytes{sizeof(from_char_type)*dis};
-	std::size_t const allocated_bytes{dis*factor*sizeof(to_char_type)};
-	return iter+details::iconv_deco_reserve_define_impl(piob.cd,
+	std::size_t const allocated_bytes{(inbytes+32)*8};
+	return iter+details::iconv_deco_reserve_define_impl(icdt,
 		reinterpret_cast<char const*>(std::to_address(first)),
 		inbytes,
 		reinterpret_cast<char*>(std::to_address(iter)),
@@ -143,7 +243,7 @@ inline void reset_state(posix_iconv_io_observer piciob)
 	if(iconv(piciob.cd,nullptr,0,nullptr,nullptr)==static_cast<std::size_t>(-1))
 		throw_posix_error();
 }
-
+#if 0
 namespace manipulators
 {
 
@@ -200,4 +300,6 @@ inline Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,iconv
 	return iter+sz/sizeof(char_type);
 }
 }
+
+#endif
 }

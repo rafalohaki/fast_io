@@ -7,7 +7,7 @@ For hosted implementations the set of standard library headers required by the C
 */
 //fast_io_hosted defines what we could use in a hosted environment.
 #include"fast_io_freestanding.h"
-
+#include<string>
 #include"fast_io_hosted/string/impl.h"
 #include"fast_io_hosted/concat.h"
 #ifdef __MSDOS__

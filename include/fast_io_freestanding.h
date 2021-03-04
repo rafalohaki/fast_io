@@ -4,7 +4,6 @@
 
 #include"fast_io_core.h"
 //#include<stdexcept>
-#include<string>
 //#include<bitset>
 //#include<system_error>
 //#include<cmath>

@@ -92,34 +92,48 @@ public:
 	inline static constexpr buffer_mode mode = mde;
 	inline static constexpr std::size_t buffer_size = bfs;
 	inline static constexpr bool need_secure_clear = (mode&buffer_mode::secure_clear)==buffer_mode::secure_clear;
-#if __has_cpp_attribute(no_unique_address) >= 201803L
-	[[no_unique_address]]
-#endif
-	std::conditional_t<(mode&buffer_mode::in)==buffer_mode::in,
-	std::conditional_t<details::has_internal_decorator_impl<decorators_type>,basic_io_buffer_pointers_with_cap<char_type>,basic_io_buffer_pointers<char_type>>,
-	empty_buffer_pointers> ibuffer;
-#if __has_cpp_attribute(no_unique_address) >= 201803L
-	[[no_unique_address]]
-#endif
-	std::conditional_t<(mode&buffer_mode::out)==buffer_mode::out&&
+	inline static constexpr bool has_ibuffer=(mode&buffer_mode::in)==buffer_mode::in;
+	inline static constexpr bool has_obuffer=(mode&buffer_mode::out)==buffer_mode::out;
+	inline static constexpr bool has_internal_decorator = details::has_internal_decorator_impl<decorators_type>;
+	inline static constexpr bool has_external_decorator = details::has_external_decorator_impl<decorators_type>;
+
+	using ibuffer_type = std::conditional_t<has_ibuffer,
+	std::conditional_t<has_internal_decorator,
+		basic_io_buffer_pointers_with_cap<char_type>,basic_io_buffer_pointers<char_type>>,
+		empty_buffer_pointers>;
+
+	using obuffer_type =std::conditional_t<has_obuffer&&
 		(mode&buffer_mode::deco_out_no_internal)!=buffer_mode::deco_out_no_internal,
-		basic_io_buffer_pointers<char_type>,empty_buffer_pointers> obuffer;
+		basic_io_buffer_pointers<char_type>,empty_buffer_pointers>;
 
-#if __has_cpp_attribute(no_unique_address) >= 201803L
-	[[no_unique_address]]
-#endif
-	std::conditional_t<(mode&buffer_mode::in)==buffer_mode::in&&details::has_internal_decorator_impl<decorators_type>,
+	using ibuffer_external_type = std::conditional_t<has_ibuffer&&details::has_internal_decorator_impl<decorators_type>,
 	basic_io_buffer_pointers_only_begin<char_type>,
-	empty_buffer_pointers> ibuffer_external;
+	empty_buffer_pointers>;
 
-#if __has_cpp_attribute(no_unique_address) >= 201803L
-	[[no_unique_address]]
-#endif
-	std::conditional_t<(
-	(mode&buffer_mode::out)==buffer_mode::out&&
+	using obuffer_external_type = std::conditional_t<(
+	has_obuffer&&
 	details::has_external_decorator_impl<decorators_type>),
 	basic_io_buffer_pointers_no_curr<external_char_type>,
-	empty_buffer_pointers> obuffer_external;
+	empty_buffer_pointers>;
+
+#if __has_cpp_attribute(no_unique_address) >= 201803L
+	[[no_unique_address]]
+#endif
+	ibuffer_type ibuffer;
+#if __has_cpp_attribute(no_unique_address) >= 201803L
+	[[no_unique_address]]
+#endif
+	obuffer_type obuffer;
+
+#if __has_cpp_attribute(no_unique_address) >= 201803L
+	[[no_unique_address]]
+#endif
+	ibuffer_external_type ibuffer_external;
+
+#if __has_cpp_attribute(no_unique_address) >= 201803L
+	[[no_unique_address]]
+#endif
+	obuffer_external_type obuffer_external;
 
 #if __has_cpp_attribute(no_unique_address) >= 201803L
 	[[no_unique_address]]
