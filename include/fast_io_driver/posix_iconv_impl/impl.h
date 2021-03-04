@@ -243,7 +243,7 @@ inline void reset_state(posix_iconv_io_observer piciob)
 	if(iconv(piciob.cd,nullptr,0,nullptr,nullptr)==static_cast<std::size_t>(-1))
 		throw_posix_error();
 }
-#if 0
+
 namespace manipulators
 {
 
@@ -301,5 +301,5 @@ inline Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,iconv
 }
 }
 
-#endif
+
 }
