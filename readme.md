@@ -38,6 +38,9 @@ However, they might not work current fast_io since fast_io keeps changing.
 This i18n repo stores the i18n source files.
 https://bitbucket.org/ejsvifq_mabmip/fast_io_i18n
 
+## Online manual
+https://ewindy.gitee.io/fast_io_man
+
 ## Compiler Support
 - GCC 11.
 You can download the latest GCC compiler for windows here. https://bitbucket.org/ejsvifq_mabmip/mingw-gcc/src/master/ 
@@ -81,7 +84,7 @@ A general purpose I/O library to replace stdio.h and iostream
 
 - As close to system call as possible.
 - No default locale. It is optional.
-- To do. Correctly deal with EBCDIC exec-charset (where no libc correctly deals it).
+- Correctly deal with EBCDIC exec-charset (where no libc correctly deals it).
 
 ### Safe
 
@@ -125,6 +128,16 @@ A general purpose I/O library to replace stdio.h and iostream
 - Non crypto hash algorithms support. Jenkins Hash
 - Filesystem
 - OpenSSL BIO, Qt QFile, MFC CFile support
+
+## Codecvt for File I/O support, including correctly dealing with execution charset of them
+- UTF-8
+- UTF-16LE
+- UTF-16BE
+- UTF-32LE
+- UTF-32BE
+- GB18030
+- UTF-EBCDIC
+- posix iconv is also supported
 
 ## Post C++20 Plan
   1. Module support
