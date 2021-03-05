@@ -28,19 +28,19 @@ public:
 	T function;
 	std::uint64_t transform_counter{};
 
-	void operator()(std::span<std::byte const,block_size> process_block)
+	void operator()(std::span<std::byte const,block_size> process_block) noexcept
 	{
 		function(digest_block,process_block);
 		++transform_counter;
 	}
 
-	void operator()(std::span<std::byte const> process_blocks)//This is multiple blocks
+	void operator()(std::span<std::byte const> process_blocks) noexcept//This is multiple blocks
 	{
 		function(digest_block,process_blocks);
 		transform_counter+=process_blocks.size()/block_size;
 	}
 
-	void digest(std::span<std::byte const> final_block)//contracts: final_block.size()<block_size
+	void digest(std::span<std::byte const> final_block) noexcept//contracts: final_block.size()<block_size
 	{
 		std::uint64_t total_bits(static_cast<std::uint64_t>(transform_counter*block_size+final_block.size())*8);
 		std::array<std::byte,block_size> blocks{};
@@ -75,13 +75,13 @@ using sha256 = sha<sha256_function>;
 using sha512 = sha<sha512_function>;
 
 template<std::integral char_type,typename T,bool endian_reverse>
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,sha<T,endian_reverse>>)
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,sha<T,endian_reverse>>) noexcept
 {
 	return sizeof(typename T::digest_type)*8;
 }
 
 template<std::integral char_type,std::random_access_iterator caiter,typename T,bool endian_reverse>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,sha<T,endian_reverse>>,caiter iter,auto& i)
+inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,sha<T,endian_reverse>>,caiter iter,auto& i) noexcept
 {
 	constexpr std::size_t offset{sizeof(typename T::digest_type::value_type)*2};
 	for(auto e : i.digest_block)

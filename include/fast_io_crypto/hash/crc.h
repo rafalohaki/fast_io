@@ -13,9 +13,9 @@ inline constexpr std::array<std::uint32_t,256> crc32c_tb{0x0,0xf26b8303,0xe13b70
 #endif
 
 template<bool crc32c=false>
-inline constexpr std::uint32_t calculate_crc32(std::uint32_t crc,std::span<std::byte const> block)
+inline constexpr std::uint32_t calculate_crc32(std::uint32_t crc,std::span<std::byte const> block) noexcept
 {
-	for(auto const& e : block)
+	for(auto const e : block)
 	{
 #ifndef __SSE4_2__
 		if constexpr(crc32c)
@@ -34,11 +34,11 @@ class crc32
 public:
 	static inline constexpr std::size_t block_size = 0;
 	std::uint32_t crc{0xffffffff};
-	constexpr void operator()(std::span<std::byte const> blocks)
+	constexpr void operator()(std::span<std::byte const> blocks) noexcept
 	{
 		crc=details::crc32::calculate_crc32(crc,blocks);
 	}
-	constexpr void digest()
+	constexpr void digest() noexcept
 	{
 		crc=~crc;
 	}
@@ -51,7 +51,7 @@ class crc32c
 public:
 	static inline constexpr std::size_t block_size = 8;
 	std::uint32_t crc{0xffffffff};
-	void operator()(std::span<std::byte const,block_size> process_block)
+	void operator()(std::span<std::byte const,block_size> process_block) noexcept
 	{
 
 		std::uint64_t v;
@@ -59,7 +59,7 @@ public:
 		crc = _mm_crc32_u64(crc,v);
 
 	}
-	void operator()(std::span<std::byte const> blocks)
+	void operator()(std::span<std::byte const> blocks) noexcept
 	{
 		for(auto block(blocks.data()),ed(blocks.data()+blocks.size());block!=ed;block+=block_size)
 		{
@@ -68,7 +68,7 @@ public:
 			crc = _mm_crc32_u64(crc,v);
 		}
 	}
-	void digest(std::span<std::byte const> final_block)//contracts: final_block.size()<8
+	void digest(std::span<std::byte const> final_block) noexcept//contracts: final_block.size()<8
 	{
 		switch(final_block.size())
 		{
@@ -137,11 +137,11 @@ class crc32c
 public:
 	static inline constexpr std::size_t block_size = 0;
 	std::uint32_t crc{0xffffffff};
-	constexpr void operator()(std::span<std::byte const> blocks)
+	constexpr void operator()(std::span<std::byte const> blocks) noexcept
 	{
 		crc=details::crc32::calculate_crc32<true>(crc,blocks);
 	}
-	constexpr void digest()
+	constexpr void digest() noexcept
 	{
 		crc=~crc;
 	}
@@ -151,14 +151,14 @@ public:
 
 template<std::integral char_type,typename T>
 requires (std::same_as<T,crc32c>||std::same_as<T,crc32>)
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,T>)
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,T>) noexcept
 {
 	return 8;
 }
 
 template<std::integral char_type,typename T,std::random_access_iterator caiter>
 requires (std::same_as<T,crc32c>||std::same_as<T,crc32>)
-inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,T>,caiter iter,auto i)
+inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,T>,caiter iter,auto i) noexcept
 {
 	fast_io::details::optimize_size::output_unsigned_dummy<8,16>(iter,i.crc);
 	return iter+8;

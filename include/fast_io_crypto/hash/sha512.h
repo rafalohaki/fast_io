@@ -51,27 +51,27 @@ inline constexpr std::uint64_t K512[] =
 0x5fcb6fab3ad6faec, 0x6c44198c4a475817
 };
 
-inline constexpr auto Sigma0(auto x)
+inline constexpr auto Sigma0(auto x) noexcept
 {
 	return std::rotr(x,28)^std::rotr(x,34)^std::rotr(x,39);
 }
-inline constexpr auto Sigma1(auto x)
+inline constexpr auto Sigma1(auto x) noexcept
 {
 	return std::rotr(x,14)^std::rotr(x,18)^std::rotr(x,41);
 }
-inline constexpr auto sigma0(auto x)
+inline constexpr auto sigma0(auto x) noexcept
 {
 	return std::rotr(x,1)^std::rotr(x,8)^(x>>7);
 }
-inline constexpr auto sigma1(auto x)
+inline constexpr auto sigma1(auto x) noexcept
 {
 	return std::rotr(x,19)^std::rotr(x,61)^(x>>6);
 }
-inline constexpr auto Ch(auto x,auto y,auto z)
+inline constexpr auto Ch(auto x,auto y,auto z) noexcept
 {
 	return (x&y)^((~x)&z);
 }
-inline constexpr auto Maj(auto x,auto y,auto z)
+inline constexpr auto Maj(auto x,auto y,auto z) noexcept
 {
 	return (x&y)^(x&z)^(y&z);
 }
@@ -83,7 +83,7 @@ public:
 	using digest_type = std::array<std::uint64_t,8>;
 	static inline constexpr digest_type digest_initial_value{0x6a09e667f3bcc908, 0xbb67ae8584caa73b,0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1,0x510e527fade682d1, 0x9b05688c2b3e6c1f,0x1f83d9abfb41bd6b, 0x5be0cd19137e2179};
 	static inline constexpr std::size_t block_size{128};
-	void operator()(std::span<std::uint64_t,8> state,std::span<std::byte const> blocks)
+	void operator()(std::span<std::uint64_t,8> state,std::span<std::byte const> blocks) noexcept
 	{
 		using namespace details::sha512;
 		uint64_t a, b, c, d, e, f, g, h, s0, s1, T1, T2;

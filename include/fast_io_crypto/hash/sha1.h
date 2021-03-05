@@ -15,19 +15,19 @@ namespace details::sha1
 namespace
 {
 //from https://github.com/vog/sha1/blob/master/sha1.cpp
-inline constexpr std::uint32_t blk(std::array<std::uint32_t,16> &block,std::size_t const i)
+inline constexpr std::uint32_t blk(std::array<std::uint32_t,16> &block,std::size_t const i) noexcept
 {
 	return std::rotl(block[(i+13)&15] ^ block[(i+8)&15] ^ block[(i+2)&15] ^ block[i], 1);
 }
 
-inline constexpr void R0(std::array<std::uint32_t,16> &block, std::uint32_t const v, std::uint32_t &w, std::uint32_t const x, std::uint32_t const y, std::uint32_t &z, const size_t i)
+inline constexpr void R0(std::array<std::uint32_t,16> &block, std::uint32_t const v, std::uint32_t &w, std::uint32_t const x, std::uint32_t const y, std::uint32_t &z, const size_t i) noexcept
 {
 	z += ((w&(x^y))^y) + block[i] + 0x5a827999 + std::rotl(v, 5);
 	w = std::rotl(w, 30);
 }
 
 
-inline constexpr void R1(std::array<std::uint32_t,16> &block, std::uint32_t const v, std::uint32_t &w, std::uint32_t const x, std::uint32_t const y, std::uint32_t &z, const size_t i)
+inline constexpr void R1(std::array<std::uint32_t,16> &block, std::uint32_t const v, std::uint32_t &w, std::uint32_t const x, std::uint32_t const y, std::uint32_t &z, const size_t i) noexcept
 {
 	block[i] = blk(block, i);
 	z += ((w&(x^y))^y) + block[i] + 0x5a827999 + std::rotl(v, 5);
@@ -35,7 +35,7 @@ inline constexpr void R1(std::array<std::uint32_t,16> &block, std::uint32_t cons
 }
 
 
-inline constexpr void R2(std::array<std::uint32_t,16> &block, std::uint32_t const v, std::uint32_t &w, std::uint32_t const x, std::uint32_t const y, std::uint32_t &z, const size_t i)
+inline constexpr void R2(std::array<std::uint32_t,16> &block, std::uint32_t const v, std::uint32_t &w, std::uint32_t const x, std::uint32_t const y, std::uint32_t &z, const size_t i) noexcept
 {
 	block[i] = blk(block, i);
 	z += (w^x^y) + block[i] + 0x6ed9eba1 + std::rotl(v, 5);
@@ -43,7 +43,7 @@ inline constexpr void R2(std::array<std::uint32_t,16> &block, std::uint32_t cons
 }
 
 
-inline constexpr void R3(std::array<std::uint32_t,16> &block, std::uint32_t const v, std::uint32_t &w, std::uint32_t const x, std::uint32_t const y, std::uint32_t &z, const size_t i)
+inline constexpr void R3(std::array<std::uint32_t,16> &block, std::uint32_t const v, std::uint32_t &w, std::uint32_t const x, std::uint32_t const y, std::uint32_t &z, const size_t i) noexcept
 {
 	block[i] = blk(block, i);
 	z += (((w|x)&y)|(w&x)) + block[i] + 0x8f1bbcdc + std::rotl(v, 5);
@@ -51,7 +51,7 @@ inline constexpr void R3(std::array<std::uint32_t,16> &block, std::uint32_t cons
 }
 
 
-inline constexpr void R4(std::array<std::uint32_t,16> &block, std::uint32_t const v, std::uint32_t &w, std::uint32_t const x, std::uint32_t const y, std::uint32_t &z, const size_t i)
+inline constexpr void R4(std::array<std::uint32_t,16> &block, std::uint32_t const v, std::uint32_t &w, std::uint32_t const x, std::uint32_t const y, std::uint32_t &z, const size_t i) noexcept
 {
 	block[i] = blk(block, i);
 	z += (w^x^y) + block[i] + 0xca62c1d6 + std::rotl(v, 5);
@@ -168,7 +168,7 @@ public:
 	using digest_type = std::array<std::uint32_t,5>;
 	static inline constexpr digest_type digest_initial_value{0x67452301,0xefcdab89,0x98badcfe,0x10325476,0xc3d2e1f0};
 	static inline constexpr std::size_t block_size{64};
-	void operator()(std::span<std::uint32_t,5> state,std::span<std::byte const> blocks)
+	void operator()(std::span<std::uint32_t,5> state,std::span<std::byte const> blocks) noexcept
 	{
 #if defined(__SHA__) && defined(__SSE4_1__)
 //https://stackoverflow.com/questions/21107350/how-can-i-access-sha-intrinsic

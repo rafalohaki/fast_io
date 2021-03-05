@@ -12,7 +12,7 @@ F,G,H,I
 };
 
 template<operation op>
-inline constexpr auto unit(auto const& x,auto const& y,auto const& z)
+inline constexpr auto unit(auto const& x,auto const& y,auto const& z) noexcept
 {
 	if constexpr(op==operation::F)
 		return (x&y)|(~x&z);
@@ -24,7 +24,7 @@ inline constexpr auto unit(auto const& x,auto const& y,auto const& z)
 		return y^(x|(~z));
 }
 template<operation op>
-inline constexpr void uu(auto& a,auto const& b,auto const& c,auto const& d,auto const& x,auto const& s,auto const& ac)
+inline constexpr void uu(auto& a,auto const& b,auto const& c,auto const& d,auto const& x,auto const& s,auto const& ac) noexcept
 {
 	a=std::rotl(a+unit<op>(b,c,d)+x+ac,s)+b;
 }
@@ -52,7 +52,7 @@ public:
 	using digest_type = std::array<std::uint32_t,4>;
 	static inline constexpr digest_type digest_initial_value{0x67452301,0xefcdab89,0x98badcfe,0x10325476};
 	static inline constexpr std::size_t block_size{64};
-	void operator()(std::span<std::uint32_t,4> state,std::span<std::byte const> blocks)
+	void operator()(std::span<std::uint32_t,4> state,std::span<std::byte const> blocks) noexcept
 	{
 		std::uint32_t at{state.front()},bt{state[1]},ct{state[2]},dt{state[3]};
 		for(auto block(blocks.data()),ed(blocks.data()+blocks.size());block!=ed;block+=block_size)

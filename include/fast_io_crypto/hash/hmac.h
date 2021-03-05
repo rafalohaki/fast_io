@@ -11,7 +11,7 @@ struct hmac
 	key_type inner_key;
 	key_type outer_key{};
 	inline static constexpr std::size_t block_size = function_type::block_size;
-	hmac(std::span<std::byte const> init_key)
+	hmac(std::span<std::byte const> init_key) noexcept
 	{
 		if(block_size<init_key.size())
 		{
@@ -30,21 +30,21 @@ struct hmac
 		for(std::size_t i{};i!=inner_key.size();++i)
 			inner_key[i]=outer_key[i]^std::byte{0x36};
 	}
-	hmac(std::string_view key):hmac(std::as_bytes(std::span{key.data(),key.size()})){}
-	std::size_t block_init(std::span<std::byte,block_size> sp)
+	hmac(std::string_view key) noexcept:hmac(std::as_bytes(std::span{key.data(),key.size()})){}
+	std::size_t block_init(std::span<std::byte,block_size> sp) noexcept
 	{
 		memcpy(sp.data(),inner_key.data(),sizeof(key_type));
 		return sizeof(key_type);
 	}
-	void operator()(std::span<std::byte const,block_size> process_block)
+	void operator()(std::span<std::byte const,block_size> process_block) noexcept
 	{
 		function(process_block);
 	}
-	void operator()(std::span<std::byte const> process_blocks)
+	void operator()(std::span<std::byte const> process_blocks) noexcept
 	{
 		function(process_blocks);
 	}
-	void digest(std::span<std::byte const> final_block)
+	void digest(std::span<std::byte const> final_block) noexcept
 	{
 		function.digest(final_block);
 		for(auto & e : outer_key)
@@ -66,14 +66,14 @@ struct hmac
 
 template<std::integral char_type,typename T,bool endian_reverse>
 requires reserve_printable<char_type,T>
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,hmac<T,endian_reverse>>)
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,hmac<T,endian_reverse>>) noexcept
 {
 	return print_reserve_size(io_reserve_type<char_type,T>);
 }
 
 template<std::integral char_type,typename T,bool endian_reverse,std::random_access_iterator caiter>
 requires reserve_printable<char_type,T>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,hmac<T,endian_reverse>>,caiter iter,auto& i)
+inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,hmac<T,endian_reverse>>,caiter iter,auto& i) noexcept
 {
 	return print_reserve_define(io_reserve_type<char_type,T>,iter,i.function);
 }

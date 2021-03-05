@@ -66,7 +66,7 @@ public:
 	using digest_type = std::array<std::uint32_t,8>;
 	static inline constexpr digest_type digest_initial_value{0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
 	static inline constexpr std::size_t block_size{64};
-	void operator()(std::span<std::uint32_t,8> state,std::span<std::byte const> blocks)
+	void operator()(std::span<std::uint32_t,8> state,std::span<std::byte const> blocks) noexcept
 	{
 #if defined(__SHA__) && defined(__SSE4_1__)
 		__m128i STATE0, STATE1;

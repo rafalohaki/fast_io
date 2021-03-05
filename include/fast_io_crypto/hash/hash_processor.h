@@ -20,7 +20,7 @@ public:
 	inline static constexpr std::size_t block_size = function_type::block_size;
 	[[no_unique_address]] std::array<std::byte,block_size> temporary_buffer{};
 	[[no_unique_address]] std::conditional_t<block_size==0,details::compress_current_position,std::size_t> current_position{};
-	constexpr basic_hash_processor(function_type& func):function(func)
+	constexpr basic_hash_processor(function_type& func) noexcept:function(func)
 	{
 		if constexpr(requires(Func& func)
 		{
@@ -28,15 +28,15 @@ public:
 		})
 			current_position+=func.block_init(temporary_buffer);
 	}
-	constexpr void do_final()
+	constexpr void do_final() noexcept
 	{
 		if constexpr(block_size!=0)
 			function.digest(std::as_bytes(std::span<std::byte const>{temporary_buffer.data(),current_position}));
 		else
 			function.digest();
 	}
-	constexpr basic_hash_processor(basic_hash_processor const&)=default;
-	constexpr basic_hash_processor& operator=(basic_hash_processor const&)=default;
+	constexpr basic_hash_processor(basic_hash_processor const&) noexcept=default;
+	constexpr basic_hash_processor& operator=(basic_hash_processor const&) noexcept=default;
 	constexpr ~basic_hash_processor()
 	{
 		secure_clear(temporary_buffer.data(),block_size);
@@ -111,7 +111,7 @@ public:
 	using typename basic_hash_processor<char,Func>::char_type;
 	using typename basic_hash_processor<char,Func>::function_type;
 	using basic_hash_processor<char,Func>::block_size;
-	constexpr hash_processor(Func& func):basic_hash_processor<char,Func>(func){}
+	constexpr hash_processor(Func& func) noexcept:basic_hash_processor<char,Func>(func){}
 };
 
 template<typename Func>

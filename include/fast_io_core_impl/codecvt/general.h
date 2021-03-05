@@ -206,57 +206,77 @@ https://stackoverflow.com/questions/23919515/how-to-convert-from-utf-16-to-utf-3
 		}
 		}
 #endif
+
 		for(;src_first!=src_last;)
-		{
-			if (static_cast<char8_t>(*src_first) < 0x80)
+			if constexpr(src_encoding==encoding_scheme::utf_ebcdic)
 			{
-				if constexpr(encoding_scheme::utf_ebcdic==encoding)
-					*dst= static_cast<dest_char_type>(bm_i8_to_ebcdic[*src_first]);
+				auto [code,adv]=general_advance<src_encoding>(src_first,src_last-src_first);
+				if(adv==static_cast<char8_t>(-1))
+					break;
+				src_first+=adv;
+				if constexpr(sizeof(dest_char_type)==4)
+				{
+					*dst=code;
+					if constexpr(encoding_is_utf(encoding)&&!is_native_scheme(encoding))
+						*dst=byte_swap(*dst);
+					++dst;
+				}
 				else
-					*dst= static_cast<char8_t>(*src_first);
-				if constexpr(sizeof(dest_char_type)!=1&&encoding_is_utf(encoding)&&!is_native_scheme(encoding))
-					*dst=byte_swap(*dst);
-				++src_first;
-				++dst;
+				{
+					dst+=get_utf_code_units<encoding>(code,dst);
+				}
 			}
 			else
 			{
-				if constexpr(src_encoding!=encoding_scheme::utf)
+				if (static_cast<char8_t>(*src_first) < 0x80)
 				{
-					auto [code,adv]=general_advance<src_encoding>(src_first,src_last-src_first);
-					if(adv==static_cast<char8_t>(-1))
-						break;
-					src_first+=adv;
-					if constexpr(sizeof(dest_char_type)==4)
-					{
-						*dst=code;
-						if constexpr(encoding_is_utf(encoding)&&!is_native_scheme(encoding))
-							*dst=byte_swap(*dst);
-						++dst;
-					}
+					if constexpr(encoding_scheme::utf_ebcdic==encoding)
+						*dst= static_cast<dest_char_type>(bm_i8_to_ebcdic[*src_first]);
 					else
-					{
-						dst+=get_utf_code_units<encoding>(code,dst);
-					}
+						*dst= static_cast<char8_t>(*src_first);
+					if constexpr(sizeof(dest_char_type)!=1&&encoding_is_utf(encoding)&&!is_native_scheme(encoding))
+						*dst=byte_swap(*dst);
+					++src_first;
+					++dst;
 				}
 				else
 				{
-					auto [failed,src,code] = advance_with_big_table(src_first, src_last);
-					if(failed)
-						break;
-					src_first=src;
-					if constexpr(sizeof(dest_char_type)==4)
+					if constexpr(src_encoding!=encoding_scheme::utf)
 					{
-						*dst=code;
-						if constexpr(encoding_is_utf(encoding)&&!is_native_scheme(encoding))
-							*dst=byte_swap(*dst);
-						++dst;
+						auto [code,adv]=general_advance<src_encoding>(src_first,src_last-src_first);
+						if(adv==static_cast<char8_t>(-1))
+							break;
+						src_first+=adv;
+						if constexpr(sizeof(dest_char_type)==4)
+						{
+							*dst=code;
+							if constexpr(encoding_is_utf(encoding)&&!is_native_scheme(encoding))
+								*dst=byte_swap(*dst);
+							++dst;
+						}
+						else
+						{
+							dst+=get_utf_code_units<encoding>(code,dst);
+						}
 					}
 					else
-						dst+=get_utf_code_units<encoding>(code,dst);
+					{
+						auto [failed,src,code] = advance_with_big_table(src_first, src_last);
+						if(failed)
+							break;
+						src_first=src;
+						if constexpr(sizeof(dest_char_type)==4)
+						{
+							*dst=code;
+							if constexpr(encoding_is_utf(encoding)&&!is_native_scheme(encoding))
+								*dst=byte_swap(*dst);
+							++dst;
+						}
+						else
+							dst+=get_utf_code_units<encoding>(code,dst);
+					}
 				}
 			}
-		}
 		return {src_first,dst};
 	}
 	

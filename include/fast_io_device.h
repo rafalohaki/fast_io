@@ -251,14 +251,32 @@ basic_icode_cvt_file<internal_char_type,char,
 encoding_scheme::execution_charset,
 encoding_scheme::utf_ebcdic>>;
 
+using iutf_ebcdic_file = basic_iutf_ebcdic_file<char>;
+using wiutf_ebcdic_file = basic_iutf_ebcdic_file<wchar_t>;
 using u8iutf_ebcdic_file = basic_iutf_ebcdic_file<char8_t>;
+using u16iutf_ebcdic_file = basic_iutf_ebcdic_file<char16_t>;
+using u32iutf_ebcdic_file = basic_iutf_ebcdic_file<char32_t>;
 
 template<std::integral internal_char_type>
 using basic_outf_ebcdic_file = std::conditional_t<std::same_as<char,internal_char_type>
 &&execution_charset_encoding_scheme<char>()==encoding_scheme::utf_ebcdic,
 basic_obuf<basic_onative_file<char>>,
 basic_ocode_cvt_file<internal_char_type,char,encoding_scheme::execution_charset,encoding_scheme::utf_ebcdic>>;
-
+using outf_ebcdic_file = basic_outf_ebcdic_file<char>;
+using woutf_ebcdic_file = basic_outf_ebcdic_file<wchar_t>;
 using u8outf_ebcdic_file = basic_outf_ebcdic_file<char8_t>;
+using u16outf_ebcdic_file = basic_outf_ebcdic_file<char16_t>;
+using u32outf_ebcdic_file = basic_outf_ebcdic_file<char32_t>;
+
+template<std::integral internal_char_type>
+using basic_utf_ebcdic_file = std::conditional_t<std::same_as<char,internal_char_type>
+&&execution_charset_encoding_scheme<char>()==encoding_scheme::utf_ebcdic,
+basic_iobuf<basic_native_file<char>>,
+basic_code_cvt_file<internal_char_type,char,encoding_scheme::execution_charset,encoding_scheme::utf_ebcdic>>;
+using utf_ebcdic_file = basic_utf_ebcdic_file<char>;
+using wutf_ebcdic_file = basic_utf_ebcdic_file<wchar_t>;
+using u8utf_ebcdic_file = basic_utf_ebcdic_file<char8_t>;
+using u16utf_ebcdic_file = basic_utf_ebcdic_file<char16_t>;
+using u32utf_ebcdic_file = basic_utf_ebcdic_file<char32_t>;
 
 }
