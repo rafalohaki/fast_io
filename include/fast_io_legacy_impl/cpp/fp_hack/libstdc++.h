@@ -6,6 +6,7 @@
 
 namespace fast_io::details::streambuf_hack
 {
+
 template<typename char_type,typename traits_type>
 inline std::FILE* fp_hack_impl(std::basic_filebuf<char_type,traits_type>* fbuf) noexcept
 {
@@ -45,6 +46,31 @@ inline std::FILE* fp_hack(T* cio) noexcept
 #endif
 	errno=EBADF;
 	return nullptr;
+}
+/*
+https://github.com/gcc-mirror/gcc/blob/master/libstdc++-v3/config/io/basic_file_stdio.h
+
+      // Underlying data source/sink.
+      __c_file* 	_M_cfile;
+
+      // True iff we opened _M_cfile, and thus must close it ourselves.
+      bool 		_M_cfile_created;
+
+*/
+struct libstdcxx_basic_file_char_model
+{
+	std::FILE* M_cfile;
+	bool M_cfile_created;
+};
+
+template<typename char_type,typename traits_type>
+inline void hack_set_close(std::basic_filebuf<char_type,traits_type>* fbuf) noexcept
+{
+	constexpr std::size_t m_cfile_created_offset{
+		sizeof(std::basic_streambuf<char_type, traits_type>)+
+		sizeof(std::__c_lock)
+		+offsetof(libstdcxx_basic_file_char_model,M_cfile_created)};
+	m_cfile_created_offset[reinterpret_cast<std::byte*>(fbuf)]=std::byte{1};
 }
 
 }
