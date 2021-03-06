@@ -42,16 +42,17 @@ inline constexpr Iter print_reserve_width_fill_unchecked(Iter first,Iter last,st
 	using char_type = std::iter_value_t<Iter>;
 	if constexpr(wm==::fast_io::manipulators::width_mode::left)
 	{
+		width-=diff;
 		if constexpr(std::same_as<char_type,char>)
-			return my_fill_n(last,diff,' ');
+			return my_fill_n(last,width,' ');
 		else if constexpr(std::same_as<char_type,wchar_t>)
-			return my_fill_n(last,diff,L' ');
+			return my_fill_n(last,width,L' ');
 		else if constexpr(std::same_as<char_type,char16_t>)
-			return my_fill_n(last,diff,u' ');
+			return my_fill_n(last,width,u' ');
 		else if constexpr(std::same_as<char_type,char32_t>)
-			return my_fill_n(last,diff,U' ');
+			return my_fill_n(last,width,U' ');
 		else
-			return my_fill_n(last,diff,u8' ');
+			return my_fill_n(last,width,u8' ');
 	}
 	else
 	{
