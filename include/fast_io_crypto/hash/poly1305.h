@@ -79,9 +79,9 @@ struct poly1305
 	{
 		key_type key = {};
 		if (init_key.size()>32) {
-			memcpy(key.data(),init_key.data(),32);
+			::fast_io::details::my_memcpy(key.data(),init_key.data(),32);
 		} else {
-			memcpy(key.data(),init_key.data(),init_key.size());
+			::fast_io::details::my_memcpy(key.data(),init_key.data(),init_key.size());
 		}
 		poly1305_state_internal_t *st = &internal_state;
 		std::uint64_t t0,t1;
@@ -183,7 +183,7 @@ struct poly1305
 
 		// pad zero and process last block
 		std::array<std::byte, block_size> block_padded = {};
-		memcpy(block_padded.data(), final_block.data(), final_block.size());
+		::fast_io::details::my_memcpy(block_padded.data(), final_block.data(), final_block.size());
 		(*this)(std::span<std::byte const,block_size>(block_padded));
 
 		/* fully carry h */

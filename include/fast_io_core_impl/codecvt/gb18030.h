@@ -76,7 +76,7 @@ inline constexpr std::size_t lookup_uni_to_gb18030(char32_t cdpt, T* p_dst) noex
 			{
 				if constexpr(std::endian::native==std::endian::big)
 					v2=byte_swap(v2);
-				memcpy(p_dst,&v2,2);
+				::fast_io::details::my_memcpy(p_dst,&v2,2);
 			}
 			else
 #endif
@@ -99,7 +99,7 @@ inline constexpr std::size_t lookup_uni_to_gb18030(char32_t cdpt, T* p_dst) noex
 		{
 			if constexpr(std::endian::native==std::endian::big)
 				v=byte_swap(v);
-			memcpy(p_dst,&v,4);
+			::fast_io::details::my_memcpy(p_dst,&v,4);
 		}
 		else
 #endif

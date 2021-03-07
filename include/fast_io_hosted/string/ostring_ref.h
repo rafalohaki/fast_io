@@ -88,7 +88,7 @@ inline constexpr void write(ostring_ref<char_type,traits_type,allocator_type> ob
 		std::size_t const to_write(end-begin);
 		if(curr+to_write<=ed)[[likely]]
 		{
-			memcpy(curr,std::to_address(begin),to_write*sizeof(char_type));
+			::fast_io::details::my_memcpy(curr,std::to_address(begin),to_write*sizeof(char_type));
 			obuffer_set_curr(ob,curr+to_write);
 			return;
 		}

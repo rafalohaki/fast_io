@@ -52,6 +52,14 @@ struct pos_sign_t
 	T reference;
 };
 
+template<typename vw_type,typename T>
+struct simd_view_t
+{
+	using view_type = vw_type;
+	using manip_tag = manip_tag_t;
+	T reference;
+};
+
 enum class floating_representation
 {
 scientific,fixed,general

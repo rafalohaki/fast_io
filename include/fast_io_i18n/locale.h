@@ -248,9 +248,9 @@ inline void* load_l10n_with_real_name_impl(lc_locale& loc,std::basic_string_view
 	constexpr auto encoding{exec_encoding_dll_array<char_type>()};
 	constexpr auto prefix_no_0_size{prefix.size()-1};
 	std::unique_ptr<char_type[]> arrptr(new char_type[prefix_no_0_size+locale_name.size()+encoding.size()]);
-	memcpy(arrptr.get(),prefix.data(),prefix_no_0_size*sizeof(char_type));
-	memcpy(arrptr.get()+prefix_no_0_size,locale_name.data(),locale_name.size()*sizeof(char_type));
-	memcpy(arrptr.get()+prefix_no_0_size+locale_name.size(),encoding.data(),encoding.size()*sizeof(char_type));
+	::fast_io::details::my_memcpy(arrptr.get(),prefix.data(),prefix_no_0_size*sizeof(char_type));
+	::fast_io::details::my_memcpy(arrptr.get()+prefix_no_0_size,locale_name.data(),locale_name.size()*sizeof(char_type));
+	::fast_io::details::my_memcpy(arrptr.get()+prefix_no_0_size+locale_name.size(),encoding.data(),encoding.size()*sizeof(char_type));
 	return load_dll(arrptr.get(),loc);
 }
 
@@ -263,12 +263,12 @@ inline void* load_l10n_with_real_name_impl(lc_locale& loc,std::basic_string_view
 	constexpr auto prefix_no_0_size{prefix.size()-1};
 	constexpr auto dll_postfix{exec_dll_array<char_type>()};
 	std::unique_ptr<char_type[]> arrptr(new char_type[prefix_no_0_size+locale_name.size()+1+encoding.size()+dll_postfix.size()]);
-	memcpy(arrptr.get(),prefix.data(),prefix_no_0_size*sizeof(char_type));
-	memcpy(arrptr.get()+prefix_no_0_size,locale_name.data(),locale_name.size()*sizeof(char_type));
+	::fast_io::details::my_memcpy(arrptr.get(),prefix.data(),prefix_no_0_size*sizeof(char_type));
+	::fast_io::details::my_memcpy(arrptr.get()+prefix_no_0_size,locale_name.data(),locale_name.size()*sizeof(char_type));
 	arrptr[prefix_no_0_size+locale_name.size()]=u8'.';
 	if(encoding.size())
-		memcpy(arrptr.get()+prefix_no_0_size+locale_name.size()+1,encoding.data(),encoding.size()*sizeof(char_type));
-	memcpy(arrptr.get()+prefix_no_0_size+locale_name.size()+1+encoding.size(),dll_postfix.data(),dll_postfix.size()*sizeof(char_type));
+		::fast_io::details::my_memcpy(arrptr.get()+prefix_no_0_size+locale_name.size()+1,encoding.data(),encoding.size()*sizeof(char_type));
+	::fast_io::details::my_memcpy(arrptr.get()+prefix_no_0_size+locale_name.size()+1+encoding.size(),dll_postfix.data(),dll_postfix.size()*sizeof(char_type));
 	return load_dll(arrptr.get(),loc);
 }
 
@@ -280,9 +280,9 @@ inline void* load_l10n_with_full_name_impl(lc_locale& loc,std::basic_string_view
 	constexpr auto prefix_no_0_size{prefix.size()-1};
 	constexpr auto dll_postfix{exec_dll_array<char_type>()};
 	std::unique_ptr<char_type[]> arrptr(new char_type[prefix_no_0_size+locale_fullname.size()+dll_postfix.size()]);
-	memcpy(arrptr.get(),prefix.data(),prefix_no_0_size*sizeof(char_type));
-	memcpy(arrptr.get()+prefix_no_0_size,locale_fullname.data(),locale_fullname.size()*sizeof(char_type));
-	memcpy(arrptr.get()+prefix_no_0_size+locale_fullname.size(),dll_postfix.data(),dll_postfix.size()*sizeof(char_type));
+	::fast_io::details::my_memcpy(arrptr.get(),prefix.data(),prefix_no_0_size*sizeof(char_type));
+	::fast_io::details::my_memcpy(arrptr.get()+prefix_no_0_size,locale_fullname.data(),locale_fullname.size()*sizeof(char_type));
+	::fast_io::details::my_memcpy(arrptr.get()+prefix_no_0_size+locale_fullname.size(),dll_postfix.data(),dll_postfix.size()*sizeof(char_type));
 	return load_dll(arrptr.get(),loc);
 }
 

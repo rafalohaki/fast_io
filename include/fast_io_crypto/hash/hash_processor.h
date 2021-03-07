@@ -54,7 +54,7 @@ inline constexpr void write_cold_path(basic_hash_processor<ch_type,Func>& out,It
 	if(out.current_position)
 	{
 		std::size_t to_copy{Func::block_size-out.current_position};
-		memcpy(out.temporary_buffer.data()+out.current_position,std::to_address(begin),to_copy);
+		::fast_io::details::my_memcpy(out.temporary_buffer.data()+out.current_position,std::to_address(begin),to_copy);
 		out.function(std::span<std::byte const,Func::block_size>{out.temporary_buffer});
 		begin+=to_copy;
 		out.current_position={};
@@ -64,7 +64,7 @@ inline constexpr void write_cold_path(basic_hash_processor<ch_type,Func>& out,It
 	std::size_t const blocks_bytes(blocks*Func::block_size);
 	out.function(std::span<std::byte const>{reinterpret_cast<std::byte const*>(std::to_address(begin)),blocks_bytes});	
 	std::size_t const to_copy(total_bytes-blocks_bytes);
-	memcpy(out.temporary_buffer.data(),reinterpret_cast<std::byte const*>(std::to_address(end))-to_copy,to_copy);
+	::fast_io::details::my_memcpy(out.temporary_buffer.data(),reinterpret_cast<std::byte const*>(std::to_address(end))-to_copy,to_copy);
 	out.current_position=to_copy;
 }
 
@@ -86,7 +86,7 @@ inline void write(basic_hash_processor<ch_type,Func>& out,Iter begin,Iter end)
 		std::size_t to_copy{Func::block_size-out.current_position};
 		if(bytes<to_copy)[[likely]]
 		{
-			memcpy(out.temporary_buffer.data()+out.current_position,std::to_address(begin),bytes);
+			::fast_io::details::my_memcpy(out.temporary_buffer.data()+out.current_position,std::to_address(begin),bytes);
 			out.current_position+=bytes;
 			return;
 		}

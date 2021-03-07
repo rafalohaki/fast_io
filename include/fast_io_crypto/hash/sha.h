@@ -44,7 +44,7 @@ public:
 	{
 		std::uint64_t total_bits(static_cast<std::uint64_t>(transform_counter*block_size+final_block.size())*8);
 		std::array<std::byte,block_size> blocks{};
-		memcpy(blocks.data(),final_block.data(),final_block.size());
+		::fast_io::details::my_memcpy(blocks.data(),final_block.data(),final_block.size());
 		blocks[final_block.size()]=std::byte{0x80};
 		auto start{blocks.data()+blocks.size()-8};
 		if(block_size<=final_block.size()+8)
@@ -56,12 +56,12 @@ public:
 		{
 			total_bits=details::byte_swap(total_bits);
 			std::uint32_t bu3(static_cast<std::uint32_t>(total_bits));
-			memcpy(start,std::addressof(bu3),4);
+			::fast_io::details::my_memcpy(start,std::addressof(bu3),4);
 			std::uint32_t bu4(static_cast<std::uint32_t>(total_bits>>32));
-			memcpy(start+4,std::addressof(bu4),4);
+			::fast_io::details::my_memcpy(start+4,std::addressof(bu4),4);
 		}
 		else
-			memcpy(start,std::addressof(total_bits),8);
+			::fast_io::details::my_memcpy(start,std::addressof(total_bits),8);
 		function(digest_block,std::span<std::byte const,block_size>{blocks});
 	}
 };

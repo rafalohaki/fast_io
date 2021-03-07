@@ -85,7 +85,7 @@ struct default_ieee754_traits {
 		return std::bit_cast<T>(u);
 #else
 		T x;
-		std::memcpy(&x, &u, sizeof(carrier_uint));
+		::fast_io::details::my_memcpy(&x, &u, sizeof(carrier_uint));
 		return x;
 #endif
 	}
@@ -98,7 +98,7 @@ struct default_ieee754_traits {
 		return std::bit_cast<carrier_uint>(x);
 #else
 		carrier_uint u;
-		std::memcpy(&u, &x, sizeof(carrier_uint));
+		::fast_io::details::my_memcpy(&u, &x, sizeof(carrier_uint));
 		return u;
 #endif
 	}
@@ -273,7 +273,7 @@ namespace detail {
 
 namespace wuint {
 struct uint128 {
-	uint128() = default;
+	constexpr uint128() = default;
 
 #if (defined(__GNUC__) || defined(__clang__)) && defined(__SIZEOF_INT128__) && defined(__x86_64__)
 	unsigned __int128	internal_;

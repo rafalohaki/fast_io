@@ -55,7 +55,7 @@ public:
 	{
 
 		std::uint64_t v;
-		memcpy(std::addressof(v),process_block.data(),block_size);
+		::fast_io::details::my_memcpy(std::addressof(v),process_block.data(),block_size);
 		crc = _mm_crc32_u64(crc,v);
 
 	}
@@ -64,7 +64,7 @@ public:
 		for(auto block(blocks.data()),ed(blocks.data()+blocks.size());block!=ed;block+=block_size)
 		{
 			std::uint64_t v;
-			memcpy(std::addressof(v),block,block_size);
+			::fast_io::details::my_memcpy(std::addressof(v),block,block_size);
 			crc = _mm_crc32_u64(crc,v);
 		}
 	}
@@ -75,10 +75,10 @@ public:
 		case 7:
 		{
 			std::uint32_t fn;
-			memcpy(std::addressof(fn),final_block.data(),4);
+			::fast_io::details::my_memcpy(std::addressof(fn),final_block.data(),4);
 			crc = _mm_crc32_u32(crc,fn);
 			std::uint16_t fn1;
-			memcpy(std::addressof(fn1),final_block.data()+4,2);
+			::fast_io::details::my_memcpy(std::addressof(fn1),final_block.data()+4,2);
 			crc = _mm_crc32_u32(crc,fn1);
 			crc = _mm_crc32_u8(crc,std::to_integer<char unsigned>(final_block[6]));
 			break;
@@ -86,17 +86,17 @@ public:
 		case 6:
 		{
 			std::uint32_t fn;
-			memcpy(std::addressof(fn),final_block.data(),4);
+			::fast_io::details::my_memcpy(std::addressof(fn),final_block.data(),4);
 			crc = _mm_crc32_u32(crc,fn);
 			std::uint16_t fn1;
-			memcpy(std::addressof(fn1),final_block.data()+4,2);
+			::fast_io::details::my_memcpy(std::addressof(fn1),final_block.data()+4,2);
 			crc = _mm_crc32_u32(crc,fn1);
 			break;
 		}
 		case 5:
 		{
 			std::uint32_t fn;
-			memcpy(std::addressof(fn),final_block.data(),4);
+			::fast_io::details::my_memcpy(std::addressof(fn),final_block.data(),4);
 			crc = _mm_crc32_u32(crc,fn);
 			crc = _mm_crc32_u8(crc,std::to_integer<char unsigned>(final_block[4]));
 			break;
@@ -104,14 +104,14 @@ public:
 		case 4:
 		{
 			std::uint32_t fn;
-			memcpy(std::addressof(fn),final_block.data(),4);
+			::fast_io::details::my_memcpy(std::addressof(fn),final_block.data(),4);
 			crc = _mm_crc32_u32(crc,fn);
 			break;
 		}
 		case 3:
 		{
 			std::uint16_t fn;
-			memcpy(std::addressof(fn),final_block.data(),2);
+			::fast_io::details::my_memcpy(std::addressof(fn),final_block.data(),2);
 			crc = _mm_crc32_u16(crc,fn);
 			crc = _mm_crc32_u8(crc,std::to_integer<char unsigned>(final_block[2]));
 			break;
@@ -119,7 +119,7 @@ public:
 		case 2:
 		{
 			std::uint16_t fn;
-			memcpy(std::addressof(fn),final_block.data(),2);
+			::fast_io::details::my_memcpy(std::addressof(fn),final_block.data(),2);
 			crc = _mm_crc32_u16(crc,fn);
 			break;
 		}

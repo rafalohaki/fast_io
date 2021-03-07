@@ -22,18 +22,18 @@ struct hmac
 			if constexpr(endian_reverse)
 				for(auto & e : function.digest_block)
 					e=details::byte_swap(e);
-			memcpy(outer_key.data(),function.digest_block.data(),function.digest_block.size());
+			::fast_io::details::my_memcpy(outer_key.data(),function.digest_block.data(),function.digest_block.size());
 			function={};
 		}
 		else
-			memcpy(outer_key.data(),init_key.data(),init_key.size());
+			::fast_io::details::my_memcpy(outer_key.data(),init_key.data(),init_key.size());
 		for(std::size_t i{};i!=inner_key.size();++i)
 			inner_key[i]=outer_key[i]^std::byte{0x36};
 	}
 	hmac(std::string_view key) noexcept:hmac(std::as_bytes(std::span{key.data(),key.size()})){}
 	std::size_t block_init(std::span<std::byte,block_size> sp) noexcept
 	{
-		memcpy(sp.data(),inner_key.data(),sizeof(key_type));
+		::fast_io::details::my_memcpy(sp.data(),inner_key.data(),sizeof(key_type));
 		return sizeof(key_type);
 	}
 	void operator()(std::span<std::byte const,block_size> process_block) noexcept

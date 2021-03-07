@@ -221,7 +221,7 @@ inline std::uintmax_t zero_copy_transmit_once(output& outp,input& inp,std::uintm
 	if constexpr(rac)
 	{
 		fast_io::win32::overlapped ov{};
-		memcpy(std::addressof(ov),std::addressof(offset),sizeof(std::int64_t));
+		::fast_io::details::my_memcpy(std::addressof(ov),std::addressof(offset),sizeof(std::int64_t));
 	if(!((fast_io::sock::details::get_proc_address_mswsock<decltype(fast_io::win32::TransmitFile)*>
 		("TransmitFile"))(zero_copy_out_handle(outp),zero_copy_in_handle(inp),bytes,0,std::addressof(ov),nullptr,32/*TF_USE_DEFAULT_WORKER*/)))
 		throw_win32_error();

@@ -284,13 +284,13 @@ inline constexpr F input_floating(It_First iter,It_Second ed)
 				if(cl_buffer_size<fl_buffer.size())
 				{
 					larger_buffer_size=fl_buffer.size();
-					memset(cl_buffer.data()+cl_buffer.size(),0,fl_buffer.size()-cl_buffer_size);
+					::fast_io::details::my_memset(cl_buffer.data()+cl_buffer.size(),0,fl_buffer.size()-cl_buffer_size);
 					cl_buffer.position+=fl_buffer.size()-cl_buffer_size;
 				}
 				else
 				{
 					larger_buffer_size=cl_buffer_size;
-					memset(fl_buffer.data()+fl_buffer.size(),0,cl_buffer_size-fl_buffer.size());
+					::fast_io::details::my_memset(fl_buffer.data()+fl_buffer.size(),0,cl_buffer_size-fl_buffer.size());
 					fl_buffer.position+=cl_buffer_size-fl_buffer.size();
 				}
 				if(larger_buffer_size<buffer.size())
@@ -310,7 +310,7 @@ inline constexpr F input_floating(It_First iter,It_Second ed)
 				else
 				{
 					std::size_t const to_set{larger_buffer_size-buffer.size()};
-					memset(buffer.data()+buffer.size(),0,to_set);
+					::fast_io::details::my_memset(buffer.data()+buffer.size(),0,to_set);
 					buffer.position+=to_set;
 				}
 //				::debug_println("\n\nafter:\ncl_buffer (LARGER):",cl_buffer,"\nbuffer:",buffer,"\nfl_buffer (SMALLER):",fl_buffer);

@@ -12,7 +12,7 @@ inline std::FILE* fp_hack_impl(std::basic_filebuf<char_type,traits_type>* fbuf) 
 {
 	std::FILE* fp{};
 	// we can only do this or ubsanitizer will complain. Do not do down_cast
-	memcpy(std::addressof(fp),reinterpret_cast<std::byte*>(fbuf)+sizeof(std::basic_streambuf<char_type, traits_type>)+sizeof(std::__c_lock),sizeof(fp));
+	::fast_io::details::my_memcpy(std::addressof(fp),reinterpret_cast<std::byte*>(fbuf)+sizeof(std::basic_streambuf<char_type, traits_type>)+sizeof(std::__c_lock),sizeof(fp));
 	return fp;
 }
 

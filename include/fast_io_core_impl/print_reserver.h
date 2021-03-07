@@ -60,7 +60,7 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,print_res
 	else
 	{
 #endif
-		memcpy(std::to_address(beg),ref.data(),ref.size()*sizeof(char_type));
+		::fast_io::details::my_memcpy(std::to_address(beg),ref.data(),ref.size()*sizeof(char_type));
 #ifdef __cpp_lib_is_constant_evaluated
 	}
 #endif
@@ -132,7 +132,7 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,reverse_p
 	else
 	{
 #endif
-		memcpy(std::to_address(beg),ref.data(),ref.size()*sizeof(char_type));
+		::fast_io::details::my_memcpy(std::to_address(beg),ref.data(),ref.size()*sizeof(char_type));
 #ifdef __cpp_lib_is_constant_evaluated
 	}
 #endif

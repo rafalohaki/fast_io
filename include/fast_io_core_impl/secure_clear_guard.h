@@ -27,12 +27,12 @@ Used in: zap from Kerberos, memzero_explicit from Linux.
 Availability: GCC and Clang.
 Effectiveness: effective
 Not effective on Clang:
-	std::memset(data,0,size);
+	std::::fast_io::details::my_memset(data,0,size);
 	__asm__ __volatile__("" ::: "memory");
 
 
 Effective on Clang
-	std::memset(data,0,size);
+	std::::fast_io::details::my_memset(data,0,size);
 	__asm__ __volatile__("" ::"r"(data): "memory");
 
 How difficult to create a reliable scrubbing function
@@ -53,7 +53,7 @@ https://github.com/bminor/glibc/blob/master/string/explicit_bzero.c
 Referenced from glibc
 
 */
-	std::memset(data,0,size);
+	details::my_memset(data,0,size);
 	__asm__ __volatile__("" ::"r"(data): "memory");
 #endif
 }

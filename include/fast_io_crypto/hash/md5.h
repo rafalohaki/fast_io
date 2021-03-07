@@ -59,7 +59,7 @@ public:
 		{
 			std::uint32_t a{at},b{bt},c{ct},d{dt};
 			std::array<std::uint32_t,16> x;
-			memcpy(x.data(),block,block_size);
+			::fast_io::details::my_memcpy(x.data(),block,block_size);
 			using namespace details::md5;
 
 			uu<operation::F>(a, b, c, d, x[ 0], 7, 0xd76aa478);

@@ -38,17 +38,17 @@ inline address operator*(dns_iterator const &a)
 	if (a.ptr->ai_family == AF_INET)
 	{
 		sockaddr_in addr;
-		memcpy(std::addressof(addr), a.ptr->ai_addr, sizeof(addr));
+		::fast_io::details::my_memcpy(std::addressof(addr), a.ptr->ai_addr, sizeof(addr));
 		ipv4 ret;
-		memcpy(ret.storage.data(), std::addressof(addr.sin_addr), sizeof(ret.storage));
+		::fast_io::details::my_memcpy(ret.storage.data(), std::addressof(addr.sin_addr), sizeof(ret.storage));
 		return address(ret);
 	}
 	else if (a.ptr->ai_family == AF_INET6)
 	{
 		sockaddr_in6 addr;
-		memcpy(std::addressof(addr), a.ptr->ai_addr, sizeof(addr));
+		::fast_io::details::my_memcpy(std::addressof(addr), a.ptr->ai_addr, sizeof(addr));
 		ipv6 ret;
-		memcpy(ret.storage.data(), std::addressof(addr.sin6_addr), sizeof(ret.storage));
+		::fast_io::details::my_memcpy(ret.storage.data(), std::addressof(addr.sin6_addr), sizeof(ret.storage));
 		if constexpr(std::endian::native==std::endian::little)
 			for(auto& e : ret.storage)
 				e=details::byte_swap(e);

@@ -41,7 +41,7 @@ inline std::FILE* fp_hack_impl(std::basic_filebuf<char_type,traits_type>* fbuf) 
 	std::FILE* fp{};
 	static_assert(sizeof(filebuf_model_type)==sizeof(std::basic_filebuf<char_type,traits_type>),"unmatched std::basic_filebuf model");
 	// we can only do this or ubsanitizer will complain. Do not do down_cast
-	memcpy(std::addressof(fp),reinterpret_cast<std::byte*>(fbuf)+offsetof(filebuf_model_type,_Myfile),sizeof(fp));
+	::fast_io::details::my_memcpy(std::addressof(fp),reinterpret_cast<std::byte*>(fbuf)+offsetof(filebuf_model_type,_Myfile),sizeof(fp));
 	return fp;
 }
 
@@ -78,7 +78,7 @@ inline void msvc_hack_set_close(std::basic_filebuf<char_type,traits_type>* fbuf)
 {
 	using filebuf_model_type = basic_filebuf_model<char_type,traits_type>;
 	static_assert(sizeof(filebuf_model_type)==sizeof(std::basic_filebuf<char_type,traits_type>),"unmatched std::basic_filebuf model");
-	memset(reinterpret_cast<std::byte*>(fbuf)+offsetof(filebuf_model_type,_Closef),true,sizeof(bool));
+	::fast_io::details::my_memset(reinterpret_cast<std::byte*>(fbuf)+offsetof(filebuf_model_type,_Closef),true,sizeof(bool));
 }
 
 }

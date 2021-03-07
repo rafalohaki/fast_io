@@ -21,7 +21,7 @@ inline FILE* stdinbuf_stdoutbuf_fp_hack(T* stdbuf) noexcept
 {
 	FILE* fp{};
 	// we can only do this or ubsanitizer will complain. Do not do down_cast
-	memcpy(std::addressof(fp),reinterpret_cast<std::byte*>(stdbuf)+
+	::fast_io::details::my_memcpy(std::addressof(fp),reinterpret_cast<std::byte*>(stdbuf)+
 	sizeof(std::basic_streambuf<typename T::char_type, typename T::traits_type>),sizeof(fp));
 	return fp;
 }
@@ -52,7 +52,7 @@ inline std::FILE* fp_hack_impl(std::basic_filebuf<char_type,traits_type>* fbuf) 
 {
 	std::FILE* fp{};
 	// we can only do this or ubsanitizer will complain. Do not do down_cast
-	memcpy(std::addressof(fp),
+	::fast_io::details::my_memcpy(std::addressof(fp),
 	reinterpret_cast<std::byte*>(fbuf)+sizeof(std::basic_streambuf<char_type, traits_type>)+
 	4*sizeof(uintptr_t)+8+2*sizeof(std::size_t),sizeof(fp));
 	return fp;

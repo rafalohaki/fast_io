@@ -102,7 +102,7 @@ public:
 			for (; i < 16; ++i)
 			{
 				std::uint64_t value;
-				memcpy(std::addressof(value),data,8);
+				::fast_io::details::my_memcpy(std::addressof(value),data,8);
 				X[i] = details::big_endian(value);
 				data += 8;
 

@@ -27,11 +27,11 @@ inline void output_unsigned_partial(Iter str,std::uint64_t value) noexcept
 	remains2 = remains1;
 	remains1 = remains0 - remains1*10000;
 	remains0 = temp2 - remains0*10000;
-	memcpy(str,static_tables<ch_type>::table4[v4].data()+1,3*sizeof(ch_type));
-	memcpy(str + 3,static_tables<ch_type>::table4[remains3].data(),bytes4);
-	memcpy(str + 7,static_tables<ch_type>::table4[remains2].data(),bytes4);
-	memcpy(str + 11,static_tables<ch_type>::table4[remains1].data(),bytes4);
-	memcpy(str + 15,static_tables<ch_type>::table4[remains0].data(),bytes4);
+	::fast_io::details::my_memcpy(str,static_tables<ch_type>::table4[v4].data()+1,3*sizeof(ch_type));
+	::fast_io::details::my_memcpy(str + 3,static_tables<ch_type>::table4[remains3].data(),bytes4);
+	::fast_io::details::my_memcpy(str + 7,static_tables<ch_type>::table4[remains2].data(),bytes4);
+	::fast_io::details::my_memcpy(str + 11,static_tables<ch_type>::table4[remains1].data(),bytes4);
+	::fast_io::details::my_memcpy(str + 15,static_tables<ch_type>::table4[remains0].data(),bytes4);
 }
 
 template<std::contiguous_iterator Iter,my_unsigned_integral U>
@@ -88,22 +88,22 @@ inline std::size_t output_unsigned(Iter str,U value) noexcept
 			remains0 = temp2 - remains0*10000;
 			if (v4 >= 1000)
 			{
-				memcpy(str,static_tables<ch_type>::table4[v4].data(),bytes4);
-				memcpy(str += 4,static_tables<ch_type>::table4[remains3].data(),bytes4);
-				memcpy(str += 4,static_tables<ch_type>::table4[remains2].data(),bytes4);
-				memcpy(str += 4,static_tables<ch_type>::table4[remains1].data(),bytes4);
-				memcpy(str += 4,static_tables<ch_type>::table4[remains0].data(),bytes4);
+				::fast_io::details::my_memcpy(str,static_tables<ch_type>::table4[v4].data(),bytes4);
+				::fast_io::details::my_memcpy(str += 4,static_tables<ch_type>::table4[remains3].data(),bytes4);
+				::fast_io::details::my_memcpy(str += 4,static_tables<ch_type>::table4[remains2].data(),bytes4);
+				::fast_io::details::my_memcpy(str += 4,static_tables<ch_type>::table4[remains1].data(),bytes4);
+				::fast_io::details::my_memcpy(str += 4,static_tables<ch_type>::table4[remains0].data(),bytes4);
 				return 20;
 			}
 			else
 			{
 				auto wstr(str);
-				memcpy(wstr,static_tables<ch_type>::table5[v4].data(),bytes4);
+				::fast_io::details::my_memcpy(wstr,static_tables<ch_type>::table5[v4].data(),bytes4);
 				wstr += static_offset<>::offset[v4];
-				memcpy(wstr,static_tables<ch_type>::table4[remains3].data(),bytes4);
-				memcpy(wstr += 4,static_tables<ch_type>::table4[remains2].data(),bytes4);
-				memcpy(wstr += 4,static_tables<ch_type>::table4[remains1].data(),bytes4);
-				memcpy(wstr += 4,static_tables<ch_type>::table4[remains0].data(),bytes4);
+				::fast_io::details::my_memcpy(wstr,static_tables<ch_type>::table4[remains3].data(),bytes4);
+				::fast_io::details::my_memcpy(wstr += 4,static_tables<ch_type>::table4[remains2].data(),bytes4);
+				::fast_io::details::my_memcpy(wstr += 4,static_tables<ch_type>::table4[remains1].data(),bytes4);
+				::fast_io::details::my_memcpy(wstr += 4,static_tables<ch_type>::table4[remains0].data(),bytes4);
 				wstr += 4;
 				return static_cast<std::size_t>(wstr-str);
 			}
@@ -121,20 +121,20 @@ inline std::size_t output_unsigned(Iter str,U value) noexcept
 			remains0 = temp2 - remains0*10000;
 			if (v3 >= 1000)
 			{
-				memcpy(str,static_tables<ch_type>::table4[v3].data(),bytes4);
-				memcpy(str += 4,static_tables<ch_type>::table4[remains2].data(),bytes4);
-				memcpy(str += 4,static_tables<ch_type>::table4[remains1].data(),bytes4);
-				memcpy(str += 4,static_tables<ch_type>::table4[remains0].data(),bytes4);
+				::fast_io::details::my_memcpy(str,static_tables<ch_type>::table4[v3].data(),bytes4);
+				::fast_io::details::my_memcpy(str += 4,static_tables<ch_type>::table4[remains2].data(),bytes4);
+				::fast_io::details::my_memcpy(str += 4,static_tables<ch_type>::table4[remains1].data(),bytes4);
+				::fast_io::details::my_memcpy(str += 4,static_tables<ch_type>::table4[remains0].data(),bytes4);
 				return 16;
 			}
 			else
 			{
 				auto wstr(str);
-				memcpy(wstr,static_tables<ch_type>::table5[v3].data(),bytes4);
+				::fast_io::details::my_memcpy(wstr,static_tables<ch_type>::table5[v3].data(),bytes4);
 				wstr += static_offset<>::offset[v3];
-				memcpy(wstr,static_tables<ch_type>::table4[remains2].data(),bytes4);
-				memcpy(wstr += 4,static_tables<ch_type>::table4[remains1].data(),bytes4);
-				memcpy(wstr += 4,static_tables<ch_type>::table4[remains0].data(),bytes4);
+				::fast_io::details::my_memcpy(wstr,static_tables<ch_type>::table4[remains2].data(),bytes4);
+				::fast_io::details::my_memcpy(wstr += 4,static_tables<ch_type>::table4[remains1].data(),bytes4);
+				::fast_io::details::my_memcpy(wstr += 4,static_tables<ch_type>::table4[remains0].data(),bytes4);
 				wstr += 4;
 				return static_cast<std::size_t>(wstr-str);
 			}
@@ -148,18 +148,18 @@ inline std::size_t output_unsigned(Iter str,U value) noexcept
 			remains0 = value - remains0*10000;
 			if (v2 >= 1000)
 			{
-				memcpy(str,static_tables<ch_type>::table4[v2].data(),bytes4);
-				memcpy(str += 4,static_tables<ch_type>::table4[remains1].data(),bytes4);
-				memcpy(str += 4,static_tables<ch_type>::table4[remains0].data(),bytes4);
+				::fast_io::details::my_memcpy(str,static_tables<ch_type>::table4[v2].data(),bytes4);
+				::fast_io::details::my_memcpy(str += 4,static_tables<ch_type>::table4[remains1].data(),bytes4);
+				::fast_io::details::my_memcpy(str += 4,static_tables<ch_type>::table4[remains0].data(),bytes4);
 				return 12;
 			}
 			else
 			{
 				auto wstr(str);
-				memcpy(wstr,static_tables<ch_type>::table5[v2].data(),bytes4);
+				::fast_io::details::my_memcpy(wstr,static_tables<ch_type>::table5[v2].data(),bytes4);
 				wstr += static_offset<>::offset[v2];
-				memcpy(wstr,static_tables<ch_type>::table4[remains1].data(),bytes4);
-				memcpy(wstr += 4,static_tables<ch_type>::table4[remains0].data(),bytes4);
+				::fast_io::details::my_memcpy(wstr,static_tables<ch_type>::table4[remains1].data(),bytes4);
+				::fast_io::details::my_memcpy(wstr += 4,static_tables<ch_type>::table4[remains0].data(),bytes4);
 				wstr += 4;
 				return static_cast<std::size_t>(wstr-str);
 			}
@@ -172,17 +172,17 @@ inline std::size_t output_unsigned(Iter str,U value) noexcept
 			std::uint64_t const remains0{value - v2 * 10000};
 			if (v2 >= 1000)
 			{
-				memcpy(str,static_tables<ch_type>::table4[v2].data(),bytes4);
+				::fast_io::details::my_memcpy(str,static_tables<ch_type>::table4[v2].data(),bytes4);
 				str += 4;
-				memcpy(str,static_tables<ch_type>::table4[remains0].data(),bytes4);
+				::fast_io::details::my_memcpy(str,static_tables<ch_type>::table4[remains0].data(),bytes4);
 				return 8;
 			}
 			else
 			{
 				auto wstr(str);
-				memcpy(wstr,static_tables<ch_type>::table5[v2].data(),bytes4);
+				::fast_io::details::my_memcpy(wstr,static_tables<ch_type>::table5[v2].data(),bytes4);
 				wstr += static_offset<>::offset[v2];
-				memcpy(wstr,static_tables<ch_type>::table4[remains0].data(),bytes4);
+				::fast_io::details::my_memcpy(wstr,static_tables<ch_type>::table4[remains0].data(),bytes4);
 				wstr += 4;
 				return static_cast<std::size_t>(wstr - str);
 			}
@@ -191,17 +191,17 @@ inline std::size_t output_unsigned(Iter str,U value) noexcept
 		{
 			if (value >= 1000)
 			{
-				memcpy(str,static_tables<ch_type>::table4[value].data(),bytes4);
+				::fast_io::details::my_memcpy(str,static_tables<ch_type>::table4[value].data(),bytes4);
 				return 4;
 			}
 			else if (value >= 100)
 			{
-				memcpy(str,static_tables<ch_type>::table3[value].data(),3*sizeof(ch_type));
+				::fast_io::details::my_memcpy(str,static_tables<ch_type>::table3[value].data(),3*sizeof(ch_type));
 				return 3;
 			}
 			else if (value >= 10)
 			{
-				memcpy(str,static_tables<ch_type>::table2[value].data(),2*sizeof(ch_type));
+				::fast_io::details::my_memcpy(str,static_tables<ch_type>::table2[value].data(),2*sizeof(ch_type));
 				return 2;
 			}
 			else
@@ -232,9 +232,9 @@ inline std::size_t output_unsigned(Iter str,U value) noexcept
 			remains0 = value - remains0*10000;
 			if (v2 >= 10)
 			{
-				memcpy(str,static_tables<ch_type>::table5[v2].data(),2*sizeof(ch_type));
-				memcpy(str += 2,static_tables<ch_type>::table4[remains1].data(),bytes4);
-				memcpy(str += 4,static_tables<ch_type>::table4[remains0].data(),bytes4);
+				::fast_io::details::my_memcpy(str,static_tables<ch_type>::table5[v2].data(),2*sizeof(ch_type));
+				::fast_io::details::my_memcpy(str += 2,static_tables<ch_type>::table4[remains1].data(),bytes4);
+				::fast_io::details::my_memcpy(str += 4,static_tables<ch_type>::table4[remains0].data(),bytes4);
 				return 10;
 			}
 			else
@@ -243,8 +243,8 @@ inline std::size_t output_unsigned(Iter str,U value) noexcept
 					*str = static_cast<ch_type>(static_cast<char8_t>(value)+(0xF0));
 				else
 					*str = static_cast<char8_t>(v2)+u8'0';
-				memcpy(++str,static_tables<ch_type>::table4[remains1].data(),bytes4);
-				memcpy(str += 4,static_tables<ch_type>::table4[remains0].data(),bytes4);
+				::fast_io::details::my_memcpy(++str,static_tables<ch_type>::table4[remains1].data(),bytes4);
+				::fast_io::details::my_memcpy(str += 4,static_tables<ch_type>::table4[remains0].data(),bytes4);
 				return 9;
 			}
 		}
@@ -261,17 +261,17 @@ inline std::size_t output_unsigned(Iter str,U value) noexcept
 #endif
 			if (v2 >= 1000)
 			{
-				memcpy(str,static_tables<ch_type>::table4[v2].data(),bytes4);
+				::fast_io::details::my_memcpy(str,static_tables<ch_type>::table4[v2].data(),bytes4);
 				str += 4;
-				memcpy(str,static_tables<ch_type>::table4[remains0].data(),bytes4);
+				::fast_io::details::my_memcpy(str,static_tables<ch_type>::table4[remains0].data(),bytes4);
 				return 8;
 			}
 			else
 			{
 				auto wstr(str);
-				memcpy(wstr,static_tables<ch_type>::table5[v2].data(),bytes4);
+				::fast_io::details::my_memcpy(wstr,static_tables<ch_type>::table5[v2].data(),bytes4);
 				wstr += static_offset<>::offset[v2];
-				memcpy(wstr,static_tables<ch_type>::table4[remains0].data(),bytes4);
+				::fast_io::details::my_memcpy(wstr,static_tables<ch_type>::table4[remains0].data(),bytes4);
 				wstr += 4;
 				return static_cast<std::size_t>(wstr - str);
 			}
@@ -280,17 +280,17 @@ inline std::size_t output_unsigned(Iter str,U value) noexcept
 		{
 			if (value >= 1000)
 			{
-				memcpy(str,static_tables<ch_type>::table4[value].data(),bytes4);
+				::fast_io::details::my_memcpy(str,static_tables<ch_type>::table4[value].data(),bytes4);
 				return 4;
 			}
 			else if (value >= 100)
 			{
-				memcpy(str,static_tables<ch_type>::table3[value].data(),3*sizeof(ch_type));
+				::fast_io::details::my_memcpy(str,static_tables<ch_type>::table3[value].data(),3*sizeof(ch_type));
 				return 3;
 			}
 			else if (value >= 10)
 			{
-				memcpy(str,static_tables<ch_type>::table2[value].data(),2*sizeof(ch_type));
+				::fast_io::details::my_memcpy(str,static_tables<ch_type>::table2[value].data(),2*sizeof(ch_type));
 				return 2;
 			}
 			else
@@ -318,17 +318,17 @@ inline std::size_t output_unsigned(Iter str,U value) noexcept
 #endif
 			if (v2 >= 1000)
 			{
-				memcpy(str,static_tables<ch_type>::table4[v2].data(),bytes4);
+				::fast_io::details::my_memcpy(str,static_tables<ch_type>::table4[v2].data(),bytes4);
 				str += 4;
-				memcpy(str,static_tables<ch_type>::table4[remains0].data(),bytes4);
+				::fast_io::details::my_memcpy(str,static_tables<ch_type>::table4[remains0].data(),bytes4);
 				return 8;
 			}
 			else
 			{
 				auto wstr(str);
-				memcpy(wstr,static_tables<ch_type>::table5[v2].data(),bytes4);
+				::fast_io::details::my_memcpy(wstr,static_tables<ch_type>::table5[v2].data(),bytes4);
 				wstr += static_offset<>::offset[v2];
-				memcpy(wstr,static_tables<ch_type>::table4[remains0].data(),bytes4);
+				::fast_io::details::my_memcpy(wstr,static_tables<ch_type>::table4[remains0].data(),bytes4);
 				wstr += 4;
 				return static_cast<std::size_t>(wstr - str);
 			}
@@ -337,17 +337,17 @@ inline std::size_t output_unsigned(Iter str,U value) noexcept
 		{
 			if (value >= 1000)
 			{
-				memcpy(str,static_tables<ch_type>::table4[value].data(),bytes4);
+				::fast_io::details::my_memcpy(str,static_tables<ch_type>::table4[value].data(),bytes4);
 				return 4;
 			}
 			else if (value >= 100)
 			{
-				memcpy(str,static_tables<ch_type>::table3[value].data(),3*sizeof(ch_type));
+				::fast_io::details::my_memcpy(str,static_tables<ch_type>::table3[value].data(),3*sizeof(ch_type));
 				return 3;
 			}
 			else if (value >= 10)
 			{
-				memcpy(str,static_tables<ch_type>::table2[value].data(),2*sizeof(ch_type));
+				::fast_io::details::my_memcpy(str,static_tables<ch_type>::table2[value].data(),2*sizeof(ch_type));
 				return 2;
 			}
 			else
@@ -364,12 +364,12 @@ inline std::size_t output_unsigned(Iter str,U value) noexcept
 	{
 		if (value >= 100)
 		{
-			memcpy(str,static_tables<ch_type>::table3[value].data(),3*sizeof(ch_type));
+			::fast_io::details::my_memcpy(str,static_tables<ch_type>::table3[value].data(),3*sizeof(ch_type));
 			return 3;
 		}
 		else if (value >= 10)
 		{
-			memcpy(str,static_tables<ch_type>::table2[value].data(),2*sizeof(ch_type));
+			::fast_io::details::my_memcpy(str,static_tables<ch_type>::table2[value].data(),2*sizeof(ch_type));
 			return 2;
 		}
 		else

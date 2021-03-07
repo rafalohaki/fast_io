@@ -1049,14 +1049,14 @@ curve25519_square_packed64(packedelem64 *out, packedelem64 const *r) {
 inline void curve25519_expand(bignum25519 out, std::span<std::byte,32> in) {
 	uint32_t x0,x1,x2,x3,x4,x5,x6,x7;
 
-	memcpy(std::addressof(x0),in.data(),4);
-	memcpy(std::addressof(x1),in.data()+4,4);
-	memcpy(std::addressof(x2),in.data()+8,4);
-	memcpy(std::addressof(x3),in.data()+12,4);
-	memcpy(std::addressof(x4),in.data()+16,4);
-	memcpy(std::addressof(x5),in.data()+20,4);
-	memcpy(std::addressof(x6),in.data()+24,4);
-	memcpy(std::addressof(x7),in.data()+28,4);
+	::fast_io::details::my_memcpy(std::addressof(x0),in.data(),4);
+	::fast_io::details::my_memcpy(std::addressof(x1),in.data()+4,4);
+	::fast_io::details::my_memcpy(std::addressof(x2),in.data()+8,4);
+	::fast_io::details::my_memcpy(std::addressof(x3),in.data()+12,4);
+	::fast_io::details::my_memcpy(std::addressof(x4),in.data()+16,4);
+	::fast_io::details::my_memcpy(std::addressof(x5),in.data()+20,4);
+	::fast_io::details::my_memcpy(std::addressof(x6),in.data()+24,4);
+	::fast_io::details::my_memcpy(std::addressof(x7),in.data()+28,4);
 
 /*
 	x0 = *(uint32_t *)(in + 0);

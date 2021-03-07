@@ -39,13 +39,13 @@ inline constexpr return_type jenkins_hash_impl(std::string_view k,std::uint32_t 
 		else
 		{
 			std::uint32_t a1;
-			memcpy(std::addressof(a1),i,4);
+			::fast_io::details::my_memcpy(std::addressof(a1),i,4);
 			a+=a1;
 			std::uint32_t b1;
-			memcpy(std::addressof(b1),i+4,4);
+			::fast_io::details::my_memcpy(std::addressof(b1),i+4,4);
 			b+=b1;
 			std::uint32_t c1;
-			memcpy(std::addressof(c1),i+8,4);
+			::fast_io::details::my_memcpy(std::addressof(c1),i+8,4);
 			c+=c1;
 		}
 		a -= c;

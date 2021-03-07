@@ -57,7 +57,7 @@ inline nt_dirent* set_nt_dirent(nt_dirent* entry,bool start)
 	auto ful_dir_info{d_info.FullDirInfo};
 	entry->native_d_name_size=ful_dir_info->FileNameLength/sizeof(wchar_t);
 	if(ful_dir_info->FileNameLength)
-		memcpy(entry->native_d_name_array.data(),ful_dir_info->FileName,ful_dir_info->FileNameLength);
+		::fast_io::details::my_memcpy(entry->native_d_name_array.data(),ful_dir_info->FileName,ful_dir_info->FileNameLength);
 	entry->native_d_name_array[entry->native_d_name_size]=0;
 
 	using char16_may_alias_pointer

@@ -58,7 +58,7 @@ template<std::integral T=char>
 inline T* get_fp_ptr(FILE* fp) noexcept
 {
 	T* b;
-	memcpy(std::addressof(b),reinterpret_cast<std::byte*>(fp),sizeof(T*));
+	::fast_io::details::my_memcpy(std::addressof(b),reinterpret_cast<std::byte*>(fp),sizeof(T*));
 	return b;
 }
 template<std::integral T>
@@ -68,14 +68,14 @@ inline void set_fp_ptr(FILE* fp,
 #endif
 T* b) noexcept
 {
-	memcpy(reinterpret_cast<std::byte*>(fp),std::addressof(b),sizeof(T*));
+	::fast_io::details::my_memcpy(reinterpret_cast<std::byte*>(fp),std::addressof(b),sizeof(T*));
 }
 
 template<std::integral T=char>
 inline T* get_fp_base(FILE* fp) noexcept
 {
 	T* b;
-	memcpy(std::addressof(b),reinterpret_cast<std::byte*>(fp)+sizeof(uintptr_t),sizeof(T*));
+	::fast_io::details::my_memcpy(std::addressof(b),reinterpret_cast<std::byte*>(fp)+sizeof(uintptr_t),sizeof(T*));
 	return b;
 }
 
@@ -83,14 +83,14 @@ inline int get_fp_cnt(FILE* fp) noexcept
 {
 	constexpr std::size_t offset{sizeof(uintptr_t)*2};
 	int b;
-	memcpy(std::addressof(b),reinterpret_cast<std::byte*>(fp)+offset,sizeof(int));
+	::fast_io::details::my_memcpy(std::addressof(b),reinterpret_cast<std::byte*>(fp)+offset,sizeof(int));
 	return b;
 }
 
 inline void set_fp_cnt(FILE* fp,int b) noexcept
 {
 	constexpr std::size_t offset{sizeof(uintptr_t)*2};
-	memcpy(reinterpret_cast<std::byte*>(fp)+offset,
+	::fast_io::details::my_memcpy(reinterpret_cast<std::byte*>(fp)+offset,
 	std::addressof(b),sizeof(int));
 }
 
@@ -98,21 +98,21 @@ inline long get_fp_flags(FILE* fp)
 {
 	constexpr std::size_t offset{sizeof(uintptr_t)*2+sizeof(int)};
 	long b;
-	memcpy(std::addressof(b),reinterpret_cast<std::byte*>(fp)+offset,sizeof(long));
+	::fast_io::details::my_memcpy(std::addressof(b),reinterpret_cast<std::byte*>(fp)+offset,sizeof(long));
 	return b;
 }
 
 inline void set_fp_flags(FILE* fp,long flags)
 {
 	constexpr std::size_t offset{sizeof(uintptr_t)*2+sizeof(int)};
-	memcpy(reinterpret_cast<std::byte*>(fp)+offset,std::addressof(flags),sizeof(long));
+	::fast_io::details::my_memcpy(reinterpret_cast<std::byte*>(fp)+offset,std::addressof(flags),sizeof(long));
 }
 
 inline int get_fp_bufsiz(FILE* fp) noexcept
 {
 	constexpr std::size_t offset{sizeof(uintptr_t)*2+sizeof(int)+sizeof(long)*2+sizeof(int)};
 	int b;
-	memcpy(std::addressof(b),reinterpret_cast<std::byte*>(fp)+offset,sizeof(int));
+	::fast_io::details::my_memcpy(std::addressof(b),reinterpret_cast<std::byte*>(fp)+offset,sizeof(int));
 	return b;
 }
 

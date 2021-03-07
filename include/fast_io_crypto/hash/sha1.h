@@ -524,7 +524,7 @@ public:
 		for(auto block(blocks.data()),ed(blocks.data()+blocks.size());block!=ed;block+=block_size)
 		{
 			std::array<std::uint32_t,16> tblocks;
-			memcpy(tblocks.data(),block,block_size);
+			::fast_io::details::my_memcpy(tblocks.data(),block,block_size);
 			for(auto& e : tblocks)
 				e=details::byte_swap(e);
 			details::sha1::transform(state,tblocks);

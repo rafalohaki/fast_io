@@ -152,15 +152,15 @@ struct socket_address_storage
 };
 
 
-//use memcpy is THE only way to do correct ip address punning
+//use std::memcpy is THE only way to do correct ip address punning
 inline auto to_socket_address_storage(ipv4 const& add,std::uint16_t port)
 {
 	sockaddr_in v4st{};
 	v4st.sin_family=static_cast<sock::details::address_family>(fast_io::sock::family::ipv4);
 	v4st.sin_port=details::big_endian(port);
-	std::memcpy(std::addressof(v4st.sin_addr),add.storage.data(),sizeof(add.storage));
+	::fast_io::details::my_memcpy(std::addressof(v4st.sin_addr),add.storage.data(),sizeof(add.storage));
 	socket_address_storage stor{};
-	std::memcpy(std::addressof(stor),std::addressof(v4st),sizeof(sockaddr_in));
+	::fast_io::details::my_memcpy(std::addressof(stor),std::addressof(v4st),sizeof(sockaddr_in));
 	return stor;
 }
 template<std::integral char_type>
@@ -273,7 +273,7 @@ inline constexpr bool scan_reserve_transmit(io_reserve_type_t<ipv6>,output& out,
 // 		break;
 // 		lastchar=*cur;
 // 	}
-// 	memcpy(v6.storage.data(), tmp.data(), 16);
+// 	::fast_io::details::my_memcpy(v6.storage.data(), tmp.data(), 16);
 // }
 
 template<character_input_stream input>
@@ -314,9 +314,9 @@ inline auto to_socket_address_storage(ipv6 add,std::uint16_t port)
 	if constexpr(std::endian::little==std::endian::native)
 		for(auto& e : add.storage)
 			e=details::byte_swap(e);
-	std::memcpy(std::addressof(v6st.sin6_addr),add.storage.data(),sizeof(add.storage));
+	std::::fast_io::details::my_memcpy(std::addressof(v6st.sin6_addr),add.storage.data(),sizeof(add.storage));
 	socket_address_storage stor{};
-	std::memcpy(std::addressof(stor),std::addressof(v6st),sizeof(sockaddr_in6));
+	std::::fast_io::details::my_memcpy(std::addressof(stor),std::addressof(v6st),sizeof(sockaddr_in6));
 	return stor;
 }
 template<std::integral char_type>

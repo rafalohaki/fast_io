@@ -63,7 +63,7 @@ inline char_type* hack_fp_ptr(FILE* fp)
 {
 	constexpr std::size_t offset{get_offset<position>()};
 	char_type* value;
-	memcpy(std::addressof(value),reinterpret_cast<std::byte*>(fp)+offset,sizeof(char_type*));
+	::fast_io::details::my_memcpy(std::addressof(value),reinterpret_cast<std::byte*>(fp)+offset,sizeof(char_type*));
 	return value;	
 }
 
@@ -71,7 +71,7 @@ template<std::size_t position,std::integral char_type>
 inline void hack_fp_set_ptr(FILE* fp,char_type* ptr)
 {
 	constexpr std::size_t offset(get_offset<position>());
-	memcpy(reinterpret_cast<std::byte*>(fp)+offset,std::addressof(ptr),sizeof(char_type*));
+	::fast_io::details::my_memcpy(reinterpret_cast<std::byte*>(fp)+offset,std::addressof(ptr),sizeof(char_type*));
 }
 
 }

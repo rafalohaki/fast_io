@@ -572,7 +572,7 @@ template<typename T>
 inline uint32_t in_place_div_mod(basic_unsigned_extension<T>& a,std::uint32_t value)
 {
 	std::array<std::uint32_t,sizeof(T)/2> v;
-	memcpy(v.data(),std::addressof(a),sizeof(v));		//should use std::bit_cast instead. However, current compilers haven't implemented std::bit_cast magic. memcpy first.
+	::fast_io::details::my_memcpy(v.data(),std::addressof(a),sizeof(v));		//should use std::bit_cast instead. However, current compilers haven't implemented std::bit_cast magic. ::fast_io::details::my_memcpy first.
 	std::uint64_t quo(0);
 	for(std::size_t i(v.size());i--;)
 	{
@@ -580,7 +580,7 @@ inline uint32_t in_place_div_mod(basic_unsigned_extension<T>& a,std::uint32_t va
 		v[i]=tot/value;
 		quo=tot%value;
 	}
-	memcpy(static_cast<void*>(std::addressof(a)),v.data(),sizeof(v));
+	::fast_io::details::my_memcpy(static_cast<void*>(std::addressof(a)),v.data(),sizeof(v));
 	return quo;
 }
 
@@ -594,7 +594,7 @@ template<typename T>
 inline constexpr std::uint32_t operator%(basic_unsigned_extension<T> const& a,std::uint32_t value)
 {
 	std::array<std::uint32_t,sizeof(T)/2> v;
-	memcpy(v.data(),std::addressof(a),sizeof(v));		//should use std::bit_cast instead. However, current compilers haven't implemented std::bit_cast magic. memcpy first.
+	::fast_io::details::my_memcpy(v.data(),std::addressof(a),sizeof(v));		//should use std::bit_cast instead. However, current compilers haven't implemented std::bit_cast magic. ::fast_io::details::my_memcpy first.
 	std::uint64_t quo(0);
 	for(std::size_t i(v.size());i--;)
 	{

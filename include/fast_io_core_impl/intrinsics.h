@@ -125,7 +125,7 @@ std::uint64_t umul(std::uint64_t a,std::uint64_t b,std::uint64_t& high) noexcept
 	{
 #endif
 
-		return _umul128(a,b,std::addressof(high));
+		return _umul128(a,b,&high);
 #if __cpp_lib_is_constant_evaluated >= 201811L
 	}
 #endif
@@ -150,9 +150,18 @@ std::uint64_t umul(std::uint64_t a,std::uint64_t b,std::uint64_t& high) noexcept
 		#endif
 		};
 		static_assert(sizeof(__uint128_t)==sizeof(u64x2_t));
-		__uint128_t res{static_cast<__uint128_t>(a)*b};
+		__uint128_t res{static_cast<__uint128_t>(a)*b};	
 		u64x2_t u;
-		memcpy(&u,&res,sizeof(__uint128_t));
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_memcpy)
+		__builtin_memcpy
+#else
+		std::memcpy
+#endif
+#else
+		std::memcpy
+#endif
+		(&u,&res,sizeof(__uint128_t));
 		high=u.high;
 		return u.low;
 #else

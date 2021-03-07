@@ -15,7 +15,16 @@ constexpr
 	return std::bit_cast<To>(src);
 #else
 	To dst;
-	std::memcpy(std::addressof(dst), std::addressof(src), sizeof(To));
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_memcpy)
+		__builtin_memcpy
+#else
+		std::memcpy
+#endif
+#else
+		std::memcpy
+#endif
+	(std::addressof(dst), std::addressof(src), sizeof(To));
 	return dst;
 #endif
 }
@@ -104,6 +113,70 @@ inline constexpr U big_endian(U u) noexcept
 		return u;
 }
 
+inline
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_memcpy)
+constexpr
+#endif
+#endif
+void* my_memcpy(void* dest,void const* src,std::size_t count) noexcept
+{
+    return
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_memcpy)
+		__builtin_memcpy
+#else
+		std::memcpy
+#endif
+#else
+		std::memcpy
+#endif
+        (dest,src,count);
+}
+
+
+inline
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_memmove)
+constexpr
+#endif
+#endif
+void* my_memmove(void* dest,void const* src,std::size_t count) noexcept
+{
+    return
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_memmove)
+		__builtin_memmove
+#else
+		std::memmove
+#endif
+#else
+		std::memmove
+#endif
+        (dest,src,count);
+}
+
+inline
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_memset)
+constexpr
+#endif
+#endif
+void* my_memset(void* dest, int ch, std::size_t count) noexcept
+{
+    return
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_memset)
+		__builtin_memset
+#else
+		std::memset
+#endif
+#else
+		std::memset
+#endif
+        (dest,ch,count);
+}
+
 template<std::input_iterator input_iter,std::integral count_type,std::input_or_output_iterator output_iter>
 inline constexpr output_iter non_overlapped_copy_n(input_iter first,count_type count,output_iter result)
 {
@@ -125,7 +198,7 @@ inline constexpr output_iter non_overlapped_copy_n(input_iter first,count_type c
 	sizeof(input_value_type)==sizeof(output_value_type))))
 	{
 		if(count)	//to avoid nullptr UB
-			std::memcpy(std::to_address(result),std::to_address(first),sizeof(typename std::iterator_traits<input_iter>::value_type)*count);
+			my_memcpy(std::to_address(result),std::to_address(first),sizeof(typename std::iterator_traits<input_iter>::value_type)*count);
 		return result+=count;
 	}
 	else
@@ -155,9 +228,7 @@ inline constexpr output_iter non_overlapped_copy(input_iter first,input_iter las
 	{
 		std::size_t count(last-first);
 		if(count)	//to avoid nullptr UB
-			std::memcpy(std::to_address(result),
-				std::to_address(first),
-				sizeof(typename std::iterator_traits<input_iter>::value_type)*count);
+			my_memcpy(std::to_address(result),std::to_address(first),sizeof(typename std::iterator_traits<input_iter>::value_type)*count);
 		return result+=count;
 	}
 	else
@@ -188,7 +259,7 @@ inline constexpr output_iter my_copy_n(input_iter first,count_type count,output_
 	sizeof(input_value_type)==sizeof(output_value_type))))
 	{
 		if(count)	//to avoid nullptr UB
-			std::memmove(std::to_address(result),std::to_address(first),sizeof(typename std::iterator_traits<input_iter>::value_type)*count);
+			my_memmove(std::to_address(result),std::to_address(first),sizeof(typename std::iterator_traits<input_iter>::value_type)*count);
 		return result+=count;
 	}
 	else
@@ -219,7 +290,7 @@ inline constexpr output_iter my_copy_backward(input_iter first,input_iter last,o
 		std::size_t const count(last-first);
 		d_last-=count;
 		if(count)	//to avoid nullptr UB
-			std::memmove(std::to_address(d_last),std::to_address(first),sizeof(input_value_type)*count);
+			my_memmove(std::to_address(d_last),std::to_address(first),sizeof(input_value_type)*count);
 		return d_last;
 	}
 	else
@@ -255,7 +326,7 @@ inline constexpr output_iter my_fill_n(output_iter first,count_type count,T cons
 	using output_value_type = typename std::iterator_traits<output_iter>::value_type;
 	if constexpr(std::contiguous_iterator<output_iter>&&std::is_trivially_copyable_v<output_value_type>&&std::integral<output_value_type>&&sizeof(output_value_type)==1)
 	{
-		std::memset(std::to_address(first),static_cast<int>(value),count);
+		my_memset(std::to_address(first),static_cast<int>(value),count);
 		return first+count;
 	}
 	else
