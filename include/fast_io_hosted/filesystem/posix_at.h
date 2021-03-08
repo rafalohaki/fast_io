@@ -139,7 +139,11 @@ inline void posix_fchmodat_impl(int dirfd, const char *pathname, mode_t mode, in
 
 inline posix_file_status posix_fstatat_impl(int dirfd, const char *pathname, int flags)
 {
+#if defined(__linux__)
 	struct stat64 buf;
+#else
+	struct stat buf;
+#endif
 	system_call_throw_error(
 #if defined(__linux__)
 	system_call<
@@ -150,7 +154,7 @@ inline posix_file_status posix_fstatat_impl(int dirfd, const char *pathname, int
 #endif
 	,int>
 #else
-	::fstatat64
+	::fstatat
 #endif
 	(dirfd,pathname,std::addressof(buf),flags));
 	return struct_stat_to_posix_file_status(buf);
@@ -240,14 +244,14 @@ int flags)
 	system_call_throw_error(
 #if defined(__linux__)
 
-#if defined(__NR__utimensat64)
+#if defined(__NR_utimensat64)
 	system_call<__NR_utimensat64,int>
 #else
 	system_call<__NR_utimensat,int>
 #endif
 
 #else
-	::utimensat64
+	::utimensat
 #endif
 	(dirfd,path,tsptr,flags));
 }
@@ -576,7 +580,7 @@ inline constexpr std::size_t read_linkbuffer_size() noexcept
 inline std::size_t posix_readlinkat_common_impl(int dirfd,char const* pathname,char* buffer)
 {
 	constexpr std::size_t buffer_size{read_linkbuffer_size()};
-	int bytes{
+	std::ptrdiff_t bytes{
 #if defined(__linux__)
 	system_call<
 #if __NR_readlinkat

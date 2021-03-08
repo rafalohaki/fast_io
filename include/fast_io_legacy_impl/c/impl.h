@@ -211,7 +211,7 @@ public:
 
 template<typename stm>
 inline constexpr c_io_cookie_functions_t<stm> c_io_cookie_functions{};
-#elif defined(__BSD_VISIBLE) ||defined(__DARWIN_C_LEVEL) || defined(__BIONIC__) || defined(__NEWLIB__)
+#elif defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL) || defined(__BIONIC__) || defined(__NEWLIB__)
 namespace details
 {
 #ifdef __NEWLIB__
@@ -222,7 +222,7 @@ extern "C" FILE	*funopen (const void *__cookie,
 		int (*__writefn)(void *__c, const char *__buf,
 				 _READ_WRITE_BUFSIZE_TYPE __n),
 		_fpos64_t (*__seekfn)(void *__c, _fpos64_t __off, int __whence),
-		int (*__closefn)(void *__c));
+		int (*__closefn)(void *__c)) noexcept;
 #else
 extern "C" FILE	*funopen (const void *__cookie,
 		int (*__readfn)(void *__c, char *__buf,
@@ -230,7 +230,7 @@ extern "C" FILE	*funopen (const void *__cookie,
 		int (*__writefn)(void *__c, const char *__buf,
 				 int __n),
 		fpos_t  (*__seekfn)(void *__c, fpos_t  __off, int __whence),
-		int (*__closefn)(void *__c));
+		int (*__closefn)(void *__c)) noexcept;
 #endif
 #endif
 //funopen
@@ -781,12 +781,12 @@ inline std::FILE* open_cookie_type_with_mode(open_mode mode,Args&&...args)
 	return fp;
 }
 
-#elif defined(__BSD_VISIBLE) ||defined(__DARWIN_C_LEVEL) || defined(__BIONIC__) || defined(__NEWLIB__)
+#elif defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL) || defined(__BIONIC__) || defined(__NEWLIB__)
 template<typename T,typename... Args>
 inline std::FILE* open_cookie_type(Args&&...args)
 {
 	std::unique_ptr<T> uptr(new T(std::forward<Args>(args)...));
-	auto fp{details::funopen_wrapper<T>(uptr.get())};
+	auto fp{funopen_wrapper<T>(uptr.get())};
 	uptr.release();
 	return fp;
 }
