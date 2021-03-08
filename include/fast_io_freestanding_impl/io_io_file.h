@@ -3,127 +3,125 @@
 namespace fast_io
 {
 
-namespace details::io_io
-{
-template<std::integral char_type>
-class base
+
+template<std::integral ch_type>
+class basic_io_io_base
 {
 public:
-	virtual 
-#if __cpp_constexpr >= 201907L
-	constexpr
-#endif
-	char_type* read_impl(char_type*,char_type*) = 0;
+	using char_type = ch_type;
 	virtual
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
-	char_type const* write_impl(char_type const*,char_type const*) = 0;
+	char_type* read_internal(char_type*,char_type*)=0;
+
 	virtual
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
-	void flush_impl() = 0;
+	char_type const* write_internal(char_type const*,char_type const*)=0;
+
 	virtual
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
-	std::uintmax_t seek_impl(std::intmax_t,seekdir) = 0;
+	std::uintmax_t seek_internal(std::intmax_t,seekdir)=0;
+
 	virtual
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
-	base* clone() = 0;
+	basic_io_io_base* clone()=0;
+
 	virtual
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
-	~base() = default;
+	~basic_io_io_base() = default;
 };
-template<std::integral char_type,typename stm>
-class derv:public base<char_type>
+template<std::integral ch_type,stream stm>
+class basic_io_io_derived:public basic_io_io_base<ch_type>
 {
 public:
+	using char_type = ch_type;
+	using handle_type = stm;
 	using value_type = std::remove_reference_t<stm>;
-	stm io;
+	handle_type handle;
 	template<typename... Args>
+	requires std::constructible_from<handle_type,Args...>
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
-	derv(std::in_place_type_t<stm>,Args&& ...args):io(std::forward<Args>(args)...){}
+	basic_io_io_derived(std::in_place_type_t<handle_type>,Args&& ...args):handle(std::forward<Args>(args)...){}
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
-	char_type* read_impl(char_type* b,char_type* e) override
+	char_type* read_internal(char_type* b,char_type* e)
 	{
 		if constexpr(input_stream<value_type>)
-			return read(io,b,e);
+			return read(handle,b,e);
 		else
 			throw_posix_error(EINVAL);
 	}
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
-	char_type const* write_impl(char_type const* b,char_type const* e) override
+	char_type const* write_internal(char_type const* b,char_type const* e)
 	{
 		if constexpr(output_stream<value_type>)
 		{
-			if constexpr(std::same_as<decltype(write(io,b,e)),void>)
+			if constexpr(std::same_as<decltype(write(handle,b,e)),void>)
 			{
-				write(io,b,e);
+				write(handle,b,e);
 				return e;
 			}
 			else
 			{
-				return write(io,b,e);
-			}			
+				return write(handle,b,e);
+			}
 		}
 		else
+		{
 			throw_posix_error(EINVAL);
+		}
 	}
+
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
-	void flush_impl() override
+	std::uintmax_t seek_internal(std::intmax_t off,seekdir dir)
 	{
 		if constexpr(output_stream<value_type>)
 		{
-			if constexpr(flush_output_stream<value_type>)
-				flush(io);
+			return seek(handle,off,dir);
 		}
 		else
+		{
 			throw_posix_error(EINVAL);
+		}
 	}
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
-	std::uintmax_t seek_impl(std::intmax_t off,seekdir dir) override
+	basic_io_io_base<char_type>* clone()
 	{
-		if constexpr(random_access_stream<value_type>)
-			return seek(io,off,dir);
+		if constexpr(std::copyable<stm>)
+		{
+			return new basic_io_io_derived(*this);
+		}
 		else
+		{
 			throw_posix_error(EINVAL);
-	}
-#if __cpp_constexpr >= 201907L
-	constexpr
-#endif
-	base<char_type>* clone() override
-	{
-		if constexpr(std::is_reference_v<stm>||std::copyable<stm>)
-			return new derv(std::in_place_type<stm>,this->io);
-		else
-			throw_posix_error(EINVAL);
+		}
 	}
 };
-
-}
 
 template<std::integral ch_type>
 class basic_io_io_observer
 {
 public:
 	using char_type = ch_type;
-	using native_handle_type = details::io_io::base<char_type>*;
+	using native_handle_type = basic_io_io_base<char_type>*;
 	native_handle_type io_ptr{};
 	constexpr auto release() noexcept
 	{
@@ -140,13 +138,6 @@ public:
 		return io_ptr;
 	}
 };
-#ifdef __cpp_rtti
-template<typename T,std::integral char_type>
-constexpr auto& io_io_cast(basic_io_io_observer<char_type> iob)
-{
-	return dynamic_cast<details::io_io::derv<char_type,T>>(iob.io);
-}
-#endif
 
 template<std::integral ch_type>
 class basic_io_io_handle:public basic_io_io_observer<ch_type>
@@ -155,7 +146,7 @@ public:
 	using char_type = ch_type;
 	using native_handle_type = typename basic_io_io_observer<ch_type>::native_handle_type;
 	constexpr basic_io_io_handle() = default;
-	constexpr basic_io_io_handle(native_handle_type io_ptr):basic_io_io_observer<ch_type>{io_ptr}{}
+	explicit constexpr basic_io_io_handle(native_handle_type ptr):basic_io_io_observer<ch_type>{ptr}{}
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
@@ -179,7 +170,7 @@ public:
 #endif
 	basic_io_io_handle& operator=(basic_io_io_handle&& other) noexcept
 	{
-		if(other.io_ptr==this->io_ptr)
+		if(std::addressof(other)==this)
 			return *this;
 		delete this->io_ptr;
 		this->io_ptr=other.io_ptr;
@@ -195,28 +186,15 @@ public:
 	using char_type = ch_type;
 	using native_handle_type = typename basic_io_io_observer<ch_type>::native_handle_type;
 	constexpr basic_io_file()=default;
-	constexpr basic_io_file(native_handle_type ptr):basic_io_io_handle<ch_type>(ptr){}
+
+	explicit constexpr basic_io_file(native_handle_type ptr):basic_io_io_handle<ch_type>(ptr){}
 	template<stream smt,typename... Args>
 	requires std::constructible_from<smt,Args...>
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
-	basic_io_file(io_cookie_t,std::in_place_type_t<smt>,Args&& ...args)
-		:basic_io_io_handle<ch_type>(new details::io_io::derv<char_type,smt>(std::in_place_type<smt>,std::forward<Args>(args)...)){}
-	template<stream smt>
-#if __cpp_constexpr >= 201907L
-	constexpr
-#endif
-	basic_io_file(io_cookie_t,smt& sm):
-		basic_io_io_handle<ch_type>(new details::io_io::derv<char_type,smt&>(std::in_place_type<smt&>,sm))
-	{}
-	template<stream smt>
-#if __cpp_constexpr >= 201907L
-	constexpr
-#endif
-	basic_io_file(io_cookie_t,smt&& sm):
-		basic_io_io_handle<ch_type>(new details::io_io::derv<char_type,smt>(std::in_place_type<smt>,std::move(sm)))
-	{}
+	basic_io_file(std::in_place_type_t<smt>,Args&& ...args)
+		:basic_io_io_handle<ch_type>(new basic_io_io_derived<char_type,smt>(std::in_place_type<smt>,std::forward<Args>(args)...)){}
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
@@ -248,12 +226,12 @@ constexpr Iter read(basic_io_io_observer<ch_type> iob,Iter begin,Iter end)
 {
 	if constexpr(std::same_as<std::iter_value_t<Iter>,ch_type>)
 	{
-		return iob.io_ptr->read_impl(std::to_address(begin),std::to_address(end))-std::to_address(begin)+begin;
+		return iob.io_ptr->read_internal(std::to_address(begin),std::to_address(end))-std::to_address(begin)+begin;
 	}
 	else
 	{
 		auto b(reinterpret_cast<ch_type*>(std::to_address(begin)));
-		return begin+(iob.io_ptr->read_impl(b,
+		return begin+(iob.io_ptr->read_internal(b,
 			b+(end-begin)*sizeof(*begin))-b)/sizeof(*begin);
 	}
 }
@@ -264,24 +242,20 @@ constexpr Iter write(basic_io_io_observer<ch_type> iob,Iter begin,Iter end)
 {
 	if constexpr(std::same_as<std::iter_value_t<Iter>,ch_type>)
 	{
-		return iob.io_ptr->write_impl(std::to_address(begin),std::to_address(end))-std::to_address(begin)+begin;
+		return iob.io_ptr->write_internal(std::to_address(begin),std::to_address(end))-std::to_address(begin)+begin;
 	}
 	else
 	{
 		auto b(reinterpret_cast<ch_type const*>(std::to_address(begin)));
-		return begin+(iob.io_ptr->write_impl(b,
+		return begin+(iob.io_ptr->write_internal(b,
 			b+(end-begin)*sizeof(*begin))-b)/sizeof(*begin);
 	}
 }
+
 template<std::integral ch_type>
-constexpr void flush(basic_io_io_observer<ch_type> iob)
+constexpr std::uintmax_t seek(basic_io_io_observer<ch_type> iob,std::intmax_t offset=0,seekdir s=seekdir::cur)
 {
-	iob.io_ptr->flush_impl();
-}
-template<std::integral ch_type,typename T,std::integral U>
-constexpr std::uintmax_t seek(basic_io_io_observer<ch_type> iob,seek_type_t<T>,U i=0,seekdir s=seekdir::cur)
-{
-	return iob.io_ptr->seek_impl(seek_precondition<std::intmax_t,T,ch_type>(i),s);
+	return iob.io_ptr->seek_internal(offset,s);
 }
 
 template<std::integral ch_type>
@@ -290,30 +264,27 @@ inline constexpr basic_io_io_observer<ch_type> io_value_handle(basic_io_io_obser
 	return iob;
 }
 
-template<std::integral ch_type>
-constexpr auto seek(basic_io_io_observer<ch_type> iob,std::intmax_t offset=0,seekdir s=seekdir::cur)
-{
-	return seek(iob,offset,s);
-}
-
+using io_io_base = basic_io_io_base<char>;
 using io_io_observer = basic_io_io_observer<char>;
 using io_io_handle = basic_io_io_handle<char>;
 using io_file = basic_io_file<char>;
 
+using u8io_io_base = basic_io_io_base<char>;
 using u8io_io_observer = basic_io_io_observer<char8_t>;
 using u8io_io_handle = basic_io_io_handle<char8_t>;
 using u8io_file = basic_io_file<char8_t>;
 
-#ifndef __MSDOS__
+using wio_io_base = basic_io_io_base<char>;
 using wio_io_observer = basic_io_io_observer<wchar_t>;
 using wio_io_handle = basic_io_io_handle<wchar_t>;
 using wio_file = basic_io_file<wchar_t>;
-#endif
 
+using u16io_io_base = basic_io_io_base<char>;
 using u16io_io_observer = basic_io_io_observer<char16_t>;
 using u16io_io_handle = basic_io_io_handle<char16_t>;
 using u16io_file = basic_io_file<char16_t>;
 
+using u32io_io_base = basic_io_io_base<char>;
 using u32io_io_observer = basic_io_io_observer<char32_t>;
 using u32io_io_handle = basic_io_io_handle<char32_t>;
 using u32io_file = basic_io_file<char32_t>;
