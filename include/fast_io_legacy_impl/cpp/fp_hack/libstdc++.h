@@ -20,10 +20,7 @@ template<typename char_type,typename traits_type>
 inline std::FILE* fp_hack(std::basic_filebuf<char_type,traits_type>* fbuf) noexcept
 {
 	if(fbuf==nullptr)
-	{
-		errno=EBADF;
 		return nullptr;
-	}
 	return fp_hack_impl(fbuf);
 }
 
@@ -44,7 +41,6 @@ inline std::FILE* fp_hack(T* cio) noexcept
 			return sync_fbuf->file();
 	}
 #endif
-	errno=EBADF;
 	return nullptr;
 }
 /*

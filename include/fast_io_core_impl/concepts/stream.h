@@ -55,10 +55,8 @@ template<typename T>
 concept buffer_io_stream = buffer_input_stream<T>&&buffer_output_stream<T>&&io_stream<T>;
 
 template<typename T>
-concept dynamic_buffer_output_stream = buffer_output_stream<T>&&details::dynamic_buffer_output_stream_impl<T>;
+concept dynamic_output_stream = buffer_output_stream<T>&&details::dynamic_output_stream_impl<T>;
 
-template<typename T>
-concept fixed_buffer_output_stream = buffer_output_stream<T>&&!dynamic_buffer_output_stream<T>;
 /*
 noline_buffer_output_stream ensures obuffer_begin(out)<=obuffer_curr(out)<=obuffer_end(out)
 line_buffer_output_stream may end up a situation obuffer_curr(out)>obuffer_end(out), triggering overflow.
@@ -145,6 +143,10 @@ template<typename T>
 concept value_based_stream = requires(T t)
 {
 	{io_value_handle(t)};
+	typename T::native_handle_type;
+	t.release();
+	t.native_handle();
+	requires std::is_trivially_copyable_v<typename T::native_handle_type>;
 };
 
 /*

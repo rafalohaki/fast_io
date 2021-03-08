@@ -18,6 +18,7 @@ requires (!value_based_stream<stm>)
 struct io_reference_wrapper
 {
 	using char_type = typename stm::char_type;
+	using native_handle_type = stm*;
 	stm* ptr{};
 	inline constexpr void lock() requires(mutex_stream<stm>)
 	{
@@ -30,6 +31,16 @@ struct io_reference_wrapper
 	inline constexpr decltype(auto) unlocked_handle() requires(mutex_stream<stm>)
 	{
 		return ptr->unlocked_handle();
+	}
+	inline constexpr stm* native_handle() const noexcept
+	{
+		return ptr;
+	}
+	inline constexpr stm* release() noexcept
+	{
+		auto temp{ptr};
+		ptr=nullptr;
+		return temp;
 	}
 };
 template<typename strm>
@@ -89,27 +100,16 @@ constexpr void obuffer_set_curr(io_reference_wrapper<output> out,Args&& ...args)
 	obuffer_set_curr(*out.ptr,std::forward<Args>(args)...);
 }
 
-template<dynamic_buffer_output_stream output,typename... Args>
-constexpr decltype(auto) ogrow(io_reference_wrapper<output> out,Args&& ...args)
+template<dynamic_output_stream output>
+constexpr void oreserve(io_reference_wrapper<output> out,std::size_t n)
 {
-	return ogrow(*out.ptr,std::forward<Args>(args)...);
-}
-template<dynamic_buffer_output_stream output,typename... Args>
-constexpr decltype(auto) otakeover(io_reference_wrapper<output> out,Args&& ...args)
-{
-	return otakeover(*out.ptr,std::forward<Args>(args)...);
+	oreserve(*out.ptr,n);
 }
 
-template<dynamic_buffer_output_stream output,typename... Args>
-constexpr decltype(auto) oallocator(io_reference_wrapper<output> out,Args&& ...args)
+template<dynamic_output_stream output>
+constexpr void oshrink_to_fit(io_reference_wrapper<output> out)
 {
-	return oallocator(*out.ptr,std::forward<Args>(args)...);
-}
-
-template<dynamic_buffer_output_stream output,typename... Args>
-constexpr decltype(auto) ocan_takeover(io_reference_wrapper<output> out,Args&& ...args)
-{
-	return ocan_takeover(*out.ptr,std::forward<Args>(args)...);
+	oshrink_to_fit(*out.ptr);
 }
 
 template<scatter_output_stream output,typename... Args>

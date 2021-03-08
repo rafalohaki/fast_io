@@ -103,9 +103,8 @@ From microsoft's document. _fdopen only supports
 #endif
 }
 
-#if defined(_GNU_SOURCE) || defined(__MUSL__) || defined(__NEED___isoc_va_list)
-template<typename stm>
-requires stream<std::remove_reference_t<stm>>
+#if defined(_GNU_SOURCE) || defined(__NEED___isoc_va_list)
+template<stream stm>
 class c_io_cookie_functions_t
 {
 public:
@@ -227,31 +226,36 @@ extern "C" FILE	*funopen (const void *__cookie,
 #else
 extern "C" FILE	*funopen (const void *__cookie,
 		int (*__readfn)(void *__c, char *__buf,
-				_READ_WRITE_BUFSIZE_TYPE __n),
+				int __n),
 		int (*__writefn)(void *__c, const char *__buf,
-				 _READ_WRITE_BUFSIZE_TYPE __n),
+				 int __n),
 		fpos_t  (*__seekfn)(void *__c, fpos_t  __off, int __whence),
 		int (*__closefn)(void *__c));
 #endif
 #endif
 //funopen
-template<typename stm>
-requires stream<std::remove_cvref_t<stm>>
-inline std::FILE* funopen_wrapper(void* cookie)
+template<stream value_type>
+inline std::FILE* funopen_wrapper(value_type* cookie)
 {
-	using value_type = std::remove_reference_t<stm>;
-	int (*readfn)(void *, char *, int)=nullptr;
-	int (*writefn)(void *, const char *, int)=nullptr;
+	using bf_size_type =
+#ifdef 	_READ_WRITE_BUFSIZE_TYPE
+_READ_WRITE_BUFSIZE_TYPE
+#else
+	int
+#endif
+;
+	int (*readfn)(void *, char *, bf_size_type)=nullptr;
+	int (*writefn)(void *, const char *, bf_size_type)=nullptr;
 	int (*closefn)(void *)=nullptr;
 	fpos_t (*seekfn)(void *, fpos_t, int)=nullptr;
-	if constexpr(!std::is_reference_v<stm>)
-		closefn=[](void* cookie) noexcept->int
-		{
-			delete bit_cast<value_type*>(cookie);
-			return 0;
-		};
+
+	closefn=[](void* cookie) noexcept->int
+	{
+		delete bit_cast<value_type*>(cookie);
+		return 0;
+	};
 	if constexpr(input_stream<value_type>)
-		readfn=[](void* cookie,char* buf,int size) noexcept->int
+		readfn=[](void* cookie,char* buf,bf_size_type size) noexcept->int
 		{
 #ifdef __cpp_exceptions
 			try
@@ -273,7 +277,7 @@ inline std::FILE* funopen_wrapper(void* cookie)
 #endif
 		};
 	if constexpr(output_stream<value_type>)
-		writefn=[](void* cookie,char const* buf,int size) noexcept->int
+		writefn=[](void* cookie,char const* buf,bf_size_type size) noexcept->int
 		{
 #ifdef __cpp_exceptions
 			try
@@ -324,9 +328,7 @@ inline std::FILE* funopen_wrapper(void* cookie)
 #endif
 		};
 	}
-	auto fp{
-funopen(
-cookie,readfn,writefn,seekfn,closefn)};
+	auto fp{funopen(cookie,readfn,writefn,seekfn,closefn)};
 	if(fp==nullptr)
 		throw_posix_error();
 	return fp;
@@ -346,10 +348,7 @@ extern "C" std::FILE* fdopen(int,char const*) noexcept;
 inline int fp_unlocked_to_fd(FILE* fp) noexcept
 {
 	if(fp==nullptr)
-	{
-		errno=EBADF;
 		return -1;
-	}
 	return 
 #if defined(__WINNT__) || defined(_MSC_VER)
 		_fileno(fp)
@@ -366,10 +365,7 @@ inline int fp_unlocked_to_fd(FILE* fp) noexcept
 inline int fp_to_fd(FILE* fp) noexcept
 {
 	if(fp==nullptr)
-	{
-		errno=EBADF;
 		return -1;
-	}
 	return 
 #if defined(__WINNT__) || defined(_MSC_VER)
 		_fileno(fp)
@@ -761,6 +757,57 @@ inline std::FILE* my_fdopen_impl(int fd,char const* mode)
 	return fp;
 }
 
+#if defined(_GNU_SOURCE) || defined(__NEED___isoc_va_list)
+inline std::FILE* open_cookie_throw_cookie_impl(void* ptr,open_mode mode,cookie_io_functions_t func)
+{
+	auto fp{::fopencookie(ptr,to_native_c_mode(mode),func)};
+	if(fp==nullptr)[[unlikely]]
+		throw_posix_error();
+	return fp;
+}
+
+template<typename T>
+inline std::FILE* open_cookie_throw_cookie_type_impl(T* ptr,open_mode mode)
+{
+	return open_cookie_throw_cookie_impl(ptr,mode,c_io_cookie_functions<T>.native_functions);
+}
+
+template<typename T,typename... Args>
+inline std::FILE* open_cookie_type_with_mode(open_mode mode,Args&&...args)
+{
+	std::unique_ptr<T> up{new T(std::forward<Args>(args)...)};
+	auto fp{open_cookie_throw_cookie_type_impl(up.get(),mode)};
+	up.release();
+	return fp;
+}
+
+#elif defined(__BSD_VISIBLE) || defined(__BIONIC__) || defined(__NEWLIB__)
+template<typename T,typename... Args>
+inline std::FILE* open_cookie_type(Args&&...args)
+{
+	std::unique_ptr<T> uptr(new T(std::forward<Args>(args)...));
+	auto fp{details::funopen_wrapper<T>(uptr.get())};
+	uptr.release();
+	return fp;
+}
+template<typename T,typename... Args>
+inline std::FILE* open_cookie_type_with_mode(open_mode,Args&&...args)
+{
+	return open_cookie_type<T>(std::forward<Args>(args)...);
+}
+#else
+[[noreturn]]inline void open_cookie_throw_einval_impl()
+{
+	throw_posix_error(EINVAL);
+}
+
+template<typename,typename... Args>
+[[noreturn]] inline std::FILE* open_cookie_type_with_mode(open_mode,Args&&...)
+{
+	open_cookie_throw_einval_impl();
+}
+#endif
+
 template<typename T>
 class basic_c_file_impl:public T
 {
@@ -827,37 +874,9 @@ public:
 		basic_c_file_impl(basic_posix_file<typename T::char_type>(nate,file,om,pm),om)
 	{}
 	template<stream stm,typename... Args>
-	basic_c_file_impl(io_cookie_t,[[maybe_unused]] cstring_view mode,std::in_place_type_t<stm>,[[maybe_unused]] Args&& ...args)
-	{
-#if defined(_GNU_SOURCE) || defined(__MUSL__) || defined(__NEED___isoc_va_list)
-		std::unique_ptr<stm> up{std::make_unique<std::remove_cvref_t<stm>>(std::forward<std::remove_cvref_t<stm>>(args)...)};
-		if(!(this->native_handle()=fopencookie(up.get(),mode.c_str(),c_io_cookie_functions<std::remove_cvref_t<stm>>.native_functions)))[[unlikely]]
-               			throw_posix_error();
-		up.release();
-#elif defined(__BSD_VISIBLE) || defined(__BIONIC__) || defined(__NEWLIB__)
-		std::unique_ptr<stm> up{std::make_unique<std::remove_cvref_t<stm>>(std::forward<Args>(args)...)};
-		this->native_handle()=details::funopen_wrapper<std::remove_cvref_t<stm>>(up.get());
-		up.release();
-#else
-		throw_posix_error(EINVAL);
-#endif
-	}
-
-	template<stream stm>
-	basic_c_file_impl(io_cookie_t,[[maybe_unused]] cstring_view mode,[[maybe_unused]] stm& reff)
-	{
-#if defined(_GNU_SOURCE) || defined(__MUSL__) || defined(__NEED___isoc_va_list)
-		if(!(this->native_handle()=fopencookie(std::addressof(reff),mode.c_str(),c_io_cookie_functions<stm&>.native_functions)))[[unlikely]]
-               			throw_posix_error();
-#elif defined(__BSD_VISIBLE) || defined(__BIONIC__) || defined(__NEWLIB__)
-		this->native_handle()=details::funopen_wrapper<stm&>(std::addressof(reff));
-#else
-		throw_posix_error(EINVAL);
-#endif
-	}
-	template<stream stm>
-	basic_c_file_impl(io_cookie_t,cstring_view mode,stm&& rref):basic_c_file_impl(io_cookie,mode,std::in_place_type<stm>,std::move(rref)){}
-
+	basic_c_file_impl(open_mode om,std::in_place_type_t<stm>,[[maybe_unused]] Args&& ...args)
+		:basic_c_file_impl(open_cookie_type_with_mode<stm>(om,std::forward<Args>(args)...))
+	{}
 	basic_c_file_impl(basic_c_file_impl const&)=default;
 	basic_c_file_impl& operator=(basic_c_file_impl const&)=default;
 	constexpr basic_c_file_impl(basic_c_file_impl&&) noexcept=default;

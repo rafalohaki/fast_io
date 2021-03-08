@@ -130,7 +130,7 @@ inline constexpr auto deal_with_scatters(std::array<basic_io_scatter_t<char_type
 		str.reserve(sz+1);
 	else
 		str.reserve(sz);
-	fast_io::ostring_ref oref{str};
+	basic_ostring_ref<char_type> oref{&str};
 	auto it(str.data());
 	for(auto const& e : scatters)
 		it=details::non_overlapped_copy_n(e.base,e.len,it);
@@ -163,7 +163,7 @@ inline constexpr void deal_with_scatters_string(std::basic_string<char_type>& st
 		str.reserve(sz+1+str.size());
 	else
 		str.reserve(sz+str.size());
-	fast_io::ostring_ref oref{str};
+	basic_ostring_ref<char_type> oref{&str};
 	auto it(str.data());
 	for(auto const& e : scatters)
 		it=details::non_overlapped_copy_n(e.base,e.len,it);
@@ -215,7 +215,7 @@ inline constexpr auto concat_fallback(Args ...args)
 	else
 	{
 		std::basic_string<char_type> bas;
-		fast_io::ostring_ref itb(bas);
+		basic_ostring_ref<char_type> itb{&bas};
 		if constexpr(line)
 			println_freestanding_decay(io_ref(itb),args...);
 		else
@@ -244,7 +244,7 @@ inline constexpr decltype(auto) deal_with_first_is_string_rvalue_reference_decay
 	}
 	else
 	{
-		ostring_ref t{u};
+		basic_ostring_ref<char_type> t{&u};
 		{
 			if constexpr(line)
 				println_freestanding_decay(io_ref(t),args...);
@@ -323,7 +323,7 @@ constexpr
 void in_place_to(T& t,Args&& ...args)
 {
 	std::string str;
-	ostring_ref ref{str};
+	ostring_ref ref{&str};
 	print_freestanding(ref,std::forward<Args>(args)...);
 	istring_view is(str);
 	if(!scan_freestanding(is,t))
@@ -339,7 +339,7 @@ constexpr
 void in_place_to(std::string& t,Args&& ...args)
 {
 	t.clear();
-	ostring_ref ref{t};
+	ostring_ref ref{&t};
 	print_freestanding(ref,std::forward<Args>(args)...);
 }
 

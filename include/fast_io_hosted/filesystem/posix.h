@@ -9,10 +9,7 @@ namespace details
 inline int dirp_to_fd(DIR* dirp) noexcept
 {
 	if(dirp==nullptr)
-	{
-		errno=EBADF;
 		return -1;
-	}
 	return ::dirfd(dirp);
 }
 
@@ -264,6 +261,9 @@ inline posix_directory_entry operator*(posix_directory_iterator pdit) noexcept
 
 inline posix_directory_iterator& operator++(posix_directory_iterator& pdit)
 {
+/*
+To fix: avoid setting errno
+*/
 	errno=0;
 	auto entry{readdir(pdit.dirp)};
 	if(entry==nullptr&&errno)

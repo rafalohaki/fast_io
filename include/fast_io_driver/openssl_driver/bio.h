@@ -59,11 +59,11 @@ inline int bio_to_fd(BIO* bio) noexcept
 
 }
 
-template<stream stm>
+template<typename stm>
+requires (stream<std::remove_reference_t<stm>>)
 struct bio_io_cookie_functions_t
 {
 	using native_functions_type = bio_method_st;
-	using value_handle_type = stm;
 	native_functions_type functions{};
 	explicit bio_io_cookie_functions_t()
 	{
@@ -76,22 +76,7 @@ struct bio_io_cookie_functions_t
 				try
 				{
 #endif
-					if constexpr(value_based_stream<stream>)
-					{
-						auto data{BIO_get_data(bbio)};
-						if constexpr(sizeof(value_handle_type)<=sizeof(void*))
-						{
-							value_handle_type dt;
-							my_memcpy(&dt,&data,sizeof(value_handle_type));
-							*readd=read(dt,buf,buf+size)-buf;
-						}
-						else
-							*readd=read(*bit_cast<value_handle_type*>(data),buf,buf+size)-buf;
-					}
-					else
-					{
-						*readd=read(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size)-buf;
-					}
+					*readd=read(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size)-buf;
 					return 1;
 #ifdef __cpp_exceptions
 				}
@@ -110,41 +95,13 @@ struct bio_io_cookie_functions_t
 				try
 				{
 #endif
-					if constexpr(value_based_stream<stream>)
+					if constexpr(std::same_as<decltype(write(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size)),void>)
 					{
-
-
-						auto data{BIO_get_data(bbio)};
-						if constexpr(sizeof(value_handle_type)<=sizeof(void*))
-						{
-							value_handle_type dt;
-							my_memcpy(&dt,&data,sizeof(value_handle_type));
-							if constexpr(std::same_as<decltype(write(dt,buf,buf+size)),void>)
-								*written=size;
-							else
-								*written=write(dt,buf,buf+size)-buf;
-						}
-						else
-						{
-						if constexpr(std::same_as<decltype(write(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size)),void>)
-						{
-							write(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size);
-							*written=size;
-						}
-						else
-							*written=write(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size)-buf;
-						}
+						write(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size);
+						*written=size;
 					}
 					else
-					{
-						if constexpr(std::same_as<decltype(write(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size)),void>)
-						{
-							write(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size);
-							*written=size;
-						}
-						else
-							*written=write(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size)-buf;
-					}
+						*written=write(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size)-buf;
 					return 1;
 #ifdef __cpp_exceptions
 				}
@@ -197,48 +154,14 @@ inline BIO* construct_bio_by_t(stm* ptr)
 	return bp;
 }
 
-
 template<stream stm,typename... Args>
-inline BIO* construct_bio_by_normal(Args&&... args)
+inline BIO* construct_bio_by_args(Args... args)
 {
+
 	std::unique_ptr<stm> p{new stm(std::forward<Args>(args)...)};
-	BIO* bio{construct_bio_by_t(p.get())};
+	BIO* fp{construct_bio_by_t(p.get())};
 	p.release();
-	return bio;
-}
-
-template<value_based_stream stm,typename... Args>
-inline BIO* construct_bio_by_value_based(Args&&... args)
-{
-	if constexpr(std::is_pointer_v<typename stm::native_handle_type>)
-	{
-		stm handle(std::forward<Args>(args)...);
-		BIO* bio{construct_bio_by_t(handle.native_handle())};
-		handle.release();
-		return bio;
-	}
-	else if constexpr(std::is_trivially_copyable<typename stm::native_handle_type>&&
-		sizeof(typename stm::native_handle_type)<=sizeof(BIO*))
-	{
-
-	}
-	else
-	{
-		return construct_bio_by_normal<stm>(std::forward<Args>(args)...);
-	}
-}
-
-template<stream stm,typename... Args>
-inline BIO* construct_bio_by_args(Args&&... args)
-{
-	if constexpr(value_based_stream<stm>)
-	{
-		returrn construct_bio_by_value_based<stm>(std::forward<Args>(args)...);
-	}
-	else
-	{
-		return construct_bio_by_normal<stm>(std::forward<Args>(args)...);
-	}
+	return fp;
 }
 }
 

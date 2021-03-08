@@ -93,11 +93,7 @@ concept buffer_output_stream_impl = requires(T&& out,typename std::remove_cvref_
 	obuffer_set_curr(out,obuffer_curr(out));
 	overflow(out,ch);
 };
-template<typename T>
-concept maybe_buffer_output_stream_impl = requires(T&& out)
-{
-	{obuffer_is_active(out)}->std::convertible_to<bool>;
-};
+
 template<typename T>
 concept flush_output_stream_impl = requires(T&& out)
 {
@@ -111,7 +107,7 @@ concept fill_nc_output_stream_impl = requires(T&& out,std::size_t n,typename std
 };
 
 template<typename T>
-concept dynamic_buffer_output_stream_impl = requires(T&& out,std::size_t size,typename std::remove_cvref_t<T>::char_type* ptr)
+concept dynamic_output_stream_impl = requires(T&& out,std::size_t size,typename std::remove_cvref_t<T>::char_type* ptr)
 {
 	oreserve(out,size);
 	oshrink_to_fit(out);
