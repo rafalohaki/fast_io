@@ -714,7 +714,7 @@ inline constexpr posix_file_status struct_stat_to_posix_file_status(stat_model& 
 	static_cast<std::uintmax_t>(st.st_blocks),st.st_atim,st.st_mtim,st.st_ctim,
 #endif
 #ifdef __BSD_VISIBLE
-	st.st_st_flags,st.st_gen
+	st.st_flags,st.st_gen
 #else
 	0,0
 #endif
@@ -725,18 +725,18 @@ inline posix_file_status fstat_impl(int fd)
 {
 #ifdef _WIN32
 	struct __stat64 st;
-#elif defined(__MSDOS__)
-	struct stat st;
-#else
+#elif defined(__linux__)
 	struct stat64 st;
+#else
+	struct stat st;
 #endif
 	if(
 #ifdef _WIN32
 _fstat64
-#elif defined(__MSDOS__)
-fstat
-#else
+#elif defined(__linux__)
 fstat64
+#else
+fstat
 #endif
 (fd,std::addressof(st))<0)
 		throw_posix_error();

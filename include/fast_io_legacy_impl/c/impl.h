@@ -211,7 +211,7 @@ public:
 
 template<typename stm>
 inline constexpr c_io_cookie_functions_t<stm> c_io_cookie_functions{};
-#elif (defined(__APPLE__) && defined(__MACH__)) || defined(__BIONIC__) || defined(__NEWLIB__)
+#elif defined(__BSD_VISIBLE) || defined(__BIONIC__) || defined(__NEWLIB__)
 namespace details
 {
 #ifdef __NEWLIB__
@@ -483,20 +483,20 @@ https://www.gnu.org/software/libc/manual/html_node/File-Positioning.html
 	if(
 #if defined(_WIN32)
 		_fseeki64
-#elif defined(__NEWLIB__) || defined(__MSDOS__)
-		fseek
-#else
+#elif defined(__linux__)
 		fseeko64
+#else
+		fseek
 #endif
 		(fp,offset,static_cast<int>(s)))
 		throw_posix_error();
 	auto val{
 #if defined(_WIN32)
 		_ftelli64
-#elif defined(__NEWLIB__) || defined(__MSDOS__)
-		ftell
-#else
+#elif defined(__linux__)
 		ftello64 
+#else
+		ftell
 #endif
 		(fp)};
 	if(val<0)
