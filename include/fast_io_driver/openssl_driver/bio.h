@@ -58,12 +58,12 @@ inline int bio_to_fd(BIO* bio) noexcept
 }
 
 }
-#ifdef __cpp_rtti
-template<typename stm>
-requires (stream<std::remove_reference_t<stm>>)
+
+template<stream stm>
 struct bio_io_cookie_functions_t
 {
 	using native_functions_type = bio_method_st;
+	using value_handle_type = stm;
 	native_functions_type functions{};
 	explicit bio_io_cookie_functions_t()
 	{
@@ -76,7 +76,22 @@ struct bio_io_cookie_functions_t
 				try
 				{
 #endif
-					*readd=read(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size)-buf;
+					if constexpr(value_based_stream<stream>)
+					{
+						auto data{BIO_get_data(bbio)};
+						if constexpr(sizeof(value_handle_type)<=sizeof(void*))
+						{
+							value_handle_type dt;
+							my_memcpy(&dt,&data,sizeof(value_handle_type));
+							*readd=read(dt,buf,buf+size)-buf;
+						}
+						else
+							*readd=read(*bit_cast<value_handle_type*>(data),buf,buf+size)-buf;
+					}
+					else
+					{
+						*readd=read(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size)-buf;
+					}
 					return 1;
 #ifdef __cpp_exceptions
 				}
@@ -95,13 +110,41 @@ struct bio_io_cookie_functions_t
 				try
 				{
 #endif
-					if constexpr(std::same_as<decltype(write(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size)),void>)
+					if constexpr(value_based_stream<stream>)
 					{
-						write(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size);
-						*written=size;
+
+
+						auto data{BIO_get_data(bbio)};
+						if constexpr(sizeof(value_handle_type)<=sizeof(void*))
+						{
+							value_handle_type dt;
+							my_memcpy(&dt,&data,sizeof(value_handle_type));
+							if constexpr(std::same_as<decltype(write(dt,buf,buf+size)),void>)
+								*written=size;
+							else
+								*written=write(dt,buf,buf+size)-buf;
+						}
+						else
+						{
+						if constexpr(std::same_as<decltype(write(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size)),void>)
+						{
+							write(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size);
+							*written=size;
+						}
+						else
+							*written=write(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size)-buf;
+						}
 					}
 					else
-						*written=write(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size)-buf;
+					{
+						if constexpr(std::same_as<decltype(write(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size)),void>)
+						{
+							write(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size);
+							*written=size;
+						}
+						else
+							*written=write(*bit_cast<value_type*>(BIO_get_data(bbio)),buf,buf+size)-buf;
+					}
 					return 1;
 #ifdef __cpp_exceptions
 				}
@@ -118,16 +161,86 @@ struct bio_io_cookie_functions_t
 				delete bit_cast<stm*>(BIO_get_data(bbio));
 				return 1;
 			};
+#if __cpp_rtti
 		functions.name=typeid(stm).name();
 		constexpr int value(BIO_TYPE_DESCRIPTOR-BIO_TYPE_START);
 		static_assert(0<value);
 		functions.type=static_cast<int>(typeid(stm).hash_code()%value+BIO_TYPE_START);
+#else
+		functions.name=reinterpret_cast<char const*>(u8"unknown");
+		constexpr int value(BIO_TYPE_DESCRIPTOR-BIO_TYPE_START);
+		static_assert(0<value);
+		functions.type=static_cast<int>(BIO_TYPE_START);
+#endif
 	}
 };
 
 template<typename stm>
 inline bio_io_cookie_functions_t<stm> const bio_io_cookie_functions{};
-#endif
+
+namespace details
+{
+
+inline BIO* bio_new_stream_type(bio_method_st const* methods)
+{
+	auto bio{BIO_new(methods)};
+	if(bio==nullptr)
+		throw_openssl_error();
+	return bio;
+}
+
+template<stream stm>
+inline BIO* construct_bio_by_t(stm* ptr)
+{
+	auto bp{bio_new_stream_type(std::addressof(bio_io_cookie_functions<stm>.functions))};
+	BIO_set_data(bp,ptr);
+	return bp;
+}
+
+
+template<stream stm,typename... Args>
+inline BIO* construct_bio_by_normal(Args&&... args)
+{
+	std::unique_ptr<stm> p{new stm(std::forward<Args>(args)...)};
+	BIO* bio{construct_bio_by_t(p.get())};
+	p.release();
+	return bio;
+}
+
+template<value_based_stream stm,typename... Args>
+inline BIO* construct_bio_by_value_based(Args&&... args)
+{
+	if constexpr(std::is_pointer_v<typename stm::native_handle_type>)
+	{
+		stm handle(std::forward<Args>(args)...);
+		BIO* bio{construct_bio_by_t(handle.native_handle())};
+		handle.release();
+		return bio;
+	}
+	else if constexpr(std::is_trivially_copyable<typename stm::native_handle_type>&&
+		sizeof(typename stm::native_handle_type)<=sizeof(BIO*))
+	{
+
+	}
+	else
+	{
+		return construct_bio_by_normal<stm>(std::forward<Args>(args)...);
+	}
+}
+
+template<stream stm,typename... Args>
+inline BIO* construct_bio_by_args(Args&&... args)
+{
+	if constexpr(value_based_stream<stm>)
+	{
+		returrn construct_bio_by_value_based<stm>(std::forward<Args>(args)...);
+	}
+	else
+	{
+		return construct_bio_by_normal<stm>(std::forward<Args>(args)...);
+	}
+}
+}
 
 template<std::integral ch_type>
 class basic_bio_io_observer
@@ -189,46 +302,12 @@ public:
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	explicit constexpr basic_bio_file(native_hd bio):basic_bio_io_observer<char_type>{bio}{}
-#ifdef __cpp_rtti
 	template<stream stm,typename ...Args>
 	requires std::constructible_from<stm,Args...>
-	basic_bio_file(io_cookie_t,std::in_place_type_t<stm>,Args&& ...args):basic_bio_io_observer<char_type>(BIO_new(std::addressof(bio_io_cookie_functions<stm>.functions)))
+	basic_bio_file(std::in_place_type_t<stm>,Args&& ...args):
+		basic_bio_io_observer<char_type>(details::construct_bio_by_args<stm>(std::forward<Args>(args)...))
 	{
-		detect_open_failure();
-		basic_bio_file<char_type> self(this->native_handle());
-		BIO_set_data(this->native_handle(),bit_cast<void*>(new stm(std::forward<Args>(args)...)));
-		self.release();
 	}
-	template<stream stm>
-	basic_bio_file(io_cookie_t,stm& sm):basic_bio_io_observer<char_type>(BIO_new(std::addressof(bio_io_cookie_functions<stm&>.functions)))
-	{
-		detect_open_failure();
-		basic_bio_file<char_type> self(this->native_handle());
-		BIO_set_data(this->native_handle(),bit_cast<void*>(std::addressof(sm)));
-		self.release();
-	}
-
-	template<stream stm>
-	basic_bio_file(io_cookie_t,stm&& sm):basic_bio_file<char_type>(io_cookie,std::in_place_type<stm>,std::move(sm)){}
-#else
-	template<stream stm,typename ...Args>
-	requires std::constructible_from<stm,Args...>
-	basic_bio_file(io_cookie_t,std::in_place_type_t<stm>,Args&& ...)
-	{
-		throw_posix_error(ENOTSUP);
-	}
-	template<stream stm>
-	basic_bio_file(io_cookie_t,stm&)
-	{
-		throw_posix_error(ENOTSUP);
-	}
-
-	template<stream stm>
-	basic_bio_file(io_cookie_t,stm&&)
-	{
-		throw_posix_error(ENOTSUP);
-	}
-#endif
 
 	basic_bio_file(basic_c_io_handle<char_type>&& bmv,fast_io::open_mode om):
 		basic_bio_io_observer<char_type>(BIO_new_fp(bmv.native_handle(),details::calculate_bio_new_fp_flags<true>(om)))
@@ -242,7 +321,6 @@ public:
 		detect_open_failure();
 		bmv.release();
 	}
-
 
 
 #if defined(_WIN32)
