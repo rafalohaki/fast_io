@@ -16,7 +16,7 @@
 #include<sys/stat.h>
 struct io_uring;
 #endif
-#ifdef __BSD_VISIBLE
+#if defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
 #ifndef __NEWLIB__
 #include <sys/uio.h>
 #include <sys/types.h>
@@ -713,7 +713,7 @@ inline constexpr posix_file_status struct_stat_to_posix_file_status(stat_model& 
 	static_cast<std::uintmax_t>(st.st_blksize),
 	static_cast<std::uintmax_t>(st.st_blocks),st.st_atim,st.st_mtim,st.st_ctim,
 #endif
-#ifdef __BSD_VISIBLE
+#if defined(__BSD_VISIBLE)||defined(__DARWIN_C_LEVEL)
 	st.st_flags,st.st_gen
 #else
 	0,0
@@ -758,7 +758,7 @@ inline posix_file_status status(basic_posix_io_observer<ch_type> piob)
 #endif
 
 
-#if defined(__linux__) || defined(__BSD_VISIBLE)
+#if defined(__linux__)
 template<std::integral ch_type>
 inline auto zero_copy_in_handle(basic_posix_io_observer<ch_type> h)
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#if _BSD_SOURCE || _SVID_SOURCE || (_POSIX_C_SOURCE >= 200809L || _XOPEN_SOURCE >= 700)
+#if _BSD_SOURCE || _SVID_SOURCE || (_POSIX_C_SOURCE >= 200809L || _XOPEN_SOURCE >= 700 || __DARWIN_C_LEVEL >= __DARWIN_C_FULL)
 #include"posix.h"
 #include"posix_at.h"
 #elif _WIN32
@@ -9,7 +9,7 @@
 
 namespace fast_io
 {
-#if !defined(__NEWLIB__) && !defined(__MSDOS__) && (_BSD_SOURCE || _SVID_SOURCE || (_POSIX_C_SOURCE >= 200809L || _XOPEN_SOURCE >= 700) || _WIN32)
+#if !defined(__NEWLIB__) && !defined(__MSDOS__) && (_BSD_SOURCE || _SVID_SOURCE || (_POSIX_C_SOURCE >= 200809L || _XOPEN_SOURCE >= 700 || __DARWIN_C_LEVEL >= __DARWIN_C_FULL ) || _WIN32)
 
 template<std::integral char_type>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,directory_entry>,

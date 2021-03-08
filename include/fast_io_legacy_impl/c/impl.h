@@ -211,7 +211,7 @@ public:
 
 template<typename stm>
 inline constexpr c_io_cookie_functions_t<stm> c_io_cookie_functions{};
-#elif defined(__BSD_VISIBLE) || defined(__BIONIC__) || defined(__NEWLIB__)
+#elif defined(__BSD_VISIBLE) ||defined(__DARWIN_C_LEVEL) || defined(__BIONIC__) || defined(__NEWLIB__)
 namespace details
 {
 #ifdef __NEWLIB__
@@ -781,7 +781,7 @@ inline std::FILE* open_cookie_type_with_mode(open_mode mode,Args&&...args)
 	return fp;
 }
 
-#elif defined(__BSD_VISIBLE) || defined(__BIONIC__) || defined(__NEWLIB__)
+#elif defined(__BSD_VISIBLE) ||defined(__DARWIN_C_LEVEL) || defined(__BIONIC__) || defined(__NEWLIB__)
 template<typename T,typename... Args>
 inline std::FILE* open_cookie_type(Args&&...args)
 {
@@ -1048,7 +1048,7 @@ inline decltype(auto) zero_copy_out_handle(basic_c_io_observer_unlocked<ch_type>
 #include"glibc.h"
 #elif defined(__MUSL__) || defined(__NEED___isoc_va_list)
 #include"musl.h"
-#elif defined(__BSD_VISIBLE)
+#elif defined(__BSD_VISIBLE) ||defined(__DARWIN_C_LEVEL)
 #if defined(__NEWLIB__)
 #ifndef __CUSTOM_FILE_IO__
 #include"newlib.h"
