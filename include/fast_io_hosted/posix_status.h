@@ -27,6 +27,7 @@ struct posix_file_status
 	struct timespec atim;					// Time of last access
 	struct timespec mtim;					// Time of last modification
 	struct timespec ctim;					// Time of last status change
+	struct timespec btim;					// Time of file creation
 	std::uintmax_t flags;	// user defined flags for file
 	std::uintmax_t gen;	// file generation number
 };
@@ -52,10 +53,10 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,fast
 	sizeof(u8"dev:")+sizeof(u8"\nino:")+sizeof(u8"\nperm:")+sizeof(u8"\ntype:")+
 	sizeof(u8"\nnlink:")+sizeof(u8"\nuid:")+sizeof(u8"\ngid:")+sizeof(u8"\nrdev:")+
 	sizeof(u8"\nsize:")+sizeof(u8"\nblksize:")+sizeof(u8"\nblocks:")+sizeof(u8"\natim:")+
-	sizeof(u8"\nmtim:")+sizeof(u8"\nctim:")+sizeof(u8"\nflags:")+sizeof(u8"\ngen:")-16+
+	sizeof(u8"\nmtim:")+sizeof(u8"\nctim:")+sizeof(u8"\nbtim:")+sizeof(u8"\nflags:")+sizeof(u8"\ngen:")-16+
 	print_reserve_size(io_reserve_type<char_type,perms>)+
 	print_reserve_size(io_reserve_type<char_type,file_type>)+
-	print_reserve_size(io_reserve_type<char_type,struct timespec>)*3};
+	print_reserve_size(io_reserve_type<char_type,struct timespec>)*4};
 	return res;
 }
 
@@ -96,6 +97,8 @@ inline constexpr raiter print_file_status_impl(raiter iter,fast_io::posix_file_s
 		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.mtim);
 		iter=details::copy_string_literal("\nctim:",iter);
 		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.ctim);
+		iter=details::copy_string_literal("\nbtim:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.btim);
 
 		iter=details::copy_string_literal("\nflags:",iter);
 		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.flags);
@@ -134,6 +137,8 @@ inline constexpr raiter print_file_status_impl(raiter iter,fast_io::posix_file_s
 		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.mtim);
 		iter=details::copy_string_literal(L"\nctim:",iter);
 		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.ctim);
+		iter=details::copy_string_literal(L"\nbtim:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.btim);
 
 		iter=details::copy_string_literal(L"\nflags:",iter);
 		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.flags);
@@ -172,6 +177,8 @@ inline constexpr raiter print_file_status_impl(raiter iter,fast_io::posix_file_s
 		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.mtim);
 		iter=details::copy_string_literal(u"\nctim:",iter);
 		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.ctim);
+		iter=details::copy_string_literal(u"\nbtim:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.btim);
 
 		iter=details::copy_string_literal(u"\nflags:",iter);
 		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.flags);
@@ -210,6 +217,8 @@ inline constexpr raiter print_file_status_impl(raiter iter,fast_io::posix_file_s
 		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.mtim);
 		iter=details::copy_string_literal(U"\nctim:",iter);
 		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.ctim);
+		iter=details::copy_string_literal(U"\nbtim:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.btim);
 
 		iter=details::copy_string_literal(U"\nflags:",iter);
 		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.flags);
@@ -248,6 +257,8 @@ inline constexpr raiter print_file_status_impl(raiter iter,fast_io::posix_file_s
 		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.mtim);
 		iter=details::copy_string_literal(u8"\nctim:",iter);
 		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.ctim);
+		iter=details::copy_string_literal(u8"\nbtim:",iter);
+		iter=print_reserve_define(io_reserve_type<char_type,struct timespec>,iter,status.btim);
 
 		iter=details::copy_string_literal(u8"\nflags:",iter);
 		iter=print_reserve_define(io_reserve_type<char_type,std::uintmax_t>,iter,status.flags);

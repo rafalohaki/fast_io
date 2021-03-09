@@ -970,6 +970,7 @@ inline posix_file_status win32_status_impl(void* __restrict handle)
 	131072,file_size>>9,
 	to_struct_timespec(bhdi.ftLastAccessTime),
 	to_struct_timespec(bhdi.ftLastWriteTime),
+	to_struct_timespec(bhdi.ftLastWriteTime),
 	to_struct_timespec(bhdi.ftCreationTime),
 	0,0};
 }

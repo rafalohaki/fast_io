@@ -708,10 +708,14 @@ inline constexpr posix_file_status struct_stat_to_posix_file_status(stat_model& 
 #if defined(_WIN32)||defined(__MSDOS__)
 	131072,
 	static_cast<std::uintmax_t>(st.st_size/512),
-	{st.st_atime,{}},{st.st_mtime,{}},{st.st_ctime,{}},
+	{st.st_atime,{}},{st.st_mtime,{}},{st.st_ctime,{}},{0,0},
+#elif defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
+	static_cast<std::uintmax_t>(st.st_blksize),
+	static_cast<std::uintmax_t>(st.st_blocks),
+	st.st_atimespec,st.st_mtimespec,st.st_ctimespec,st.st_birthtimespec,
 #else
 	static_cast<std::uintmax_t>(st.st_blksize),
-	static_cast<std::uintmax_t>(st.st_blocks),st.st_atim,st.st_mtim,st.st_ctim,
+	static_cast<std::uintmax_t>(st.st_blocks),st.st_atim,st.st_mtim,st.st_ctim,{0,0},
 #endif
 #if defined(__BSD_VISIBLE)
 	st.st_flags,st.st_gen
