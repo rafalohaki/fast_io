@@ -269,11 +269,16 @@ To fix: avoid setting errno
 	if(entry==nullptr&&errno)
 		throw_posix_error();
 	pdit.entry=entry;
+	if(entry==nullptr)
+		pdit.d_namlen=0;
+	else
+	{
 #if defined(_DIRENT_HAVE_D_NAMLEN)
-	pdit.d_namlen=entry->d_namlen;
+		pdit.d_namlen=entry->d_namlen;
 #else
-	pdit.d_namlen=std::strlen(entry->d_name);
+		pdit.d_namlen=std::strlen(entry->d_name);
 #endif
+	}
 	return pdit;
 }
 
