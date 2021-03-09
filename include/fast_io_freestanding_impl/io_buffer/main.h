@@ -169,12 +169,12 @@ private:
 	{
 		if constexpr((mode&buffer_mode::out)==buffer_mode::out)
 		{
-#if __cpp_exceptions
+#if (defined(_MSC_VER)&&_HAS_EXCEPTIONS!=0) || (!defined(_MSC_VER)&&__cpp_exceptions)
 			try
 			{
 #endif
 				close_throw_impl();
-#if __cpp_exceptions
+#if (defined(_MSC_VER)&&_HAS_EXCEPTIONS!=0) || (!defined(_MSC_VER)&&__cpp_exceptions)
 			}
 			catch(...)
 			{

@@ -46,12 +46,10 @@ public:
 	})
 	constexpr basic_cstring_view(crg const& cont):string_view_type(std::ranges::data(cont),std::ranges::size(cont)){}
 
-#if __cplusplus >= 201703L && __cpp_lib_concepts >= 202002L
       template<std::contiguous_iterator It, std::sized_sentinel_for<It> End>
 	requires std::same_as<std::iter_value_t<It>, ch_type>
 	  && (!std::convertible_to<End, size_type>)
 	constexpr basic_cstring_view(null_terminated_t, It first, End last): string_view_type(first,last){}
-#endif
 
 	constexpr string_view_type substr(size_type pos, size_type n=std::basic_string_view<ch_type,tr_type>::npos) const = delete;
 	constexpr basic_cstring_view substr(size_type pos=0) const = delete;

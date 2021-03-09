@@ -52,7 +52,7 @@ encoding_scheme src_encoding=encoding_scheme::execution_charset,
 encoding_scheme encoding=encoding_scheme::execution_charset,
 std::integral src_char_type,std::integral dest_char_type>
 requires (sizeof(src_char_type)<=4 &&sizeof(dest_char_type)<=4)
-inline constexpr code_cvt_result<src_char_type,dest_char_type> general_code_cvt(src_char_type const* src_first,src_char_type const* src_last,dest_char_type* __restrict__ dst) noexcept
+inline constexpr code_cvt_result<src_char_type,dest_char_type> general_code_cvt(src_char_type const* src_first,src_char_type const* src_last,dest_char_type* __restrict dst) noexcept
 {
 	if constexpr(src_encoding==encoding_scheme::execution_charset)
 	{
@@ -287,7 +287,7 @@ encoding_scheme src_encoding=encoding_scheme::execution_charset,
 encoding_scheme encoding=encoding_scheme::execution_charset,typename state_type,
 std::integral src_char_type,std::integral dest_char_type>
 requires (sizeof(src_char_type)<=4 &&sizeof(dest_char_type)<=4)
-inline constexpr dest_char_type* general_code_cvt(state_type& __restrict__ state,src_char_type const* src_first,src_char_type const* src_last,dest_char_type* __restrict__ dst) noexcept
+inline constexpr dest_char_type* general_code_cvt(state_type& __restrict state,src_char_type const* src_first,src_char_type const* src_last,dest_char_type* __restrict dst) noexcept
 {
 	if constexpr(src_encoding==encoding_scheme::execution_charset)
 	{
@@ -422,7 +422,7 @@ encoding_scheme src_encoding=encoding_scheme::execution_charset,
 encoding_scheme encoding=encoding_scheme::execution_charset,
 std::integral src_char_type,std::integral dest_char_type>
 requires (sizeof(src_char_type)<=4 &&sizeof(dest_char_type)<=4)
-inline constexpr dest_char_type* general_code_cvt_full(src_char_type const* src_first,src_char_type const* src_last,dest_char_type* __restrict__ dst) noexcept
+inline constexpr dest_char_type* general_code_cvt_full(src_char_type const* src_first,src_char_type const* src_last,dest_char_type* __restrict dst) noexcept
 {
 	if constexpr(src_encoding==encoding_scheme::execution_charset)
 	{
