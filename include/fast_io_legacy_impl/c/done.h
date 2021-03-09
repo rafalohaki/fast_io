@@ -54,7 +54,7 @@ inline std::size_t c_fread_unlocked_impl(void* __restrict begin,std::size_t type
 {
 #ifdef __NEWLIB__
 	__sclearerr(fp);
-#elif defined(_POSIX_C_SOURCE) || defined(__BSD_VISIBLE)
+#elif defined(_POSIX_C_SOURCE) || defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
 	clearerr_unlocked(fp);
 #elif defined(__MINGW32__)
 	fp->_flag&=~0x0020;
@@ -72,7 +72,7 @@ inline std::size_t c_fread_unlocked_impl(void* __restrict begin,std::size_t type
 	std::size_t read_count{
 #if defined(_MSC_VER)||defined(_UCRT)
 	_fread_nolock
-#elif defined(_POSIX_C_SOURCE) || defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
+#elif defined(_POSIX_C_SOURCE) || defined(__BSD_VISIBLE)
 	fread_unlocked
 #else
 	fread
