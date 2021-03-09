@@ -29,7 +29,7 @@ inline std::size_t c_fwrite_unlocked_impl(void const* __restrict begin,std::size
 	std::size_t written_count{
 #if defined(_MSC_VER)||defined(_UCRT)
 	_fwrite_nolock
-#elif defined(_POSIX_SOURCE) || defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
+#elif defined(_POSIX_SOURCE) || defined(__BSD_VISIBLE)
 	fwrite_unlocked 
 #else
 	fwrite
@@ -54,7 +54,7 @@ inline std::size_t c_fread_unlocked_impl(void* __restrict begin,std::size_t type
 {
 #ifdef __NEWLIB__
 	__sclearerr(fp);
-#elif defined(_POSIX_C_SOURCE) || defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
+#elif defined(_POSIX_C_SOURCE) || defined(__BSD_VISIBLE)
 	clearerr_unlocked(fp);
 #elif defined(__MINGW32__)
 	fp->_flag&=~0x0020;
