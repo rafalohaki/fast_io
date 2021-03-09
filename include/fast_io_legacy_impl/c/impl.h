@@ -352,12 +352,12 @@ inline int fp_unlocked_to_fd(FILE* fp) noexcept
 	return 
 #if defined(__WINNT__) || defined(_MSC_VER)
 		_fileno(fp)
-#elif defined(__NEWLIB__)
+#elif defined(__NEWLIB__) || defined(__DARWIN_C_LEVEL)
 		fp->_file
 #elif defined(__MSDOS__)
 		fileno(fp)
 #else
-		::fileno_unlocked(fp)
+		fileno_unlocked(fp)
 #endif
 	;
 }
@@ -374,7 +374,7 @@ inline int fp_to_fd(FILE* fp) noexcept
 #elif defined(__MSDOS__)
 		fileno(fp)
 #else
-		::fileno(fp)
+		fileno(fp)
 #endif
 	;
 }

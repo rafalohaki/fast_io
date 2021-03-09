@@ -175,6 +175,9 @@ inline void posix_mkdirat_impl(int dirfd, const char *pathname, mode_t mode)
 
 inline void posix_mknodat_impl(int dirfd, const char *pathname, mode_t mode,std::uintmax_t dev)
 {
+#if defined(__DARWIN_C_LEVEL)
+	throw_posix_error(ENOTSUP);
+#else
 	if constexpr(sizeof(std::uintmax_t)>sizeof(dev_t))
 	{
 		constexpr std::uintmax_t mx{std::numeric_limits<dev_t>::max()};
@@ -192,6 +195,7 @@ inline void posix_mknodat_impl(int dirfd, const char *pathname, mode_t mode,std:
 	::mknodat
 #endif
 	(dirfd,pathname,mode,dev));
+#endif
 }
 
 inline void posix_unlinkat_impl(int dirfd,char const* path,int flags)

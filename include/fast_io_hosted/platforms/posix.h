@@ -713,7 +713,7 @@ inline constexpr posix_file_status struct_stat_to_posix_file_status(stat_model& 
 	static_cast<std::uintmax_t>(st.st_blksize),
 	static_cast<std::uintmax_t>(st.st_blocks),st.st_atim,st.st_mtim,st.st_ctim,
 #endif
-#if defined(__BSD_VISIBLE)||defined(__DARWIN_C_LEVEL)
+#if defined(__BSD_VISIBLE)
 	st.st_flags,st.st_gen
 #else
 	0,0
