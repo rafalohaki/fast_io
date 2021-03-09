@@ -269,22 +269,22 @@ using io_io_observer = basic_io_io_observer<char>;
 using io_io_handle = basic_io_io_handle<char>;
 using io_file = basic_io_file<char>;
 
-using u8io_io_base = basic_io_io_base<char>;
-using u8io_io_observer = basic_io_io_observer<char8_t>;
-using u8io_io_handle = basic_io_io_handle<char8_t>;
-using u8io_file = basic_io_file<char8_t>;
-
-using wio_io_base = basic_io_io_base<char>;
+using wio_io_base = basic_io_io_base<wchar_t>;
 using wio_io_observer = basic_io_io_observer<wchar_t>;
 using wio_io_handle = basic_io_io_handle<wchar_t>;
 using wio_file = basic_io_file<wchar_t>;
 
-using u16io_io_base = basic_io_io_base<char>;
+using u8io_io_base = basic_io_io_base<char8_t>;
+using u8io_io_observer = basic_io_io_observer<char8_t>;
+using u8io_io_handle = basic_io_io_handle<char8_t>;
+using u8io_file = basic_io_file<char8_t>;
+
+using u16io_io_base = basic_io_io_base<char16_t>;
 using u16io_io_observer = basic_io_io_observer<char16_t>;
 using u16io_io_handle = basic_io_io_handle<char16_t>;
 using u16io_file = basic_io_file<char16_t>;
 
-using u32io_io_base = basic_io_io_base<char>;
+using u32io_io_base = basic_io_io_base<char32_t>;
 using u32io_io_observer = basic_io_io_observer<char32_t>;
 using u32io_io_handle = basic_io_io_handle<char32_t>;
 using u32io_file = basic_io_file<char32_t>;
