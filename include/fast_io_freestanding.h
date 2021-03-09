@@ -75,11 +75,20 @@ using iobuf_io_io_observer = basic_iobuf_io_io_observer<char>;
 using iobuf_io_io_handle = basic_iobuf_io_io_handle<char>;
 using iobuf_io_file = basic_iobuf_io_file<char>;
 
+using wiobuf_io_io_observer = basic_iobuf_io_io_observer<wchar_t>;
+using wiobuf_io_io_handle = basic_iobuf_io_io_handle<wchar_t>;
+using wiobuf_io_file = basic_iobuf_io_file<wchar_t>;
+
 using u8iobuf_io_io_observer = basic_iobuf_io_io_observer<char8_t>;
 using u8iobuf_io_io_handle = basic_iobuf_io_io_handle<char8_t>;
 using u8iobuf_io_file = basic_iobuf_io_file<char8_t>;
 
-using wiobuf_io_io_observer = basic_iobuf_io_io_observer<wchar_t>;
-using wiobuf_io_io_handle = basic_iobuf_io_io_handle<wchar_t>;
-using wiobuf_io_file = basic_iobuf_io_file<wchar_t>;
+using u16iobuf_io_io_observer = basic_iobuf_io_io_observer<char16_t>;
+using u16iobuf_io_io_handle = basic_iobuf_io_io_handle<char16_t>;
+using u16iobuf_io_file = basic_iobuf_io_file<char16_t>;
+
+using u32iobuf_io_io_observer = basic_iobuf_io_io_observer<char32_t>;
+using u32iobuf_io_io_handle = basic_iobuf_io_io_handle<char32_t>;
+using u32iobuf_io_file = basic_iobuf_io_file<char32_t>;
+
 }
