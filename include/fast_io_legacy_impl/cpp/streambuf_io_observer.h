@@ -173,12 +173,12 @@ inline constexpr decltype(auto) zero_copy_out_handle(basic_filebuf_io_observer<c
 	return zero_copy_out_handle(static_cast<basic_c_io_observer_unlocked<ch_type>>(h));
 }
 
-template<std::integral ch_type,typename Traits,typename... Args>
-inline auto seek(basic_filebuf_io_observer<ch_type,Traits> h,Args&& ...args)
+template<std::integral ch_type,typename Traits>
+inline auto seek(basic_filebuf_io_observer<ch_type,Traits> h,std::intmax_t offset=0,seekdir s=seekdir::cur)
 {
 	h.fb->flush();
 	h.fb->clear();
-	return seek(static_cast<basic_c_io_observer_unlocked<ch_type>>(h),std::forward<Args>(args)...);
+	return seek(static_cast<basic_c_io_observer_unlocked<ch_type>>(h),offset,s);
 }
 
 template<std::integral ch_type,typename... Args>
@@ -299,5 +299,5 @@ inline Iter write(basic_general_streambuf_io_observer<T> t,Iter begin,Iter end)
 		return begin+details::streambuf_write_impl(basic_streambuf_io_observer<char_type,traits_type>{t.fb},
 			reinterpret_cast<char const*>(std::to_address(begin)),static_cast<std::size_t>(end-begin)*sizeof(*begin))/(*begin);
 }
-
+static_assert(value_based_stream<filebuf_io_observer>);
 }
