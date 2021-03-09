@@ -404,7 +404,10 @@ inline posix_recursive_directory_iterator& operator++(posix_recursive_directory_
 inline void pop(posix_recursive_directory_iterator& prdit)
 {
 	if(prdit.stack.empty())
+	{
 		prdit.entry=nullptr;
+		prdit.d_namlen=0;
+	}
 	else
 	{
 		prdit.stack.pop_back();
