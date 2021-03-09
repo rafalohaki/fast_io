@@ -176,7 +176,6 @@ This function never fails. but what if fdopen fails?
 	basic_filebuf_file(basic_filebuf_file const&)=delete;
 	basic_filebuf_file(basic_filebuf_file&& other) noexcept:basic_filebuf_io_observer<CharT,Traits>{other.release()}{}
 
-public:
 	basic_filebuf_file& operator=(basic_filebuf_file&& bf) noexcept
 	{
 		if(this->fb==bf.fb)[[unlikely]]
