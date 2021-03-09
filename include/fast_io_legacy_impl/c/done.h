@@ -8,25 +8,36 @@ namespace details
 
 inline std::size_t c_fwrite_unlocked_impl(void const* __restrict begin,std::size_t type_size,std::size_t count,std::FILE* __restrict fp)
 {
-#if defined(_POSIX_C_SOURCE)
+#ifdef __NEWLIB__
+	__sclearerr(fp);
+#elif defined(_POSIX_C_SOURCE) || defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
 	clearerr_unlocked(fp);
 #elif defined(__MINGW32__)
 	fp->_flag&=~0x0020;
 #else
 	clearerr(fp);
 #endif
+
+
+#if defined(__NEWLIB__)
+	struct _reent rent{._errno=0};
+	std::size_t written_count{_fwrite_unlocked_r(std::addressof(rent),begin,type_size,count,fp)};
+	if(rent._errno)
+		throw_posix_error(rent._errno);
+	return written_count;
+#else
 	std::size_t written_count{
 #if defined(_MSC_VER)||defined(_UCRT)
 	_fwrite_nolock
-#elif defined(_POSIX_SOURCE)
-	fwrite_unlocked
+#elif defined(_POSIX_SOURCE) || defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
+	fwrite_unlocked 
 #else
 	fwrite
 #endif
 	(begin,type_size,count,fp)};
 	auto errn{errno};
 	if(
-#if defined(_POSIX_C_SOURCE)
+#if defined(_POSIX_C_SOURCE) || defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
 	ferror_unlocked(fp)
 #elif defined(__MINGW32__)
 	fp->_flag&0x0020
@@ -35,22 +46,33 @@ inline std::size_t c_fwrite_unlocked_impl(void const* __restrict begin,std::size
 #endif
 	)
 		throw_posix_error(errn);
+#endif
 	return written_count;
 }
 
 inline std::size_t c_fread_unlocked_impl(void* __restrict begin,std::size_t type_size,std::size_t count,std::FILE* __restrict fp)
 {
-#if defined(_POSIX_C_SOURCE)
+#ifdef __NEWLIB__
+	__sclearerr(fp);
+#elif defined(_POSIX_C_SOURCE) || defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
 	clearerr_unlocked(fp);
 #elif defined(__MINGW32__)
 	fp->_flag&=~0x0020;
 #else
 	clearerr(fp);
 #endif
+
+#if defined(__NEWLIB__)
+	struct _reent rent{._errno=0};
+	std::size_t read_count{_fread_unlocked_r(std::addressof(rent),begin,type_size,count,fp)};
+	if(rent._errno)
+		throw_posix_error(rent._errno);
+	return read_count;
+#else
 	std::size_t read_count{
 #if defined(_MSC_VER)||defined(_UCRT)
 	_fread_nolock
-#elif defined(_POSIX_SOURCE)
+#elif defined(_POSIX_C_SOURCE) || defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
 	fread_unlocked
 #else
 	fread
@@ -58,7 +80,7 @@ inline std::size_t c_fread_unlocked_impl(void* __restrict begin,std::size_t type
 	(begin,type_size,count,fp)};
 	auto errn{errno};
 	if(
-#if defined(_POSIX_C_SOURCE)
+#if defined(_POSIX_C_SOURCE) || defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
 	ferror_unlocked(fp)
 #elif defined(__MINGW32__)
 	fp->_flag&0x0020
@@ -67,6 +89,7 @@ inline std::size_t c_fread_unlocked_impl(void* __restrict begin,std::size_t type
 #endif
 	)
 		throw_posix_error(errn);
+#endif
 	return read_count;
 }
 
