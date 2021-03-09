@@ -22,6 +22,12 @@ public:
 	{
 		return fb;
 	}
+	inline constexpr native_handle_type release() noexcept
+	{
+		auto temp{fb};
+		fb=nullptr;
+		return temp;
+	}
 	explicit constexpr operator bool() const noexcept
 	{
 		return fb;
