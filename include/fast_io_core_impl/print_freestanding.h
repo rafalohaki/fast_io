@@ -313,7 +313,7 @@ inline constexpr void print_control(output out,T t)
 				auto end=obuffer_end(out);
 				std::ptrdiff_t sz(end-curr-1);
 				std::size_t const len{scatter.len};
-				if(static_cast<std::ptrdiff_t>(len)<sz)
+				if(sz<static_cast<std::ptrdiff_t>(len))
 					fast_terminate();
 				curr=non_overlapped_copy_n(scatter.base,scatter.len,curr);
 				if constexpr(std::same_as<char,char_type>)
