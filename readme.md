@@ -58,6 +58,7 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - Microsoft DOS
 - Barebone (No any operating system.)
 - Cygwin/MSYS2
+- Android
 - Todo: Webassembly
 
 ## Supported libc FILE* hacks platforms
@@ -67,8 +68,8 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - BSD libc/Apple Darwin
 - MUSL libc
 - MSDOS CRT
-- Newlib (Compilation success. Luckily newlib shares the same code as BSD libc. However, we still need to test on a bare bone operating system.)
-- Bionic
+- Newlib
+- Bionic(Android)
 
 ## Supported C++ standard library std::streambuf/std::filebuf hacks platforms
 - GCC libstdc++
