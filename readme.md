@@ -68,7 +68,6 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - MUSL libc
 - MSDOS CRT
 - Newlib (Compilation success. Luckily newlib shares the same code as BSD libc. However, we still need to test on a bare bone operating system.)
-- To do (before we supported them, they will be emulated with POSIX apis):
 - Bionic
 
 ## Supported C++ standard library std::streambuf/std::filebuf hacks platforms
