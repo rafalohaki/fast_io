@@ -38,8 +38,8 @@ However, they might not work current fast_io since fast_io keeps changing.
 This i18n repo stores the i18n source files.
 https://bitbucket.org/ejsvifq_mabmip/fast_io_i18n
 
-## Online manual
-https://ewindy.gitee.io/fast_io_man
+## Online docs
+https://ewindy.gitee.io/fast_io_rst/index.html
 
 ## Compiler Support
 - GCC 11.
