@@ -103,7 +103,7 @@ From microsoft's document. _fdopen only supports
 #endif
 }
 
-#if defined(_GNU_SOURCE) || defined(__NEED___isoc_va_list)
+#if defined(__GLIBC__) || defined(__NEED___isoc_va_list)
 template<stream stm>
 class c_io_cookie_functions_t
 {
@@ -757,7 +757,7 @@ inline std::FILE* my_fdopen_impl(int fd,char const* mode)
 	return fp;
 }
 
-#if defined(_GNU_SOURCE) || defined(__NEED___isoc_va_list)
+#if defined(__GLIBC__) || defined(__NEED___isoc_va_list)
 inline std::FILE* open_cookie_throw_cookie_impl(void* ptr,open_mode mode,cookie_io_functions_t func)
 {
 	auto fp{::fopencookie(ptr,to_native_c_mode(mode),func)};
@@ -1058,6 +1058,8 @@ inline decltype(auto) zero_copy_out_handle(basic_c_io_observer_unlocked<ch_type>
 #endif
 #elif defined(__MSDOS__)
 #include"msdos.h"
+#elif defined(__BIONIC__)
+#include"bionic.h"
 #endif
 #ifndef __MSDOS__
 #include"general.h"
