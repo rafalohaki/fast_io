@@ -2,7 +2,7 @@
 #if defined(_MSC_VER)
 #include <intrin.h>
 #elif (defined(__x86_64__) || defined(__i386__)) && !defined(__MSDOS__)
-#include <immintrin.h>
+#include <x86intrin.h>
 #endif
 
 namespace fast_io::details::intrinsics

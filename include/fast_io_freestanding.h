@@ -18,6 +18,7 @@
 #include"fast_io_freestanding_impl/auto_indent.h"
 #include"fast_io_freestanding_impl/ovector.h"
 #include"fast_io_freestanding_impl/serialize.h"
+#include"fast_io_freestanding_impl/simd/impl.h"
 
 namespace fast_io
 {
