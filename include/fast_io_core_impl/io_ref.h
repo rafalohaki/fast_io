@@ -46,7 +46,10 @@ struct io_reference_wrapper
 template<typename strm>
 inline constexpr auto io_ref(strm& stm) noexcept
 {
-	if constexpr(value_based_stream<std::remove_cvref_t<strm>>)
+	if constexpr(requires()
+	{
+		io_value_handle(stm);
+	})
 		return io_value_handle(stm);
 	else
 		return io_reference_wrapper<std::remove_cvref_t<strm>>{std::addressof(stm)};
