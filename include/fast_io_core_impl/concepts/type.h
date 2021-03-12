@@ -59,7 +59,47 @@ struct io_message_t
 	using type = typename std::remove_cvref_t<decltype(io_message_type(*static_cast<T*>(nullptr)))>::type;
 };
 #endif
-template<std::integral char_type,typename T>
+
+enum class io_reserve_flags
+{
+none=0,
+secure=1,
+normal=1<<1,
+serial=1<<2,
+scatter=1<<3
+};
+
+constexpr io_reserve_flags operator&(io_reserve_flags x, io_reserve_flags y) noexcept
+{
+using utype = typename std::underlying_type<io_reserve_flags>::type;
+return static_cast<io_reserve_flags>(static_cast<utype>(x) & static_cast<utype>(y));
+}
+
+constexpr io_reserve_flags operator|(io_reserve_flags x, io_reserve_flags y) noexcept
+{
+using utype = typename std::underlying_type<io_reserve_flags>::type;
+return static_cast<io_reserve_flags>(static_cast<utype>(x) | static_cast<utype>(y));
+}
+
+constexpr io_reserve_flags operator^(io_reserve_flags x, io_reserve_flags y) noexcept
+{
+using utype = typename std::underlying_type<io_reserve_flags>::type;
+return static_cast<io_reserve_flags>(static_cast<utype>(x) ^ static_cast<utype>(y));
+}
+
+constexpr io_reserve_flags operator~(io_reserve_flags x) noexcept
+{
+using utype = typename std::underlying_type<io_reserve_flags>::type;
+return static_cast<io_reserve_flags>(~static_cast<utype>(x));
+}
+
+inline constexpr io_reserve_flags& operator&=(io_reserve_flags& x, io_reserve_flags y) noexcept{return x=x&y;}
+
+inline constexpr io_reserve_flags& operator|=(io_reserve_flags& x, io_reserve_flags y) noexcept{return x=x|y;}
+
+inline constexpr io_reserve_flags& operator^=(io_reserve_flags& x, io_reserve_flags y) noexcept{return x=x^y;}
+
+template<std::integral char_type,typename T,io_reserve_flags flags=io_reserve_flags::normal>
 struct io_reserve_type_t
 {
 explicit constexpr io_reserve_type_t() noexcept =default;
@@ -67,14 +107,21 @@ explicit constexpr io_reserve_type_t() noexcept =default;
 template<std::integral char_type,typename T>
 inline constexpr io_reserve_type_t<char_type,T> io_reserve_type{};
 
-
 template<std::integral char_type,typename T>
-struct io_serial_type_t
-{
-explicit constexpr io_serial_type_t() noexcept =default;
-};
+using io_serial_type_t=io_reserve_type_t<char_type,T,io_reserve_flags::serial>;
 template<std::integral char_type,typename T>
 inline constexpr io_serial_type_t<char_type,T> io_serial_type{};
+
+template<std::integral char_type,typename T>
+using io_secure_reserve_type_t=io_reserve_type_t<char_type,T,io_reserve_flags::secure|io_reserve_flags::normal>;
+
+template<std::integral char_type,typename T>
+inline constexpr io_secure_reserve_type_t<char_type,T> io_secure_reserve_type{};
+
+template<std::integral char_type,typename T>
+using io_secure_serial_type_t=io_reserve_type_t<char_type,T,io_reserve_flags::secure|io_reserve_flags::serial>;
+template<std::integral char_type,typename T>
+inline constexpr io_secure_serial_type_t<char_type,T> io_secure_serial_type{};
 
 template<typename T>
 struct print_scatter_type_t

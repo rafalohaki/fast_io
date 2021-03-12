@@ -89,7 +89,7 @@ std::same_as<T,__m128i>||std::same_as<T,__m128>
 ||std::same_as<T,__m256i>||std::same_as<T,__m256>
 #endif
 )
-inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,T>,Iter iter,__m128i t) noexcept
+inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,T>,Iter iter,T t) noexcept
 {
 	return details::print_reserve_df_mm_impl(iter,t);
 }
