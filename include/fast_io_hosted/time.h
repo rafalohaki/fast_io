@@ -59,6 +59,11 @@ inline constexpr auto posix_clock_id_to_native_value(posix_clock_id pcid)
 	return CLOCK_MONOTONIC;
 	break;
 #endif
+#ifdef CLOCK_MONOTONIC_COARSE
+	case posix_clock_id::monotonic_coarse:
+	return CLOCK_MONOTONIC_COARSE;
+	break;
+#endif
 #ifdef CLOCK_MONOTONIC_RAW
 	case posix_clock_id::monotonic_raw:
 	return CLOCK_MONOTONIC_RAW;
