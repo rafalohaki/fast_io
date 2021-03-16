@@ -50,10 +50,12 @@ template<bool nsecure,std::size_t bfsz,stream T,typename decot,std::integral cha
 inline constexpr bool underflow_impl_deco(T t,decot deco,basic_io_buffer_pointers_with_cap<char_type>& ibuffer,
 	basic_io_buffer_pointers_only_begin<typename T::char_type>& ibuffer_external)
 {
+#if 0
 	if constexpr(maybe_noop_decorator<char_type,decot>)
 	{
 
 	}
+#endif
 	return underflow_rl_impl_deco<nsecure>(t,deco,ibuffer,ibuffer_external,bfsz);
 }
 

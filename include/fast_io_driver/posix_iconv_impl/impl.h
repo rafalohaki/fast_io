@@ -183,6 +183,19 @@ inline toIter deco_reserve_define(io_reserve_type_t<std::iter_value_t<toIter>,ic
 		allocated_bytes)/sizeof(to_char_type);
 }
 
+namespace details
+{
+
+inline iconv_t my_iconv_open(char const* tocode,char const* fromcode)
+{
+	auto cd{iconv_open(tocode,fromcode)};
+	if(cd==std::bit_cast<iconv_t>(static_cast<uintptr_t>(-1)))
+		throw_posix_error();
+	return cd;
+}
+
+}
+
 class posix_iconv_file:public posix_iconv_io_observer
 {
 public:
@@ -190,11 +203,14 @@ public:
 	constexpr posix_iconv_file() noexcept = default;
 	constexpr posix_iconv_file(iconv_t icv) noexcept : posix_iconv_io_observer{icv}{}
 
-	posix_iconv_file(char const* tocode,char const* fromcode):posix_iconv_io_observer{iconv_open(tocode,fromcode)}
-	{
-		if(this->cd==std::bit_cast<iconv_t>(static_cast<uintptr_t>(-1)))
-			throw_posix_error();
-	}
+	posix_iconv_file(cstring_view tocode,cstring_view fromcode):
+		posix_iconv_io_observer{details::my_iconv_open(tocode.c_str(),fromcode.c_str())}
+	{}
+	posix_iconv_file(u8cstring_view tocode,u8cstring_view fromcode):
+		posix_iconv_io_observer{
+			details::my_iconv_open(reinterpret_cast<char const*>(tocode.c_str()),
+			reinterpret_cast<char const*>(fromcode.c_str()))}
+	{}
 	posix_iconv_file(posix_iconv_file const&)=delete;
 	posix_iconv_file& operator=(posix_iconv_file const&)=delete;
 	constexpr posix_iconv_file(posix_iconv_file&& other) noexcept:posix_iconv_io_observer{other.release()}{}	

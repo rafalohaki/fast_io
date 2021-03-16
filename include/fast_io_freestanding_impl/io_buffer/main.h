@@ -43,20 +43,45 @@ inline constexpr void write_with_deco(T t,decot deco,Iter first,Iter last,
 {
 	using external_char_type = typename T::char_type;
 	using decot_no_cvref_t = std::remove_cvref_t<decot>;
-	if(external_buffer.buffer_begin==nullptr)
+#if 0
+	if constexpr(requires()
 	{
-		std::size_t size{deco_reserve_size(io_reserve_type<external_char_type,decot_no_cvref_t>,deco,buffer_size)};
-		external_buffer.buffer_begin=allocate_iobuf_space<external_char_type>(size);
-		external_buffer.buffer_end=external_buffer.buffer_begin+size;
+		deco_reserve_size(io_reserve_type<external_char_type,decot_no_cvref_t>,deco,first,last)
+	})
+	{
+		for(;first!=last;)
+		{
+			std::size_t this_round{buffer_size};
+			std::size_t diff{static_cast<std::size_t>(last-first)};
+			if(diff<this_round)
+				this_round=diff;
+			std::size_t size{deco_reserve_size(io_reserve_type<external_char_type,decot_no_cvref_t>,deco,first,last)};
+			std::size_t current_buffer_size{external_buffer.buffer_end-external_buffer.buffer_begin};
+			if(current_buffer_size<size)
+			{
+				auto current_ptr{allocate_iobuf_space<external_char_type>(size)};
+				deallocate_iobuf_space(external_buffer.buffer_begin,current_buffer_size);
+			}
+		}
 	}
-	for(auto buffer_begin{external_buffer.buffer_begin};first!=last;)
+	else
+#endif
 	{
-		std::size_t this_round{buffer_size};
-		std::size_t diff{static_cast<std::size_t>(last-first)};
-		if(diff<this_round)
-			this_round=diff;
-		write(t,buffer_begin,deco_reserve_define(io_reserve_type<external_char_type,decot_no_cvref_t>,deco,first,first+this_round,buffer_begin));
-		first+=this_round;
+		if(external_buffer.buffer_begin==nullptr)
+		{
+			std::size_t size{deco_reserve_size(io_reserve_type<external_char_type,decot_no_cvref_t>,deco,buffer_size)};
+			external_buffer.buffer_begin=allocate_iobuf_space<external_char_type>(size);
+			external_buffer.buffer_end=external_buffer.buffer_begin+size;
+		}
+		for(auto buffer_begin{external_buffer.buffer_begin};first!=last;)
+		{
+			std::size_t this_round{buffer_size};
+			std::size_t diff{static_cast<std::size_t>(last-first)};
+			if(diff<this_round)
+				this_round=diff;
+			write(t,buffer_begin,deco_reserve_define(io_reserve_type<external_char_type,decot_no_cvref_t>,deco,first,first+this_round,buffer_begin));
+			first+=this_round;
+		}
 	}
 }
 

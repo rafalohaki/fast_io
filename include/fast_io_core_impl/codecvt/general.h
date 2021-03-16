@@ -310,7 +310,7 @@ inline constexpr dest_char_type* general_code_cvt(state_type& __restrict state,s
 		if(state.state)
 		{
 			if(src_first==src_last)
-				return {src_first,dst};
+				return dst;
 			char16_t low{state.value};
 			if constexpr(!is_native_scheme(src_encoding))
 				low=byte_swap(low);

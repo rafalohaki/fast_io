@@ -829,7 +829,11 @@ inline constexpr std::size_t cal_max_int_size() noexcept
 
 static_assert(cal_max_int_size<std::uint64_t,10>()==20);
 static_assert(cal_max_int_size<std::uint32_t,10>()==10);
-
+template<typename char_type,std::size_t N>
+inline constexpr basic_io_scatter_t<char_type> tsc(char_type const (&a)[N]) noexcept
+{
+	return {a,N-1};
+}
 } // end details
 
 
