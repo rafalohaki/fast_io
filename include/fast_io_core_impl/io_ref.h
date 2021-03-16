@@ -43,13 +43,21 @@ struct io_reference_wrapper
 		return temp;
 	}
 };
+
+namespace details
+{
+template<typename strm>
+concept require_io_value_handle_impl = requires(strm& stm)
+{
+	io_value_handle(stm);
+};
+
+}
+
 template<typename strm>
 inline constexpr auto io_ref(strm& stm) noexcept
 {
-	if constexpr(requires()
-	{
-		io_value_handle(stm);
-	})
+	if constexpr(details::require_io_value_handle_impl<strm>)
 		return io_value_handle(stm);
 	else
 		return io_reference_wrapper<std::remove_cvref_t<strm>>{std::addressof(stm)};

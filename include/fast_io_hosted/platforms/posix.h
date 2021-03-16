@@ -17,7 +17,7 @@
 struct io_uring;
 #endif
 #if defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
-#ifndef __NEWLIB__
+#if defined(__CYGWIN__) || !defined(__NEWLIB__)
 #include <sys/uio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -600,7 +600,7 @@ inline void flush(basic_posix_io_observer<ch_type>)
 }
 */
 
-#if !defined(__NEWLIB__)
+#if !defined(__NEWLIB__) || defined(__CYGWIN__)
 namespace details
 {
 
@@ -709,7 +709,7 @@ inline constexpr posix_file_status struct_stat_to_posix_file_status(stat_model& 
 	131072,
 	static_cast<std::uintmax_t>(st.st_size/512),
 	{st.st_atime,{}},{st.st_mtime,{}},{st.st_ctime,{}},{0,0},
-#elif defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
+#elif !defined(__CYGWIN__) && (defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL))
 	static_cast<std::uintmax_t>(st.st_blksize),
 	static_cast<std::uintmax_t>(st.st_blocks),
 	st.st_atimespec,st.st_mtimespec,st.st_ctimespec,
@@ -721,9 +721,15 @@ inline constexpr posix_file_status struct_stat_to_posix_file_status(stat_model& 
 	,
 #else
 	static_cast<std::uintmax_t>(st.st_blksize),
-	static_cast<std::uintmax_t>(st.st_blocks),st.st_atim,st.st_mtim,st.st_ctim,{0,0},
+	static_cast<std::uintmax_t>(st.st_blocks),st.st_atim,st.st_mtim,st.st_ctim,
+#if defined(__CYGWIN__)
+st.st_birthtim
+#else
+{0,0}
 #endif
-#if defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
+,
+#endif
+#if !defined(__CYGWIN__) && (defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL))
 	st.st_flags,st.st_gen
 #else
 	0,0
@@ -1397,7 +1403,7 @@ inline constexpr basic_posix_io_observer<char_type> native_stderr()
 	return basic_posix_io_observer<char_type>{posix_stderr_number};
 }
 
-#if !defined(__NEWLIB__) && !defined(__MSDOS__)
+#if defined(__CYGWIN__) || (!defined(__NEWLIB__) && !defined(__MSDOS__))
 namespace details
 {
 
@@ -1476,7 +1482,7 @@ inline io_scatter_status_t posix_scatter_write_impl(int fd,io_scatters_t sp)
 #endif
 #endif
 
-#if !defined(__NEWLIB__) && !defined(__MSDOS__)
+#if defined(__CYGWIN__) || (!defined(__NEWLIB__) && !defined(__MSDOS__))
 
 template<std::integral ch_type>
 [[nodiscard]] inline io_scatter_status_t scatter_read(basic_posix_io_observer<ch_type> h,io_scatters_t sp)

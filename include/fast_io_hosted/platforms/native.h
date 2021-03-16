@@ -1,8 +1,11 @@
 #pragma once
 #include"native_base.h"
-#if defined(__WINNT__) || defined(_MSC_VER)
+#if defined(_WIN32) || defined(__CYGWIN__)
 #include"win32_mapping.h"
 #include"win32_transmit.h"
+#if defined(__CYGWIN__)
+#include"posix_mapping.h"
+#endif
 #include"omap.h"
 #elif !defined(__NEWLIB__) && !defined(__MSDOS__)
 #include"posix_mapping.h"

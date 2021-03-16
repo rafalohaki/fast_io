@@ -10,7 +10,11 @@ inline int dirp_to_fd(DIR* dirp) noexcept
 {
 	if(dirp==nullptr)
 		return -1;
-	return ::dirfd(dirp);
+#if defined(__CYGWIN__)
+	return dirp->__d_fd;
+#else
+	return dirfd(dirp);
+#endif
 }
 
 }
@@ -51,7 +55,13 @@ inline DIR* sys_dup_dir(DIR* dirp)
 {
 	if(dirp==nullptr)
 		throw_posix_error(EBADF);
-	auto fd{::dirfd(dirp)};
+	auto fd{
+#if defined(__CYGWIN__)
+	dirp->__d_fd
+#else
+	dirfd(dirp)
+#endif
+	};
 	if(fd==-1)
 		throw_posix_error();
 	auto newfd{details::sys_dup(fd)};
@@ -149,29 +159,6 @@ enum {
 	}
 };
 
-inline void rewind(posix_directory_io_observer pdiob) noexcept
-{
-	::rewinddir(pdiob.dirp);	
-}
-
-inline void seek(posix_directory_io_observer pdiob,intmax_t offset) noexcept
-{
-	if constexpr(sizeof(long)<sizeof(offset))
-	{
-		if(static_cast<intmax_t>(std::numeric_limits<long>::max())<offset)
-			fast_terminate();
-	}
-	::seekdir(pdiob.dirp,static_cast<long>(offset));
-}
-
-inline std::uintmax_t tell(posix_directory_io_observer pdiob)
-{
-	auto ret{::telldir(pdiob.dirp)};
-	if(ret==-1)
-		throw_posix_error();
-	return ret;
-}
-
 struct posix_directory_entry
 {
 	using native_char_type = char;
@@ -219,6 +206,29 @@ inline constexpr std::uintmax_t inode(posix_directory_entry pioe) noexcept
 
 inline constexpr file_type type(posix_directory_entry pioe) noexcept
 {
+#ifdef __CYGWIN__
+	switch(pioe.entry->d_type)
+	{
+	case 6:
+		return file_type::block;
+	case 2:
+		return file_type::character;
+	case 4:
+		return file_type::directory;
+	case 1:
+		return file_type::fifo;
+	case 10:
+		return file_type::symlink;
+	case 8:
+		return file_type::regular;
+	case 12:
+		return file_type::socket;
+	case 0:
+		return file_type::unknown;
+	default:
+		return file_type::not_found;
+	};
+#else
 	switch(pioe.entry->d_type)
 	{
 	case DT_BLK:
@@ -240,6 +250,7 @@ inline constexpr file_type type(posix_directory_entry pioe) noexcept
 	default:
 		return file_type::not_found;
 	};
+#endif
 }
 
 struct posix_directory_iterator
@@ -280,13 +291,6 @@ To fix: avoid setting errno
 #endif
 	}
 	return pdit;
-}
-
-
-inline void refresh(posix_directory_iterator& pdit)
-{
-	::seekdir(pdit.dirp,-1);
-	++pdit;
 }
 
 inline posix_directory_iterator begin(posix_directory_generator const& pdg)
@@ -378,7 +382,13 @@ inline posix_recursive_directory_iterator& operator++(posix_recursive_directory_
 			}
 			prdit.entry=entry;
 		}
-		if(prdit.entry->d_type==DT_DIR)
+		if(prdit.entry->d_type==
+#if defined(__CYGWIN__)
+		4
+#else
+		DT_DIR
+#endif
+		)
 		{
 			auto name{prdit.entry->d_name};
 			if((*name==u8'.'&&name[1]==0)||(*name==u8'.'&&name[1]==u8'.'&&name[2]==0))
@@ -459,6 +469,87 @@ inline posix_recursive_directory_generator recursive(posix_at_entry pate)
 	return {.dir_fl=posix_directory_file(posix_file(details::sys_dup(pate.fd)))};
 }
 
-using directory_entry = posix_directory_entry;
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,posix_directory_entry>,
+	posix_directory_entry ent) noexcept
+{
+	if constexpr(std::same_as<char_type,typename posix_directory_entry::native_char_type>)
+		return native_filename(ent).size();
+	else if constexpr(std::same_as<char_type,char8_t>)
+		return filename(ent).size();
+	else
+		return details::cal_full_reserve_size<
+			sizeof(typename posix_directory_entry::native_char_type),
+			sizeof(char_type)>(native_filename(ent).size());
+}
+
+inline u8cstring_view extension(posix_directory_entry ent) noexcept
+{
+	auto fnm{filename(ent)};
+	auto pos{fnm.rfind(u8'.')};
+	if(pos==static_cast<std::size_t>(-1))
+		return {};
+	if(pos==0)
+		return {};
+	if(2<fnm.size()&&pos==1&&fnm.front()==u8'.')
+		return {};
+	return u8cstring_view(null_terminated,fnm.data()+pos,fnm.data()+fnm.size());
+}
+
+inline std::u8string_view stem(posix_directory_entry ent) noexcept
+{
+	std::u8string_view fnm{filename(ent)};
+	auto pos{fnm.rfind(u8'.')};
+	if(pos==static_cast<std::size_t>(-1))
+		return fnm;
+	if(pos==0)
+		return fnm;
+	if(2<fnm.size()&&pos==1&&fnm.front()==u8'.')
+		return fnm;
+	return fnm.substr(0,pos);
+}
+
+template<std::integral char_type>
+requires ((std::same_as<char_type,char8_t>)||(std::same_as<char_type,posix_directory_entry::native_char_type>))
+inline basic_io_scatter_t<char_type> print_scatter_define(print_scatter_type_t<char_type>,posix_directory_entry pth)
+{
+	if constexpr(std::same_as<char_type,char8_t>)
+	{
+		auto name{filename(pth)};
+		return {name.data(),name.size()};
+	}
+	else
+	{
+		auto name{native_filename(pth)};
+		return {name.data(),name.size()};
+	}
+}
+
+template<std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,posix_directory_entry>,
+	Iter iter,posix_directory_entry ent) noexcept
+{
+	using char_type = std::iter_value_t<Iter>;
+	if constexpr(std::same_as<char_type,typename posix_directory_entry::native_char_type>)
+	{
+		auto nfnm{native_filename(ent)};
+		return details::non_overlapped_copy_n(nfnm.data(),nfnm.size(),iter);
+	}
+	else if constexpr(std::same_as<char_type,char8_t>)
+	{
+		auto fnm{filename(ent)};
+		return details::non_overlapped_copy_n(fnm.data(),fnm.size(),iter);
+	}
+	else
+	{
+		auto fnm{filename(ent)};
+		if constexpr(std::is_pointer_v<Iter>)
+			return details::codecvt::general_code_cvt_full<encoding_scheme::utf>(fnm.data(),fnm.data()+fnm.size(),iter);
+		else
+			return iter+(details::codecvt::general_code_cvt_full<encoding_scheme::utf>(fnm.data(),fnm.data()+fnm.size(),std::to_address(iter))-std::to_address(iter));
+	}
+}
+
+using native_directory_entry = posix_directory_entry;
 
 }

@@ -51,6 +51,4 @@ struct posix_path_dealer
 	}
 };
 
-using path_dealer = posix_path_dealer;
-
 }

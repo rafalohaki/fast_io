@@ -58,6 +58,5 @@ struct win32_path_dealer
 		deallocate_iobuf_space<false>(buffer_data,capacity);
 	}
 };
-using path_dealer = win32_path_dealer;
 
 }

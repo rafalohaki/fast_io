@@ -1,105 +1,37 @@
 #pragma once
 
-#if _BSD_SOURCE || _SVID_SOURCE || (_POSIX_C_SOURCE >= 200809L || _XOPEN_SOURCE >= 700 || defined(__DARWIN_C_LEVEL))
+#if (!defined(__NEWLIB__)||defined(__CYGWIN__)) && !defined(_WIN32) && !defined(__MSDOS__)
 #include"posix.h"
 #include"posix_at.h"
-#elif _WIN32
+#endif
+
+#if defined(_WIN32) || defined(__CYGWIN__)
 #include"nt.h"
 #endif
 
 namespace fast_io
 {
-#if !defined(__NEWLIB__) && !defined(__MSDOS__) && (_BSD_SOURCE || _SVID_SOURCE || (_POSIX_C_SOURCE >= 200809L || _XOPEN_SOURCE >= 700 || defined(__DARWIN_C_LEVEL) ) || _WIN32)
-
-template<std::integral char_type>
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,directory_entry>,
-	directory_entry ent) noexcept
-{
-	if constexpr(std::same_as<char_type,typename directory_entry::native_char_type>)
-		return native_filename(ent).size();
-	else if constexpr(std::same_as<char_type,char8_t>)
-		return filename(ent).size();
-	else
-		return details::cal_full_reserve_size<
-			sizeof(typename directory_entry::native_char_type),
-			sizeof(char_type)>(native_filename(ent).size());
-}
-
-inline u8cstring_view extension(directory_entry ent) noexcept
-{
-	auto fnm{filename(ent)};
-	auto pos{fnm.rfind(u8'.')};
-	if(pos==static_cast<std::size_t>(-1))
-		return {};
-	if(pos==0)
-		return {};
-	if(2<fnm.size()&&pos==1&&fnm.front()==u8'.')
-		return {};
-	return u8cstring_view(null_terminated,fnm.data()+pos,fnm.data()+fnm.size());
-}
-
-inline std::u8string_view stem(directory_entry ent) noexcept
-{
-	std::u8string_view fnm{filename(ent)};
-	auto pos{fnm.rfind(u8'.')};
-	if(pos==static_cast<std::size_t>(-1))
-		return fnm;
-	if(pos==0)
-		return fnm;
-	if(2<fnm.size()&&pos==1&&fnm.front()==u8'.')
-		return fnm;
-	return fnm.substr(0,pos);
-}
-
-template<std::integral char_type>
-requires ((std::same_as<char_type,char8_t>)||(std::same_as<char_type,directory_entry::native_char_type>))
-inline basic_io_scatter_t<char_type> print_scatter_define(print_scatter_type_t<char_type>,directory_entry pth)
-{
-	if constexpr(std::same_as<char_type,char8_t>)
-	{
-		auto name{filename(pth)};
-		return {name.data(),name.size()};
-	}
-	else
-	{
-		auto name{native_filename(pth)};
-		return {name.data(),name.size()};
-	}
-}
-
-template<std::random_access_iterator Iter>
-inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,directory_entry>,
-	Iter iter,directory_entry ent) noexcept
-{
-	using char_type = std::iter_value_t<Iter>;
-	if constexpr(std::same_as<char_type,typename directory_entry::native_char_type>)
-	{
-		auto nfnm{native_filename(ent)};
-		return details::non_overlapped_copy_n(nfnm.data(),nfnm.size(),iter);
-	}
-	else if constexpr(std::same_as<char_type,char8_t>)
-	{
-		auto fnm{filename(ent)};
-		return details::non_overlapped_copy_n(fnm.data(),fnm.size(),iter);
-	}
-	else
-	{
-		auto fnm{filename(ent)};
-		if constexpr(std::is_pointer_v<Iter>)
-			return details::codecvt::general_code_cvt_full<encoding_scheme::utf>(fnm.data(),fnm.data()+fnm.size(),iter);
-		else
-			return iter+(details::codecvt::general_code_cvt_full<encoding_scheme::utf>(fnm.data(),fnm.data()+fnm.size(),std::to_address(iter))-std::to_address(iter));
-	}
-}
+#if (!defined(__NEWLIB__)||defined(__CYGWIN__)) && !defined(__MSDOS__)
 
 #if __cpp_lib_filesystem >= 201703L
 
-inline std::filesystem::path to_path(directory_entry de)
+#if defined(_WIN32) || defined(__CYGWIN__)
+inline std::filesystem::path to_path(nt_directory_entry de)
 {
 	auto nfm{native_filename(de)};
-	std::basic_string_view<native_char_type> bsv{nfm};
+	std::basic_string_view<wchar_t> bsv{nfm};
 	return std::filesystem::path(bsv);
 }
+#endif
+
+#ifndef _WIN32
+inline std::filesystem::path to_path(posix_directory_entry de)
+{
+	auto nfm{native_filename(de)};
+	std::basic_string_view<char> bsv{nfm};
+	return std::filesystem::path(bsv);
+}
+#endif
 
 template<std::integral to_char_type>
 inline std::size_t print_reserve_size(io_reserve_type_t<to_char_type,std::filesystem::path>,std::filesystem::path const& pth) noexcept

@@ -57,7 +57,7 @@ template<std::forward_iterator Iter,typename T>
 inline constexpr Iter print_reserve_df_mm_impl(Iter iter,T mm) noexcept
 {
 	return print_reserve_df_mm_impl_internal<sizeof(T)>(
-		iter,std::bit_cast<std::array<char unsigned,sizeof(T)>>(mm).data());
+		iter,bit_cast<std::array<char unsigned,sizeof(T)>>(mm).data());
 }
 
 }

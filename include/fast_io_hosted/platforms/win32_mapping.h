@@ -157,8 +157,9 @@ public:
 	}
 };
 
+#ifndef __CYGWIN__
 using native_memory_map_io_observer = win32_memory_map_io_observer;
 using native_memory_map_file = win32_memory_map_file;
-
+#endif
 
 }

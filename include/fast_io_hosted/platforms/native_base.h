@@ -5,7 +5,7 @@
 #include"../../fast_io_crypto/hash/sha.h"
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
 #include"win32_api.h"
 #include"win32_error.h"
 #include"win32_path_dealer.h"
@@ -15,9 +15,8 @@
 #include"win32_iocp_overlapped.h"
 #include"win32.h"
 //#include"com_error.h"
-#else
-#include"posix_path_dealer.h"
 #endif
+#include"posix_path_dealer.h"
 #include"linux/system_call.h"
 #include"posix.h"
 

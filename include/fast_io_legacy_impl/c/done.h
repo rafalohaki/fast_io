@@ -19,7 +19,7 @@ inline std::size_t c_fwrite_unlocked_impl(void const* __restrict begin,std::size
 #endif
 
 
-#if defined(__NEWLIB__)
+#if defined(__NEWLIB__) && !(__CYGWIN__)
 	struct _reent rent{._errno=0};
 	std::size_t written_count{_fwrite_unlocked_r(std::addressof(rent),begin,type_size,count,fp)};
 	if(rent._errno)
@@ -29,6 +29,8 @@ inline std::size_t c_fwrite_unlocked_impl(void const* __restrict begin,std::size
 	std::size_t written_count{
 #if defined(_MSC_VER)||defined(_UCRT)
 	_fwrite_nolock
+#elif defined(__NEWLIB__) && !defined(__IMPL_UNLOCKED__)
+	fwrite
 #elif defined(_POSIX_SOURCE) || defined(__BSD_VISIBLE)
 	fwrite_unlocked 
 #else
@@ -37,7 +39,9 @@ inline std::size_t c_fwrite_unlocked_impl(void const* __restrict begin,std::size
 	(begin,type_size,count,fp)};
 	auto errn{errno};
 	if(
-#if defined(_POSIX_C_SOURCE) || defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
+#ifdef __NEWLIB__
+	__sferror(fp)
+#elif defined(_POSIX_C_SOURCE) || defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
 	ferror_unlocked(fp)
 #elif defined(__MINGW32__)
 	fp->_flag&0x0020
@@ -62,7 +66,7 @@ inline std::size_t c_fread_unlocked_impl(void* __restrict begin,std::size_t type
 	clearerr(fp);
 #endif
 
-#if defined(__NEWLIB__)
+#if defined(__NEWLIB__) && !(__CYGWIN__)
 	struct _reent rent{._errno=0};
 	std::size_t read_count{_fread_unlocked_r(std::addressof(rent),begin,type_size,count,fp)};
 	if(rent._errno)
@@ -72,6 +76,8 @@ inline std::size_t c_fread_unlocked_impl(void* __restrict begin,std::size_t type
 	std::size_t read_count{
 #if defined(_MSC_VER)||defined(_UCRT)
 	_fread_nolock
+#elif defined(__NEWLIB__) && !defined(__IMPL_UNLOCKED__)
+	fread
 #elif defined(_POSIX_C_SOURCE) || defined(__BSD_VISIBLE)
 	fread_unlocked
 #else
@@ -80,7 +86,9 @@ inline std::size_t c_fread_unlocked_impl(void* __restrict begin,std::size_t type
 	(begin,type_size,count,fp)};
 	auto errn{errno};
 	if(
-#if defined(_POSIX_C_SOURCE) || defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
+#ifdef __NEWLIB__
+	__sferror(fp)
+#elif defined(_POSIX_C_SOURCE) || defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
 	ferror_unlocked(fp)
 #elif defined(__MINGW32__)
 	fp->_flag&0x0020
