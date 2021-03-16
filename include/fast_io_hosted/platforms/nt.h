@@ -8,7 +8,7 @@ Referenced from Windows Internal Version 7
 */
 enum class nt_family
 {
-alpc,	//Alpc: Advanced Local Proedure Calls
+alpc,	//Alpc: Advanced Local Procedure Calls
 cc,	//Cc: Common Cache
 cm,	//Cm: Configuration manager
 dbg,	//Dbg: kernel debug support
@@ -254,18 +254,6 @@ inline void nt_file_rtl_path(wchar_t const* filename,win32::nt::unicode_string& 
 		throw_nt_error(0xC0000039);
 }
 
-inline void nt_file_rtl_path_code_cvt(cstring_view filename,char16_t* buffer_data,win32::nt::unicode_string& nt_name,wchar_t const*& part_name,win32::nt::rtl_relative_name_u& relative_name)
-{
-	*::fast_io::details::codecvt::general_code_cvt_full(filename.data(),filename.data()+filename.size(),buffer_data)=0;
-	using wchar_t_may_alias_ptr
-#if __has_cpp_attribute(gnu::may_alias)
-	[[gnu::may_alias]]
-#endif
-	= wchar_t*;
-	if(!win32::nt::rtl_dos_path_name_to_nt_path_name_u(reinterpret_cast<wchar_t_may_alias_ptr>(buffer_data),std::addressof(nt_name),std::addressof(part_name),std::addressof(relative_name)))
-		throw_nt_error(0xC0000039);
-}
-
 template<bool zw>
 inline void* nt_create_file_common_impl(void* directory,win32::nt::unicode_string* relative_path,nt_open_mode const& mode)
 {
@@ -358,10 +346,8 @@ inline void* nt_create_file_directory_impl(void* directory,basic_cstring_view<ch
 	}
 	else
 	{
-		::fast_io::details::local_operator_new_array_ptr<char16_t> buffer(
-			::fast_io::details::cal_decorated_reserve_size<sizeof(char_type),sizeof(char16_t)>(filename.size()));
-		auto buffer_data_end=::fast_io::details::codecvt::general_code_cvt_full(filename.data(),filename.data()+filename.size(),buffer.ptr);
-		std::uint16_t const bytes(filename_bytes(buffer_data_end-buffer.ptr));
+		::fast_io::details::win32_path_dealer dealer(filename.data(),filename.size());
+		std::uint16_t const bytes(filename_bytes(dealer.size()));
 		using wchar_t_may_alias_ptr
 #if __has_cpp_attribute(gnu::may_alias)
 		[[gnu::may_alias]]
@@ -370,7 +356,7 @@ inline void* nt_create_file_directory_impl(void* directory,basic_cstring_view<ch
 		win32::nt::unicode_string relative_path{
 			.Length=bytes,
 			.MaximumLength=bytes,
-			.Buffer=reinterpret_cast<wchar_t_may_alias_ptr>(buffer.ptr)};
+			.Buffer=reinterpret_cast<wchar_t_may_alias_ptr>(dealer.buffer_data)};
 		return nt_create_file_common_impl<zw>(directory,std::addressof(relative_path),mode);
 	}
 
