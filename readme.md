@@ -67,7 +67,7 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - Universal CRT
 - BSD libc/Apple Darwin
 - MUSL libc
-- MSDOS CRT
+- DJGPP
 - Newlib
 - Bionic(Android)
 
