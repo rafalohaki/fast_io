@@ -5,7 +5,7 @@ namespace fast_io::details
 
 struct win32_path_dealer
 {
-	using char_type = wchar_t;
+	using char_type = char16_t;
 	std::size_t capacity;
 	char_type* buffer_data;
 	char_type* buffer_data_end;

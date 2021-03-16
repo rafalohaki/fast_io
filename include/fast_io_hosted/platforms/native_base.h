@@ -8,12 +8,12 @@
 #ifdef _WIN32
 #include"win32_api.h"
 #include"win32_error.h"
+#include"win32_path_dealer.h"
 #include"nt_api.h"
 #include"nt_error.h"
 #include"nt.h"
 #include"win32_iocp_overlapped.h"
 #include"win32.h"
-#include"win32_path_dealer.h"
 //#include"com_error.h"
 #else
 #include"posix_path_dealer.h"

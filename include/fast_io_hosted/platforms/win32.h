@@ -96,12 +96,8 @@ inline void* win32_create_file_impl(basic_cstring_view<char_type> path,win32_ope
 			return win32_create_file_a_impld(reinterpret_cast<wchar_t_may_alias_ptr>(path.data()),mode);
 		else
 		{
-			::fast_io::details::local_operator_new_array_ptr<char16_t> buffer(
-				::fast_io::details::intrinsics::add_or_overflow_die(
-				::fast_io::details::cal_decorated_reserve_size<sizeof(char_type),sizeof(char16_t)>(path.size()),1));
-			*::fast_io::details::codecvt::general_code_cvt_full(
-				path.data(),path.data()+path.size(),buffer.ptr)=0;
-			return win32_create_file_a_impld(reinterpret_cast<wchar_t_may_alias_ptr>(buffer.ptr),mode);
+			::fast_io::details::win32_path_dealer dealer(path.data(),path.size());
+			return win32_create_file_a_impld(reinterpret_cast<wchar_t_may_alias_ptr>(dealer.c_str()),mode);
 		}
 	}
 }
