@@ -188,11 +188,11 @@ inline constexpr std::uintmax_t bufferred_transmit_impl(output& outp,input& inp,
 			auto e(ibuffer_end(inp));
 			if(b!=e)[[likely]]
 			{
-				std::size_t transmitted_this_round{e-b};
+				std::size_t transmitted_this_round{static_cast<std::size_t>(e-b)};
 				if(chars<=transmitted_this_round)
 				{
 					write(outp,b,b+chars);
-					return transmitted_chars+transmitted_this_round;
+					return transmitted_chars+chars;
 				}
 				else
 				{
