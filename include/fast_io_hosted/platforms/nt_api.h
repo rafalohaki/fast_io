@@ -23,13 +23,9 @@ Guard against EBCDIC exec charset
 
 template<bool enable=true>
 requires (enable)
-inline auto const ntdll_module_handle{get_nt_module_handle<enable>()};
-
-template<bool enable=true>
-requires (enable)
 inline auto ntdll_proc_addr(char8_t const* funname) noexcept
 {
-	auto proc_addr(GetProcAddress(ntdll_module_handle<enable>,reinterpret_cast<char const*>(funname)));
+	auto proc_addr(GetProcAddress(get_nt_module_handle<enable>(),reinterpret_cast<char const*>(funname)));
 	if(proc_addr==nullptr)[[unlikely]]
 		fast_terminate();
 	return proc_addr;
