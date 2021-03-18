@@ -286,29 +286,61 @@ inline unix_timestamp posix_clock_gettime(posix_clock_id pclk_id)
 #endif
 }
 
-inline unix_timestamp posix_clock_settime(posix_clock_id pclk_id,unix_timestamp timestamp)
+#if defined(_WIN32) || defined(__CYGWIN__)
+template<nt_family family,intiso_t off_to_epoch>
+requires (family==nt_family::nt||family==nt_family::zw)
+inline basic_timestamp<off_to_epoch> nt_family_clock_settime(posix_clock_id pclk_id,basic_timestamp<off_to_epoch> timestamp)
+{
+	if constexpr(std::same_as<win32_timestamp,basic_timestamp<off_to_epoch>>)
+	{
+		switch(pclk_id)
+		{
+			case posix_clock_id::realtime:
+			case posix_clock_id::realtime_alarm:
+			case posix_clock_id::realtime_coarse:
+			case posix_clock_id::tai:
+			{
+				win32_timestamp win32ts(timestamp);
+				constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/10000000u};
+				std::uint64_t tms(static_cast<uintiso_t>(timestamp.seconds)*10000000ULL+timestamp.subseconds/mul_factor);
+				std::uint64_t old_tms{};
+				auto ntstatus{win32::nt::nt_set_system_time<family==nt_family::zw>(std::addressof(tms),std::addressof(old_tms))};
+				if(ntstatus)
+					throw_nt_error(ntstatus);
+				return win32::to_win32_timestamp_ftu64(old_tms);
+			}
+			default:
+				throw_nt_error(0xC00000EF);
+		};
+	}
+	else
+	{
+		return static_cast<basic_timestamp<off_to_epoch>>(pclk_id,static_cast<win32_timestamp>(timestamp));
+	}
+}
+template<intiso_t off_to_epoch>
+inline basic_timestamp<off_to_epoch> nt_clock_settime(posix_clock_id pclk_id,basic_timestamp<off_to_epoch> timestamp)
+{
+	return nt_family_clock_settime<nt_family::nt>(pclk_id,timestamp);
+}
+
+template<intiso_t off_to_epoch>
+inline basic_timestamp<off_to_epoch> zw_clock_settime(posix_clock_id pclk_id,basic_timestamp<off_to_epoch> timestamp)
+{
+	return nt_family_clock_settime<nt_family::zw>(pclk_id,timestamp);
+}
+
+#endif
+
+template<intiso_t off_to_epoch>
+inline basic_timestamp<off_to_epoch> posix_clock_settime(posix_clock_id pclk_id,basic_timestamp<off_to_epoch> timestamp)
 {
 #ifdef _WIN32
-	switch(pclk_id)
+	return win32_clock_settime(pclk_id,timestamp);
+#else
+	if constexpr(std::same_as<basic_timestamp<off_to_epoch>,unix_timestamp>)
 	{
-	case posix_clock_id::realtime:
-	case posix_clock_id::realtime_alarm:
-	case posix_clock_id::realtime_coarse:
-	case posix_clock_id::tai:
-	{
-		win32_timestamp win32ts(timestamp);
-		constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/10000000u};
-		std::uint64_t tms(static_cast<uintiso_t>(win32ts.seconds)*10000000ULL+win32ts.subseconds/mul_factor);
-		std::uint64_t old_tms{};
-		auto ntstatus{win32::nt::nt_set_system_time<false>(std::addressof(tms),std::addressof(old_tms))};
-		if(ntstatus)
-			throw_nt_error(ntstatus);
-		return static_cast<unix_timestamp>(win32::to_win32_timestamp_ftu64(old_tms));	
-	}
-	default:
-		throw_nt_error(0xC00000EF);
-	};
-#elif defined(__MSDOS__)
+#if defined(__MSDOS__)
 	switch(pclk_id)
 	{
 	case posix_clock_id::realtime:
@@ -345,6 +377,12 @@ inline unix_timestamp posix_clock_settime(posix_clock_id pclk_id,unix_timestamp 
 	return {static_cast<intiso_t>(res.tv_sec),static_cast<uintiso_t>(res.tv_nsec)*mul_factor};
 #else
 	throw_posix_error(EINVAL);
+#endif
+	}
+	else
+	{
+		return static_cast<posix_timestamp<off_to_epoch>>(pclk_id,static_cast<posix_timestamp>(timestamp));
+	}
 #endif
 }
 

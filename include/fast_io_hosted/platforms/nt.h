@@ -248,9 +248,11 @@ struct nt_file_openmode
 	inline static constexpr nt_open_mode mode = calculate_nt_open_mode(om,pm);
 };
 
+template<bool ok=true>
+requires (ok)
 inline void nt_file_rtl_path(wchar_t const* filename,win32::nt::unicode_string& nt_name,wchar_t const*& part_name,win32::nt::rtl_relative_name_u& relative_name)
 {
-	if(!win32::nt::rtl_dos_path_name_to_nt_path_name_u(filename,std::addressof(nt_name),std::addressof(part_name),std::addressof(relative_name)))
+	if(!win32::nt::rtl_dos_path_name_to_nt_path_name_u<ok>(filename,std::addressof(nt_name),std::addressof(part_name),std::addressof(relative_name)))
 		throw_nt_error(0xC0000039);
 }
 
@@ -284,7 +286,8 @@ inline std::uint16_t filename_bytes(std::size_t sz)
 	return static_cast<std::uint16_t>(sz);
 }
 
-template<bool zw,std::integral char_type>
+template<bool zw,bool ok=true,std::integral char_type>
+requires (ok)
 inline void* nt_create_file_impl(basic_cstring_view<char_type> filename,nt_open_mode const& mode)
 {
 	wchar_t const* part_name{};
@@ -308,7 +311,7 @@ inline void* nt_create_file_impl(basic_cstring_view<char_type> filename,nt_open_
 		::fast_io::details::win32_path_dealer dealer(filename.data(),filename.size());
 		nt_file_rtl_path(reinterpret_cast<wchar_t_may_alias_ptr>(dealer.c_str()),nt_name,part_name,relative_name);
 	}
-	win32::nt::rtl_unicode_string_unique_ptr us_ptr{std::addressof(nt_name)};
+	win32::nt::rtl_unicode_string_unique_ptr<ok> us_ptr{std::addressof(nt_name)};
 	return nt_create_file_common_impl<zw>(nullptr,std::addressof(nt_name),mode);
 }
 

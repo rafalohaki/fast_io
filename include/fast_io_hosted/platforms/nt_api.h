@@ -3,6 +3,8 @@
 namespace fast_io::win32::nt
 {
 
+template<bool enable=true>
+requires (enable)
 inline auto get_nt_module_handle() noexcept
 {
 /*
@@ -14,45 +16,46 @@ Guard against EBCDIC exec charset
 #endif
 	= wchar_t const*;
 	auto mod(GetModuleHandleW(reinterpret_cast<wchar_t_alias_const_ptr>(u"ntdll.dll")));
-	if(mod==nullptr)
+	if(mod==nullptr)[[unlikely]]
 		fast_terminate();
 	return mod;
 }
 
-template<typename func>
-inline func* get_funcptr(void* module,char8_t const* funname) noexcept
+template<bool enable=true>
+requires (enable)
+inline auto const ntdll_module_handle{get_nt_module_handle<enable>()};
+
+template<bool enable=true>
+requires (enable)
+inline auto ntdll_proc_addr(char8_t const* funname) noexcept
 {
-	auto proc_addr(GetProcAddress(module,reinterpret_cast<char const*>(funname)));
-	if(proc_addr==nullptr)
+	auto proc_addr(GetProcAddress(ntdll_module_handle<enable>,reinterpret_cast<char const*>(funname)));
+	if(proc_addr==nullptr)[[unlikely]]
 		fast_terminate();
-	return bit_cast<func*>(proc_addr);
+	return proc_addr;
+}
+
+template<typename func,bool enable=true>
+requires (enable)
+inline func* const get_nt_module_fptr(char8_t const* funname) noexcept
+{
+	return bit_cast<func*>(ntdll_proc_addr<enable>(funname));
 }
 
 /*
 Guard against EBCDIC execution charset
 */
-template<typename func>
-inline func* get_nt_module_handle(char8_t const* funname) noexcept
-{
-	auto hd(get_nt_module_handle());
-	auto proc_addr(GetProcAddress(hd,reinterpret_cast<char const*>(funname)));
-	if(proc_addr==nullptr)
-		fast_terminate();
-	return bit_cast<func*>(proc_addr);
-}
 
-inline std::uint32_t rtl_nt_status_to_dos_error(std::uint32_t status) noexcept
-{
-	return (get_nt_module_handle<std::uint32_t __stdcall(std::uint32_t status) noexcept >(u8"RtlNtStatusToDosError"))(status);
-}
+using rtl_nt_status_to_dos_error_prototype = std::uint32_t __stdcall(std::uint32_t status) noexcept;
+
+template<bool ok=true>
+requires (ok)
+inline rtl_nt_status_to_dos_error_prototype* const rtl_nt_status_to_dos_error{get_nt_module_fptr<rtl_nt_status_to_dos_error_prototype>(u8"RtlNtStatusToDosError")};
+
+using nt_close_prototype = std::uint32_t __stdcall(void*) noexcept;
 
 template<bool zw>
-inline std::uint32_t nt_close(void* handle) noexcept
-{
-	constexpr char8_t const* func_name{zw?u8"ZwClose":u8"NtClose"};
-	auto func_ptr{get_nt_module_handle<std::uint32_t __stdcall(void*) noexcept >(func_name)};
-	return func_ptr(handle);
-}
+inline nt_close_prototype* const nt_close{get_nt_module_fptr<nt_close_prototype>(zw?u8"ZwClose":u8"NtClose")};
 
 struct unicode_string
 {
@@ -82,11 +85,6 @@ std::uintptr_t Information;
 };
 
 
-
-template<bool zw,typename... Args>
-requires (sizeof...(Args)==11)
-inline auto nt_create_file(Args&& ...args) noexcept
-{
 /*
 __kernel_entry NTSYSCALLAPI NTSTATUS NtCreateFile(
 PHANDLE(void**)            FileHandle,
@@ -102,10 +100,12 @@ PVOID(void*)              EaBuffer,
 ULONG(std::uint32_t)              EaLength
 );
 */
-	constexpr char8_t const* func_name{zw?u8"ZwCreateFile":u8"NtCreateFile"};
-	return (get_nt_module_handle<std::uint32_t __stdcall(void**,std::uint32_t,object_attributes*,io_status_block*,std::int64_t*,
-			std::uint32_t,std::uint32_t,std::uint32_t,std::uint32_t,void*,std::uint32_t) noexcept>(func_name))(std::forward<Args>(args)...);
-}
+
+using nt_create_file_prototype = std::uint32_t __stdcall(void**,std::uint32_t,object_attributes*,io_status_block*,std::int64_t*,
+			std::uint32_t,std::uint32_t,std::uint32_t,std::uint32_t,void*,std::uint32_t) noexcept;
+
+template<bool zw>
+inline nt_create_file_prototype* const nt_create_file{get_nt_module_fptr<nt_create_file_prototype>(zw?u8"ZwCreateFile":u8"NtCreateFile")};
 
 enum class ps_attribute_num
 {
@@ -409,11 +409,6 @@ struct section_image_information
 	std::uint32_t ImageFileSize;
 	std::uint32_t CheckSum;
 };
-
-template<bool zw,typename... Args>
-requires (sizeof...(Args)==11)
-inline auto nt_create_user_process(Args&& ...args) noexcept
-{
 /*
 Referenced From
 https://github.com/Mattiwatti/BSOD10/blob/b43bc139e97fd7019315e8771fa809f58f7bd53e/src/ntdll.h
@@ -434,17 +429,15 @@ NtCreateUserProcess(
 	_In_ PPS_ATTRIBUTE_LIST AttributeList
 	);
 */
-	constexpr char8_t const* func_name{zw?u8"ZwCreateUserProcess":u8"NtCreateUserProcess"};
-	return (get_nt_module_handle<std::uint32_t __stdcall(void**,void**,std::uint32_t,std::uint32_t,
+
+using nt_create_user_process_prototype=std::uint32_t __stdcall(void**,void**,std::uint32_t,std::uint32_t,
 		object_attributes*,object_attributes*,std::uint32_t,std::uint32_t,rtl_user_process_parameters*,
-		ps_create_info*,ps_attribute_list*) noexcept>(func_name))(std::forward<Args>(args)...);
-}
+		ps_create_info*,ps_attribute_list*) noexcept;
+
+template<bool zw>
+inline nt_create_user_process_prototype* const nt_create_user_process{get_nt_module_fptr<nt_create_user_process_prototype>(zw?u8"ZwCreateUserProcess":u8"NtCreateUserProcess")};
 
 
-template<bool zw,typename... Args>
-requires (sizeof...(Args)==7)
-inline auto nt_create_section(Args&& ...args) noexcept
-{
 /*
 Referenced From
 https://github.com/Mattiwatti/BSOD10/blob/b43bc139e97fd7019315e8771fa809f58f7bd53e/src/ntdll.h
@@ -462,10 +455,10 @@ NtCreateSection(
 	_In_opt_ HANDLE(void*) FileHandle
 	);
 */
-	constexpr char8_t const* func_name{zw?u8"ZwCreateSection":u8"NtCreateSection"};
-	return (get_nt_module_handle<std::uint32_t __stdcall(void** __restrict,std::uint32_t,object_attributes* __restrict,
-		std::uint64_t*,std::uint32_t,std::uint32_t,void* __restrict) noexcept>(func_name))(std::forward<Args>(args)...);
-}
+using nt_create_section_protoype = std::uint32_t __stdcall(void** __restrict,std::uint32_t,object_attributes* __restrict,
+		std::uint64_t*,std::uint32_t,std::uint32_t,void* __restrict) noexcept;
+template<bool zw>
+inline nt_create_section_protoype* const nt_create_section{get_nt_module_fptr<nt_create_section_protoype>(zw?u8"ZwCreateSection":u8"NtCreateSection")};
 
 enum class process_information_class
 {
@@ -582,10 +575,7 @@ struct process_basic_information
 	void* UniqueProcessId;
 	void* InheritedFromUniqueProcessId;
 };
-template<bool zw,typename... Args>
-requires (sizeof...(Args)==5)
-inline auto nt_query_information_process(Args&&...args) noexcept
-{
+
 /*
 __kernel_entry NTSTATUS NtQueryInformationProcess(
   HANDLE           ProcessHandle,
@@ -595,17 +585,13 @@ __kernel_entry NTSTATUS NtQueryInformationProcess(
   PULONG           ReturnLength
 );
 */
-	constexpr char8_t const* func_name{zw?u8"ZwQueryInformationProcess":u8"NtQueryInformationProcess"};
-	return (get_nt_module_handle<std::uint32_t __stdcall(void* __restrict,
+using nt_query_information_process_prototype = std::uint32_t __stdcall(void* __restrict,
 		process_information_class,process_basic_information*,
-		std::uint32_t,std::uint32_t*) noexcept>(func_name))(std::forward<Args>(args)...);
-}
+		std::uint32_t,std::uint32_t*) noexcept;
 
+template<bool zw>
+inline nt_query_information_process_prototype* const nt_query_information_process{get_nt_module_fptr<nt_query_information_process_prototype>(zw?u8"ZwQueryInformationProcess":u8"NtQueryInformationProcess")};
 
-template<bool zw,typename... Args>
-requires (sizeof...(Args)==8)
-inline auto nt_create_process(Args&& ...args) noexcept
-{
 /*
 Referenced From
 https://github.com/Mattiwatti/BSOD10/blob/b43bc139e97fd7019315e8771fa809f58f7bd53e/src/ntdll.h
@@ -624,11 +610,12 @@ NtCreateProcess(
 	_In_opt_ HANDLE(void*) ExceptionPort
 	);
 */
-	constexpr char8_t const* func_name{zw?u8"ZwCreateProcess":u8"NtCreateProcess"};
-	return (get_nt_module_handle<std::uint32_t __stdcall(void**,std::uint32_t,object_attributes*,
-		void*,std::uint32_t,void*,void*,void*) noexcept>(func_name))(std::forward<Args>(args)...);
-}
 
+using nt_create_process_prototype = std::uint32_t __stdcall(void**,std::uint32_t,object_attributes*,
+		void*,std::uint32_t,void*,void*,void*) noexcept;
+
+template<bool zw>
+inline nt_create_process_prototype* const nt_create_process{get_nt_module_fptr<nt_create_process_prototype>(zw?u8"ZwCreateProcess":u8"NtCreateProcess")};
 
 struct client_id
 {
@@ -639,10 +626,7 @@ struct client_id
 using pio_apc_routine = void (*)(void*,io_status_block*,std::uint32_t);
 //typedef VOID (NTAPI *PIO_APC_ROUTINE)(PVOID ApcContext,PIO_STATUS_BLOCK IoStatusBlock,ULONG Reserved);
 
-template<bool zw,typename... Args>
-requires (sizeof...(Args)==9)
-inline auto nt_write_file(Args&& ...args) noexcept
-{
+
 /*
 __kernel_entry NTSYSCALLAPI NTSTATUS NtWriteFile(
 	HANDLE           FileHandle,
@@ -656,29 +640,25 @@ __kernel_entry NTSYSCALLAPI NTSTATUS NtWriteFile(
 	PULONG           Key
 );
 */
-	constexpr char8_t const* func_name{zw?u8"ZwWriteFile":u8"NtWriteFile"};
-	return (get_nt_module_handle<std::uint32_t __stdcall(void*,void*,pio_apc_routine,void*,io_status_block*,
-				void const*,std::uint32_t,std::int64_t*,std::uint32_t*) noexcept>(func_name))(std::forward<Args>(args)...);
-}
 
-template<typename... Args>
-requires (sizeof...(Args)==10)
-inline auto rtl_create_user_thread(Args&& ...args) noexcept
-{
-	return (get_nt_module_handle<std::uint32_t __stdcall(void*,void*,int,std::uint32_t,std::size_t,std::size_t,void*,void*,void**,client_id*) noexcept>(u8"RtlCreateUserThread"))(std::forward<Args>(args)...);
-}
+using nt_write_file_prototype = std::uint32_t __stdcall(void*,void*,pio_apc_routine,void*,io_status_block*,
+				void const*,std::uint32_t,std::int64_t*,std::uint32_t*) noexcept;
 
-template<typename... Args>
-requires (sizeof...(Args)==3)
-inline auto rtl_p_init_environment(Args&& ...args) noexcept
-{
-	return (get_nt_module_handle<std::uint32_t __stdcall(void*,void*,rtl_user_process_parameters*) noexcept>(u8"RtlpInitEnvironment"))(std::forward<Args>(args)...);
-}
+template<bool zw>
+inline nt_write_file_prototype* const nt_write_file{get_nt_module_fptr<nt_write_file_prototype>(zw?u8"ZwWriteFile":u8"NtWriteFile")};
 
-template<bool zw,typename... Args>
-requires (sizeof...(Args)==9)
-inline auto nt_read_file(Args&& ...args) noexcept
-{
+using rtl_create_user_thread_prototype = std::uint32_t __stdcall(void*,void*,int,std::uint32_t,std::size_t,std::size_t,void*,void*,void**,client_id*) noexcept;
+
+template<bool enable=true>
+requires (enable)
+inline rtl_create_user_thread_prototype* const rtl_create_user_thread{get_nt_module_fptr<rtl_create_user_thread_prototype>(u8"RtlCreateUserThread")};
+
+using rtl_p_init_environment_prototype = std::uint32_t __stdcall(void*,void*,rtl_user_process_parameters*) noexcept;
+
+template<bool enable=true>
+requires (enable)
+inline rtl_p_init_environment_prototype* const rtl_p_init_environment{get_nt_module_fptr<rtl_p_init_environment_prototype>(u8"RtlpInitEnvironment")};
+
 /*
 __kernel_entry NTSYSCALLAPI NTSTATUS NtReadFile(
 	HANDLE           FileHandle,
@@ -692,10 +672,11 @@ __kernel_entry NTSYSCALLAPI NTSTATUS NtReadFile(
 	PULONG           Key
 );
 */
-	constexpr char8_t const* func_name{zw?u8"ZwReadFile":u8"NtReadFile"};
-	return (get_nt_module_handle<std::uint32_t __stdcall(void*,void*,pio_apc_routine,void*,io_status_block*,
-				void*,std::uint32_t,std::int64_t*,std::uint32_t*) noexcept>(func_name))(std::forward<Args>(args)...);
-}
+using nt_read_file_prototype = std::uint32_t __stdcall(void*,void*,pio_apc_routine,void*,io_status_block*,
+				void*,std::uint32_t,std::int64_t*,std::uint32_t*) noexcept;
+
+template<bool zw>
+inline nt_read_file_prototype* const nt_read_file{get_nt_module_fptr<nt_read_file_prototype>(zw?u8"ZwReadFile":u8"NtReadFile")};
 
 /*
 https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/ne-wdm-_file_information_class
@@ -848,10 +829,6 @@ int delete_pending;
 int directory;
 };
 
-template<bool zw,typename... Args>
-requires (sizeof...(Args)==11)
-inline auto nt_query_directory_file(Args&& ...args) noexcept
-{
 /*
 __kernel_entry NTSYSCALLAPI NTSTATUS NtQueryDirectoryFile(
 	HANDLE                 FileHandle,
@@ -867,10 +844,12 @@ __kernel_entry NTSYSCALLAPI NTSTATUS NtQueryDirectoryFile(
 	BOOLEAN                RestartScan
 );
 */
-	constexpr char8_t const* func_name{zw?u8"ZwQueryDirectoryFile":u8"NtQueryDirectoryFile"};
-	return (get_nt_module_handle<std::uint32_t __stdcall(void*,void*,pio_apc_routine,void*,io_status_block*,
-				void*,std::uint32_t,file_information_class,int,unicode_string*,int) noexcept>(func_name))(std::forward<Args>(args)...);
-}
+
+using nt_query_directory_file_prototype = std::uint32_t __stdcall(void*,void*,pio_apc_routine,void*,io_status_block*,
+				void*,std::uint32_t,file_information_class,int,unicode_string*,int) noexcept;
+
+template<bool zw>
+inline nt_query_directory_file_prototype* const nt_query_directory_file{get_nt_module_fptr<nt_query_directory_file_prototype>(zw?u8"ZwQueryDirectoryFile":u8"NtQueryDirectoryFile")};
 
 enum class section_information_class
 {
@@ -880,54 +859,35 @@ SectionRelocationInformation,
 MaxSectionInfoClass
 };
 
-template<bool zw,typename... Args>
-requires (sizeof...(Args)==5)
-inline auto nt_query_section(Args&& ...args) noexcept
-{
-	constexpr char8_t const* func_name{zw?u8"ZwQuerySection":u8"NtQuerySection"};
-	return (get_nt_module_handle<std::uint32_t __stdcall(void*,section_information_class,void*,std::size_t,std::size_t*) noexcept>(func_name))(std::forward<Args>(args)...);
-}
+using nt_query_section_prototype = std::uint32_t __stdcall(void*,section_information_class,void*,std::size_t,std::size_t*) noexcept;
 
-template<bool zw,typename... Args>
-requires (sizeof...(Args)==5)
-inline auto nt_query_information_file(Args&& ...args) noexcept
-{
-	constexpr char8_t const* func_name{zw?u8"ZwQueryInformationFile":u8"NtQueryInformationFile"};
-	return (get_nt_module_handle<std::uint32_t __stdcall(void* __restrict,io_status_block* __restrict,void* __restrict,std::uint32_t,file_information_class) noexcept >(func_name))(std::forward<Args>(args)...);
-}
+template<bool zw>
+inline nt_query_section_prototype* const nt_query_section{get_nt_module_fptr<nt_query_section_prototype>(zw?u8"ZwQuerySection":u8"NtQuerySection")};
 
-template<bool zw,typename... Args>
-requires (sizeof...(Args)==5)
-inline auto nt_set_information_file(Args&& ...args) noexcept
-{
-	constexpr char8_t const* func_name{zw?u8"ZwSetInformationFile":u8"NtSetInformationFile"};
-	return (get_nt_module_handle<std::uint32_t __stdcall(void* __restrict,io_status_block* __restrict,void* __restrict,std::uint32_t,file_information_class) noexcept >(func_name))(std::forward<Args>(args)...);
-}
+using nt_query_information_file_prototype = std::uint32_t __stdcall(void* __restrict,io_status_block* __restrict,void* __restrict,std::uint32_t,file_information_class) noexcept;
 
-template<bool zw,typename... Args>
-requires (sizeof...(Args)==7)
-inline auto nt_duplicate_object(Args&& ...args) noexcept
-{
-	constexpr char8_t const* func_name{zw?u8"ZwDuplicateObject":u8"NtDuplicateObject"};
-	return (get_nt_module_handle<std::uint32_t __stdcall(void*,void*,void*,void**,std::uint32_t,std::uint32_t,std::uint32_t) noexcept >(func_name))(std::forward<Args>(args)...);
-}
+template<bool zw>
+inline nt_query_information_file_prototype* const nt_query_information_file{get_nt_module_fptr<nt_query_information_file_prototype>(zw?u8"ZwQueryInformationFile":u8"NtQueryInformationFile")};
 
-template<bool zw,typename... Args>
-requires (sizeof...(Args)==3)
-inline auto nt_wait_for_single_object(Args&& ...args) noexcept
-{
-	constexpr char8_t const* func_name{zw?u8"ZwWaitForSingleObject":u8"NtWaitForSingleObject"};
-	return (get_nt_module_handle<std::uint32_t __stdcall(void*,int,std::uint64_t*) noexcept >(func_name))(std::forward<Args>(args)...);
-}
+using nt_set_information_file_prototype = std::uint32_t __stdcall(void* __restrict,io_status_block* __restrict,void* __restrict,std::uint32_t,file_information_class) noexcept;
 
+template<bool zw>
+inline nt_set_information_file_prototype* const nt_set_information_file{get_nt_module_fptr<nt_set_information_file_prototype>(zw?u8"ZwSetInformationFile":u8"NtSetInformationFile")};
 
-template<bool zw,typename... Args>
-requires (sizeof...(Args)==2)
-inline auto nt_set_system_time(Args&& ...args) noexcept
-{
-	constexpr char8_t const* func_name{zw?u8"ZwSetSystemTime":u8"NtSetSystemTime"};
-	return (get_nt_module_handle<std::uint32_t __stdcall(std::uint64_t*,std::uint64_t*) noexcept >(func_name))(std::forward<Args>(args)...);
-}
+using nt_duplicate_object_prototype = std::uint32_t __stdcall(void*,void*,void*,void**,std::uint32_t,std::uint32_t,std::uint32_t) noexcept;
+
+template<bool zw>
+inline nt_duplicate_object_prototype* const nt_duplicate_object{get_nt_module_fptr<nt_duplicate_object_prototype>(zw?u8"ZwDuplicateObject":u8"NtDuplicateObject")};
+
+using nt_wait_for_single_object_prototype = std::uint32_t __stdcall(void*,int,std::uint64_t*) noexcept;
+
+template<bool zw>
+inline nt_wait_for_single_object_prototype* const nt_wait_for_single_object{get_nt_module_fptr<nt_wait_for_single_object_prototype>(zw?u8"ZwWaitForSingleObject":u8"NtWaitForSingleObject")};
+
+using nt_set_system_time_prototype = std::uint32_t __stdcall(std::uint64_t*,std::uint64_t*) noexcept;
+
+template<bool zw>
+inline nt_set_system_time_prototype* const nt_set_system_time{get_nt_module_fptr<nt_set_system_time_prototype>(zw?u8"ZwSetSystemTime":u8"NtSetSystemTime")};
 
 struct rtlp_curdir_def
 {
@@ -942,21 +902,23 @@ struct rtl_relative_name_u
 	rtlp_curdir_def cur_dir_ref;
 };
 
-template<typename... Args>
-requires (sizeof...(Args)==4)
-inline auto rtl_dos_path_name_to_nt_path_name_u(Args&& ...args) noexcept
-{
+
 //https://github.com/mirror/reactos/blob/master/rostests/apitests/ntdll/RtlDosPathNameToNtPathName_U.c
-	return (get_nt_module_handle<int __stdcall(wchar_t const*,unicode_string*,wchar_t const**,rtl_relative_name_u*) noexcept >(u8"RtlDosPathNameToNtPathName_U"))(std::forward<Args>(args)...);
-}
+using rtl_dos_path_name_to_nt_path_name_u_prototype = int __stdcall(wchar_t const*,unicode_string*,wchar_t const**,rtl_relative_name_u*) noexcept ;
+
+template<bool ok=true>
+requires (ok)
+inline rtl_dos_path_name_to_nt_path_name_u_prototype* const rtl_dos_path_name_to_nt_path_name_u{get_nt_module_fptr<rtl_dos_path_name_to_nt_path_name_u_prototype>(u8"RtlDosPathNameToNtPathName_U")};
+
 //RtlDosPathNameToNtPathName_U
 
-inline void rtl_free_unicode_string(unicode_string* us) noexcept
-{
-	auto func_ptr{get_nt_module_handle<void __stdcall(unicode_string*) noexcept>(u8"RtlFreeUnicodeString")};
-	return func_ptr(us);
-}
+using rtl_free_unicode_string_prototype = void __stdcall(unicode_string*) noexcept;
 
+template<bool ok=true>
+requires (ok)
+inline rtl_free_unicode_string_prototype* const rtl_free_unicode_string{get_nt_module_fptr<void __stdcall(unicode_string*) noexcept>(u8"RtlFreeUnicodeString")};
+
+template<bool ok=true>
 struct rtl_unicode_string_unique_ptr
 {
 	unicode_string* heap_ptr{};
@@ -973,7 +935,7 @@ struct rtl_unicode_string_unique_ptr
 		if(other.heap_ptr==heap_ptr)
 			return *this;
 		if(heap_ptr)[[likely]]
-			rtl_free_unicode_string(heap_ptr);
+			rtl_free_unicode_string<ok>(heap_ptr);
 		heap_ptr=other.heap_ptr;
 		other.heap_ptr=nullptr;
 		return *this;
@@ -981,7 +943,7 @@ struct rtl_unicode_string_unique_ptr
 	~rtl_unicode_string_unique_ptr()
 	{
 		if(heap_ptr)[[likely]]
-			rtl_free_unicode_string(heap_ptr);
+			rtl_free_unicode_string<ok>(heap_ptr);
 	}
 };
 
