@@ -315,7 +315,7 @@ inline basic_timestamp<off_to_epoch> nt_family_clock_settime(posix_clock_id pclk
 	}
 	else
 	{
-		return static_cast<basic_timestamp<off_to_epoch>>(pclk_id,static_cast<win32_timestamp>(timestamp));
+		return static_cast<basic_timestamp<off_to_epoch>>(nt_family_clock_settime<family>(pclk_id,static_cast<win32_timestamp>(timestamp)));
 	}
 }
 template<intiso_t off_to_epoch>

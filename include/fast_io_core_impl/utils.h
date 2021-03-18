@@ -156,13 +156,7 @@ void* my_memmove(void* dest,void const* src,std::size_t count) noexcept
         (dest,src,count);
 }
 
-inline
-#if defined(__has_builtin)
-#if __has_builtin(__builtin_memset)
-constexpr
-#endif
-#endif
-void* my_memset(void* dest, int ch, std::size_t count) noexcept
+inline void* my_memset(void* dest, int ch, std::size_t count) noexcept
 {
     return
 #if defined(__has_builtin)
