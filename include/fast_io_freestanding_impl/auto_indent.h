@@ -109,7 +109,6 @@ inline constexpr Iter print_reserve_define_auto_indent(Iter iter,
 	constexpr auto slasht{get_horizontal_exec_char<char_type>()};
 	constexpr auto lf{get_horizontal_exec_char<char_type,1>()};
 	constexpr auto space{get_horizontal_exec_char<char_type,2>()};
-	std::size_t lines{};
 	auto first{indent.first};
 	auto last{indent.last};
 	auto line_ptr{indent.container.data()};

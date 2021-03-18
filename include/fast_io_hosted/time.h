@@ -300,7 +300,6 @@ inline basic_timestamp<off_to_epoch> nt_family_clock_settime(posix_clock_id pclk
 			case posix_clock_id::realtime_coarse:
 			case posix_clock_id::tai:
 			{
-				win32_timestamp win32ts(timestamp);
 				constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/10000000u};
 				std::uint64_t tms(static_cast<uintiso_t>(timestamp.seconds)*10000000ULL+timestamp.subseconds/mul_factor);
 				std::uint64_t old_tms{};
