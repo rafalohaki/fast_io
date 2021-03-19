@@ -236,6 +236,64 @@ inline constexpr bool is_c_space(char_type ch) noexcept
 #endif
 }
 
+/*
+https://www.gnu.org/software/gcc/gcc-11/changes.html
+
+
+A series of conditional expressions that compare the same variable can be transformed into a switch statement if each of them contains a comparison expression. Example:
+        int IsHTMLWhitespace(int aChar) {
+          return aChar == 0x0009 || aChar == 0x000A ||
+                 aChar == 0x000C || aChar == 0x000D ||
+                 aChar == 0x0020;
+        }
+Let's just add this into this library
+
+*/
+
+namespace details
+{
+
+inline constexpr bool is_html_whitespace_ascii_impl(char32_t ch) noexcept
+{
+	switch(ch)
+	{
+	case 0x0009:case 0x000A:case 0x000C:case 0x000D:case 0x0020:return true;
+	default:return false;
+	}
+}
+
+/*
+For EBCDIC NL should also get supported.
+ASCII: space (0x20, ' '), EBCDIC:64
+ASCII: form feed (0x0c, '\f'), EBCDIC:12
+ASCII: line feed (0x0a, '\n'), EBCDIC:37
+ASCII: carriage return (0x0d, '\r'), EBCDIC:13
+ASCII: horizontal tab (0x09, '\t'), EBCDIC:5
+EBCDIC specific: NL:21
+*/
+
+inline constexpr bool is_html_whitespace_ebcdic_impl(char32_t ch) noexcept
+{
+	switch(ch)
+	{
+		case 5:case 12:case 13:
+		case 21:case 37:case 64:return true;
+		default:
+		return false;
+	};
+}
+
+}
+
+template<std::integral char_type>
+inline constexpr bool is_html_whitespace(char_type ch) noexcept
+{
+	using unsigned_char_type = std::make_unsigned_t<char_type>;
+	if constexpr(fast_io::details::exec_charset_is_ebcdic<char_type>())
+		return details::is_html_whitespace_ebcdic_impl(static_cast<unsigned_char_type>(ch));
+	else
+		return details::is_html_whitespace_ascii_impl(static_cast<unsigned_char_type>(ch));
+}
 }
 
 namespace fast_io

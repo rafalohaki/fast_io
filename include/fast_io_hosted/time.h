@@ -380,7 +380,7 @@ inline basic_timestamp<off_to_epoch> posix_clock_settime(posix_clock_id pclk_id,
 	}
 	else
 	{
-		return static_cast<posix_timestamp<off_to_epoch>>(pclk_id,static_cast<posix_timestamp>(timestamp));
+		return static_cast<basic_timestamp<off_to_epoch>>(pclk_id,static_cast<unix_timestamp>(timestamp));
 	}
 #endif
 }

@@ -22,6 +22,7 @@ For hosted implementations the set of standard library headers required by the C
 #include"fast_io_hosted/chrono.h"
 #include"fast_io_hosted/posix_status.h"
 #include"fast_io_hosted/platforms/native.h"
+#include"fast_io_hosted/file_loaders/impl.h"
 
 #if __cpp_lib_jthread >= 201703L
 #include"fast_io_hosted/iomutex.h"
