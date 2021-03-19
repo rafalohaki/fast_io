@@ -45,9 +45,9 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - GCC 11.
 You can download the latest GCC compiler for windows here. https://bitbucket.org/ejsvifq_mabmip/mingw-gcc/src/master/ 
 For Linux, you can watch this video to help you install the latest GCC easily. https://www.youtube.com/watch?v=qFToZjo2x24
-- VS 19.28.29617
-- Clang 12 with GNU libstdc++, including windows. No Clang with libc++ yet since libc++ has not supported concepts and ranges headers.
-- Clang 12 with msvc stl.
+- VS 19.29.29917
+- Clang 13 with GNU libstdc++, including windows. No Clang with libc++ yet since libc++ has not supported concepts and ranges headers.
+- Clang 13 with msvc stl.
 - Todo: Intel C++ Compiler
 
 ## Platform Support

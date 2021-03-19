@@ -23,10 +23,8 @@ For hosted implementations the set of standard library headers required by the C
 #include"fast_io_hosted/posix_status.h"
 #include"fast_io_hosted/platforms/native.h"
 
-#if !defined(__NEWLIB__)||defined(_GLIBCXX_HAS_GTHREADS)
-#ifndef __MSDOS__
+#if __cpp_lib_jthread >= 201703L
 #include"fast_io_hosted/iomutex.h"
-#endif
 #endif
 #include"fast_io_hosted/wrapper.h"
 #include"fast_io_hosted/filesystem/native.h"

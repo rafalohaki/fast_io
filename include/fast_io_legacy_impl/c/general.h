@@ -19,7 +19,7 @@ inline auto fgetc_unlocked_impl(std::FILE* fp)
 {
 	if constexpr(std::same_as<char_type,char>||std::same_as<char_type,char8_t>)
 	{
-#if defined(__WINNT__) || defined(_MSC_VER)
+#if defined(_WIN32)
 		return _fgetc_nolock(fp);
 #elif _POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _POSIX_SOURCE || _BSD_SOURCE || _SVID_SOURCE
 		return fgetc_unlocked(fp);
@@ -29,7 +29,7 @@ inline auto fgetc_unlocked_impl(std::FILE* fp)
 	}
 	else
 	{
-#if defined(__WINNT__) || defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(_UCRT)  || __MSVCRT_VERSION__ >= 0x800
 		return _fgetwc_nolock(fp);
 #elif _POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _POSIX_SOURCE || _BSD_SOURCE || _SVID_SOURCE
 		return fgetwc_unlocked(fp);

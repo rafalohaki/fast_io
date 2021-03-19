@@ -504,6 +504,9 @@ https://www.gnu.org/software/libc/manual/html_node/File-Positioning.html
 	return val;
 }
 #if defined(_WIN32)
+
+#if defined(_MSC_VER) || defined(_UCRT)  || __MSVCRT_VERSION__ >= 0x800
+
 inline std::uintmax_t c_io_seek_no_lock_impl(std::FILE* fp,std::intmax_t offset,seekdir s)
 {
 	if(_fseeki64_nolock(fp,offset,static_cast<int>(s)))
@@ -513,6 +516,17 @@ inline std::uintmax_t c_io_seek_no_lock_impl(std::FILE* fp,std::intmax_t offset,
 		throw_posix_error();
 	return val;
 }
+#else
+inline std::uintmax_t c_io_seek_no_lock_impl(std::FILE* fp,std::intmax_t offset,seekdir s)
+{
+	if(fseeko64(fp,offset,static_cast<int>(s)))
+		throw_posix_error();
+	auto val{ftello64(fp)};
+	if(val<0)
+		throw_posix_error();
+	return val;
+}
+#endif
 #endif
 }
 
