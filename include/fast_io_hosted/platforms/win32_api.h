@@ -232,8 +232,6 @@ int __stdcall GetFileInformationByHandle(void* __restrict,by_handle_file_informa
 
 int __stdcall GetUserDefaultLocaleName(wchar_t*,int) noexcept;
 
-void* __stdcall LoadLibraryW(wchar_t const*) noexcept;
-
 void __stdcall GetSystemTimePreciseAsFileTime(filetime*) noexcept;
 
 int __stdcall QueryUnbiasedInterruptTime(std::uint64_t* unbiasedtime) noexcept;

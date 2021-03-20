@@ -9,7 +9,7 @@
 #include"win32_api.h"
 #include"win32_error.h"
 #include"win32_path_dealer.h"
-#include"nt_api.h"
+#include"nt/impl.h"
 #include"nt_error.h"
 #include"nt.h"
 #include"win32_iocp_overlapped.h"

@@ -60,7 +60,7 @@ inline constexpr Iter print_reserve_nt_error_impl(Iter iter,std::uint32_t ntstat
 	else
 		*iter=u8']';
 	++iter;
-	return print_reserve_define_win32_error_impl(iter,win32::nt::rtl_nt_status_to_dos_error<enable>(ntstatus));
+	return print_reserve_define_win32_error_impl(iter,win32::nt::rtl_nt_status_to_dos_error(ntstatus));
 }
 
 }
@@ -84,7 +84,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,nt_e
 template<std::contiguous_iterator Iter>
 inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,nt_error>,Iter iter,nt_error const& e) noexcept
 {
-	return details::print_reserve_nt_error_impl<std::contiguous_iterator<Iter>>(iter,e.code());
+	return details::print_reserve_nt_error_impl(iter,e.code());
 }
 
 }

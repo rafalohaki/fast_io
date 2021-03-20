@@ -248,11 +248,9 @@ struct nt_file_openmode
 	inline static constexpr nt_open_mode mode = calculate_nt_open_mode(om,pm);
 };
 
-template<bool ok=true>
-requires (ok)
 inline void nt_file_rtl_path(wchar_t const* filename,win32::nt::unicode_string& nt_name,wchar_t const*& part_name,win32::nt::rtl_relative_name_u& relative_name)
 {
-	if(!win32::nt::rtl_dos_path_name_to_nt_path_name_u<ok>(filename,std::addressof(nt_name),std::addressof(part_name),std::addressof(relative_name)))
+	if(!win32::nt::rtl_dos_path_name_to_nt_path_name_u(filename,std::addressof(nt_name),std::addressof(part_name),std::addressof(relative_name)))
 		throw_nt_error(0xC0000039);
 }
 
@@ -312,7 +310,7 @@ inline void* nt_create_file_impl(basic_cstring_view<char_type> filename,nt_open_
 		::fast_io::details::win32_path_dealer dealer(filename.data(),filename.size());
 		nt_file_rtl_path(reinterpret_cast<wchar_t_may_alias_ptr>(dealer.c_str()),nt_name,part_name,relative_name);
 	}
-	win32::nt::rtl_unicode_string_unique_ptr<ok> us_ptr{std::addressof(nt_name)};
+	win32::nt::rtl_unicode_string_unique_ptr us_ptr{std::addressof(nt_name)};
 	return nt_create_file_common_impl<zw>(nullptr,std::addressof(nt_name),mode);
 }
 
@@ -663,7 +661,7 @@ public:
 	explicit constexpr basic_nt_family_io_handle() noexcept = default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	explicit constexpr basic_nt_family_io_handle(native_hd hd) noexcept:basic_nt_family_io_observer<family,ch_type>(hd){}
+	explicit constexpr basic_nt_family_io_handle(native_hd hd) noexcept:basic_nt_family_io_observer<family,ch_type>{hd}{}
 	void reset(native_handle_type newhandle=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))) noexcept
 	{
 		if(this->native_handle()!=static_cast<std::uintptr_t>(-1))[[likely]]
