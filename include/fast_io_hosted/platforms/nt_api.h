@@ -33,7 +33,7 @@ inline auto ntdll_proc_addr(char8_t const* funname) noexcept
 
 template<typename func,bool enable=true>
 requires (enable)
-inline func* const get_nt_module_fptr(char8_t const* funname) noexcept
+inline func* get_nt_module_fptr(char8_t const* funname) noexcept
 {
 	return bit_cast<func*>(ntdll_proc_addr<enable>(funname));
 }

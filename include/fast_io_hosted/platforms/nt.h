@@ -265,6 +265,7 @@ inline void* nt_create_file_common_impl(void* directory,win32::nt::unicode_strin
 		.ObjectName=relative_path,
 		.Attributes=mode.ObjAttributes,
 		.SecurityDescriptor=mode.ObjAttributes&0x00000002?std::addressof(sec_attr):nullptr,
+		.SecurityQualityOfService=nullptr
 	};
 	void* handle{};
 	win32::nt::io_status_block block{};

@@ -91,7 +91,7 @@ inline char* posix_load_address(int fd,std::size_t file_size)
 }
 
 template<bool allocation>
-inline void posix_unload_address(void* address,std::size_t file_size) noexcept
+inline void posix_unload_address(void* address,[[maybe_unused]] std::size_t file_size) noexcept
 {
 	if constexpr(allocation)
 	{
@@ -123,7 +123,7 @@ inline posix_file_loader_return_value_t posix_load_address_impl(int fd)
 }
 
 template<bool allocation>
-inline auto posix_load_file_impl(posix_fs_dirent fsdirent,perms pm)
+inline auto posix_load_file_impl(native_fs_dirent fsdirent,perms pm)
 {
 	posix_file pf(fsdirent,fast_io::open_mode::in,pm);
 	return posix_load_address_impl<allocation>(pf.fd);
@@ -169,7 +169,7 @@ public:
 		address_start=ret.address_start;
 		address_end=ret.address_end;
 	}
-	inline explicit posix_file_loader_impl(posix_fs_dirent fsdirent,perms pm=static_cast<perms>(436))
+	inline explicit posix_file_loader_impl(native_fs_dirent fsdirent,perms pm=static_cast<perms>(436))
 	{
 		auto ret{posix_load_file_impl<allocation>(fsdirent,pm)};
 		address_start=ret.address_start;
