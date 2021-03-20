@@ -51,7 +51,7 @@ struct load_file_allocation_guard
 };
 
 template<bool allocation>
-inline char const* posix_load_address(int fd,std::size_t file_size)
+inline char* posix_load_address(int fd,std::size_t file_size)
 {
 	if constexpr(allocation)
 	{
@@ -77,25 +77,25 @@ inline char const* posix_load_address(int fd,std::size_t file_size)
 	static_assert(allocation);
 #else
 	if(file_size==0)
-		return (char const*)-1;
-	void* address{mmap(nullptr,file_size,PROT_READ,MAP_PRIVATE
+		return (char*)-1;
+	void* address{mmap(nullptr,file_size,PROT_READ|PROT_WRITE,MAP_PRIVATE
 #if defined(MAP_POPULATE)
 |MAP_POPULATE
 #endif
 ,fd,0)};
 	if(address==MAP_FAILED)
 		throw_posix_error();
-	return reinterpret_cast<char const*>(address);
+	return reinterpret_cast<char*>(address);
 #endif
 	}
 }
 
 template<bool allocation>
-inline void posix_unload_address(void const* address,std::size_t file_size) noexcept
+inline void posix_unload_address(void* address,std::size_t file_size) noexcept
 {
 	if constexpr(allocation)
 	{
-		free(const_cast<void*>(address));
+		free(address);
 	}
 	else
 	{
@@ -103,15 +103,15 @@ inline void posix_unload_address(void const* address,std::size_t file_size) noex
 		static_assert(allocation);
 #else
 		if(address!=(void*)-1)[[likely]]
-			munmap(const_cast<void*>(address),file_size);
+			munmap(address,file_size);
 #endif
 	}
 }
 
 struct posix_file_loader_return_value_t
 {
-	char const* address_start;
-	char const* address_end;
+	char* address_start;
+	char* address_end;
 };
 
 template<bool allocation>
@@ -152,16 +152,16 @@ public:
 	using pointer = char*;
 	using const_pointer = char const*;
 	using const_iterator = const_pointer;
-	using iterator = const_iterator;
+	using iterator = pointer;
 	using reference = char&;
 	using const_reference = char const&;
 	using size_type = std::size_t;
 	using difference_type = std::ptrdiff_t;
 	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-	using reverse_iterator = const_reverse_iterator;
+	using reverse_iterator = std::reverse_iterator<iterator>;
 
-	const_pointer address_start{};
-	const_pointer address_end{};
+	pointer address_start{};
+	pointer address_end{};
 	inline constexpr posix_file_loader_impl() noexcept=default;
 	inline explicit posix_file_loader_impl(posix_io_observer piob)
 	{
@@ -301,9 +301,9 @@ public:
 	{
 		return const_reverse_iterator{address_end};
 	}
-	constexpr const_reverse_iterator rbegin() noexcept
+	constexpr reverse_iterator rbegin() noexcept
 	{
-		return const_reverse_iterator{address_end};
+		return reverse_iterator{address_end};
 	}
 	constexpr const_reverse_iterator rbegin() const noexcept
 	{
@@ -313,27 +313,38 @@ public:
 	{
 		return const_reverse_iterator{address_start};
 	}
-	constexpr const_reverse_iterator rend() noexcept
+	constexpr reverse_iterator rend() noexcept
 	{
-		return const_reverse_iterator{address_start};
+		return reverse_iterator{address_start};
 	}
 	constexpr const_reverse_iterator rend() const noexcept
 	{
 		return const_reverse_iterator{address_start};
 	}
-	constexpr char const front() noexcept
+	constexpr const_reference front() const noexcept
 	{
 		return *address_start;
 	}
-	constexpr char const back() noexcept
+	constexpr reference front() noexcept
+	{
+		return *address_start;
+	}
+	constexpr const_reference back() const noexcept
 	{
 		return address_end[-1];
 	}
-	inline constexpr char const operator[](size_type size) const noexcept
+	constexpr reference back() noexcept
+	{
+		return address_end[-1];
+	}
+	inline constexpr reference operator[](size_type size) noexcept
 	{
 		return address_start[size];
 	}
-
+	inline constexpr const_reference operator[](size_type size) const noexcept
+	{
+		return address_start[size];
+	}
 	explicit constexpr operator std::string_view() noexcept
 	{
 		return std::string_view(address_start,address_end);

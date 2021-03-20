@@ -8,8 +8,8 @@ namespace win32::details
 
 struct win32_file_loader_return_value_t
 {
-	char const* address_start;
-	char const* address_end;
+	char* address_start;
+	char* address_end;
 };
 
 inline std::size_t win32_load_file_get_file_size(void* handle)
@@ -39,14 +39,14 @@ inline win32_file_loader_return_value_t win32_load_address_impl(void* handle)
 	std::size_t file_size{win32_load_file_get_file_size(handle)};
 	if(file_size==0)
 		return {nullptr,nullptr};
-	void* hfilemappingobj{CreateFileMappingW(handle,nullptr,0x02,0,0,nullptr)};
+	void* hfilemappingobj{CreateFileMappingW(handle,nullptr,0x08,0,0,nullptr)};
 	if(hfilemappingobj==nullptr)
 		throw_win32_error();
 	win32_file map_hd{hfilemappingobj};
-	auto base_ptr{MapViewOfFile(hfilemappingobj,4,0,0,file_size)};
+	auto base_ptr{MapViewOfFile(hfilemappingobj,1,0,0,file_size)};
 	if(base_ptr==nullptr)
 		throw_win32_error();
-	return {reinterpret_cast<char const*>(base_ptr),reinterpret_cast<char const*>(base_ptr)+file_size};
+	return {reinterpret_cast<char*>(base_ptr),reinterpret_cast<char*>(base_ptr)+file_size};
 }
 
 inline auto win32_load_file_impl(nt_fs_dirent fsdirent,perms pm)
@@ -84,16 +84,16 @@ public:
 	using pointer = char*;
 	using const_pointer = char const*;
 	using const_iterator = const_pointer;
-	using iterator = const_iterator;
+	using iterator = pointer;
 	using reference = char&;
 	using const_reference = char const&;
 	using size_type = std::size_t;
 	using difference_type = std::ptrdiff_t;
 	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-	using reverse_iterator = const_reverse_iterator;
+	using reverse_iterator = std::reverse_iterator<iterator>;
 
-	const_pointer address_start{};
-	const_pointer address_end{};
+	pointer address_start{};
+	pointer address_end{};
 	inline constexpr win32_file_loader() noexcept=default;
 	inline explicit win32_file_loader(win32_io_observer wiob)
 	{
@@ -227,9 +227,9 @@ public:
 	{
 		return const_reverse_iterator{address_end};
 	}
-	constexpr const_reverse_iterator rbegin() noexcept
+	constexpr reverse_iterator rbegin() noexcept
 	{
-		return const_reverse_iterator{address_end};
+		return reverse_iterator{address_end};
 	}
 	constexpr const_reverse_iterator rbegin() const noexcept
 	{
@@ -239,27 +239,38 @@ public:
 	{
 		return const_reverse_iterator{address_start};
 	}
-	constexpr const_reverse_iterator rend() noexcept
+	constexpr reverse_iterator rend() noexcept
 	{
-		return const_reverse_iterator{address_start};
+		return reverse_iterator{address_start};
 	}
 	constexpr const_reverse_iterator rend() const noexcept
 	{
 		return const_reverse_iterator{address_start};
 	}
-	constexpr char const front() noexcept
+	constexpr const_reference front() const noexcept
 	{
 		return *address_start;
 	}
-	constexpr char const back() noexcept
+	constexpr reference front() noexcept
+	{
+		return *address_start;
+	}
+	constexpr const_reference back() const noexcept
 	{
 		return address_end[-1];
 	}
-	inline constexpr char const operator[](size_type size) const noexcept
+	constexpr reference back() noexcept
+	{
+		return address_end[-1];
+	}
+	inline constexpr reference operator[](size_type size) noexcept
 	{
 		return address_start[size];
 	}
-
+	inline constexpr const_reference operator[](size_type size) const noexcept
+	{
+		return address_start[size];
+	}
 	explicit constexpr operator std::string_view() noexcept
 	{
 		return std::string_view(address_start,address_end);
