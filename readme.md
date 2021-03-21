@@ -59,18 +59,20 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - Barebone (No any operating system.)
 - Cygwin/MSYS2
 - Android
-- WineHQ
-- Todo: Webassembly
+- Wine
+- Todo list: Webassembly
 
 ## Supported libc FILE* hacks platforms
 - glibc
 - MSVCRT
 - Universal CRT
+- Wine's Emulated MSVCRT
 - BSD libc/Apple Darwin
 - MUSL libc
 - DJGPP
 - Newlib
 - Bionic(Android)
+- Todo list: uclib-ng, mlibc, wasi libc??
 
 ## Supported C++ standard library std::streambuf/std::filebuf hacks platforms
 - GCC libstdc++
