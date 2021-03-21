@@ -73,8 +73,6 @@ int __stdcall CreatePipe(void**,void**,security_attributes*,std::uint32_t) noexc
 
 int __stdcall FreeLibrary(void*) noexcept;
 
-int __stdcall TransmitFile(std::uintptr_t,void*,std::uint32_t,std::uint32_t,overlapped*,transmit_file_buffer*,std::uint32_t) noexcept;
-
 using farproc = intptr_t(__stdcall*)() noexcept;
 
 farproc __stdcall GetProcAddress(void*,char const*) noexcept;
@@ -85,11 +83,7 @@ void* __stdcall LoadLibraryA(char const*) noexcept;
 
 int __stdcall FreeLibrary(void*) noexcept;
 
-int __stdcall AllocConsole() noexcept;
-
 std::uint32_t __stdcall WaitForSingleObject(void*,std::uint32_t) noexcept;
-
-std::uint32_t __stdcall ResumeThread(void*) noexcept;
 
 std::uint32_t __stdcall CancelIo(void*) noexcept;
 

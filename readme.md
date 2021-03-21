@@ -59,6 +59,7 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - Barebone (No any operating system.)
 - Cygwin/MSYS2
 - Android
+- WineHQ
 - Todo: Webassembly
 
 ## Supported libc FILE* hacks platforms
