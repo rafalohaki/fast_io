@@ -180,6 +180,62 @@ unix_timestamp posix_clock_getres(posix_clock_id pclk_id)
 	throw_posix_error(EINVAL);
 #endif
 }
+#ifdef _WIN32
+namespace win32::details
+{
+
+inline unix_timestamp win32_posix_clock_gettime_tai_impl() noexcept
+{
+	win32::filetime ftm;
+	win32::GetSystemTimePreciseAsFileTime(std::addressof(ftm));
+	return static_cast<unix_timestamp>(to_win32_timestamp(ftm));
+}
+
+inline unix_timestamp win32_posix_clock_gettime_boottime_impl()
+{
+	std::uint64_t ftm{};
+	if(!win32::QueryUnbiasedInterruptTime(std::addressof(ftm)))
+		throw_win32_error();
+	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/10000000u};
+	std::uint64_t seconds{ftm/10000000ULL};
+	std::uint64_t subseconds{ftm%10000000ULL};
+	return {static_cast<intiso_t>(seconds),static_cast<uintiso_t>(subseconds*mul_factor)};
+}
+
+template<bool is_thread>
+inline unix_timestamp win32_posix_clock_gettime_process_or_thread_time_impl()
+{
+	win32::filetime creation_time,exit_time,kernel_time,user_time;
+	if constexpr(is_thread)
+	{
+		auto hthread{bit_cast<void*>(std::intptr_t(-2))};
+		if(!win32::GetThreadTimes(hthread,std::addressof(creation_time),
+		std::addressof(exit_time),
+		std::addressof(kernel_time),
+		std::addressof(user_time)))
+			throw_win32_error();
+	}
+	else
+	{
+		auto hprocess{bit_cast<void*>(std::intptr_t(-1))};
+		win32::filetime creation_time,exit_time,kernel_time,user_time;
+		if(!win32::GetProcessTimes(hprocess,std::addressof(creation_time),
+		std::addressof(exit_time),
+		std::addressof(kernel_time),
+		std::addressof(user_time)))
+			throw_win32_error();
+	}
+	std::uint64_t ftm{win32::filetime_to_uint64_t(kernel_time)+
+		win32::filetime_to_uint64_t(user_time)};
+	std::uint64_t seconds{ftm/10000000ULL};
+	std::uint64_t subseconds{ftm%10000000ULL};
+	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/10000000u};
+	return {static_cast<intiso_t>(seconds),static_cast<uintiso_t>(subseconds*mul_factor)};
+}
+
+}
+
+#endif
 
 inline unix_timestamp posix_clock_gettime(posix_clock_id pclk_id)
 {
@@ -190,56 +246,16 @@ inline unix_timestamp posix_clock_gettime(posix_clock_id pclk_id)
 	case posix_clock_id::realtime_alarm:
 	case posix_clock_id::realtime_coarse:
 	case posix_clock_id::tai:
-	{
-		win32::filetime ftm;
-		win32::GetSystemTimePreciseAsFileTime(std::addressof(ftm));
-		return static_cast<unix_timestamp>(to_win32_timestamp(ftm));
-	}
+		return win32::details::win32_posix_clock_gettime_tai_impl();
 	case posix_clock_id::monotonic:
 	case posix_clock_id::monotonic_coarse:
 	case posix_clock_id::monotonic_raw:
 	case posix_clock_id::boottime:
-	{
-		std::uint64_t ftm{};
-		if(!win32::QueryUnbiasedInterruptTime(std::addressof(ftm)))
-			throw_win32_error();
-		constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/10000000u};
-		std::uint64_t seconds{ftm/10000000ULL};
-		std::uint64_t subseconds{ftm%10000000ULL};
-		return {static_cast<intiso_t>(seconds),static_cast<uintiso_t>(subseconds*mul_factor)};
-	}
+		return win32::details::win32_posix_clock_gettime_boottime_impl();
 	case posix_clock_id::process_cputime_id:
-	{
-		auto hprocess{bit_cast<void*>(std::intptr_t(-1))};
-		win32::filetime creation_time,exit_time,kernel_time,user_time;
-		if(!win32::GetProcessTimes(hprocess,std::addressof(creation_time),
-		std::addressof(exit_time),
-		std::addressof(kernel_time),
-		std::addressof(user_time)))
-			throw_win32_error();
-		std::uint64_t ftm{win32::filetime_to_uint64_t(kernel_time)+
-			win32::filetime_to_uint64_t(user_time)};
-		std::uint64_t seconds{ftm/10000000ULL};
-		std::uint64_t subseconds{ftm%10000000ULL};
-		constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/10000000u};
-		return {static_cast<intiso_t>(seconds),static_cast<uintiso_t>(subseconds*mul_factor)};
-	}
+		return win32::details::win32_posix_clock_gettime_process_or_thread_time_impl<false>();
 	case posix_clock_id::thread_cputime_id:
-	{
-		auto hthread{bit_cast<void*>(std::intptr_t(-2))};
-		win32::filetime creation_time,exit_time,kernel_time,user_time;
-		if(!win32::GetThreadTimes(hthread,std::addressof(creation_time),
-		std::addressof(exit_time),
-		std::addressof(kernel_time),
-		std::addressof(user_time)))
-			throw_win32_error();
-		std::uint64_t ftm{win32::filetime_to_uint64_t(kernel_time)+
-			win32::filetime_to_uint64_t(user_time)};
-		std::uint64_t seconds{ftm/10000000ULL};
-		std::uint64_t subseconds{ftm%10000000ULL};
-		constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/10000000u};
-		return {static_cast<intiso_t>(seconds),static_cast<uintiso_t>(subseconds*mul_factor)};
-	}
+		return win32::details::win32_posix_clock_gettime_process_or_thread_time_impl<true>();
 	default:
 		throw_win32_error(0x00000057);
 	}
