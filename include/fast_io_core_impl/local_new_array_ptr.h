@@ -12,20 +12,8 @@ inline constexpr char_type* allocate_iobuf_space(std::size_t buffer_size) noexce
 	}
 	else
 #endif
-	{
-#if (defined(_MSC_VER)&&_HAS_EXCEPTIONS!=0) || (!defined(_MSC_VER)&&__cpp_exceptions)
-	try
-	{
-#endif
 		return static_cast<char_type*>(operator new(intrinsics::cal_allocation_size_or_die<char_type>(buffer_size)));
-#if (defined(_MSC_VER)&&_HAS_EXCEPTIONS!=0) || (!defined(_MSC_VER)&&__cpp_exceptions)
-	}
-	catch(...)
-	{
-		fast_terminate();
-	}
-#endif
-	}
+
 }
 
 template<bool nsecure_clear>

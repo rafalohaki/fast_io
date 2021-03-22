@@ -13,9 +13,7 @@ For hosted implementations the set of standard library headers required by the C
 #ifdef __MSDOS__
 #undef __STRICT_ANSI__
 #endif
-#if __cpp_lib_filesystem >= 201703L
-#include<filesystem>
-#endif
+
 #include"fast_io_hosted/cstring_view.h"
 
 #include"fast_io_hosted/mmap.h"
@@ -32,8 +30,6 @@ For hosted implementations the set of standard library headers required by the C
 
 #ifdef FAST_IO_PROCESS_REVAMP
 #include"fast_io_hosted/process_revamp/native.h"
-#else
-#include"fast_io_hosted/process/native.h"
 #endif
 
 #include"fast_io_hosted/white_hole/white_hole.h"

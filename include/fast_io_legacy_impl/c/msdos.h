@@ -23,7 +23,7 @@ inline constexpr void ibuffer_set_curr(c_io_observer_unlocked cio,char* ptr) noe
 	cio.fp->_cnt-=ptr-cio.fp->_ptr;
 	cio.fp->_ptr=ptr;
 }
-extern "C" int _filbuf(std::FILE *) noexcept;
+extern int _filbuf(std::FILE *) noexcept asm("_filbuf");
 inline bool underflow(c_io_observer_unlocked cio) noexcept
 {
 	if(_filbuf(cio.fp)==EOF)[[unlikely]]
@@ -55,7 +55,7 @@ inline constexpr void obuffer_set_curr(c_io_observer_unlocked cio,char* ptr) noe
 	cio.fp->_ptr=ptr;
 }
 
-extern "C" int  _flsbuf(int, std::FILE*) noexcept;
+extern int  _flsbuf(int, std::FILE*) noexcept asm("_flsbuf");
 
 inline void overflow(c_io_observer_unlocked cio,char ch)
 {

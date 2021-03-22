@@ -13,7 +13,7 @@ namespace fast_io
 {
 #if (!defined(__NEWLIB__)||defined(__CYGWIN__)) && !defined(__MSDOS__)
 
-#if __cpp_lib_filesystem >= 201703L
+#if 0
 
 #if defined(_WIN32) || defined(__CYGWIN__)
 inline std::filesystem::path to_path(nt_directory_entry de)

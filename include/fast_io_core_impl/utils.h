@@ -29,6 +29,35 @@ constexpr
 #endif
 }
 
+template<typename R, typename ...Args>
+struct make_noexcept
+{};
+
+template<typename R, typename ...Args>
+struct make_noexcept<R(Args...)> { using type = R(Args...) noexcept; };
+
+
+template<typename R, typename ...Args>
+using make_noexcept_t = typename make_noexcept<R,Args...>::type;
+
+
+template<typename F>
+requires std::is_function_v<F>
+inline constexpr auto noexcept_cast(F* f) noexcept
+{
+#if __cpp_lib_bit_cast >= 201806L
+	return std::bit_cast<make_noexcept_t<F>*>(f);
+#else
+	return reinterpret_cast<make_noexcept_t<F>*>(f);
+#endif
+}
+
+template<typename F,typename... Args>
+requires std::is_function_v<F>
+inline constexpr decltype(auto) noexcept_call(F* f,Args&& ...args) noexcept
+{
+	return noexcept_cast(f)(std::forward<Args>(args)...);
+}
 
 namespace details
 {

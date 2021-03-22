@@ -13,6 +13,9 @@ namespace details
 {
 
 template<typename T,typename U,typename... Args>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void print_para_at_pos(T out,std::size_t sz,U u,Args ...args)
 {
 	if(sz==0)
@@ -62,6 +65,9 @@ struct fprint_args_num_para
 };
 
 template<std::integral char_type,typename write_functor,typename functor,fprint_args_num_para_enum ag>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void unsafe_fprint_impl(char_type* it,char_type* ed,write_functor write_func,functor func,
 [[maybe_unused]] fprint_args_num_para<ag> arg)
 {
@@ -171,6 +177,9 @@ inline constexpr void unsafe_fprint_impl(char_type* it,char_type* ed,write_funct
 
 template<typename output,typename... Args>
 requires (sizeof...(Args)!=0)
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void unsafe_fprint_freestanding_decay_impl(output out,
 	std::basic_string_view<typename output::char_type> view,
 	Args ...args)
@@ -201,6 +210,9 @@ inline constexpr void unsafe_fprint_freestanding_decay_impl(output out,
 }
 
 template<fprint_args_num_para_enum ag,std::integral char_type>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr io_scatter_t* scatter_fprint_impl(
 	std::basic_string_view<char_type> view,
 	io_scatter_t* scatters,
@@ -236,6 +248,9 @@ inline constexpr io_scatter_t* scatter_fprint_impl(
 }
 
 template<std::size_t args_num,output_stream output,typename ...Args>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void scatter_fprint_write(output out,
 	std::basic_string_view<typename output::char_type> view,
 	io_scatter_t* scatters)
@@ -258,6 +273,9 @@ inline constexpr void scatter_fprint_write(output out,
 
 
 template<output_stream output,typename ...Args>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void unsafe_fprint_fallback(output out,std::basic_string_view<typename output::char_type> view,Args ...args)
 {
 	using char_type = typename output::char_type;
@@ -297,6 +315,9 @@ inline constexpr void unsafe_fprint_fallback(output out,std::basic_string_view<t
 
 template<typename output,typename... Args>
 requires ((output_stream<output>||status_output_stream<output>)&&(std::is_trivially_copyable_v<output>&&(std::is_trivially_copyable_v<Args>&&...))&&(sizeof...(Args)!=0))
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void unsafe_fprint_freestanding_decay(output out,
 	std::basic_string_view<typename output::char_type> view,
 	Args ...args)
@@ -323,6 +344,9 @@ inline constexpr void unsafe_fprint_freestanding_decay(output out,
 
 template<typename output,typename... Args>
 requires ((output_stream<output>||status_output_stream<output>)&&(sizeof...(Args)!=0))
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void unsafe_fprint(output&& out,std::basic_string_view<typename std::remove_cvref_t<output>::char_type> view,Args&& ...args)
 {
 	unsafe_fprint_freestanding_decay(io_ref(out),view,io_forward(io_print_alias<typename std::remove_cvref_t<output>::char_type>(args))...);

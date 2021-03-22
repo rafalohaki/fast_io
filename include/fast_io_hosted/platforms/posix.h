@@ -712,18 +712,23 @@ inline constexpr posix_file_status struct_stat_to_posix_file_status(stat_model& 
 #elif !defined(__CYGWIN__) && (defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL))
 	static_cast<std::uintmax_t>(st.st_blksize),
 	static_cast<std::uintmax_t>(st.st_blocks),
-	st.st_atimespec,st.st_mtimespec,st.st_ctimespec,
+	timespec_to_unix_timestamp(st.st_atimespec),
+	timespec_to_unix_timestamp(st.st_mtimespec),
+	timespec_to_unix_timestamp(st.st_ctimespec),
 #if defined(__DARWIN_C_LEVEL)
 	{0,0}
 #else
-	st.st_birthtimespec
+	timespec_to_unix_timestamp(st.st_birthtimespec)
 #endif
 	,
 #else
 	static_cast<std::uintmax_t>(st.st_blksize),
-	static_cast<std::uintmax_t>(st.st_blocks),st.st_atim,st.st_mtim,st.st_ctim,
+	static_cast<std::uintmax_t>(st.st_blocks),
+	timespec_to_unix_timestamp(st.st_atim),
+	timespec_to_unix_timestamp(st.st_mtim),
+	timespec_to_unix_timestamp(st.st_ctim),
 #if defined(__CYGWIN__)
-st.st_birthtim
+timespec_to_unix_timestamp(st.st_birthtim)
 #else
 {0,0}
 #endif
@@ -818,18 +823,23 @@ inline decltype(auto) io_control(basic_posix_io_observer<ch_type> h,Args&& ...ar
 }
 #else
 
-extern "C" int ioctl(int fd, unsigned long request, ...) noexcept;
+namespace posix
+{
+extern int ioctl(int fd, unsigned long request, ...) noexcept asm("ioctl");
+}
+
+
 template<std::integral ch_type,typename... Args>
 requires requires(basic_posix_io_observer<ch_type> h,Args&& ...args)
 {
-	ioctl(h.native_handle(),std::forward<Args>(args)...);
+	::fast_io::posix::ioctl(h.native_handle(),std::forward<Args>(args)...);
 }
 inline void io_control(basic_posix_io_observer<ch_type> h,Args&& ...args)
 {
 #if defined(__linux__)
 	system_call_throw_error(system_call<__NR_ioctl,int>(h.native_handle(),std::forward<Args>(args)...));
 #else
-	if(ioctl(h.native_handle(),std::forward<Args>(args)...)==-1)
+	if(::fast_io::posix::ioctl(h.native_handle(),std::forward<Args>(args)...)==-1)
 		throw_posix_error();
 #endif
 }
@@ -898,9 +908,9 @@ inline int my_posix_openat(int dirfd,char const* pathname,int flags,mode_t mode)
 }
 #endif
 #ifdef __MSDOS__
-extern "C" unsigned int _dos_creat(char const*,short unsigned,int*) noexcept;
-extern "C" unsigned int _dos_creatnew(char const*,short unsigned,int*) noexcept;
-extern "C" unsigned int _dos_open(char const*,short unsigned,int*) noexcept;
+extern unsigned int _dos_creat(char const*,short unsigned,int*) noexcept asm("_dos_creat");
+extern unsigned int _dos_creatnew(char const*,short unsigned,int*) noexcept asm("_dos_creatnew");
+extern unsigned int _dos_open(char const*,short unsigned,int*) noexcept asm("_dos_open");
 #endif
 template<bool always_terminate=false>
 inline int my_posix_open(char const* pathname,int flags,

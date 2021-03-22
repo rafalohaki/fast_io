@@ -6,7 +6,7 @@
 #endif
 
 #if defined(_WIN32) || defined(__CYGWIN__)
-#include"win32_api.h"
+#include"win32/impl.h"
 #include"win32_error.h"
 #include"win32_path_dealer.h"
 #include"nt/impl.h"

@@ -2,14 +2,48 @@
 #include<cstdio>
 #include<cwchar>
 
-#ifdef _WIN32
-#if defined(_MSC_VER)||defined(_UCRT)
-#else
-#include"msvcrt_lock.h"
-#endif
-#endif
 namespace fast_io
 {
+namespace win32
+{
+#if defined(__MINGW32__)
+__declspec(dllimport) extern void __cdecl _lock_file(FILE*) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+asm("_lock_file")
+#endif
+;
+__declspec(dllimport) extern void __cdecl _unlock_file(FILE*) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+asm("_unlock_file")
+#endif
+;
+
+__declspec(dllimport) extern std::size_t __cdecl _fwrite_nolock(void const* __restrict buffer,std::size_t size,std::size_t count,FILE* __restrict) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+asm("_fwrite_nolock")
+#endif
+;
+
+__declspec(dllimport) extern std::size_t __cdecl _fread_nolock(void* __restrict buffer,std::size_t size,std::size_t count,FILE* __restrict) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+asm("_fread_nolock")
+#endif
+;
+
+__declspec(dllimport) extern std::size_t __cdecl fwrite(void const* __restrict buffer,std::size_t size,std::size_t count,FILE* __restrict) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+asm("fwrite")
+#endif
+;
+
+__declspec(dllimport) extern std::size_t __cdecl fread(void* __restrict buffer,std::size_t size,std::size_t count,FILE* __restrict) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+asm("fread")
+#endif
+;
+
+#endif
+}
 
 inline constexpr open_mode native_c_supported(open_mode m) noexcept
 {
@@ -216,21 +250,21 @@ namespace details
 {
 #ifdef __NEWLIB__
 # ifdef __LARGE64_FILES
-extern "C" FILE	*funopen (const void *__cookie,
+extern FILE	*funopen (const void *__cookie,
 		int (*__readfn)(void *__c, char *__buf,
 				_READ_WRITE_BUFSIZE_TYPE __n),
 		int (*__writefn)(void *__c, const char *__buf,
 				 _READ_WRITE_BUFSIZE_TYPE __n),
 		_fpos64_t (*__seekfn)(void *__c, _fpos64_t __off, int __whence),
-		int (*__closefn)(void *__c)) noexcept;
+		int (*__closefn)(void *__c)) noexcept asm("funopen");
 #else
-extern "C" FILE	*funopen (const void *__cookie,
+extern FILE	*funopen (const void *__cookie,
 		int (*__readfn)(void *__c, char *__buf,
 				int __n),
 		int (*__writefn)(void *__c, const char *__buf,
 				 int __n),
 		fpos_t  (*__seekfn)(void *__c, fpos_t  __off, int __whence),
-		int (*__closefn)(void *__c)) noexcept;
+		int (*__closefn)(void *__c)) noexcept asm("funopen");
 #endif
 #endif
 //funopen
@@ -341,8 +375,8 @@ namespace details
 {
 
 #ifdef __MSDOS__
-extern "C" int fileno(FILE*) noexcept;
-extern "C" std::FILE* fdopen(int,char const*) noexcept;
+extern int fileno(FILE*) noexcept asm("fileno");
+extern std::FILE* fdopen(int,char const*) noexcept asm("fdopen");
 #endif
 
 inline int fp_unlocked_to_fd(FILE* fp) noexcept
@@ -592,7 +626,7 @@ public:
 #if defined(_MSC_VER)||defined(_UCRT)
 	_lock_file(fp);
 #elif defined(_WIN32)
-	win32::my_msvcrt_lock_file(fp);
+	win32::_lock_file(fp);
 #elif defined(__NEWLIB__)
 #ifndef __SINGLE_THREAD__
 //	flockfile(fp);	//TO FIX
@@ -607,7 +641,7 @@ public:
 #if defined(_MSC_VER)||defined(_UCRT)
 	_unlock_file(fp);
 #elif defined(_WIN32)
-	win32::my_msvcrt_unlock_file(fp);
+	win32::_unlock_file(fp);
 #elif defined(__NEWLIB__)
 #ifndef __SINGLE_THREAD__
 //		_funlockfile(fp); //TO FIX

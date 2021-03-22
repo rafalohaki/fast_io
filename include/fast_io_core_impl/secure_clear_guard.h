@@ -5,8 +5,8 @@ namespace fast_io
 
 namespace win32
 {
-#if defined(_MSC_VER)
-extern "C" void __stdcall RtlSecureZeroMemory(void*,std::size_t) noexcept;
+#if defined(_MSC_VER) && !defined(__clang__)
+extern __declspec(dllimport) void __stdcall RtlSecureZeroMemory(void*,std::size_t) noexcept;
 #endif
 }
 
@@ -27,12 +27,12 @@ Used in: zap from Kerberos, memzero_explicit from Linux.
 Availability: GCC and Clang.
 Effectiveness: effective
 Not effective on Clang:
-	std::::fast_io::details::my_memset(data,0,size);
+	std::memset(data,0,size);
 	__asm__ __volatile__("" ::: "memory");
 
 
 Effective on Clang
-	std::::fast_io::details::my_memset(data,0,size);
+	std::memset(data,0,size);
 	__asm__ __volatile__("" ::"r"(data): "memory");
 
 How difficult to create a reliable scrubbing function
@@ -45,7 +45,7 @@ used in memzero_explicit):
 
 inline void secure_clear(void* data,std::size_t size) noexcept
 {
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__clang__)
 	win32::RtlSecureZeroMemory(data, size);
 #else
 /*

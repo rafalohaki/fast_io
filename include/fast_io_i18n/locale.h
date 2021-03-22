@@ -305,7 +305,7 @@ inline std::string_view get_win32_lang_env(std::array<char,64>& buffer) noexcept
 	return std::string_view(buffer.data(),size);
 }
 
-extern "C" std::uint32_t __stdcall GetACP() noexcept;
+
 
 inline constexpr std::u8string_view get_code_page_encoding(std::uint32_t codepage) noexcept
 {
@@ -322,7 +322,6 @@ inline constexpr std::u8string_view get_code_page_encoding(std::uint32_t codepag
 Since MSYS2 console respects POSIX locales. We should support it too.
 */
 
-extern "C" errno_t __stdcall getenv_s(std::size_t *,char* buffer,std::size_t ,char const *) noexcept;
 
 inline std::string_view acp_encoding_name() noexcept
 {

@@ -3,13 +3,8 @@
 
 namespace fast_io
 {
-#ifdef __MSDOS__
-struct timespec
-{
-std::time_t tv_sec;
-long tv_nsec;
-};
-#endif
+#ifndef __MSDOS__
+
 template<std::integral char_type>
 constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,struct timespec>) noexcept
 {
@@ -83,6 +78,14 @@ constexpr Iter print_reserve_define(io_reserve_type_t<char_type,struct timespec>
 {
 	return details::timespec_print_impl<char_type>(it,spc);	
 }
+
+inline constexpr unix_timestamp timespec_to_unix_timestamp(struct timespec tsc) noexcept
+{
+	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000000u};
+	return {static_cast<intiso_t>(tsc.tv_sec),static_cast<uintiso_t>(tsc.tv_nsec)*mul_factor};
+}
+
+#endif
 
 template<std::integral char_type,typename Rep,typename Period>
 requires (reserve_printable<char_type,Rep>&&(std::same_as<Period,std::nano>||std::same_as<Period,std::micro>||std::same_as<Period,std::milli>||

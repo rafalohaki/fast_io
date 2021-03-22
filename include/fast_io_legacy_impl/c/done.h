@@ -33,6 +33,12 @@ inline std::size_t c_fwrite_unlocked_impl(void const* __restrict begin,std::size
 	fwrite
 #elif defined(_POSIX_SOURCE) || defined(__BSD_VISIBLE)
 	fwrite_unlocked 
+#elif defined(__MINGW32__)
+#if defined(__MSVCRT_VERSION__) && __MSVCRT_VERSION__ >= 0x800
+	::fast_io::win32::_fwrite_nolock
+#else
+	::fast_io::win32::fwrite
+#endif
 #else
 	fwrite
 #endif
@@ -80,6 +86,12 @@ inline std::size_t c_fread_unlocked_impl(void* __restrict begin,std::size_t type
 	fread
 #elif defined(_POSIX_C_SOURCE) || defined(__BSD_VISIBLE)
 	fread_unlocked
+#elif defined(__MINGW32__)
+#if defined(__MSVCRT_VERSION__) && __MSVCRT_VERSION__ >= 0x800
+	::fast_io::win32::_fread_nolock
+#else
+	::fast_io::win32::fread
+#endif
 #else
 	fread
 #endif

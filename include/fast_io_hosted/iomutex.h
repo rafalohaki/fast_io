@@ -8,8 +8,14 @@ template<stream T,typename mutex_type = std::mutex>
 class basic_iomutex
 {
 public:
-	[[no_unique_address]] T handle;
-	[[no_unique_address]] mutex_type mutex;
+#if __has_cpp_attribute(no_unique_address) >= 201803
+	[[no_unique_address]]
+#endif
+	T handle;
+#if __has_cpp_attribute(no_unique_address) >= 201803
+	[[no_unique_address]]
+#endif
+	mutex_type mutex;
 	using native_handle_type = T;
 	using char_type = typename native_handle_type::char_type;
 	template<typename ...Args>

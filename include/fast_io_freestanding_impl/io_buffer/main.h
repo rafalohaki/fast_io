@@ -15,8 +15,14 @@ struct basic_decorators
 	using internal_type = ch_type;
 	using internal_decorator_type=internaltype;
 	using external_decorator_type=externaltype;
-	[[no_unique_address]] internal_decorator_type internal_decorator;
-	[[no_unique_address]] external_decorator_type external_decorator;
+#if __has_cpp_attribute(no_unique_address) >= 201803
+	[[no_unique_address]]
+#endif
+	internal_decorator_type internal_decorator;
+#if __has_cpp_attribute(no_unique_address) >= 201803
+	[[no_unique_address]]
+#endif
+	external_decorator_type external_decorator;
 };
 
 template<std::integral char_type,typename internaltype,typename externaltype>
@@ -195,15 +201,19 @@ private:
 		if constexpr((mode&buffer_mode::out)==buffer_mode::out)
 		{
 #if (defined(_MSC_VER)&&_HAS_EXCEPTIONS!=0) || (!defined(_MSC_VER)&&__cpp_exceptions)
+#if __cpp_exceptions
 			try
 			{
 #endif
+#endif
 				close_throw_impl();
 #if (defined(_MSC_VER)&&_HAS_EXCEPTIONS!=0) || (!defined(_MSC_VER)&&__cpp_exceptions)
+#if __cpp_exceptions
 			}
 			catch(...)
 			{
 			}
+#endif
 #endif
 		}
 	}

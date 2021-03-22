@@ -6,6 +6,9 @@ namespace fast_io
 namespace details
 {
 template<std::size_t mx_size,std::random_access_iterator Iter>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr Iter output_unsigned_serialize_size(std::size_t val,Iter iter) noexcept;
 
 
@@ -16,6 +19,9 @@ namespace details
 {
 
 template<std::random_access_iterator Iter,my_unsigned_integral U>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void output_unsigned_with_size(Iter str,U value,std::size_t len) noexcept;
 }
 
@@ -39,6 +45,9 @@ inline constexpr std::size_t reserve_len(std::size_t sz) noexcept
 
 template<print_control_impl pci,std::integral char_type,typename value_type>
 requires reserve_printable<char_type,value_type>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr std::size_t print_reserve_control_size_impl() noexcept
 {
 	constexpr std::size_t sz{print_reserve_size(io_reserve_type<char_type,value_type>)};
@@ -53,6 +62,9 @@ inline constexpr std::size_t print_reserve_control_size_impl() noexcept
 
 template<print_control_impl pci,std::integral char_type,typename value_type>
 requires dynamic_reserve_printable<char_type,value_type>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr std::size_t print_dynamic_reserve_control_size_impl(value_type v)
 {
 	std::size_t sz{print_reserve_size(io_reserve_type<char_type,value_type>,v)};
@@ -66,6 +78,9 @@ inline constexpr std::size_t print_dynamic_reserve_control_size_impl(value_type 
 }
 
 template<print_control_impl pci,std::integral char_type,typename value_type,typename Iter>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr Iter print_reserve_control_define_impl(Iter it,value_type v)
 {
 	if constexpr(pci==print_control_impl::serialize)
@@ -99,12 +114,18 @@ inline constexpr Iter print_reserve_control_define_impl(Iter it,value_type v)
 }
 
 template<std::integral char_type,print_control_impl pci=print_control_impl::normal,typename T>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void scatter_print_recursive(io_scatter_t* arr,T t)
 {
 	*arr=print_scatter_define(print_scatter_type<char_type>,t);
 }
 
 template<std::integral char_type,print_control_impl pci=print_control_impl::normal,typename T,typename... Args>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void scatter_print_recursive(io_scatter_t* arr,T t, Args ...args)
 {
 	*arr=print_scatter_define(print_scatter_type<char_type>,t);
@@ -112,6 +133,9 @@ inline constexpr void scatter_print_recursive(io_scatter_t* arr,T t, Args ...arg
 }
 
 template<std::integral char_type,typename T>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr std::size_t calculate_scatter_reserve_size_unit()
 {
 	using real_type = std::remove_cvref_t<T>;
@@ -125,6 +149,9 @@ inline constexpr std::size_t calculate_scatter_reserve_size_unit()
 }
 
 template<std::integral char_type,typename T>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr std::size_t calculate_scatter_reserve_size()
 {
 	return calculate_scatter_reserve_size_unit<char_type,T>();
@@ -132,6 +159,9 @@ inline constexpr std::size_t calculate_scatter_reserve_size()
 
 template<std::integral char_type,typename T,typename... Args>
 requires (sizeof...(Args)!=0)
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr std::size_t calculate_scatter_reserve_size()
 {
 	return ::fast_io::details::intrinsics::add_or_overflow_die(calculate_scatter_reserve_size_unit<char_type,T>(),
@@ -141,6 +171,9 @@ inline constexpr std::size_t calculate_scatter_reserve_size()
 
 
 template<std::integral char_type,typename T,typename... Args>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr std::size_t calculate_scatter_dynamic_reserve_size([[maybe_unused]] T t,Args... args)
 {
 	if constexpr(!reserve_printable<char_type,T>&&
@@ -163,6 +196,9 @@ inline constexpr std::size_t calculate_scatter_dynamic_reserve_size([[maybe_unus
 
 
 template<std::integral char_type,typename T>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void scatter_print_with_reserve_recursive_unit(char_type*& start_ptr,
 		io_scatter_t* arr,T t)
 {
@@ -189,6 +225,9 @@ inline constexpr void scatter_print_with_reserve_recursive_unit(char_type*& star
 }
 
 template<std::integral char_type,typename T>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void scatter_print_with_reserve_recursive(char_type* ptr,
 		io_scatter_t* arr,T t)
 {
@@ -196,6 +235,9 @@ inline constexpr void scatter_print_with_reserve_recursive(char_type* ptr,
 }
 
 template<std::integral char_type,typename T,typename... Args>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void scatter_print_with_reserve_recursive(char_type* ptr,
 	io_scatter_t* arr,T t, Args ...args)
 {
@@ -204,6 +246,9 @@ inline constexpr void scatter_print_with_reserve_recursive(char_type* ptr,
 }
 
 template<std::integral char_type,typename T,typename... Args>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void scatter_print_with_dynamic_reserve_recursive(io_scatter_t* __restrict arr,
 	[[maybe_unused]] char_type* __restrict ptr,
 	[[maybe_unused]] char_type* __restrict dynamic_buffer_ptr,[[maybe_unused]] T t, Args ...args)
@@ -232,12 +277,18 @@ inline constexpr void scatter_print_with_dynamic_reserve_recursive(io_scatter_t*
 
 template<std::integral char_type,typename T>
 requires scatter_type_printable<char_type,T>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr auto extract_one_scatter(T t)
 {
 	return print_scatter_define(print_scatter_type<char_type>,t);
 }
 
 template<typename output>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void print_serialize_size_bad_path(output out,std::size_t sz)
 {
 	using char_type = typename output::char_type;
@@ -256,6 +307,9 @@ inline constexpr void print_serialize_size_bad_path(output out,std::size_t sz)
 
 template<bool line,print_control_impl pci,output_stream output,typename value_type>
 requires (reserve_printable<typename output::char_type,value_type>)
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void print_control_reserve_bad_path(output out,value_type t)
 {
 	using char_type = typename output::char_type;
@@ -278,6 +332,9 @@ inline constexpr void print_control_reserve_bad_path(output out,value_type t)
 
 template<bool line,print_control_impl pci,typename value_type,output_stream output>
 requires (!reserve_printable<typename output::char_type,value_type>&&dynamic_reserve_printable<typename output::char_type,value_type>)
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void print_control_dynamic_reserve_bad_path(output out,value_type t,std::size_t sizep1)
 {
 	using char_type = typename output::char_type;
@@ -298,6 +355,9 @@ inline constexpr void print_control_dynamic_reserve_bad_path(output out,value_ty
 
 template<bool line=false,print_control_impl pci=print_control_impl::normal,output_stream output,typename T>
 requires (std::is_trivially_copyable_v<output>&&std::is_trivially_copyable_v<T>)
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void print_control(output out,T t)
 {
 	using char_type = typename output::char_type;
@@ -554,6 +614,9 @@ inline constexpr void print_control(output out,T t)
 }
 
 template<bool ln,print_control_impl pci=print_control_impl::normal,output_stream output,typename T,typename... Args>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void print_controls_line(output out,T t,Args... args)
 {
 	if constexpr(sizeof...(Args)==0)
@@ -567,6 +630,9 @@ inline constexpr void print_controls_line(output out,T t,Args... args)
 	}
 }
 template<bool line,print_control_impl pci=print_control_impl::normal,output_stream output,typename ...Args>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void print_fallback(output out,Args ...args)
 {
 	using char_type = typename output::char_type;
@@ -688,6 +754,9 @@ inline constexpr void print_fallback(output out,Args ...args)
 
 template<bool line,print_control_impl pci=print_control_impl::normal,output_stream output,typename ...Args>
 requires (std::is_trivially_copyable_v<output>&&(std::is_trivially_copyable_v<Args>&&...))
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void print_freestanding_decay_normal(output out,Args ...args)
 {
 	using char_type = typename output::char_type;
@@ -743,6 +812,9 @@ inline constexpr void print_freestanding_decay_normal(output out,Args ...args)
 
 template<typename output,typename ...Args>
 requires (output_stream<output>||status_output_stream<output>)&&(std::is_trivially_copyable_v<output>&&(std::is_trivially_copyable_v<Args>&&...))
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void print_freestanding_decay(output out,Args ...args)
 {
 	if constexpr(status_output_stream<output>)
@@ -752,6 +824,9 @@ inline constexpr void print_freestanding_decay(output out,Args ...args)
 }
 
 template<std::integral char_type,typename T>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr decltype(auto) io_print_alias(T&& t)
 {
 	if constexpr(alias_printable<std::remove_cvref_t<T>>)
@@ -762,6 +837,9 @@ inline constexpr decltype(auto) io_print_alias(T&& t)
 
 template<typename output,typename ...Args>
 requires (output_stream<output>||status_output_stream<output>)
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void print_freestanding(output&& out,Args&& ...args)
 {
 	print_freestanding_decay(io_ref(out),io_forward(io_print_alias<typename std::remove_cvref_t<output>::char_type>(args))...);
@@ -770,6 +848,9 @@ inline constexpr void print_freestanding(output&& out,Args&& ...args)
 
 template<typename output,typename ...Args>
 requires (output_stream<output>||status_output_stream<output>)
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void println_freestanding_decay(output out,Args ...args)
 {
 	if constexpr(status_output_stream<output>)
@@ -781,6 +862,9 @@ inline constexpr void println_freestanding_decay(output out,Args ...args)
 }
 
 template<output_stream output,typename ...Args>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void println_freestanding(output&& out,Args&& ...args)
 {
 	println_freestanding_decay(io_ref(out),io_forward(io_print_alias<typename std::remove_cvref_t<output>::char_type>(args))...);

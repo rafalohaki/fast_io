@@ -77,6 +77,9 @@ namespace details::decay
 {
 
 template<std::integral char_type,typename T,typename... Args>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr std::size_t calculate_lc_scatter_dynamic_reserve_size(
 	basic_lc_all<char_type> const* __restrict all,T t,Args... args)
 {
@@ -111,6 +114,9 @@ inline constexpr std::size_t calculate_lc_scatter_dynamic_reserve_size(
 }
 
 template<std::integral char_type,typename T,typename... Args>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void lc_scatter_print_with_dynamic_reserve_recursive(
 	basic_lc_all<char_type> const* __restrict all,
 	io_scatter_t* __restrict arr,
@@ -158,6 +164,9 @@ inline constexpr void lc_scatter_print_with_dynamic_reserve_recursive(
 }
 
 template<bool line,output_stream output,typename T>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void lc_print_control_reserve_bad_path(basic_lc_all<typename output::char_type> const* __restrict lc,output out,T t,std::size_t size)
 {
 #if 0
@@ -185,6 +194,9 @@ inline constexpr void lc_print_control_reserve_bad_path(basic_lc_all<typename ou
 
 template<bool line,output_stream output,typename T>
 requires (std::is_trivially_copyable_v<output>&&std::is_trivially_copyable_v<T>)
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void lc_print_control(basic_lc_all<typename output::char_type> const* __restrict lc,output out,T t)
 {
 	using char_type = typename output::char_type;
@@ -317,6 +329,9 @@ inline constexpr void lc_print_controls_line(basic_lc_all<typename output::char_
 }
 
 template<std::integral char_type,typename T,typename... Args>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void lc_scatter_print_recursive(basic_lc_all<char_type> const* __restrict lc,io_scatter_t* arr,T t, Args ...args)
 {
 	if constexpr(lc_scatter_printable<char_type,T>)
@@ -333,6 +348,9 @@ inline constexpr void lc_scatter_print_recursive(basic_lc_all<char_type> const* 
 }
 
 template<bool ln,output_stream output,typename... Args>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type> const* __restrict lc,output out,Args... args)
 {
 	using char_type = typename output::char_type;
@@ -418,6 +436,9 @@ inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type>
 }
 
 template<bool ln,output_stream output,typename... Args>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void lc_print_status_define_further_decay(basic_lc_all<typename output::char_type> const* __restrict lc,output out,Args... args)
 {
 	using char_type = typename output::char_type;
@@ -478,12 +499,18 @@ inline constexpr void lc_print_status_define_further_decay(basic_lc_all<typename
 }
 
 template<output_stream output,typename... Args>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void print_status_define(lc_imbuer<output> imb,Args... args)
 {
 	details::decay::lc_print_status_define_further_decay<false>(imb.all,imb.handle,args...);
 }
 
 template<output_stream output,typename... Args>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void println_status_define(lc_imbuer<output> imb,Args... args)
 {
 	details::decay::lc_print_status_define_further_decay<true>(imb.all,imb.handle,args...);

@@ -866,7 +866,7 @@ struct basic_win32_pio_entry
 {
 	using char_type = ch_type;
 	using native_handle_type = int;
-	void* handle=bit_cast<void*>(static_cast<std::int64_t>(-1));
+	void* handle=bit_cast<void*>(static_cast<std::intptr_t>(-1));
 	std::uintmax_t offset{};
 };
 
@@ -964,10 +964,10 @@ inline posix_file_status win32_status_impl(void* __restrict handle)
 	0,0,0,
 	file_size,
 	131072,file_size>>9,
-	to_struct_timespec(bhdi.ftLastAccessTime),
-	to_struct_timespec(bhdi.ftLastWriteTime),
-	to_struct_timespec(bhdi.ftLastWriteTime),
-	to_struct_timespec(bhdi.ftCreationTime),
+	to_unix_timestamp(bhdi.ftLastAccessTime),
+	to_unix_timestamp(bhdi.ftLastWriteTime),
+	to_unix_timestamp(bhdi.ftLastWriteTime),
+	to_unix_timestamp(bhdi.ftCreationTime),
 	0,0};
 }
 

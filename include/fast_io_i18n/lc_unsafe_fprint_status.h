@@ -12,6 +12,9 @@ We have to put restrictions on them and mark them as unsafe.
 */
 
 template<typename output,typename U,typename... Args>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void lc_print_para_at_pos(basic_lc_all<typename output::char_type> const* __restrict lc,output out,std::size_t sz,U u,Args ...args)
 {
 	using char_type = typename output::char_type;
@@ -31,6 +34,9 @@ inline constexpr void lc_print_para_at_pos(basic_lc_all<typename output::char_ty
 
 template<typename output,typename... Args>
 requires (sizeof...(Args)!=0)
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void lc_unsafe_fprint_freestanding_decay_impl(basic_lc_all<typename output::char_type> const* __restrict lc,
 	output out,
 	std::basic_string_view<typename output::char_type> view,
@@ -64,6 +70,9 @@ inline constexpr void lc_unsafe_fprint_freestanding_decay_impl(basic_lc_all<type
 
 
 template<output_stream output,typename... Args>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void lc_unsafe_fprint_fallback(basic_lc_all<typename output::char_type> const* __restrict lc,output out,
 	std::basic_string_view<typename output::char_type> view,Args... args)
 {
@@ -107,6 +116,9 @@ inline constexpr void lc_unsafe_fprint_fallback(basic_lc_all<typename output::ch
 }
 
 template<output_stream output,typename... Args>
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void lc_unsafe_fprint_status_define_further_decay(basic_lc_all<typename output::char_type> const* __restrict lc,
 	output out,
 	std::basic_string_view<typename output::char_type> view,
@@ -129,6 +141,9 @@ inline constexpr void lc_unsafe_fprint_status_define_further_decay(basic_lc_all<
 
 template<output_stream output,typename... Args>
 requires (sizeof...(Args)!=0)
+#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
+[[gnu::sysv_abi]]
+#endif
 inline constexpr void unsafe_fprint_status_define(lc_imbuer<output> imb,std::basic_string_view<typename output::char_type> view,Args... args)
 {
 	details::lc_unsafe_fprint_status_define_further_decay(imb.all,imb.handle,view,args...);

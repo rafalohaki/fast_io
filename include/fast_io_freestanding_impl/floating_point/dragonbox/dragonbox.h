@@ -333,8 +333,8 @@ inline std::uint64_t umul64(std::uint32_t x, std::uint32_t y) noexcept {
 
 // Get 128-bit result of multiplication of two 64-bit unsigned integers
 
-#if defined(_MSC_VER) && !defined(__clang__)
-__declspec(safebuffers)
+#if __has_cpp_attribute(msvc::safebuffers)
+[[msvc::safebuffers]]
 #endif
 inline uint128 umul128(std::uint64_t x, std::uint64_t y) noexcept {
 #if (defined(__GNUC__) || defined(__clang__)) && defined(__SIZEOF_INT128__) && defined(__x86_64__)
@@ -2517,8 +2517,8 @@ else
 }
 
 template <class ReturnType, class SignPolicy, class TrailingZeroPolicy, class CachePolicy>
-#ifdef _MSC_VER
-__declspec(safebuffers)
+#if __has_cpp_attribute(msvc::safebuffers)
+[[msvc::safebuffers]]
 #endif
  static ReturnType
 compute_left_closed_directed(ieee754_bits<Float> const br) noexcept
@@ -2609,8 +2609,8 @@ return ret_value;
 
 template <class ReturnType, class SignPolicy, class TrailingZeroPolicy, class CachePolicy>
 
-#if defined(_MSC_VER) && !defined(__clang__)
-__declspec(safebuffers)
+#if __has_cpp_attribute(msvc::safebuffers)
+[[msvc::safebuffers]]
 #endif
  static ReturnType
 compute_right_closed_directed(ieee754_bits<Float> const br) noexcept

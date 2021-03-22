@@ -51,17 +51,17 @@ unlinkat
 };
 
 #if defined(__CYGWIN__)
-extern "C" int renameat(int olddirfd,char const* oldpath,int newdirfd, char const* newpath) noexcept;
-extern "C" int linkat(int olddirfd,char const* oldpath,int newdirfd, char const* newpath,int flags) noexcept;
-extern "C" int symlinkat(char const* oldpath, int newdirfd, char const *newpath) noexcept;
-extern "C" int fchmodat(int dirfd, char const *pathname, mode_t mode, int flags) noexcept;
-extern "C" int utimensat(int dirfd, char const *pathname,struct timespec const times[2], int flags) noexcept;
-extern "C" int fchownat(int dirfd, char const *pathname,uid_t owner, gid_t group, int flags) noexcept;
-extern "C" int fstatat(int dirfd, char const *pathname, struct stat *buf,int flags) noexcept;
-extern "C" int mkdirat(int dirfd, char const* pathname, mode_t mode) noexcept;
-extern "C" int mknodat(int dirfd, char const* pathname, mode_t mode, dev_t dev) noexcept;
-extern "C" int unlinkat(int dirfd, char const*pathname, int flags) noexcept;
-extern "C" int readlinkat(int dirfd, char const *pathname,char *buf, size_t bufsiz) noexcept;
+extern int renameat(int olddirfd,char const* oldpath,int newdirfd, char const* newpath) noexcept asm("renameat");
+extern int linkat(int olddirfd,char const* oldpath,int newdirfd, char const* newpath,int flags) noexcept asm("linkat");
+extern int symlinkat(char const* oldpath, int newdirfd, char const *newpath) noexcept asm("symlinkat");
+extern int fchmodat(int dirfd, char const *pathname, mode_t mode, int flags) noexcept asm("fchmodat");
+extern int utimensat(int dirfd, char const *pathname,struct timespec const times[2], int flags) noexcept asm("utimensat");
+extern int fchownat(int dirfd, char const *pathname,uid_t owner, gid_t group, int flags) noexcept asm("fchownat");
+extern int fstatat(int dirfd, char const *pathname, struct stat *buf,int flags) noexcept asm("fstatat");
+extern int mkdirat(int dirfd, char const* pathname, mode_t mode) noexcept asm("mkdirat");
+extern int mknodat(int dirfd, char const* pathname, mode_t mode, dev_t dev) noexcept asm("mknodat");
+extern int unlinkat(int dirfd, char const*pathname, int flags) noexcept asm("unlinkat");
+extern int readlinkat(int dirfd, char const *pathname,char *buf, size_t bufsiz) noexcept asm("readlinkat");
 #endif
 
 inline void posix_renameat_impl(int olddirfd,char const* oldpath,
