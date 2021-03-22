@@ -517,9 +517,17 @@ asm("GetACP")
 #endif
 ;
 #if !defined(__CYGWIN__)
-__declspec(dllimport) extern errno_t __stdcall getenv_s(std::size_t *,char* buffer,std::size_t ,char const *) noexcept
+__declspec(dllimport) extern errno_t __cdecl getenv_s(std::size_t *,char* buffer,std::size_t ,char const *) noexcept
 #if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
 asm("getenv_s")
+#else
+asm("_getenv_s")
+#endif
+#else
+asm("getenv_s")
+#endif
 #endif
 ;
 #endif
