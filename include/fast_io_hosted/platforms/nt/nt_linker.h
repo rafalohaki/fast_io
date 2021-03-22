@@ -485,6 +485,7 @@ inline std::uint32_t nt_wait_for_single_object(Args... args) noexcept
 
 __declspec(dllimport) extern std::uint32_t __stdcall NtSetSystemTime(std::uint64_t*,std::uint64_t*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
 #if defined(__GNUC__)
 asm("NtSetSystemTime@8")
 #else
@@ -492,6 +493,7 @@ asm("_NtSetSystemTime@8")
 #endif
 #else
 asm("NtSetSystemTime")
+#endif
 #endif
 ;
 __declspec(dllimport) extern std::uint32_t __stdcall ZwSetSystemTime(std::uint64_t*,std::uint64_t*) noexcept
