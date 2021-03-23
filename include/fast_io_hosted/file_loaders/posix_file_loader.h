@@ -355,6 +355,12 @@ public:
 	}
 };
 
+template<bool h>
+inline constexpr basic_io_scatter_t<char> print_alias_define(io_alias_t,posix_file_loader_impl<h> load) noexcept
+{
+	return {load.data(),load.size()};
+}
+
 }
 
 #if !defined(_WIN32) && (!defined(__NEWLIB__)||defined(__CYGWIN__)) && !defined(__MSDOS__)

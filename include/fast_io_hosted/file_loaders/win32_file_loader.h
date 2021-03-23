@@ -281,4 +281,10 @@ public:
 	}
 };
 
+
+inline constexpr basic_io_scatter_t<char> print_alias_define(io_alias_t,win32_file_loader const& load) noexcept
+{
+	return {load.data(),load.size()};
+}
+
 }
