@@ -151,6 +151,17 @@ struct scan_generator
 	}
 	scan_generator(scan_generator const&)=delete;
 	scan_generator& operator=(scan_generator const&)=delete;
+
+#if defined(__clang__)
+#if __cpp_constexpr >= 201907L
+	constexpr 
+#endif
+	~scan_generator()
+	{
+		if constexpr(mutex_stream<input>)
+			reference.unlock();
+	}
+#else
 #if __cpp_constexpr >= 201907L
 	constexpr 
 #endif
@@ -162,6 +173,7 @@ struct scan_generator
 	constexpr 
 #endif
 	~scan_generator() = default;
+#endif
 };
 
 template<input_stream input,typename Func>
