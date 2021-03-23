@@ -325,16 +325,16 @@ Since MSYS2 console respects POSIX locales. We should support it too.
 
 inline std::string_view acp_encoding_name() noexcept
 {
-	auto strvw{get_code_page_encoding(GetACP())};
+	auto strvw{get_code_page_encoding(fast_io::win32::GetACP())};
 	return {reinterpret_cast<char const*>(strvw.data()),strvw.size()};
 }
 
 inline std::size_t get_lc_all_or_lang(std::array<char,64>& buffer) noexcept
 {
 	std::size_t size_buffer{};
-	if(!getenv_s(std::addressof(size_buffer),buffer.data(),buffer.size(),reinterpret_cast<char const*>(u8"LC_ALL")))
+	if(!fast_io::win32::getenv_s(std::addressof(size_buffer),buffer.data(),buffer.size(),reinterpret_cast<char const*>(u8"LC_ALL")))
 		return size_buffer;
-	if(!getenv_s(std::addressof(size_buffer),buffer.data(),buffer.size(),reinterpret_cast<char const*>(u8"LANG")))
+	if(!fast_io::win32::getenv_s(std::addressof(size_buffer),buffer.data(),buffer.size(),reinterpret_cast<char const*>(u8"LANG")))
 		return size_buffer;
 	return 0;
 }
