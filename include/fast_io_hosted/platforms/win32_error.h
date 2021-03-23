@@ -25,7 +25,7 @@ inline constexpr void report_win32_error(error_reporter& report,std::uint32_t ec
 #endif
 }
 
-class win32_error : public std::exception
+class win32_error
 {
 public:
 	std::uint32_t ec;

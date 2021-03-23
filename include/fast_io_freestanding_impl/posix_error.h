@@ -73,7 +73,7 @@ https://github.com/freebsd/freebsd/blob/e8142e44905fa62147ba10703e7ce2c5464fb2b7
 #endif
 }
 
-class posix_error:public std::exception
+class posix_error
 {
 public:
 	int ec{};
@@ -115,7 +115,7 @@ inline constexpr basic_io_scatter_t<char_type> print_alias_define(io_alias_type_
 	return get_posix_errno_scatter<char_type>(perr.ec);
 }
 
-class scan_error:public std::exception
+class scan_error
 {
 public:
 	std::errc ec{};

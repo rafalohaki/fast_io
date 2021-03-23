@@ -3,7 +3,7 @@
 namespace fast_io
 {
 
-class nt_error:public std::exception
+class nt_error
 {
 public:
 	std::uint32_t ntstatus{};
