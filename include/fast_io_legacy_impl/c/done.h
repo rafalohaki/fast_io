@@ -8,21 +8,10 @@ namespace details
 
 inline std::size_t c_fwrite_unlocked_impl(void const* __restrict begin,std::size_t type_size,std::size_t count,std::FILE* __restrict fp)
 {
-#ifdef __NEWLIB__
-	__sclearerr(fp);
-#elif defined(_POSIX_C_SOURCE) || defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
-	clearerr_unlocked(fp);
-#elif defined(__MINGW32__)
-	fp->_flag&=~0x0020;
-#else
-	clearerr(fp);
-#endif
-
-
 #if defined(__NEWLIB__) && !(__CYGWIN__)
-	struct _reent rent{._errno=0};
+	struct _reent rent;
 	std::size_t written_count{_fwrite_unlocked_r(std::addressof(rent),begin,type_size,count,fp)};
-	if(rent._errno)
+	if(!written_count)[[unlikely]]
 		throw_posix_error(rent._errno);
 	return written_count;
 #else
@@ -43,40 +32,22 @@ inline std::size_t c_fwrite_unlocked_impl(void const* __restrict begin,std::size
 	fwrite
 #endif
 	(begin,type_size,count,fp)};
-	auto errn{errno};
-	if(
-#ifdef __NEWLIB__
-	__sferror(fp)
-#elif defined(_POSIX_C_SOURCE) || defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
-	ferror_unlocked(fp)
-#elif defined(__MINGW32__)
-	fp->_flag&0x0020
-#else
-	ferror(fp)
-#endif
-	)
-		throw_posix_error(errn);
+	if(!written_count)[[unlikely]]
+		throw_posix_error();
 #endif
 	return written_count;
 }
 
 inline std::size_t c_fread_unlocked_impl(void* __restrict begin,std::size_t type_size,std::size_t count,std::FILE* __restrict fp)
 {
-#ifdef __NEWLIB__
-	__sclearerr(fp);
-#elif defined(_POSIX_C_SOURCE) || defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
-	clearerr_unlocked(fp);
-#elif defined(__MINGW32__)
-	fp->_flag&=~0x0020;
-#else
-	clearerr(fp);
-#endif
-
 #if defined(__NEWLIB__) && !(__CYGWIN__)
-	struct _reent rent{._errno=0};
+	struct _reent rent;
 	std::size_t read_count{_fread_unlocked_r(std::addressof(rent),begin,type_size,count,fp)};
-	if(rent._errno)
-		throw_posix_error(rent._errno);
+	if(read_count==0)[[unlikely]]
+	{
+		if(__sferror(fp))
+			throw_posix_error(rent._errno);
+	}
 	return read_count;
 #else
 	std::size_t read_count{
@@ -96,8 +67,9 @@ inline std::size_t c_fread_unlocked_impl(void* __restrict begin,std::size_t type
 	fread
 #endif
 	(begin,type_size,count,fp)};
-	auto errn{errno};
-	if(
+	if(read_count==0)[[unlikely]]
+	{
+		if(
 #ifdef __NEWLIB__
 	__sferror(fp)
 #elif defined(_POSIX_C_SOURCE) || defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
@@ -107,8 +79,10 @@ inline std::size_t c_fread_unlocked_impl(void* __restrict begin,std::size_t type
 #else
 	ferror(fp)
 #endif
-	)
-		throw_posix_error(errn);
+		)
+			throw_posix_error();
+	}
+		
 #endif
 	return read_count;
 }
