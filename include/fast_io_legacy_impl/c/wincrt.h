@@ -65,7 +65,7 @@ ucrt_iobuf
 inline constexpr std::size_t wincrt_internal_buffer_size{4096};
 
 template<typename fileptr>
-inline void wincrt_fp_set_flag_dirty_impl(fileptr* __restrict fp)
+inline constexpr void wincrt_fp_set_flag_dirty_impl(fileptr* __restrict fp) noexcept
 {
 #if defined(_MSC_VER) || defined(_UCRT)
 	fp->_flag|=64;
@@ -75,7 +75,7 @@ inline void wincrt_fp_set_flag_dirty_impl(fileptr* __restrict fp)
 }
 
 template<typename fileptr>
-inline bool wincrt_fp_is_dirty_impl(fileptr* __restrict fp)
+inline constexpr bool wincrt_fp_is_dirty_impl(fileptr* __restrict fp) noexcept
 {
 	constexpr unsigned int mask{
 #if defined(_MSC_VER) || defined(_UCRT)
@@ -88,7 +88,7 @@ inline bool wincrt_fp_is_dirty_impl(fileptr* __restrict fp)
 }
 
 [[gnu::cold]]
-inline void wincrt_fp_allocate_buffer_impl(std::FILE* __restrict fpp)
+inline void wincrt_fp_allocate_buffer_impl(std::FILE* __restrict fpp) noexcept
 {
 #if defined(_MSC_VER) || defined(_UCRT)
 	ucrt_iobuf* fp{reinterpret_cast<ucrt_iobuf*>(fpp)};
