@@ -115,9 +115,6 @@ namespace details
 {
 
 template<bool line,typename... Args>
-#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
-[[gnu::sysv_abi]]
-#endif
 inline constexpr void print_after_io_forward(Args ...args)
 {
 	if constexpr(line)
@@ -127,9 +124,6 @@ inline constexpr void print_after_io_forward(Args ...args)
 }
 
 template<bool line,typename... Args>
-#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
-[[gnu::sysv_abi]]
-#endif
 inline constexpr void perr_after_io_forward(Args ...args)
 {
 	if constexpr(line)
@@ -139,9 +133,6 @@ inline constexpr void perr_after_io_forward(Args ...args)
 }
 
 template<bool line,typename... Args>
-#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
-[[gnu::sysv_abi]]
-#endif
 inline constexpr void debug_print_after_io_forward(Args ...args)
 {
 	if constexpr(line)
@@ -152,9 +143,6 @@ inline constexpr void debug_print_after_io_forward(Args ...args)
 
 
 template<bool report,typename... Args>
-#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
-[[gnu::sysv_abi]]
-#endif
 inline constexpr std::conditional_t<report,bool,void> scan_after_io_forward(Args ...args)
 {
 	if constexpr(report)
@@ -172,9 +160,6 @@ inline constexpr std::conditional_t<report,bool,void> scan_after_io_forward(Args
 }
 
 template<typename T,typename... Args>
-#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
-[[gnu::sysv_abi]]
-#endif
 inline constexpr void print(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>)
@@ -184,9 +169,6 @@ inline constexpr void print(T&& t,Args&& ...args)
 }
 
 template<typename T,typename... Args>
-#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
-[[gnu::sysv_abi]]
-#endif
 inline constexpr void println(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>)
@@ -197,9 +179,6 @@ inline constexpr void println(T&& t,Args&& ...args)
 
 template<typename... Args>
 requires (sizeof...(Args)!=0)
-#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
-[[gnu::sysv_abi]]
-#endif
 inline constexpr void perr(Args&&... args)
 {
 	fast_io::details::perr_after_io_forward<false>(fast_io::io_forward(fast_io::io_print_alias<char>(args))...);
@@ -207,18 +186,12 @@ inline constexpr void perr(Args&&... args)
 
 template<typename... Args>
 requires (sizeof...(Args)!=0)
-#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
-[[gnu::sysv_abi]]
-#endif
 inline constexpr void perrln(Args&&... args)
 {
 	fast_io::details::perr_after_io_forward<true>(fast_io::io_forward(fast_io::io_print_alias<char>(args))...);
 }
 
 template<typename... Args>
-#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
-[[gnu::sysv_abi]]
-#endif
 [[noreturn]] inline constexpr void panic(Args&&... args) noexcept
 {
 	if constexpr(sizeof...(Args)!=0)
@@ -237,9 +210,6 @@ template<typename... Args>
 }
 
 template<typename... Args>
-#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
-[[gnu::sysv_abi]]
-#endif
 [[noreturn]] inline constexpr void panicln(Args&&... args) noexcept
 {
 #ifdef __cpp_exceptions
@@ -258,9 +228,6 @@ template<typename... Args>
 #ifndef NDEBUG
 //With debugging. We output to POSIX fd or Win32 Handle directly instead of C's stdout.
 template<typename T,typename... Args>
-#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
-[[gnu::sysv_abi]]
-#endif
 inline constexpr void debug_print(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>)
@@ -270,9 +237,6 @@ inline constexpr void debug_print(T&& t,Args&& ...args)
 }
 
 template<typename T,typename... Args>
-#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
-[[gnu::sysv_abi]]
-#endif
 inline constexpr void debug_println(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>)
@@ -282,18 +246,12 @@ inline constexpr void debug_println(T&& t,Args&& ...args)
 }
 
 template<typename... Args>
-#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
-[[gnu::sysv_abi]]
-#endif
 inline constexpr void debug_perr(Args&&... args)
 {
 	::perr(std::forward<Args>(args)...);
 }
 
 template<typename... Args>
-#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
-[[gnu::sysv_abi]]
-#endif
 inline constexpr void debug_perrln(Args&&... args)
 {
 	::perrln(std::forward<Args>(args)...);
@@ -302,9 +260,6 @@ inline constexpr void debug_perrln(Args&&... args)
 #endif
 
 template<bool report=false,typename input,typename... Args>
-#if __has_cpp_attribute(gnu::sysv_abi) && !defined(_MSC_VER)
-[[gnu::sysv_abi]]
-#endif
 inline constexpr std::conditional_t<report,bool,void> scan(input&& in,Args&& ...args)
 {
 	if constexpr(fast_io::input_stream<std::remove_cvref_t<input>>)
