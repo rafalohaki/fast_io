@@ -121,7 +121,7 @@ inline
 #if defined(_WIN32) || defined(__MSDOS__)
 constexpr
 #endif
-unix_timestamp posix_clock_getres(posix_clock_id pclk_id)
+unix_timestamp posix_clock_getres([[maybe_unused]] posix_clock_id pclk_id)
 {
 #ifdef _WIN32
 	switch(pclk_id)
@@ -237,7 +237,7 @@ inline unix_timestamp win32_posix_clock_gettime_process_or_thread_time_impl()
 
 #endif
 
-inline unix_timestamp posix_clock_gettime(posix_clock_id pclk_id)
+inline unix_timestamp posix_clock_gettime([[maybe_unused]] posix_clock_id pclk_id)
 {
 #ifdef _WIN32
 	switch(pclk_id)

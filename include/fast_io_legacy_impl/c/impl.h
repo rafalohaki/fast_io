@@ -628,8 +628,8 @@ public:
 #elif defined(_WIN32)
 	win32::_lock_file(fp);
 #elif defined(__NEWLIB__)
-#ifndef __SINGLE_THREAD__
-//	flockfile(fp);	//TO FIX
+#if !defined(__SINGLE_THREAD__) || defined(__CYGWIN__)
+//	_flockfile(fp);	//TO FIX undefined reference to `__cygwin_lock_lock' why?
 #endif
 #elif defined(__MSDOS__)
 #else
@@ -643,8 +643,8 @@ public:
 #elif defined(_WIN32)
 	win32::_unlock_file(fp);
 #elif defined(__NEWLIB__)
-#ifndef __SINGLE_THREAD__
-//		_funlockfile(fp); //TO FIX
+#if !defined(__SINGLE_THREAD__) || defined(__CYGWIN__)
+//	_funlockfile(fp); //TO FIX
 #endif
 #elif defined(__MSDOS__)
 #else
@@ -1088,26 +1088,15 @@ inline decltype(auto) zero_copy_out_handle(basic_c_io_observer_unlocked<ch_type>
 
 }
 
-#if defined(_MSC_VER)||defined(_UCRT)
-#include"universal_crt.h"
-#elif defined(__WINNT__)
-#include"msvcrt.h"
-#elif defined(__GLIBC__)
+
+#if defined(__GLIBC__)
 #include"glibc.h"
 #elif defined(__MUSL__) || defined(__NEED___isoc_va_list)
 #include"musl.h"
-#elif defined(__BSD_VISIBLE) ||defined(__DARWIN_C_LEVEL)
-#if defined(__NEWLIB__)
-#ifndef __CUSTOM_FILE_IO__
-#include"newlib.h"
-#endif
-#else
-#include"bsd.h"
-#endif
-#elif defined(__MSDOS__)
-#include"msdos.h"
-#elif defined(__BIONIC__)
-#include"bionic.h"
+#elif defined(__BSD_VISIBLE) ||defined(__DARWIN_C_LEVEL) \
+	|| (defined(__NEWLIB__) &&!defined(__CUSTOM_FILE_IO__)) || defined(__MSDOS__) \
+	|| defined(__BIONIC__) || defined(_WIN32)
+#include"unix.h"
 #endif
 #ifndef __MSDOS__
 #include"general.h"

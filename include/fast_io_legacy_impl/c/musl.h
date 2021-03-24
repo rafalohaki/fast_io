@@ -130,15 +130,15 @@ char8_t* ptr) noexcept
 }
 
 
-extern "C" int __uflow (FILE *) noexcept;
-extern "C" int ferror_unlocked(FILE*) noexcept;
+
 
 namespace details::fp_hack
 {
+extern int libc_uflow (FILE *) noexcept asm("__uflow");
 
 inline bool musl_fp_underflow_impl(std::FILE* fp)
 {
-	bool eof{__uflow(fp)!=EOF};
+	bool eof{libc_uflow(fp)!=EOF};
 	if(!eof&&ferror_unlocked(fp))
 		throw_posix_error();
 	hack_fp_set_ptr<1>(fp,hack_fp_ptr<char,0>(fp));
@@ -210,18 +210,20 @@ char8_t* ptr) noexcept
 	details::fp_hack::hack_fp_set_ptr<4>(cio.fp,ptr);
 }
 
-
-extern "C" int __overflow(_IO_FILE *, int) noexcept;
+namespace details
+{
+extern int libc_overflow(_IO_FILE *, int) noexcept asm("__overflow");
+}
 
 inline void overflow(c_io_observer_unlocked cio,char ch)
 {
-	if(__overflow(cio.fp,static_cast<int>(static_cast<unsigned char>(ch)))==EOF)[[unlikely]]
+	if(details::libc_overflow(cio.fp,static_cast<int>(static_cast<unsigned char>(ch)))==EOF)[[unlikely]]
 		throw_posix_error();
 }
 
 inline void overflow(u8c_io_observer_unlocked cio,char8_t ch)
 {
-	if(__overflow(cio.fp,static_cast<int>(static_cast<unsigned char>(ch)))==EOF)[[unlikely]]
+	if(details::libc_overflow(cio.fp,static_cast<int>(static_cast<unsigned char>(ch)))==EOF)[[unlikely]]
 		throw_posix_error();
 }
 

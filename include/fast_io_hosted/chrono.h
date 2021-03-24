@@ -3,13 +3,6 @@
 
 namespace fast_io
 {
-#ifndef __MSDOS__
-
-template<std::integral char_type>
-constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,struct timespec>) noexcept
-{
-	return print_reserve_size(io_reserve_type<char_type,std::time_t>)+1+print_reserve_size(io_reserve_type<char_type,long>);
-}
 
 namespace details
 {
@@ -22,6 +15,18 @@ inline constexpr bool denom_is_natural_pow10(std::intmax_t denom) noexcept
 	for(;!(den%10u);den/=10u);
 	return den==1;
 }
+
+}
+#ifndef __MSDOS__
+
+template<std::integral char_type>
+constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,struct timespec>) noexcept
+{
+	return print_reserve_size(io_reserve_type<char_type,std::time_t>)+1+print_reserve_size(io_reserve_type<char_type,long>);
+}
+
+namespace details
+{
 
 inline constexpr std::size_t denom_natural_log10(std::uintmax_t den) noexcept
 {

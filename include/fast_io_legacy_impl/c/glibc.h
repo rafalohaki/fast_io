@@ -191,11 +191,14 @@ inline void obuffer_set_curr(wc_io_observer_unlocked cio,wchar_t* ptr) noexcept
 	details::fp_wide_hack::hack_wpset<4>(cio.fp,ptr);
 }
 
-extern std::wint_t __woverflow (FILE *,std::wint_t) noexcept asm("__woverflow");
+namespace details
+{
+extern std::wint_t glibc_woverflow (FILE *,std::wint_t) noexcept asm("__woverflow");
+}
 
 inline void overflow(wc_io_observer_unlocked cio,wchar_t ch)
 {
-	if(__woverflow(cio.fp,static_cast<std::wint_t>(ch))==WEOF)[[unlikely]]
+	if(details::glibc_woverflow(cio.fp,static_cast<std::wint_t>(ch))==WEOF)[[unlikely]]
 		throw_posix_error();
 }
 
@@ -252,13 +255,15 @@ inline void overflow(u32c_io_observer_unlocked cio,char32_t ch)
 		throw_posix_error();
 }
 
-
-extern int __flbf(std::FILE* fp) noexcept asm("__flbf");
+namespace details
+{
+extern int glibc_flbf(std::FILE* fp) noexcept asm("__flbf");
+}
 
 template<std::integral ch_type>
 inline bool obuffer_is_line_buffering(basic_c_io_observer_unlocked<ch_type> ciou) noexcept
 {
-	return __flbf(ciou.fp);
+	return details::glibc_flbf(ciou.fp);
 }
 
 static_assert(buffer_output_stream<c_io_observer_unlocked>);
