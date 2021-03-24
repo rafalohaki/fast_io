@@ -200,6 +200,31 @@ inline void* my_memset(void* dest, int ch, std::size_t count) noexcept
         (dest,ch,count);
 }
 
+inline constexpr std::size_t my_strlen(char const* cstr) noexcept
+{
+	if(std::is_constant_evaluated())
+	{
+		std::size_t n{};
+		for(;*cstr;++cstr)
+			++n;
+		return n;
+	}
+	else
+	{
+    return
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_strlen)
+		__builtin_strlen
+#else
+		std::strlen
+#endif
+#else
+		std::strlen
+#endif
+        (cstr);
+	}
+}
+
 template<std::input_iterator input_iter,std::integral count_type,std::input_or_output_iterator output_iter>
 inline constexpr output_iter non_overlapped_copy_n(input_iter first,count_type count,output_iter result)
 {

@@ -36,11 +36,26 @@ inline wc_io_observer wc_stderr() noexcept
 	return {stderr};
 }
 
+inline u8c_io_observer u8c_stdin() noexcept
+{
+	return {stdin};
+}
+
+inline u8c_io_observer u8c_stdout() noexcept
+{
+	return {stdout};
+}
+
+inline u8c_io_observer u8c_stderr() noexcept
+{
+	return {stderr};
+}
+
 inline
 #ifndef _WIN32
 constexpr
 #endif
-decltype(auto) in() noexcept
+native_io_observer in() noexcept
 {
 	return native_stdin();
 }
@@ -49,7 +64,7 @@ inline
 #ifndef _WIN32
 constexpr
 #endif
-decltype(auto) out() noexcept
+native_io_observer out() noexcept
 {
 	return native_stdout();
 }
@@ -58,7 +73,7 @@ inline
 #ifndef _WIN32
 constexpr
 #endif
-decltype(auto) err() noexcept
+native_io_observer err() noexcept
 {
 	return native_stderr();
 }
@@ -92,23 +107,40 @@ decltype(auto) u8err() noexcept
 }
 
 
-
 using in_buf_type = basic_ibuf<native_io_observer>;
 using out_buf_type = basic_obuf<native_io_observer>;
 
-inline auto in_buf()
+inline in_buf_type in_buf()
 {
 	return in_buf_type(native_stdin());
 }
 
-inline auto out_buf()
+inline out_buf_type out_buf()
 {
 	return out_buf_type(native_stdout());
 }
 
-inline auto err_buf()
+inline out_buf_type err_buf()
 {
 	return out_buf_type(native_stderr());
+}
+
+using u8in_buf_type = basic_ibuf<u8native_io_observer>;
+using u8out_buf_type = basic_obuf<u8native_io_observer>;
+
+inline u8in_buf_type u8in_buf()
+{
+	return u8in_buf_type(native_stdin<char8_t>());
+}
+
+inline u8out_buf_type u8out_buf()
+{
+	return u8out_buf_type(native_stdout<char8_t>());
+}
+
+inline u8out_buf_type u8err_buf()
+{
+	return u8out_buf_type(native_stderr<char8_t>());
 }
 
 namespace details

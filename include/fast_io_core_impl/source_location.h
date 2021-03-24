@@ -32,8 +32,8 @@ inline constexpr Iter print_reserve_define_source_location_impl(Iter iter,source
 
 inline constexpr source_location_scatter print_alias_define_source_location_impl(std::source_location location) noexcept
 {
-	return {{location.file_name(),std::strlen(location.file_name())},
-	{location.function_name(),std::strlen(location.function_name())},
+	return {{location.file_name(),my_strlen(location.file_name())},
+	{location.function_name(),my_strlen(location.function_name())},
 	location.line(),location.column()};
 }
 
