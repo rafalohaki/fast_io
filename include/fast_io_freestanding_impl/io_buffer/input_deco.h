@@ -47,6 +47,7 @@ inline constexpr bool underflow_rl_impl_deco(T t,decot deco,
 }
 
 template<bool nsecure,std::size_t bfsz,stream T,typename decot,std::integral char_type>
+[[gnu::cold]]
 inline constexpr bool underflow_impl_deco(T t,decot deco,basic_io_buffer_pointers_with_cap<char_type>& ibuffer,
 	basic_io_buffer_pointers_only_begin<typename T::char_type>& ibuffer_external)
 {
@@ -60,6 +61,7 @@ inline constexpr bool underflow_impl_deco(T t,decot deco,basic_io_buffer_pointer
 }
 
 template<bool nsecure,typename T,typename decot,std::integral char_type,std::contiguous_iterator Iter>
+[[gnu::cold]]
 inline constexpr Iter iobuf_read_unhappy_decay_impl_deco(T t,decot deco,
 	basic_io_buffer_pointers_with_cap<char_type>& ibuffer,
 	basic_io_buffer_pointers_only_begin<typename T::char_type>& ibuffer_external,

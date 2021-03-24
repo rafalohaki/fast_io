@@ -360,8 +360,6 @@ inline T* wincrt_get_buffer_ptr_impl(std::FILE* __restrict fpp) noexcept
 		return reinterpret_cast<T*>(fp->_base);
 	else if constexpr(num==1)
 		return reinterpret_cast<T*>(fp->_ptr);
-	else if constexpr(num==2)
-		return reinterpret_cast<T*>(fp->_base+fp->_bufsiz);
 	else
 		return reinterpret_cast<T*>(fp->_ptr+fp->_cnt);
 }
@@ -406,7 +404,7 @@ template<std::integral char_type>
 [[gnu::may_alias]]
 inline char_type* ibuffer_end(basic_c_io_observer_unlocked<char_type> ciob) noexcept
 {
-	return details::wincrt_get_buffer_ptr_impl<char_type,3>(ciob.fp);
+	return details::wincrt_get_buffer_ptr_impl<char_type,2>(ciob.fp);
 }
 
 template<std::integral char_type>

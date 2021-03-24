@@ -2,6 +2,10 @@
 #include<cstdio>
 #include<cwchar>
 
+#if defined(__MINGW32__)
+#include"msvcrt_lock.h"
+#endif
+
 namespace fast_io
 {
 namespace win32
@@ -628,7 +632,7 @@ public:
 #if defined(_MSC_VER)||defined(_UCRT)
 	_lock_file(fp);
 #elif defined(_WIN32)
-	win32::_lock_file(fp);
+	win32::my_msvcrt_lock_file(fp);
 #elif defined(__NEWLIB__)
 #if !defined(__SINGLE_THREAD__) || defined(__CYGWIN__)
 //	_flockfile(fp);	//TO FIX undefined reference to `__cygwin_lock_lock' why?
@@ -643,7 +647,7 @@ public:
 #if defined(_MSC_VER)||defined(_UCRT)
 	_unlock_file(fp);
 #elif defined(_WIN32)
-	win32::_unlock_file(fp);
+	win32::my_msvcrt_unlock_file(fp);
 #elif defined(__NEWLIB__)
 #if !defined(__SINGLE_THREAD__) || defined(__CYGWIN__)
 //	_funlockfile(fp); //TO FIX
@@ -1095,16 +1099,14 @@ inline decltype(auto) zero_copy_out_handle(basic_c_io_observer_unlocked<ch_type>
 #elif defined(__MUSL__) || defined(__NEED___isoc_va_list)
 #include"musl.h"
 #elif defined(__BSD_VISIBLE) ||defined(__DARWIN_C_LEVEL) \
-	|| (defined(__NEWLIB__) &&!defined(__CUSTOM_FILE_IO__)) || defined(__MSDOS__) \
+	|| (defined(__NEWLIB__) &&!defined(__CUSTOM_FILE_IO__))
 	|| defined(__BIONIC__)
 #include"unix.h"
 #endif
-#ifndef __MSDOS__
-#include"general.h"
-#endif
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(__MSDOS__) 
 #include"wincrt.h"
 #else
+#include"general.h"
 #include"done.h"
 #endif
 

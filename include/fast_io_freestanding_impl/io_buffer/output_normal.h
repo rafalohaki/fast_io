@@ -61,6 +61,7 @@ inline constexpr void iobuf_output_flush_impl(T handle,
 }
 
 template<typename T,std::integral char_type>
+[[gnu::cold]]
 inline constexpr void iobuf_overflow_impl(T handle,
 	basic_io_buffer_pointers<char_type>& pointers,char_type ch,std::size_t bfsz)
 {
