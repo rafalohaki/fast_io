@@ -171,7 +171,7 @@ T* ptr) noexcept
 	std::FILE* fp{fpp};
 #endif
 	if constexpr(w)	//set dirty for output
-		fp->_flag|=0x010000;
+		fp->_flags|=0x010000;
 	fp->_cnt-=reinterpret_cast<char*>(ptr)-fp->_ptr;
 	fp->_ptr=reinterpret_cast<char*>(ptr);
 #else
@@ -215,9 +215,9 @@ inline bool bsd_underflow_impl(std::FILE* __restrict fp)
 #elif defined(_MSC_VER) || defined(_UCRT)
 	if(_fgetc_nolock(fp)==EOF)[[unlikely]]
 		return false;
-	ucrt_iobuf* fp{reinterpret_cast<ucrt_iobuf*>(fpp)};
-	++fp->_cnt;
-	--fp->_ptr;
+	ucrt_iobuf* fpp{reinterpret_cast<ucrt_iobuf*>(fp)};
+	++fpp->_cnt;
+	--fpp->_ptr;
 	return true;
 #elif defined(__MSDOS__) || defined(_WIN32) 
 	if(_filbuf(fp)==EOF)[[unlikely]]
@@ -245,12 +245,12 @@ inline bool bsd_underflow_impl(std::FILE* __restrict fp)
 
 inline void bsd_overflow(std::FILE* __restrict fp,char unsigned ch)
 {
-#if defined(__MSDOS__) || defined(_WIN32)
-	fp->_flag|=0x010000;
-	if(_flsbuf(static_cast<int>(static_cast<unsigned char>(ch)),fp)==EOF)[[unlikely]]
-		throw_posix_error();
-#elif defined(_MSC_VER)
+#if defined(_MSC_VER)
 	if(_fputc_nolock(static_cast<int>(static_cast<unsigned char>(ch)),fp)==EOF)[[unlikely]]
+		throw_posix_error();
+#elif defined(__MSDOS__) || defined(_WIN32)
+	fp->_flags|=0x010000;
+	if(_flsbuf(static_cast<int>(static_cast<unsigned char>(ch)),fp)==EOF)[[unlikely]]
 		throw_posix_error();
 #elif defined(__NEWLIB__)
 	struct _reent rent;

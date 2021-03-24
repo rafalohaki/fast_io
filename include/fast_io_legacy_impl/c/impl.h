@@ -374,7 +374,7 @@ _READ_WRITE_BUFSIZE_TYPE
 namespace details
 {
 
-#ifdef __MSDOS__
+#if defined(__MSDOS__) || defined(__CYGWIN__)
 extern int fileno(FILE*) noexcept asm("fileno");
 extern std::FILE* fdopen(int,char const*) noexcept asm("fdopen");
 #endif
@@ -786,16 +786,15 @@ public:
 	}
 };
 
-
 inline std::FILE* my_fdopen_impl(int fd,char const* mode) 
 {
 	auto fp{
-#if defined(__WINNT__) || defined(_MSC_VER)
+#if defined(_WIN32)
 			::_fdopen(
-#elif defined(__NEWLIB__)
+#elif defined(__NEWLIB__) && !defined(__CYGWIN__)
 			::_fdopen_r(_REENT,
-#elif defined(__MSDOS__)
-			details::fdopen(
+#elif defined(__MSDOS__) || defined(__CYGWIN__)
+			fdopen(
 #else
 			::fdopen(
 #endif
