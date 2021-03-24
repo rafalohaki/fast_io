@@ -30,7 +30,7 @@ sFILE {
 	unsigned char *_p;	/* current position in (some) buffer */
 	int	_r;		/* read space left for getc() */
 	int	_w;		/* write space left for putc() */
-	short	_flags;		/* flags, below; this FILE is free if 0 */
+	short	_flag;		/* flags, below; this FILE is free if 0 */
 	short	_file;		/* fileno, if Unix descriptor, else -1 */
 	struct	sbuf _bf;	/* the buffer (at least 1 byte, if !NULL) */
 	int	_lbfsize;	/* 0 or -_bf._size, for inline putc */
@@ -109,7 +109,7 @@ ucrt_iobuf
 // this makes me very curious. Why is the file struct in UCRT in microsoft SDK different from mingw-w64's definition?
 // I guess it is probably MinGW-w64 CRT's bug?
     int              _cnt;
-    long             _flags;
+    long             _flag;
     long             _file;
     int              _charbuf;
     int              _bufsiz;
@@ -134,6 +134,10 @@ inline T* bsd_get_buffer_ptr_impl(std::FILE* __restrict fpp) noexcept
 		return reinterpret_cast<T*>(fp->_base);
 	else if constexpr(num==1)
 		return reinterpret_cast<T*>(fp->_ptr);
+#if 0
+	else if constexpr(num==2)
+		return reinterpret_cast<T*>(cio.fp->_base+cio.fp->_bufsiz);
+#endif
 	else
 		return reinterpret_cast<T*>(fp->_ptr+fp->_cnt);
 #else
@@ -171,7 +175,7 @@ T* ptr) noexcept
 	std::FILE* fp{fpp};
 #endif
 	if constexpr(w)	//set dirty for output
-		fp->_flags|=0x010000;
+		fp->_flag|=0x010000;
 	fp->_cnt-=reinterpret_cast<char*>(ptr)-fp->_ptr;
 	fp->_ptr=reinterpret_cast<char*>(ptr);
 #else
@@ -249,7 +253,7 @@ inline void bsd_overflow(std::FILE* __restrict fp,char unsigned ch)
 	if(_fputc_nolock(static_cast<int>(static_cast<unsigned char>(ch)),fp)==EOF)[[unlikely]]
 		throw_posix_error();
 #elif defined(__MSDOS__) || defined(_WIN32)
-	fp->_flags|=0x010000;
+	fp->_flag|=0x010000;
 	if(_flsbuf(static_cast<int>(static_cast<unsigned char>(ch)),fp)==EOF)[[unlikely]]
 		throw_posix_error();
 #elif defined(__NEWLIB__)
