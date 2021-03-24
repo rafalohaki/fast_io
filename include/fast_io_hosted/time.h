@@ -218,7 +218,6 @@ inline unix_timestamp win32_posix_clock_gettime_process_or_thread_time_impl()
 	else
 	{
 		auto hprocess{bit_cast<void*>(std::intptr_t(-1))};
-		win32::filetime creation_time,exit_time,kernel_time,user_time;
 		if(!win32::GetProcessTimes(hprocess,std::addressof(creation_time),
 		std::addressof(exit_time),
 		std::addressof(kernel_time),

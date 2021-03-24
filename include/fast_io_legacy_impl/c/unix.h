@@ -134,10 +134,8 @@ inline T* bsd_get_buffer_ptr_impl(std::FILE* __restrict fpp) noexcept
 		return reinterpret_cast<T*>(fp->_base);
 	else if constexpr(num==1)
 		return reinterpret_cast<T*>(fp->_ptr);
-#if 0
 	else if constexpr(num==2)
 		return reinterpret_cast<T*>(cio.fp->_base+cio.fp->_bufsiz);
-#endif
 	else
 		return reinterpret_cast<T*>(fp->_ptr+fp->_cnt);
 #else

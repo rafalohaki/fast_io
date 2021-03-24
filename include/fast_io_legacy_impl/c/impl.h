@@ -475,6 +475,7 @@ inline auto redirect_handle(basic_c_io_observer_unlocked<ch_type> h)
 
 using c_io_observer_unlocked = basic_c_io_observer_unlocked<char>;
 
+#if 0
 template<std::integral T,std::contiguous_iterator Iter>
 requires (std::same_as<T,std::iter_value_t<Iter>>||std::same_as<T,char>)
 inline Iter read(basic_c_io_observer_unlocked<T> cfhd,Iter begin,Iter end);
@@ -483,6 +484,7 @@ inline Iter read(basic_c_io_observer_unlocked<T> cfhd,Iter begin,Iter end);
 template<std::integral T,std::contiguous_iterator Iter>
 requires (std::same_as<T,std::iter_value_t<Iter>>||std::same_as<T,char>)
 inline Iter write(basic_c_io_observer_unlocked<T> cfhd,Iter begin,Iter end);
+#endif
 
 template<std::integral T>
 inline void flush(basic_c_io_observer_unlocked<T> cfhd)
@@ -1094,11 +1096,15 @@ inline decltype(auto) zero_copy_out_handle(basic_c_io_observer_unlocked<ch_type>
 #include"musl.h"
 #elif defined(__BSD_VISIBLE) ||defined(__DARWIN_C_LEVEL) \
 	|| (defined(__NEWLIB__) &&!defined(__CUSTOM_FILE_IO__)) || defined(__MSDOS__) \
-	|| defined(__BIONIC__) || defined(_WIN32)
+	|| defined(__BIONIC__)
 #include"unix.h"
 #endif
 #ifndef __MSDOS__
 #include"general.h"
 #endif
-
+#if defined(_WIN32)
+#include"wincrt.h"
+#else
 #include"done.h"
+#endif
+
