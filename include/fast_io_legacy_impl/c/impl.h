@@ -1107,7 +1107,7 @@ inline decltype(auto) zero_copy_out_handle(basic_c_io_observer_unlocked<ch_type>
 #if defined(_WIN32) && !defined(FAST_IO_WIN32_USE_SYS_FWRITE)
 #include"wincrt.h"
 #else
-#if !defined(defined(__MSDOS__))
+#if !defined(__MSDOS__)
 #include"general.h"
 #endif
 #include"done.h"

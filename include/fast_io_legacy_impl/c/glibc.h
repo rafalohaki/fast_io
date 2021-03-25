@@ -251,7 +251,7 @@ inline void obuffer_set_curr(u32c_io_observer_unlocked cio,[[gnu::may_alias]] ch
 
 inline void overflow(u32c_io_observer_unlocked cio,char32_t ch)
 {
-	if(__woverflow(cio.fp,static_cast<std::wint_t>(ch))==WEOF)[[unlikely]]
+	if(details::glibc_woverflow(cio.fp,static_cast<std::wint_t>(ch))==WEOF)[[unlikely]]
 		throw_posix_error();
 }
 
