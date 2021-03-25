@@ -14,7 +14,6 @@ inline constexpr bool underflow_rl_impl(T t,basic_io_buffer_pointers<char_type>&
 }
 
 template<std::size_t bfsz,stream T,std::integral char_type>
-[[gnu::cold]]
 inline constexpr bool underflow_impl(T t,basic_io_buffer_pointers<char_type>& ibuffer)
 {
 	return underflow_rl_impl(t,ibuffer,bfsz);
