@@ -1099,7 +1099,7 @@ inline decltype(auto) zero_copy_out_handle(basic_c_io_observer_unlocked<ch_type>
 #elif defined(__MUSL__) || defined(__NEED___isoc_va_list)
 #include"musl.h"
 #elif defined(__BSD_VISIBLE) ||defined(__DARWIN_C_LEVEL) \
-	|| (defined(__NEWLIB__) &&!defined(__CUSTOM_FILE_IO__))
+	|| (defined(__NEWLIB__) &&!defined(__CUSTOM_FILE_IO__)) \
 	|| defined(__BIONIC__)
 #include"unix.h"
 #endif
