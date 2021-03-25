@@ -82,7 +82,6 @@ namespace details
 
 
 template<typename T,std::random_access_iterator Iter>
-[[gnu::cold]]
 inline constexpr Iter iobuf_read_unhappy_impl(T& bios,Iter first,Iter last)
 {
 	if constexpr(((T::mode&buffer_mode::out)==buffer_mode::out)&&((T::mode&buffer_mode::tie)==buffer_mode::tie))

@@ -59,7 +59,6 @@ inline constexpr void iobuf_output_flush_impl_deco(T handle,decot deco,
 }
 
 template<typename T,typename decot,std::integral char_type>
-[[gnu::cold]]
 inline constexpr void iobuf_overflow_impl_deco(T handle,decot deco,
 	basic_io_buffer_pointers<char_type>& pointers,
 	basic_io_buffer_pointers_no_curr<typename T::char_type>& external_buffer,

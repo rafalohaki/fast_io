@@ -87,7 +87,6 @@ inline constexpr bool wincrt_fp_is_dirty_impl(fileptr* __restrict fp) noexcept
 	return (fp->_flag&mask)==mask;
 }
 
-[[gnu::cold]]
 inline void wincrt_fp_allocate_buffer_impl(std::FILE* __restrict fpp) noexcept
 {
 #if defined(_MSC_VER) || defined(_UCRT)
@@ -109,9 +108,6 @@ inline void wincrt_fp_allocate_buffer_impl(std::FILE* __restrict fpp) noexcept
 	fp->_cnt=0;
 }
 
-#if __has_cpp_attribute(gnu::cold)
-[[gnu::cold]]
-#endif
 inline void wincrt_fp_write_cold_malloc_case_impl(std::FILE* __restrict fpp,char const* __restrict first,std::size_t diff)
 {
 #if defined(_MSC_VER) || defined(_UCRT)
@@ -168,9 +164,6 @@ inline void wincrt_fp_write_cold_normal_case_impl(std::FILE* __restrict fpp,char
 	}
 }
 
-#if __has_cpp_attribute(gnu::cold)
-[[gnu::cold]]
-#endif
 inline void wincrt_fp_write_cold_impl(std::FILE* __restrict fp,char const* __restrict first,std::size_t diff)
 {
 #if defined(_MSC_VER) || defined(_UCRT)
@@ -239,7 +232,7 @@ inline void wincrt_fp_overflow_impl(std::FILE* __restrict fpp,char_type ch)
 	fp->_cnt=static_cast<int>(static_cast<unsigned int>(fp->_bufsiz-sizeof(ch)));
 	wincrt_fp_set_flag_dirty_impl(fp);
 }
-[[gnu::cold]]
+
 inline void wincrt_fp_flush_stdout_impl()
 {
 #if defined(_MSC_VER) || defined(_UCRT)
@@ -254,7 +247,6 @@ inline void wincrt_fp_flush_stdout_impl()
 	fp->_ptr=fp->_base;
 }
 
-[[gnu::cold]]
 inline std::size_t wincrt_fp_read_cold_impl(std::FILE* __restrict fpp,char* first,std::size_t diff)
 {
 	if(fpp==stdin)
