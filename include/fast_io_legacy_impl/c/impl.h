@@ -479,7 +479,7 @@ inline auto redirect_handle(basic_c_io_observer_unlocked<ch_type> h)
 
 using c_io_observer_unlocked = basic_c_io_observer_unlocked<char>;
 
-#if !defined(_WIN32) && !defined(__MSDOS__) 
+#if !defined(_WIN32) || defined(FAST_IO_WIN32_USE_SYS_FWRITE)
 template<std::integral T,std::contiguous_iterator Iter>
 requires (std::same_as<T,std::iter_value_t<Iter>>||std::same_as<T,char>)
 inline Iter read(basic_c_io_observer_unlocked<T> cfhd,Iter begin,Iter end);
@@ -1100,13 +1100,16 @@ inline decltype(auto) zero_copy_out_handle(basic_c_io_observer_unlocked<ch_type>
 #include"musl.h"
 #elif defined(__BSD_VISIBLE) ||defined(__DARWIN_C_LEVEL) \
 	|| (defined(__NEWLIB__) &&!defined(__CUSTOM_FILE_IO__)) \
-	|| defined(__BIONIC__)
+	|| defined(__BIONIC__) || defined(__MSDOS__)  \
+	|| (defined(_WIN32)&&defined(FAST_IO_WIN32_USE_SYS_FWRITE))
 #include"unix.h"
 #endif
-#if defined(_WIN32) || defined(__MSDOS__) 
+#if defined(_WIN32) && !defined(FAST_IO_WIN32_USE_SYS_FWRITE)
 #include"wincrt.h"
 #else
+#if !defined(defined(__MSDOS__))
 #include"general.h"
+#endif
 #include"done.h"
 #endif
 

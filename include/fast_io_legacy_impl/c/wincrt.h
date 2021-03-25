@@ -108,6 +108,9 @@ inline void wincrt_fp_allocate_buffer_impl(std::FILE* __restrict fpp) noexcept
 	fp->_cnt=0;
 }
 
+#if __has_cpp_attribute(gnu::cold)
+[[gnu::cold]]
+#endif
 inline void wincrt_fp_write_cold_malloc_case_impl(std::FILE* __restrict fpp,char const* __restrict first,std::size_t diff)
 {
 #if defined(_MSC_VER) || defined(_UCRT)
@@ -164,6 +167,9 @@ inline void wincrt_fp_write_cold_normal_case_impl(std::FILE* __restrict fpp,char
 	}
 }
 
+#if __has_cpp_attribute(gnu::cold)
+[[gnu::cold]]
+#endif
 inline void wincrt_fp_write_cold_impl(std::FILE* __restrict fp,char const* __restrict first,std::size_t diff)
 {
 #if defined(_MSC_VER) || defined(_UCRT)
@@ -201,20 +207,12 @@ inline void wincrt_fp_write_impl(std::FILE* __restrict fpp,char_type const* firs
 	wincrt_fp_write_cold_impl(fpp,reinterpret_cast<char const*>(first),diff);
 }
 
-inline void wincrt_fp_flush_common_impl(std::FILE* __restrict fpp)
-{
-#if defined(_MSC_VER) || defined(_UCRT)
-	ucrt_iobuf* fp{reinterpret_cast<ucrt_iobuf*>(fpp)};
-#else
-	std::FILE* fp{fpp};
-#endif
-	posix_write_simple_impl(static_cast<int>(fp->_file),fp->_base,fp->_ptr-fp->_base);
-}
-
-
 
 template<std::integral char_type>
 requires (sizeof(char_type)<=4)
+#if __has_cpp_attribute(gnu::cold)
+[[gnu::cold]]
+#endif
 inline void wincrt_fp_overflow_impl(std::FILE* __restrict fpp,char_type ch)
 {
 #if defined(_MSC_VER) || defined(_UCRT)
@@ -233,6 +231,9 @@ inline void wincrt_fp_overflow_impl(std::FILE* __restrict fpp,char_type ch)
 	wincrt_fp_set_flag_dirty_impl(fp);
 }
 
+#if __has_cpp_attribute(gnu::cold)
+[[gnu::cold]]
+#endif
 inline void wincrt_fp_flush_stdout_impl()
 {
 #if defined(_MSC_VER) || defined(_UCRT)
@@ -247,6 +248,9 @@ inline void wincrt_fp_flush_stdout_impl()
 	fp->_ptr=fp->_base;
 }
 
+#if __has_cpp_attribute(gnu::cold)
+[[gnu::cold]]
+#endif
 inline std::size_t wincrt_fp_read_cold_impl(std::FILE* __restrict fpp,char* first,std::size_t diff)
 {
 	if(fpp==stdin)
@@ -316,6 +320,9 @@ inline char_type* wincrt_fp_read_impl(std::FILE* __restrict fpp,char_type* first
 }
 
 template<std::integral char_type>
+#if __has_cpp_attribute(gnu::cold)
+[[gnu::cold]]
+#endif
 inline bool wincrt_fp_underflow_impl(std::FILE* __restrict fpp)
 {
 	if(fpp==stdin)

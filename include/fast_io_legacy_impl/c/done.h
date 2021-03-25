@@ -32,7 +32,7 @@ inline std::size_t c_fwrite_unlocked_impl(void const* __restrict begin,std::size
 	fwrite
 #endif
 	(begin,type_size,count,fp)};
-	if(!written_count)[[unlikely]]
+	if(!written_count&&type_size)[[unlikely]]
 		throw_posix_error();
 #endif
 	return written_count;

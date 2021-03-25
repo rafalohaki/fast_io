@@ -156,6 +156,9 @@ inline constexpr void print_after_io_forward(Args ...args)
 }
 
 template<bool line,typename... Args>
+#if __has_cpp_attribute(gnu::cold)
+[[gnu::cold]]
+#endif
 inline constexpr void perr_after_io_forward(Args ...args)
 {
 	if constexpr(line)
@@ -165,6 +168,9 @@ inline constexpr void perr_after_io_forward(Args ...args)
 }
 
 template<bool line,typename... Args>
+#if __has_cpp_attribute(gnu::cold)
+[[gnu::cold]]
+#endif
 inline constexpr void debug_print_after_io_forward(Args ...args)
 {
 	if constexpr(line)
@@ -209,21 +215,26 @@ inline constexpr void println(T&& t,Args&& ...args)
 		fast_io::details::print_after_io_forward<true>(fast_io::io_forward(fast_io::io_print_alias<char>(t)),fast_io::io_forward(fast_io::io_print_alias<char>(args))...);
 }
 
-template<typename... Args>
-requires (sizeof...(Args)!=0)
-inline constexpr void perr(Args&&... args)
+template<typename T,typename... Args>
+inline constexpr void perr(T&& t,Args&&... args)
 {
-	fast_io::details::perr_after_io_forward<false>(fast_io::io_forward(fast_io::io_print_alias<char>(args))...);
+	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>)
+		fast_io::details::print_freestanding_decay_cold_impl<false>(fast_io::io_ref(t),fast_io::io_forward(fast_io::io_print_alias<typename std::remove_cvref_t<T>::char_type>(args))...);
+	else
+		fast_io::details::perr_after_io_forward<false>(fast_io::io_forward(fast_io::io_print_alias<char>(t)),fast_io::io_forward(fast_io::io_print_alias<char>(args))...);
+}
+
+template<typename T,typename... Args>
+inline constexpr void perrln(T&& t,Args&&... args)
+{
+	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>)
+		fast_io::details::print_freestanding_decay_cold_impl<true>(fast_io::io_ref(t),fast_io::io_forward(fast_io::io_print_alias<typename std::remove_cvref_t<T>::char_type>(args))...);
+	else
+		fast_io::details::perr_after_io_forward<true>(fast_io::io_forward(fast_io::io_print_alias<char>(t)),fast_io::io_forward(fast_io::io_print_alias<char>(args))...);
 }
 
 template<typename... Args>
 requires (sizeof...(Args)!=0)
-inline constexpr void perrln(Args&&... args)
-{
-	fast_io::details::perr_after_io_forward<true>(fast_io::io_forward(fast_io::io_print_alias<char>(args))...);
-}
-
-template<typename... Args>
 [[noreturn]] inline constexpr void panic(Args&&... args) noexcept
 {
 	if constexpr(sizeof...(Args)!=0)
@@ -242,6 +253,7 @@ template<typename... Args>
 }
 
 template<typename... Args>
+requires (sizeof...(Args)!=0)
 [[noreturn]] inline constexpr void panicln(Args&&... args) noexcept
 {
 #ifdef __cpp_exceptions
@@ -263,7 +275,7 @@ template<typename T,typename... Args>
 inline constexpr void debug_print(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>)
-		fast_io::print_freestanding_decay(io_ref(t),fast_io::io_forward(fast_io::io_print_alias<typename std::remove_cvref_t<T>::char_type>(args))...);
+		fast_io::details::print_freestanding_decay_cold_impl<false>(io_ref(t),fast_io::io_forward(fast_io::io_print_alias<typename std::remove_cvref_t<T>::char_type>(args))...);
 	else
 		fast_io::details::debug_print_after_io_forward<false>(fast_io::io_forward(fast_io::io_print_alias<char>(t)),fast_io::io_forward(fast_io::io_print_alias<char>(args))...);
 }
@@ -272,18 +284,20 @@ template<typename T,typename... Args>
 inline constexpr void debug_println(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>)
-		fast_io::println_freestanding_decay(io_ref(t),fast_io::io_forward(fast_io::io_print_alias<typename std::remove_cvref_t<T>::char_type>(args))...);
+		fast_io::details::print_freestanding_decay_cold_impl<true>(io_ref(t),fast_io::io_forward(fast_io::io_print_alias<typename std::remove_cvref_t<T>::char_type>(args))...);
 	else
 		fast_io::details::debug_print_after_io_forward<true>(fast_io::io_forward(fast_io::io_print_alias<char>(t)),fast_io::io_forward(fast_io::io_print_alias<char>(args))...);
 }
 
 template<typename... Args>
+requires (sizeof...(Args)!=0)
 inline constexpr void debug_perr(Args&&... args)
 {
 	::perr(std::forward<Args>(args)...);
 }
 
 template<typename... Args>
+requires (sizeof...(Args)!=0)
 inline constexpr void debug_perrln(Args&&... args)
 {
 	::perrln(std::forward<Args>(args)...);

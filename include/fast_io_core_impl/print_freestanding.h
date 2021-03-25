@@ -766,6 +766,26 @@ inline constexpr void print_freestanding(output&& out,Args&& ...args)
 	print_freestanding_decay(io_ref(out),io_forward(io_print_alias<typename std::remove_cvref_t<output>::char_type>(args))...);
 }
 
+namespace details
+{
+
+template<bool line,typename output,typename ...Args>
+requires (output_stream<output>||status_output_stream<output>)
+inline constexpr void print_freestanding_decay_cold_impl(output out,Args ...args)
+{
+	if constexpr(status_output_stream<output>)
+	{
+		if constexpr(line)
+			println_status_define(out,args...);
+		else
+			print_status_define(out,args...);
+	}
+	else
+		details::decay::print_freestanding_decay_normal<line>(out,args...);
+}
+
+}
+
 
 template<typename output,typename ...Args>
 requires (output_stream<output>||status_output_stream<output>)
