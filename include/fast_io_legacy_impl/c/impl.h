@@ -479,7 +479,7 @@ inline auto redirect_handle(basic_c_io_observer_unlocked<ch_type> h)
 
 using c_io_observer_unlocked = basic_c_io_observer_unlocked<char>;
 
-#if 0
+#if !defined(_WIN32) && !defined(__MSDOS__) 
 template<std::integral T,std::contiguous_iterator Iter>
 requires (std::same_as<T,std::iter_value_t<Iter>>||std::same_as<T,char>)
 inline Iter read(basic_c_io_observer_unlocked<T> cfhd,Iter begin,Iter end);
