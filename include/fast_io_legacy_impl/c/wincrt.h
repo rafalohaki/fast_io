@@ -386,21 +386,27 @@ T* ptr) noexcept
 }
 
 template<std::integral char_type>
+#if __has_cpp_attribute(gnu::may_alias)
 [[gnu::may_alias]]
+#endif
 inline char_type* ibuffer_begin(basic_c_io_observer_unlocked<char_type> ciob) noexcept
 {
 	return details::wincrt_get_buffer_ptr_impl<char_type,0>(ciob.fp);
 }
 
 template<std::integral char_type>
+#if __has_cpp_attribute(gnu::may_alias)
 [[gnu::may_alias]]
+#endif
 inline char_type* ibuffer_curr(basic_c_io_observer_unlocked<char_type> ciob) noexcept
 {
 	return details::wincrt_get_buffer_ptr_impl<char_type,1>(ciob.fp);
 }
 
 template<std::integral char_type>
+#if __has_cpp_attribute(gnu::may_alias)
 [[gnu::may_alias]]
+#endif
 inline char_type* ibuffer_end(basic_c_io_observer_unlocked<char_type> ciob) noexcept
 {
 	return details::wincrt_get_buffer_ptr_impl<char_type,2>(ciob.fp);
@@ -420,21 +426,27 @@ inline bool underflow(basic_c_io_observer_unlocked<char_type> ciob)
 
 
 template<std::integral char_type>
+#if __has_cpp_attribute(gnu::may_alias)
 [[gnu::may_alias]]
+#endif
 inline char_type* obuffer_begin(basic_c_io_observer_unlocked<char_type> ciob) noexcept
 {
 	return details::wincrt_get_buffer_ptr_impl<char_type,0>(ciob.fp);
 }
 
 template<std::integral char_type>
+#if __has_cpp_attribute(gnu::may_alias)
 [[gnu::may_alias]]
+#endif
 inline char_type* obuffer_curr(basic_c_io_observer_unlocked<char_type> ciob) noexcept
 {
 	return details::wincrt_get_buffer_ptr_impl<char_type,1>(ciob.fp);
 }
 
 template<std::integral char_type>
+#if __has_cpp_attribute(gnu::may_alias)
 [[gnu::may_alias]]
+#endif
 inline char_type* obuffer_end(basic_c_io_observer_unlocked<char_type> ciob) noexcept
 {
 	return details::wincrt_get_buffer_ptr_impl<char_type,2>(ciob.fp);

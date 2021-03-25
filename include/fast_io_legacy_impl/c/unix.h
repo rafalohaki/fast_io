@@ -134,8 +134,6 @@ inline T* bsd_get_buffer_ptr_impl(std::FILE* __restrict fpp) noexcept
 		return reinterpret_cast<T*>(fp->_base);
 	else if constexpr(num==1)
 		return reinterpret_cast<T*>(fp->_ptr);
-	else if constexpr(num==2)
-		return reinterpret_cast<T*>(cio.fp->_base+cio.fp->_bufsiz);
 	else
 		return reinterpret_cast<T*>(fp->_ptr+fp->_cnt);
 #else
@@ -306,7 +304,7 @@ inline char* ibuffer_curr(c_io_observer_unlocked cio) noexcept
 
 inline char* ibuffer_end(c_io_observer_unlocked cio) noexcept
 {
-	return details::bsd_get_buffer_ptr_impl<char,3>(cio.fp);
+	return details::bsd_get_buffer_ptr_impl<char,2>(cio.fp);
 }
 
 inline void ibuffer_set_curr(c_io_observer_unlocked cio,char* __restrict ptr) noexcept
