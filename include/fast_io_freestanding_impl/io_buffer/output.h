@@ -9,6 +9,9 @@ namespace details
 {
 
 template<typename T,std::random_access_iterator Iter>
+#if __has_cpp_attribute(gnu::cold)
+[[gnu::cold]]
+#endif
 inline constexpr void iobuf_write_unhappy_impl(T& t,Iter first,Iter last)
 {
 	if constexpr(has_external_decorator_impl<typename T::decorators_type>)
