@@ -2,7 +2,7 @@
 #include<cstdio>
 #include<cwchar>
 
-#if defined(__MINGW32__)
+#if defined(__MINGW32__) && !defined(_UCRT)
 #include"msvcrt_lock.h"
 #endif
 
@@ -10,7 +10,7 @@ namespace fast_io
 {
 namespace win32
 {
-#if defined(__MINGW32__)
+#if defined(__MINGW32__) && !defined(_UCRT)
 __declspec(dllimport) extern void __cdecl _lock_file(FILE*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 asm("_lock_file")
