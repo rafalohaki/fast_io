@@ -459,6 +459,217 @@ default:
 }
 }
 
+inline constexpr int native_sock_domain(sock_type dom)
+{
+switch(dom)
+{
+#ifdef IPPROTO_AH
+case sock_domain::ah:
+	return IPPROTO_AH;
+#endif
+#ifdef IPPROTO_BEETPH
+case sock_domain::beetph:
+	return IPPROTO_BEETPH;
+#endif
+#ifdef IPPROTO_CARP
+case sock_domain::carp:
+	return IPPROTO_CARP;
+#endif
+#ifdef IPPROTO_CBT
+case sock_domain::cbt:
+	return IPPROTO_CBT;
+#endif
+#ifdef IPPROTO_COMP
+case sock_domain::comp:
+	return IPPROTO_COMP;
+#endif
+#ifdef IPPROTO_DCCP
+case sock_domain::dccp:
+	return IPPROTO_DCCP;
+#endif
+#ifdef IPPROTO_DSTOPTS
+case sock_domain::dstopts:
+	return IPPROTO_DSTOPTS;
+#endif
+#ifdef IPPROTO_EGP
+case sock_domain::egp:
+	return IPPROTO_EGP;
+#endif
+#ifdef IPPROTO_EIGRP
+case sock_domain::eigrp:
+	return IPPROTO_EIGRP;
+#endif
+#ifdef IPPROTO_ENCAP
+case sock_domain::encap:
+	return IPPROTO_ENCAP;
+#endif
+#ifdef IPPROTO_ESP
+case sock_domain::esp:
+	return IPPROTO_ESP;
+#endif
+#ifdef IPPROTO_ETHERNET
+case sock_domain::ethernet:
+	return IPPROTO_ETHERNET;
+#endif
+#ifdef IPPROTO_FRAGMENT
+case sock_domain::fragment:
+	return IPPROTO_FRAGMENT;
+#endif
+#ifdef IPPROTO_GGP
+case sock_domain::ggp:
+	return IPPROTO_GGP;
+#endif
+#ifdef IPPROTO_GRE
+case sock_domain::gre:
+	return IPPROTO_GRE;
+#endif
+#ifdef IPPROTO_HOPOPTS
+case sock_domain::hopopts:
+	return IPPROTO_HOPOPTS;
+#endif
+#ifdef IPPROTO_ICLFXBM
+case sock_domain::iclfxbm:
+	return IPPROTO_ICLFXBM;
+#endif
+#ifdef IPPROTO_ICMP
+case sock_domain::icmp:
+	return IPPROTO_ICMP;
+#endif
+#ifdef IPPROTO_ICMPV6
+case sock_domain::icmpv6:
+	return IPPROTO_ICMPV6;
+#endif
+#ifdef IPPROTO_IDP
+case sock_domain::idp:
+	return IPPROTO_IDP;
+#endif
+#ifdef IPPROTO_IGMP
+case sock_domain::igmp:
+	return IPPROTO_IGMP;
+#endif
+#ifdef IPPROTO_IGP
+case sock_domain::igp:
+	return IPPROTO_IGP;
+#endif
+#ifdef IPPROTO_IP
+case sock_domain::ip:
+	return IPPROTO_IP;
+#endif
+#ifdef IPPROTO_IPV4
+case sock_domain::ipv4:
+	return IPPROTO_IPV4;
+#endif
+#ifdef IPPROTO_IPV6
+case sock_domain::ipv6:
+	return IPPROTO_IPV6;
+#endif
+#ifdef IPPROTO_L2TP
+case sock_domain::l2tp:
+	return IPPROTO_L2TP;
+#endif
+#ifdef IPPROTO_MOBILE
+case sock_domain::mobile:
+	return IPPROTO_MOBILE;
+#endif
+#ifdef IPPROTO_MOBILITY
+case sock_domain::mobility:
+	return IPPROTO_MOBILITY;
+#endif
+#ifdef IPPROTO_MOBILITY_OLD
+case sock_domain::mobility_old:
+	return IPPROTO_MOBILITY_OLD;
+#endif
+#ifdef IPPROTO_MPLS
+case sock_domain::mpls:
+	return IPPROTO_MPLS;
+#endif
+#ifdef IPPROTO_MPTCP
+case sock_domain::mptcp:
+	return IPPROTO_MPTCP;
+#endif
+#ifdef IPPROTO_MTP
+case sock_domain::mtp:
+	return IPPROTO_MTP;
+#endif
+#ifdef IPPROTO_ND
+case sock_domain::nd:
+	return IPPROTO_ND;
+#endif
+#ifdef IPPROTO_NONE
+case sock_domain::nonext:
+	return IPPROTO_NONE;
+#endif
+#ifdef IPPROTO_OSPF
+case sock_domain::ospf:
+	return IPPROTO_OSPF;
+#endif
+#ifdef IPPROTO_PGM
+case sock_domain::pgm:
+	return IPPROTO_PGM;
+#endif
+#ifdef IPPROTO_PIGP
+case sock_domain::pigp:
+	return IPPROTO_PIGP;
+#endif
+#ifdef IPPROTO_PIM
+case sock_domain::pim:
+	return IPPROTO_PIM;
+#endif
+#ifdef IPPROTO_PUP
+case sock_domain::pup:
+	return IPPROTO_PUP;
+#endif
+#ifdef IPPROTO_RAW
+case sock_domain::raw:
+	return IPPROTO_RAW;
+#endif
+#ifdef IPPROTO_RDP
+case sock_domain::rdp:
+	return IPPROTO_RDP;
+#endif
+#ifdef IPPROTO_ROUTING
+case sock_domain::routing:
+	return IPPROTO_ROUTING;
+#endif
+#ifdef IPPROTO_RSVP
+case sock_domain::rsvp:
+	return IPPROTO_RSVP;
+#endif
+#ifdef IPPROTO_SCTP
+case sock_domain::sctp:
+	return IPPROTO_SCTP;
+#endif
+#ifdef IPPROTO_ST
+case sock_domain::st:
+	return IPPROTO_ST;
+#endif
+#ifdef IPPROTO_TCP
+case sock_domain::tcp:
+	return IPPROTO_TCP;
+#endif
+#ifdef IPPROTO_TP
+case sock_domain::tp:
+	return IPPROTO_TP;
+#endif
+#ifdef IPPROTO_UDP
+case sock_domain::udp:
+	return IPPROTO_UDP;
+#endif
+#ifdef IPPROTO_UDPLITE
+case sock_domain::udplite:
+	return IPPROTO_UDPLITE;
+#endif
+#ifdef IPPROTO_VRRP
+case sock_domain::vrrp:
+	return IPPROTO_VRRP;
+#endif
+default:
+	throw_posix_error(EINVAL);
+}
+
+
+}
+
 inline int open_socket_impl(sock_domain d,sock_type t,open_mode m,sock_protocal p)
 {
 
