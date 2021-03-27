@@ -459,220 +459,272 @@ default:
 }
 }
 
-inline constexpr int native_sock_domain(sock_type dom)
+inline constexpr int native_sock_protocal(sock_protocal dom)
 {
 switch(dom)
 {
 #ifdef IPPROTO_AH
-case sock_domain::ah:
+case sock_protocal::ah:
 	return IPPROTO_AH;
 #endif
 #ifdef IPPROTO_BEETPH
-case sock_domain::beetph:
+case sock_protocal::beetph:
 	return IPPROTO_BEETPH;
 #endif
 #ifdef IPPROTO_CARP
-case sock_domain::carp:
+case sock_protocal::carp:
 	return IPPROTO_CARP;
 #endif
 #ifdef IPPROTO_CBT
-case sock_domain::cbt:
+case sock_protocal::cbt:
 	return IPPROTO_CBT;
 #endif
 #ifdef IPPROTO_COMP
-case sock_domain::comp:
+case sock_protocal::comp:
 	return IPPROTO_COMP;
 #endif
 #ifdef IPPROTO_DCCP
-case sock_domain::dccp:
+case sock_protocal::dccp:
 	return IPPROTO_DCCP;
 #endif
 #ifdef IPPROTO_DSTOPTS
-case sock_domain::dstopts:
+case sock_protocal::dstopts:
 	return IPPROTO_DSTOPTS;
 #endif
 #ifdef IPPROTO_EGP
-case sock_domain::egp:
+case sock_protocal::egp:
 	return IPPROTO_EGP;
 #endif
 #ifdef IPPROTO_EIGRP
-case sock_domain::eigrp:
+case sock_protocal::eigrp:
 	return IPPROTO_EIGRP;
 #endif
 #ifdef IPPROTO_ENCAP
-case sock_domain::encap:
+case sock_protocal::encap:
 	return IPPROTO_ENCAP;
 #endif
 #ifdef IPPROTO_ESP
-case sock_domain::esp:
+case sock_protocal::esp:
 	return IPPROTO_ESP;
 #endif
 #ifdef IPPROTO_ETHERNET
-case sock_domain::ethernet:
+case sock_protocal::ethernet:
 	return IPPROTO_ETHERNET;
 #endif
 #ifdef IPPROTO_FRAGMENT
-case sock_domain::fragment:
+case sock_protocal::fragment:
 	return IPPROTO_FRAGMENT;
 #endif
 #ifdef IPPROTO_GGP
-case sock_domain::ggp:
+case sock_protocal::ggp:
 	return IPPROTO_GGP;
 #endif
 #ifdef IPPROTO_GRE
-case sock_domain::gre:
+case sock_protocal::gre:
 	return IPPROTO_GRE;
 #endif
 #ifdef IPPROTO_HOPOPTS
-case sock_domain::hopopts:
+case sock_protocal::hopopts:
 	return IPPROTO_HOPOPTS;
 #endif
 #ifdef IPPROTO_ICLFXBM
-case sock_domain::iclfxbm:
+case sock_protocal::iclfxbm:
 	return IPPROTO_ICLFXBM;
 #endif
 #ifdef IPPROTO_ICMP
-case sock_domain::icmp:
+case sock_protocal::icmp:
 	return IPPROTO_ICMP;
 #endif
 #ifdef IPPROTO_ICMPV6
-case sock_domain::icmpv6:
+case sock_protocal::icmpv6:
 	return IPPROTO_ICMPV6;
 #endif
 #ifdef IPPROTO_IDP
-case sock_domain::idp:
+case sock_protocal::idp:
 	return IPPROTO_IDP;
 #endif
 #ifdef IPPROTO_IGMP
-case sock_domain::igmp:
+case sock_protocal::igmp:
 	return IPPROTO_IGMP;
 #endif
 #ifdef IPPROTO_IGP
-case sock_domain::igp:
+case sock_protocal::igp:
 	return IPPROTO_IGP;
 #endif
 #ifdef IPPROTO_IP
-case sock_domain::ip:
+case sock_protocal::ip:
 	return IPPROTO_IP;
 #endif
 #ifdef IPPROTO_IPV4
-case sock_domain::ipv4:
+case sock_protocal::ipv4:
 	return IPPROTO_IPV4;
 #endif
 #ifdef IPPROTO_IPV6
-case sock_domain::ipv6:
+case sock_protocal::ipv6:
 	return IPPROTO_IPV6;
 #endif
 #ifdef IPPROTO_L2TP
-case sock_domain::l2tp:
+case sock_protocal::l2tp:
 	return IPPROTO_L2TP;
 #endif
 #ifdef IPPROTO_MOBILE
-case sock_domain::mobile:
+case sock_protocal::mobile:
 	return IPPROTO_MOBILE;
 #endif
 #ifdef IPPROTO_MOBILITY
-case sock_domain::mobility:
+case sock_protocal::mobility:
 	return IPPROTO_MOBILITY;
 #endif
 #ifdef IPPROTO_MOBILITY_OLD
-case sock_domain::mobility_old:
+case sock_protocal::mobility_old:
 	return IPPROTO_MOBILITY_OLD;
 #endif
 #ifdef IPPROTO_MPLS
-case sock_domain::mpls:
+case sock_protocal::mpls:
 	return IPPROTO_MPLS;
 #endif
 #ifdef IPPROTO_MPTCP
-case sock_domain::mptcp:
+case sock_protocal::mptcp:
 	return IPPROTO_MPTCP;
 #endif
 #ifdef IPPROTO_MTP
-case sock_domain::mtp:
+case sock_protocal::mtp:
 	return IPPROTO_MTP;
 #endif
 #ifdef IPPROTO_ND
-case sock_domain::nd:
+case sock_protocal::nd:
 	return IPPROTO_ND;
 #endif
 #ifdef IPPROTO_NONE
-case sock_domain::nonext:
+case sock_protocal::nonext:
 	return IPPROTO_NONE;
 #endif
 #ifdef IPPROTO_OSPF
-case sock_domain::ospf:
+case sock_protocal::ospf:
 	return IPPROTO_OSPF;
 #endif
 #ifdef IPPROTO_PGM
-case sock_domain::pgm:
+case sock_protocal::pgm:
 	return IPPROTO_PGM;
 #endif
 #ifdef IPPROTO_PIGP
-case sock_domain::pigp:
+case sock_protocal::pigp:
 	return IPPROTO_PIGP;
 #endif
 #ifdef IPPROTO_PIM
-case sock_domain::pim:
+case sock_protocal::pim:
 	return IPPROTO_PIM;
 #endif
 #ifdef IPPROTO_PUP
-case sock_domain::pup:
+case sock_protocal::pup:
 	return IPPROTO_PUP;
 #endif
 #ifdef IPPROTO_RAW
-case sock_domain::raw:
+case sock_protocal::raw:
 	return IPPROTO_RAW;
 #endif
 #ifdef IPPROTO_RDP
-case sock_domain::rdp:
+case sock_protocal::rdp:
 	return IPPROTO_RDP;
 #endif
 #ifdef IPPROTO_ROUTING
-case sock_domain::routing:
+case sock_protocal::routing:
 	return IPPROTO_ROUTING;
 #endif
 #ifdef IPPROTO_RSVP
-case sock_domain::rsvp:
+case sock_protocal::rsvp:
 	return IPPROTO_RSVP;
 #endif
 #ifdef IPPROTO_SCTP
-case sock_domain::sctp:
+case sock_protocal::sctp:
 	return IPPROTO_SCTP;
 #endif
 #ifdef IPPROTO_ST
-case sock_domain::st:
+case sock_protocal::st:
 	return IPPROTO_ST;
 #endif
 #ifdef IPPROTO_TCP
-case sock_domain::tcp:
+case sock_protocal::tcp:
 	return IPPROTO_TCP;
 #endif
 #ifdef IPPROTO_TP
-case sock_domain::tp:
+case sock_protocal::tp:
 	return IPPROTO_TP;
 #endif
 #ifdef IPPROTO_UDP
-case sock_domain::udp:
+case sock_protocal::udp:
 	return IPPROTO_UDP;
 #endif
 #ifdef IPPROTO_UDPLITE
-case sock_domain::udplite:
+case sock_protocal::udplite:
 	return IPPROTO_UDPLITE;
 #endif
 #ifdef IPPROTO_VRRP
-case sock_domain::vrrp:
+case sock_protocal::vrrp:
 	return IPPROTO_VRRP;
 #endif
 default:
 	throw_posix_error(EINVAL);
 }
+}
 
+inline constexpr int native_sock_type(sock_type dom)
+{
+switch(sock_type)
+{
+#ifdef SOCK_STREAM
+case sock_type::stream:
+	return SOCK_STREAM;
+#endif
+#ifdef SOCK_DGRAM
+case sock_type::dgram:
+	return SOCK_DGRAM;
+#endif
+#ifdef SOCK_SEQPACKET
+case sock_type::seqpacket:
+	return SOCK_SEQPACKET;
+#endif
+#ifdef SOCK_RAW
+case sock_type::raw:
+	return SOCK_RAW;
+#endif
+#ifdef SOCK_RDM
+case sock_type::rdm:
+	return SOCK_RDM;
+#endif
+#ifdef SOCK_PACKET
+case sock_type::packet:
+	return SOCK_PACKET;
+#endif
+default:
+	throw_posix_error(EINVAL);
+};
+}
 
+inline constexpr int native_sock_open_mode(open_mode om)
+{
+	int ret{
+#ifdef SOCK_CLOEXEC
+	SOCK_CLOEXEC
+#endif
+	};
+	if((om&open_mode::inherit)==open_mode::inherit)
+		ret=0;
+	if((om&open_mode::no_block)==open_mode::no_block)
+#ifdef SOCK_NONBLOCK
+		ret|=SOCK_NONBLOCK;
+#else
+		throw_posix_error(EINVAL);
+#endif
+	return ret;
 }
 
 inline int open_socket_impl(sock_domain d,sock_type t,open_mode m,sock_protocal p)
 {
-
+	int fd{socket(native_sock_domain(d),native_sock_type(t)|native_sock_open_mode(m),native_sock_protocal(p))};
+	if(fd=-1)
+		throw_posix_error();
+	return fd;
 }
 
 }
@@ -690,7 +742,9 @@ public:
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	constexpr basic_posix_socket_file(native_hd fd) noexcept: basic_posix_socket_io_handle<ch_type>{fd}{}
 
-	constexpr basic_posix_socket_file(sock_domain d,sock_type t,sock_protocal p){}
+	constexpr basic_posix_socket_file(sock_domain d,sock_type t,open_mode m,sock_protocal p)
+		:basic_posix_socket_io_handle<ch_type>{details::open_socket_impl(d,t,m,p)}
+	{}
 
 	basic_posix_socket_file(io_dup_t,basic_posix_socket_io_observer<ch_type> piob):basic_posix_socket_io_handle<ch_type>{details::sys_dup(piob.fd)}
 	{}
