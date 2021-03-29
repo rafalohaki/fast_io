@@ -37,7 +37,6 @@ ipip,        	/* IPIP tunnels (older KA9Q tunnels use 94).  */
 ipv4,
 ipv6,        	/* IPv6 header.  */
 l2tp,
-max,
 mobile,
 mobility,
 mobility_old,

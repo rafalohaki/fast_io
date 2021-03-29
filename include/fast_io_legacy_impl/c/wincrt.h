@@ -138,7 +138,7 @@ inline void wincrt_fp_write_cold_malloc_case_impl(std::FILE* __restrict fpp,char
 	my_memcpy(newbuffer,first,diff);
 	fp->_ptr=(fp->_base=reinterpret_cast<char*>(newbuffer))+diff;
 	fp->_bufsiz=static_cast<int>(allocated_buffer_size);
-	fp->_cnt=fp->_bufsiz-diff;
+	fp->_cnt=fp->_bufsiz-static_cast<int>(diff);
 	wincrt_fp_set_flag_dirty_impl(fp);
 }
 
