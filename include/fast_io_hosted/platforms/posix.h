@@ -376,41 +376,41 @@ public:
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	constexpr explicit basic_posix_io_handle(native_hd fdd):basic_posix_io_observer<ch_type>{fdd}{}
-	basic_posix_io_handle(basic_posix_io_handle const& dp):basic_posix_io_observer<ch_type>{details::sys_dup(dp.native_handle())}
+	basic_posix_io_handle(basic_posix_io_handle const& dp):basic_posix_io_observer<ch_type>{details::sys_dup(dp.fd)}
 	{
 	}
 	basic_posix_io_handle& operator=(basic_posix_io_handle const& dp)
 	{
-		this->native_handle()=details::sys_dup2(dp.native_handle(),this->native_handle());
+		this->fd=details::sys_dup2(dp.fd,this->fd);
 		return *this;
 	}
-	constexpr basic_posix_io_handle(basic_posix_io_handle&& b) noexcept : basic_posix_io_handle(b.native_handle())
+	constexpr basic_posix_io_handle(basic_posix_io_handle&& b) noexcept : basic_posix_io_handle(b.fd)
 	{
-		b.native_handle() = -1;
+		b.fd = -1;
 	}
 	basic_posix_io_handle& operator=(basic_posix_io_handle&& b) noexcept
 	{
-		if(b.native_handle()!=this->native_handle())
+		if(b.fd!=this->fd)
 		{
-			if(this->native_handle()!=-1)[[likely]]
-				details::sys_close(this->native_handle());
-			this->native_handle()=b.native_handle();
-			b.native_handle() = -1;
+			if(this->fd!=-1)[[likely]]
+				details::sys_close(this->fd);
+			this->fd=b.fd;
+			b.fd = -1;
 		}
 		return *this;
 	}
 	inline constexpr void reset(native_handle_type newfd=-1) noexcept
 	{
-		if(this->native_handle()!=-1)[[likely]]
-			details::sys_close(this->native_handle());
-		this->native_handle()=newfd;
+		if(this->fd!=-1)[[likely]]
+			details::sys_close(this->fd);
+		this->fd=newfd;
 	}
 	void close()
 	{
 		if(*this)[[likely]]
 		{
-			details::sys_close_throw_error(this->native_handle());
-			this->native_handle()=-1;
+			details::sys_close_throw_error(this->fd);
+			this->fd=-1;
 		}
 	}
 };
@@ -783,12 +783,12 @@ inline posix_file_status status(basic_posix_io_observer<ch_type> piob)
 template<std::integral ch_type>
 inline auto zero_copy_in_handle(basic_posix_io_observer<ch_type> h)
 {
-	return h.native_handle();
+	return h.fd;
 }
 template<std::integral ch_type>
 inline auto zero_copy_out_handle(basic_posix_io_observer<ch_type> h)
 {
-	return h.native_handle();
+	return h.fd;
 }
 #endif
 
@@ -798,9 +798,9 @@ template<std::integral ch_type>
 inline auto redirect_handle(basic_posix_io_observer<ch_type> h) noexcept
 {
 #if defined(_WIN32)
-	return bit_cast<void*>(_get_osfhandle(h.native_handle()));
+	return bit_cast<void*>(_get_osfhandle(h.fd));
 #else
-	return h.native_handle();
+	return h.fd;
 #endif
 }
 #else
@@ -832,14 +832,14 @@ extern int ioctl(int fd, unsigned long request, ...) noexcept asm("ioctl");
 template<std::integral ch_type,typename... Args>
 requires requires(basic_posix_io_observer<ch_type> h,Args&& ...args)
 {
-	::fast_io::posix::ioctl(h.native_handle(),std::forward<Args>(args)...);
+	::fast_io::posix::ioctl(h.fd,std::forward<Args>(args)...);
 }
 inline void io_control(basic_posix_io_observer<ch_type> h,Args&& ...args)
 {
 #if defined(__linux__)
-	system_call_throw_error(system_call<__NR_ioctl,int>(h.native_handle(),std::forward<Args>(args)...));
+	system_call_throw_error(system_call<__NR_ioctl,int>(h.fd,std::forward<Args>(args)...));
 #else
-	if(::fast_io::posix::ioctl(h.native_handle(),std::forward<Args>(args)...)==-1)
+	if(::fast_io::posix::ioctl(h.fd,std::forward<Args>(args)...)==-1)
 		throw_posix_error();
 #endif
 }
@@ -1029,7 +1029,7 @@ public:
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	constexpr basic_posix_file(native_hd fd) noexcept: basic_posix_io_handle<ch_type>(fd){}
 
-	basic_posix_file(io_dup_t,basic_posix_io_observer<ch_type> piob):basic_posix_io_handle<ch_type>(details::sys_dup(piob.native_handle()))
+	basic_posix_file(io_dup_t,basic_posix_io_observer<ch_type> piob):basic_posix_io_handle<ch_type>(details::sys_dup(piob.fd))
 	{}
 #if defined(_WIN32)
 //windows specific. open posix file from win32 io handle
@@ -1100,7 +1100,7 @@ To verify whether O_TMPFILE is a thing on FreeBSD. https://github.com/FreeRDP/Fr
 	basic_posix_file(io_temp_t):basic_posix_file(
 		system_call<__NR_openat,int>(AT_FDCWD,u8"/tmp",O_EXCL|O_RDWR|O_TMPFILE|O_APPEND|O_NOATIME,S_IRUSR | S_IWUSR))
 	{
-		system_call_throw_error(native_handle());
+		system_call_throw_error(this->fd);
 	}
 #else
 	basic_posix_file(io_temp_t)
@@ -1116,8 +1116,8 @@ To verify whether O_TMPFILE is a thing on FreeBSD. https://github.com/FreeRDP/Fr
 
 	~basic_posix_file()
 	{
-		if(this->native_handle()!=-1)[[likely]]
-			details::sys_close(this->native_handle());
+		if(this->fd!=-1)[[likely]]
+			details::sys_close(this->fd);
 	}
 };
 #if !defined(__NEWLIB__)
@@ -1125,11 +1125,11 @@ template<std::integral ch_type>
 inline void truncate(basic_posix_io_observer<ch_type> h,std::uintmax_t size)
 {
 #ifdef _WIN32
-	auto err(_chsize_s(h.native_handle(),size));
+	auto err(_chsize_s(h.fd,size));
 	if(err)
 		throw_posix_error(err);
 #else
-	if(::ftruncate(h.native_handle(),size)<0)
+	if(::ftruncate(h.fd,size)<0)
 		throw_posix_error();
 #endif
 }
@@ -1144,15 +1144,15 @@ public:
 	native_handle_type pipes;
 	basic_posix_pipe()
 	{
-		std::array<int,2> a2{pipes.front().native_handle(),pipes.back().native_handle()};
+		std::array<int,2> a2{pipes.front().fd,pipes.back().fd};
 #if defined(__WINNT__) || defined(_MSC_VER)
 		if(_pipe(a2.data(),1048576,_O_BINARY)==-1)
 #else
 		if(::pipe(a2.data())==-1)
 #endif
 			throw_posix_error();
-		pipes.front().native_handle()=a2.front();
-		pipes.back().native_handle()=a2.back();
+		pipes.front().fd=a2.front();
+		pipes.back().fd=a2.back();
 	}
 	constexpr auto& native_handle()
 	{
@@ -1190,8 +1190,8 @@ inline void flush(basic_posix_pipe<ch_type>&)
 template<std::integral ch_type>
 inline std::array<int*,2> redirect_handle(basic_posix_pipe<ch_type>& h)
 {
-	return {std::addressof(h.in().native_handle()),
-		std::addressof(h.out().native_handle())};
+	return {std::addressof(h.in().fd),
+		std::addressof(h.out().fd)};
 }
 #else
 template<std::integral ch_type>
@@ -1207,12 +1207,12 @@ inline constexpr posix_io_redirection redirect(basic_posix_pipe<ch_type>& h) noe
 template<std::integral ch_type>
 inline auto zero_copy_in_handle(basic_posix_pipe<ch_type>& h)
 {
-	return h.in().native_handle();
+	return h.in().fd;
 }
 template<std::integral ch_type>
 inline auto zero_copy_out_handle(basic_posix_pipe<ch_type>& h)
 {
-	return h.out().native_handle();
+	return h.out().fd;
 }
 #endif
 
