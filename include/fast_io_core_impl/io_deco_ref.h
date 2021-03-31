@@ -16,13 +16,19 @@ constexpr deco_reference_wrapper<decot> deco_value_handle(deco_reference_wrapper
 	return wrap;
 }
 
+namespace details
+{
+template<typename decot>
+concept has_deco_value_handle_impl = requires(decot & deco)
+{
+	deco_value_handle(deco);
+};
+}
+
 template<typename decot>
 inline constexpr auto io_deco_ref(decot& deco) noexcept
 {
-	if constexpr(requires()
-	{
-		deco_value_handle(deco);
-	})
+	if constexpr(details::has_deco_value_handle_impl<decot>)
 		return deco_value_handle(deco);
 	else
 		return deco_reference_wrapper<std::remove_cvref_t<decot>>{std::addressof(deco)};
