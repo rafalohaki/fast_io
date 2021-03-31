@@ -39,3 +39,6 @@ For hosted implementations the set of standard library headers required by the C
 #include"fast_io_hosted/complex.h"
 
 #include"fast_io_hosted/time.h"
+#if defined(_WIN32) || defined(__CYGWIN__)
+#include"fast_io_hosted/box.h"
+#endif
