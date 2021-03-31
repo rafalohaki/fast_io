@@ -11,41 +11,12 @@ namespace fast_io
 namespace win32
 {
 #if defined(__MINGW32__) && !defined(_UCRT)
-__declspec(dllimport) extern void __cdecl _lock_file(FILE*) noexcept
-#if defined(__clang__) || defined(__GNUC__)
-asm("_lock_file")
-#endif
-;
-__declspec(dllimport) extern void __cdecl _unlock_file(FILE*) noexcept
-#if defined(__clang__) || defined(__GNUC__)
-asm("_unlock_file")
-#endif
-;
-
-__declspec(dllimport) extern std::size_t __cdecl _fwrite_nolock(void const* __restrict buffer,std::size_t size,std::size_t count,FILE* __restrict) noexcept
-#if defined(__clang__) || defined(__GNUC__)
-asm("_fwrite_nolock")
-#endif
-;
-
-__declspec(dllimport) extern std::size_t __cdecl _fread_nolock(void* __restrict buffer,std::size_t size,std::size_t count,FILE* __restrict) noexcept
-#if defined(__clang__) || defined(__GNUC__)
-asm("_fread_nolock")
-#endif
-;
-
-__declspec(dllimport) extern std::size_t __cdecl fwrite(void const* __restrict buffer,std::size_t size,std::size_t count,FILE* __restrict) noexcept
-#if defined(__clang__) || defined(__GNUC__)
-asm("fwrite")
-#endif
-;
-
-__declspec(dllimport) extern std::size_t __cdecl fread(void* __restrict buffer,std::size_t size,std::size_t count,FILE* __restrict) noexcept
-#if defined(__clang__) || defined(__GNUC__)
-asm("fread")
-#endif
-;
-
+[[gnu::dllimport]] extern void __cdecl _lock_file(FILE*) noexcept asm("_lock_file");
+[[gnu::dllimport]] extern void __cdecl _unlock_file(FILE*) noexcept asm("_unlock_file");
+[[gnu::dllimport]] extern std::size_t __cdecl _fwrite_nolock(void const* __restrict buffer,std::size_t size,std::size_t count,FILE* __restrict) noexcept asm("_fwrite_nolock");
+[[gnu::dllimport]] extern std::size_t __cdecl _fread_nolock(void* __restrict buffer,std::size_t size,std::size_t count,FILE* __restrict) noexcept asm("_fread_nolock");
+[[gnu::dllimport]] extern std::size_t __cdecl fwrite(void const* __restrict buffer,std::size_t size,std::size_t count,FILE* __restrict) noexcept asm("fwrite");
+[[gnu::dllimport]] extern std::size_t __cdecl fread(void* __restrict buffer,std::size_t size,std::size_t count,FILE* __restrict) noexcept asm("fread");
 #endif
 }
 
