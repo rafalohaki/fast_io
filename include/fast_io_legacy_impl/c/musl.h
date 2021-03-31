@@ -8,7 +8,7 @@ namespace details::fp_hack
 {
 
 
-#if __wasi__ == 1
+#ifdef __wasi__
 
 struct fp_model {
 	unsigned flags;
