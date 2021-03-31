@@ -350,7 +350,7 @@ template<intiso_t off_to_epoch>
 inline basic_timestamp<off_to_epoch> posix_clock_settime(posix_clock_id pclk_id,basic_timestamp<off_to_epoch> timestamp)
 {
 #ifdef _WIN32
-	return win32_clock_settime(pclk_id,timestamp);
+	return nt_clock_settime(pclk_id,timestamp);
 #else
 	if constexpr(std::same_as<basic_timestamp<off_to_epoch>,unix_timestamp>)
 	{

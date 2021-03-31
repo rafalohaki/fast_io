@@ -6,6 +6,52 @@ namespace fast_io
 
 namespace details::fp_hack
 {
+
+
+#if __wasi__ == 1
+
+struct fp_model {
+	unsigned flags;
+	unsigned char *rpos, *rend;
+	int (*close)(FILE *);
+	unsigned char *wend, *wpos;
+#ifdef __wasilibc_unmodified_upstream // WASI doesn't need backwards-compatibility fields.
+	unsigned char *mustbezero_1;
+#endif
+	unsigned char *wbase;
+	size_t (*read)(FILE *, unsigned char *, size_t);
+	size_t (*write)(FILE *, const unsigned char *, size_t);
+	off_t (*seek)(FILE *, off_t, int);
+	unsigned char *buf;
+	size_t buf_size;
+	FILE *prev, *next;
+	int fd;
+#ifdef __wasilibc_unmodified_upstream // WASI has no popen
+	int pipe_pid;
+#endif
+#if defined(__wasilibc_unmodified_upstream) || defined(_REENTRANT)
+	long lockcount;
+#endif
+	int mode;
+#if defined(__wasilibc_unmodified_upstream) || defined(_REENTRANT)
+	volatile int lock;
+#endif
+	int lbf;
+	void *cookie;
+	off_t off;
+	char *getln_buf;
+#ifdef __wasilibc_unmodified_upstream // WASI doesn't need backwards-compatibility fields.
+	void *mustbezero_2;
+#endif
+	unsigned char *shend;
+	off_t shlim, shcnt;
+#if defined(__wasilibc_unmodified_upstream) || defined(_REENTRANT)
+	FILE *prev_locked, *next_locked;
+#endif
+	void *locale;
+};
+
+#else
 //https://github.com/EOSIO/musl/blob/master/src/internal/stdio_impl.h
 struct fp_model
 {
@@ -38,7 +84,7 @@ struct fp_model
 	FILE *prev_locked, *next_locked;
 	void *locale;
 };
-
+#endif
 
 template<std::size_t position>
 requires (position<6)

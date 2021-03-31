@@ -6,9 +6,15 @@ namespace fast_io
 namespace details
 {
 
+#if defined(__CYGWIN__)
+[[gnu::dllimport]] extern std::size_t __cdecl my_cygwin_fwrite_unlocked(void const* __restrict buffer,std::size_t size,std::size_t count,FILE* __restrict) noexcept asm("fwrite_unlocked");
+
+[[gnu::dllimport]] extern std::size_t __cdecl my_cygwin_fread_unlocked(void* __restrict buffer,std::size_t size,std::size_t count,FILE* __restrict) noexcept asm("fread_unlocked");
+#endif
+
 inline std::size_t c_fwrite_unlocked_impl(void const* __restrict begin,std::size_t type_size,std::size_t count,std::FILE* __restrict fp)
 {
-#if defined(__NEWLIB__) && !(__CYGWIN__)
+#if defined(__NEWLIB__) && !defined(__CYGWIN__)
 	struct _reent rent;
 	std::size_t written_count{_fwrite_unlocked_r(std::addressof(rent),begin,type_size,count,fp)};
 	if(!written_count)[[unlikely]]
@@ -18,6 +24,8 @@ inline std::size_t c_fwrite_unlocked_impl(void const* __restrict begin,std::size
 	std::size_t written_count{
 #if defined(_MSC_VER)||defined(_UCRT)
 	_fwrite_nolock
+#elif defined(__CYGWIN__)
+	my_cygwin_fwrite_unlocked
 #elif defined(__NEWLIB__) && !defined(__IMPL_UNLOCKED__)
 	fwrite
 #elif defined(_POSIX_SOURCE) || defined(__BSD_VISIBLE)
@@ -40,7 +48,7 @@ inline std::size_t c_fwrite_unlocked_impl(void const* __restrict begin,std::size
 
 inline std::size_t c_fread_unlocked_impl(void* __restrict begin,std::size_t type_size,std::size_t count,std::FILE* __restrict fp)
 {
-#if defined(__NEWLIB__) && !(__CYGWIN__)
+#if defined(__NEWLIB__) && !defined(__CYGWIN__)
 	struct _reent rent;
 	std::size_t read_count{_fread_unlocked_r(std::addressof(rent),begin,type_size,count,fp)};
 	if(read_count==0)[[unlikely]]
@@ -53,6 +61,8 @@ inline std::size_t c_fread_unlocked_impl(void* __restrict begin,std::size_t type
 	std::size_t read_count{
 #if defined(_MSC_VER)||defined(_UCRT)
 	_fread_nolock
+#elif defined(__CYGWIN__)
+	my_cygwin_fread_unlocked
 #elif defined(__NEWLIB__) && !defined(__IMPL_UNLOCKED__)
 	fread
 #elif defined(_POSIX_C_SOURCE) || defined(__BSD_VISIBLE)

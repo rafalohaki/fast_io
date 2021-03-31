@@ -568,6 +568,26 @@ inline std::uintmax_t c_io_seek_no_lock_impl(std::FILE* fp,std::intmax_t offset,
 }
 #endif
 #endif
+
+#if defined(__CYGWIN__) && !defined(__SINGLE_THREAD__)
+
+[[gnu::dllimport]] extern void my_pthread_mutex_lock(void*) noexcept asm("pthread_mutex_lock");
+[[gnu::dllimport]] extern void my_pthread_mutex_unlock(void*) noexcept asm("pthread_mutex_unlock");
+
+inline void my_cygwin_flockfile(std::FILE* fp) noexcept
+{
+	if(!((fp->_flags)&__SSTR))
+		my_pthread_mutex_lock(fp->_lock);
+}
+
+inline void my_cygwin_funlockfile(std::FILE* fp) noexcept
+{
+	if(!((fp->_flags)&__SSTR))
+		my_pthread_mutex_unlock(fp->_lock);
+}
+
+#endif
+
 }
 
 template<std::integral ch_type>
@@ -586,6 +606,7 @@ inline decltype(auto) io_control(basic_c_io_observer_unlocked<ch_type> h,Args&& 
 {
 	return io_control(static_cast<basic_posix_io_observer<ch_type>>(h),std::forward<Args>(args)...);
 }
+
 
 template<std::integral ch_type>
 class basic_c_io_observer
@@ -629,32 +650,40 @@ public:
 	}
 	inline void lock() const noexcept
 	{
+#if !defined(__SINGLE_THREAD__)
 #if defined(_MSC_VER)||defined(_UCRT)
 	_lock_file(fp);
 #elif defined(_WIN32)
 	win32::my_msvcrt_lock_file(fp);
 #elif defined(__NEWLIB__)
-#if !defined(__SINGLE_THREAD__) || defined(__CYGWIN__)
+#if defined(__CYGWIN__)
+	details::my_cygwin_flockfile(fp);
+#elif !defined(__SINGLE_THREAD__)
 //	_flockfile(fp);	//TO FIX undefined reference to `__cygwin_lock_lock' why?
 #endif
 #elif defined(__MSDOS__)
 #else
 	flockfile(fp);
 #endif
+#endif
 	}
 	inline void unlock() const noexcept
 	{
+#if !defined(__SINGLE_THREAD__)
 #if defined(_MSC_VER)||defined(_UCRT)
 	_unlock_file(fp);
 #elif defined(_WIN32)
 	win32::my_msvcrt_unlock_file(fp);
 #elif defined(__NEWLIB__)
-#if !defined(__SINGLE_THREAD__) || defined(__CYGWIN__)
+#if defined(__CYGWIN__)
+	details::my_cygwin_funlockfile(fp);
+#elif !defined(__SINGLE_THREAD__)
 //	_funlockfile(fp); //TO FIX
 #endif
 #elif defined(__MSDOS__)
 #else
 	funlockfile(fp);
+#endif
 #endif
 	}
 	inline constexpr basic_c_io_observer_unlocked<ch_type> unlocked_handle() const noexcept
@@ -1096,7 +1125,11 @@ inline decltype(auto) zero_copy_out_handle(basic_c_io_observer_unlocked<ch_type>
 
 #if defined(__GLIBC__)
 #include"glibc.h"
-#elif defined(__MUSL__) || defined(__NEED___isoc_va_list)
+#elif defined(__wasi__)
+#ifdef __wasilibc_unmodified_upstream
+#include"musl.h"
+#endif
+#elif defined(__NEED___isoc_va_list)
 #include"musl.h"
 #elif defined(__BSD_VISIBLE) ||defined(__DARWIN_C_LEVEL) \
 	|| (defined(__NEWLIB__) &&!defined(__CUSTOM_FILE_IO__)) \
