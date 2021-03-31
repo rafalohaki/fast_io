@@ -467,7 +467,7 @@ template<
 encoding_scheme src_scheme=encoding_scheme::execution_charset,
 encoding_scheme dst_scheme=encoding_scheme::execution_charset,
 typename rg>
-constexpr code_cvt_t<encoding_scheme::execution_charset,encoding_scheme::execution_charset,std::ranges::range_value_t<std::remove_cvref_t<rg>>> code_cvt(rg&& t)
+constexpr code_cvt_t<src_scheme,dst_scheme,std::ranges::range_value_t<std::remove_cvref_t<rg>>> code_cvt(rg&& t)
 {
 	if constexpr(std::is_array_v<std::remove_cvref_t<rg>>)
 		return {{std::ranges::data(t),std::ranges::size(t)-1}};
@@ -479,7 +479,7 @@ template<
 encoding_scheme src_scheme=encoding_scheme::execution_charset,
 encoding_scheme dst_scheme=encoding_scheme::execution_charset,
 std::integral char_type>
-constexpr code_cvt_t<encoding_scheme::execution_charset,encoding_scheme::execution_charset,char_type> code_cvt(chvw_t<char_type const*> t) noexcept
+constexpr code_cvt_t<src_scheme,dst_scheme,char_type> code_cvt(chvw_t<char_type const*> t) noexcept
 {
 	std::basic_string_view<char_type> view(t.reference);
 	return {{view.data(),view.size()}};
