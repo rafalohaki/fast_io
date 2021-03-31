@@ -43,10 +43,10 @@ template<typename T>
 requires (sizeof(T)==1)
 inline constexpr std::size_t get_gb18030_invalid_code_units(T* p_dst) noexcept
 {
-	*p_dst=0x84;
-	p_dst[1]=0x31;
-	p_dst[2]=0xA4;
-	p_dst[3]=0x37;
+	*p_dst=static_cast<T>(0x84);
+	p_dst[1]=static_cast<T>(0x31);
+	p_dst[2]=static_cast<T>(0xA4);
+	p_dst[3]=static_cast<T>(0x37);
 	return 4;
 }
 
@@ -160,7 +160,7 @@ inline constexpr std::size_t get_gb18030_code_units(char32_t cdpt, T* p_dst) noe
 {
 	if(cdpt<0x80)[[likely]]
 	{
-		*p_dst=cdpt;
+		*p_dst=static_cast<T>(static_cast<std::make_unsigned_t<T>>(cdpt));
 		return 1;
 	}
 	return get_gb18030_code_units_unhappy(cdpt,p_dst);
