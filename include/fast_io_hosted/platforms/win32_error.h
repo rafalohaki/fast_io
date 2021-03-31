@@ -71,7 +71,7 @@ inline constexpr char_type* print_reserve_define_win32_error_ptr_impl(char_type*
 		[[gnu::may_alias]]
 #endif
 		= wchar_t*;
-		return print_reserve_define_win32_error_impl(reinterpret_cast<char_type_may_alias_ptr>(ptr),ec);
+		return ptr+print_reserve_define_win32_error_impl(reinterpret_cast<char_type_may_alias_ptr>(ptr),ec);
 	}
 	else
 	{

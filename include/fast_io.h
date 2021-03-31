@@ -143,6 +143,81 @@ inline u8out_buf_type u8err_buf()
 	return u8out_buf_type(native_stderr<char8_t>());
 }
 
+
+#if defined(_WIN32) || defined(__CYGWIN__)
+
+inline constexpr basic_win32_box_t<char> box() noexcept
+{
+	return basic_win32_box_t<char>{};
+}
+
+inline constexpr basic_win32_box_t<wchar_t> wbox() noexcept
+{
+	return basic_win32_box_t<wchar_t>{};
+}
+
+inline constexpr basic_win32_box_t<char8_t> u8box() noexcept
+{
+	return basic_win32_box_t<char8_t>{};
+}
+
+inline constexpr basic_win32_box_t<char16_t> u16box() noexcept
+{
+	return basic_win32_box_t<char16_t>{};
+}
+
+inline constexpr basic_win32_box_t<char32_t> u32box() noexcept
+{
+	return basic_win32_box_t<char32_t>{};
+}
+#else
+
+inline
+#ifndef _WIN32
+constexpr
+#endif
+decltype(auto) box() noexcept
+{
+	return native_stdout<char>();
+}
+
+inline
+#ifndef _WIN32
+constexpr
+#endif
+decltype(auto) wbox() noexcept
+{
+	return native_stdout<wchar_t>();
+}
+
+inline
+#ifndef _WIN32
+constexpr
+#endif
+decltype(auto) u8box() noexcept
+{
+	return native_stdout<char8_t>();
+}
+
+inline
+#ifndef _WIN32
+constexpr
+#endif
+decltype(auto) u16box() noexcept
+{
+	return native_stdout<char16_t>();
+}
+
+inline
+#ifndef _WIN32
+constexpr
+#endif
+decltype(auto) u32box() noexcept
+{
+	return native_stdout<char32_t>();
+}
+
+#endif
 namespace details
 {
 

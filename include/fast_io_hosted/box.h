@@ -78,29 +78,4 @@ inline void write(basic_win32_box_t<char_type>,Iter first,Iter last)
 		details::win32_box_dealer_path_impl(std::to_address(first),std::to_address(last));
 }
 
-inline constexpr basic_win32_box_t<char> box() noexcept
-{
-	return basic_win32_box_t<char>{};
-}
-
-inline constexpr basic_win32_box_t<wchar_t> wbox() noexcept
-{
-	return basic_win32_box_t<wchar_t>{};
-}
-
-inline constexpr basic_win32_box_t<char8_t> u8box() noexcept
-{
-	return basic_win32_box_t<char8_t>{};
-}
-
-inline constexpr basic_win32_box_t<char16_t> u16box() noexcept
-{
-	return basic_win32_box_t<char16_t>{};
-}
-
-inline constexpr basic_win32_box_t<char32_t> u32box() noexcept
-{
-	return basic_win32_box_t<char32_t>{};
-}
-
 }
