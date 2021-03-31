@@ -60,6 +60,7 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - Cygwin/MSYS2
 - Android
 - Wine
+- ReactOS
 - Windows Runtime
 - Todo list: Webassembly
 
