@@ -4,7 +4,7 @@ namespace fast_io
 {
 #if defined(QT_VERSION) && defined(QT_VERSION_CHECK)
 #if (QT_VERSION >= QT_VERSION_CHECK(5,6,0))
-namespace mnp
+namespace manipulators
 {
 template<
 encoding_scheme src_scheme=encoding_scheme::execution_charset,
@@ -37,7 +37,7 @@ inline constexpr basic_io_scatter_t<char_type> print_scatter_define(print_scatte
 #endif
 #endif
 
-namespace mnp
+namespace manipulators
 {
 template<
 encoding_scheme src_scheme=encoding_scheme::execution_charset,
