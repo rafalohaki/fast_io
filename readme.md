@@ -60,6 +60,7 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - Cygwin/MSYS2
 - Android
 - Wine
+- Windows Runtime
 - Todo list: Webassembly
 
 ## Supported libc FILE* hacks platforms
