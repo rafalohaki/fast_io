@@ -664,18 +664,18 @@ public:
 	explicit constexpr basic_nt_family_io_handle(native_hd hd) noexcept:basic_nt_family_io_observer<family,ch_type>{hd}{}
 	void reset(native_handle_type newhandle=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))) noexcept
 	{
-		if(this->native_handle()!=static_cast<std::uintptr_t>(-1))[[likely]]
-			win32::nt::nt_close<family==nt_family::zw>(this->native_handle());
-		this->native_handle()=newhandle;
+		if(this->handle!=static_cast<std::uintptr_t>(-1))[[likely]]
+			win32::nt::nt_close<family==nt_family::zw>(this->handle);
+		this->handle=newhandle;
 	}
 	void close()
 	{
-		if(this->native_handle()!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))[[likely]]
+		if(this->handle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))[[likely]]
 		{
-			auto status{win32::nt::nt_close<family==nt_family::zw>(this->native_handle())};
+			auto status{win32::nt::nt_close<family==nt_family::zw>(this->handle)};
 			if(status)[[unlikely]]
 				throw_nt_error(status);
-			this->native_handle()=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
+			this->handle=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
 		}
 	}
 	basic_nt_family_io_handle(basic_nt_family_io_handle const& other):basic_nt_family_io_observer<family,ch_type>(win32::nt::details::nt_dup_impl<family==nt_family::zw>(other.handle)){}
@@ -690,10 +690,10 @@ public:
 	{
 		if(std::addressof(b)!=this)
 		{
-			if(this->native_handle()!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))[[likely]]
-				win32::nt::nt_close<family==nt_family::zw>(this->native_handle());
-			this->native_handle() = b.native_handle();
-			b.native_handle()=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
+			if(this->handle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))[[likely]]
+				win32::nt::nt_close<family==nt_family::zw>(this->handle);
+			this->handle = b.handle;
+			b.handle=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
 		}
 		return *this;
 	}
@@ -760,8 +760,8 @@ public:
 	basic_nt_family_file& operator=(basic_nt_family_file&&) noexcept=default;
 	~basic_nt_family_file()
 	{
-		if(this->native_handle()!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))[[likely]]
-			win32::nt::nt_close<family==nt_family::zw>(this->native_handle());
+		if(this->handle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))[[likely]]
+			win32::nt::nt_close<family==nt_family::zw>(this->handle);
 	}
 };
 

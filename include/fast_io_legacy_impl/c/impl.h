@@ -441,10 +441,10 @@ inline constexpr posix_at_entry at(basic_c_io_observer_unlocked<ch_type> other) 
 template<std::integral ch_type>
 inline auto redirect_handle(basic_c_io_observer_unlocked<ch_type> h)
 {
-#if defined(__WINNT__) || defined(_MSC_VER)
-	return static_cast<basic_win32_io_observer<ch_type>>(h).native_handle();
+#ifdef _WIN32
+	return static_cast<basic_win32_io_observer<ch_type>>(h).handle;
 #else
-	return static_cast<basic_posix_io_observer<ch_type>>(h).native_handle();
+	return static_cast<basic_posix_io_observer<ch_type>>(h).fd;
 #endif
 }
 
@@ -472,7 +472,7 @@ inline void flush(basic_c_io_observer_unlocked<T> cfhd)
 #else
 		fflush
 #endif
-	(cfhd.native_handle()))
+	(cfhd.fp))
 		throw_posix_error();
 }
 
@@ -711,7 +711,7 @@ inline Iter write(basic_c_io_observer<T> cfhd,Iter begin,Iter end)
 template<std::integral T>
 inline void flush(basic_c_io_observer<T> cfhd)
 {
-	if(std::fflush(cfhd.native_handle()))
+	if(std::fflush(cfhd.fp))
 		throw_posix_error();
 }
 
@@ -762,33 +762,33 @@ public:
 	constexpr basic_c_io_handle_impl(native_hd fp2) noexcept:T{fp2}{}
 	basic_c_io_handle_impl(basic_c_io_handle_impl const&)=delete;
 	basic_c_io_handle_impl& operator=(basic_c_io_handle_impl const&)=delete;
-	constexpr basic_c_io_handle_impl(basic_c_io_handle_impl&& b) noexcept : T{b.native_handle()}
+	constexpr basic_c_io_handle_impl(basic_c_io_handle_impl&& b) noexcept : T{b.fp}
 	{
-		b.native_handle() = nullptr;
+		b.fp = nullptr;
 	}
 	basic_c_io_handle_impl& operator=(basic_c_io_handle_impl&& b) noexcept
 	{
-		if(b.native_handle()==this->native_handle())[[unlikely]]
+		if(b.fp==this->fp)[[unlikely]]
 			return *this;
-		if(this->native_handle())[[likely]]
-			std::fclose(this->native_handle());
-		this->native_handle()=b.release();
+		if(this->fp)[[likely]]
+			std::fclose(this->fp);
+		this->fp=b.release();
 		return *this;
 	}
 	void close()
 	{
-		if(this->native_handle())[[likely]]
+		if(this->fp)[[likely]]
 		{
-			if(std::fclose(this->native_handle())==EOF)
+			if(std::fclose(this->fp)==EOF)
 				throw_posix_error();
-			this->native_handle()=nullptr;
+			this->fp=nullptr;
 		}
 	}
 	inline constexpr void reset(native_handle_type newfp=nullptr) noexcept
 	{
-		if(this->native_handle())[[likely]]
-			std::fclose(this->native_handle());
-		this->native_handle()=newfp;
+		if(this->fp)[[likely]]
+			std::fclose(this->fp);
+		this->fp=newfp;
 	}
 };
 
@@ -936,8 +936,8 @@ public:
 	basic_c_file_impl& operator=(basic_c_file_impl&&) noexcept=default;
 	~basic_c_file_impl()
 	{
-		if(this->native_handle())[[likely]]
-			std::fclose(this->native_handle());
+		if(this->fp)[[likely]]
+			std::fclose(this->fp);
 	}
 };
 
@@ -979,10 +979,10 @@ inline constexpr auto status(basic_c_io_observer_unlocked<ch_type> ciob)
 template<std::integral ch_type>
 inline auto redirect_handle(basic_c_io_observer<ch_type> h)
 {
-#if defined(__WINNT__) || defined(_MSC_VER)
-	return static_cast<basic_win32_io_observer<ch_type>>(h).native_handle();
+#if defined(_WIN32)
+	return static_cast<basic_win32_io_observer<ch_type>>(h).handle;
 #else
-	return static_cast<basic_posix_io_observer<ch_type>>(h).native_handle();
+	return static_cast<basic_posix_io_observer<ch_type>>(h).fd;
 #endif
 }
 #if 0
