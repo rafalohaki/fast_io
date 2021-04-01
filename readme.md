@@ -50,6 +50,14 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - Clang 13 with msvc stl.
 - Todo: Intel C++ Compiler
 
+## Architecture Support
+- i686
+- x86_64
+- arm
+- aarch64
+- riscv
+- riscv64
+
 ## Platform Support
 - Microsoft Windows
 - Linux
