@@ -20,6 +20,8 @@ inline std::size_t c_fwrite_unlocked_impl(void const* __restrict begin,std::size
 		throw_posix_error(rent._errno);
 	return written_count;
 #else
+	if(count==0)[[unlikely]]
+		return 0;
 	std::size_t written_count{
 #if defined(_MSC_VER)||defined(_UCRT)
 	_fwrite_nolock
@@ -39,7 +41,7 @@ inline std::size_t c_fwrite_unlocked_impl(void const* __restrict begin,std::size
 	fwrite
 #endif
 	(begin,type_size,count,fp)};
-	if(!written_count&&type_size)[[unlikely]]
+	if(!written_count)[[unlikely]]
 		throw_posix_error();
 #endif
 	return written_count;
