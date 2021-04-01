@@ -64,6 +64,7 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - BSD platforms (Including FreeBSD, NetBSD, OpenBSD)
 - Apple Darwin (MacOS)
 - Microsoft DOS
+- FreeDOS
 - Barebone (No any operating system.)
 - Cygwin/MSYS2
 - Android
