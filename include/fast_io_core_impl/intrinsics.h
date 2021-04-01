@@ -87,7 +87,7 @@ constexpr
 #endif
 std::uint64_t umul(std::uint64_t a,std::uint64_t b,std::uint64_t& high) noexcept
 {
-#if SIZE_MAX < UINT64_MAX || (defined(_MSC_VER)&&!defined(__x86__))
+#if SIZE_MAX < UINT64_MAX || (defined(_MSC_VER)&&!defined(__clang__)&&!defined(__x86__))
 	std::uint32_t a0(static_cast<std::uint32_t>(a));
 	std::uint32_t a1(static_cast<std::uint32_t>(a>>32));
 	std::uint32_t b0(static_cast<std::uint32_t>(b));
