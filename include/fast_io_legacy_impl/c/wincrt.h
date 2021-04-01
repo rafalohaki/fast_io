@@ -379,7 +379,7 @@ T* ptr) noexcept
 #else
 	std::FILE* fp{fpp};
 #endif
-	fp->_cnt-=static_cast<std::size_t>(reinterpret_cast<char*>(ptr)-fp->_ptr)/sizeof(T);
+	fp->_cnt-=static_cast<int>(static_cast<unsigned int>(static_cast<std::size_t>(reinterpret_cast<char*>(ptr)-fp->_ptr)/sizeof(T)));
 	fp->_ptr=reinterpret_cast<char*>(ptr);
 }
 
