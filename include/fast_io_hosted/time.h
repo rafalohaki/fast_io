@@ -346,6 +346,193 @@ inline basic_timestamp<off_to_epoch> zw_clock_settime(posix_clock_id pclk_id,bas
 
 #endif
 
+namespace details
+{
+
+template<bool local_tm>
+inline struct tm unix_timestamp_to_tm_impl(intiso_t seconds)
+{
+#if defined(_TIME64_T)
+	time64_t val{static_cast<time64_t>(seconds)};
+	struct tm t;
+	if constexpr(local_tm)
+	{
+	if(localtime64_r(&val,&t)==0)
+		throw_posix_error();
+	}
+	else
+	{
+	if(gmtime64_r(&val,&t)==0)
+		throw_posix_error();
+	}
+	return t;
+#elif defined(_WIN32)
+	__time64_t val{static_cast<__time64_t>(seconds)};
+	struct tm t;
+	if constexpr(local_tm)
+	{
+	auto errn{noexcept_call(_localtime64_s,&t,&val)};
+	if(errn)
+		throw_posix_error(static_cast<int>(errn));
+	}
+	else
+	{
+	auto errn{noexcept_call(_gmtime64_s,&t,&val)};
+	if(errn)
+		throw_posix_error(static_cast<int>(errn));
+	}
+	return t;
+#else
+	time_t val{static_cast<time_t>(seconds)};
+	struct tm t;
+	if constexpr(local_tm)
+	{
+	if(localtime_r(&val,&t)==0)
+		throw_posix_error();
+	}
+	else
+	{
+	if(gmtime_r(&val,&t)==0)
+		throw_posix_error();
+	}
+	return t;
+#endif
+}
+
+template<bool local_tm>
+inline iso8601_timestamp to_iso8601_utc_or_local_impl(unix_timestamp stamp)
+{
+	auto res{unix_timestamp_to_tm_impl<local_tm>(stamp.seconds)};
+	if constexpr(local_tm)
+	{
+	long tm_gmtoff{};
+#if defined(_WIN32)
+	#if defined(_MSC_VER) || defined(_UCRT)
+	{
+		auto errn{_get_timezone(&tm_gmtoff)};
+		if(errn)
+			throw_posix_error(static_cast<int>(errn));
+	}
+	#else
+		tm_gmtoff=_timezone;
+	#endif
+	unsigned long ulong_tm_gmtoff{static_cast<unsigned long>(tm_gmtoff)};
+	long seconds{};
+	#if defined(_MSC_VER) || defined(_UCRT)
+	{
+		auto errn{_get_dstbias(&seconds)};
+		if(errn)
+			throw_posix_error(static_cast<int>(errn));
+	}
+	#else
+		seconds=_dstbias;
+	#endif
+	unsigned long ulong_seconds{static_cast<unsigned>(seconds)};
+	ulong_tm_gmtoff+=ulong_seconds;
+	ulong_tm_gmtoff=0ul-ulong_tm_gmtoff;
+	tm_gmtoff=static_cast<long>(ulong_tm_gmtoff);
+#elif defined(__TM_GMTOFF)
+	tm_gmtoff=res.__TM_GMTOFF;
+#elif defined(__NEWLIB__)
+	tm_gmtoff=0;
+#else
+	tm_gmtoff=res.tm_gmtoff;
+#endif
+	return {res.tm_year+1900,
+		static_cast<std::uint8_t>(res.tm_mon),
+		static_cast<std::uint8_t>(res.tm_mday),
+		static_cast<std::uint8_t>(res.tm_hour),
+		static_cast<std::uint8_t>(res.tm_min),
+		static_cast<std::uint8_t>(res.tm_sec),stamp.subseconds,tm_gmtoff};
+	}
+	else
+	{
+	return {res.tm_year+1900,
+		static_cast<std::uint8_t>(res.tm_mon),
+		static_cast<std::uint8_t>(res.tm_mday),
+		static_cast<std::uint8_t>(res.tm_hour),
+		static_cast<std::uint8_t>(res.tm_min),
+		static_cast<std::uint8_t>(res.tm_sec),stamp.subseconds,0};
+	}
+}
+
+}
+
+#if 0
+/*
+To do: tai clock
+*/
+template<intiso_t off_to_epoch>
+inline iso8601_timestamp tai(basic_timestamp<off_to_epoch> timestamp)
+{
+	return details::unix_timestamp_to_tm_impl(static_cast<unix_timestamp>(timestamp));
+}
+
+#endif
+
+template<intiso_t off_to_epoch>
+inline iso8601_timestamp utc(basic_timestamp<off_to_epoch> timestamp)
+{
+	return details::to_iso8601_utc_or_local_impl<false>(static_cast<unix_timestamp>(timestamp));
+}
+
+template<intiso_t off_to_epoch>
+inline iso8601_timestamp local(basic_timestamp<off_to_epoch> timestamp)
+{
+	return details::to_iso8601_utc_or_local_impl<true>(static_cast<unix_timestamp>(timestamp));
+}
+
+#if defined(_WIN32) && (defined(_UCRT) || defined(_MSC_VER))
+struct win32_timezone_t
+{
+	std::size_t tz_name_len{};
+	bool is_dst{};
+};
+
+inline win32_timezone_t timezone_name(bool is_dst=true) noexcept
+{
+	win32_timezone_t tzt{.is_dst=is_dst};
+	auto errn{_get_tzname(&tzt.tz_name_len,nullptr,0,is_dst)};
+	if(errn)
+		throw_posix_error(static_cast<int>(errn));
+	return tzt;
+}
+
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char,win32_timezone_t>,win32_timezone_t tzt) noexcept
+{
+	return tzt.tz_name_len;
+}
+
+namespace details
+{
+
+inline std::size_t print_reserve_define_impl(char* first,win32_timezone_t tzt)
+{
+	auto errn{_get_tzname(&tzt.tz_name_len,first,tzt.tz_name_len,tzt.is_dst)};
+	if(errn)
+		throw_posix_error(static_cast<int>(errn));
+	return tzt.tz_name_len;
+}
+
+}
+
+template<std::contiguous_iterator Iter>
+requires std::same_as<std::iter_value_t<Iter>,char>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<char,win32_timezone_t>,Iter first,win32_timezone_t tzt)
+{
+	return details::print_reserve_define_impl(std::to_address(first),tzt)+first;
+}
+
+#elif !defined(__NEWLIB__) || (defined(tzname))
+
+inline basic_io_scatter_t<char> timezone_name(bool is_dst=true) noexcept
+{
+	auto nm{tzname[is_dst]};
+	return {nm,::fast_io::details::my_strlen(nm)};
+}
+
+#endif
+
 template<intiso_t off_to_epoch>
 inline basic_timestamp<off_to_epoch> posix_clock_settime(posix_clock_id pclk_id,basic_timestamp<off_to_epoch> timestamp)
 {

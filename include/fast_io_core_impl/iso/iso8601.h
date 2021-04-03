@@ -191,6 +191,7 @@ struct iso8601_timestamp
 	std::uint8_t minutes{};
 	std::uint8_t seconds{};
 	uintiso_t subseconds{};
+	long timezone{};
 };
 
 template<std::integral char_type,intiso_t off_to_epoch>
@@ -209,11 +210,13 @@ template<std::integral char_type>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,iso8601_timestamp>) noexcept
 {
 //ISO 8601 timestamp example : 2021-01-03T10:29:56Z
-	return print_reserve_size(io_reserve_type<char_type,intiso_t>)+16+print_reserve_size(io_reserve_type<char_type,uintiso_t>);
+//ISO 8601 timestamp with timestamp : 2021-01-03T10:29:56.999999+99:99
+	return print_reserve_size(io_reserve_type<char_type,intiso_t>)+16+print_reserve_size(io_reserve_type<char_type,uintiso_t>)+print_reserve_size(io_reserve_type<char_type,long>)+3+4+2;
 }
 
 namespace details
 {
+
 template<std::random_access_iterator Iter>
 inline constexpr Iter print_reserve_iso8601_timestamp_impl(Iter iter,iso8601_timestamp timestamp) noexcept
 {
@@ -261,13 +264,64 @@ inline constexpr Iter print_reserve_iso8601_timestamp_impl(Iter iter,iso8601_tim
 	iter=chrono_two_digits_impl<true>(iter,timestamp.seconds);
 	if(timestamp.subseconds)
 		iter=output_iso8601_subseconds(iter,timestamp.subseconds);
-	if constexpr(std::same_as<char_type,char>)
-		*iter='Z';
-	else if constexpr(std::same_as<char_type,wchar_t>)
-		*iter=L'Z';
+	if(timestamp.timezone==0)
+	{
+		if constexpr(std::same_as<char_type,char>)
+			*iter='Z';
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			*iter=L'Z';
+		else
+			*iter=u8'Z';
+		++iter;
+	}
 	else
-		*iter=u8'Z';
-	++iter;
+	{
+		unsigned long unsigned_tz{static_cast<unsigned long>(timestamp.timezone)};
+		if(timestamp.timezone<0)
+		{
+			if constexpr(std::same_as<char_type,char>)
+				*iter='-';
+			else if constexpr(std::same_as<char_type,wchar_t>)
+				*iter=L'-';
+			else
+				*iter=u8'-';
+			unsigned_tz=0UL-unsigned_tz;
+		}
+		else
+		{
+			if constexpr(std::same_as<char_type,char>)
+				*iter='+';
+			else if constexpr(std::same_as<char_type,wchar_t>)
+				*iter=L'+';
+			else
+				*iter=u8'+';
+		}
+		++iter;
+		std::uint8_t tz_ss{static_cast<std::uint8_t>(unsigned_tz%60)};
+		unsigned_tz/=60;
+		std::uint8_t tz_mm{static_cast<std::uint8_t>(unsigned_tz%60)};
+		unsigned_tz/=60;
+		iter=chrono_two_digits_impl(iter,unsigned_tz);
+		if constexpr(std::same_as<char_type,char>)
+			*iter=':';
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			*iter=L':';
+		else
+			*iter=u8':';
+		++iter;
+		iter=chrono_two_digits_impl<true>(iter,tz_mm);
+		if(tz_ss)
+		{
+			if constexpr(std::same_as<char_type,char>)
+				*iter=':';
+			else if constexpr(std::same_as<char_type,wchar_t>)
+				*iter=L':';
+			else
+				*iter=u8':';
+			++iter;
+			iter=chrono_two_digits_impl<true>(iter,tz_ss);
+		}
+	}
 	return iter;
 }
 
@@ -304,7 +358,7 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,manipulat
 }
 
 template<std::integral char_type,std::random_access_iterator Iter>
-inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,iso8601_timestamp>,Iter iter,iso8601_timestamp timestamp) noexcept
+inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,iso8601_timestamp>,Iter iter,iso8601_timestamp const& timestamp) noexcept
 {
 	return details::print_reserve_iso8601_timestamp_impl(iter,timestamp);
 }
