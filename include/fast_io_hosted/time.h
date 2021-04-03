@@ -491,7 +491,6 @@ inline constexpr T sub_overflow(T a,T b) noexcept
 
 inline constexpr iso8601_timestamp unix_timestamp_to_iso8601_tsp_impl(intiso_t t,uintiso_t subseconds) noexcept
 {
-	constexpr intiso_t minval{std::numeric_limits<intiso_t>::min()/31622400LL};
 	intiso_t secs{sub_overflow(t,leapoch)};
 	intiso_t days{secs/86400};
 	intiso_t remsecs{secs%86400};
