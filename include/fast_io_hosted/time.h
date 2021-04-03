@@ -456,20 +456,26 @@ inline iso8601_timestamp to_iso8601_utc_or_local_impl(unix_timestamp stamp)
 	}
 }
 
-}
-
 #if 0
-/*
-To do: tai clock
-*/
-template<intiso_t off_to_epoch>
-inline iso8601_timestamp tai(basic_timestamp<off_to_epoch> timestamp)
-{
-	return details::unix_timestamp_to_tm_impl(static_cast<unix_timestamp>(timestamp));
-}
+inline constexpr char8_t days_of_month[]{ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
+inline constexpr iso8601_timestamp unix_timestamp_to_tai_impl(unix_timestamp seconds) noexcept
+{
+
+}
 #endif
 
+}
+
+/*
+To do: tai clock
+
+template<intiso_t off_to_epoch>
+inline iso8601_timestamp tai(basic_timestamp<off_to_epoch> timestamp) noexcept
+{
+	return details::unix_timestamp_to_tai_impl(static_cast<unix_timestamp>(timestamp));
+}
+*/
 template<intiso_t off_to_epoch>
 inline iso8601_timestamp utc(basic_timestamp<off_to_epoch> timestamp)
 {
@@ -523,11 +529,19 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<char,win32_timezone
 	return details::print_reserve_define_impl(std::to_address(first),tzt)+first;
 }
 
-#elif !defined(__NEWLIB__) || (defined(tzname))
+#else
+
+#if defined(__NEWLIB__)
+extern char *m_tzname[2] __asm__("_tzname");
+#endif
 
 inline basic_io_scatter_t<char> timezone_name(bool is_dst=true) noexcept
 {
+#if defined(__NEWLIB__)
+	auto nm{m_tzname[is_dst]};
+#else
 	auto nm{tzname[is_dst]};
+#endif
 	return {nm,::fast_io::details::my_strlen(nm)};
 }
 
