@@ -15,6 +15,21 @@ struct basic_timestamp
 		constexpr intiso_t diff{off_to_epoch-new_off_to_epoch};
 		return {seconds+diff,subseconds};
 	}
+	explicit constexpr operator float() noexcept
+	{
+		constexpr float db{static_cast<float>(uintiso_subseconds_per_second)};
+		return static_cast<float>(seconds)+static_cast<float>(subseconds)/db;
+	}
+	explicit constexpr operator double() noexcept
+	{
+		constexpr double db{static_cast<double>(uintiso_subseconds_per_second)};
+		return static_cast<double>(seconds)+static_cast<double>(subseconds)/db;
+	}
+	explicit constexpr operator long double() noexcept
+	{
+		constexpr long double db{static_cast<long double>(uintiso_subseconds_per_second)};
+		return static_cast<long double>(seconds)+static_cast<long double>(subseconds)/db;
+	}
 };
 
 template<intiso_t off_to_epoch>
@@ -78,7 +93,67 @@ inline constexpr timestamp_u sub_impl(timestamp_u a,timestamp_u b) noexcept
 		res+=uintiso_subseconds_per_second;
 	return {seconds,res};
 }
+#if 0
 
+
+inline constexpr basic_timestamp<0> div_uint(intiso_t rseconds,uintiso_t subseconds,uintiso_t d) noexcept
+{
+	if(d==0)[[unlikely]]
+		fast_terminate();
+	bool minus{rseconds<0};
+	uintiso_t seconds{static_cast<uintiso_t>(rseconds)};
+	if(minus)
+		seconds=static_cast<uintiso_t>(0)-seconds;
+#if UINTMAX_MAX==UINT64_MAX
+#if __SIZEOF_INT128__
+	__uint128_t total_subseconds{static_cast<__uint128_t>(seconds)*uintiso_subseconds_per_second+subseconds};
+	std::uint64_t mid{d>>1};
+	__uint128_t rr{total_subseconds%d};
+	std::uint64_t r{static_cast<std::uint64_t>(rr)};
+	__uint128_t q{total_subseconds/d};
+	if(mid<r)
+		++q;
+	else if(mid==r)
+	{
+		if((q&1)==1)
+			++q;
+	}
+	std::uint64_t result_seconds{static_cast<std::uint64_t>(q/uintiso_subseconds_per_second)};
+	std::uint64_t result_subseconds{static_cast<std::uint64_t>(q%uintiso_subseconds_per_second)};
+	if(minus)
+		result_seconds=static_cast<uintiso_t>(0)-result_seconds;
+	return {static_cast<intiso_t>(result_seconds),result_subseconds};
+#else
+	if(std::is_constant_evaluated())
+		return {};
+	std::uint64_t total_seconds_high;
+	std::uint64_t total_seconds_low{_umul128(seconds,subseconds,&total_seconds_high)};
+	std::uint64_t mid{d>>1};
+	std::uint64_t r;
+
+	std::uint64_t q_low{_udiv128(total_seconds_high,total_seconds_low,d,&r)};
+
+	std::uint64_t q_high{total_seconds_high/d};
+	if(mid<r||(mid==r&&(q_low&1)==1))
+		_addcarry_u64(_addcarry_u64(false,q_low,1,&q_low),q_high,0,&q_high);
+	total_seconds_low=_udiv128(q_high,q_low,uintiso_subseconds_per_second,&r);
+	if(minus)
+		total_seconds_low=static_cast<uintiso_t>(0)-total_seconds_low;
+	return {static_cast<intiso_t>(total_seconds_low),r};
+#endif
+#endif	
+/*
+	else
+	{
+		basic_unsigned_extension<uintiso_t> total_subseconds{mul_extend(seconds,uintiso_subseconds_per_second)+subseconds};
+		uintiso_t mid{d>>1};
+		auto [rr,q]=div_mod(total_subseconds,d);
+		uintiso_t r{rr};
+	}
+
+*/
+}
+#endif
 }
 
 template<intiso_t off_to_epoch>
@@ -166,7 +241,37 @@ inline constexpr basic_timestamp<off_to_epoch>& operator-=(basic_timestamp<off_t
 {
 	return a=a+(-b);
 }
+#if 0
+template<intiso_t off_to_epoch>
+inline constexpr basic_timestamp<off_to_epoch> operator/(basic_timestamp<off_to_epoch> a,uintiso_t b) noexcept
+{
+	if constexpr(off_to_epoch==0)
+	{
+		return details::div_uint(a.seconds,a.subseconds,b);
+	}
+	else
+	{
+		auto [seconds,subseconds]=details::div_uint(a.seconds,a.subseconds,b);
+		return {seconds,subseconds};
+	}
+}
 
+template<intiso_t off_to_epoch>
+inline constexpr basic_timestamp<off_to_epoch>& operator/=(basic_timestamp<off_to_epoch>& a,uintiso_t b) noexcept
+{
+	if constexpr(off_to_epoch==0)
+	{
+		return a=details::div_uint(a.seconds,a.subseconds,b);
+	}
+	else
+	{
+		auto [seconds,subseconds]=details::div_uint(a.seconds,a.subseconds,b);
+		a.seconds=seconds;
+		a.subseconds=subseconds;
+		return a;
+	}
+}
+#endif
 /*
 https://www.epochconverter.com/seconds-days-since-y0
 Seconds since year 0 (MySQL compatible)
