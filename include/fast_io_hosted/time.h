@@ -589,7 +589,7 @@ inline void posix_tzset() noexcept
 }
 
 template<intiso_t off_to_epoch>
-inline iso8601_timestamp utc(basic_timestamp<off_to_epoch> timestamp) noexcept
+inline constexpr iso8601_timestamp utc(basic_timestamp<off_to_epoch> timestamp) noexcept
 {
 	if constexpr(std::same_as<basic_timestamp<off_to_epoch>,unix_timestamp>)
 	{
