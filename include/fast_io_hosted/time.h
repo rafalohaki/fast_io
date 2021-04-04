@@ -478,18 +478,36 @@ inline constexpr T sub_overflow(T a,T b) noexcept
 		fast_terminate();
 	return c;
 #else
-	if(a<b)
-		fast_terminate();
+
+	if(b<=0)[[unlikely]]
+	{
+		if(a>std::numeric_limits<T>::max()+b)[[unlikely]]
+			fast_terminate();
+
+	}
+	else
+	{
+		if(a<std::numeric_limits<T>::min()+b)[[unlikely]]
+			fast_terminate();
+	}
 	return a-b;
 #endif
 #else
-	if(a<b)
-		fast_terminate();
+	if(b<=0)[[unlikely]]
+	{
+		if(a>std::numeric_limits<T>::max()+b)[[unlikely]]
+			fast_terminate();
+	}
+	else
+	{
+		if(a<std::numeric_limits<T>::min()+b)[[unlikely]]
+			fast_terminate();
+	}
 	return a-b;
 #endif
 }
 
-inline constexpr iso8601_timestamp unix_timestamp_to_iso8601_tsp_impl(intiso_t t,uintiso_t subseconds) noexcept
+inline constexpr iso8601_timestamp unix_timestamp_to_iso8601_tsp_impl_internal(intiso_t t,uintiso_t subseconds,long timezone) noexcept
 {
 	intiso_t secs{sub_overflow(t,leapoch)};
 	intiso_t days{secs/86400};
@@ -536,9 +554,20 @@ inline constexpr iso8601_timestamp unix_timestamp_to_iso8601_tsp_impl(intiso_t t
 		static_cast<std::uint8_t>(remdays+1),
 		static_cast<std::uint8_t>(remsecs/3600),
 		static_cast<std::uint8_t>(remsecs/60%60),
-		static_cast<std::uint8_t>(remsecs%60),subseconds,0};
+		static_cast<std::uint8_t>(remsecs%60),subseconds,timezone};
 }
 
+inline constexpr iso8601_timestamp unix_timestamp_to_iso8601_tsp_impl(intiso_t t,uintiso_t subseconds) noexcept
+{
+	return unix_timestamp_to_iso8601_tsp_impl_internal(t,subseconds,0);
+}
+
+#ifdef __NEWLIB__
+#if __has_cpp_attribute(gnu::dllimport)&&defined(__CYGWIN__)
+[[gnu::dllimport]]
+#endif
+extern void m_tzset() noexcept asm("tzset");
+#endif
 }
 #if 0
 template<intiso_t off_to_epoch>
@@ -547,6 +576,17 @@ inline iso8601_timestamp tai(basic_timestamp<off_to_epoch> timestamp)
 	return details::unix_timestamp_to_tai_impl(static_cast<unix_timestamp>(timestamp));
 }
 #endif
+
+inline void posix_tzset() noexcept
+{
+#if _WIN32
+	noexcept_call(_tzset);
+#elif __NEWLIB__
+	details::m_tzset();
+#else
+	noexcept_call(tzset);
+#endif
+}
 
 template<intiso_t off_to_epoch>
 inline iso8601_timestamp utc(basic_timestamp<off_to_epoch> timestamp) noexcept
@@ -557,7 +597,7 @@ inline iso8601_timestamp utc(basic_timestamp<off_to_epoch> timestamp) noexcept
 	}
 	else
 	{
-		constexpr unix_timestamp tsp{static_cast<unix_timestamp>(timestamp)};
+		unix_timestamp tsp{static_cast<unix_timestamp>(timestamp)};
 		return details::unix_timestamp_to_iso8601_tsp_impl(tsp.seconds,tsp.subseconds);
 	}
 }
@@ -575,7 +615,15 @@ struct win32_timezone_t
 	bool is_dst{};
 };
 
-inline win32_timezone_t timezone_name(bool is_dst=true) noexcept
+inline int posix_daylight() noexcept
+{
+	int hours;
+	if(_get_daylight(&hours))
+		return false;
+	return hours;
+}
+
+inline win32_timezone_t timezone_name(bool is_dst=posix_daylight())
 {
 	win32_timezone_t tzt{.is_dst=is_dst};
 	auto errn{_get_tzname(&tzt.tz_name_len,nullptr,0,is_dst)};
@@ -613,14 +661,24 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<char,win32_timezone
 
 #if defined(__NEWLIB__)
 extern char *m_tzname[2] __asm__("_tzname");
+extern int m_daylight __asm__("_daylight");
 #endif
 
-inline basic_io_scatter_t<char> timezone_name(bool is_dst=true) noexcept
+inline int posix_daylight() noexcept
 {
 #if defined(__NEWLIB__)
-	auto nm{m_tzname[is_dst]};
+	return m_daylight;
 #else
-	auto nm{tzname[is_dst]};
+	return _daylight;
+#endif
+}
+
+inline basic_io_scatter_t<char> timezone_name(bool dst=posix_daylight()) noexcept
+{
+#if defined(__NEWLIB__)
+	auto nm{m_tzname[dst]};
+#else
+	auto nm{tzname[dst]};
 #endif
 	return {nm,::fast_io::details::my_strlen(nm)};
 }

@@ -15,6 +15,9 @@ struct basic_timestamp
 		constexpr intiso_t diff{off_to_epoch-new_off_to_epoch};
 		return {seconds+diff,subseconds};
 	}
+/*
+Should we use std::bit_cast and applying integer arithmatics to convert to floating points just like dragonbox or ryu are doing?
+*/
 	explicit constexpr operator float() noexcept
 	{
 		constexpr float db{static_cast<float>(uintiso_subseconds_per_second)};
@@ -286,6 +289,10 @@ Days since January 1, 1970, Unix epoch
 using unix_timestamp=basic_timestamp<0>;		//UNIX
 using win32_timestamp=basic_timestamp<-11644473600LL>;	//Windows
 using csharp_timestamp=basic_timestamp<-62135712000LL>;	//C#
+using universe_timestamp=basic_timestamp<-436117076900000000LL>;		//Pesudo timestamp since the big bang of universe
+/*
+Referenced from: https://81018.com/universeclock/
+*/
 
 struct iso8601_timestamp
 {
