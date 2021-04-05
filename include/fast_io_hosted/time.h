@@ -659,15 +659,17 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<char,win32_timezone
 
 #else
 
-#if defined(__NEWLIB__)
+#ifdef __NEWLIB__
 extern char *m_tzname[2] __asm__("_tzname");
 extern int m_daylight __asm__("_daylight");
 #endif
 
 inline int posix_daylight() noexcept
 {
-#if defined(__NEWLIB__)
+#ifdef __NEWLIB__
 	return m_daylight;
+#elif defined(__MSDOS__)
+	return 0;
 #else
 	return _daylight;
 #endif
