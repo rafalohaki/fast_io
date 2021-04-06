@@ -513,12 +513,6 @@ inline iso8601_timestamp to_iso8601_local_impl(intiso_t seconds,uintiso_t subsec
 #ifdef __MSDOS__
 	return unix_timestamp_to_iso8601_tsp_impl_internal(seconds,subseconds,0);
 #elif defined(_WIN32) || defined(__linux__)
-
-#if defined(_WIN32)
-	_tzset();
-#else
-	tzset();
-#endif
 	long tm_gmtoff{};
 #if defined(_MSC_VER) || defined(_UCRT)
 	{
