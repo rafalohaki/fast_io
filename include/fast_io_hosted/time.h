@@ -628,13 +628,6 @@ inline iso8601_timestamp to_iso8601_local_impl(intiso_t seconds,uintiso_t subsec
 extern void m_tzset() noexcept asm("tzset");
 #endif
 }
-#if 0
-template<intiso_t off_to_epoch>
-inline iso8601_timestamp tai(basic_timestamp<off_to_epoch> timestamp)
-{
-	return details::unix_timestamp_to_tai_impl(static_cast<unix_timestamp>(timestamp));
-}
-#endif
 
 inline void posix_tzset() noexcept
 {
