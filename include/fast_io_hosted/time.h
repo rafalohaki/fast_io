@@ -639,11 +639,11 @@ inline iso8601_timestamp tai(basic_timestamp<off_to_epoch> timestamp)
 inline void posix_tzset() noexcept
 {
 #if _WIN32
-	noexcept_call(_tzset);
+	_tzset();
 #elif __NEWLIB__
 	details::m_tzset();
 #else
-	noexcept_call(tzset);
+	tzset();
 #endif
 }
 
