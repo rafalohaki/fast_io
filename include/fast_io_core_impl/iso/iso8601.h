@@ -290,7 +290,7 @@ using unix_timestamp=basic_timestamp<0>;		//UNIX
 using win32_timestamp=basic_timestamp<-11644473600LL>;	//Windows
 using csharp_timestamp=basic_timestamp<-62135712000LL>;	//C#
 using year0_timestamp=basic_timestamp<-62168515200LL>;	//0000-01-01
-using universe_timestamp=basic_timestamp<-436117076900000000LL>;		//Pesudo timestamp since the big bang of universe
+using universe_timestamp=basic_timestamp<-434313790486272000LL>;		//Pesudo timestamp since the big bang of universe
 /*
 Referenced from: https://81018.com/universeclock/
 */
@@ -465,8 +465,8 @@ inline constexpr iso8601_timestamp unix_timestamp_to_iso8601_tsp_impl(intiso_t t
 #endif
 inline constexpr intiso_t year_month_to_seconds(intiso_t year,uint8_t month) noexcept
 {
-	constexpr intiso_t year_min{std::numeric_limits<intiso_t>::min()/(400LL*365LL*86400LL)};
-	constexpr intiso_t year_max{std::numeric_limits<intiso_t>::max()/(400LL*365LL*86400LL)};
+	constexpr intiso_t year_min{std::numeric_limits<intiso_t>::min()/(365LL*86400LL)};
+	constexpr intiso_t year_max{std::numeric_limits<intiso_t>::max()/(365LL*86400LL)};
 	if(year<=year_min||year>=year_max)
 		fast_terminate();
 	intiso_t leaps{year/4};
