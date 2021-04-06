@@ -465,10 +465,11 @@ inline constexpr iso8601_timestamp unix_timestamp_to_iso8601_tsp_impl(intiso_t t
 #endif
 inline constexpr intiso_t year_month_to_seconds(intiso_t year,uint8_t month) noexcept
 {
-	constexpr intiso_t year_min{std::numeric_limits<intiso_t>::min()/(365LL*86400LL)};
-	constexpr intiso_t year_max{std::numeric_limits<intiso_t>::max()/(365LL*86400LL)};
+	constexpr intiso_t year_min{std::numeric_limits<intiso_t>::min()/(365LL*86400LL)+2000};
+	constexpr intiso_t year_max{std::numeric_limits<intiso_t>::max()/(365LL*86400LL)+2000};
 	if(year<=year_min||year>=year_max)
 		fast_terminate();
+	year-=2000;
 	intiso_t leaps{year/4};
 	intiso_t leaps_remainder{year%4};
 	intiso_t cycles_quotient{year / 400};
@@ -479,7 +480,7 @@ inline constexpr intiso_t year_month_to_seconds(intiso_t year,uint8_t month) noe
 	std::uint32_t t{secs_through_month[month-1]};
 	if(!year_is_leap_year&&1<month)
 		t+=0x15180;
-	return (year*365LL+leaps)*86400LL-62168515200LL+static_cast<intiso_t>(t);
+	return (year*365LL+leaps)*86400LL+y2k+static_cast<intiso_t>(t);
 }
 
 #if __has_cpp_attribute(gnu::pure)
