@@ -289,6 +289,7 @@ Days since January 1, 1970, Unix epoch
 using unix_timestamp=basic_timestamp<0>;		//UNIX
 using win32_timestamp=basic_timestamp<-11644473600LL>;	//Windows
 using csharp_timestamp=basic_timestamp<-62135712000LL>;	//C#
+using year0_timestamp=basic_timestamp<-62168515200LL>;	//0000-01-01
 using universe_timestamp=basic_timestamp<-436117076900000000LL>;		//Pesudo timestamp since the big bang of universe
 /*
 Referenced from: https://81018.com/universeclock/
@@ -303,7 +304,7 @@ struct iso8601_timestamp
 	std::uint8_t minutes{};
 	std::uint8_t seconds{};
 	uintiso_t subseconds{};
-	long timezone{};
+	std::int32_t timezone{};
 };
 
 template<std::integral char_type,intiso_t off_to_epoch>
@@ -324,6 +325,196 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,iso8
 //ISO 8601 timestamp example : 2021-01-03T10:29:56Z
 //ISO 8601 timestamp with timestamp : 2021-01-03T10:29:56.999999+99:99
 	return print_reserve_size(io_reserve_type<char_type,intiso_t>)+16+print_reserve_size(io_reserve_type<char_type,uintiso_t>)+print_reserve_size(io_reserve_type<char_type,long>)+3+4+2;
+}
+
+
+namespace details
+{
+/*
+Referenced from musl libc
+https://git.musl-libc.org/cgit/musl/tree/src/time/__secs_to_tm.c
+*/
+
+inline constexpr char8_t days_in_month[]{31,30,31,30,31,31,30,31,30,31,31,29};
+
+inline constexpr std::uint32_t secs_through_month[]{
+0, 31*86400, 59*86400, 90*86400,
+120*86400, 151*86400, 181*86400, 212*86400,
+243*86400, 273*86400, 304*86400, 334*86400 
+};
+/*
+y2k : 2000-01-01T00:00:00Z
+*/
+inline constexpr intiso_t y2k{946684800LL};
+/*
+leapoch: 2000-03-01T00:00:00Z
+*/
+inline constexpr intiso_t leapoch{y2k + 86400LL*(31LL+29LL)};
+
+inline constexpr std::uint32_t days_per_400_year{365LL*400LL+97LL};
+inline constexpr std::uint32_t days_per_100_year{365LL*100LL+24LL};
+inline constexpr std::uint32_t days_per_4_year{365LL*4LL+1LL};
+
+template<std::signed_integral T>
+inline constexpr T sub_overflow(T a,T b) noexcept
+{
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_sub_overflow)
+	T c;
+	if(__builtin_sub_overflow(a,b,&c))[[unlikely]]
+		fast_terminate();
+	return c;
+#else
+
+	if(b<=0)[[unlikely]]
+	{
+		if(a>std::numeric_limits<T>::max()+b)[[unlikely]]
+			fast_terminate();
+
+	}
+	else
+	{
+		if(a<std::numeric_limits<T>::min()+b)[[unlikely]]
+			fast_terminate();
+	}
+	return a-b;
+#endif
+#else
+	if(b<=0)[[unlikely]]
+	{
+		if(a>std::numeric_limits<T>::max()+b)[[unlikely]]
+			fast_terminate();
+	}
+	else
+	{
+		if(a<std::numeric_limits<T>::min()+b)[[unlikely]]
+			fast_terminate();
+	}
+	return a-b;
+#endif
+}
+
+#if __has_cpp_attribute(gnu::pure)
+[[gnu::pure]]
+#endif
+inline constexpr iso8601_timestamp unix_timestamp_to_iso8601_tsp_impl_internal(intiso_t t,uintiso_t subseconds,std::int32_t timezone) noexcept
+{
+	intiso_t secs{sub_overflow(t,leapoch)};
+	intiso_t days{secs/86400};
+	intiso_t remsecs{secs%86400};
+	if(remsecs<0)
+	{
+		remsecs+=86400;
+		--days;
+	}
+
+	intiso_t qc_cycles{days / days_per_400_year};
+	intiso_t remdays{days % days_per_400_year};
+	if (remdays < 0)
+	{
+		remdays += days_per_400_year;
+		--qc_cycles;
+	}
+	intiso_t c_cycles{remdays / days_per_100_year};
+	if (c_cycles == 4)
+		--c_cycles;
+	remdays -= c_cycles * days_per_100_year;
+
+	intiso_t q_cycles{remdays / days_per_4_year};
+	if (q_cycles == 25)
+		--q_cycles;
+	remdays -= q_cycles * days_per_4_year;
+
+	intiso_t remyears{remdays / 365};
+	if (remyears == 4)
+		--remyears;
+	remdays -= remyears * 365;
+
+	bool leap{!remyears && (q_cycles || !c_cycles)};
+	intiso_t yday{remdays + 31 + 28 + leap};
+	if (yday >= 365+leap)
+		yday -= 365+leap;
+	intiso_t years{remyears + 4*q_cycles + 100*c_cycles + 400*qc_cycles};
+	std::uint8_t months{};
+	for (; days_in_month[months] <= remdays; ++months)
+		remdays -= days_in_month[months];
+	months+=3;
+	if(months>12)
+	{
+		++years;
+		months-=12;
+	}
+	return {years+2000,
+		static_cast<std::uint8_t>(months),
+		static_cast<std::uint8_t>(remdays+1),
+		static_cast<std::uint8_t>(remsecs/3600),
+		static_cast<std::uint8_t>(remsecs/60%60),
+		static_cast<std::uint8_t>(remsecs%60),subseconds,timezone};
+}
+
+#if __has_cpp_attribute(gnu::pure)
+[[gnu::pure]]
+#endif
+inline constexpr iso8601_timestamp unix_timestamp_to_iso8601_tsp_impl(intiso_t t,uintiso_t subseconds) noexcept
+{
+	return unix_timestamp_to_iso8601_tsp_impl_internal(t,subseconds,0);
+}
+
+#if __has_cpp_attribute(gnu::pure)
+[[gnu::pure]]
+#endif
+inline constexpr intiso_t year_month_to_seconds(intiso_t year,uint8_t month) noexcept
+{
+	constexpr intiso_t year_min{std::numeric_limits<intiso_t>::min()/(400LL*365LL*86400LL)};
+	constexpr intiso_t year_max{std::numeric_limits<intiso_t>::max()/(400LL*365LL*86400LL)};
+	if(year<=year_min||year>=year_max)
+		fast_terminate();
+	intiso_t leaps{year/4};
+	intiso_t leaps_remainder{year%4};
+	intiso_t cycles_quotient{year / 400};
+	intiso_t cycles_reminder{year % 400};
+	intiso_t cycles100_reminder{year % 100};
+	bool year_is_leap_year{(!cycles_reminder)||((!leaps_remainder)&&cycles100_reminder)};
+	leaps+=cycles_reminder-cycles100_reminder;
+	std::uint32_t t{secs_through_month[month-1]};
+	if(!year_is_leap_year&&1<month)
+		t+=0x15180;
+	return (year*365LL+leaps)*86400LL-62168515200LL+static_cast<intiso_t>(t);
+}
+
+#if __has_cpp_attribute(gnu::pure)
+[[gnu::pure]]
+#endif
+inline constexpr unix_timestamp iso8601_to_unix_timestamp_impl(iso8601_timestamp const& tsp) noexcept
+{
+	return {static_cast<intiso_t>(static_cast<std::uint32_t>(tsp.day-1)*static_cast<std::uint32_t>(86400LL)+
+		static_cast<std::uint32_t>(tsp.hours)*static_cast<std::uint32_t>(3600LL)+
+		static_cast<std::uint32_t>(tsp.minutes)*static_cast<std::uint32_t>(60LL)+
+		static_cast<std::uint32_t>(tsp.seconds)-static_cast<std::uint32_t>(tsp.timezone))+
+		year_month_to_seconds(tsp.year,tsp.month)
+		,tsp.subseconds};
+}
+
+}
+
+template<intiso_t off_to_epoch>
+inline constexpr iso8601_timestamp utc(basic_timestamp<off_to_epoch> timestamp) noexcept
+{
+	if constexpr(std::same_as<basic_timestamp<off_to_epoch>,unix_timestamp>)
+	{
+		return details::unix_timestamp_to_iso8601_tsp_impl(timestamp.seconds,timestamp.subseconds);
+	}
+	else
+	{
+		unix_timestamp tsp{static_cast<unix_timestamp>(timestamp)};
+		return details::unix_timestamp_to_iso8601_tsp_impl(tsp.seconds,tsp.subseconds);
+	}
+}
+
+template<intiso_t off_to_epoch=0>
+inline constexpr basic_timestamp<off_to_epoch> to_timestamp(iso8601_timestamp const& timestamp) noexcept
+{
+	return details::iso8601_to_unix_timestamp_impl(timestamp);
 }
 
 namespace details

@@ -235,6 +235,138 @@ inline unix_timestamp win32_posix_clock_gettime_process_or_thread_time_impl()
 }
 
 #endif
+#ifdef __MSDOS__
+namespace details
+{
+
+struct my_dos_date_t
+{
+	std::uint8_t day;
+	std::uint8_t month;
+	std::uint16_t year;
+	std::uint8_t dayofweek;
+};
+
+struct my_dos_time_t
+{
+	std::uint8_t hour;     /* 0-23 */
+	std::uint8_t minute;   /* 0-59 */
+	std::uint8_t second;   /* 0-59 */
+	std::uint8_t hsecond;  /* 0-99 */
+};
+
+extern void my_dos_getdate(my_dos_date_t*) noexcept __asm__("__dos_getdate");
+extern void my_dos_gettime(my_dos_time_t*) noexcept __asm__("__dos_gettime");
+
+extern unsigned int my_dos_settime(my_dos_time_t*) noexcept __asm__("__dos_settime");
+extern unsigned int my_dos_setdate(my_dos_date_t*) noexcept __asm__("__dos_setdate");
+
+inline iso8601_timestamp get_dos_iso8601_timestamp() noexcept
+{
+	my_dos_date_t dos_date;
+	my_dos_time_t dos_time;
+	my_dos_date_t dos_date_temp;
+	for(std::size_t i{};i!=100;++i)
+	{
+		my_dos_getdate(&dos_date);
+		my_dos_gettime(&dos_time);
+		my_dos_getdate(&dos_date_temp);
+		if(dos_date.day==dos_date_temp.day&&
+		dos_date.month==dos_date_temp.month&&
+		dos_date.year==dos_date_temp.year&&
+		dos_date.dayofweek==dos_date_temp.dayofweek)
+		{
+			constexpr uintiso_t factor{uintiso_subseconds_per_second/100u};
+			return {static_cast<intiso_t>(dos_date.year),dos_date.month,dos_date.day,
+				dos_time.hour,dos_time.minute,dos_time.second,
+				static_cast<uintiso_t>(dos_time.hsecond)*factor,0};
+		}
+	}
+	fast_terminate();
+}
+
+inline unix_timestamp get_dos_unix_timestamp() noexcept
+{
+	return to_timestamp(get_dos_iso8601_timestamp());
+}
+
+inline void set_dos_unix_timestamp(unix_timestamp tsp)
+{
+	iso8601_timestamp iso8601{utc(tsp)};
+	if(iso8601.year>static_cast<intiso_t>(UINT16_MAX)||iso8601.year<0)
+		throw_posix_error(EINVAL);
+	std::uint16_t year{static_cast<std::uint16_t>(iso8601.year)};
+	my_dos_date_t dos_date{static_cast<std::uint8_t>(iso8601.day),static_cast<std::uint8_t>(iso8601.month),year,0};
+	constexpr uintiso_t precision{uintiso_subseconds_per_second/100ULL};
+	my_dos_time_t dos_time{static_cast<std::uint8_t>(iso8601.hours),
+		static_cast<std::uint8_t>(iso8601.minutes),
+		static_cast<std::uint8_t>(iso8601.seconds),
+		static_cast<std::uint8_t>(iso8601.subseconds/precision)};
+	if(!my_dos_setdate(&dos_date))
+		throw_posix_error();
+	if(!my_dos_settime(&dos_time))
+		throw_posix_error();
+	my_dos_date_t dos_date_temp;
+	for(std::size_t i{};i!=100;++i)
+	{
+		my_dos_getdate(&dos_date_temp);
+		if(dos_date.day==dos_date_temp.day&&
+		dos_date.month==dos_date_temp.month&&
+		dos_date.year==dos_date_temp.year&&
+		dos_date.dayofweek==dos_date_temp.dayofweek)
+			return;
+		if(!my_dos_setdate(&dos_date))
+			throw_posix_error();
+		if(!my_dos_settime(&dos_time))
+			throw_posix_error();
+	}
+	throw_posix_error(EINVAL);
+}
+
+inline unix_timestamp get_set_unix_timestamp(unix_timestamp tsp)
+{
+	return to_timestamp(get_dos_iso8601_timestamp());
+}
+
+}
+#endif
+
+#if 0
+
+inline unix_timestamp dos_posix_clock_gettime([[maybe_unused]] posix_clock_id pclk_id)
+{
+	switch(pclk_id)
+	{
+	case posix_clock_id::realtime:
+	case posix_clock_id::realtime_alarm:
+	case posix_clock_id::realtime_coarse:
+	case posix_clock_id::tai:
+	case posix_clock_id::monotonic:
+	case posix_clock_id::monotonic_coarse:
+	case posix_clock_id::monotonic_raw:
+	case posix_clock_id::boottime:
+	{
+		timeval tv;
+		constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000u};
+		if(::gettimeofday(std::addressof(tv), nullptr)<0)
+			throw_posix_error();
+		return {static_cast<intiso_t>(tv.tv_sec),static_cast<uintiso_t>(tv.tv_usec)*mul_factor};
+	}
+	case posix_clock_id::process_cputime_id:
+	case posix_clock_id::thread_cputime_id:
+	{
+		std::make_unsigned_t<decltype(uclock())> u(uclock());
+		uintiso_t seconds(u/UCLOCKS_PER_SEC);
+		uintiso_t subseconds(u%UCLOCKS_PER_SEC);
+		constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/UCLOCKS_PER_SEC};
+		return {static_cast<intiso_t>(seconds),static_cast<uintiso_t>(subseconds)*mul_factor};
+	}
+	default:
+		throw_posix_error(EINVAL);
+	}
+}
+
+#endif
 
 inline unix_timestamp posix_clock_gettime([[maybe_unused]] posix_clock_id pclk_id)
 {
@@ -270,11 +402,7 @@ inline unix_timestamp posix_clock_gettime([[maybe_unused]] posix_clock_id pclk_i
 	case posix_clock_id::monotonic_raw:
 	case posix_clock_id::boottime:
 	{
-		timeval tv;
-		constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000u};
-		if(::gettimeofday(std::addressof(tv), nullptr)<0)
-			throw_posix_error();
-		return {static_cast<intiso_t>(tv.tv_sec),static_cast<uintiso_t>(tv.tv_usec)*mul_factor};
+		return details::get_dos_unix_timestamp();
 	}
 	case posix_clock_id::process_cputime_id:
 	case posix_clock_id::thread_cputime_id:
@@ -438,128 +566,44 @@ inline iso8601_timestamp to_iso8601_utc_or_local_impl(unix_timestamp stamp)
 #else
 	tm_gmtoff=res.tm_gmtoff;
 #endif
-	return {res.tm_year+1900,
-		static_cast<std::uint8_t>(res.tm_mon),
-		static_cast<std::uint8_t>(res.tm_mday),
-		static_cast<std::uint8_t>(res.tm_hour),
-		static_cast<std::uint8_t>(res.tm_min),
-		static_cast<std::uint8_t>(res.tm_sec),stamp.subseconds,tm_gmtoff};
+	std::uint8_t month{static_cast<std::uint8_t>(res.tm_mon)};
+	auto year{res.tm_year+1900};
+	if(month==0)
+	{
+		--year;
+		month=12;
 	}
 	else
 	{
-	return {res.tm_year+1900,
-		static_cast<std::uint8_t>(res.tm_mon),
+		++month;
+	}
+	return {year,
+		month,
+		static_cast<std::uint8_t>(res.tm_mday),
+		static_cast<std::uint8_t>(res.tm_hour),
+		static_cast<std::uint8_t>(res.tm_min),
+		static_cast<std::uint8_t>(res.tm_sec),stamp.subseconds,static_cast<std::int32_t>(tm_gmtoff)};
+	}
+	else
+	{
+	std::uint8_t month{static_cast<std::uint8_t>(res.tm_mon)};
+	auto year{res.tm_year+1900};
+	if(month==0)
+	{
+		--year;
+		month=12;
+	}
+	else
+	{
+		++month;
+	}
+	return {year,
+		month,
 		static_cast<std::uint8_t>(res.tm_mday),
 		static_cast<std::uint8_t>(res.tm_hour),
 		static_cast<std::uint8_t>(res.tm_min),
 		static_cast<std::uint8_t>(res.tm_sec),stamp.subseconds,0};
 	}
-}
-
-/*
-Referenced from musl libc
-https://git.musl-libc.org/cgit/musl/tree/src/time/__secs_to_tm.c?h=v0.9.15
-*/
-
-inline constexpr char8_t days_in_month[]{31,30,31,30,31,31,30,31,30,31,31,29};
-
-inline constexpr intiso_t leapoch{946684800LL + 86400LL*(31LL+29LL)};
-inline constexpr std::uint32_t days_per_400_year{365LL*400LL+97LL};
-inline constexpr std::uint32_t days_per_100_year{365LL*100LL+24LL};
-inline constexpr std::uint32_t days_per_4_year{365LL*4LL+1LL};
-
-template<std::signed_integral T>
-inline constexpr T sub_overflow(T a,T b) noexcept
-{
-#if defined(__has_builtin)
-#if __has_builtin(__builtin_sub_overflow)
-	T c;
-	if(__builtin_sub_overflow(a,b,&c))[[unlikely]]
-		fast_terminate();
-	return c;
-#else
-
-	if(b<=0)[[unlikely]]
-	{
-		if(a>std::numeric_limits<T>::max()+b)[[unlikely]]
-			fast_terminate();
-
-	}
-	else
-	{
-		if(a<std::numeric_limits<T>::min()+b)[[unlikely]]
-			fast_terminate();
-	}
-	return a-b;
-#endif
-#else
-	if(b<=0)[[unlikely]]
-	{
-		if(a>std::numeric_limits<T>::max()+b)[[unlikely]]
-			fast_terminate();
-	}
-	else
-	{
-		if(a<std::numeric_limits<T>::min()+b)[[unlikely]]
-			fast_terminate();
-	}
-	return a-b;
-#endif
-}
-
-inline constexpr iso8601_timestamp unix_timestamp_to_iso8601_tsp_impl_internal(intiso_t t,uintiso_t subseconds,long timezone) noexcept
-{
-	intiso_t secs{sub_overflow(t,leapoch)};
-	intiso_t days{secs/86400};
-	intiso_t remsecs{secs%86400};
-	if(remsecs<0)
-	{
-		remsecs+=86400;
-		--days;
-	}
-
-	intiso_t qc_cycles{days / days_per_400_year};
-	intiso_t remdays{days % days_per_400_year};
-	if (remdays < 0)
-	{
-		remdays += days_per_400_year;
-		--qc_cycles;
-	}
-
-	intiso_t c_cycles{remdays / days_per_100_year};
-	if (c_cycles == 4)
-		--c_cycles;
-	remdays -= c_cycles * days_per_100_year;
-
-	intiso_t q_cycles{remdays / days_per_4_year};
-	if (q_cycles == 25)
-		--q_cycles;
-	remdays -= q_cycles * days_per_4_year;
-
-	intiso_t remyears{remdays / 365};
-	if (remyears == 4)
-		--remyears;
-	remdays -= remyears * 365;
-
-	bool leap{!remyears && (q_cycles || !c_cycles)};
-	intiso_t yday{remdays + 31 + 28 + leap};
-	if (yday >= 365+leap)
-		yday -= 365+leap;
-	intiso_t years{remyears + 4*q_cycles + 100*c_cycles + 400*qc_cycles};
-	std::uint8_t months{};
-	for (; days_in_month[months] <= remdays; ++months)
-		remdays -= days_in_month[months];
-	return {years+2000,
-		static_cast<std::uint8_t>(months+2),
-		static_cast<std::uint8_t>(remdays+1),
-		static_cast<std::uint8_t>(remsecs/3600),
-		static_cast<std::uint8_t>(remsecs/60%60),
-		static_cast<std::uint8_t>(remsecs%60),subseconds,timezone};
-}
-
-inline constexpr iso8601_timestamp unix_timestamp_to_iso8601_tsp_impl(intiso_t t,uintiso_t subseconds) noexcept
-{
-	return unix_timestamp_to_iso8601_tsp_impl_internal(t,subseconds,0);
 }
 
 #ifdef __NEWLIB__
@@ -588,24 +632,18 @@ inline void posix_tzset() noexcept
 #endif
 }
 
-template<intiso_t off_to_epoch>
-inline constexpr iso8601_timestamp utc(basic_timestamp<off_to_epoch> timestamp) noexcept
-{
-	if constexpr(std::same_as<basic_timestamp<off_to_epoch>,unix_timestamp>)
-	{
-		return details::unix_timestamp_to_iso8601_tsp_impl(timestamp.seconds,timestamp.subseconds);
-	}
-	else
-	{
-		unix_timestamp tsp{static_cast<unix_timestamp>(timestamp)};
-		return details::unix_timestamp_to_iso8601_tsp_impl(tsp.seconds,tsp.subseconds);
-	}
-}
 
 template<intiso_t off_to_epoch>
 inline iso8601_timestamp local(basic_timestamp<off_to_epoch> timestamp)
 {
+#ifdef __MSDOS__
+	return utc(timestamp);
+#if 0
 	return details::to_iso8601_utc_or_local_impl<true>(static_cast<unix_timestamp>(timestamp));
+#endif
+#else
+	return details::to_iso8601_utc_or_local_impl<true>(static_cast<unix_timestamp>(timestamp));
+#endif
 }
 
 #if defined(_WIN32) && (defined(_UCRT) || defined(_MSC_VER))
@@ -664,38 +702,46 @@ extern char *m_tzname[2] __asm__("_tzname");
 extern int m_daylight __asm__("_daylight");
 #endif
 
-inline int posix_daylight() noexcept
+inline int posix_daylight()
 {
-#ifdef __NEWLIB__
-	return m_daylight;
-#elif defined(__MSDOS__)
+#if defined(__MSDOS__)
 	return 0;
-#else
+#elif defined(_WIN32)
 	return _daylight;
+#elif defined(__NEWLIB__)
+	return m_daylight;
+#elif defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
+	std::time_t t{};
+	struct tm stm{};
+	if(localtime_r(&t,&stm)==0)
+		throw_posix_error();
+	return stm.tm_isdst*3600;
+#else
+	return daylight;
 #endif
 }
 
 inline basic_io_scatter_t<char> timezone_name(bool dst=posix_daylight()) noexcept
 {
+#if defined(__MSDOS__)
+	return {reinterpret_cast<char const*>(u8"UTC"),3}; 
+#else
 #if defined(__NEWLIB__)
 	auto nm{m_tzname[dst]};
 #else
 	auto nm{tzname[dst]};
 #endif
 	return {nm,::fast_io::details::my_strlen(nm)};
+#endif
 }
 
 #endif
 
-template<intiso_t off_to_epoch>
-inline basic_timestamp<off_to_epoch> posix_clock_settime(posix_clock_id pclk_id,basic_timestamp<off_to_epoch> timestamp)
+inline void posix_clock_settime(posix_clock_id pclk_id,unix_timestamp timestamp)
 {
 #ifdef _WIN32
-	return nt_clock_settime(pclk_id,timestamp);
-#else
-	if constexpr(std::same_as<basic_timestamp<off_to_epoch>,unix_timestamp>)
-	{
-#if defined(__MSDOS__)
+	nt_clock_settime(pclk_id,timestamp);
+#elif defined(__MSDOS__)
 	switch(pclk_id)
 	{
 	case posix_clock_id::realtime:
@@ -703,6 +749,7 @@ inline basic_timestamp<off_to_epoch> posix_clock_settime(posix_clock_id pclk_id,
 	case posix_clock_id::realtime_coarse:
 	case posix_clock_id::tai:
 	{
+#if 0
 		if constexpr(sizeof(std::time_t)<sizeof(intiso_t))
 		{
 			if(static_cast<intiso_t>(std::numeric_limits<std::time_t>::max())<timestamp.seconds)
@@ -713,11 +760,13 @@ inline basic_timestamp<off_to_epoch> posix_clock_settime(posix_clock_id pclk_id,
 		static_cast<long>(timestamp.subseconds/mul_factor)};
 		if(::settimeofday(std::addressof(tv), nullptr)<0)
 			throw_posix_error();
-		return {static_cast<intiso_t>(tv.tv_sec),static_cast<uintiso_t>(tv.tv_usec)*mul_factor};
+#else
+		details::set_dos_unix_timestamp(timestamp);
+#endif
 	}
 	default:
 		throw_posix_error(EINVAL);
-	};
+	}
 #elif !defined(__NEWLIB__) || defined(_POSIX_TIMERS)
 	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000000u};
 	struct timespec res{static_cast<std::time_t>(timestamp.seconds),
@@ -729,15 +778,8 @@ inline basic_timestamp<off_to_epoch> posix_clock_settime(posix_clock_id pclk_id,
 	if(::clock_settime(clk,std::addressof(res))<0)
 		throw_posix_error();
 #endif
-	return {static_cast<intiso_t>(res.tv_sec),static_cast<uintiso_t>(res.tv_nsec)*mul_factor};
 #else
 	throw_posix_error(EINVAL);
-#endif
-	}
-	else
-	{
-		return static_cast<basic_timestamp<off_to_epoch>>(pclk_id,static_cast<unix_timestamp>(timestamp));
-	}
 #endif
 }
 
