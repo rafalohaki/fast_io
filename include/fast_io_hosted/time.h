@@ -527,12 +527,47 @@ inline struct tm unix_timestamp_to_tm_impl(intiso_t seconds)
 #endif
 }
 
-template<bool local_tm>
-inline iso8601_timestamp to_iso8601_utc_or_local_impl(unix_timestamp stamp)
+inline iso8601_timestamp to_iso8601_local_impl(intiso_t seconds,uintiso_t subseconds)
 {
-	auto res{unix_timestamp_to_tm_impl<local_tm>(stamp.seconds)};
-	if constexpr(local_tm)
+#ifdef __MSDOS__
+	return utc(stamp);
+#elif defined(_WIN32) || defined(__linux__)
+
+#if defined(_WIN32)
+	_tzset();
+#else
+	tzset();
+#endif
+	long tm_gmtoff{};
+#if defined(_MSC_VER) || defined(_UCRT)
 	{
+		auto errn{_get_timezone(&tm_gmtoff)};
+		if(errn)
+			throw_posix_error(static_cast<int>(errn));
+	}
+#elif defined(_WIN32)
+	tm_gmtoff=_timezone;
+#else
+	tm_gmtoff=timezone;
+#endif
+	unsigned long ulong_tm_gmtoff{static_cast<unsigned long>(tm_gmtoff)};
+	long bias{};
+#if defined(_MSC_VER) || defined(_UCRT)
+	{
+		auto errn{_get_dstbias(&bias)};
+		if(errn)
+			throw_posix_error(static_cast<int>(errn));
+	}
+#elif defined(_WIN32)
+	bias=_dstbias;
+#else
+	bias=daylight?-3600L:0;
+#endif
+	std::uint32_t dst_timezone{static_cast<std::uint32_t>(static_cast<unsigned long>(tm_gmtoff)+static_cast<unsigned long>(bias))};
+	return unix_timestamp_to_iso8601_tsp_impl_internal(sub_overflow(seconds,static_cast<intiso_t>(static_cast<uintiso_t>(dst_timezone))),
+		subseconds,static_cast<std::int32_t>(static_cast<std::uint32_t>(0)-dst_timezone));
+#else
+	auto res{unix_timestamp_to_tm_impl<true>(seconds)};
 	long tm_gmtoff{};
 #if defined(_WIN32)
 	#if defined(_MSC_VER) || defined(_UCRT)
@@ -582,28 +617,8 @@ inline iso8601_timestamp to_iso8601_utc_or_local_impl(unix_timestamp stamp)
 		static_cast<std::uint8_t>(res.tm_mday),
 		static_cast<std::uint8_t>(res.tm_hour),
 		static_cast<std::uint8_t>(res.tm_min),
-		static_cast<std::uint8_t>(res.tm_sec),stamp.subseconds,static_cast<std::int32_t>(tm_gmtoff)};
-	}
-	else
-	{
-	std::uint8_t month{static_cast<std::uint8_t>(res.tm_mon)};
-	auto year{res.tm_year+1900};
-	if(month==0)
-	{
-		--year;
-		month=12;
-	}
-	else
-	{
-		++month;
-	}
-	return {year,
-		month,
-		static_cast<std::uint8_t>(res.tm_mday),
-		static_cast<std::uint8_t>(res.tm_hour),
-		static_cast<std::uint8_t>(res.tm_min),
-		static_cast<std::uint8_t>(res.tm_sec),stamp.subseconds,0};
-	}
+		static_cast<std::uint8_t>(res.tm_sec),subseconds,static_cast<std::int32_t>(tm_gmtoff)};
+#endif
 }
 
 #ifdef __NEWLIB__
@@ -639,10 +654,18 @@ inline iso8601_timestamp local(basic_timestamp<off_to_epoch> timestamp)
 #ifdef __MSDOS__
 	return utc(timestamp);
 #if 0
-	return details::to_iso8601_utc_or_local_impl<true>(static_cast<unix_timestamp>(timestamp));
+	return details::to_iso8601_local_impl(static_cast<unix_timestamp>(timestamp));
 #endif
 #else
-	return details::to_iso8601_utc_or_local_impl<true>(static_cast<unix_timestamp>(timestamp));
+	if constexpr(off_to_epoch==0)
+	{
+		return details::to_iso8601_local_impl(timestamp.seconds,timestamp.subseconds);
+	}
+	else
+	{
+		unix_timestamp stmp(static_cast<unix_timestamp>(timestamp));
+		return details::to_iso8601_local_impl(stmp.seconds,stmp.subseconds);
+	}
 #endif
 }
 

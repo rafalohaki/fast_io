@@ -289,8 +289,8 @@ Days since January 1, 1970, Unix epoch
 using unix_timestamp=basic_timestamp<0>;		//UNIX
 using win32_timestamp=basic_timestamp<-11644473600LL>;	//Windows
 using csharp_timestamp=basic_timestamp<-62135712000LL>;	//C#
-using year0_timestamp=basic_timestamp<-62168515200LL>;	//0000-01-01
-using universe_timestamp=basic_timestamp<-434313790486272000LL>;		//Pesudo timestamp since the big bang of universe
+using year0_timestamp=basic_timestamp<-62167219200LL>;	//0000-01-01
+using universe_timestamp=basic_timestamp<-434602341429235200LL>;		//Pesudo timestamp since the big bang of universe
 /*
 Referenced from: https://81018.com/universeclock/
 */
@@ -464,22 +464,22 @@ inline constexpr iso8601_timestamp unix_timestamp_to_iso8601_tsp_impl(intiso_t t
 #endif
 inline constexpr intiso_t year_month_to_seconds(intiso_t year,uint8_t month) noexcept
 {
-	constexpr intiso_t year_min{std::numeric_limits<intiso_t>::min()/(365LL*86400LL)+2000};
-	constexpr intiso_t year_max{std::numeric_limits<intiso_t>::max()/(365LL*86400LL)+2000};
+	constexpr intiso_t year_min{std::numeric_limits<intiso_t>::min()/(365LL*86400LL)};
+	constexpr intiso_t year_max{std::numeric_limits<intiso_t>::max()/(365LL*86400LL)};
 	if(year<=year_min||year>=year_max)
 		fast_terminate();
-	year-=2000;
 	intiso_t leaps{year/4};
 	intiso_t leaps_remainder{year%4};
 	intiso_t cycles_quotient{year / 400};
 	intiso_t cycles_reminder{year % 400};
+	intiso_t cycles100_quotient{year / 100};
 	intiso_t cycles100_reminder{year % 100};
 	bool year_is_leap_year{(!cycles_reminder)||((!leaps_remainder)&&cycles100_reminder)};
-	leaps+=cycles_reminder-cycles100_reminder;
+	leaps+=cycles_quotient-cycles100_quotient;
 	std::uint32_t t{secs_through_month[month-1]};
-	if(!year_is_leap_year&&1<month)
+	if((year>=0&&!year_is_leap_year)||1<month)
 		t+=0x15180;
-	return (year*365LL+leaps)*86400LL+y2k+static_cast<intiso_t>(t);
+	return (year*365LL+leaps)*86400LL-62167219200LL+static_cast<intiso_t>(t);
 }
 
 #if __has_cpp_attribute(gnu::pure)
