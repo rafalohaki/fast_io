@@ -156,7 +156,7 @@ unix_timestamp posix_clock_getres([[maybe_unused]] posix_clock_id pclk_id)
 	case posix_clock_id::monotonic_raw:
 	case posix_clock_id::boottime:
 	{
-		constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000u};
+		constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/100u};
 		return {0,mul_factor};
 	}
 	case posix_clock_id::process_cputime_id:
@@ -323,11 +323,6 @@ inline void set_dos_unix_timestamp(unix_timestamp tsp)
 	throw_posix_error(EINVAL);
 }
 
-inline unix_timestamp get_set_unix_timestamp(unix_timestamp tsp)
-{
-	return to_timestamp(get_dos_iso8601_timestamp());
-}
-
 }
 #endif
 
@@ -476,7 +471,7 @@ inline basic_timestamp<off_to_epoch> zw_clock_settime(posix_clock_id pclk_id,bas
 
 namespace details
 {
-
+#ifndef _WIN32
 template<bool local_tm>
 inline struct tm unix_timestamp_to_tm_impl(intiso_t seconds)
 {
@@ -492,22 +487,6 @@ inline struct tm unix_timestamp_to_tm_impl(intiso_t seconds)
 	{
 	if(gmtime64_r(&val,&t)==0)
 		throw_posix_error();
-	}
-	return t;
-#elif defined(_WIN32)
-	__time64_t val{static_cast<__time64_t>(seconds)};
-	struct tm t;
-	if constexpr(local_tm)
-	{
-	auto errn{noexcept_call(_localtime64_s,&t,&val)};
-	if(errn)
-		throw_posix_error(static_cast<int>(errn));
-	}
-	else
-	{
-	auto errn{noexcept_call(_gmtime64_s,&t,&val)};
-	if(errn)
-		throw_posix_error(static_cast<int>(errn));
 	}
 	return t;
 #else
@@ -526,11 +505,13 @@ inline struct tm unix_timestamp_to_tm_impl(intiso_t seconds)
 	return t;
 #endif
 }
+#endif
+
 
 inline iso8601_timestamp to_iso8601_local_impl(intiso_t seconds,uintiso_t subseconds)
 {
 #ifdef __MSDOS__
-	return utc(stamp);
+	return unix_timestamp_to_iso8601_tsp_impl_internal(seconds,subseconds,0);
 #elif defined(_WIN32) || defined(__linux__)
 
 #if defined(_WIN32)
@@ -550,7 +531,6 @@ inline iso8601_timestamp to_iso8601_local_impl(intiso_t seconds,uintiso_t subsec
 #else
 	tm_gmtoff=timezone;
 #endif
-	unsigned long ulong_tm_gmtoff{static_cast<unsigned long>(tm_gmtoff)};
 	long bias{};
 #if defined(_MSC_VER) || defined(_UCRT)
 	{
@@ -737,7 +717,7 @@ inline int posix_daylight()
 #endif
 }
 
-inline basic_io_scatter_t<char> timezone_name(bool dst=posix_daylight()) noexcept
+inline basic_io_scatter_t<char> timezone_name([[maybe_unused]] bool dst=posix_daylight()) noexcept
 {
 #if defined(__MSDOS__)
 	return {reinterpret_cast<char const*>(u8"UTC"),3}; 
