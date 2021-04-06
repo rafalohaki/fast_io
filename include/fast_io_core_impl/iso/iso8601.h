@@ -397,9 +397,9 @@ inline constexpr T sub_overflow(T a,T b) noexcept
 #if __has_cpp_attribute(gnu::pure)
 [[gnu::pure]]
 #endif
-inline constexpr iso8601_timestamp unix_timestamp_to_iso8601_tsp_impl_internal(intiso_t t,uintiso_t subseconds,std::int32_t timezone) noexcept
+inline constexpr iso8601_timestamp unix_timestamp_to_iso8601_tsp_impl_internal(intiso_t seconds,uintiso_t subseconds,std::int32_t timezone) noexcept
 {
-	intiso_t secs{sub_overflow(t,leapoch)};
+	intiso_t secs{sub_overflow(seconds,leapoch)};
 	intiso_t days{secs/86400};
 	intiso_t remsecs{secs%86400};
 	if(remsecs<0)
@@ -438,14 +438,13 @@ inline constexpr iso8601_timestamp unix_timestamp_to_iso8601_tsp_impl_internal(i
 	std::uint8_t months{};
 	for (; days_in_month[months] <= remdays; ++months)
 		remdays -= days_in_month[months];
-	months+=3;
-	if(months>12)
+	if(months>=10)
 	{
 		++years;
 		months-=12;
 	}
 	return {years+2000,
-		static_cast<std::uint8_t>(months),
+		static_cast<std::uint8_t>(months+3),
 		static_cast<std::uint8_t>(remdays+1),
 		static_cast<std::uint8_t>(remsecs/3600),
 		static_cast<std::uint8_t>(remsecs/60%60),
