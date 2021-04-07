@@ -387,7 +387,7 @@ inline constexpr char32_t utf16_surrogate_to_utf32(char16_t high, char16_t low) 
 	return (high << 10) + low - 0x35fdc00; 
 }
 
-#if __SSE__
+#if defined(__SSE__) && defined(__x86_64__)
 template<std::integral T,std::integral U>
 requires ((sizeof(T)==1)&&(sizeof(U)==1||sizeof(U)==2||sizeof(U)==4))
 inline code_cvt_result<T,U> convert_ascii_with_sse(T const* __restrict__ pSrc, U* __restrict__ pDst) noexcept

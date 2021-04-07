@@ -25,15 +25,17 @@
 #include<bit>			//for std::endian, std::rotl and std::bit_cast etc
 
 
-#include"fast_io_core_impl/intrinsics.h"
-
-#include"fast_io_core_impl/ebcdic.h"
-#include"fast_io_core_impl/char_category.h"
 //fast_io core
 #include"fast_io_core_impl/utils.h"
 
-#include"fast_io_core_impl/overflow.h"
 #include"fast_io_core_impl/terminate.h"
+#include"fast_io_core_impl/intrinsics.h"
+#include"fast_io_core_impl/ebcdic.h"
+#include"fast_io_core_impl/char_category.h"
+
+
+#include"fast_io_core_impl/overflow.h"
+
 #if __cpp_lib_three_way_comparison >= 201907L
 #include"fast_io_core_impl/compare.h"
 #endif

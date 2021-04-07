@@ -15,24 +15,6 @@ struct basic_timestamp
 		constexpr intiso_t diff{off_to_epoch-new_off_to_epoch};
 		return {seconds+diff,subseconds};
 	}
-/*
-Should we use std::bit_cast and applying integer arithmatics to convert to floating points just like dragonbox or ryu are doing?
-*/
-	explicit constexpr operator float() noexcept
-	{
-		constexpr float db{static_cast<float>(uintiso_subseconds_per_second)};
-		return static_cast<float>(seconds)+static_cast<float>(subseconds)/db;
-	}
-	explicit constexpr operator double() noexcept
-	{
-		constexpr double db{static_cast<double>(uintiso_subseconds_per_second)};
-		return static_cast<double>(seconds)+static_cast<double>(subseconds)/db;
-	}
-	explicit constexpr operator long double() noexcept
-	{
-		constexpr long double db{static_cast<long double>(uintiso_subseconds_per_second)};
-		return static_cast<long double>(seconds)+static_cast<long double>(subseconds)/db;
-	}
 };
 
 template<intiso_t off_to_epoch>
@@ -96,8 +78,6 @@ inline constexpr timestamp_u sub_impl(timestamp_u a,timestamp_u b) noexcept
 		res+=uintiso_subseconds_per_second;
 	return {seconds,res};
 }
-#if 0
-
 
 inline constexpr basic_timestamp<0> div_uint(intiso_t rseconds,uintiso_t subseconds,uintiso_t d) noexcept
 {
@@ -105,9 +85,9 @@ inline constexpr basic_timestamp<0> div_uint(intiso_t rseconds,uintiso_t subseco
 		fast_terminate();
 	bool minus{rseconds<0};
 	uintiso_t seconds{static_cast<uintiso_t>(rseconds)};
+	constexpr uintiso_t zero{};
 	if(minus)
-		seconds=static_cast<uintiso_t>(0)-seconds;
-#if UINTMAX_MAX==UINT64_MAX
+		seconds=zero-seconds;
 #if __SIZEOF_INT128__
 	__uint128_t total_subseconds{static_cast<__uint128_t>(seconds)*uintiso_subseconds_per_second+subseconds};
 	std::uint64_t mid{d>>1};
@@ -124,39 +104,25 @@ inline constexpr basic_timestamp<0> div_uint(intiso_t rseconds,uintiso_t subseco
 	std::uint64_t result_seconds{static_cast<std::uint64_t>(q/uintiso_subseconds_per_second)};
 	std::uint64_t result_subseconds{static_cast<std::uint64_t>(q%uintiso_subseconds_per_second)};
 	if(minus)
-		result_seconds=static_cast<uintiso_t>(0)-result_seconds;
+		result_seconds=zero-result_seconds;
 	return {static_cast<intiso_t>(result_seconds),result_subseconds};
 #else
-	if(std::is_constant_evaluated())
-		return {};
+	constexpr uintiso_t one{1};
 	std::uint64_t total_seconds_high;
-	std::uint64_t total_seconds_low{_umul128(seconds,subseconds,&total_seconds_high)};
+	std::uint64_t total_seconds_low{intrinsics::umul(seconds,uintiso_subseconds_per_second,total_seconds_high)};
+	intrinsics::add_carry(intrinsics::add_carry(false,total_seconds_low,subseconds,total_seconds_low),total_seconds_high,zero,total_seconds_high);
 	std::uint64_t mid{d>>1};
-	std::uint64_t r;
-
-	std::uint64_t q_low{_udiv128(total_seconds_high,total_seconds_low,d,&r)};
-
-	std::uint64_t q_high{total_seconds_high/d};
+	auto [q_low,q_high,r,r_high]=intrinsics::udivmod(total_seconds_low,total_seconds_high,d,zero);
 	if(mid<r||(mid==r&&(q_low&1)==1))
-		_addcarry_u64(_addcarry_u64(false,q_low,1,&q_low),q_high,0,&q_high);
-	total_seconds_low=_udiv128(q_high,q_low,uintiso_subseconds_per_second,&r);
+		intrinsics::add_carry(intrinsics::add_carry(false,q_low,one,q_low),q_high,zero,q_high);
+	auto [result_seconds_low,result_seconds_high,result_subseconds_low,result_subseconds_high]
+		=intrinsics::udivmod(q_low,q_high,uintiso_subseconds_per_second,zero);
 	if(minus)
-		total_seconds_low=static_cast<uintiso_t>(0)-total_seconds_low;
-	return {static_cast<intiso_t>(total_seconds_low),r};
-#endif
+		result_seconds_low=zero-result_seconds_low;
+	return {static_cast<intiso_t>(result_seconds_low),result_subseconds_low};
 #endif	
-/*
-	else
-	{
-		basic_unsigned_extension<uintiso_t> total_subseconds{mul_extend(seconds,uintiso_subseconds_per_second)+subseconds};
-		uintiso_t mid{d>>1};
-		auto [rr,q]=div_mod(total_subseconds,d);
-		uintiso_t r{rr};
-	}
-
-*/
 }
-#endif
+
 }
 
 template<intiso_t off_to_epoch>
@@ -244,7 +210,6 @@ inline constexpr basic_timestamp<off_to_epoch>& operator-=(basic_timestamp<off_t
 {
 	return a=a+(-b);
 }
-#if 0
 template<intiso_t off_to_epoch>
 inline constexpr basic_timestamp<off_to_epoch> operator/(basic_timestamp<off_to_epoch> a,uintiso_t b) noexcept
 {
@@ -274,7 +239,6 @@ inline constexpr basic_timestamp<off_to_epoch>& operator/=(basic_timestamp<off_t
 		return a;
 	}
 }
-#endif
 /*
 https://www.epochconverter.com/seconds-days-since-y0
 Seconds since year 0 (MySQL compatible)
