@@ -47,7 +47,7 @@ inline constexpr bool add_carry(bool carry,T a,T b,T& out) noexcept
 #if __has_cpp_attribute(gnu::may_alias)
 				[[gnu::may_alias]]
 #endif
-				= std::uint32_t*;
+				= std::conditional_t<sizeof(unsigned)==sizeof(std::uint32_t),unsigned*,std::uint32_t*>;
 
 				std::uint32_t a_low;
 				std::uint32_t a_high;
@@ -111,7 +111,7 @@ inline constexpr bool sub_borrow(bool borrow,T a,T b,T& out) noexcept
 #if __has_cpp_attribute(gnu::may_alias)
 				[[gnu::may_alias]]
 #endif
-				= unsigned int*;
+				= std::conditional_t<sizeof(unsigned)==sizeof(std::uint32_t),unsigned*,std::uint32_t*>;
 
 				std::uint32_t a_low;
 				std::uint32_t a_high;
