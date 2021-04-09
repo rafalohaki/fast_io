@@ -57,6 +57,7 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - aarch64
 - riscv
 - riscv64
+- powerpc64 little endian
 
 ## Platform Support
 - Microsoft Windows
@@ -83,7 +84,8 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - DJGPP
 - Newlib
 - Bionic(Android)
-- Todo list: uclib-ng, mlibc, wasi libc??
+- uclibc-ng
+- Todo list: mlibc, wasi libc??
 
 ## Supported C++ standard library std::streambuf/std::filebuf hacks platforms
 - GCC libstdc++

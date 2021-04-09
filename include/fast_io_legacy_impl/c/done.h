@@ -103,7 +103,7 @@ inline std::size_t c_fread_unlocked_impl(void* __restrict begin,std::size_t type
 template<std::integral char_type>
 inline std::size_t c_io_write_impl(basic_c_io_observer_unlocked<char_type> cfhd,char_type const* begin,char_type const* end)
 {
-	std::size_t const count(end-begin);
+	std::ptrdiff_t const count(end-begin);
 	if constexpr((std::same_as<char_type,char>&&buffer_io_stream<c_io_observer_unlocked>)
 	||(std::same_as<char_type,wchar_t>&&buffer_io_stream<wc_io_observer_unlocked>)
 	||(std::same_as<char_type,char8_t>&&buffer_output_stream<u8c_io_observer_unlocked>)
@@ -113,20 +113,20 @@ inline std::size_t c_io_write_impl(basic_c_io_observer_unlocked<char_type> cfhd,
 	{
 		auto curr{obuffer_curr(cfhd)};
 		auto ed{obuffer_end(cfhd)};
-		if(curr+count<ed)[[likely]]
+		if(count<ed-curr)[[likely]]
 		{
 			non_overlapped_copy_n(begin,count,curr);
 			obuffer_set_curr(cfhd,curr+count);
 			return count;
 		}
 	}
-	return c_fwrite_unlocked_impl(begin,sizeof(char_type),count,cfhd.fp);
+	return c_fwrite_unlocked_impl(begin,sizeof(char_type),static_cast<std::size_t>(count),cfhd.fp);
 }
 
 template<std::integral char_type>
 inline std::size_t c_io_read_impl(basic_c_io_observer_unlocked<char_type> cfhd,char_type* begin,char_type* end)
 {
-	std::size_t count(end-begin);
+	std::ptrdiff_t const count(end-begin);
 	if constexpr((std::same_as<char_type,char>&&buffer_io_stream<c_io_observer_unlocked>)
 	||(std::same_as<char_type,wchar_t>&&buffer_io_stream<wc_io_observer_unlocked>)
 	||(std::same_as<char_type,char8_t>&&buffer_io_stream<u8c_io_observer_unlocked>)
@@ -136,14 +136,14 @@ inline std::size_t c_io_read_impl(basic_c_io_observer_unlocked<char_type> cfhd,c
 	{
 		auto curr{ibuffer_curr(cfhd)};
 		auto ed{ibuffer_end(cfhd)};
-		if(curr+count<ed)[[likely]]
+		if(count<ed-curr)[[likely]]
 		{
 			non_overlapped_copy_n(curr,count,begin);
 			ibuffer_set_curr(cfhd,curr+count);
 			return count;
 		}
 	}
-	return c_fread_unlocked_impl(begin,sizeof(char_type),count,cfhd.fp);
+	return c_fread_unlocked_impl(begin,sizeof(char_type),static_cast<std::size_t>(count),cfhd.fp);
 }
 
 }

@@ -1093,8 +1093,11 @@ inline decltype(auto) zero_copy_out_handle(basic_c_io_observer_unlocked<ch_type>
 
 }
 
-
-#if defined(__GLIBC__)
+#if defined(__UCLIBC__)
+#if defined(__STDIO_BUFFERS)
+#include"uclibc.h"
+#endif
+#elif defined(__GLIBC__)
 #include"glibc.h"
 #elif defined(__wasi__)
 #ifdef __wasilibc_unmodified_upstream

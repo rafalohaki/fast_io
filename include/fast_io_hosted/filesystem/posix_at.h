@@ -68,7 +68,7 @@ inline void posix_renameat_impl(int olddirfd,char const* oldpath,
 	int newdirfd,char const* newpath)
 {
 	system_call_throw_error(
-#if defined(__linux__)
+#if defined(__linux__) && defined(__NR_renameat)
 	system_call<__NR_renameat,int>
 #else
 	renameat
