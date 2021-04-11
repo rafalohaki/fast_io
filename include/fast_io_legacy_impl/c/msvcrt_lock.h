@@ -10,22 +10,40 @@ Referenced from MinGW-w64 CRT
 https://github.com/Alexpux/mingw-w64/blob/d0d7f784833bbb0b2d279310ddc6afb52fe47a46/mingw-w64-crt/stdio/mingw_lock.c#L36
 */
 
-[[gnu::dllimport]] extern void __stdcall EnterCriticalSection(void*) noexcept
+[[gnu::dllimport,gnu::stdcall]] extern void EnterCriticalSection(void*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("EnterCriticalSection@4")
+#else
+asm("_EnterCriticalSection@4")
+#endif
+#else
 asm("EnterCriticalSection")
 #endif
-;
-[[gnu::dllimport]] extern void __stdcall LeaveCriticalSection(void*) noexcept
-#if defined(__clang__) || defined(__GNUC__)
-asm("LeaveCriticalSection")
 #endif
 ;
-[[gnu::dllimport]] extern void __cdecl _lock(int) noexcept
+
+[[gnu::dllimport,gnu::stdcall]] extern void LeaveCriticalSection(void*) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("LeaveCriticalSection@4")
+#else
+asm("_LeaveCriticalSection@4")
+#endif
+#else
+asm("LeaveCriticalSection")
+#endif
+#endif
+;
+
+[[gnu::dllimport,gnu::cdecl]] extern void _lock(int) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 asm("_lock")
 #endif
 ;
-[[gnu::dllimport]] extern void __cdecl _unlock(int) noexcept
+[[gnu::dllimport,gnu::cdecl]]extern void _unlock(int) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 asm("_unlock")
 #endif
