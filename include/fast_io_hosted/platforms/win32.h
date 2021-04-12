@@ -592,25 +592,11 @@ inline std::size_t write_nolock_impl(void* __restrict handle,void const* __restr
 	}
 }
 
-inline std::size_t write_lock_impl(void* __restrict handle,void const* __restrict cbegin,std::size_t to_write)
-{
-	win32::overlapped overlap{};
-	file_lock_guard gd{
-		win32::LockFileEx(handle,0x00000002,0,UINT32_MAX,UINT32_MAX,std::addressof(overlap))?
-		handle:
-		reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))
-	};
-	return write_nolock_impl(handle,cbegin,to_write);
-}
-
 inline std::size_t write_impl(void* __restrict handle,void const* __restrict cbegin,std::size_t to_write)
 {
 	if constexpr(4<sizeof(std::size_t))
 	{
-		if(static_cast<std::size_t>(UINT32_MAX)<to_write)[[unlikely]]
-			return write_lock_impl(handle,cbegin,to_write);
-		else
-			return write_simple_impl(handle,cbegin,to_write);
+		return write_nolock_impl(handle,cbegin,to_write);
 	}
 	else
 		return write_simple_impl(handle,cbegin,to_write);
@@ -1040,8 +1026,6 @@ inline std::array<void*,2> redirect_handle(basic_win32_pipe<ch_type>& hd)
 	return {hd.in().handle,hd.out().handle};
 }
 
-template<std::integral ch_type>
-inline constexpr void flush(basic_win32_pipe<ch_type>&){}
 using win32_io_observer=basic_win32_io_observer<char>;
 using win32_io_handle=basic_win32_io_handle<char>;
 using win32_file=basic_win32_file<char>;
@@ -1092,7 +1076,7 @@ inline basic_win32_io_observer<char_type> win32_stderr() noexcept
 	return basic_win32_io_observer<char_type>{fast_io::win32::GetStdHandle(win32_stderr_number)};
 }
 
-#ifndef __CYGWIN__
+#if !defined(__CYGWIN__) && !defined(__WINE__)
 template<std::integral char_type=char>
 inline basic_win32_io_observer<char_type> native_stdin() noexcept
 {

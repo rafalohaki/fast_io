@@ -52,7 +52,7 @@ inline u8c_io_observer u8c_stderr() noexcept
 }
 
 inline
-#ifndef _WIN32
+#if defined(__WINE__) || !defined(_WIN32)
 constexpr
 #endif
 native_io_observer in() noexcept
@@ -61,7 +61,7 @@ native_io_observer in() noexcept
 }
 
 inline
-#ifndef _WIN32
+#if defined(__WINE__) || !defined(_WIN32)
 constexpr
 #endif
 native_io_observer out() noexcept
@@ -70,7 +70,7 @@ native_io_observer out() noexcept
 }
 
 inline
-#ifndef _WIN32
+#if defined(__WINE__) || !defined(_WIN32)
 constexpr
 #endif
 native_io_observer err() noexcept
@@ -80,7 +80,7 @@ native_io_observer err() noexcept
 
 
 inline
-#ifndef _WIN32
+#if defined(__WINE__) || !defined(_WIN32)
 constexpr
 #endif
 decltype(auto) u8in() noexcept
@@ -89,7 +89,7 @@ decltype(auto) u8in() noexcept
 }
 
 inline
-#ifndef _WIN32
+#if defined(__WINE__) || !defined(_WIN32)
 constexpr
 #endif
 decltype(auto) u8out() noexcept
@@ -98,7 +98,7 @@ decltype(auto) u8out() noexcept
 }
 
 inline
-#ifndef _WIN32
+#if defined(__WINE__) || !defined(_WIN32)
 constexpr
 #endif
 decltype(auto) u8err() noexcept

@@ -535,10 +535,10 @@ inline std::size_t posix_write_impl(int fd,void const* address,std::size_t to_wr
 #ifdef _WIN32
 	if constexpr(4<sizeof(std::size_t))
 	{
-		if(static_cast<std::size_t>(INT32_MAX)<to_write)[[unlikely]]
-			return posix_write_lock_impl(fd,address,to_write);
-		else
-			return posix_write_simple_impl(fd,address,to_write);
+//		if(static_cast<std::size_t>(INT32_MAX)<to_write)[[unlikely]]
+			return posix_write_nolock_impl(fd,address,to_write);
+//		else
+//			return posix_write_simple_impl(fd,address,to_write);
 	}
 	else
 		return posix_write_simple_impl(fd,address,to_write);
@@ -1370,7 +1370,7 @@ inline constexpr basic_posix_io_observer<char_type> posix_stderr()
 	return basic_posix_io_observer<char_type>{posix_stderr_number};
 }
 
-#if defined(__WINNT__) || defined(_MSC_VER)
+
 #if 0
 template<std::integral char_type>
 inline constexpr io_type_t<win32_io_observer> async_scheduler_type(basic_posix_io_observer<char_type>)
@@ -1396,24 +1396,24 @@ inline void async_read_callback(io_async_observer ioa,basic_posix_io_observer<ch
 	async_read_callback(ioa,static_cast<basic_win32_io_observer<char_type>>(h),std::forward<Args>(args)...);
 }
 #endif
-#else
+#if !defined(_WIN32) || defined(__WINE__)
 template<std::integral char_type=char>
-inline constexpr basic_posix_io_observer<char_type> native_stdin()
+inline constexpr basic_posix_io_observer<char_type> native_stdin() noexcept
 {
 	return {posix_stdin_number};
 }
 template<std::integral char_type=char>
-inline constexpr basic_posix_io_observer<char_type> native_stdout()
+inline constexpr basic_posix_io_observer<char_type> native_stdout() noexcept
 {
 	return basic_posix_io_observer<char_type>{posix_stdout_number};
 }
 template<std::integral char_type=char>
-inline constexpr basic_posix_io_observer<char_type> native_stderr()
+inline constexpr basic_posix_io_observer<char_type> native_stderr() noexcept
 {
 	return basic_posix_io_observer<char_type>{posix_stderr_number};
 }
 
-#if defined(__CYGWIN__) || (!defined(__NEWLIB__) && !defined(__MSDOS__))
+#if defined(__CYGWIN__) || (!defined(__NEWLIB__)&&!defined(_WIN32) && !defined(__MSDOS__))
 namespace details
 {
 

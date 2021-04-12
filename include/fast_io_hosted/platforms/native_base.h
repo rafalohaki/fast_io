@@ -23,7 +23,7 @@
 namespace fast_io
 {
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__WINE__)
 inline constexpr auto native_stdin_number(win32_stdin_number);
 inline constexpr auto native_stdout_number(win32_stdout_number);
 inline constexpr auto native_stderr_number(win32_stderr_number);
