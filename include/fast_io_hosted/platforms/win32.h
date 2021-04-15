@@ -4,7 +4,7 @@ namespace fast_io
 {
 namespace details
 {
-#ifndef _MSC_VER
+#if 0
 inline void* create_win32_temp_file()
 {
 	::fast_io::freestanding::array<wchar_t,512> arr;
@@ -762,7 +762,7 @@ public:
 	{}
 
 
-#ifndef _MSC_VER
+#if 0
 	explicit basic_win32_file(io_temp_t):basic_win32_io_handle<char_type>(details::create_win32_temp_file()){}
 #endif
 	explicit basic_win32_file(nt_fs_dirent fsdirent,open_mode om,perms pm=static_cast<perms>(436)):

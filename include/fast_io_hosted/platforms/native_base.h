@@ -1,11 +1,11 @@
 #pragma once
 
-#ifndef _MSC_VER
-#include"../../fast_io_crypto/hash/hash_processor.h"
-#include"../../fast_io_crypto/hash/sha.h"
-#endif
-
 #if defined(_WIN32) || defined(__CYGWIN__)
+
+#if 0
+#include"../../fast_io_crypto/hash/hash_processor.h"
+#include"../../fast_io_crypto/hash/sha_impl.h"
+#endif
 #include"win32/impl.h"
 #include"win32_error.h"
 #include"win32_path_dealer.h"
