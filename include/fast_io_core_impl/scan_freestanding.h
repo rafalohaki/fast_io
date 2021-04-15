@@ -163,6 +163,9 @@ inline constexpr bool underflow(unget_temp_buffer<T>& in)
 namespace details
 {
 template<buffer_input_stream input,typename T,typename P>
+#if __has_cpp_attribute(gnu::cold)
+[[gnu::cold]]
+#endif
 inline constexpr bool scan_single_status_impl(input in,T& state_machine,P arg)
 {
 	for(;state_machine.code==parse_code::partial;)
@@ -171,7 +174,7 @@ inline constexpr bool scan_single_status_impl(input in,T& state_machine,P arg)
 		{
 			if(!state_machine.test_eof(arg))
 				return false;
-			if(state_machine.code==parse_code::ok)[[likely]]
+			if(state_machine.code==parse_code{})[[likely]]
 				return true;
 			break;
 		}
@@ -211,7 +214,7 @@ requires (context_scanable<typename input::char_type,T,false>||skipper<typename 
 			{
 				auto state_machine{scan_context_define(scan_context<context_scanable<char_type,T,true>>,curr,end,arg)};
 				ibuffer_set_curr(in, state_machine.iter);
-				if(state_machine.code!=parse_code::ok)
+				if(state_machine.code!=parse_code{})[[unlikely]]
 				{
 					if(state_machine.code==parse_code::partial)
 						return false;
@@ -243,7 +246,7 @@ requires (context_scanable<typename input::char_type,T,false>||skipper<typename 
 			{
 				for(;(curr=scan_skip_define(scan_skip_type<T>,curr,end))==end;)
 				{
-					if(!underflow(in))
+					if(!underflow(in))[[unlikely]]
 						return false;
 					curr=ibuffer_curr(in);
 					end=ibuffer_end(in);
@@ -253,7 +256,7 @@ requires (context_scanable<typename input::char_type,T,false>||skipper<typename 
 			{
 				auto state_machine{scan_context_define(scan_context<false>,curr,end,arg)};
 				ibuffer_set_curr(in, state_machine.iter);
-				if(state_machine.code!=parse_code::ok)[[likely]]
+				if(state_machine.code!=parse_code{})[[unlikely]]
 					return scan_single_status_impl(in,state_machine,arg);
 				return true;
 			}
