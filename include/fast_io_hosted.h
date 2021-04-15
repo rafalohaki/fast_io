@@ -47,8 +47,7 @@ For hosted implementations the set of standard library headers required by the C
 #include"fast_io_hosted/white_hole/white_hole.h"
 //#include<memory_resource>
 //#include"fast_io_hosted/pmr_resource.h"
-#include<complex>
-#include"fast_io_hosted/complex.h"
+
 
 #include"fast_io_hosted/time.h"
 #if defined(_WIN32) || defined(__CYGWIN__)
