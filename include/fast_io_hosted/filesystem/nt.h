@@ -21,9 +21,9 @@ struct nt_dirent
 {
 	void* d_handle{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
 	file_type d_type{};
-	std::array<wchar_t,0x2001> native_d_name_array{};
+	::fast_io::freestanding::array<wchar_t,0x2001> native_d_name_array{};
 	std::size_t native_d_name_size{};
-	std::array<char8_t,0x8004> d_name_array{};
+	::fast_io::freestanding::array<char8_t,0x8004> d_name_array{};
 	std::size_t d_name_size{};
 	inline constexpr wcstring_view native_d_name() const noexcept
 	{
@@ -42,7 +42,7 @@ template<nt_family family>
 inline nt_dirent* set_nt_dirent(nt_dirent* entry,bool start)
 {
 	io_status_block block{};
-	std::array<std::byte,0x4000> buffer;
+	::fast_io::freestanding::array<std::byte,0x4000> buffer;
 	win32::nt::dir_information d_info{buffer.data()};
 	auto status{nt_query_directory_file<family==nt_family::zw>(entry->d_handle,nullptr,nullptr,nullptr,
 	std::addressof(block),d_info.DirInfo,
@@ -176,25 +176,25 @@ inline nt_family_directory_iterator<family>& operator++(nt_family_directory_iter
 }
 
 template<nt_family family>
-inline constexpr bool operator==(std::default_sentinel_t, nt_family_directory_iterator<family> b) noexcept
+inline constexpr bool operator==(::fast_io::freestanding::default_sentinel_t, nt_family_directory_iterator<family> b) noexcept
 {
 	return b.entry==nullptr;
 }
 
 template<nt_family family>
-inline constexpr bool operator==(nt_family_directory_iterator<family> b, std::default_sentinel_t other) noexcept
+inline constexpr bool operator==(nt_family_directory_iterator<family> b, ::fast_io::freestanding::default_sentinel_t other) noexcept
 {
 	return other==b;
 }
 
 template<nt_family family>
-inline constexpr bool operator!=(std::default_sentinel_t other,nt_family_directory_iterator<family> b) noexcept
+inline constexpr bool operator!=(::fast_io::freestanding::default_sentinel_t other,nt_family_directory_iterator<family> b) noexcept
 {
 	return !(other==b);
 }
 
 template<nt_family family>
-inline constexpr bool operator!=(nt_family_directory_iterator<family> b, std::default_sentinel_t other) noexcept
+inline constexpr bool operator!=(nt_family_directory_iterator<family> b, ::fast_io::freestanding::default_sentinel_t other) noexcept
 {
 	return !(other==b);
 }
@@ -224,7 +224,7 @@ inline nt_family_directory_iterator<family> begin(nt_family_directory_generator<
 }
 
 template<nt_family family>
-inline std::default_sentinel_t end(nt_family_directory_generator<family> const&) noexcept
+inline ::fast_io::freestanding::default_sentinel_t end(nt_family_directory_generator<family> const&) noexcept
 {
 	return {};
 }
@@ -336,7 +336,7 @@ inline nt_family_recursive_directory_iterator<family> begin(nt_family_recursive_
 }
 
 template<nt_family family>
-inline std::default_sentinel_t end(nt_family_recursive_directory_generator<family> const&) noexcept
+inline ::fast_io::freestanding::default_sentinel_t end(nt_family_recursive_directory_generator<family> const&) noexcept
 {
 	return {};
 }
@@ -348,25 +348,25 @@ inline nt_directory_entry operator*(nt_family_recursive_directory_iterator<famil
 }
 
 template<nt_family family>
-inline bool operator==(std::default_sentinel_t, nt_family_recursive_directory_iterator<family> const& b) noexcept
+inline bool operator==(::fast_io::freestanding::default_sentinel_t, nt_family_recursive_directory_iterator<family> const& b) noexcept
 {
 	return b.stack.empty()&&b.entry == nullptr;
 }
 
 template<nt_family family>
-inline bool operator==(nt_family_recursive_directory_iterator<family> const& b, std::default_sentinel_t sntnl) noexcept
+inline bool operator==(nt_family_recursive_directory_iterator<family> const& b, ::fast_io::freestanding::default_sentinel_t sntnl) noexcept
 {
 	return sntnl==b;
 }
 
 template<nt_family family>
-inline bool operator!=(std::default_sentinel_t sntnl, nt_family_recursive_directory_iterator<family> const& b) noexcept
+inline bool operator!=(::fast_io::freestanding::default_sentinel_t sntnl, nt_family_recursive_directory_iterator<family> const& b) noexcept
 {
 	return !(sntnl==b);
 }
 
 template<nt_family family>
-inline bool operator!=(nt_family_recursive_directory_iterator<family> const& b, std::default_sentinel_t sntnl) noexcept
+inline bool operator!=(nt_family_recursive_directory_iterator<family> const& b, ::fast_io::freestanding::default_sentinel_t sntnl) noexcept
 {
 	return sntnl!=b;
 }
@@ -441,11 +441,11 @@ inline basic_io_scatter_t<char_type> print_scatter_define(print_scatter_type_t<c
 	}
 }
 
-template<std::random_access_iterator Iter>
-inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,nt_directory_entry>,
+template<::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,nt_directory_entry>,
 	Iter iter,nt_directory_entry ent) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	if constexpr(std::same_as<char_type,typename nt_directory_entry::native_char_type>)
 	{
 		auto nfnm{native_filename(ent)};
@@ -462,7 +462,7 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<I
 		if constexpr(std::is_pointer_v<Iter>)
 			return details::codecvt::general_code_cvt_full<encoding_scheme::utf>(fnm.data(),fnm.data()+fnm.size(),iter);
 		else
-			return iter+(details::codecvt::general_code_cvt_full<encoding_scheme::utf>(fnm.data(),fnm.data()+fnm.size(),std::to_address(iter))-std::to_address(iter));
+			return iter+(details::codecvt::general_code_cvt_full<encoding_scheme::utf>(fnm.data(),fnm.data()+fnm.size(),::fast_io::freestanding::to_address(iter))-::fast_io::freestanding::to_address(iter));
 	}
 }
 

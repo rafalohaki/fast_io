@@ -36,7 +36,7 @@ inline constexpr std::size_t denom_natural_log10(std::uintmax_t den) noexcept
 	return logarithm;
 }
 
-template<std::uintmax_t lim,std::integral char_type,std::random_access_iterator Iter,details::my_unsigned_integral uint_type>
+template<std::uintmax_t lim,std::integral char_type,::fast_io::freestanding::random_access_iterator Iter,details::my_unsigned_integral uint_type>
 inline constexpr Iter subseconds_part_print_sz_impl(Iter it,uint_type nsec) noexcept
 {
 	if constexpr(std::numeric_limits<uint_type>::max()>=lim)
@@ -68,7 +68,7 @@ inline constexpr Iter subseconds_part_print_sz_impl(Iter it,uint_type nsec) noex
 	return it+sz;
 }
 
-template<std::integral char_type,std::random_access_iterator Iter>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter timespec_print_impl(Iter it,struct timespec spc) noexcept
 {
 	return subseconds_part_print_sz_impl<1000000000UL,char_type>(
@@ -78,7 +78,7 @@ inline constexpr Iter timespec_print_impl(Iter it,struct timespec spc) noexcept
 
 }
 
-template<std::integral char_type,std::random_access_iterator Iter>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter>
 constexpr Iter print_reserve_define(io_reserve_type_t<char_type,struct timespec>,Iter it,struct timespec spc) noexcept
 {
 	return details::timespec_print_impl<char_type>(it,spc);	
@@ -111,7 +111,7 @@ constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std::chrono
 		return sz+1;		
 }
 
-template<std::integral char_type,std::random_access_iterator Iter,typename Rep,typename Period>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter,typename Rep,typename Period>
 requires (reserve_printable<char_type,Rep>&&(std::same_as<Period,std::nano>||std::same_as<Period,std::micro>||std::same_as<Period,std::milli>||
 	std::same_as<Period,std::ratio<1>>||std::same_as<Period,std::ratio<60>>||
 	std::same_as<Period,std::ratio<3600>>||std::same_as<Period,std::ratio<86400>>||
@@ -248,7 +248,7 @@ constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chrono::dur
 
 
 
-#if __cpp_lib_chrono >= 201907L || __GNUC__  >= 11
+#if __cpp_lib_chrono >= 201907L || (defined(__GNUC__) && __GNUC__  >= 11)
 
 template<std::integral char_type>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std::chrono::year>) noexcept
@@ -256,7 +256,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std:
 	return print_reserve_size(io_reserve_type<char_type,int>);
 }
 
-template<std::integral char_type,std::random_access_iterator Iter>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chrono::year>,Iter it,std::chrono::year year) noexcept
 {
 	return details::chrono_year_impl(it,static_cast<int>(year));
@@ -268,7 +268,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std:
 	return print_reserve_size(io_reserve_type<char_type,unsigned>);
 }
 
-template<std::integral char_type,std::random_access_iterator Iter>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chrono::month>,Iter it,std::chrono::month m) noexcept
 {
 	return details::chrono_two_digits_impl(it,static_cast<unsigned>(m));
@@ -280,7 +280,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std:
 	return print_reserve_size(io_reserve_type<char_type,unsigned>);
 }
 
-template<std::integral char_type,std::random_access_iterator Iter>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chrono::day>,Iter it,std::chrono::day m) noexcept
 {
 	return details::chrono_two_digits_impl(it,static_cast<unsigned>(m));
@@ -292,7 +292,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std:
 	return print_reserve_size(io_reserve_type<char_type,unsigned>);
 }
 
-template<std::integral char_type,std::random_access_iterator Iter>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chrono::weekday>,Iter it,std::chrono::weekday wkd) noexcept
 {
 	return details::chrono_one_digit_impl(it,static_cast<unsigned>(wkd.iso_encoding()));
@@ -302,7 +302,7 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chro
 namespace details
 {
 
-template<std::integral char_type,std::random_access_iterator Iter,typename T>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter,typename T>
 inline constexpr Iter print_reserve_define_ymd_impl(Iter it,T ymd) noexcept
 {
 	if constexpr(requires()
@@ -360,7 +360,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std:
 	return print_reserve_size(io_reserve_type<char_type,std::chrono::month>)+print_reserve_size(io_reserve_type<char_type,std::chrono::day>)+3;
 }
 
-template<std::integral char_type,std::random_access_iterator Iter>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chrono::month_day>,Iter it,std::chrono::month_day md) noexcept
 {
 	return details::print_reserve_define_ymd_impl<char_type>(it,md);
@@ -372,7 +372,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std:
 	return print_reserve_size(io_reserve_type<char_type,std::chrono::year>)+print_reserve_size(io_reserve_type<char_type,std::chrono::month>)+1;
 }
 
-template<std::integral char_type,std::random_access_iterator Iter>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chrono::year_month>,Iter it,std::chrono::year_month ym) noexcept
 {
 	return details::print_reserve_define_ymd_impl<char_type>(it,ym);
@@ -384,7 +384,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std:
 	return print_reserve_size(io_reserve_type<char_type,std::chrono::year_month>)+print_reserve_size(io_reserve_type<char_type,std::chrono::day>)+1;
 }
 
-template<std::integral char_type,std::random_access_iterator Iter>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::chrono::year_month_day>,Iter it,std::chrono::year_month_day ymd) noexcept
 {
 	return details::print_reserve_define_ymd_impl<char_type>(it,ymd);
@@ -413,7 +413,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,
 namespace details
 {
 
-template<std::integral char_type,std::random_access_iterator Iter,my_integral int_type,std::intmax_t den>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter,my_integral int_type,std::intmax_t den>
 inline constexpr Iter print_hh_mm_ss_reserve_define_impl(Iter it,
 	std::chrono::hh_mm_ss<std::chrono::duration<int_type,std::ratio<1,den>>> hms) noexcept
 {
@@ -453,7 +453,7 @@ inline constexpr Iter print_hh_mm_ss_reserve_define_impl(Iter it,
 }
 }
 
-template<std::integral char_type,std::random_access_iterator Iter,details::my_integral int_type,std::intmax_t den>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter,details::my_integral int_type,std::intmax_t den>
 requires (details::denom_is_natural_pow10(den))
 inline constexpr Iter print_reserve_define(
 	io_reserve_type_t<char_type,std::chrono::hh_mm_ss<std::chrono::duration<int_type,std::ratio<1,den>>>>,
@@ -465,7 +465,7 @@ inline constexpr Iter print_reserve_define(
 namespace details
 {
 
-template<std::integral char_type,std::random_access_iterator Iter,typename Duration>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter,typename Duration>
 inline constexpr Iter print_system_clock_reserve_impl(Iter it,std::chrono::time_point<std::chrono::system_clock,Duration> tp) noexcept
 {
 	std::chrono::sys_days sdy{std::chrono::time_point_cast<std::chrono::days>(tp)};
@@ -539,7 +539,7 @@ ISO8601 Time stamp
 */
 	return print_reserve_size(io_reserve_type<char_type,int>)+sizeof(u8"-11-08T07:23:27Z")+1+print_reserve_size(io_reserve_type<char_type,std::intmax_t>);
 }
-template<std::integral char_type,std::random_access_iterator Iter,typename Duration>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter,typename Duration>
 requires(std::same_as<Duration,std::chrono::system_clock::duration>)
 inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,
 	std::chrono::time_point<std::chrono::system_clock,Duration>>

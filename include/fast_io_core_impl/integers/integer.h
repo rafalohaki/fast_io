@@ -13,10 +13,10 @@ namespace fast_io
 namespace details
 {
 
-template<std::forward_iterator Iter>
+template<::fast_io::freestanding::forward_iterator Iter>
 constexpr Iter process_bool_output(Iter iter,bool b) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	if constexpr(std::same_as<char_type,char>)
 		*iter=static_cast<char>(b)+'0';
 	else if constexpr(std::same_as<char_type,wchar_t>)
@@ -27,10 +27,10 @@ constexpr Iter process_bool_output(Iter iter,bool b) noexcept
 	return iter;
 }
 
-template<char8_t base,bool uppercase,bool ignore_sign=false,std::random_access_iterator Iter,my_integral int_type>
+template<char8_t base,bool uppercase,bool ignore_sign=false,::fast_io::freestanding::random_access_iterator Iter,my_integral int_type>
 constexpr Iter process_integer_output(Iter iter,int_type i) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	if (std::is_constant_evaluated())
 	{
 		namespace algo_decision = fast_io::details::optimize_size;
@@ -126,7 +126,7 @@ constexpr Iter process_integer_output(Iter iter,int_type i) noexcept
 	}
 }
 
-template<char8_t base,bool uppercase,std::random_access_iterator Iter,my_unsigned_integral int_type>
+template<char8_t base,bool uppercase,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral int_type>
 constexpr Iter process_full_integer_output(Iter iter,int_type i) noexcept
 {
 	namespace algo_decision = 
@@ -135,7 +135,7 @@ constexpr Iter process_full_integer_output(Iter iter,int_type i) noexcept
 #else
 		details::twodigits;
 #endif
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	if constexpr(std::same_as<std::remove_cvref_t<int_type>,bool>)
 	{
 		if constexpr(std::same_as<char_type,char>)
@@ -164,7 +164,7 @@ constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,int_type>) 
 		return details::cal_max_int_size<details::my_make_unsigned_t<int_type>>()+1;
 }
 
-template<std::integral char_type,std::random_access_iterator caiter,details::my_integral int_type,typename U>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator caiter,details::my_integral int_type,typename U>
 constexpr caiter print_reserve_define(io_reserve_type_t<char_type,int_type>,caiter iter,U i) noexcept
 {
 	if constexpr(std::same_as<std::remove_cvref_t<int_type>,bool>)
@@ -184,7 +184,7 @@ constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manipulator
 		return details::cal_max_int_size<details::my_make_unsigned_t<int_type>,base>()+1;
 }
 
-template<std::integral char_type,std::random_access_iterator caiter,std::size_t base,bool uppercase,details::my_integral int_type>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator caiter,std::size_t base,bool uppercase,details::my_integral int_type>
 constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manipulators::base_t<base,uppercase,int_type>>,caiter iter,manipulators::base_t<base,uppercase,int_type> ref) noexcept
 {
 	if constexpr(std::same_as<std::remove_cvref_t<int_type>,bool>)
@@ -200,12 +200,12 @@ constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manipulator
 	return details::cal_max_int_size<int_type,base>();
 }
 
-template<std::random_access_iterator caiter,
+template<::fast_io::freestanding::random_access_iterator caiter,
 	std::size_t base,
 	bool uppercase,
 	details::my_unsigned_integral int_type>
 constexpr caiter print_reserve_define(
-	io_reserve_type_t<std::iter_value_t<caiter>,manipulators::base_full_t<base,uppercase,int_type>>,
+	io_reserve_type_t<::fast_io::freestanding::iter_value_t<caiter>,manipulators::base_full_t<base,uppercase,int_type>>,
 	caiter iter,
 	manipulators::base_full_t<base,uppercase,int_type> ref) noexcept
 {
@@ -219,7 +219,7 @@ constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std::byte>)
 	return details::cal_max_int_size<details::my_make_unsigned_t<std::uint8_t>>();
 }
 
-template<std::integral char_type,std::random_access_iterator caiter,typename U>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator caiter,typename U>
 constexpr caiter print_reserve_define(io_reserve_type_t<char_type,std::byte>,caiter iter,U i) noexcept
 {
 	return details::process_integer_output<10,false>(iter,std::to_integer<std::uint8_t>(i));
@@ -231,7 +231,7 @@ constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manipulator
 	return details::cal_max_int_size<std::uint8_t,base>();
 }
 
-template<std::integral char_type,std::random_access_iterator caiter,char8_t base,bool uppercase,typename P>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator caiter,char8_t base,bool uppercase,typename P>
 constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manipulators::base_t<base,uppercase,std::byte>>,caiter iter,P ref) noexcept
 {
 	return details::process_integer_output<base,uppercase>(iter,std::to_integer<std::uint8_t>(ref.reference));
@@ -245,10 +245,10 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,mani
 
 namespace details
 {
-template<std::random_access_iterator caiter>
+template<::fast_io::freestanding::random_access_iterator caiter>
 inline constexpr caiter print_reserve_bool_view_define_impl(caiter iter,bool v) noexcept
 {
-	using char_type = std::iter_value_t<caiter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<caiter>;
 	if constexpr(std::same_as<char_type,char>)
 	{
 		if(v)
@@ -287,7 +287,7 @@ inline constexpr caiter print_reserve_bool_view_define_impl(caiter iter,bool v) 
 }
 }
 
-template<std::integral char_type,std::random_access_iterator caiter>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator caiter>
 inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manipulators::blvw_t<bool>>,caiter iter,manipulators::blvw_t<bool> ref) noexcept
 {
 	return details::print_reserve_bool_view_define_impl(iter,ref.reference);
@@ -296,7 +296,7 @@ inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manipul
 namespace details
 {
 
-template<std::random_access_iterator Iter,my_unsigned_integral U>
+template<::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
 inline constexpr void output_unsigned_with_size(Iter str,U value,std::size_t len) noexcept
 {
 #ifdef FAST_IO_OPTIMIZE_SIZE
@@ -306,10 +306,10 @@ inline constexpr void output_unsigned_with_size(Iter str,U value,std::size_t len
 #endif
 }
 
-template<std::size_t mx_size,std::random_access_iterator Iter>
+template<std::size_t mx_size,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter output_unsigned_serialize_size(std::size_t val,Iter iter) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	if constexpr(mx_size==1)
 	{
 		if constexpr(exec_charset_is_ebcdic<char_type>())
@@ -331,7 +331,7 @@ inline constexpr Iter output_unsigned_serialize_size(std::size_t val,Iter iter) 
 			return non_overlapped_copy_n(jiaendu::static_tables<char_type>::table2.data(),2,iter);
 	}
 	else
-		return jiaendu::output_unsigned(std::to_address(iter),val);
+		return jiaendu::output_unsigned(::fast_io::freestanding::to_address(iter),val);
 #else
 	else if constexpr(mx_size==2)
 	{

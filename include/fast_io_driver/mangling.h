@@ -59,9 +59,9 @@ struct cxa_demangle
 		other.length=0;
 		return *this;
 	}
-	explicit constexpr operator std::string_view() noexcept
+	explicit constexpr operator ::fast_io::freestanding::string_view() noexcept
 	{
-		return std::string_view(buffer,length);
+		return ::fast_io::freestanding::string_view(buffer,length);
 	}
 	~cxa_demangle()
 	{

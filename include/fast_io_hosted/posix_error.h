@@ -115,36 +115,6 @@ inline constexpr basic_io_scatter_t<char_type> print_alias_define(io_alias_type_
 	return get_posix_errno_scatter<char_type>(perr.ec);
 }
 
-class scan_error
-{
-public:
-	std::errc ec{};
-	explicit scan_error(std::errc e):ec(e){}
-	constexpr auto code() const noexcept
-	{
-		return ec;
-	}
-};
-
-[[noreturn]] inline void throw_scan_error([[maybe_unused]] std::errc ec)
-{
-#ifdef __cpp_exceptions
-#if defined(_MSC_VER) && (!defined(_HAS_EXCEPTIONS) || _HAS_EXCEPTIONS == 0)
-	fast_terminate();
-#else
-	throw scan_error(ec);
-#endif
-#else
-	fast_terminate();
-#endif
-}
-
-template<std::integral char_type>
-inline constexpr basic_io_scatter_t<char_type> print_alias_define(io_alias_type_t<char_type>,scan_error const& perr) noexcept
-{
-	return get_posix_errno_scatter<char_type>(static_cast<int>(perr.ec));
-}
-
 
 template<std::integral char_type>
 inline constexpr basic_io_scatter_t<char_type> print_scatter_define(print_scatter_type_t<char_type>,posix_error const& perr) noexcept

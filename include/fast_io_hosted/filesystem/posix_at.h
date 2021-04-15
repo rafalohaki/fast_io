@@ -311,9 +311,9 @@ inline auto posix_deal_with22(int olddirfd,char const* oldpath,
 	}
 }
 
-template<posix_api_22 dsp,std::integral char_type1,std::integral char_type2,typename... Args>
+template<posix_api_22 dsp,std::integral char_type1,std::integral char_type2>
 inline auto posix_deal_with22(int olddirfd,basic_cstring_view<char_type1> oldpath,
-	int newdirfd,basic_cstring_view<char_type2> newpath,Args... args)
+	int newdirfd,basic_cstring_view<char_type2> newpath)
 {
 	if constexpr(sizeof(char_type1)==1&&sizeof(char_type2)==1)
 	{
@@ -664,8 +664,8 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,basi
 	}
 }
 
-template<std::contiguous_iterator Iter,std::integral char_type>
-inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,
+template<::fast_io::freestanding::contiguous_iterator Iter,std::integral char_type>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,
 	basic_posix_readlinkat_t<char_type>>,
 	Iter iter,
 	basic_posix_readlinkat_t<char_type> rlkat)

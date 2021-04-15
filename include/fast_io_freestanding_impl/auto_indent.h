@@ -101,11 +101,11 @@ inline ::fast_io::manipulators::auto_indent_t<char_type,containe>
 	return {total_length,first2,last,std::move(cont)};
 }
 
-template<std::random_access_iterator Iter,typename containe>
+template<::fast_io::freestanding::random_access_iterator Iter,typename containe>
 inline constexpr Iter print_reserve_define_auto_indent(Iter iter,
-	::fast_io::manipulators::auto_indent_t<std::iter_value_t<Iter>,containe> const& indent) noexcept
+	::fast_io::manipulators::auto_indent_t<::fast_io::freestanding::iter_value_t<Iter>,containe> const& indent) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	constexpr auto slasht{get_horizontal_exec_char<char_type>()};
 	constexpr auto lf{get_horizontal_exec_char<char_type,1>()};
 	constexpr auto space{get_horizontal_exec_char<char_type,2>()};
@@ -147,19 +147,6 @@ inline constexpr Iter print_reserve_define_auto_indent(Iter iter,
 namespace manipulators
 {
 
-template<std::ranges::contiguous_range rg,typename containe=::fast_io::details::naive_vector<std::size_t>>
-requires std::integral<std::ranges::range_value_t<rg>>
-inline constexpr auto auto_indent(rg&& r)
-{
-	if constexpr(std::is_array_v<std::remove_cvref_t<rg>>)
-		return ::fast_io::details::calculate_auto_width_result<containe>(
-			std::ranges::data(r),std::ranges::data(r)+(std::ranges::size(r)-1)
-		);
-	else
-		return ::fast_io::details::calculate_auto_width_result<containe>(
-			std::ranges::data(r),std::ranges::data(r)+std::ranges::size(r));
-}
-
 template<std::integral char_type,typename containe>
 inline constexpr std::size_t print_reserve_size(
 	io_reserve_type_t<char_type,auto_indent_t<char_type,containe>>,
@@ -168,11 +155,11 @@ inline constexpr std::size_t print_reserve_size(
 	return indent.total_size;
 }
 
-template<std::random_access_iterator Iter,typename containe>
+template<::fast_io::freestanding::random_access_iterator Iter,typename containe>
 inline constexpr Iter print_reserve_define(
-	io_reserve_type_t<std::iter_value_t<Iter>,auto_indent_t<std::iter_value_t<Iter>,containe>>,
+	io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,auto_indent_t<::fast_io::freestanding::iter_value_t<Iter>,containe>>,
 	Iter iter,
-	auto_indent_t<std::iter_value_t<Iter>,containe> const& indent) noexcept
+	auto_indent_t<::fast_io::freestanding::iter_value_t<Iter>,containe> const& indent) noexcept
 {
 	return ::fast_io::details::print_reserve_define_auto_indent(iter,indent);
 }

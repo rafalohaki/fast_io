@@ -11,7 +11,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,mani
 	return sz;
 }
 
-template<std::integral char_type,std::random_access_iterator raiter,typename T,typename U>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator raiter,typename T,typename U>
 requires reserve_printable<char_type,T>
 inline constexpr raiter print_reserve_define(io_reserve_type_t<char_type,manip::line<T>>,raiter start,U a)
 {

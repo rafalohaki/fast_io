@@ -6,7 +6,7 @@ namespace fast_io::tls::cipher_suite
 
 struct cipher_suite_type
 {
-	std::array<std::byte,2> array{};
+	::fast_io::freestanding::array<std::byte,2> array{};
 };
 
 inline constexpr bool operator==(cipher_suite_type const& a,cipher_suite_type const& b)

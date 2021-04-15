@@ -1,5 +1,7 @@
 #pragma once
-
+#if defined(__SSE__) && defined(__x86_64__)
+#include<emmintrin.h>
+#endif
 namespace fast_io
 {
 

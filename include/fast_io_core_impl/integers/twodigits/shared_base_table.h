@@ -8,7 +8,7 @@ inline constexpr auto cal_content()
 {
 	constexpr std::size_t chars{2};
 	constexpr std::size_t pw{base*base};
-	std::array<std::array<char_type,chars>,pw> vals{};
+	::fast_io::freestanding::array<::fast_io::freestanding::array<char_type,chars>,pw> vals{};
 	for(std::size_t i(1);i<pw;++i)
 	{
 		auto& val(vals[i]);

@@ -345,9 +345,9 @@ public:
 	{
 		return address_start[size];
 	}
-	explicit constexpr operator std::string_view() noexcept
+	explicit constexpr operator ::fast_io::freestanding::string_view() noexcept
 	{
-		return std::string_view(address_start,address_end);
+		return ::fast_io::freestanding::string_view(address_start,address_end);
 	}
 	~posix_file_loader_impl()
 	{

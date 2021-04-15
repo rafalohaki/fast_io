@@ -61,7 +61,7 @@ inline constexpr perms& operator^=(perms& x, perms y) noexcept{return x=x^y;}
 
 namespace details::perm
 {
-template<std::integral ch_type,char8_t fillch,std::random_access_iterator raiter>
+template<std::integral ch_type,char8_t fillch,::fast_io::freestanding::random_access_iterator raiter>
 inline constexpr void print_perm_per_check(raiter i,perms p,perms checked) noexcept
 {
 	if((p&checked)==perms::none)
@@ -107,7 +107,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,perm
 
 namespace details
 {
-template<std::integral char_type,std::random_access_iterator raiter>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator raiter>
 inline constexpr raiter print_status_impl(raiter iter,perms p) noexcept
 {
 	details::perm::print_perm_per_check<char_type,u8'r'>(iter,p,perms::owner_read);
@@ -123,7 +123,7 @@ inline constexpr raiter print_status_impl(raiter iter,perms p) noexcept
 }
 }
 
-template<std::integral char_type,std::random_access_iterator raiter>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator raiter>
 inline constexpr raiter print_reserve_define(io_reserve_type_t<char_type,perms>,raiter iter,perms p) noexcept
 {
 	return details::print_status_impl<char_type>(iter,p);

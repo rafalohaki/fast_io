@@ -91,7 +91,7 @@ inline constexpr void unsafe_fprint_impl(char_type* it,char_type* ed,write_funct
 	}
 	for(;it!=ed;)
 	{
-		auto next_it{fast_io::details::my_trivial_find(it,ed,left_bracket)};
+		auto next_it{::fast_io::freestanding::find(it,ed,left_bracket)};
 		std::ptrdiff_t diff{ed-next_it};
 		if(diff<2)
 			break;
@@ -153,7 +153,7 @@ inline constexpr void unsafe_fprint_impl(char_type* it,char_type* ed,write_funct
 		{
 			std::size_t n;
 			auto res{scan_context_define(scan_context<true>,next_it+1,ed,parameter<std::size_t&>{n})};
-			if((res.code!=std::errc{})|(res.iter==ed||*res.iter!=right_bracket))
+			if((res.code!=parse_code::ok)|(res.iter==ed||*res.iter!=right_bracket))
 				break;
 			if(args_num<=n)
 				break;
@@ -172,7 +172,7 @@ inline constexpr void unsafe_fprint_impl(char_type* it,char_type* ed,write_funct
 template<typename output,typename... Args>
 requires (sizeof...(Args)!=0)
 inline constexpr void unsafe_fprint_freestanding_decay_impl(output out,
-	std::basic_string_view<typename output::char_type> view,
+	::fast_io::freestanding::basic_string_view<typename output::char_type> view,
 	Args ...args)
 {
 	using char_type = typename output::char_type;
@@ -202,7 +202,7 @@ inline constexpr void unsafe_fprint_freestanding_decay_impl(output out,
 
 template<fprint_args_num_para_enum ag,std::integral char_type>
 inline constexpr io_scatter_t* scatter_fprint_impl(
-	std::basic_string_view<char_type> view,
+	::fast_io::freestanding::basic_string_view<char_type> view,
 	io_scatter_t* scatters,
 	io_scatter_t* new_scatters,fprint_args_num_para<ag> arg)
 {
@@ -237,11 +237,11 @@ inline constexpr io_scatter_t* scatter_fprint_impl(
 
 template<std::size_t args_num,output_stream output,typename ...Args>
 inline constexpr void scatter_fprint_write(output out,
-	std::basic_string_view<typename output::char_type> view,
+	::fast_io::freestanding::basic_string_view<typename output::char_type> view,
 	io_scatter_t* scatters)
 {
-	constexpr std::size_t maximum_allowed_args{std::max(static_cast<std::size_t>(100),args_num*static_cast<std::size_t>(10))+args_num};
-	std::array<io_scatter_t,maximum_allowed_args*2+1> new_scatters;
+	constexpr std::size_t maximum_allowed_args{::fast_io::freestanding::max(static_cast<std::size_t>(100),args_num*static_cast<std::size_t>(10))+args_num};
+	::fast_io::freestanding::array<io_scatter_t,maximum_allowed_args*2+1> new_scatters;
 	if constexpr(args_num==1)
 	{
 		auto res{scatter_fprint_impl(view,scatters,new_scatters.data(),fprint_args_num_para<fprint_args_num_para_enum::one>{})};
@@ -258,12 +258,12 @@ inline constexpr void scatter_fprint_write(output out,
 
 
 template<output_stream output,typename ...Args>
-inline constexpr void unsafe_fprint_fallback(output out,std::basic_string_view<typename output::char_type> view,Args ...args)
+inline constexpr void unsafe_fprint_fallback(output out,::fast_io::freestanding::basic_string_view<typename output::char_type> view,Args ...args)
 {
 	using char_type = typename output::char_type;
 	if constexpr((scatter_output_stream<output>&&((scatter_printable<typename output::char_type,Args>||reserve_printable<typename output::char_type,Args>||dynamic_reserve_printable<typename output::char_type,Args>)&&...)))
 	{
-		std::array<io_scatter_t,sizeof...(Args)> scatters;
+		::fast_io::freestanding::array<io_scatter_t,sizeof...(Args)> scatters;
 		if constexpr((scatter_printable<typename output::char_type,Args>&&...))
 		{
 			decay::scatter_print_recursive<typename output::char_type>(scatters.data(),args...);
@@ -272,13 +272,13 @@ inline constexpr void unsafe_fprint_fallback(output out,std::basic_string_view<t
 		else if constexpr(((scatter_printable<char_type,Args>||
 			reserve_printable<char_type,Args>)&&...))
 		{
-			std::array<char_type,decay::calculate_scatter_reserve_size<char_type,Args...>()> array;
+			::fast_io::freestanding::array<char_type,decay::calculate_scatter_reserve_size<char_type,Args...>()> array;
 			decay::scatter_print_with_reserve_recursive(array.data(),scatters.data(),args...);
 			scatter_fprint_write<sizeof...(Args)>(out,view,scatters.data());
 		}
 		else
 		{
-			std::array<char_type,decay::calculate_scatter_reserve_size<char_type,Args...>()> array;
+			::fast_io::freestanding::array<char_type,decay::calculate_scatter_reserve_size<char_type,Args...>()> array;
 			local_operator_new_array_ptr<char_type> new_ptr(decay::calculate_scatter_dynamic_reserve_size<char_type>(args...));
 			decay::scatter_print_with_dynamic_reserve_recursive(scatters.data(),array.data(),new_ptr.ptr,args...);
 			scatter_fprint_write<sizeof...(Args)>(out,view,scatters.data());
@@ -298,7 +298,7 @@ inline constexpr void unsafe_fprint_fallback(output out,std::basic_string_view<t
 template<typename output,typename... Args>
 requires ((output_stream<output>||status_output_stream<output>)&&(std::is_trivially_copyable_v<output>&&(std::is_trivially_copyable_v<Args>&&...))&&(sizeof...(Args)!=0))
 inline constexpr void unsafe_fprint_freestanding_decay(output out,
-	std::basic_string_view<typename output::char_type> view,
+	::fast_io::freestanding::basic_string_view<typename output::char_type> view,
 	Args ...args)
 {
 	if constexpr(status_output_stream<output>)
@@ -323,7 +323,7 @@ inline constexpr void unsafe_fprint_freestanding_decay(output out,
 
 template<typename output,typename... Args>
 requires ((output_stream<output>||status_output_stream<output>)&&(sizeof...(Args)!=0))
-inline constexpr void unsafe_fprint(output&& out,std::basic_string_view<typename std::remove_cvref_t<output>::char_type> view,Args&& ...args)
+inline constexpr void unsafe_fprint(output&& out,::fast_io::freestanding::basic_string_view<typename std::remove_cvref_t<output>::char_type> view,Args&& ...args)
 {
 	unsafe_fprint_freestanding_decay(io_ref(out),view,io_forward(io_print_alias<typename std::remove_cvref_t<output>::char_type>(args))...);
 }

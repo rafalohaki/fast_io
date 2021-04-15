@@ -574,15 +574,15 @@ inline std::uintmax_t posix_seek_impl(int fd,std::intmax_t offset,seekdir s)
 
 }
 
-template<std::integral ch_type,std::contiguous_iterator Iter>
+template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 [[nodiscard]] inline Iter read(basic_posix_io_observer<ch_type> h,Iter begin,Iter end)
 {
-	return begin+details::posix_read_impl(h.fd,std::to_address(begin),(end-begin)*sizeof(*begin))/sizeof(*begin);
+	return begin+details::posix_read_impl(h.fd,::fast_io::freestanding::to_address(begin),(end-begin)*sizeof(*begin))/sizeof(*begin);
 }
-template<std::integral ch_type,std::contiguous_iterator Iter>
+template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter write(basic_posix_io_observer<ch_type> h,Iter cbegin,Iter cend)
 {
-	return cbegin+details::posix_write_impl(h.fd,std::to_address(cbegin),(cend-cbegin)*sizeof(*cbegin))/sizeof(*cbegin);
+	return cbegin+details::posix_write_impl(h.fd,::fast_io::freestanding::to_address(cbegin),(cend-cbegin)*sizeof(*cbegin))/sizeof(*cbegin);
 }
 
 template<std::integral ch_type>
@@ -1140,11 +1140,11 @@ class basic_posix_pipe
 {
 public:
 	using char_type = ch_type;
-	using native_handle_type = std::array<basic_posix_file<ch_type>,2>;
+	using native_handle_type = ::fast_io::freestanding::array<basic_posix_file<ch_type>,2>;
 	native_handle_type pipes;
 	basic_posix_pipe()
 	{
-		std::array<int,2> a2{pipes.front().fd,pipes.back().fd};
+		::fast_io::freestanding::array<int,2> a2{pipes.front().fd,pipes.back().fd};
 #if defined(__WINNT__) || defined(_MSC_VER)
 		if(_pipe(a2.data(),1048576,_O_BINARY)==-1)
 #else
@@ -1168,12 +1168,12 @@ public:
 	}
 };
 
-template<std::integral ch_type,std::contiguous_iterator Iter>
+template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter read(basic_posix_pipe<ch_type>& h,Iter begin,Iter end)
 {
 	return read(h.in(),begin,end);
 }
-template<std::integral ch_type,std::contiguous_iterator Iter>
+template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter write(basic_posix_pipe<ch_type>& h,Iter begin,Iter end)
 {
 	return write(h.out(),begin,end);
@@ -1188,7 +1188,7 @@ inline void flush(basic_posix_pipe<ch_type>&)
 }
 #ifdef _WIN32
 template<std::integral ch_type>
-inline std::array<int*,2> redirect_handle(basic_posix_pipe<ch_type>& h)
+inline ::fast_io::freestanding::array<int*,2> redirect_handle(basic_posix_pipe<ch_type>& h)
 {
 	return {std::addressof(h.in().fd),
 		std::addressof(h.out().fd)};
@@ -1643,16 +1643,16 @@ inline io_scatter_status_t posix_scatter_pwrite_impl(int fd,io_scatters_t sp,std
 
 }
 
-template<std::integral char_type,std::contiguous_iterator Iter>
+template<std::integral char_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline constexpr Iter read(basic_posix_pio_entry<char_type> ppioent,Iter begin,Iter end)
 {
-	return begin+details::posix_pread_impl(ppioent.fd,std::to_address(begin),(end-begin)*sizeof(*begin),ppioent.offset)/sizeof(*begin);
+	return begin+details::posix_pread_impl(ppioent.fd,::fast_io::freestanding::to_address(begin),(end-begin)*sizeof(*begin),ppioent.offset)/sizeof(*begin);
 }
 
-template<std::integral char_type,std::contiguous_iterator Iter>
+template<std::integral char_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline constexpr Iter write(basic_posix_pio_entry<char_type> ppioent,Iter begin,Iter end)
 {
-	return begin+details::posix_pwrite_impl(ppioent.fd,std::to_address(begin),(end-begin)*sizeof(*begin),ppioent.offset)/sizeof(*begin);
+	return begin+details::posix_pwrite_impl(ppioent.fd,::fast_io::freestanding::to_address(begin),(end-begin)*sizeof(*begin),ppioent.offset)/sizeof(*begin);
 }
 
 template<std::integral ch_type>

@@ -152,20 +152,20 @@ public:
 	}
 };
 
-template<std::integral ch_type,std::contiguous_iterator Iter>
+template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter read(basic_win32_internet_io_observer<ch_type> iob,Iter begin,Iter end)
 {
 	unsigned long readed{};
-	if(!InternetReadFile(iob.handle,std::to_address(begin),sizeof(*begin)*(end-begin),std::addressof(readed)))
+	if(!InternetReadFile(iob.handle,::fast_io::freestanding::to_address(begin),sizeof(*begin)*(end-begin),std::addressof(readed)))
 		throw fast_io::win32_error();
 	return begin+readed/sizeof(begin);
 }
 
-template<std::integral ch_type,std::contiguous_iterator Iter>
+template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter write(basic_win32_internet_io_observer<ch_type> iob,Iter begin,Iter end)
 {
 	unsigned long written{};
-	if(!InternetWriteFile(iob.handle,std::to_address(begin),sizeof(*begin)*(end-begin),std::addressof(written)))
+	if(!InternetWriteFile(iob.handle,::fast_io::freestanding::to_address(begin),sizeof(*begin)*(end-begin),std::addressof(written)))
 		throw fast_io::win32_error();
 	return begin+written/sizeof(begin);
 }

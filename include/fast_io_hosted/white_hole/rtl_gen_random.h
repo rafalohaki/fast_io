@@ -22,7 +22,7 @@ inline void rtl_gen_random_read(void* ptr,std::size_t sz)
 	{
 		for(;sz;)
 		{
-			std::size_t mn = std::min(sz,static_cast<std::size_t>(std::numeric_limits<std::uint32_t>::max()));
+			std::size_t mn = ::fast_io::freestanding::min(sz,static_cast<std::size_t>(std::numeric_limits<std::uint32_t>::max()));
 			if(!SystemFunction036(ptr,static_cast<std::uint32_t>(mn)))
 				throw_win32_error();
 			sz-=mn;
@@ -37,10 +37,10 @@ inline void rtl_gen_random_read(void* ptr,std::size_t sz)
 }
 }
 
-template<std::integral char_type,std::contiguous_iterator Iter>
+template<std::integral char_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter read(basic_rtl_gen_random<char_type>,Iter bg,Iter ed)
 {
-	win32::details::rtl_gen_random_read(std::to_address(bg),(ed-bg)*sizeof(*bg));
+	win32::details::rtl_gen_random_read(::fast_io::freestanding::to_address(bg),(ed-bg)*sizeof(*bg));
 	return ed;
 }
 

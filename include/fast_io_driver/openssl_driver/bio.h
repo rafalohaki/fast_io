@@ -359,16 +359,16 @@ inline posix_file_status bio_status_impl(BIO* bio)
 
 }
 
-template<std::integral ch_type,std::contiguous_iterator Iter>
+template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter read(basic_bio_io_observer<ch_type> iob,Iter begin,Iter end)
 {
-	return begin+details::bio_read_impl(iob.bio,std::to_address(begin),(end-begin)*sizeof(*begin))/sizeof(*begin);
+	return begin+details::bio_read_impl(iob.bio,::fast_io::freestanding::to_address(begin),(end-begin)*sizeof(*begin))/sizeof(*begin);
 }
 
-template<std::integral ch_type,std::contiguous_iterator Iter>
+template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter write(basic_bio_io_observer<ch_type> iob,Iter begin,Iter end)
 {
-	return begin+details::bio_write_impl(iob.bio,std::to_address(begin),(end-begin)*sizeof(*begin))/sizeof(*begin);
+	return begin+details::bio_write_impl(iob.bio,::fast_io::freestanding::to_address(begin),(end-begin)*sizeof(*begin))/sizeof(*begin);
 }
 
 #if __cpp_lib_three_way_comparison >= 201907L

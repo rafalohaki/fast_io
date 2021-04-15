@@ -571,7 +571,7 @@ inline constexpr auto div_mod(basic_unsigned_extension<T> const& lhs, basic_unsi
 template<typename T>
 inline uint32_t in_place_div_mod(basic_unsigned_extension<T>& a,std::uint32_t value)
 {
-	std::array<std::uint32_t,sizeof(T)/2> v;
+	::fast_io::freestanding::array<std::uint32_t,sizeof(T)/2> v;
 	::fast_io::details::my_memcpy(v.data(),std::addressof(a),sizeof(v));		//should use std::bit_cast instead. However, current compilers haven't implemented std::bit_cast magic. ::fast_io::details::my_memcpy first.
 	std::uint64_t quo(0);
 	for(std::size_t i(v.size());i--;)
@@ -593,7 +593,7 @@ inline constexpr basic_unsigned_extension<T> operator/(basic_unsigned_extension<
 template<typename T>
 inline constexpr std::uint32_t operator%(basic_unsigned_extension<T> const& a,std::uint32_t value)
 {
-	std::array<std::uint32_t,sizeof(T)/2> v;
+	::fast_io::freestanding::array<std::uint32_t,sizeof(T)/2> v;
 	::fast_io::details::my_memcpy(v.data(),std::addressof(a),sizeof(v));		//should use std::bit_cast instead. However, current compilers haven't implemented std::bit_cast magic. ::fast_io::details::my_memcpy first.
 	std::uint64_t quo(0);
 	for(std::size_t i(v.size());i--;)
@@ -671,7 +671,7 @@ inline void output_base_extension_number(output& out,basic_unsigned_extension<T>
 		put(out,0x30);
 		return;
 	}
-	std::array<typename output::char_type,sizeof(a)*512*8/base+3> v;
+	::fast_io::freestanding::array<typename output::char_type,sizeof(a)*512*8/base+3> v;
 	auto iter(v.data()+v.size());
 	while(a)
 	{
@@ -719,7 +719,7 @@ template<char8_t base,character_input_stream input,typename T>
 inline constexpr void input_base_number_phase2_extension(input& in,basic_unsigned_extension<T>& a)
 {
 	using unsigned_char_type = std::make_unsigned_t<decltype(get(in))>;
-	unsigned_char_type constexpr baseed(std::min(static_cast<unsigned_char_type>(base),static_cast<unsigned_char_type>(10)));
+	unsigned_char_type constexpr baseed(::fast_io::freestanding::min(static_cast<unsigned_char_type>(base),static_cast<unsigned_char_type>(10)));
 	while(true)
 	{
 		unsigned_char_type ch(get<true>(in).first);
@@ -745,7 +745,7 @@ template<char8_t base,character_input_stream input,typename T>
 inline constexpr void input_base_extension_number(input& in,basic_unsigned_extension<T>& a)
 {
 	using unsigned_char_type = std::make_unsigned_t<decltype(get(in))>;
-	unsigned_char_type constexpr baseed(std::min(static_cast<unsigned_char_type>(base),static_cast<unsigned_char_type>(10)));
+	unsigned_char_type constexpr baseed(::fast_io::freestanding::min(static_cast<unsigned_char_type>(base),static_cast<unsigned_char_type>(10)));
 	while(true)
 	{
 		unsigned_char_type ch(get(in));

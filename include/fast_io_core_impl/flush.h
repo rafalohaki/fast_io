@@ -13,11 +13,11 @@ public:
 	constexpr char_flush(Args&&... args):Ohandler(std::forward<Args>(args)...){}
 };
 
-template<output_stream Ohandler,typename Ohandler::char_type flush_character,std::contiguous_iterator Iter>
+template<output_stream Ohandler,typename Ohandler::char_type flush_character,::fast_io::freestanding::contiguous_iterator Iter>
 inline constexpr void write(char_flush<Ohandler,flush_character>& ob,Iter b,Iter e)
 {
 	using char_type = typename Ohandler::char_type;
-	auto pb(std::to_address(b)),pe(pb+(e-b)*sizeof(*b)/sizeof(char_type));
+	auto pb(::fast_io::freestanding::to_address(b)),pe(pb+(e-b)*sizeof(*b)/sizeof(char_type));
 	for(auto pi(pb);pi!=pe;++pi)
 		if(*pi==flush_character)
 		{

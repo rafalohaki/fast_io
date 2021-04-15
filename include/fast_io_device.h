@@ -1,9 +1,16 @@
 #pragma once
+#if !defined(__cplusplus)
+#error "You are not using C++ compiler"
+#endif
 
+#if __cplusplus<202002L && !defined(_MSC_VER)
+#error "fast_io requires at least C++20 standard compiler."
+#else
 //fast_io_devices.h defines commonly used io devices and their correlated mutex verisons.
 #include"fast_io_hosted.h"
 
 
+#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
 namespace fast_io
 {
 
@@ -150,7 +157,7 @@ using u32obuf_file_mutex = basic_obuf_file_mutex<char32_t>;
 using u32iobuf_file_mutex = basic_iobuf_file_mutex<char32_t>;
 #endif
 
-
+#if !(defined(FAST_IO_DISABLE_CODECVT)&&(__STDC_HOSTED__==0 || (defined(_GLIBCXX_HOSTED) && _GLIBCXX_HOSTED==0)))
 /*
 code_cvt file template region
 */
@@ -276,5 +283,8 @@ using wutf_ebcdic_file = basic_utf_ebcdic_file<wchar_t>;
 using u8utf_ebcdic_file = basic_utf_ebcdic_file<char8_t>;
 using u16utf_ebcdic_file = basic_utf_ebcdic_file<char16_t>;
 using u32utf_ebcdic_file = basic_utf_ebcdic_file<char32_t>;
-
+#endif
 }
+#endif
+
+#endif

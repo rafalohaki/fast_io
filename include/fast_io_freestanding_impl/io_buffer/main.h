@@ -42,7 +42,7 @@ inline constexpr auto external_decorator(basic_decorators<char_type,internaltype
 namespace details
 {
 
-template<typename T,typename decot,std::random_access_iterator Iter>
+template<typename T,typename decot,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr void write_with_deco(T t,decot deco,Iter first,Iter last,
 	basic_io_buffer_pointers_no_curr<typename T::char_type>& external_buffer,
 	std::size_t buffer_size)

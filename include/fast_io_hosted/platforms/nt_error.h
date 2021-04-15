@@ -36,11 +36,11 @@ public:
 namespace details
 {
 
-template<bool enable=true,std::contiguous_iterator Iter>
+template<bool enable=true,::fast_io::freestanding::contiguous_iterator Iter>
 requires (enable)
 inline constexpr Iter print_reserve_nt_error_impl(Iter iter,std::uint32_t ntstatus) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	if constexpr(std::same_as<char_type,char>)
 		iter=copy_string_literal("[nt:0x",iter);
 	else if constexpr(std::same_as<char_type,wchar_t>)
@@ -81,8 +81,8 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,nt_e
 		return full_size+details::string_literal_size(u8"[nt:0x]");
 }
 
-template<std::contiguous_iterator Iter>
-inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,nt_error>,Iter iter,nt_error const& e) noexcept
+template<::fast_io::freestanding::contiguous_iterator Iter>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,nt_error>,Iter iter,nt_error const& e) noexcept
 {
 	return details::print_reserve_nt_error_impl(iter,e.code());
 }

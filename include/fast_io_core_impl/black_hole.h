@@ -13,10 +13,10 @@ public:
 	using char_type = ch_type;
 };
 
-template<std::integral ch_type,std::contiguous_iterator Iter>
+template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline constexpr void write(black_hole<ch_type>,Iter,Iter){}
 
-template<std::integral ch_type,std::contiguous_iterator Iter>
+template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline constexpr Iter read(black_hole<ch_type>,Iter b,Iter){return b;}
 
 }

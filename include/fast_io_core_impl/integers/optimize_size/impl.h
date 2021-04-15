@@ -8,10 +8,10 @@ namespace optimize_size
 
 namespace with_length
 {
-template<char8_t base=10,bool uppercase=false,std::random_access_iterator Iter,my_unsigned_integral U>
+template<char8_t base=10,bool uppercase=false,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
 inline constexpr void output_unsigned(Iter str,U value,std::size_t const len) noexcept
 {
-	using char_type=std::iter_value_t<Iter>;
+	using char_type=::fast_io::freestanding::iter_value_t<Iter>;
 	str+=len-1;
 	for(std::size_t i{};i!=len;++i)
 	{
@@ -103,7 +103,7 @@ inline constexpr void output_unsigned(Iter str,U value,std::size_t const len) no
 
 
 
-template<std::size_t len,char8_t base=10,bool uppercase=false,std::random_access_iterator Iter,my_unsigned_integral U>
+template<std::size_t len,char8_t base=10,bool uppercase=false,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
 inline constexpr void output_unsigned_dummy(Iter str,U value) noexcept
 {
 	if constexpr(sizeof(U)<=sizeof(unsigned))
@@ -112,7 +112,7 @@ inline constexpr void output_unsigned_dummy(Iter str,U value) noexcept
 		with_length::output_unsigned<base,uppercase>(str,value,len);
 }
 
-template<char8_t base=10,bool uppercase=false,std::random_access_iterator Iter,my_unsigned_integral U>
+template<char8_t base=10,bool uppercase=false,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
 inline constexpr std::size_t output_unsigned(Iter str,U value) noexcept
 {
 	std::size_t const len{chars_len<base>(value)};
@@ -123,7 +123,7 @@ inline constexpr std::size_t output_unsigned(Iter str,U value) noexcept
 	return len;
 }
 
-template<char8_t base=10,bool uppercase=false,std::random_access_iterator Iter,my_unsigned_integral uint_type>
+template<char8_t base=10,bool uppercase=false,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral uint_type>
 inline constexpr Iter output_unsigned_full(Iter str,uint_type value) noexcept
 {
 	constexpr std::size_t len{cal_max_int_size<uint_type,base>()};

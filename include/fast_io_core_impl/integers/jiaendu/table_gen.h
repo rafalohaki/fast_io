@@ -14,7 +14,7 @@ inline constexpr char8_t cal_ebcdic_start(char8_t start) noexcept
 
 inline constexpr auto calculate_offset() noexcept
 {
-	std::array<char8_t,1000> gen{};
+	::fast_io::freestanding::array<char8_t,1000> gen{};
 	for(std::size_t i(0);i!=10;++i)
 		gen[i]=1;
 	for(std::size_t i(10);i!=100;++i)
@@ -28,7 +28,7 @@ template<typename T>
 inline constexpr auto calculate_table2(char8_t start) noexcept
 {
 	start=cal_ebcdic_start<T>(start);
-	std::array<std::array<T,2>,100> gen{};
+	::fast_io::freestanding::array<::fast_io::freestanding::array<T,2>,100> gen{};
 	for(char8_t i(0);i!=10;++i)
 		for(char8_t j(0);j!=10;++j)
 		{
@@ -43,7 +43,7 @@ template<typename T>
 inline constexpr auto calculate_table3(char8_t start) noexcept
 {
 	start=cal_ebcdic_start<T>(start);
-	std::array<std::array<T,4>,1000> gen{};
+	::fast_io::freestanding::array<::fast_io::freestanding::array<T,4>,1000> gen{};
 	for(char8_t i(0);i!=10;++i)
 		for(char8_t j(0);j!=10;++j)
 			for(char8_t k(0);k!=10;++k)
@@ -62,7 +62,7 @@ template<typename T>
 inline constexpr auto calculate_table4(char8_t start) noexcept
 {
 	start=cal_ebcdic_start<T>(start);
-	std::array<std::array<T,4>,10000> gen{};
+	::fast_io::freestanding::array<::fast_io::freestanding::array<T,4>,10000> gen{};
 	for(char8_t i(0);i!=10;++i)
 		for(char8_t j(0);j!=10;++j)
 			for(char8_t k(0);k!=10;++k)
@@ -83,7 +83,7 @@ template<typename T>
 inline constexpr auto calculate_table5(char8_t start) noexcept
 {
 	start=cal_ebcdic_start<T>(start);
-	std::array<std::array<T,4>,1000> gen{};
+	::fast_io::freestanding::array<::fast_io::freestanding::array<T,4>,1000> gen{};
 	for(char8_t i(0);i!=10;++i)
 		gen[i].front()=i+start;
 	for(char8_t i(1);i!=10;++i)

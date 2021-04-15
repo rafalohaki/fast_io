@@ -43,7 +43,7 @@ public:
 	void digest(std::span<std::byte const> final_block) noexcept//contracts: final_block.size()<block_size
 	{
 		std::uint64_t total_bits(static_cast<std::uint64_t>(transform_counter*block_size+final_block.size())*8);
-		std::array<std::byte,block_size> blocks{};
+		::fast_io::freestanding::array<std::byte,block_size> blocks{};
 		::fast_io::details::my_memcpy(blocks.data(),final_block.data(),final_block.size());
 		blocks[final_block.size()]=std::byte{0x80};
 		auto start{blocks.data()+blocks.size()-8};
@@ -80,7 +80,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,sha<
 	return sizeof(typename T::digest_type)*8;
 }
 
-template<std::integral char_type,std::random_access_iterator caiter,typename T,bool endian_reverse>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator caiter,typename T,bool endian_reverse>
 inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,sha<T,endian_reverse>>,caiter iter,auto& i) noexcept
 {
 	constexpr std::size_t offset{sizeof(typename T::digest_type::value_type)*2};

@@ -10,13 +10,13 @@ Time output should strictly following ISO 8601
 namespace fast_io::details
 {
 
-template<std::random_access_iterator Iter,my_unsigned_integral U>
+template<::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
 inline constexpr void with_length_output_unsigned(Iter it,U u,std::size_t len) noexcept
 {
 	optimize_size::with_length::output_unsigned(it,u,len);
 }
 
-template<bool unchecked=false,std::random_access_iterator Iter,my_unsigned_integral U>
+template<bool unchecked=false,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
 inline constexpr Iter chrono_one_digit_impl(Iter it,U uv) noexcept
 {
 	if constexpr(!unchecked)
@@ -24,7 +24,7 @@ inline constexpr Iter chrono_one_digit_impl(Iter it,U uv) noexcept
 		if(10u<=uv)[[unlikely]]
 			return process_integer_output<10,false>(it,uv);
 	}
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	if constexpr(std::same_as<char,char_type>)
 		*it=static_cast<char_type>(uv+'0');
 	else if constexpr(std::same_as<wchar_t,char_type>)
@@ -35,7 +35,7 @@ inline constexpr Iter chrono_one_digit_impl(Iter it,U uv) noexcept
 	return it;
 }
 
-template<bool unchecked=false,std::random_access_iterator Iter,my_unsigned_integral U>
+template<bool unchecked=false,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
 inline constexpr Iter chrono_two_digits_impl(Iter it,U u) noexcept
 {
 #ifdef FAST_IO_OPTIMIZE_SIZE
@@ -46,7 +46,7 @@ inline constexpr Iter chrono_two_digits_impl(Iter it,U u) noexcept
 	}
 	auto v{u/10};
 	u%=10;
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	*it=v;
 	if constexpr(std::same_as<char_type,char>)
 		*it+='0';
@@ -65,7 +65,7 @@ inline constexpr Iter chrono_two_digits_impl(Iter it,U u) noexcept
 	++it;
 	return it;
 #elif defined(FAST_IO_OPTIMIZE_TIME)
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	if constexpr(!unchecked)
 	{
 		if(100u<=u)[[unlikely]]
@@ -73,7 +73,7 @@ inline constexpr Iter chrono_two_digits_impl(Iter it,U u) noexcept
 	}
 	return non_overlapped_copy_n(jiaendu::static_tables<char_type>::table2[u].data(),2,it);
 #else
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	if constexpr(!unchecked)
 	{
 		if(100u<=u)[[unlikely]]
@@ -84,10 +84,10 @@ inline constexpr Iter chrono_two_digits_impl(Iter it,U u) noexcept
 #endif
 }
 
-template<bool unchecked=false,std::random_access_iterator Iter,my_signed_integral I>
+template<bool unchecked=false,::fast_io::freestanding::random_access_iterator Iter,my_signed_integral I>
 inline constexpr Iter chrono_two_digits_impl(Iter it,I i) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	my_make_unsigned_t<I> u(static_cast<my_make_unsigned_t<I>>(i));
 	if(i<0)[[unlikely]]
 	{
@@ -103,11 +103,11 @@ inline constexpr Iter chrono_two_digits_impl(Iter it,I i) noexcept
 	return chrono_two_digits_impl<unchecked>(it,u);
 }
 
-template<std::random_access_iterator Iter,std::signed_integral integ>
+template<::fast_io::freestanding::random_access_iterator Iter,std::signed_integral integ>
 inline constexpr Iter chrono_year_impl(Iter it,integ i) noexcept
 {
 	using unsigned_type = std::make_unsigned_t<std::remove_cvref_t<integ>>;
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	unsigned_type u(i);
 	if(i<0)[[unlikely]]
 	{

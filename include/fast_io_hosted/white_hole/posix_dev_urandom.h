@@ -28,7 +28,7 @@ public:
 	}
 };
 
-template<input_stream T,std::contiguous_iterator Iter>
+template<input_stream T,::fast_io::freestanding::contiguous_iterator Iter>
 inline constexpr Iter read(posix_dev_urandom<T>& t,Iter begin,Iter end)
 {
 	return read(t.device,begin,end);

@@ -19,7 +19,7 @@ inline constexpr bool underflow_impl(T t,basic_io_buffer_pointers<char_type>& ib
 	return underflow_rl_impl(t,ibuffer,bfsz);
 }
 
-template<typename T,std::integral char_type,std::random_access_iterator Iter>
+template<typename T,std::integral char_type,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter iobuf_read_unhappy_decay_impl(T t,basic_io_buffer_pointers<char_type>& ibuffer,Iter first,Iter last,std::size_t buffer_size)
 {
 	std::size_t iter_diff(static_cast<std::size_t>(last-first));

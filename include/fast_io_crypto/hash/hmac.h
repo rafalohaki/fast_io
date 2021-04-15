@@ -6,7 +6,7 @@ template<typename func,bool endian_reverse>
 struct hmac
 {
 	using function_type = func;
-	using key_type = std::array<std::byte,func::block_size>;
+	using key_type = ::fast_io::freestanding::array<std::byte,func::block_size>;
 	function_type function;
 	key_type inner_key;
 	key_type outer_key{};
@@ -30,7 +30,7 @@ struct hmac
 		for(std::size_t i{};i!=inner_key.size();++i)
 			inner_key[i]=outer_key[i]^std::byte{0x36};
 	}
-	hmac(std::string_view key) noexcept:hmac(std::as_bytes(std::span{key.data(),key.size()})){}
+	hmac(::fast_io::freestanding::string_view key) noexcept:hmac(std::as_bytes(std::span{key.data(),key.size()})){}
 	std::size_t block_init(std::span<std::byte,block_size> sp) noexcept
 	{
 		::fast_io::details::my_memcpy(sp.data(),inner_key.data(),sizeof(key_type));
@@ -71,7 +71,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,hmac
 	return print_reserve_size(io_reserve_type<char_type,T>);
 }
 
-template<std::integral char_type,typename T,bool endian_reverse,std::random_access_iterator caiter>
+template<std::integral char_type,typename T,bool endian_reverse,::fast_io::freestanding::random_access_iterator caiter>
 requires reserve_printable<char_type,T>
 inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,hmac<T,endian_reverse>>,caiter iter,auto& i) noexcept
 {

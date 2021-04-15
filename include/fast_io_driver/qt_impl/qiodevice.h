@@ -89,18 +89,18 @@ inline std::uintmax_t qio_device_seek_impl(QIODevice* __restrict qdevice,std::in
 
 }
 
-template<std::integral ch_type,typename T,std::contiguous_iterator Iter>
+template<std::integral ch_type,typename T,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter write(basic_general_qdevice_io_observer<ch_type,T> qiob,Iter begin,Iter end)
 {
-	return begin+details::qio_device_write_impl(qiob.qdevice,std::to_address(begin),
-		(std::to_address(end)-std::to_address(begin))*sizeof(*begin))/sizeof(*begin);
+	return begin+details::qio_device_write_impl(qiob.qdevice,::fast_io::freestanding::to_address(begin),
+		(::fast_io::freestanding::to_address(end)-::fast_io::freestanding::to_address(begin))*sizeof(*begin))/sizeof(*begin);
 }
 
-template<std::integral ch_type,typename T,std::contiguous_iterator Iter>
+template<std::integral ch_type,typename T,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter read(basic_general_qdevice_io_observer<ch_type,T> qiob,Iter begin,Iter end)
 {
-	return begin+details::qio_device_read_impl(qiob.qdevice,std::to_address(begin),
-		(std::to_address(end)-std::to_address(begin))*sizeof(*begin))/sizeof(*begin);
+	return begin+details::qio_device_read_impl(qiob.qdevice,::fast_io::freestanding::to_address(begin),
+		(::fast_io::freestanding::to_address(end)-::fast_io::freestanding::to_address(begin))*sizeof(*begin))/sizeof(*begin);
 }
 
 template<std::integral ch_type,typename T>

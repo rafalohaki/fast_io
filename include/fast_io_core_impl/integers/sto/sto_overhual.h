@@ -6,10 +6,10 @@ namespace fast_io
 namespace details
 {
 
-template<std::random_access_iterator Iter>
+template<::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter skip_zero(Iter begin, Iter end) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	if constexpr(std::same_as<char_type,char>)
 		for (; begin != end && *begin=='0'; ++begin);
 	else if constexpr(std::same_as<char_type,wchar_t>)
@@ -206,10 +206,10 @@ inline constexpr bool char_digit_probe_overflow(my_make_unsigned_t<char_type> ch
 	}
 }
 
-template<char8_t base,std::random_access_iterator Iter,my_unsigned_integral muint>
+template<char8_t base,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral muint>
 inline constexpr void from_chars_main(Iter& b,Iter e,muint& res) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	using unsigned_char_type = my_make_unsigned_t<char_type>;
 	constexpr unsigned_char_type base_char_type(base);
 	for(;b!=e;++b)
@@ -222,10 +222,10 @@ inline constexpr void from_chars_main(Iter& b,Iter e,muint& res) noexcept
 	}
 }
 
-template<char8_t base,std::random_access_iterator Iter>
+template<char8_t base,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter skip_digits(Iter b,Iter e) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	using unsigned_char_type = my_make_unsigned_t<char_type>;
 	for(;b!=e;++b)
 	{
@@ -236,10 +236,10 @@ inline constexpr Iter skip_digits(Iter b,Iter e) noexcept
 	return b;
 }
 
-template<char8_t base,bool larger_than_native = false,std::random_access_iterator Iter,my_unsigned_integral muint>
+template<char8_t base,bool larger_than_native = false,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral muint>
 inline constexpr bool probe_overflow(Iter& b,Iter e,muint& res,std::size_t& sz) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	using unsigned_char_type = my_make_unsigned_t<char_type>;
 	if(b==e)
 		return false;
@@ -280,7 +280,7 @@ inline constexpr bool probe_overflow(Iter& b,Iter e,muint& res,std::size_t& sz) 
 	}
 }
 
-template<char8_t base,bool larger_than_native = false, bool skip_zeros = true, bool ignore=false, std::random_access_iterator Iter,my_unsigned_integral muint>
+template<char8_t base,bool larger_than_native = false, bool skip_zeros = true, bool ignore=false, ::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral muint>
 #if __has_cpp_attribute(msvc::forceinline) && !defined(__clang__)
 [[msvc::forceinline]]
 #endif
@@ -348,29 +348,17 @@ inline constexpr bool from_chars(Iter& b,Iter e,muint& res,std::size_t& sz) noex
 
 
 template<char8_t base, details::my_integral T>
-inline 
-#if __cpp_consteval > 201811
- consteval 
-#else
- constexpr
-#endif
- auto powmul_array() noexcept
+inline constexpr auto powmul_array() noexcept
 {
 	constexpr std::size_t charlen{chars_len<base>(cal_int_max<T>())};
-	std::array<T, charlen> arr{1};
+	::fast_io::freestanding::array<T, charlen> arr{1};
 	for(std::size_t i{1};i!=charlen;++i)
 		arr[i] = arr[i-1] * base;
 	return arr;
 }
 
 template<char8_t base, details::my_integral T>
-inline
-#if __cpp_consteval > 201811
- consteval 
-#else
- constexpr
-#endif
- auto powmul_table{powmul_array<base, T>()};
+inline constexpr auto powmul_table{powmul_array<base, T>()};
 
 template<char8_t base, details::my_integral T>
 inline constexpr T powmul(T v, std::size_t sz) noexcept
@@ -387,7 +375,7 @@ inline constexpr T powmul(T v, std::size_t sz) noexcept
 
 } // end details
 
-template<details::my_integral T, std::random_access_iterator Iter>
+template<details::my_integral T, ::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter scan_skip_define(scan_skip_type_t<parameter<T&>>, Iter beg, Iter ed) noexcept
 {
 	return scan_skip_space(beg, ed);
@@ -395,11 +383,11 @@ inline constexpr Iter scan_skip_define(scan_skip_type_t<parameter<T&>>, Iter beg
 
 namespace details::ctx_scan_integer
 {
-template<char8_t base, bool contiguous_only, std::random_access_iterator Iter,typename P, details::my_integral T>
+template<char8_t base, bool contiguous_only, ::fast_io::freestanding::random_access_iterator Iter,typename P, details::my_integral T>
 struct voldmort
 {
 	Iter iter;
-	std::errc code{};
+	parse_code code{};
 
 #if __has_cpp_attribute(no_unique_address)
 [[no_unique_address]]
@@ -419,7 +407,7 @@ struct voldmort
 		constexpr std::size_t npos(static_cast<std::size_t>(-1));
 		if(size==npos)
 		{
-			code=std::errc::result_out_of_range;
+			code=parse_code::overflow;
 			return true;
 		}
 		code={};
@@ -428,7 +416,7 @@ struct voldmort
 		{
 			if(value>static_cast<my_make_unsigned_t<T>>(std::numeric_limits<T>::max())+minus)
 			{
-				code=std::errc::result_out_of_range;
+				code=parse_code::overflow;
 				return true;
 			}
 		}
@@ -475,12 +463,12 @@ struct voldmort
 		code = {};
 		if(iter==end)
 		{
-			code = std::errc::resource_unavailable_try_again;
+			code = parse_code::partial;
 			return;
 		}
 		if(size==npos)
 		{
-			code=std::errc::result_out_of_range;
+			code=parse_code::overflow;
 			return;
 		}
 		// check minus overflow
@@ -488,7 +476,7 @@ struct voldmort
 		{
 			if(value>static_cast<my_make_unsigned_t<T>>(std::numeric_limits<T>::max())+minus)
 			{
-				code=std::errc::result_out_of_range;
+				code=parse_code::overflow;
 				return;
 			}
 		}
@@ -511,7 +499,7 @@ struct voldmort
 		{
 			
 			bool minus{};
-			using char_type = std::iter_value_t<Iter>;
+			using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 			/*Dealing with EBCDIC exec-charset */
 			if constexpr(my_signed_integral<T>)
 			{
@@ -521,7 +509,7 @@ struct voldmort
 					minus=(*iter == L'-');
 				else
 					minus=(*iter == u8'-');
-				if constexpr(std::contiguous_iterator<Iter>)
+				if constexpr(::fast_io::freestanding::contiguous_iterator<Iter>)
 					iter+=minus;
 				else
 				{
@@ -550,7 +538,7 @@ struct voldmort
 							if (probe_overflow<base, larger_than_native>(iter,end,temp,size))
 							{
 								// value overflow
-								code=std::errc::result_out_of_range;
+								code=parse_code::overflow;
 								return;
 							}
 						}
@@ -570,18 +558,18 @@ struct voldmort
 			} else {
 				if(details::from_chars<base>(iter,end,temp,size))
 				{
-					code=std::errc::result_out_of_range;
+					code=parse_code::overflow;
 					return;
 				}
 			}
 			if(begin==iter)
 			{
-				code=std::errc::invalid_argument;
+				code=parse_code::invalid;
 				return;
 			}
 			if(size==npos)
 			{
-				code=std::errc::result_out_of_range;
+				code=parse_code::overflow;
 				return;
 			}
 			// check minus overflow
@@ -590,7 +578,7 @@ struct voldmort
 				constexpr my_make_unsigned_t<T> int_type_max(static_cast<my_make_unsigned_t<T>>(-1)>>1);
 				if(temp>int_type_max+minus)
 				{
-					code=std::errc::result_out_of_range;
+					code=parse_code::overflow;
 					return;
 				}
 			}
@@ -607,7 +595,7 @@ struct voldmort
 		else
 		{
 			// not contiguous
-			using char_type = std::iter_value_t<Iter>;
+			using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 			/*Dealing with EBCDIC exec-charset */
 			if constexpr(my_signed_integral<T>)
 			{
@@ -617,7 +605,7 @@ struct voldmort
 					minus=(*iter == L'-');
 				else
 					minus=(*iter == u8'-');
-				if constexpr(std::contiguous_iterator<Iter>)
+				if constexpr(::fast_io::freestanding::contiguous_iterator<Iter>)
 					iter+=minus;
 				else
 				{
@@ -645,7 +633,7 @@ struct voldmort
 							if (probe_overflow<base, larger_than_native>(iter,end,value,size))
 							{
 								// value overflow
-								code=std::errc::result_out_of_range;
+								code=parse_code::overflow;
 								return;
 							}
 						}
@@ -668,17 +656,17 @@ struct voldmort
 
 			if(begin==iter)
 			{
-				code=std::errc::invalid_argument;
+				code=parse_code::invalid;
 				return;
 			}
 			if(iter==end)
 			{
-				code=std::errc::resource_unavailable_try_again;
+				code=parse_code::partial;
 				return;
 			}
 			if(size==npos)
 			{
-				code=std::errc::result_out_of_range;
+				code=parse_code::overflow;
 				return;
 			}
 			// check minus overflow
@@ -686,7 +674,7 @@ struct voldmort
 			{
 				if(value>static_cast<my_make_unsigned_t<T>>(std::numeric_limits<T>::max())+minus)
 				{
-					code=std::errc::result_out_of_range;
+					code=parse_code::overflow;
 					return;
 				}
 			}
@@ -704,20 +692,20 @@ struct voldmort
 };
 }
 
-template<bool contiguous_only, std::random_access_iterator Iter, details::my_integral T>
+template<bool contiguous_only, ::fast_io::freestanding::random_access_iterator Iter, details::my_integral T>
 inline constexpr auto scan_context_define(scan_context_t<contiguous_only>, Iter begin, Iter end, parameter<T&> t) noexcept
 {
 	return details::ctx_scan_integer::voldmort<10, contiguous_only, Iter, parameter<T&>, T>(begin, end, t.reference);
 }
 
 
-template<std::size_t base,bool cs, details::my_integral T, std::random_access_iterator Iter>
+template<std::size_t base,bool cs, details::my_integral T, ::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter scan_skip_define(scan_skip_type_t<manipulators::base_t<base,cs,T&>>, Iter beg, Iter ed) noexcept
 {
 	return scan_skip_space(beg, ed);
 }
 
-template<bool contiguous_only, std::random_access_iterator Iter,std::size_t base,bool cs,details::my_integral T>
+template<bool contiguous_only, ::fast_io::freestanding::random_access_iterator Iter,std::size_t base,bool cs,details::my_integral T>
 inline constexpr auto scan_context_define(scan_context_t<contiguous_only>, Iter begin, Iter end, manipulators::base_t<base,cs,T&> t) noexcept
 {
 	return details::ctx_scan_integer::voldmort<base, contiguous_only, Iter, manipulators::base_t<base,false,T&>, T>(begin, end, t.reference);

@@ -7,7 +7,7 @@ template<std::size_t buffer_size>
 class stack_arbitary_int
 {
 public:
-	std::array<char8_t,buffer_size> digits;
+	::fast_io::freestanding::array<char8_t,buffer_size> digits;
 	std::size_t position{};
 	template<std::integral char_type>
 	inline constexpr void push_back_unchecked(char_type ch) noexcept

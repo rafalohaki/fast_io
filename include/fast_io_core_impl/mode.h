@@ -23,7 +23,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,file
 
 namespace details
 {
-template<std::integral char_type,std::random_access_iterator caiter>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator caiter>
 inline constexpr caiter print_file_status_impl(caiter it,file_type f) noexcept
 {
 	if constexpr(std::same_as<char_type,char>)
@@ -169,7 +169,7 @@ inline constexpr caiter print_file_status_impl(caiter it,file_type f) noexcept
 }
 }
 
-template<std::integral char_type,std::random_access_iterator caiter>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator caiter>
 inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,file_type>,caiter it,file_type f) noexcept
 {
 	return details::print_file_status_impl<char_type>(it,f);
@@ -310,8 +310,6 @@ constexpr auto c_supported_values{static_cast<utype>(open_mode::text)|
 return static_cast<open_mode>(static_cast<utype>(m)&c_supported_values);
 }
 
-[[noreturn]] inline void throw_posix_error(int);
-
 inline constexpr char const* to_c_mode(open_mode m) noexcept
 {
 	using utype = typename std::underlying_type<open_mode>::type;
@@ -415,7 +413,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,posi
 	return 20;
 }
 
-template<std::integral char_type,std::random_access_iterator Iter>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,posix_wait_reason>,Iter iter,posix_wait_reason reason) noexcept
 {
 	if constexpr(std::same_as<char_type,char>)

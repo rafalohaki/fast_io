@@ -199,9 +199,9 @@ inline constexpr bool is_c_space_impl(char_type ch) noexcept
 }
 #if 0
 template<std::integral char_type>
-inline constexpr std::array<bool,256> is_c_space_tb_impl() noexcept
+inline constexpr ::fast_io::freestanding::array<bool,256> is_c_space_tb_impl() noexcept
 {
-	std::array<bool,256> tb;
+	::fast_io::freestanding::array<bool,256> tb;
 	for(std::size_t i{};i!=tb.size();++i)
 		tb[i]=is_c_space_impl(static_cast<char_type>(i));
 	return tb;
@@ -209,7 +209,7 @@ inline constexpr std::array<bool,256> is_c_space_tb_impl() noexcept
 
 template<std::integral char_type>
 requires (sizeof(char_type)==1)
-inline constexpr std::array<bool,256> is_c_space_tb{is_c_space_tb_impl<char_type>()};
+inline constexpr ::fast_io::freestanding::array<bool,256> is_c_space_tb{is_c_space_tb_impl<char_type>()};
 #endif
 }
 
@@ -299,7 +299,7 @@ inline constexpr bool is_html_whitespace(char_type ch) noexcept
 namespace fast_io
 {
 
-template<std::random_access_iterator Iter>
+template<::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter scan_skip_space(Iter begin, Iter end)
 {
 	for (; begin != end && fast_io::char_category::is_c_space(*begin); ++begin);

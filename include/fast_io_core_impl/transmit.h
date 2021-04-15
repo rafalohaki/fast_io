@@ -109,21 +109,22 @@ inline constexpr std::uintmax_t bufferred_transmit_impl(output& outp,input& inp)
 		using char_type = typename std::remove_cvref_t<input>::char_type;
 		constexpr std::size_t buffer_size{cal_buffer_size<char_type>()};
 #ifdef FAST_IO_TRANSMIT_ON_STACK
-		std::array<char_type,buffer_size> array;
-#else
-		temp_unique_arr_ptr<char_type> ptr(buffer_size);
-// we need to allocate it on the heap to avoid potential stack overflows
-		std::span<char_type,buffer_size> array(ptr.data(),ptr.data()+buffer_size);
-#endif
+		::fast_io::freestanding::array<char_type,buffer_size> array;
 		conditional_secure_clear_guard<char_type,secure_clear_requirement_stream<std::remove_cvref_t<input>>> guard(array.data(),buffer_size);
-		for(;;)
+		auto array_start{array.data()};
+#else
+		buffer_alloc_arr_ptr<char_type,secure_clear_requirement_stream<std::remove_cvref_t<input>>> ptr(buffer_size);
+		auto array_start{ptr.ptr};
+// we need to allocate it on the heap to avoid potential stack overflows
+#endif
+		for(auto array_end{array_start+buffer_size};;)
 		{
-			auto p(read(inp,array.data(),array.data()+array.size()));
-			if(p==array.data())
+			auto p(read(inp,array_start,array_end));
+			if(p==array_start)
 				return transmitted_chars;
-			std::size_t transmitted_this_round(p-array.data());
+			std::size_t transmitted_this_round(p-array_start);
 			transmitted_chars+=transmitted_this_round;
-			write(outp,array.data(),p);
+			write(outp,array_start,p);
 			if(!transmitted_this_round)
 				return transmitted_chars;
 		}
@@ -157,8 +158,8 @@ inline constexpr std::uintmax_t bufferred_transmit_impl(output& outp,input& inp,
 		{
 			static_assert(std::same_as<output_char_type,char>,"only char allows punning");
 			typedef input_char_type 
-#ifndef _MSC_VER
-			__attribute__((__may_alias__))
+#if __has_cpp_attribute(gnu::may_alias)
+			[[gnu::may_alias]]
 #endif
 			alias_input_char_type;
 			auto raw_curr{obuffer_curr(outp)};
@@ -211,23 +212,24 @@ inline constexpr std::uintmax_t bufferred_transmit_impl(output& outp,input& inp,
 		using char_type = typename std::remove_cvref_t<input>::char_type;
 		constexpr std::size_t buffer_size{cal_buffer_size<char_type>()};
 #ifdef FAST_IO_TRANSMIT_ON_STACK
-		std::array<char_type,buffer_size> array;
-#else
-		temp_unique_arr_ptr<char_type> ptr(buffer_size);
-// we need to allocate it on the heap to avoid potential stack overflows
-		std::span<char_type,buffer_size> array(ptr.data(),ptr.data()+buffer_size);
-#endif
+		::fast_io::freestanding::array<char_type,buffer_size> array;
 		conditional_secure_clear_guard<char_type,secure_clear_requirement_stream<std::remove_cvref_t<input>>> guard(array.data(),buffer_size);
+		auto array_start{array.data()};
+#else
+		buffer_alloc_arr_ptr<char_type,secure_clear_requirement_stream<std::remove_cvref_t<input>>> ptr(buffer_size);
+		auto array_start{ptr.ptr};
+// we need to allocate it on the heap to avoid potential stack overflows
+#endif
 		for(;chars;)
 		{
-			std::size_t b(array.size());
+			std::size_t b(buffer_size);
 			if(chars<b)
 				b=chars;
-			auto p(read(inp,array.data(),array.data()+b));
-			if(p==array.data())
+			auto p(read(inp,array_start,array_start+b));
+			if(p==array_start)
 				return transmitted_chars;
-			std::size_t read_chars(p-array.data());
-			write(outp,array.data(),p);
+			std::size_t read_chars(p-array_start);
+			write(outp,array_start,p);
 			transmitted_chars+=read_chars;
 			if(read_chars!=b)
 				return transmitted_chars;

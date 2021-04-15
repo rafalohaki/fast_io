@@ -27,10 +27,10 @@ inline constexpr std::size_t lc_print_reserve_size_width_impl(basic_lc_all<char_
 }
 
 
-template<::fast_io::manipulators::width_mode wm,std::random_access_iterator Iter,typename T>
-inline constexpr Iter lc_print_reserve_define_width_impl(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,manipulators::width_t<wm,T> t) noexcept
+template<::fast_io::manipulators::width_mode wm,::fast_io::freestanding::random_access_iterator Iter,typename T>
+inline constexpr Iter lc_print_reserve_define_width_impl(basic_lc_all<::fast_io::freestanding::iter_value_t<Iter>> const* __restrict all,Iter iter,manipulators::width_t<wm,T> t) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	using value_type = std::remove_cvref_t<T>;
 	if constexpr(lc_dynamic_reserve_printable<char_type,value_type>)
 		return print_reserve_width_fill<wm>(iter,print_reserve_define(all,iter,t.reference),t.width);
@@ -41,10 +41,10 @@ inline constexpr Iter lc_print_reserve_define_width_impl(basic_lc_all<std::iter_
 	}
 }
 
-template<::fast_io::manipulators::width_mode wm,std::random_access_iterator Iter,typename T>
-inline constexpr Iter lc_print_reserve_define_width_ch_impl(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,manipulators::width_ch_t<wm,T,std::iter_value_t<Iter>> t) noexcept
+template<::fast_io::manipulators::width_mode wm,::fast_io::freestanding::random_access_iterator Iter,typename T>
+inline constexpr Iter lc_print_reserve_define_width_ch_impl(basic_lc_all<::fast_io::freestanding::iter_value_t<Iter>> const* __restrict all,Iter iter,manipulators::width_ch_t<wm,T,::fast_io::freestanding::iter_value_t<Iter>> t) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	using value_type = std::remove_cvref_t<T>;
 	if constexpr(lc_dynamic_reserve_printable<char_type,value_type>)
 		return print_reserve_width_ch_fill<wm>(iter,print_reserve_define(all,iter,t.reference),t.width,t.ch);
@@ -65,10 +65,10 @@ inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* _
 	return details::lc_print_reserve_size_width_impl<char_type,T>(all,w.reference,w.width);
 }
 
-template<std::random_access_iterator Iter,manipulators::width_mode wm,typename T>
-requires ((lc_dynamic_reserve_printable<std::iter_value_t<Iter>,std::remove_cvref_t<T>>||
-	lc_scatter_type_printable<std::iter_value_t<Iter>,std::remove_cvref_t<T>>)&&(wm!=manipulators::width_mode::internal))
-inline constexpr Iter print_reserve_define(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,manipulators::width_t<wm,T> w) noexcept
+template<::fast_io::freestanding::random_access_iterator Iter,manipulators::width_mode wm,typename T>
+requires ((lc_dynamic_reserve_printable<::fast_io::freestanding::iter_value_t<Iter>,std::remove_cvref_t<T>>||
+	lc_scatter_type_printable<::fast_io::freestanding::iter_value_t<Iter>,std::remove_cvref_t<T>>)&&(wm!=manipulators::width_mode::internal))
+inline constexpr Iter print_reserve_define(basic_lc_all<::fast_io::freestanding::iter_value_t<Iter>> const* __restrict all,Iter iter,manipulators::width_t<wm,T> w) noexcept
 {
 	return details::lc_print_reserve_define_width_impl<wm>(all,iter,w);
 }
@@ -82,10 +82,10 @@ inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* _
 	return details::lc_print_reserve_size_width_impl<char_type,T>(all,w.reference,w.width);
 }
 
-template<std::random_access_iterator Iter,manipulators::width_mode wm,typename T>
-requires ((lc_dynamic_reserve_printable<std::iter_value_t<Iter>,std::remove_cvref_t<T>>||
-	lc_scatter_type_printable<std::iter_value_t<Iter>,std::remove_cvref_t<T>>)&&(wm!=manipulators::width_mode::internal))
-inline constexpr Iter print_reserve_define(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,manipulators::width_ch_t<wm,T,std::iter_value_t<Iter>> w) noexcept
+template<::fast_io::freestanding::random_access_iterator Iter,manipulators::width_mode wm,typename T>
+requires ((lc_dynamic_reserve_printable<::fast_io::freestanding::iter_value_t<Iter>,std::remove_cvref_t<T>>||
+	lc_scatter_type_printable<::fast_io::freestanding::iter_value_t<Iter>,std::remove_cvref_t<T>>)&&(wm!=manipulators::width_mode::internal))
+inline constexpr Iter print_reserve_define(basic_lc_all<::fast_io::freestanding::iter_value_t<Iter>> const* __restrict all,Iter iter,manipulators::width_ch_t<wm,T,::fast_io::freestanding::iter_value_t<Iter>> w) noexcept
 {
 	return details::lc_print_reserve_define_width_ch_impl<wm>(all,iter,w);
 }

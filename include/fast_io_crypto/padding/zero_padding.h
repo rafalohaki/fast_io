@@ -9,7 +9,7 @@ struct zero_padding
 {
     auto operator()(std::span<std::byte const> inp, std::size_t remaining_length)
     {
-        std::array<std::byte, block_size> text{};
+        ::fast_io::freestanding::array<std::byte, block_size> text{};
 		details::my_copy(inp.begin(), inp.end(), text.data());
         return text;
     }

@@ -9,7 +9,7 @@ struct space_skipper
 	explicit constexpr space_skipper() noexcept=default;
 };
 
-template<std::input_or_output_iterator Iter>
+template<::fast_io::freestanding::input_or_output_iterator Iter>
 inline constexpr Iter skip_define(Iter begin,Iter end,space_skipper) noexcept
 {
 	return scan_skip_space(begin, end);

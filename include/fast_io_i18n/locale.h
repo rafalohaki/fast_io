@@ -21,7 +21,7 @@ public:
 inline basic_io_scatter_t<char> print_alias_define(io_alias_t,posix_dl_error const &)
 {
 	auto const c_str{dlerror()};
-	return {c_str,strlen(c_str)};
+	return {c_str,cstr_len(c_str)};
 }
 
 [[noreturn]] inline void throw_posix_dl_error()
@@ -187,7 +187,7 @@ inline constexpr auto l10n_path_prefix_dll_array() noexcept
 #endif
 }
 template<bool full=false,std::integral char_type>
-inline void sanitize_locale_name(std::basic_string_view<char_type> locale_name)
+inline void sanitize_locale_name(::fast_io::freestanding::basic_string_view<char_type> locale_name)
 {
 	if(locale_name.empty())
 #ifdef _WIN32
@@ -241,7 +241,7 @@ inline void sanitize_locale_name(std::basic_string_view<char_type> locale_name)
 }
 
 template<std::integral char_type>
-inline void* load_l10n_with_real_name_impl(lc_locale& loc,std::basic_string_view<char_type> locale_name)
+inline void* load_l10n_with_real_name_impl(lc_locale& loc,::fast_io::freestanding::basic_string_view<char_type> locale_name)
 {
 	sanitize_locale_name(locale_name);
 	constexpr auto prefix(l10n_path_prefix_dll_array<char_type>());
@@ -255,7 +255,7 @@ inline void* load_l10n_with_real_name_impl(lc_locale& loc,std::basic_string_view
 }
 
 template<std::integral char_type>
-inline void* load_l10n_with_real_name_impl(lc_locale& loc,std::basic_string_view<char_type> locale_name,std::basic_string_view<char_type> encoding)
+inline void* load_l10n_with_real_name_impl(lc_locale& loc,::fast_io::freestanding::basic_string_view<char_type> locale_name,::fast_io::freestanding::basic_string_view<char_type> encoding)
 {
 	sanitize_locale_name(locale_name);
 	sanitize_locale_name(encoding);
@@ -273,7 +273,7 @@ inline void* load_l10n_with_real_name_impl(lc_locale& loc,std::basic_string_view
 }
 
 template<std::integral char_type>
-inline void* load_l10n_with_full_name_impl(lc_locale& loc,std::basic_string_view<char_type> locale_fullname)
+inline void* load_l10n_with_full_name_impl(lc_locale& loc,::fast_io::freestanding::basic_string_view<char_type> locale_fullname)
 {
 	sanitize_locale_name<true>(locale_fullname);
 	constexpr auto prefix(l10n_path_prefix_dll_array<char_type>());
@@ -288,9 +288,9 @@ inline void* load_l10n_with_full_name_impl(lc_locale& loc,std::basic_string_view
 
 #ifdef _WIN32
 
-inline std::string_view get_win32_lang_env(std::array<char,64>& buffer) noexcept
+inline ::fast_io::freestanding::string_view get_win32_lang_env(::fast_io::freestanding::array<char,64>& buffer) noexcept
 {
-	std::array<wchar_t,64> wbuffer;
+	::fast_io::freestanding::array<wchar_t,64> wbuffer;
 	std::size_t size(win32::GetUserDefaultLocaleName(wbuffer.data(),static_cast<int>(wbuffer.size())));
 	if(!size)
 		return reinterpret_cast<char const*>(u8"C");
@@ -302,7 +302,7 @@ inline std::string_view get_win32_lang_env(std::array<char,64>& buffer) noexcept
 			buffer[i]=u8'_';
 		else
 			buffer[i]=static_cast<char>(wbuffer[i]);
-	return std::string_view(buffer.data(),size);
+	return ::fast_io::freestanding::string_view(buffer.data(),size);
 }
 
 
@@ -323,13 +323,13 @@ Since MSYS2 console respects POSIX locales. We should support it too.
 */
 
 
-inline std::string_view acp_encoding_name() noexcept
+inline ::fast_io::freestanding::string_view acp_encoding_name() noexcept
 {
 	auto strvw{get_code_page_encoding(fast_io::win32::GetACP())};
 	return {reinterpret_cast<char const*>(strvw.data()),strvw.size()};
 }
 
-inline std::size_t get_lc_all_or_lang(std::array<char,64>& buffer) noexcept
+inline std::size_t get_lc_all_or_lang(::fast_io::freestanding::array<char,64>& buffer) noexcept
 {
 	std::size_t size_buffer{};
 	if(!fast_io::win32::getenv_s(std::addressof(size_buffer),buffer.data(),buffer.size(),reinterpret_cast<char const*>(u8"LC_ALL")))
@@ -341,19 +341,19 @@ inline std::size_t get_lc_all_or_lang(std::array<char,64>& buffer) noexcept
 
 struct language_encoding_views
 {
-	std::string_view language,encoding;
+	::fast_io::freestanding::string_view language,encoding;
 };
 
-inline language_encoding_views win32_get_language_encoding_based_on_lc_all_or_lang(std::array<char,64>& buffer) noexcept
+inline language_encoding_views win32_get_language_encoding_based_on_lc_all_or_lang(::fast_io::freestanding::array<char,64>& buffer) noexcept
 {
 	std::size_t size{get_lc_all_or_lang(buffer)};
 	if(size)
 		--size;
-	std::string_view buffer_strvw(buffer.data(),size);
+	::fast_io::freestanding::string_view buffer_strvw(buffer.data(),size);
 	std::size_t dot_pos{buffer_strvw.find(u8'.')};
-	std::string_view language;
-	std::string_view encoding;
-	if(dot_pos==std::string_view::npos)
+	::fast_io::freestanding::string_view language;
+	::fast_io::freestanding::string_view encoding;
+	if(dot_pos==::fast_io::freestanding::string_view::npos)
 		language=buffer_strvw;
 	else
 	{
@@ -363,7 +363,7 @@ inline language_encoding_views win32_get_language_encoding_based_on_lc_all_or_la
 	return {language,encoding};
 }
 
-inline std::string_view win32_only_get_language_not_encoding(std::array<char,64>& buffer) noexcept
+inline ::fast_io::freestanding::string_view win32_only_get_language_not_encoding(::fast_io::freestanding::array<char,64>& buffer) noexcept
 {
 	auto language{win32_get_language_encoding_based_on_lc_all_or_lang(buffer).language};
 	if(language.empty())
@@ -373,20 +373,20 @@ inline std::string_view win32_only_get_language_not_encoding(std::array<char,64>
 
 inline void* load_l10n_with_extracting_local_name_impl(lc_locale& loc)
 {
-	std::array<char,64> buffer;
+	::fast_io::freestanding::array<char,64> buffer;
 	return load_l10n_with_real_name_impl(loc,win32_only_get_language_not_encoding(buffer));
 }
-inline void* load_l10n_with_extracting_local_name_impl(lc_locale& loc,std::string_view encoding)
+inline void* load_l10n_with_extracting_local_name_impl(lc_locale& loc,::fast_io::freestanding::string_view encoding)
 {
-	std::array<char,64> buffer;
+	::fast_io::freestanding::array<char,64> buffer;
 	return load_l10n_with_real_name_impl(loc,win32_only_get_language_not_encoding(buffer),encoding);
 }
 
 inline void* deal_with_local_locale_name_local_encoding(lc_locale& loc)
 {
-	std::array<char,64> buffer;
+	::fast_io::freestanding::array<char,64> buffer;
 	auto [language,encoding]=win32_get_language_encoding_based_on_lc_all_or_lang(buffer);
-	std::array<char,64> lang_buffer;
+	::fast_io::freestanding::array<char,64> lang_buffer;
 	if(language.empty())
 		language=get_win32_lang_env(lang_buffer);
 	if(encoding.empty())
@@ -394,15 +394,15 @@ inline void* deal_with_local_locale_name_local_encoding(lc_locale& loc)
 	return load_l10n_with_real_name_impl(loc,language,encoding);
 }
 
-inline void* deal_with_local_locale_name_encoding(lc_locale& loc,std::string_view encoding)
+inline void* deal_with_local_locale_name_encoding(lc_locale& loc,::fast_io::freestanding::string_view encoding)
 {
-	std::array<char,64> buffer;
+	::fast_io::freestanding::array<char,64> buffer;
 	return load_l10n_with_real_name_impl(loc,win32_only_get_language_not_encoding(buffer),encoding);
 }
 
-inline void* deal_with_locale_name_local_encoding(lc_locale& loc,std::string_view locale_name)
+inline void* deal_with_locale_name_local_encoding(lc_locale& loc,::fast_io::freestanding::string_view locale_name)
 {
-	std::array<char,64> buffer;
+	::fast_io::freestanding::array<char,64> buffer;
 	auto encoding{win32_get_language_encoding_based_on_lc_all_or_lang(buffer).encoding};
 	if(encoding.empty())
 		encoding=acp_encoding_name();
@@ -421,22 +421,22 @@ inline char const* my_getenv(char8_t const* env) noexcept
 #endif
 }
 
-inline std::string_view get_lc_all_or_lang() noexcept
+inline ::fast_io::freestanding::string_view get_lc_all_or_lang() noexcept
 {
 	auto lc_all_ptr = my_getenv(u8"LC_ALL");
 	if(lc_all_ptr)
-		return std::string_view(lc_all_ptr);
+		return ::fast_io::freestanding::string_view(lc_all_ptr);
 	lc_all_ptr = my_getenv(u8"LANG");
 	if(lc_all_ptr)
-		return std::string_view(lc_all_ptr);
-	return std::string_view(reinterpret_cast<char const*>(u8"C.UTF-8"),sizeof(u8"C.UTF-8")-1);
+		return ::fast_io::freestanding::string_view(lc_all_ptr);
+	return ::fast_io::freestanding::string_view(reinterpret_cast<char const*>(u8"C.UTF-8"),sizeof(u8"C.UTF-8")-1);
 }
 
-inline std::string_view get_posix_lang_env() noexcept
+inline ::fast_io::freestanding::string_view get_posix_lang_env() noexcept
 {
-	std::string_view lang_env{get_lc_all_or_lang()};
+	::fast_io::freestanding::string_view lang_env{get_lc_all_or_lang()};
 	auto dot{lang_env.find(u8'.')};
-	if(dot!=std::string_view::npos)
+	if(dot!=::fast_io::freestanding::string_view::npos)
 		lang_env=lang_env.substr(0,dot);
 	return lang_env;
 }
@@ -445,14 +445,14 @@ inline void* load_l10n_with_extracting_local_name_impl(lc_locale& loc)
 {
 	return load_l10n_with_real_name_impl(loc,get_posix_lang_env());
 }
-inline void* load_l10n_with_extracting_local_name_impl(lc_locale& loc,std::string_view encoding)
+inline void* load_l10n_with_extracting_local_name_impl(lc_locale& loc,::fast_io::freestanding::string_view encoding)
 {
 	return load_l10n_with_real_name_impl(loc,get_posix_lang_env(),encoding);
 }
 
-inline std::string_view get_lc_all_or_lang_non_empty() noexcept
+inline ::fast_io::freestanding::string_view get_lc_all_or_lang_non_empty() noexcept
 {
-	std::string_view lang_env=get_lc_all_or_lang();
+	::fast_io::freestanding::string_view lang_env=get_lc_all_or_lang();
 	if(lang_env.empty())
 		lang_env=reinterpret_cast<char const*>(u8"C");
 	return lang_env;
@@ -468,7 +468,7 @@ inline constexpr std::u8string_view exec_encoding_u8strvw() noexcept
 		return u8"GB18030";
 }
 
-inline std::string_view exec_charset_encoding_strvw() noexcept
+inline ::fast_io::freestanding::string_view exec_charset_encoding_strvw() noexcept
 {
 	constexpr auto u8sv{exec_encoding_u8strvw()};
 	return {reinterpret_cast<char const*>(u8sv.data()),u8sv.size()};
@@ -479,8 +479,8 @@ inline void* deal_with_local_locale_name_local_encoding(lc_locale& loc)
 {
 	auto strvw{get_lc_all_or_lang_non_empty()};
 	auto pos{strvw.find(u8'.')};
-	std::string_view name,coding;
-	if(pos==std::string_view::npos)
+	::fast_io::freestanding::string_view name,coding;
+	if(pos==::fast_io::freestanding::string_view::npos)
 	{
 		name=strvw;
 		coding=exec_charset_encoding_strvw();
@@ -493,20 +493,20 @@ inline void* deal_with_local_locale_name_local_encoding(lc_locale& loc)
 	return load_l10n_with_real_name_impl(loc,name,coding);
 }
 
-inline void* deal_with_local_locale_name_encoding(lc_locale& loc,std::string_view encoding)
+inline void* deal_with_local_locale_name_encoding(lc_locale& loc,::fast_io::freestanding::string_view encoding)
 {
 	auto name{get_lc_all_or_lang_non_empty()};
 	auto pos{name.find(u8'.')};
-	if(pos!=std::string_view::npos)
+	if(pos!=::fast_io::freestanding::string_view::npos)
 		name=name.substr(0,pos);
 	return load_l10n_with_real_name_impl(loc,name,encoding);
 }
 
-inline void* deal_with_locale_name_local_encoding(lc_locale& loc,std::string_view locale_name)
+inline void* deal_with_locale_name_local_encoding(lc_locale& loc,::fast_io::freestanding::string_view locale_name)
 {
 	auto coding{get_lc_all_or_lang_non_empty()};
 	auto pos{coding.find(u8'.')};
-	if(pos==std::string_view::npos)
+	if(pos==::fast_io::freestanding::string_view::npos)
 		coding=exec_charset_encoding_strvw();
 	else
 		coding=coding.substr(pos+1);
@@ -515,7 +515,7 @@ inline void* deal_with_locale_name_local_encoding(lc_locale& loc,std::string_vie
 
 #endif
 
-inline void* deal_with_local_locale_name_init_encoding(lc_locale& loc,std::string_view encoding)
+inline void* deal_with_local_locale_name_init_encoding(lc_locale& loc,::fast_io::freestanding::string_view encoding)
 {
 	if(encoding.empty())
 		return deal_with_local_locale_name_local_encoding(loc);
@@ -523,7 +523,7 @@ inline void* deal_with_local_locale_name_init_encoding(lc_locale& loc,std::strin
 		return deal_with_local_locale_name_encoding(loc,encoding);
 }
 
-inline void* deal_with_locale_name_init_encoding(lc_locale& loc,std::string_view locale_name,std::string_view encoding)
+inline void* deal_with_locale_name_init_encoding(lc_locale& loc,::fast_io::freestanding::string_view locale_name,::fast_io::freestanding::string_view encoding)
 {
 	if(encoding.empty())
 		return deal_with_locale_name_local_encoding(loc,locale_name);
@@ -531,7 +531,7 @@ inline void* deal_with_locale_name_init_encoding(lc_locale& loc,std::string_view
 		return load_l10n_with_real_name_impl(loc,locale_name,encoding);
 }
 
-inline void* deal_with_locale_fullname(lc_locale& loc,std::string_view fullname)
+inline void* deal_with_locale_fullname(lc_locale& loc,::fast_io::freestanding::string_view fullname)
 {
 	if(fullname.empty())
 		return deal_with_local_locale_name_local_encoding(loc);
@@ -540,7 +540,7 @@ inline void* deal_with_locale_fullname(lc_locale& loc,std::string_view fullname)
 		auto pos{fullname.find(u8'.')};
 		if(pos==0)
 			return deal_with_local_locale_name_init_encoding(loc,fullname.substr(1));
-		else if(pos==std::string_view::npos)
+		else if(pos==::fast_io::freestanding::string_view::npos)
 			return load_l10n_with_real_name_impl(loc,fullname);
 		else
 			return load_l10n_with_full_name_impl(loc,fullname);
@@ -562,21 +562,21 @@ public:
 	lc_locale loc{};
 	void* dll_handle{};
 	constexpr l10n() noexcept=default;
-	explicit l10n(std::string_view locale_name)
+	explicit l10n(::fast_io::freestanding::string_view locale_name)
 	{
 		if(locale_name.empty())
 			dll_handle=details::load_l10n_with_extracting_local_name_impl(loc);
 		else
 			dll_handle=details::load_l10n_with_real_name_impl(loc,locale_name);
 	}
-	explicit l10n(std::string_view locale_name,std::string_view encoding)
+	explicit l10n(::fast_io::freestanding::string_view locale_name,::fast_io::freestanding::string_view encoding)
 	{
 		if(locale_name.empty())
 			dll_handle=details::deal_with_local_locale_name_init_encoding(loc,encoding);
 		else
 			dll_handle=details::deal_with_locale_name_init_encoding(loc,locale_name,encoding);
 	}
-	explicit l10n(l10n_fullname_t,std::string_view fullname)
+	explicit l10n(l10n_fullname_t,::fast_io::freestanding::string_view fullname)
 	{
 		dll_handle=details::deal_with_locale_fullname(loc,fullname);
 	}

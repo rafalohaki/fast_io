@@ -7,13 +7,13 @@ namespace details
 #ifndef _MSC_VER
 inline void* create_win32_temp_file()
 {
-	std::array<wchar_t,512> arr;
+	::fast_io::freestanding::array<wchar_t,512> arr;
 	std::uint32_t temp_path_size{win32::GetTempPathW(300,arr.data())};
 	if(temp_path_size==0)
 		throw_win32_error();
 	for(std::size_t i{};i!=128;++i)
 	{
-		std::array<char,512> buffer1;
+		::fast_io::freestanding::array<char,512> buffer1;
 		secure_clear_guard<char> guard(buffer1.data(),buffer1.size());
 		if(!win32::SystemFunction036(buffer1.data(),buffer1.size()))[[unlikely]]
 			continue;
@@ -638,16 +638,16 @@ inline std::uintmax_t seek(basic_win32_io_observer<ch_type> handle,std::intmax_t
 	return win32::details::seek_impl(handle.handle,offset,s);
 }
 
-template<std::integral ch_type,std::contiguous_iterator Iter>
+template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 [[nodiscard]] inline Iter read(basic_win32_io_observer<ch_type> handle,Iter begin,Iter end)
 {
-	return begin+win32::details::read_impl(handle.handle,std::to_address(begin),(end-begin)*sizeof(*begin))/sizeof(*begin);
+	return begin+win32::details::read_impl(handle.handle,::fast_io::freestanding::to_address(begin),(end-begin)*sizeof(*begin))/sizeof(*begin);
 }
 
-template<std::integral ch_type,std::contiguous_iterator Iter>
+template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter write(basic_win32_io_observer<ch_type> handle,Iter cbegin,Iter cend)
 {
-	return cbegin+win32::details::write_impl(handle.handle,std::to_address(cbegin),(cend-cbegin)*sizeof(*cbegin))/sizeof(*cbegin);
+	return cbegin+win32::details::write_impl(handle.handle,::fast_io::freestanding::to_address(cbegin),(cend-cbegin)*sizeof(*cbegin))/sizeof(*cbegin);
 }
 
 template<std::integral ch_type>
@@ -662,7 +662,7 @@ inline io_scatter_status_t scatter_write(basic_win32_io_observer<ch_type> handle
 	return win32::details::scatter_write_impl(handle.handle,sp);
 }
 #if 0
-template<std::integral ch_type,std::contiguous_iterator Iter>
+template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline void async_read_callback(basic_win32_io_observer<char>,basic_win32_io_observer<ch_type> h,Iter cbegin,Iter cend,
 	iocp_overlapped_observer callback,std::ptrdiff_t offset=0)
 {
@@ -680,7 +680,7 @@ inline void async_read_callback(basic_win32_io_observer<char>,basic_win32_io_obs
 		callback.handle->dummy_union_name.dummy_struct_name.Offset=static_cast<std::uint32_t>(offset);
 		callback.handle->dummy_union_name.dummy_struct_name.OffsetHigh=0;
 	}
-	if(!win32::ReadFile(h.handle,std::to_address(cbegin),static_cast<std::uint32_t>(to_read),nullptr,callback.handle))[[likely]]
+	if(!win32::ReadFile(h.handle,::fast_io::freestanding::to_address(cbegin),static_cast<std::uint32_t>(to_read),nullptr,callback.handle))[[likely]]
 	{
 		auto err(win32::GetLastError());
 		if(err==997)[[likely]]
@@ -701,7 +701,7 @@ inline constexpr io_type_t<iocp_overlapped> async_overlapped_type(basic_win32_io
 	return {};
 }
 
-template<std::integral ch_type,std::contiguous_iterator Iter>
+template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline void async_write_callback(basic_win32_io_observer<char>,basic_win32_io_observer<ch_type> h,Iter cbegin,Iter cend,
 	iocp_overlapped_observer callback,std::ptrdiff_t offset=0)
 {
@@ -719,7 +719,7 @@ inline void async_write_callback(basic_win32_io_observer<char>,basic_win32_io_ob
 		callback.handle->dummy_union_name.dummy_struct_name.Offset=static_cast<std::uint32_t>(offset);
 		callback.handle->dummy_union_name.dummy_struct_name.OffsetHigh=0;
 	}
-	if(!win32::WriteFile(h.handle,std::to_address(cbegin),static_cast<std::uint32_t>(to_write),nullptr,callback.handle))[[likely]]
+	if(!win32::WriteFile(h.handle,::fast_io::freestanding::to_address(cbegin),static_cast<std::uint32_t>(to_write),nullptr,callback.handle))[[likely]]
 	{
 		auto err(win32::GetLastError());
 		if(err==997)[[likely]]
@@ -868,10 +868,10 @@ inline constexpr basic_win32_pio_entry<ch_type> io_value_handle(basic_win32_pio_
 	return other;
 }
 
-template<std::integral char_type,std::contiguous_iterator Iter>
+template<std::integral char_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline constexpr Iter write(basic_win32_pio_entry<char_type> wpioent,Iter begin,Iter end)
 {
-	return begin+win32::details::pwrite_impl(wpioent.handle,std::to_address(begin),(end-begin)*sizeof(*begin),wpioent.offset)/sizeof(*begin);
+	return begin+win32::details::pwrite_impl(wpioent.handle,::fast_io::freestanding::to_address(begin),(end-begin)*sizeof(*begin),wpioent.offset)/sizeof(*begin);
 }
 
 template<std::integral ch_type>
@@ -880,10 +880,10 @@ inline io_scatter_status_t scatter_write(basic_win32_pio_entry<ch_type> wpioent,
 	return win32::details::scatter_pwrite_impl(wpioent.handle,sp,wpioent.offset);
 }
 
-template<std::integral char_type,std::contiguous_iterator Iter>
+template<std::integral char_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline constexpr Iter read(basic_win32_pio_entry<char_type> wpioent,Iter begin,Iter end)
 {
-	return begin+win32::details::pread_impl(wpioent.handle,std::to_address(begin),(end-begin)*sizeof(*begin),wpioent.offset)/sizeof(*begin);
+	return begin+win32::details::pread_impl(wpioent.handle,::fast_io::freestanding::to_address(begin),(end-begin)*sizeof(*begin),wpioent.offset)/sizeof(*begin);
 }
 
 template<std::integral ch_type>
@@ -971,7 +971,7 @@ class basic_win32_pipe
 {
 public:
 	using char_type = ch_type;
-	using native_handle_type = std::array<basic_win32_file<ch_type>,2>;
+	using native_handle_type = ::fast_io::freestanding::array<basic_win32_file<ch_type>,2>;
 	native_handle_type pipes;
 	basic_win32_pipe()
 	{
@@ -996,13 +996,13 @@ public:
 	}
 };
 
-template<std::integral ch_type,std::contiguous_iterator Iter>
+template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter read(basic_win32_pipe<ch_type>& h,Iter begin,Iter end)
 {
 	return read(h.in(),begin,end);
 }
 
-template<std::integral ch_type,std::contiguous_iterator Iter>
+template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter write(basic_win32_pipe<ch_type>& h,Iter begin,Iter end)
 {
 	return write(h.out(),begin,end);
@@ -1021,7 +1021,7 @@ inline io_scatter_status_t scatter_write(basic_win32_pipe<ch_type>& h,io_scatter
 }
 
 template<std::integral ch_type>
-inline std::array<void*,2> redirect_handle(basic_win32_pipe<ch_type>& hd)
+inline ::fast_io::freestanding::array<void*,2> redirect_handle(basic_win32_pipe<ch_type>& hd)
 {
 	return {hd.in().handle,hd.out().handle};
 }

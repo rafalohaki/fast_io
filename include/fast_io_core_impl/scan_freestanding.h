@@ -16,9 +16,6 @@ template<std::integral char_type,typename T>
 		return parameter<std::remove_reference_t<T>&>{t};
 }
 
-[[noreturn]] inline void throw_scan_error(std::errc);
-
-
 template<input_stream T>
 requires std::is_trivially_copyable_v<T>
 struct unget_temp_buffer
@@ -104,7 +101,7 @@ struct unget_temp_buffer
 #endif
 };
 
-template<input_stream T,std::input_or_output_iterator Iter>
+template<input_stream T,::fast_io::freestanding::input_or_output_iterator Iter>
 inline constexpr Iter read(unget_temp_buffer<T>& in,Iter begin, Iter end)
 {
 	if(begin==end)
@@ -144,19 +141,10 @@ inline constexpr auto ibuffer_set_curr(unget_temp_buffer<T>& in,typename T::char
 	in.pos=ptr-std::addressof(in.buffer);
 }
 
-namespace details
-{
-template<typename T>
-concept try_get_input_stream=requires(T in)
-{
-	{try_get(in)}->std::convertible_to<std::pair<typename T::char_type,bool>>;
-};
-}
-
 template<typename T>
 inline constexpr bool underflow(unget_temp_buffer<T>& in)
 {
-	if constexpr(details::try_get_input_stream<T>)
+	if constexpr(try_get_input_stream<T>)
 	{
 		auto ret{try_get(in.input)};
 		in.buffer=ret.first;
@@ -177,13 +165,13 @@ namespace details
 template<buffer_input_stream input,typename T,typename P>
 inline constexpr bool scan_single_status_impl(input in,T& state_machine,P arg)
 {
-	for(;state_machine.code==std::errc::resource_unavailable_try_again;)
+	for(;state_machine.code==parse_code::partial;)
 	{
 		if(!underflow(in))
 		{
 			if(!state_machine.test_eof(arg))
 				return false;
-			if(state_machine.code==std::errc{})[[likely]]
+			if(state_machine.code==parse_code::ok)[[likely]]
 				return true;
 			break;
 		}
@@ -191,10 +179,10 @@ inline constexpr bool scan_single_status_impl(input in,T& state_machine,P arg)
 		auto end{ibuffer_end(in)};
 		state_machine(curr,end,arg);
 		ibuffer_set_curr(in, state_machine.iter);
-		if(state_machine.code==std::errc{})[[likely]]
+		if(state_machine.code==parse_code::ok)[[likely]]
 			return true;
 	}
-	throw_scan_error(state_machine.code);
+	throw_parse_code(state_machine.code);
 }
 template<buffer_input_stream input,typename T>
 requires (context_scanable<typename input::char_type,T,false>||skipper<typename input::char_type,T>
@@ -223,11 +211,11 @@ requires (context_scanable<typename input::char_type,T,false>||skipper<typename 
 			{
 				auto state_machine{scan_context_define(scan_context<context_scanable<char_type,T,true>>,curr,end,arg)};
 				ibuffer_set_curr(in, state_machine.iter);
-				if(state_machine.code!=std::errc{})
+				if(state_machine.code!=parse_code::ok)
 				{
-					if(state_machine.code==std::errc::resource_unavailable_try_again)
+					if(state_machine.code==parse_code::partial)
 						return false;
-					throw_scan_error(state_machine.code);
+					throw_parse_code(state_machine.code);
 				}
 				return true;
 			}
@@ -265,7 +253,7 @@ requires (context_scanable<typename input::char_type,T,false>||skipper<typename 
 			{
 				auto state_machine{scan_context_define(scan_context<false>,curr,end,arg)};
 				ibuffer_set_curr(in, state_machine.iter);
-				if(state_machine.code!=std::errc{})[[likely]]
+				if(state_machine.code!=parse_code::ok)[[likely]]
 					return scan_single_status_impl(in,state_machine,arg);
 				return true;
 			}

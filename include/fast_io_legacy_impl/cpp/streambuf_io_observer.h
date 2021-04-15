@@ -272,32 +272,32 @@ inline std::size_t streambuf_read_impl(basic_streambuf_io_observer<char_type,tra
 
 }
 
-template<typename T,std::contiguous_iterator Iter>
-requires (std::same_as<typename T::char_type,std::iter_value_t<Iter>>||std::same_as<typename T::char_type,char>)
+template<typename T,::fast_io::freestanding::contiguous_iterator Iter>
+requires (std::same_as<typename T::char_type,::fast_io::freestanding::iter_value_t<Iter>>||std::same_as<typename T::char_type,char>)
 [[nodiscard]] inline Iter read(basic_general_streambuf_io_observer<T> t,Iter begin,Iter end)
 {
 	using char_type = typename T::char_type;
 	using traits_type = typename T::traits_type;
-	if constexpr(std::same_as<typename T::char_type,std::iter_value_t<Iter>>)
+	if constexpr(std::same_as<typename T::char_type,::fast_io::freestanding::iter_value_t<Iter>>)
 		return begin+details::streambuf_read_impl(basic_streambuf_io_observer<char_type,traits_type>{t.fb},
-			std::to_address(begin),static_cast<std::size_t>(end-begin));
+			::fast_io::freestanding::to_address(begin),static_cast<std::size_t>(end-begin));
 	else
 		return begin+details::streambuf_read_impl(basic_streambuf_io_observer<char_type,traits_type>{t.fb},
-			reinterpret_cast<char*>(std::to_address(begin)),static_cast<std::size_t>(end-begin)*sizeof(*begin))/(*begin);
+			reinterpret_cast<char*>(::fast_io::freestanding::to_address(begin)),static_cast<std::size_t>(end-begin)*sizeof(*begin))/(*begin);
 }
 
-template<typename T,std::contiguous_iterator Iter>
-requires (std::same_as<typename T::char_type,std::iter_value_t<Iter>>||std::same_as<typename T::char_type,char>)
+template<typename T,::fast_io::freestanding::contiguous_iterator Iter>
+requires (std::same_as<typename T::char_type,::fast_io::freestanding::iter_value_t<Iter>>||std::same_as<typename T::char_type,char>)
 inline Iter write(basic_general_streambuf_io_observer<T> t,Iter begin,Iter end)
 {
 	using char_type = typename T::char_type;
 	using traits_type = typename T::traits_type;
-	if constexpr(std::same_as<typename T::char_type,std::iter_value_t<Iter>>)
+	if constexpr(std::same_as<typename T::char_type,::fast_io::freestanding::iter_value_t<Iter>>)
 		return begin+details::streambuf_write_impl(basic_streambuf_io_observer<char_type,traits_type>{t.fb},
-			std::to_address(begin),static_cast<std::size_t>(end-begin));
+			::fast_io::freestanding::to_address(begin),static_cast<std::size_t>(end-begin));
 	else
 		return begin+details::streambuf_write_impl(basic_streambuf_io_observer<char_type,traits_type>{t.fb},
-			reinterpret_cast<char const*>(std::to_address(begin)),static_cast<std::size_t>(end-begin)*sizeof(*begin))/(*begin);
+			reinterpret_cast<char const*>(::fast_io::freestanding::to_address(begin)),static_cast<std::size_t>(end-begin)*sizeof(*begin))/(*begin);
 }
 static_assert(value_based_stream<filebuf_io_observer>);
 }

@@ -463,25 +463,35 @@ struct code_cvt_t
 	basic_io_scatter_t<char_type> reference;
 };
 
+
+template<
+encoding_scheme src_scheme=encoding_scheme::execution_charset,
+encoding_scheme dst_scheme=encoding_scheme::execution_charset,
+std::integral char_type,std::size_t N>
+constexpr code_cvt_t<src_scheme,dst_scheme,char_type> code_cvt(char_type const (&t)[N])
+{
+	return {{t,N-1}};
+}
+
+
+#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
 template<
 encoding_scheme src_scheme=encoding_scheme::execution_charset,
 encoding_scheme dst_scheme=encoding_scheme::execution_charset,
 typename rg>
+requires (!std::is_array_v<std::remove_cvref_t<rg>>)
 constexpr code_cvt_t<src_scheme,dst_scheme,std::ranges::range_value_t<std::remove_cvref_t<rg>>> code_cvt(rg&& t)
 {
-	if constexpr(std::is_array_v<std::remove_cvref_t<rg>>)
-		return {{std::ranges::data(t),std::ranges::size(t)-1}};
-	else
-		return {{std::ranges::data(t),std::ranges::size(t)}};
+	return {{std::ranges::data(t),std::ranges::size(t)}};
 }
-
+#endif
 template<
 encoding_scheme src_scheme=encoding_scheme::execution_charset,
 encoding_scheme dst_scheme=encoding_scheme::execution_charset,
 std::integral char_type>
 constexpr code_cvt_t<src_scheme,dst_scheme,char_type> code_cvt(chvw_t<char_type const*> t) noexcept
 {
-	std::basic_string_view<char_type> view(t.reference);
+	::fast_io::freestanding::basic_string_view<char_type> view(t.reference);
 	return {{view.data(),view.size()}};
 }
 
@@ -501,9 +511,9 @@ template<
 encoding_scheme src_scheme=encoding_scheme::execution_charset,
 encoding_scheme dst_scheme=encoding_scheme::execution_charset,
 std::integral src_char_type,
-std::contiguous_iterator Iter>
+::fast_io::freestanding::contiguous_iterator Iter>
 inline constexpr Iter print_reserve_define(
-io_reserve_type_t<std::iter_value_t<Iter>,code_cvt_t<src_scheme,dst_scheme,src_char_type>>,
+io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,code_cvt_t<src_scheme,dst_scheme,src_char_type>>,
 Iter iter,
 code_cvt_t<src_scheme,dst_scheme,src_char_type> v) noexcept
 {

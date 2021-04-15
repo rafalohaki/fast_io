@@ -33,7 +33,7 @@ template<typename output,typename... Args>
 requires (sizeof...(Args)!=0)
 inline constexpr void lc_unsafe_fprint_freestanding_decay_impl(basic_lc_all<typename output::char_type> const* __restrict lc,
 	output out,
-	std::basic_string_view<typename output::char_type> view,
+	::fast_io::freestanding::basic_string_view<typename output::char_type> view,
 	Args ...args)
 {
 	using char_type = typename output::char_type;
@@ -65,7 +65,7 @@ inline constexpr void lc_unsafe_fprint_freestanding_decay_impl(basic_lc_all<type
 
 template<output_stream output,typename... Args>
 inline constexpr void lc_unsafe_fprint_fallback(basic_lc_all<typename output::char_type> const* __restrict lc,output out,
-	std::basic_string_view<typename output::char_type> view,Args... args)
+	::fast_io::freestanding::basic_string_view<typename output::char_type> view,Args... args)
 {
 	using char_type = typename output::char_type;
 	if constexpr((((!lc_dynamic_reserve_printable<char_type,Args>&&
@@ -82,7 +82,7 @@ inline constexpr void lc_unsafe_fprint_fallback(basic_lc_all<typename output::ch
 		||lc_scatter_printable<char_type,Args>
 		)&&...))
 	{
-		std::array<io_scatter_t,sizeof...(Args)> scatters;
+		::fast_io::freestanding::array<io_scatter_t,sizeof...(Args)> scatters;
 		if constexpr(((scatter_printable<char_type,Args>||lc_scatter_printable<char_type,Args>)&&...))
 		{
 			decay::lc_scatter_print_recursive(lc,scatters.data(),args...);
@@ -90,7 +90,7 @@ inline constexpr void lc_unsafe_fprint_fallback(basic_lc_all<typename output::ch
 		}
 		else
 		{
-			std::array<char_type,decay::calculate_scatter_reserve_size<char_type,Args...>()> array;
+			::fast_io::freestanding::array<char_type,decay::calculate_scatter_reserve_size<char_type,Args...>()> array;
 			local_operator_new_array_ptr<char_type> new_ptr(decay::calculate_lc_scatter_dynamic_reserve_size<char_type>(lc,args...));
 			decay::lc_scatter_print_with_dynamic_reserve_recursive(lc,scatters.data(),array.data(),new_ptr.ptr,args...);
 			scatter_fprint_write<sizeof...(Args)>(out,view,scatters.data());
@@ -109,7 +109,7 @@ inline constexpr void lc_unsafe_fprint_fallback(basic_lc_all<typename output::ch
 template<output_stream output,typename... Args>
 inline constexpr void lc_unsafe_fprint_status_define_further_decay(basic_lc_all<typename output::char_type> const* __restrict lc,
 	output out,
-	std::basic_string_view<typename output::char_type> view,
+	::fast_io::freestanding::basic_string_view<typename output::char_type> view,
 	Args... args)
 {
 	if constexpr(mutex_stream<output>)
@@ -129,7 +129,7 @@ inline constexpr void lc_unsafe_fprint_status_define_further_decay(basic_lc_all<
 
 template<output_stream output,typename... Args>
 requires (sizeof...(Args)!=0)
-inline constexpr void unsafe_fprint_status_define(lc_imbuer<output> imb,std::basic_string_view<typename output::char_type> view,Args... args)
+inline constexpr void unsafe_fprint_status_define(lc_imbuer<output> imb,::fast_io::freestanding::basic_string_view<typename output::char_type> view,Args... args)
 {
 	details::lc_unsafe_fprint_status_define_further_decay(imb.all,imb.handle,view,args...);
 }

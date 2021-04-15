@@ -15,10 +15,10 @@ public:
 };
 
 
-template<typename T, std::contiguous_iterator Iter>
+template<typename T, ::fast_io::freestanding::contiguous_iterator Iter>
 inline void write(iterated_hash_ref<T>& ihb,Iter begin,Iter end)
 {
-	ihb.reference.Update(reinterpret_cast<CryptoPP::byte*>(std::to_address(begin)),
+	ihb.reference.Update(reinterpret_cast<CryptoPP::byte*>(::fast_io::freestanding::to_address(begin)),
 		(end-begin)*sizeof(*begin));
 }
 
@@ -26,7 +26,7 @@ template<std::size_t N>
 class digest_result
 {
 public:
-	using digest_type = std::array<CryptoPP::byte,N>;
+	using digest_type = ::fast_io::freestanding::array<CryptoPP::byte,N>;
 	digest_type digest_block;
 };
 
@@ -36,7 +36,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,dige
 	return N*2;
 }
 
-template<std::integral char_type,std::random_access_iterator caiter,std::size_t N>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator caiter,std::size_t N>
 inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,digest_result<N>>,caiter iter,auto const& i)
 {
 	for(auto e : i.digest_block)

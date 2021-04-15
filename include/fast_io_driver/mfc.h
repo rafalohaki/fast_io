@@ -73,7 +73,7 @@ public:
 	}
 };
 
-template<std::integral T,std::contiguous_iterator Iter>
+template<std::integral T,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter write(basic_mfc_io_observer<T> hd,Iter begin,Iter end)
 {
 	std::size_t const to_write{(end-begin)*sizeof(*begin)};
@@ -81,11 +81,11 @@ inline Iter write(basic_mfc_io_observer<T> hd,Iter begin,Iter end)
 	{
 		if (static_cast<std::size_t>(UINT32_MAX)<to_write)
 		{
-			hd.native_handle()->Write(std::to_address(begin),UINT32_MAX);
+			hd.native_handle()->Write(::fast_io::freestanding::to_address(begin),UINT32_MAX);
 			return begin+(UINT32_MAX/sizeof(*begin));
 		}
 	}
-	hd.native_handle()->Write(std::to_address(begin),static_cast<std::uint32_t>(to_write));
+	hd.native_handle()->Write(::fast_io::freestanding::to_address(begin),static_cast<std::uint32_t>(to_write));
 	return end;
 }
 
@@ -95,14 +95,14 @@ inline void flush(basic_mfc_io_observer<T>& hd)
 	hd.native_handle()->Flush();
 }
 
-template<std::integral T,std::contiguous_iterator Iter>
+template<std::integral T,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter read(basic_mfc_io_observer<T& hd,Iter begin,Iter end)
 {
 	std::size_t to_read{(end-begin)*sizeof(*begin)};
 	if constexpr(sizeof(std::size_t)>4)
 		if(static_cast<std::size_t>(UINT32_MAX)<to_read)
 			to_read=static_cast<std::size_t>(UINT32_MAX);
-	return begin+(hd.native_handle()->Read(std::to_address(begin),static_cast<std::uint32_t>(to_read))/sizeof(*begin));
+	return begin+(hd.native_handle()->Read(::fast_io::freestanding::to_address(begin),static_cast<std::uint32_t>(to_read))/sizeof(*begin));
 
 }
 

@@ -1,10 +1,23 @@
 #pragma once
 
 //fast_io_core.h is required to be usable in freestanding environment with EVEN dynamic memory allocation and exceptions are disabled.
-#include<cstddef>
+
+#if !defined(__cplusplus)
+#error "You are not using C++ compiler"
+#endif
+
+#if __cplusplus<202002L && !defined(_MSC_VER)
+#error "fast_io requires at least C++20 standard compiler."
+#else
+
 #include<version>
+#include"fast_io_core_impl/empty.h"
+#include<cstddef>
+#include<concepts>
+#include"fast_io_core_impl/freestanding/impl.h"
 #include"fast_io_concept.h"
-#include<memory>
+#include<type_traits>
+
 #include<limits>
 #include<cstdint>
 //I know functions like memcpy would probably not be provided in freestanding environment. However, you can implement them on these platforms.
@@ -16,30 +29,26 @@
 //However, they are clearly necessary and usable even in freestanding environment.
 //Leaving no room for a lower-level language: A C++ Subset
 //http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1105r0.html
-#include<utility>		//for std::move, std::forward, std::addressof
-#include<array>
-#include<string_view>
-#include<ranges>		//for ranges concepts
-#include<algorithm>		//std::fill std::fill_n std::copy std::copy_n
-#include<cstring>		//for memcpy
-#include<bit>			//for std::endian, std::rotl and std::bit_cast etc
 
+#include<bit>			//for std::endian, std::rotl and std::bit_cast etc
 
 //fast_io core
 #include"fast_io_core_impl/utils.h"
-
 #include"fast_io_core_impl/terminate.h"
 #include"fast_io_core_impl/intrinsics.h"
+#include"fast_io_core_impl/parse_code.h"
+
 #include"fast_io_core_impl/ebcdic.h"
 #include"fast_io_core_impl/char_category.h"
 
 
 #include"fast_io_core_impl/overflow.h"
 
+
 #if __cpp_lib_three_way_comparison >= 201907L
 #include"fast_io_core_impl/compare.h"
 #endif
-#include"fast_io_core_impl/memptr.h"
+
 #include"fast_io_core_impl/secure_clear_guard.h"
 #include"fast_io_core_impl/local_new_array_ptr.h"
 #include"fast_io_core_impl/dynamic_io_buffer.h"
@@ -55,10 +64,7 @@
 #include"fast_io_core_impl/print_freestanding.h"
 #include"fast_io_core_impl/scan_transmit/scan_transmit.h"
 
-
-
 #include"fast_io_core_impl/scan_freestanding.h"
-
 // This should provide an option macro to disable any generation for table in freestanding environments.
 #include"fast_io_core_impl/integers/integer.h"
 
@@ -71,17 +77,18 @@
 #include"fast_io_core_impl/flush.h"
 
 
-#if __cpp_lib_source_location >= 201907L
+#ifdef __cpp_lib_source_location
 #include<source_location>
 #include"fast_io_core_impl/source_location.h"
 #endif
-
-#include"fast_io_core_impl/posix_error_scatter.h"
 #include"fast_io_core_impl/iso/isos.h"
 
 #include"fast_io_core_impl/enums/impl.h"
+
+#if !(defined(FAST_IO_DISABLE_CODECVT)&&(__STDC_HOSTED__==0 || (defined(_GLIBCXX_HOSTED) && _GLIBCXX_HOSTED==0)))
 #include"fast_io_core_impl/codecvt/impl.h"
+#endif
 #include"fast_io_core_impl/io_deco_ref.h"
 
-
 #include"fast_io_core_impl/unsafe_fprint.h"
+#endif

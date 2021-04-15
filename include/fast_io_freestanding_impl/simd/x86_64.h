@@ -11,10 +11,10 @@ namespace fast_io
 namespace details
 {
 
-template<std::size_t size,std::forward_iterator Iter>
+template<std::size_t size,::fast_io::freestanding::forward_iterator Iter>
 inline constexpr Iter print_reserve_df_mm_impl_internal(Iter iter,char unsigned* mm) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	using uhex_manip_type = ::fast_io::mnp::base_full_t<16,true,char unsigned>;
 	if constexpr(std::same_as<char_type,char>)
 		iter=copy_string_literal("(0x",iter);
@@ -53,11 +53,11 @@ inline constexpr Iter print_reserve_df_mm_impl_internal(Iter iter,char unsigned*
 	return iter;
 }
 
-template<std::forward_iterator Iter,typename T>
+template<::fast_io::freestanding::forward_iterator Iter,typename T>
 inline constexpr Iter print_reserve_df_mm_impl(Iter iter,T mm) noexcept
 {
 	return print_reserve_df_mm_impl_internal<sizeof(T)>(
-		iter,bit_cast<std::array<char unsigned,sizeof(T)>>(mm).data());
+		iter,bit_cast<::fast_io::freestanding::array<char unsigned,sizeof(T)>>(mm).data());
 }
 
 }
@@ -81,7 +81,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,T>) 
 	return sz;
 }
 
-template<std::integral char_type,std::forward_iterator Iter,typename T>
+template<std::integral char_type,::fast_io::freestanding::forward_iterator Iter,typename T>
 requires
 (
 std::same_as<T,__m128i>||std::same_as<T,__m128>

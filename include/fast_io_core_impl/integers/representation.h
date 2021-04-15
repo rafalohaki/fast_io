@@ -6,7 +6,7 @@ namespace fast_io
 namespace details
 {
 
-template<char8_t base,bool uppercase,std::contiguous_iterator Iter>
+template<char8_t base,bool uppercase,::fast_io::freestanding::contiguous_iterator Iter>
 inline constexpr void rep_single_unit(char8_t b,Iter ptr)
 {
 	if constexpr(base==16)
@@ -51,7 +51,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,mani
 	return result;
 }
 
-template<std::integral char_type,std::contiguous_iterator caiter,typename T,char8_t base,bool uppercase,bool space,typename U>
+template<std::integral char_type,::fast_io::freestanding::contiguous_iterator caiter,typename T,char8_t base,bool uppercase,bool space,typename U>
 inline caiter print_reserve_define(io_reserve_type_t<char_type,manip::representation<T,base,uppercase,space>>,caiter iter,U i)
 {
 	if constexpr(sizeof(T)!=0)

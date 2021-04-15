@@ -57,7 +57,7 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - aarch64
 - riscv
 - riscv64
-- powerpc64 little endian
+- powerpc64
 
 ## Platform Support
 - Microsoft Windows
@@ -94,6 +94,7 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 
 ## Special Support
 - LLVM Address Sanitizer
+- Full freestanding support (which means we do not have any headers besides freestanding headers. Tested with GCC's --disable-hosted-libstdcxx without any libc, including newlib)
 
 ## Design Goal
 

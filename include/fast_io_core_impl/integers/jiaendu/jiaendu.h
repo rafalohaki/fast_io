@@ -10,7 +10,7 @@ namespace fast_io::details
 namespace jiaendu
 {
 
-template<std::contiguous_iterator Iter>
+template<::fast_io::freestanding::contiguous_iterator Iter>
 inline void output_unsigned_partial(Iter str,std::uint64_t value) noexcept
 {
 	using ch_type = std::remove_cvref_t<decltype(*str)>;
@@ -34,7 +34,7 @@ inline void output_unsigned_partial(Iter str,std::uint64_t value) noexcept
 	::fast_io::details::my_memcpy(str + 15,static_tables<ch_type>::table4[remains0].data(),bytes4);
 }
 
-template<std::contiguous_iterator Iter,my_unsigned_integral U>
+template<::fast_io::freestanding::contiguous_iterator Iter,my_unsigned_integral U>
 requires (sizeof(U)<=16)
 inline std::size_t output_unsigned(Iter str,U value) noexcept
 {

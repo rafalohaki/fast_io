@@ -1,9 +1,7 @@
 #pragma once
 #if defined(_MSC_VER)
 #include <intrin.h>
-#elif (defined(__x86_64__) || defined(__i386__)) && !defined(__MSDOS__)
-#include <x86intrin.h>
-#elif defined(__MSDOS__)
+#elif defined(__INTEL_COMPILER)
 #include <x86gprintrin.h>
 #endif
 
@@ -39,7 +37,11 @@ inline constexpr bool add_carry(bool carry,T a,T b,T& out) noexcept
 		{
 			if constexpr(sizeof(std::size_t)>=sizeof(T))
 			{
+#if (defined(__GNUC__) || defined(__clang__)) && !defined(__INTEL_COMPILER)
+				return __builtin_ia32_addcarryx_u64(carry,a,b,reinterpret_cast<unsigned long long*>(&out));
+#else
 				return _addcarry_u64(carry,a,b,reinterpret_cast<unsigned long long*>(&out));
+#endif
 			}
 			else
 			{
@@ -57,17 +59,35 @@ inline constexpr bool add_carry(bool carry,T a,T b,T& out) noexcept
 				std::uint32_t b_high;
 				my_memcpy(&b_low,&b,4);
 				my_memcpy(&b_high,reinterpret_cast<char const*>(&b)+4,4);
+#if (defined(__GNUC__) || defined(__clang__)) && !defined(__INTEL_COMPILER)
+				return __builtin_ia32_addcarryx_u32(__builtin_ia32_addcarryx_u32(carry,
+				a_low,b_low,reinterpret_cast<may_alias_ptr_type>(&out)),
+				a_high,b_high,reinterpret_cast<may_alias_ptr_type>(&out)+1);
+#else
 				return _addcarry_u32(_addcarry_u32(carry,
 				a_low,b_low,reinterpret_cast<may_alias_ptr_type>(&out)),
 				a_high,b_high,reinterpret_cast<may_alias_ptr_type>(&out)+1);
+#endif
 			}
 		}
 		else if constexpr(sizeof(T)==4)
+#if (defined(__GNUC__) || defined(__clang__)) && !defined(__INTEL_COMPILER)
+			return __builtin_ia32_addcarry_u32(carry,a,b,reinterpret_cast<std::uint32_t*>(&out));
+#else
 			return _addcarry_u32(carry,a,b,reinterpret_cast<std::uint32_t*>(&out));
+#endif
 		else if constexpr(sizeof(T)==2)
+#if (defined(__GNUC__) || defined(__clang__)) && !defined(__INTEL_COMPILER)
+			return __builtin_ia32_addcarry_u16(carry,a,b,reinterpret_cast<std::uint32_t*>(&out));
+#else
 			return _addcarry_u16(carry,a,b,reinterpret_cast<std::uint16_t*>(&out));
+#endif
 		else if constexpr(sizeof(T)==1)
+#if (defined(__GNUC__) || defined(__clang__)) && !defined(__INTEL_COMPILER)
+			return __builtin_ia32_addcarry_u8(carry,a,b,reinterpret_cast<std::uint8_t*>(&out));
+#else
 			return _addcarry_u8(carry,a,b,reinterpret_cast<std::uint8_t*>(&out));
+#endif
 	}
 #else
 	return add_carry_naive(carry,a,b,out);
@@ -103,7 +123,11 @@ inline constexpr bool sub_borrow(bool borrow,T a,T b,T& out) noexcept
 		{
 			if constexpr(sizeof(std::size_t)>=sizeof(T))
 			{
+#if (defined(__GNUC__) || defined(__clang__)) && !defined(__INTEL_COMPILER)
+				return __builtin_ia32_subborrowx_u64(borrow,a,b,reinterpret_cast<unsigned long long*>(&out));
+#else
 				return _subborrow_u64(borrow,a,b,reinterpret_cast<unsigned long long*>(&out));
+#endif
 			}
 			else
 			{
@@ -121,17 +145,35 @@ inline constexpr bool sub_borrow(bool borrow,T a,T b,T& out) noexcept
 				std::uint32_t b_high;
 				my_memcpy(&b_low,&b,4);
 				my_memcpy(&b_high,reinterpret_cast<char const*>(&b)+4,4);
+#if (defined(__GNUC__) || defined(__clang__)) && !defined(__INTEL_COMPILER)
+				return __builtin_ia32_sbb_u32(__builtin_ia32_sbb_u32(borrow,
+				a_low,b_low,reinterpret_cast<may_alias_ptr_type>(&out)),
+				a_high,b_high,reinterpret_cast<may_alias_ptr_type>(&out)+1);
+#else
 				return _subborrow_u32(_subborrow_u32(borrow,
 				a_low,b_low,reinterpret_cast<may_alias_ptr_type>(&out)),
 				a_high,b_high,reinterpret_cast<may_alias_ptr_type>(&out)+1);
+#endif
 			}
 		}
 		if constexpr(sizeof(T)==4)
+#if (defined(__GNUC__) || defined(__clang__)) && !defined(__INTEL_COMPILER)
+			return __builtin_ia32_sbb_u32(borrow,a,b,reinterpret_cast<std::uint32_t*>(&out));
+#else
 			return _subborrow_u32(borrow,a,b,reinterpret_cast<std::uint32_t*>(&out));
+#endif
 		else if constexpr(sizeof(T)==2)
+#if (defined(__GNUC__) || defined(__clang__)) && !defined(__INTEL_COMPILER)
+			return __builtin_ia32_subborrow_u16(borrow,a,b,reinterpret_cast<std::uint32_t*>(&out));
+#else
 			return _subborrow_u16(borrow,a,b,reinterpret_cast<std::uint16_t*>(&out));
+#endif
 		else if constexpr(sizeof(T)==1)
+#if (defined(__GNUC__) || defined(__clang__)) && !defined(__INTEL_COMPILER)
+			return __builtin_ia32_subborrow_u8(borrow,a,b,reinterpret_cast<std::uint8_t*>(&out));
+#else
 			return _subborrow_u8(borrow,a,b,reinterpret_cast<std::uint8_t*>(&out));
+#endif
 	}
 #else
 	return sub_borrow_naive(borrow,a,b,out);
@@ -173,7 +215,7 @@ constexpr
 #endif
 std::uint64_t umul(std::uint64_t a,std::uint64_t b,std::uint64_t& high) noexcept
 {
-#if __SIZEOF_INT128__
+#ifdef __SIZEOF_INT128__
 #if __cpp_lib_is_constant_evaluated >= 201811L
 	if(std::is_constant_evaluated())
 	{

@@ -59,7 +59,7 @@ inline constexpr bool underflow_impl_deco(T t,decot deco,basic_io_buffer_pointer
 	return underflow_rl_impl_deco<nsecure>(t,deco,ibuffer,ibuffer_external,bfsz);
 }
 
-template<bool nsecure,typename T,typename decot,std::integral char_type,std::contiguous_iterator Iter>
+template<bool nsecure,typename T,typename decot,std::integral char_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline constexpr Iter iobuf_read_unhappy_decay_impl_deco(T t,decot deco,
 	basic_io_buffer_pointers_with_cap<char_type>& ibuffer,
 	basic_io_buffer_pointers_only_begin<typename T::char_type>& ibuffer_external,

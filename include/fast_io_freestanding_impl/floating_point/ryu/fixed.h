@@ -21,7 +21,7 @@ inline constexpr T pow10_bits_for_index(T idx){return (idx<<4)+120;}
 
 
 template<typename T>
-inline constexpr std::uint32_t mul_shift_mod_1e9(std::uint64_t m, std::array<T,3> const& mul, std::size_t j)
+inline constexpr std::uint32_t mul_shift_mod_1e9(std::uint64_t m, ::fast_io::freestanding::array<T,3> const& mul, std::size_t j)
 {
 	uint128_t b1(mul_extend(m,mul[1]));
 	b1+=high(mul_extend(m,mul[0]));
@@ -69,17 +69,17 @@ inline constexpr uint32_t log10_pow5(T e)
 }
 /*
 template<bool controller,std::unsigned_integral T>
-inline constexpr std::array<fast_io::uint128_t,2> compute_pow5(T v)
+inline constexpr ::fast_io::freestanding::array<fast_io::uint128_t,2> compute_pow5(T v)
 {
 	std::uint32_t const base(v/56);
 	std::uint32_t const base2(base*56);
-	std::array<std::uint64_t,4> const& mul(pow5<long double,controller>::split[base]);
+	::fast_io::freestanding::array<std::uint64_t,4> const& mul(pow5<long double,controller>::split[base]);
 	if(v==base2)
 		return {construct_unsigned_extension(mul.front(),mul[1]),construct_unsigned_extension(mul[2],mul[3])};
 	else
 	{
 		std::uint32_t const offset(v - base2);
-		std::array<std::uint64_t,2> const &m = pow5<long double,controller>::[offset];
+		::fast_io::freestanding::array<std::uint64_t,2> const &m = pow5<long double,controller>::[offset];
 		const uint32_t delta = pow5bits(i) - pow5bits(base2);
 		const uint32_t corr = (uint32_t) ((POW5_ERRORS[i / 32] >> (2 * (i % 32))) & 3);
 		mul_128_256_shift(m, mul, delta, corr, result);
@@ -89,13 +89,13 @@ inline constexpr std::array<fast_io::uint128_t,2> compute_pow5(T v)
 }
 
 template<std::unsigned_integral T>
-inline constexpr std::array<fast_io::uint128_t,2> compute_pow5_inv(T v)
+inline constexpr ::fast_io::freestanding::array<fast_io::uint128_t,2> compute_pow5_inv(T v)
 {
 }
 */
 
 
-template<std::random_access_iterator Iter,my_unsigned_integral mantissaType>
+template<::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral mantissaType>
 inline constexpr auto easy_case(Iter result,bool sign, mantissaType const& mantissa)
 {
 	if (mantissa)
@@ -129,7 +129,7 @@ inline constexpr unrep<mantissaType,exponentType> init_rep(mantissaType const& m
 	}
 }
 
-template<bool uppercase_e=false,bool four_digits=false,std::signed_integral T,std::random_access_iterator Iter>
+template<bool uppercase_e=false,bool four_digits=false,std::signed_integral T,::fast_io::freestanding::random_access_iterator Iter>
 requires std::same_as<T,std::int32_t>
 inline constexpr Iter output_exp(T exp,Iter result)
 {
@@ -207,7 +207,7 @@ inline constexpr Iter output_exp(T exp,Iter result)
 #endif
 }
 
-template<char32_t dec,bool scientific = false,bool uppercase_e=false,std::random_access_iterator Iter,std::floating_point F>
+template<char32_t dec,bool scientific = false,bool uppercase_e=false,::fast_io::freestanding::random_access_iterator Iter,std::floating_point F>
 inline constexpr auto output_fixed(Iter result, F d,std::size_t precision)
 {
 	using floating_trait = floating_traits<F>;

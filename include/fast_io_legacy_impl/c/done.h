@@ -148,24 +148,24 @@ inline std::size_t c_io_read_impl(basic_c_io_observer_unlocked<char_type> cfhd,c
 
 }
 
-template<std::integral T,std::contiguous_iterator Iter>
-requires (std::same_as<T,std::iter_value_t<Iter>>||std::same_as<T,char>)
+template<std::integral T,::fast_io::freestanding::contiguous_iterator Iter>
+requires (std::same_as<T,::fast_io::freestanding::iter_value_t<Iter>>||std::same_as<T,char>)
 inline Iter write(basic_c_io_observer_unlocked<T> cfhd,Iter cbegin,Iter cend)
 {
-	if constexpr(std::same_as<std::iter_value_t<Iter>,T>)
-		return cbegin+details::c_io_write_impl(cfhd,std::to_address(cbegin),std::to_address(cend));
+	if constexpr(std::same_as<::fast_io::freestanding::iter_value_t<Iter>,T>)
+		return cbegin+details::c_io_write_impl(cfhd,::fast_io::freestanding::to_address(cbegin),::fast_io::freestanding::to_address(cend));
 	else
-		return cbegin+details::c_io_write_impl(cfhd,reinterpret_cast<char const*>(std::to_address(cbegin)),reinterpret_cast<char const*>(std::to_address(cend)))/sizeof(*cbegin);
+		return cbegin+details::c_io_write_impl(cfhd,reinterpret_cast<char const*>(::fast_io::freestanding::to_address(cbegin)),reinterpret_cast<char const*>(::fast_io::freestanding::to_address(cend)))/sizeof(*cbegin);
 }
 
-template<std::integral T,std::contiguous_iterator Iter>
-requires (std::same_as<T,std::iter_value_t<Iter>>||std::same_as<T,char>)
+template<std::integral T,::fast_io::freestanding::contiguous_iterator Iter>
+requires (std::same_as<T,::fast_io::freestanding::iter_value_t<Iter>>||std::same_as<T,char>)
 [[nodiscard]] inline Iter read(basic_c_io_observer_unlocked<T> cfhd,Iter begin,Iter end)
 {
-	if constexpr(std::same_as<std::iter_value_t<Iter>,T>)
-		return begin+details::c_io_read_impl(cfhd,std::to_address(begin),std::to_address(end));
+	if constexpr(std::same_as<::fast_io::freestanding::iter_value_t<Iter>,T>)
+		return begin+details::c_io_read_impl(cfhd,::fast_io::freestanding::to_address(begin),::fast_io::freestanding::to_address(end));
 	else
-		return begin+details::c_io_read_impl(cfhd,reinterpret_cast<char*>(std::to_address(begin)),reinterpret_cast<char*>(std::to_address(end)))/sizeof(*begin);
+		return begin+details::c_io_read_impl(cfhd,reinterpret_cast<char*>(::fast_io::freestanding::to_address(begin)),reinterpret_cast<char*>(::fast_io::freestanding::to_address(end)))/sizeof(*begin);
 }
 
 

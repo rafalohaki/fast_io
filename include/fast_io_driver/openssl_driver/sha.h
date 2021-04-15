@@ -12,7 +12,7 @@ template<std::size_t N>
 class sha_final_result
 {
 public:
-	using digest_type = std::array<unsigned char,N>;
+	using digest_type = ::fast_io::freestanding::array<unsigned char,N>;
 	digest_type digest_block;
 };
 
@@ -22,7 +22,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,sha_
 	return N*2;
 }
 
-template<std::integral char_type,std::random_access_iterator caiter,std::size_t N>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator caiter,std::size_t N>
 inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,sha_final_result<N>>,caiter iter,auto const& i)
 {
 	for(auto e : i.digest_block)
@@ -108,32 +108,32 @@ public:
 	}
 };
 
-template<sha_type ctx_type,std::contiguous_iterator Iter>
+template<sha_type ctx_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline void write(sha_context<ctx_type>& ctx,Iter begin,Iter end)
 {
 	if constexpr(ctx_type==sha_type::sha1)
 	{
-		if(!SHA_Update(std::addressof(ctx.ctx),std::to_address(begin),(std::to_address(end)-std::to_address(begin))*sizeof(*begin)))
+		if(!SHA_Update(std::addressof(ctx.ctx),::fast_io::freestanding::to_address(begin),(::fast_io::freestanding::to_address(end)-::fast_io::freestanding::to_address(begin))*sizeof(*begin)))
 			throw_openssl_error();	
 	}
 	else if constexpr(ctx_type==sha_type::sha224)
 	{
-		if(!SHA224_Update(std::addressof(ctx.ctx),std::to_address(begin),(std::to_address(end)-std::to_address(begin))*sizeof(*begin)))
+		if(!SHA224_Update(std::addressof(ctx.ctx),::fast_io::freestanding::to_address(begin),(::fast_io::freestanding::to_address(end)-::fast_io::freestanding::to_address(begin))*sizeof(*begin)))
 			throw_openssl_error();
 	}
 	else if constexpr(ctx_type==sha_type::sha256)
 	{
-		if(!SHA256_Update(std::addressof(ctx.ctx),std::to_address(begin),(std::to_address(end)-std::to_address(begin))*sizeof(*begin)))
+		if(!SHA256_Update(std::addressof(ctx.ctx),::fast_io::freestanding::to_address(begin),(::fast_io::freestanding::to_address(end)-::fast_io::freestanding::to_address(begin))*sizeof(*begin)))
 			throw_openssl_error();
 	}
 	else if constexpr(ctx_type==sha_type::sha384)
 	{
-		if(!SHA384_Update(std::addressof(ctx.ctx),std::to_address(begin),(std::to_address(end)-std::to_address(begin))*sizeof(*begin)))
+		if(!SHA384_Update(std::addressof(ctx.ctx),::fast_io::freestanding::to_address(begin),(::fast_io::freestanding::to_address(end)-::fast_io::freestanding::to_address(begin))*sizeof(*begin)))
 			throw_openssl_error();
 	}
 	else if constexpr(ctx_type==sha_type::sha512)
 	{
-		if(!SHA512_Update(std::addressof(ctx.ctx),std::to_address(begin),(std::to_address(end)-std::to_address(begin))*sizeof(*begin)))
+		if(!SHA512_Update(std::addressof(ctx.ctx),::fast_io::freestanding::to_address(begin),(::fast_io::freestanding::to_address(end)-::fast_io::freestanding::to_address(begin))*sizeof(*begin)))
 			throw_openssl_error();
 	}
 }

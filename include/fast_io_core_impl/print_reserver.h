@@ -13,7 +13,7 @@ template<typename T,reserve_printable<T>  char_type=char>
 class print_reserver
 {
 public:
-	std::array<char_type,print_reserve_size(io_reserve_type<char_type,T>)+1> mutable buffer;
+	::fast_io::freestanding::array<char_type,print_reserve_size(io_reserve_type<char_type,T>)+1> mutable buffer;
 	std::size_t position;
 	constexpr print_reserver(T const& t):position(print_reserve_define(io_reserve_type<char_type,T>,buffer.data(),t)-buffer.data()){}
 	constexpr std::size_t size() const noexcept
@@ -38,7 +38,7 @@ inline static constexpr std::size_t reserve_size() noexcept
     constexpr std::size_t val{print_reserve_size(io_reserve_type<char_type,T>)+1};
     return val;
 }
-constexpr std::basic_string_view<char_type> strvw() const noexcept
+constexpr ::fast_io::freestanding::basic_string_view<char_type> strvw() const noexcept
 {
     return {buffer.data(),position};
 }
@@ -50,8 +50,8 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,prin
 	return print_reserver<T,char_type>::reserve_size();
 }
 
-template<typename T,reserve_printable<T> char_type,std::contiguous_iterator Iter>
-requires (std::same_as<char_type,std::iter_value_t<Iter>>||(std::same_as<std::iter_value_t<Iter>,char>&&std::same_as<char_type,char8_t>))
+template<typename T,reserve_printable<T> char_type,::fast_io::freestanding::contiguous_iterator Iter>
+requires (std::same_as<char_type,::fast_io::freestanding::iter_value_t<Iter>>||(std::same_as<::fast_io::freestanding::iter_value_t<Iter>,char>&&std::same_as<char_type,char8_t>))
 inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,print_reserver<T,char_type>>,Iter beg,T&& ref)
 {
 #ifdef __cpp_lib_is_constant_evaluated
@@ -60,7 +60,7 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,print_res
 	else
 	{
 #endif
-		::fast_io::details::my_memcpy(std::to_address(beg),ref.data(),ref.size()*sizeof(char_type));
+		::fast_io::details::my_memcpy(::fast_io::freestanding::to_address(beg),ref.data(),ref.size()*sizeof(char_type));
 #ifdef __cpp_lib_is_constant_evaluated
 	}
 #endif
@@ -71,7 +71,7 @@ template<typename T,reserve_printable<T>  char_type=char>
 class reverse_print_reserver
 {
 public:
-	std::array<char_type,print_reserve_size(io_reserve_type<T,char_type>)+1> mutable buffer;
+	::fast_io::freestanding::array<char_type,print_reserve_size(io_reserve_type<T,char_type>)+1> mutable buffer;
 	std::size_t position;
 	constexpr reverse_print_reserver(T const& t):position(reverse_print_reserve_define(io_reserve_type<T,char_type>,buffer.size()-1+buffer.data(),t)-buffer.data()){}
 	constexpr std::size_t size() const noexcept
@@ -96,10 +96,12 @@ public:
 		constexpr std::size_t val{print_reserve_size(io_reserve_type<T,char_type>)+1};
 		return val;
 	}
-	constexpr std::basic_string_view<char_type> strvw() const noexcept
+#if 0
+	constexpr ::fast_io::freestanding::basic_string_view<char_type> strvw() const noexcept
 	{
 		return {buffer.data()+position,size()};
 	}
+#endif
 };
 
 
@@ -122,8 +124,8 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,reve
 	return reverse_print_reserver<type,char_type>::reserve_size();
 }
 
-template<reserve_printable type,std::integral char_type,std::contiguous_iterator Iter,typename T>
-requires (std::same_as<char_type,std::iter_value_t<Iter>>||(std::same_as<std::iter_value_t<Iter>,char>&&std::same_as<char_type,char8_t>))
+template<reserve_printable type,std::integral char_type,::fast_io::freestanding::contiguous_iterator Iter,typename T>
+requires (std::same_as<char_type,::fast_io::freestanding::iter_value_t<Iter>>||(std::same_as<::fast_io::freestanding::iter_value_t<Iter>,char>&&std::same_as<char_type,char8_t>))
 inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,reverse_print_reserver<type,char_type>>,Iter beg,T&& ref)
 {
 #ifdef __cpp_lib_is_constant_evaluated
@@ -132,7 +134,7 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,reverse_p
 	else
 	{
 #endif
-		::fast_io::details::my_memcpy(std::to_address(beg),ref.data(),ref.size()*sizeof(char_type));
+		::fast_io::details::my_memcpy(::fast_io::freestanding::to_address(beg),ref.data(),ref.size()*sizeof(char_type));
 #ifdef __cpp_lib_is_constant_evaluated
 	}
 #endif

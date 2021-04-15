@@ -1,12 +1,6 @@
 #pragma once
 namespace fast_io
 {
-namespace details
-{
-
-struct empty{};
-
-}
 
 template<buffer_input_stream input,typename Func>
 struct scan_iterator
@@ -107,25 +101,25 @@ public:
 
 
 template<buffer_input_stream input,typename Func>
-inline constexpr bool operator!=(scan_iterator<input,Func> const& a, std::default_sentinel_t)
+inline constexpr bool operator!=(scan_iterator<input,Func> const& a, ::fast_io::freestanding::default_sentinel_t)
 {
 	return a.nullable_handle;
 }
 
 template<buffer_input_stream input,typename Func>
-inline constexpr bool operator==(scan_iterator<input,Func> const& a, std::default_sentinel_t)
+inline constexpr bool operator==(scan_iterator<input,Func> const& a, ::fast_io::freestanding::default_sentinel_t)
 {
 	return !a.nullable_handle;
 }
 
 template<buffer_input_stream input,typename Func>
-inline constexpr bool operator!=(std::default_sentinel_t,scan_iterator<input,Func> const& a)
+inline constexpr bool operator!=(::fast_io::freestanding::default_sentinel_t,scan_iterator<input,Func> const& a)
 {
 	return a.nullable_handle;
 }
 
 template<buffer_input_stream input,typename Func>
-inline constexpr bool operator==(std::default_sentinel_t,scan_iterator<input,Func> const& a)
+inline constexpr bool operator==(::fast_io::freestanding::default_sentinel_t,scan_iterator<input,Func> const& a)
 {
 	return !a.nullable_handle;
 }
@@ -186,25 +180,26 @@ inline constexpr auto begin(scan_generator<input,Func>& a)
 }
 
 template<input_stream input,typename Func>
-inline constexpr std::default_sentinel_t end(scan_generator<input,Func>&)
+inline constexpr ::fast_io::freestanding::default_sentinel_t end(scan_generator<input,Func>&)
 {
 	return {};
 }
+
 template<std::integral char_type,char_type seperator=u8'\n'>
 struct scan_line_seperator
 {
-	std::basic_string_view<char_type> data;
-	template<std::contiguous_iterator Iter>
-	requires std::same_as<std::iter_value_t<Iter>,char_type>
+	::fast_io::freestanding::basic_string_view<char_type> data;
+	template<::fast_io::freestanding::contiguous_iterator Iter>
+	requires std::same_as<::fast_io::freestanding::iter_value_t<Iter>,char_type>
 	static constexpr Iter search(Iter bg,Iter ed) noexcept
 	{
-		return std::find(bg,ed,seperator);
+		return ::fast_io::freestanding::find(bg,ed,seperator);
 	}
 	constexpr void set_data(char_type const* bg,char_type const* ed) noexcept
 	{
-		data=std::basic_string_view<char_type>(bg,static_cast<std::size_t>(ed-bg));
+		data=::fast_io::freestanding::basic_string_view<char_type>(bg,static_cast<std::size_t>(ed-bg));
 	}
-	constexpr std::basic_string_view<char_type> get_data() const noexcept
+	constexpr ::fast_io::freestanding::basic_string_view<char_type> get_data() const noexcept
 	{
 		return data;
 	}

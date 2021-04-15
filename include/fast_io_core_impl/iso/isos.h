@@ -11,7 +11,7 @@ using intiso_t = std::intmax_t;
 namespace details
 {
 
-template<std::random_access_iterator Iter>
+template<::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter output_iso8601_subseconds_main(Iter iter,uintiso_t subseconds) noexcept
 {
 	constexpr std::size_t digitsm1(std::numeric_limits<uintiso_t>::digits10);
@@ -22,10 +22,10 @@ inline constexpr Iter output_iso8601_subseconds_main(Iter iter,uintiso_t subseco
 	return iter+sz;
 }
 
-template<bool comma=false,std::random_access_iterator Iter>
+template<bool comma=false,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter output_iso8601_subseconds(Iter iter,uintiso_t subseconds) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	if constexpr(comma)
 	{
 	if constexpr(std::same_as<char_type,char>)
@@ -60,7 +60,7 @@ inline constexpr uintiso_t cal_uintiso_d10_max() noexcept
 template<std::unsigned_integral T>
 inline constexpr auto cal_uintiso_d10_all_table() noexcept
 {
-	std::array<T,std::numeric_limits<T>::digits10> array;
+	::fast_io::freestanding::array<T,std::numeric_limits<T>::digits10> array;
 	array.back()=1;
 	for(std::size_t i{array.size()-1};i--;)
 		array[i]=array[i+1]*10u;

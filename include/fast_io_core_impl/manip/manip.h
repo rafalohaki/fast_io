@@ -157,12 +157,6 @@ inline constexpr manip::random_access_transmission<T,offset_type,sz_type> random
 template<input_stream T,std::integral sz_type,std::integral offset_type>
 inline constexpr manip::random_access_transmission_with_size<T,offset_type,sz_type> random_access_transmission(sz_type& transmitted,offset_type offset,T &f,sz_type s){return {transmitted,offset,f,s};}
 
-template<std::ranges::range T>
-inline constexpr manip::binary_serialization<T> binary_serialization(T &f){return {f};}
-
-template<std::ranges::range T>
-inline constexpr manip::binary_serialization<T const> binary_serialization(T const &f){return {f};}
-
 template<typename T,std::integral ch_type>
 inline constexpr manip::follow_character<T,ch_type> follow(T &f,ch_type ch){return {f,ch};}
 
@@ -177,12 +171,5 @@ inline constexpr manip::representation<T,base,uppercase,space> representation(T 
 template<typename T,typename Func>
 inline constexpr manip::space<T&,Func&> space(T&& f,Func&& func){return {f,func};}
 
-#if 0
-template<character_output_stream output,std::integral T>
-inline void print_define(output& out,manip::chvw<T> a)
-{
-	put(out,static_cast<typename output::char_type>(a.reference));
-}
-#endif
 
 }

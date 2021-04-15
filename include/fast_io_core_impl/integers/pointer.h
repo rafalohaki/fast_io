@@ -26,10 +26,10 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,void
 
 namespace details
 {
-template<std::random_access_iterator caiter>
+template<::fast_io::freestanding::random_access_iterator caiter>
 inline constexpr caiter print_reserve_address_impl(caiter iter,std::uintptr_t value) noexcept
 {
-	using char_type = std::iter_value_t<caiter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<caiter>;
 	constexpr std::size_t uisz{sizeof(std::uintptr_t)*2};
 	if constexpr(std::same_as<char,char_type>)
 		iter=details::copy_string_literal("0x",iter);
@@ -71,7 +71,7 @@ inline constexpr auto zeros_generator() noexcept
 		zero=L'0';
 		x=L'x';
 	}
-	std::array<char_type,sizeof(std::uintptr_t)*2+2> arr;
+	::fast_io::freestanding::array<char_type,sizeof(std::uintptr_t)*2+2> arr;
 	for(auto& e : arr)
 		e=zero;
 	arr[1]=x;
@@ -80,7 +80,7 @@ inline constexpr auto zeros_generator() noexcept
 #endif
 }
 
-template<std::integral char_type,std::random_access_iterator caiter>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator caiter>
 inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,void const*>,caiter iter,void const* v) noexcept
 {
 	return details::print_reserve_address_impl(iter,bit_cast<std::uintptr_t>(v));
@@ -93,7 +93,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std:
 	return sz;
 }
 
-template<std::integral char_type,std::random_access_iterator caiter>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator caiter>
 inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,std::nullptr_t>,caiter iter,std::nullptr_t) noexcept
 {
 /*
@@ -136,7 +136,7 @@ inline constexpr auto print_alias_define(io_alias_t,char_type const(&s)[n]) noex
 }
 
 template<std::integral char_type>
-inline constexpr basic_io_scatter_t<char_type> print_alias_define(io_alias_t,std::basic_string_view<char_type> svw) noexcept
+inline constexpr basic_io_scatter_t<char_type> print_alias_define(io_alias_t,::fast_io::freestanding::basic_string_view<char_type> svw) noexcept
 {
 	return {svw.data(),svw.size()};
 }
@@ -144,12 +144,12 @@ inline constexpr basic_io_scatter_t<char_type> print_alias_define(io_alias_t,std
 template<std::integral T>
 inline constexpr auto print_alias_define(io_alias_t,manipulators::chvw_t<T const*> svw) noexcept
 {
-	std::basic_string_view<T> bsv{svw.reference};
+	::fast_io::freestanding::basic_string_view<T> bsv{svw.reference};
 	return basic_io_scatter_t<T>{bsv.data(),bsv.size()};
 }
 
 template<typename Iter>
-requires (std::contiguous_iterator<Iter>||std::is_pointer_v<Iter>)
+requires (::fast_io::freestanding::contiguous_iterator<Iter>||std::is_pointer_v<Iter>)
 inline constexpr void const* print_alias_define(io_alias_t,Iter it) noexcept
 {
 	if constexpr(std::is_pointer_v<std::remove_cvref_t<Iter>>)
@@ -160,7 +160,7 @@ inline constexpr void const* print_alias_define(io_alias_t,Iter it) noexcept
 			return bit_cast<void const*>(it);
 	}
 	else
-		return std::to_address(it);
+		return ::fast_io::freestanding::to_address(it);
 }
 
 template<std::integral char_type,std::integral pchar_type>
@@ -169,7 +169,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,mani
 	return 1;
 }
 
-template<std::integral char_type,std::integral pchar_type,std::contiguous_iterator caiter,typename T>
+template<std::integral char_type,std::integral pchar_type,::fast_io::freestanding::contiguous_iterator caiter,typename T>
 inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manipulators::chvw_t<pchar_type>>,caiter iter,T ch) noexcept
 {
 	*iter=static_cast<pchar_type>(ch.reference);

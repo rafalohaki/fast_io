@@ -165,4 +165,11 @@ struct scan_skip_type_t
 template<typename T>
 inline constexpr scan_skip_type_t<T> scan_skip_type{};
 
+template<std::integral char_type>
+struct try_get_result
+{
+	char_type ch;
+	bool eof;
+};
+
 }

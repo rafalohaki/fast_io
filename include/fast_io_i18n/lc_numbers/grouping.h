@@ -31,10 +31,10 @@ inline constexpr std::size_t grouping_char_lens(::fast_io::basic_io_scatter_t<st
 	return digits+i;
 }
 
-template<std::random_access_iterator Iter,my_unsigned_integral T>
-constexpr Iter grouping_single_sep_impl(fast_io::basic_io_scatter_t<std::size_t> grouping,std::iter_value_t<Iter> sep,Iter iter,T t) noexcept
+template<::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral T>
+constexpr Iter grouping_single_sep_impl(fast_io::basic_io_scatter_t<std::size_t> grouping,::fast_io::freestanding::iter_value_t<Iter> sep,Iter iter,T t) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	std::size_t i{};
 	for(;i!=grouping.len;++i)
 	{
@@ -93,11 +93,11 @@ constexpr Iter grouping_single_sep_impl(fast_io::basic_io_scatter_t<std::size_t>
 	}
 }
 
-template<std::random_access_iterator Iter,my_unsigned_integral T>
-constexpr Iter grouping_mul_sep_impl(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,T t) noexcept
+template<::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral T>
+constexpr Iter grouping_mul_sep_impl(basic_lc_all<::fast_io::freestanding::iter_value_t<Iter>> const* __restrict all,Iter iter,T t) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
-	std::array<char_type,print_reserve_size(io_reserve_type<char_type,T>)*2-1> array;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	::fast_io::freestanding::array<char_type,print_reserve_size(io_reserve_type<char_type,T>)*2-1> array;
 	char_type sep;
 	if constexpr(std::same_as<char_type,char>)
 		sep=',';
@@ -119,8 +119,8 @@ constexpr Iter grouping_mul_sep_impl(basic_lc_all<std::iter_value_t<Iter>> const
 	return iter;
 }
 
-template<std::random_access_iterator Iter,my_unsigned_integral T>
-constexpr Iter grouping_sep_impl(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,T t) noexcept
+template<::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral T>
+constexpr Iter grouping_sep_impl(basic_lc_all<::fast_io::freestanding::iter_value_t<Iter>> const* __restrict all,Iter iter,T t) noexcept
 {
 	if(all->numeric.thousands_sep.len==1)
 	{
@@ -135,11 +135,11 @@ constexpr Iter grouping_sep_impl(basic_lc_all<std::iter_value_t<Iter>> const* __
 		return grouping_mul_sep_impl(all,iter,t);
 }
 
-template<std::random_access_iterator Iter,my_integral T>
-constexpr Iter print_lc_grouping_unhappy_path_impl(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,T t) noexcept
+template<::fast_io::freestanding::random_access_iterator Iter,my_integral T>
+constexpr Iter print_lc_grouping_unhappy_path_impl(basic_lc_all<::fast_io::freestanding::iter_value_t<Iter>> const* __restrict all,Iter iter,T t) noexcept
 {
 	using int_type = T;
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	using unsigned_type = my_make_unsigned_t<std::remove_cvref_t<int_type>>;
 	if constexpr(my_signed_integral<int_type>)
 	{
@@ -164,11 +164,11 @@ constexpr Iter print_lc_grouping_unhappy_path_impl(basic_lc_all<std::iter_value_
 	}
 }
 
-template<std::random_access_iterator Iter,my_unsigned_integral T>
+template<::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral T>
 requires (sizeof(T)>1)
-constexpr void output_unsigned_with_3_seperator_len(std::iter_value_t<Iter> seperator_ch,Iter iter,T value) noexcept
+constexpr void output_unsigned_with_3_seperator_len(::fast_io::freestanding::iter_value_t<Iter> seperator_ch,Iter iter,T value) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 #ifdef FAST_IO_OPTIMIZE_TIME
 	constexpr auto table3(jiaendu::static_tables<char_type>::table3.data());
 #elif !defined(FAST_IO_OPTIMIZE_SIZE)
@@ -263,9 +263,9 @@ constexpr void output_unsigned_with_3_seperator_len(std::iter_value_t<Iter> sepe
 #endif
 }
 
-template<std::random_access_iterator Iter,my_unsigned_integral T>
+template<::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral T>
 requires (sizeof(T)>1)
-constexpr Iter output_unsigned_with_3_seperator(std::iter_value_t<Iter> seperator_ch,Iter iter,T value) noexcept
+constexpr Iter output_unsigned_with_3_seperator(::fast_io::freestanding::iter_value_t<Iter> seperator_ch,Iter iter,T value) noexcept
 {
 	std::uint32_t const len{chars_len_3_sep<10>(value)};
 	auto result{iter+len};
@@ -276,10 +276,10 @@ constexpr Iter output_unsigned_with_3_seperator(std::iter_value_t<Iter> seperato
 	return result;
 }
 
-template<std::random_access_iterator Iter,my_integral int_type>
-inline constexpr Iter print_lc_grouping_3_path_impl(std::iter_value_t<Iter> seperator,Iter iter,int_type t) noexcept
+template<::fast_io::freestanding::random_access_iterator Iter,my_integral int_type>
+inline constexpr Iter print_lc_grouping_3_path_impl(::fast_io::freestanding::iter_value_t<Iter> seperator,Iter iter,int_type t) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	using unsigned_type = my_make_unsigned_t<std::remove_cvref_t<int_type>>;
 	if constexpr(my_signed_integral<int_type>)
 	{
@@ -310,11 +310,11 @@ inline constexpr Iter print_lc_grouping_3_path_impl(std::iter_value_t<Iter> sepe
 
 }
 
-template<std::random_access_iterator Iter,details::my_integral T>
+template<::fast_io::freestanding::random_access_iterator Iter,details::my_integral T>
 requires (!std::same_as<std::remove_cvref_t<T>,bool>)
-inline constexpr Iter print_reserve_define(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,T t) noexcept
+inline constexpr Iter print_reserve_define(basic_lc_all<::fast_io::freestanding::iter_value_t<Iter>> const* __restrict all,Iter iter,T t) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 //To finish grouping
 	if((all->numeric.grouping.len==0)|(all->numeric.thousands_sep.len==0))
 		return print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,iter,t);
@@ -334,8 +334,8 @@ inline constexpr std::size_t print_reserve_size_grouping_timestamp_impl(basic_lc
 	return static_size+static_sizem1*all->numeric.thousands_sep.len+all->numeric.decimal_point.len+std::numeric_limits<uintiso_t>::digits10;
 }
 
-template<std::random_access_iterator Iter>
-inline constexpr Iter print_reserve_define_grouping_timestamp_impl(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,unix_timestamp timestamp)
+template<::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define_grouping_timestamp_impl(basic_lc_all<::fast_io::freestanding::iter_value_t<Iter>> const* __restrict all,Iter iter,unix_timestamp timestamp)
 {
 	iter=print_reserve_define(all,iter,timestamp.seconds);
 	if(timestamp.subseconds)
@@ -359,8 +359,8 @@ inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* _
 	return details::print_reserve_size_grouping_timestamp_impl(all);
 }
 
-template<std::random_access_iterator Iter,intiso_t off_to_epoch>
-inline constexpr Iter print_reserve_define(basic_lc_all<std::iter_value_t<Iter>> const* __restrict all,Iter iter,basic_timestamp<off_to_epoch> ts) noexcept
+template<::fast_io::freestanding::random_access_iterator Iter,intiso_t off_to_epoch>
+inline constexpr Iter print_reserve_define(basic_lc_all<::fast_io::freestanding::iter_value_t<Iter>> const* __restrict all,Iter iter,basic_timestamp<off_to_epoch> ts) noexcept
 {
 	if constexpr(off_to_epoch==0)
 	{

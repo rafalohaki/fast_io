@@ -2,10 +2,10 @@
 
 namespace fast_io::details
 {
-template<char8_t start=u8'0',std::random_access_iterator Iter>
+template<char8_t start=u8'0',::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr void append_nine_digits_dummy(Iter str,std::uint32_t value)
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	str+=9;
 	for(std::size_t i{};i!=9;++i)
 	{
@@ -16,7 +16,7 @@ inline constexpr void append_nine_digits_dummy(Iter str,std::uint32_t value)
 	}
 }
 
-template<char8_t start=u8'0',std::random_access_iterator Iter>
+template<char8_t start=u8'0',::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr void append_nine_digits(Iter str,std::uint32_t value)
 {
 #ifndef FAST_IO_OPTIMIZE_SIZE
@@ -27,7 +27,7 @@ inline constexpr void append_nine_digits(Iter str,std::uint32_t value)
 
 	else
 	{
-		using char_type = std::iter_value_t<Iter>;
+		using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 #ifdef FAST_IO_OPTIMIZE_TIME
 
 	#if (_WIN64 || __x86_64__ || __ppc64__)

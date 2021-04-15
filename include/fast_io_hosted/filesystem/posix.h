@@ -287,7 +287,7 @@ To fix: avoid setting errno
 #if defined(_DIRENT_HAVE_D_NAMLEN)
 		pdit.d_namlen=entry->d_namlen;
 #else
-		pdit.d_namlen=std::strlen(entry->d_name);
+		pdit.d_namlen=cstr_len(entry->d_name);
 #endif
 	}
 	return pdit;
@@ -302,24 +302,24 @@ inline posix_directory_iterator begin(posix_directory_generator const& pdg)
 	return pdit;
 }
 
-inline std::default_sentinel_t end(posix_directory_generator const&) noexcept
+inline ::fast_io::freestanding::default_sentinel_t end(posix_directory_generator const&) noexcept
 {
 	return {};
 }
 
-inline constexpr bool operator==(std::default_sentinel_t, posix_directory_iterator const& b) noexcept
+inline constexpr bool operator==(::fast_io::freestanding::default_sentinel_t, posix_directory_iterator const& b) noexcept
 {
 	return b.entry == nullptr;
 }
-inline constexpr bool operator==(posix_directory_iterator const& b, std::default_sentinel_t) noexcept
+inline constexpr bool operator==(posix_directory_iterator const& b, ::fast_io::freestanding::default_sentinel_t) noexcept
 {
 	return b.entry == nullptr;
 }
-inline constexpr bool operator!=(std::default_sentinel_t, posix_directory_iterator const& b) noexcept
+inline constexpr bool operator!=(::fast_io::freestanding::default_sentinel_t, posix_directory_iterator const& b) noexcept
 {
 	return b.entry;
 }
-inline constexpr bool operator!=(posix_directory_iterator const& b, std::default_sentinel_t) noexcept
+inline constexpr bool operator!=(posix_directory_iterator const& b, ::fast_io::freestanding::default_sentinel_t) noexcept
 {
 	return b.entry;
 }
@@ -400,7 +400,7 @@ inline posix_recursive_directory_iterator& operator++(posix_recursive_directory_
 #if defined(_DIRENT_HAVE_D_NAMLEN)
 			prdit.d_namlen=prdit.entry->d_namlen;
 #else
-			prdit.d_namlen=std::strlen(prdit.entry->d_name);
+			prdit.d_namlen=cstr_len(prdit.entry->d_name);
 #endif
 		}
 		else
@@ -434,7 +434,7 @@ inline posix_recursive_directory_iterator begin(posix_recursive_directory_genera
 	return pdit;
 }
 
-inline std::default_sentinel_t end(posix_recursive_directory_generator const&) noexcept
+inline ::fast_io::freestanding::default_sentinel_t end(posix_recursive_directory_generator const&) noexcept
 {
 	return {};
 }
@@ -444,22 +444,22 @@ inline posix_directory_entry operator*(posix_recursive_directory_iterator const&
 	return {prdit.stack.empty()?prdit.dirp:prdit.stack.back().dirp,prdit.entry,prdit.d_namlen};
 }
 
-inline bool operator==(std::default_sentinel_t, posix_recursive_directory_iterator const& b) noexcept
+inline bool operator==(::fast_io::freestanding::default_sentinel_t, posix_recursive_directory_iterator const& b) noexcept
 {
 	return b.stack.empty()&&b.entry == nullptr;
 }
 
-inline bool operator==(posix_recursive_directory_iterator const& b, std::default_sentinel_t sntnl) noexcept
+inline bool operator==(posix_recursive_directory_iterator const& b, ::fast_io::freestanding::default_sentinel_t sntnl) noexcept
 {
 	return sntnl==b;
 }
 
-inline bool operator!=(std::default_sentinel_t sntnl, posix_recursive_directory_iterator const& b) noexcept
+inline bool operator!=(::fast_io::freestanding::default_sentinel_t sntnl, posix_recursive_directory_iterator const& b) noexcept
 {
 	return !(sntnl==b);
 }
 
-inline bool operator!=(posix_recursive_directory_iterator const& b, std::default_sentinel_t sntnl) noexcept
+inline bool operator!=(posix_recursive_directory_iterator const& b, ::fast_io::freestanding::default_sentinel_t sntnl) noexcept
 {
 	return sntnl!=b;
 }
@@ -525,11 +525,11 @@ inline basic_io_scatter_t<char_type> print_scatter_define(print_scatter_type_t<c
 	}
 }
 
-template<std::random_access_iterator Iter>
-inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,posix_directory_entry>,
+template<::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,posix_directory_entry>,
 	Iter iter,posix_directory_entry ent) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	if constexpr(std::same_as<char_type,typename posix_directory_entry::native_char_type>)
 	{
 		auto nfnm{native_filename(ent)};
@@ -546,7 +546,7 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<I
 		if constexpr(std::is_pointer_v<Iter>)
 			return details::codecvt::general_code_cvt_full<encoding_scheme::utf>(fnm.data(),fnm.data()+fnm.size(),iter);
 		else
-			return iter+(details::codecvt::general_code_cvt_full<encoding_scheme::utf>(fnm.data(),fnm.data()+fnm.size(),std::to_address(iter))-std::to_address(iter));
+			return iter+(details::codecvt::general_code_cvt_full<encoding_scheme::utf>(fnm.data(),fnm.data()+fnm.size(),::fast_io::freestanding::to_address(iter))-::fast_io::freestanding::to_address(iter));
 	}
 }
 

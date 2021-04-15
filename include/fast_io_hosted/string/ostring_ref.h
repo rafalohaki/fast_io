@@ -95,15 +95,15 @@ inline constexpr void oreserve(basic_ostring_ref<CharT,Traits,Allocator> ob,std:
 	ob.ptr->reserve(n);
 }
 
-template<std::integral char_type,typename Traits,typename Allocator,std::input_or_output_iterator Iter>
+template<std::integral char_type,typename Traits,typename Allocator,::fast_io::freestanding::input_or_output_iterator Iter>
 requires (std::same_as<char_type,char>||
-	std::same_as<char_type,typename std::iterator_traits<Iter>::value_type>)
+	std::same_as<char_type,::fast_io::freestanding::iter_value_t<Iter>>)
 inline constexpr void write(basic_ostring_ref<char_type,Traits,Allocator> ob,Iter begin,Iter end)
 {
-	if constexpr(std::same_as<char_type,std::iter_value_t<Iter>>)
+	if constexpr(std::same_as<char_type,::fast_io::freestanding::iter_value_t<Iter>>)
 		ob.ptr->append(begin,end);
 	else
-		write(ob,reinterpret_cast<char const*>(std::to_address(begin)),reinterpret_cast<char const*>(std::to_address(end)));
+		write(ob,reinterpret_cast<char const*>(::fast_io::freestanding::to_address(begin)),reinterpret_cast<char const*>(::fast_io::freestanding::to_address(end)));
 }
 
 using ostring_ref = basic_ostring_ref<char>;

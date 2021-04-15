@@ -55,8 +55,8 @@ inline void win32_box_dealer_path_impl(char_type const* first,char_type const* l
 
 }
 
-template<std::integral char_type,std::contiguous_iterator Iter>
-requires std::same_as<char_type,std::iter_value_t<Iter>>
+template<std::integral char_type,::fast_io::freestanding::contiguous_iterator Iter>
+requires std::same_as<char_type,::fast_io::freestanding::iter_value_t<Iter>>
 inline void write(basic_win32_box_t<char_type>,Iter first,Iter last)
 {
 	if constexpr(std::same_as<char_type,wchar_t>)
@@ -67,15 +67,15 @@ inline void write(basic_win32_box_t<char_type>,Iter first,Iter last)
 #endif
 		= char16_t const*;
 		details::win32_box_raw_path_impl(
-			reinterpret_cast<char16_t_may_alias_ptr>(std::to_address(first)),
-			reinterpret_cast<char16_t_may_alias_ptr>(std::to_address(last)));
+			reinterpret_cast<char16_t_may_alias_ptr>(::fast_io::freestanding::to_address(first)),
+			reinterpret_cast<char16_t_may_alias_ptr>(::fast_io::freestanding::to_address(last)));
 	}
 	else if constexpr(std::same_as<char_type,char16_t>)
 	{
-		details::win32_box_raw_path_impl(std::to_address(first),std::to_address(last));
+		details::win32_box_raw_path_impl(::fast_io::freestanding::to_address(first),::fast_io::freestanding::to_address(last));
 	}
 	else
-		details::win32_box_dealer_path_impl(std::to_address(first),std::to_address(last));
+		details::win32_box_dealer_path_impl(::fast_io::freestanding::to_address(first),::fast_io::freestanding::to_address(last));
 }
 
 }

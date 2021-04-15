@@ -5,7 +5,7 @@ namespace fast_io
 
 namespace details
 {
-template<std::size_t mx_size,std::random_access_iterator Iter>
+template<std::size_t mx_size,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter output_unsigned_serialize_size(std::size_t val,Iter iter) noexcept;
 
 
@@ -15,7 +15,7 @@ inline constexpr Iter output_unsigned_serialize_size(std::size_t val,Iter iter) 
 namespace details
 {
 
-template<std::random_access_iterator Iter,my_unsigned_integral U>
+template<::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
 inline constexpr void output_unsigned_with_size(Iter str,U value,std::size_t len) noexcept;
 }
 
@@ -171,7 +171,7 @@ inline constexpr void scatter_print_with_reserve_recursive_unit(char_type*& star
 	{
 #ifdef __SANITIZE_ADDRESS__
 		constexpr std::size_t sz{print_reserve_size(io_reserve_type<char_type,real_type>)};
-		std::array<char_type,sz> sanitize_buffer;
+		::fast_io::freestanding::array<char_type,sz> sanitize_buffer;
 		auto dt{print_reserve_define(io_reserve_type<char_type,real_type>,sanitize_buffer.data(),t)};
 		auto end_ptr{non_overlapped_copy_n(sanitize_buffer.data(),static_cast<std::size_t>(dt-sanitize_buffer.data()),start_ptr)};
 		*arr={start_ptr,(end_ptr-start_ptr)*sizeof(*start_ptr)};
@@ -242,7 +242,7 @@ inline constexpr void print_serialize_size_bad_path(output out,std::size_t sz)
 {
 	using char_type = typename output::char_type;
 	constexpr std::size_t size_t_reserve_length{print_reserve_size(io_reserve_type<char_type,std::size_t>)+1};
-	std::array<char_type,size_t_reserve_length> array;
+	::fast_io::freestanding::array<char_type,size_t_reserve_length> array;
 	auto it{print_reserve_define(io_reserve_type<char_type,std::size_t>,array.data(),sz)};
 	if constexpr(std::same_as<char,char_type>)
 		*it=' ';
@@ -260,7 +260,7 @@ inline constexpr void print_control_reserve_bad_path(output out,value_type t)
 {
 	using char_type = typename output::char_type;
 	constexpr std::size_t size{print_reserve_control_size_impl<pci,char_type,value_type>()+static_cast<std::size_t>(line)};
-	std::array<char_type,size> array;
+	::fast_io::freestanding::array<char_type,size> array;
 	if constexpr(line)
 	{
 		auto it{print_reserve_control_define_impl<pci,char_type,value_type>(array.data(),t)};
@@ -590,7 +590,7 @@ inline constexpr void print_fallback(output out,Args ...args)
 	}
 	else if constexpr((scatter_output_stream<output>&&((scatter_printable<typename output::char_type,Args>||reserve_printable<typename output::char_type,Args>||dynamic_reserve_printable<typename output::char_type,Args>)&&...)))
 	{
-		std::array<io_scatter_t,(sizeof...(Args))+static_cast<std::size_t>(line)> scatters;
+		::fast_io::freestanding::array<io_scatter_t,(sizeof...(Args))+static_cast<std::size_t>(line)> scatters;
 		if constexpr((scatter_printable<typename output::char_type,Args>&&...))
 		{
 			scatter_print_recursive<typename output::char_type>(scatters.data(),args...);
@@ -621,7 +621,7 @@ inline constexpr void print_fallback(output out,Args ...args)
 		else if constexpr(((scatter_printable<char_type,Args>||
 			reserve_printable<char_type,Args>)&&...))
 		{
-			std::array<char_type,calculate_scatter_reserve_size<char_type,Args...>()> array;
+			::fast_io::freestanding::array<char_type,calculate_scatter_reserve_size<char_type,Args...>()> array;
 			scatter_print_with_reserve_recursive(array.data(),scatters.data(),args...);
 			if constexpr(line)
 			{
@@ -649,7 +649,7 @@ inline constexpr void print_fallback(output out,Args ...args)
 		}
 		else
 		{
-			std::array<char_type,calculate_scatter_reserve_size<char_type,Args...>()> array;
+			::fast_io::freestanding::array<char_type,calculate_scatter_reserve_size<char_type,Args...>()> array;
 			local_operator_new_array_ptr<char_type> new_ptr(calculate_scatter_dynamic_reserve_size<char_type>(args...));
 			scatter_print_with_dynamic_reserve_recursive(scatters.data(),array.data(),new_ptr.ptr,args...);
 			if constexpr(line)

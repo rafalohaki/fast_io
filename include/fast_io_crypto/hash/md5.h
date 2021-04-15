@@ -49,7 +49,7 @@ inline auto avx2_step()
 class md5_function
 {
 public:
-	using digest_type = std::array<std::uint32_t,4>;
+	using digest_type = ::fast_io::freestanding::array<std::uint32_t,4>;
 	static inline constexpr digest_type digest_initial_value{0x67452301,0xefcdab89,0x98badcfe,0x10325476};
 	static inline constexpr std::size_t block_size{64};
 	void operator()(std::span<std::uint32_t,4> state,std::span<std::byte const> blocks) noexcept
@@ -58,7 +58,7 @@ public:
 		for(auto block(blocks.data()),ed(blocks.data()+blocks.size());block!=ed;block+=block_size)
 		{
 			std::uint32_t a{at},b{bt},c{ct},d{dt};
-			std::array<std::uint32_t,16> x;
+			::fast_io::freestanding::array<std::uint32_t,16> x;
 			::fast_io::details::my_memcpy(x.data(),block,block_size);
 			using namespace details::md5;
 

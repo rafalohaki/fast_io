@@ -19,7 +19,7 @@ namespace fast_io
 inline std::filesystem::path to_path(nt_directory_entry de)
 {
 	auto nfm{native_filename(de)};
-	std::basic_string_view<wchar_t> bsv{nfm};
+	::fast_io::freestanding::basic_string_view<wchar_t> bsv{nfm};
 	return std::filesystem::path(bsv);
 }
 #endif
@@ -28,7 +28,7 @@ inline std::filesystem::path to_path(nt_directory_entry de)
 inline std::filesystem::path to_path(posix_directory_entry de)
 {
 	auto nfm{native_filename(de)};
-	std::basic_string_view<char> bsv{nfm};
+	::fast_io::freestanding::basic_string_view<char> bsv{nfm};
 	return std::filesystem::path(bsv);
 }
 #endif
@@ -42,15 +42,15 @@ inline std::size_t print_reserve_size(io_reserve_type_t<to_char_type,std::filesy
 		return details::cal_full_reserve_size<sizeof(std::filesystem::path::value_type),sizeof(to_char_type)>(pth.native().size());
 }
 
-template<std::contiguous_iterator Iter>
-inline Iter print_reserve_define(io_reserve_type_t<std::iter_value_t<Iter>,std::filesystem::path>,Iter iter,std::filesystem::path const& pth) noexcept
+template<::fast_io::freestanding::contiguous_iterator Iter>
+inline Iter print_reserve_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,std::filesystem::path>,Iter iter,std::filesystem::path const& pth) noexcept
 {
-	if constexpr(std::same_as<std::iter_value_t<Iter>,std::filesystem::path::value_type>)
+	if constexpr(std::same_as<::fast_io::freestanding::iter_value_t<Iter>,std::filesystem::path::value_type>)
 		return details::non_overlapped_copy_n(pth.native().data(),pth.native().size(),iter);
 	else if constexpr(std::is_pointer_v<Iter>)
 		return details::codecvt::general_code_cvt_full<encoding_scheme::utf>(pth.native().data(),pth.native().data()+pth.native().size(),iter);
 	else
-		return iter+(details::codecvt::general_code_cvt_full<encoding_scheme::utf>(pth.native().data(),pth.native().data()+pth.native().size(),std::to_address(iter))-std::to_address(iter));
+		return iter+(details::codecvt::general_code_cvt_full<encoding_scheme::utf>(pth.native().data(),pth.native().data()+pth.native().size(),::fast_io::freestanding::to_address(iter))-::fast_io::freestanding::to_address(iter));
 }
 
 template<std::integral char_type>

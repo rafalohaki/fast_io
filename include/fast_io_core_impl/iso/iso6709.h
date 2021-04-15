@@ -25,10 +25,10 @@ struct iso6709_coordinates
 namespace details
 {
 
-template<std::random_access_iterator Iter>
+template<::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter print_reserve_define_iso6709_coordinate_impl(Iter iter,iso6709_coordinate dms) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	std::uint16_t absolute{static_cast<std::uint16_t>(dms.degrees)};
 	bool const negative(dms.degrees<0);
 	if(negative)
@@ -111,7 +111,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,iso6
 	return 8+print_reserve_size(io_reserve_type<char_type,uintiso_t>);
 }
 
-template<std::integral char_type,std::random_access_iterator Iter>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,iso6709_coordinate>,Iter iter,iso6709_coordinate dms) noexcept
 {
 	return details::print_reserve_define_iso6709_coordinate_impl(iter,dms);
@@ -123,13 +123,13 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,iso6
 	return print_reserve_size(io_reserve_type<char_type,iso6709_coordinate>)*2;
 }
 
-template<std::integral char_type,std::random_access_iterator Iter>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,iso6709_coordinates>,Iter iter,iso6709_coordinates dms) noexcept
 {
 	return details::print_reserve_define_iso6709_coordinate_impl(details::print_reserve_define_iso6709_coordinate_impl(iter,dms.latitude),dms.longtitude);
 }
 
-template<std::random_access_iterator Iter>
+template<::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter scan_skip_define(scan_skip_type_t<parameter<iso6709_coordinates&>>, Iter beg, Iter ed) noexcept
 {
 	return scan_skip_space(beg, ed);
@@ -138,11 +138,11 @@ inline constexpr Iter scan_skip_define(scan_skip_type_t<parameter<iso6709_coordi
 namespace details::ctx_scan_iso6709
 {
 
-template<bool contiguous_only, std::random_access_iterator Iter>
+template<bool contiguous_only, ::fast_io::freestanding::random_access_iterator Iter>
 struct voldmort
 {
 	Iter iter;
-	std::errc code{};
+	parse_code code=parse_code::ok;
 	std::conditional_t<>
 	inline constexpr voldmort(Iter begin, Iter end, iso6709_coordinates& t) noexcept
 	{
@@ -152,7 +152,7 @@ struct voldmort
 
 }
 
-template<bool contiguous_only, std::random_access_iterator Iter>
+template<bool contiguous_only, ::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr auto scan_context_define(scan_context_t<contiguous_only>, Iter begin, Iter end, parameter<iso6709_coordinates&> t) noexcept
 {
 	return details::ctx_scan_iso6709::voldmort<contiguous_only,Iter,iso6709_coordinates>(begin,end,t);

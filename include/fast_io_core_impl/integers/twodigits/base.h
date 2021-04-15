@@ -7,10 +7,10 @@ namespace details
 {
 
 
-template<char8_t base,bool uppercase,std::random_access_iterator Iter,my_unsigned_integral U>
+template<char8_t base,bool uppercase,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
 inline constexpr auto output_base_number_full_impl(Iter iter,U a) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	constexpr auto &table_v(get_shared_inline_constexpr_base_table<char_type,base,uppercase,false>());
 	constexpr std::uint32_t pw(static_cast<std::uint32_t>(table_v.size()));
 	constexpr auto table(table_v.data());
@@ -31,13 +31,13 @@ inline constexpr auto output_base_number_full_impl(Iter iter,U a) noexcept
 	return res;
 }
 
-template<char8_t base,bool uppercase,bool point=false,char32_t dec=u8'.',bool transparent=false,std::random_access_iterator Iter,my_unsigned_integral U>
+template<char8_t base,bool uppercase,bool point=false,char32_t dec=u8'.',bool transparent=false,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
 inline constexpr auto output_base_number_impl(Iter iter,U a) noexcept
 {
 //number: 0:48 9:57
 //upper: 65 :A 70: F
 //lower: 97 :a 102 :f
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	constexpr auto &table_v(get_shared_inline_constexpr_base_table<char_type,base,uppercase,transparent>());
 	constexpr std::uint32_t pw(static_cast<std::uint32_t>(table_v.size()));
 	constexpr auto table(table_v.data());
@@ -158,7 +158,7 @@ inline constexpr bool is_space(T const u) noexcept
 namespace twodigits
 {
 
-template<char8_t base=10,bool uppercase=false,std::random_access_iterator Iter,my_unsigned_integral U>
+template<char8_t base=10,bool uppercase=false,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
 inline constexpr std::size_t output_unsigned(Iter str,U value) noexcept
 {
 	std::size_t const len{chars_len<base>(value)};
@@ -171,7 +171,7 @@ inline constexpr std::size_t output_unsigned(Iter str,U value) noexcept
 
 namespace fp
 {
-template<char8_t start=u8'0',std::random_access_iterator Iter,my_unsigned_integral U>
+template<char8_t start=u8'0',::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
 requires (start==0||start==u8'0')
 inline constexpr std::size_t output_unsigned(Iter str,U value) noexcept
 {
@@ -186,7 +186,7 @@ inline constexpr std::size_t output_unsigned(Iter str,U value) noexcept
 
 namespace with_length
 {
-template<char8_t start=u8'0',std::random_access_iterator Iter,my_unsigned_integral U>
+template<char8_t start=u8'0',::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
 requires (start==0||start==u8'0')
 inline constexpr void output_unsigned(Iter str,U value,std::size_t len) noexcept
 {
@@ -197,7 +197,7 @@ inline constexpr void output_unsigned(Iter str,U value,std::size_t len) noexcept
 }
 }
 
-template<char8_t base=10,bool uppercase=false,std::random_access_iterator Iter,my_unsigned_integral uint_type>
+template<char8_t base=10,bool uppercase=false,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral uint_type>
 inline constexpr Iter output_unsigned_full(Iter str,uint_type value) noexcept
 {
 	return output_base_number_full_impl<base,uppercase>(str,value);

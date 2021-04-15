@@ -451,13 +451,13 @@ inline auto redirect_handle(basic_c_io_observer_unlocked<ch_type> h)
 using c_io_observer_unlocked = basic_c_io_observer_unlocked<char>;
 
 #if !defined(_WIN32) || defined(FAST_IO_WIN32_USE_SYS_FWRITE)
-template<std::integral T,std::contiguous_iterator Iter>
-requires (std::same_as<T,std::iter_value_t<Iter>>||std::same_as<T,char>)
+template<std::integral T,::fast_io::freestanding::contiguous_iterator Iter>
+requires (std::same_as<T,::fast_io::freestanding::iter_value_t<Iter>>||std::same_as<T,char>)
 inline Iter read(basic_c_io_observer_unlocked<T> cfhd,Iter begin,Iter end);
 
 
-template<std::integral T,std::contiguous_iterator Iter>
-requires (std::same_as<T,std::iter_value_t<Iter>>||std::same_as<T,char>)
+template<std::integral T,::fast_io::freestanding::contiguous_iterator Iter>
+requires (std::same_as<T,::fast_io::freestanding::iter_value_t<Iter>>||std::same_as<T,char>)
 inline Iter write(basic_c_io_observer_unlocked<T> cfhd,Iter begin,Iter end);
 #endif
 
@@ -681,7 +681,7 @@ inline constexpr basic_c_io_observer_unlocked<T> io_value_handle(basic_c_io_obse
 	return other;
 }
 
-template<std::integral T,std::contiguous_iterator Iter>
+template<std::integral T,::fast_io::freestanding::contiguous_iterator Iter>
 [[nodiscard]] inline Iter read(basic_c_io_observer<T> cfhd,Iter begin,Iter end)
 {
 	details::lock_guard lg{cfhd};
@@ -699,8 +699,8 @@ inline void c_write_impl(void const* __restrict ptr,std::size_t size,std::size_t
 }
 }
 
-template<std::integral T,std::contiguous_iterator Iter>
-requires (std::same_as<T,char>||std::same_as<std::iter_value_t<Iter>,T>)
+template<std::integral T,::fast_io::freestanding::contiguous_iterator Iter>
+requires (std::same_as<T,char>||std::same_as<::fast_io::freestanding::iter_value_t<Iter>,T>)
 inline Iter write(basic_c_io_observer<T> cfhd,Iter begin,Iter end)
 {
 	details::lock_guard lg{cfhd};

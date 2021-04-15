@@ -12,10 +12,10 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,std:
 
 namespace details
 {
-template<typename T,std::random_access_iterator Iter>
+template<typename T,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter print_reserve_complex_impl(Iter iter,std::complex<T> c) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	if constexpr(std::same_as<char,char_type>)
 		*iter='(';
 	else if constexpr(std::same_as<wchar_t,char_type>)
@@ -42,7 +42,7 @@ inline constexpr Iter print_reserve_complex_impl(Iter iter,std::complex<T> c) no
 }
 }
 
-template<std::integral char_type,typename T,std::random_access_iterator Iter>
+template<std::integral char_type,typename T,::fast_io::freestanding::random_access_iterator Iter>
 requires reserve_printable<char_type,T>
 inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,std::complex<T>>,Iter iter,std::complex<T> c) noexcept
 {

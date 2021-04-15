@@ -2,6 +2,7 @@
 
 namespace fast_io
 {
+
 //All compilers have supported bit_cast but most people are stick with GCC 10. We provide emulation currently.
 template<typename To,typename From>
 requires (sizeof(To)==sizeof(From) && std::is_trivially_copyable_v<To> && std::is_trivial_v<From>)
@@ -170,45 +171,22 @@ inline void* my_memset(void* dest, int ch, std::size_t count) noexcept
         (dest,ch,count);
 }
 
-inline constexpr std::size_t my_strlen(char const* cstr) noexcept
-{
-	if(std::is_constant_evaluated())
-	{
-		std::size_t n{};
-		for(;*cstr;++cstr)
-			++n;
-		return n;
-	}
-	else
-	{
-    return
-#if defined(__has_builtin)
-#if __has_builtin(__builtin_strlen)
-		__builtin_strlen
-#else
-		std::strlen
-#endif
-#else
-		std::strlen
-#endif
-        (cstr);
-	}
-}
 
-template<std::input_iterator input_iter,std::integral count_type,std::input_or_output_iterator output_iter>
-inline constexpr output_iter non_overlapped_copy_n(input_iter first,count_type count,output_iter result)
+
+template<::fast_io::freestanding::input_iterator input_iter,::fast_io::freestanding::input_or_output_iterator output_iter>
+inline constexpr output_iter non_overlapped_copy_n(input_iter first,std::size_t count,output_iter result)
 {
 #if __cpp_lib_is_constant_evaluated>=201811L
 	if (std::is_constant_evaluated())
-		return std::copy_n(first,count,result);
+		return ::fast_io::freestanding::copy_n(first,count,result);
 	else
 #endif
 	{
-	using input_value_type = typename std::iterator_traits<input_iter>::value_type;
-	using output_value_type = typename std::iterator_traits<output_iter>::value_type;
+	using input_value_type = ::fast_io::freestanding::iter_value_t<input_iter>;
+	using output_value_type = ::fast_io::freestanding::iter_value_t<output_iter>;
 	if constexpr
-	(std::contiguous_iterator<input_iter>&&
-	std::contiguous_iterator<output_iter>&&
+	(::fast_io::freestanding::contiguous_iterator<input_iter>&&
+	::fast_io::freestanding::contiguous_iterator<output_iter>&&
 	std::is_trivially_copyable_v<input_value_type>&&
 	std::is_trivially_copyable_v<output_value_type>&&
 	(std::same_as<input_value_type,output_value_type>||
@@ -216,28 +194,28 @@ inline constexpr output_iter non_overlapped_copy_n(input_iter first,count_type c
 	sizeof(input_value_type)==sizeof(output_value_type))))
 	{
 		if(count)	//to avoid nullptr UB
-			my_memcpy(std::to_address(result),std::to_address(first),sizeof(typename std::iterator_traits<input_iter>::value_type)*count);
+			my_memcpy(::fast_io::freestanding::to_address(result),::fast_io::freestanding::to_address(first),sizeof(::fast_io::freestanding::iter_value_t<input_iter>)*count);
 		return result+=count;
 	}
 	else
-		return std::copy_n(first,count,result);
+		::fast_io::freestanding::copy_n(first,count,result);
 	}
 }
 
-template<std::input_iterator input_iter,std::input_or_output_iterator output_iter>
+template<::fast_io::freestanding::input_iterator input_iter,::fast_io::freestanding::input_or_output_iterator output_iter>
 inline constexpr output_iter non_overlapped_copy(input_iter first,input_iter last,output_iter result)
 {
 #if __cpp_lib_is_constant_evaluated>=201811L
 	if (std::is_constant_evaluated())
-		return std::copy(first,last,result);
+		return ::fast_io::freestanding::copy(first,last,result);
 	else
 #endif
 	{
-	using input_value_type = typename std::iterator_traits<input_iter>::value_type;
-	using output_value_type = typename std::iterator_traits<output_iter>::value_type;
+	using input_value_type = ::fast_io::freestanding::iter_value_t<input_iter>;
+	using output_value_type = ::fast_io::freestanding::iter_value_t<output_iter>;
 	if constexpr
-	(std::contiguous_iterator<input_iter>&&
-	std::contiguous_iterator<output_iter>&&
+	(::fast_io::freestanding::contiguous_iterator<input_iter>&&
+	::fast_io::freestanding::contiguous_iterator<output_iter>&&
 	std::is_trivially_copyable_v<input_value_type>&&
 	std::is_trivially_copyable_v<output_value_type>&&
 	(std::same_as<input_value_type,output_value_type>||
@@ -246,30 +224,30 @@ inline constexpr output_iter non_overlapped_copy(input_iter first,input_iter las
 	{
 		std::size_t count(last-first);
 		if(count)	//to avoid nullptr UB
-			my_memcpy(std::to_address(result),std::to_address(first),sizeof(typename std::iterator_traits<input_iter>::value_type)*count);
+			my_memcpy(::fast_io::freestanding::to_address(result),::fast_io::freestanding::to_address(first),sizeof(::fast_io::freestanding::iter_value_t<input_iter>)*count);
 		return result+=count;
 	}
 	else
-		return std::copy(first,last,result);
+	{
+		return ::fast_io::freestanding::copy(first,last,result);
+	}
 	}
 }
 
-// I think the standard libraries haven't applied these optimization
-
-template<std::input_iterator input_iter,std::integral count_type,std::input_or_output_iterator output_iter>
-inline constexpr output_iter my_copy_n(input_iter first,count_type count,output_iter result)
+template<::fast_io::freestanding::input_iterator input_iter,::fast_io::freestanding::input_or_output_iterator output_iter>
+inline constexpr output_iter my_copy_n(input_iter first,std::size_t count,output_iter result)
 {
 #if __cpp_lib_is_constant_evaluated>=201811L
 	if (std::is_constant_evaluated())
-		return std::copy_n(first,count,result);
+		return ::fast_io::freestanding::copy_n(first,count,result);
 	else
 #endif
 	{
-	using input_value_type = typename std::iterator_traits<input_iter>::value_type;
-	using output_value_type = typename std::iterator_traits<output_iter>::value_type;
+	using input_value_type = ::fast_io::freestanding::iter_value_t<input_iter>;
+	using output_value_type = ::fast_io::freestanding::iter_value_t<output_iter>;
 	if constexpr
-	(std::contiguous_iterator<input_iter>&&
-	std::contiguous_iterator<output_iter>&&
+	(::fast_io::freestanding::contiguous_iterator<input_iter>&&
+	::fast_io::freestanding::contiguous_iterator<output_iter>&&
 	std::is_trivially_copyable_v<input_value_type>&&
 	std::is_trivially_copyable_v<output_value_type>&&
 	(std::same_as<input_value_type,output_value_type>||
@@ -277,51 +255,22 @@ inline constexpr output_iter my_copy_n(input_iter first,count_type count,output_
 	sizeof(input_value_type)==sizeof(output_value_type))))
 	{
 		if(count)	//to avoid nullptr UB
-			my_memmove(std::to_address(result),std::to_address(first),sizeof(typename std::iterator_traits<input_iter>::value_type)*count);
+			my_memmove(::fast_io::freestanding::to_address(result),::fast_io::freestanding::to_address(first),sizeof(::fast_io::freestanding::iter_value_t<input_iter>)*count);
 		return result+=count;
 	}
 	else
-		return std::copy_n(first,count,result);
+	{
+		return ::fast_io::freestanding::copy_n(first,count,result);
+	}
 	}
 }
 
-template<std::bidirectional_iterator input_iter,std::bidirectional_iterator output_iter>
-inline constexpr output_iter my_copy_backward(input_iter first,input_iter last,output_iter d_last)
-{
-#if __cpp_lib_is_constant_evaluated>=201811L
-	if (std::is_constant_evaluated())
-		return std::copy_backward(first,last,d_last);
-	else
-#endif
-	{
-	using input_value_type = typename std::iterator_traits<input_iter>::value_type;
-	using output_value_type = typename std::iterator_traits<output_iter>::value_type;
-	if constexpr
-	(std::contiguous_iterator<input_iter>&&
-	std::contiguous_iterator<output_iter>&&
-	std::is_trivially_copyable_v<input_value_type>&&
-	std::is_trivially_copyable_v<output_value_type>&&
-	(std::same_as<input_value_type,output_value_type>||
-	(std::integral<input_value_type>&&std::integral<output_value_type>&&
-	sizeof(input_value_type)==sizeof(output_value_type))))
-	{
-		std::size_t const count(last-first);
-		d_last-=count;
-		if(count)	//to avoid nullptr UB
-			my_memmove(std::to_address(d_last),std::to_address(first),sizeof(input_value_type)*count);
-		return d_last;
-	}
-	else
-		return std::copy_backward(first,last,d_last);
-	}
-}
-
-template<std::input_iterator input_iter,std::input_or_output_iterator output_iter>
+template<::fast_io::freestanding::input_iterator input_iter,::fast_io::freestanding::input_or_output_iterator output_iter>
 inline constexpr output_iter my_copy(input_iter first,input_iter second,output_iter result)
 {
-	using input_value_type = typename std::iterator_traits<input_iter>::value_type;
-	using output_value_type = typename std::iterator_traits<output_iter>::value_type;
-	if constexpr(std::contiguous_iterator<input_iter>&&std::contiguous_iterator<output_iter>&&std::is_trivially_copyable_v<input_value_type>&&
+	using input_value_type = ::fast_io::freestanding::iter_value_t<input_iter>;
+	using output_value_type = ::fast_io::freestanding::iter_value_t<output_iter>;
+	if constexpr(::fast_io::freestanding::contiguous_iterator<input_iter>&&::fast_io::freestanding::contiguous_iterator<output_iter>&&std::is_trivially_copyable_v<input_value_type>&&
 	std::is_trivially_copyable_v<output_value_type>&&
 	(std::same_as<input_value_type,output_value_type>||(std::integral<input_value_type>&&std::integral<output_value_type>&&sizeof(std::is_trivially_copyable_v<input_value_type>)==sizeof(std::is_trivially_copyable_v<output_value_type>))))
 	{
@@ -329,46 +278,40 @@ inline constexpr output_iter my_copy(input_iter first,input_iter second,output_i
 		return result+(second-first);
 	}
 	else
-		return std::copy(first,second,result);
+		return ::fast_io::freestanding::copy(first,second,result);
 }
 
-template<std::input_or_output_iterator output_iter,std::integral count_type,typename T>
-inline constexpr output_iter my_fill_n(output_iter first,count_type count,T const& value)
+template<::fast_io::freestanding::input_or_output_iterator output_iter,std::integral count_type,typename T>
+requires (std::is_trivially_copyable_v<T> && sizeof(T)<=sizeof(std::uintmax_t))
+inline constexpr void my_fill_n(output_iter first,std::size_t count, T value)
 {
 #if __cpp_lib_is_constant_evaluated>=201811L
 	if (std::is_constant_evaluated())
-		return std::fill_n(first,count,value);
+		::fast_io::freestanding::fill_n(first,count,value);
 	else
 #endif
 	{
-	using output_value_type = typename std::iterator_traits<output_iter>::value_type;
-	if constexpr(std::contiguous_iterator<output_iter>&&std::is_trivially_copyable_v<output_value_type>&&std::integral<output_value_type>&&sizeof(output_value_type)==1)
+	using output_value_type = ::fast_io::freestanding::iter_value_t<output_iter>;
+	if constexpr(::fast_io::freestanding::contiguous_iterator<output_iter>&&std::is_trivially_copyable_v<output_value_type>&&std::integral<output_value_type>&&sizeof(output_value_type)==1)
 	{
-		my_memset(std::to_address(first),static_cast<int>(value),count);
+		my_memset(::fast_io::freestanding::to_address(first),static_cast<int>(value),count);
 		return first+count;
 	}
 	else
-		return std::fill_n(first,count,value);
+		::fast_io::freestanding::fill_n(first,count,value);
 	}
 }
 
-template<std::forward_iterator fwd_iter,typename T>
-inline constexpr void my_fill(fwd_iter first,fwd_iter last,T const& value)
+template<::fast_io::freestanding::forward_iterator fwd_iter,typename T>
+requires (std::is_trivially_copyable_v<T> && sizeof(T)<=sizeof(std::uintmax_t))
+inline constexpr void my_fill(fwd_iter first,fwd_iter last,T value)
 {
-	using fwd_iter_value_type = typename std::iterator_traits<fwd_iter>::value_type;
-	if constexpr(std::contiguous_iterator<fwd_iter>&&std::is_trivially_copyable_v<fwd_iter_value_type>&&std::integral<fwd_iter_value_type>&&sizeof(fwd_iter_value_type)==1)
-		my_fill_n(first,last-first,value);
+	using fwd_iter_value_type = ::fast_io::freestanding::iter_value_t<fwd_iter>;
+	if constexpr(::fast_io::freestanding::contiguous_iterator<fwd_iter>&&std::is_trivially_copyable_v<fwd_iter_value_type>&&std::integral<fwd_iter_value_type>&&sizeof(fwd_iter_value_type)==1)
+		::fast_io::freestanding::fill_n(first,last-first,value);
 	else
-		std::fill(first,last,value);
+		::fast_io::freestanding::fill(first,last,value);
 }
-
-template<std::forward_iterator fwd_iter,typename T>
-requires std::is_trivially_copyable_v<T>
-inline constexpr fwd_iter my_trivial_find(fwd_iter first,fwd_iter last,T value)
-{
-	return std::find(first,last,value);
-}
-
 
 template<typename T>
 using my_make_signed_t=
@@ -424,7 +367,7 @@ inline constexpr std::size_t string_literal_size(char_type const(&)[n])
 	return n-1;
 }
 
-template<std::integral char_type,std::size_t n,std::random_access_iterator output_iter>
+template<std::integral char_type,std::size_t n,::fast_io::freestanding::random_access_iterator output_iter>
 requires(n!=0)
 inline constexpr output_iter copy_string_literal(char_type const(&s)[n],output_iter result)
 {
@@ -432,8 +375,8 @@ inline constexpr output_iter copy_string_literal(char_type const(&s)[n],output_i
 	return result+(n-1);
 }
 
-template<std::input_or_output_iterator output_iter>
-inline constexpr output_iter copy_scatter(basic_io_scatter_t<std::iter_value_t<output_iter>> scatter,output_iter result)
+template<::fast_io::freestanding::input_or_output_iterator output_iter>
+inline constexpr output_iter copy_scatter(basic_io_scatter_t<::fast_io::freestanding::iter_value_t<output_iter>> scatter,output_iter result)
 {
 	return details::non_overlapped_copy_n(scatter.base,scatter.len,result);
 }
@@ -490,7 +433,7 @@ template<std::unsigned_integral uint_type>
 inline constexpr auto power10_table_generator() noexcept
 {
 	constexpr std::size_t digits10(std::numeric_limits<uint_type>::digits10+1);
-	std::array<uint_type,digits10> array{};
+	::fast_io::freestanding::array<uint_type,digits10> array{};
 	uint_type v{1};
 	for(std::size_t i{1};i!=digits10;++i)
 		array[i]=(v*=static_cast<uint_type>(10));
@@ -852,7 +795,7 @@ inline constexpr basic_io_scatter_t<char_type> tsc(char_type const (&a)[N]) noex
 {
 	return {a,N-1};
 }
-} // end details
 
+}
 
 }

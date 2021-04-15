@@ -149,6 +149,12 @@ concept value_based_stream = requires(T t)
 	requires std::is_trivially_copyable_v<typename T::native_handle_type>;
 };
 
+template<typename T>
+concept try_get_input_stream=input_stream<T>&&requires(T in)
+{
+	{try_get(in)}->std::convertible_to<try_get_result<typename T::char_type>>;
+};
+
 /*
 status streams deal with special stream types like streams which need locale
 You can define your own behavior with it
@@ -171,19 +177,5 @@ concept status_input_stream = requires(T in)
 	{scan_status_define(in)}->std::convertible_to<bool>;
 };
 
-namespace details
-{
-template<std::integral ch_type>
-struct dummy_stream
-{
-	using char_type = ch_type;
-};
 
-template<std::input_or_output_iterator Iter>
-inline constexpr Iter read(Iter,Iter) noexcept{}
-
-template<std::input_or_output_iterator Iter>
-inline constexpr void write(Iter,Iter) noexcept{}
-
-}
 }

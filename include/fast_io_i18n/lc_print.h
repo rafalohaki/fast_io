@@ -37,10 +37,10 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,basi
 namespace details
 {
 
-template<std::random_access_iterator Iter>
-inline constexpr Iter print_reserve_define_lc_measurement_impl(Iter iter,basic_lc_measurement<std::iter_value_t<Iter>> measurement) noexcept
+template<::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define_lc_measurement_impl(Iter iter,basic_lc_measurement<::fast_io::freestanding::iter_value_t<Iter>> measurement) noexcept
 {
-	using char_type = std::iter_value_t<Iter>;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	if constexpr(std::same_as<char_type,char>)
 	{
 		iter=copy_string_literal("LC_MEASUREMENT\n"
@@ -85,12 +85,12 @@ inline constexpr Iter print_reserve_define_lc_measurement_impl(Iter iter,basic_l
 
 }
 
-template<std::random_access_iterator Iter>
+template<::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter print_reserve_define(io_reserve_type_t<
-	std::iter_value_t<Iter>,
-	basic_lc_measurement<std::iter_value_t<Iter>>>,
+	::fast_io::freestanding::iter_value_t<Iter>,
+	basic_lc_measurement<::fast_io::freestanding::iter_value_t<Iter>>>,
 	Iter iter,
-	basic_lc_measurement<std::iter_value_t<Iter>> measurement) noexcept
+	basic_lc_measurement<::fast_io::freestanding::iter_value_t<Iter>> measurement) noexcept
 {
 	return details::print_reserve_define_lc_measurement_impl(iter,measurement);
 }
@@ -448,10 +448,10 @@ inline constexpr void print_define(output bos,basic_lc_numeric<char_type> const&
 namespace details
 {
 template<buffer_output_stream output>
-inline constexpr void print_loc_days_impl(output bos,std::basic_string_view<typename output::char_type> category_name,std::span<basic_io_scatter_t<typename output::char_type> const> day_strings)
+inline constexpr void print_loc_days_impl(output bos,::fast_io::freestanding::basic_string_view<typename output::char_type> category_name,basic_io_scatter_t<typename output::char_type> const* day_strings,std::size_t day_strings_len)
 {
 	using char_type = typename output::char_type;
-	if(day_strings.empty()||day_strings.front().len==0)
+	if(day_strings_len==0||day_strings_len==0)
 		return;
 	print_freestanding(bos,category_name);
 	if constexpr(std::same_as<char,char_type>)
@@ -464,7 +464,7 @@ inline constexpr void print_loc_days_impl(output bos,std::basic_string_view<type
 		print_freestanding(bos,U"\t");
 	else if constexpr(std::same_as<char8_t,char_type>)
 		print_freestanding(bos,u8"\t");
-	for(std::size_t i{};i!=day_strings.size();++i)
+	for(std::size_t i{};i!=day_strings_len;++i)
 	{
 		if(i)
 		{
@@ -493,9 +493,9 @@ inline constexpr void print_loc_days_impl(output bos,std::basic_string_view<type
 	println_freestanding(bos);
 }
 template<buffer_output_stream output>
-inline constexpr void print_loc_days_impl(output bos,std::basic_string_view<typename output::char_type> category_name,basic_io_scatter_t<basic_io_scatter_t<typename output::char_type>> day_strings)
+inline constexpr void print_loc_days_impl(output bos,::fast_io::freestanding::basic_string_view<typename output::char_type> category_name,basic_io_scatter_t<basic_io_scatter_t<typename output::char_type>> day_strings)
 {
-	print_loc_days_impl(bos,category_name,std::span{day_strings.base,day_strings.len});
+	print_loc_days_impl(bos,category_name,day_strings.base,day_strings.len);
 }
 }
 
