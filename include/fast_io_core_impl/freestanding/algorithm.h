@@ -1,6 +1,7 @@
 #pragma once
 
-#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
+#if 0
+//__STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
 namespace fast_io::freestanding
 {
 using ::std::find_if;
@@ -45,6 +46,7 @@ inline constexpr output_iter copy_n(input_iter first,std::size_t count,output_it
 		*result = *++first;
 		++result;
 	}
+	return result;
 }
 
 template<::fast_io::freestanding::input_iterator input_iter,::fast_io::freestanding::input_or_output_iterator output_iter>
@@ -56,6 +58,7 @@ inline constexpr output_iter copy(input_iter first,input_iter last,output_iter r
 		++first;
 		++result;
 	}
+	return result;
 }
 
 

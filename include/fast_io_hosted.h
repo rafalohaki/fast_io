@@ -17,7 +17,6 @@ For hosted implementations the set of standard library headers required by the C
 #include"fast_io_freestanding.h"
 #if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
 #include<string>
-#include<span>
 #include"fast_io_hosted/string/impl.h"
 #include"fast_io_hosted/concat.h"
 #include"fast_io_hosted/posix_error.h"

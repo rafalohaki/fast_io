@@ -24,33 +24,27 @@ public:
 	using function_type = T;
 	using digest_type = typename T::digest_type;
 	digest_type digest_block = T::digest_initial_value;
-	inline static constexpr std::size_t block_size = T::block_size;
+	static inline constexpr std::size_t block_size = T::block_size;
 	T function;
 	std::uint64_t transform_counter{};
 
-	void operator()(std::span<std::byte const,block_size> process_block) noexcept
+	void operator()(std::byte const* process_blocks,std::size_t process_block_bytes) noexcept//This is multiple blocks
 	{
-		function(digest_block,process_block);
-		++transform_counter;
+		function(digest_block.data(),process_blocks,process_block_bytes);
+		transform_counter+=process_block_bytes/block_size;
 	}
 
-	void operator()(std::span<std::byte const> process_blocks) noexcept//This is multiple blocks
+	void digest(std::byte const* final_block,std::size_t final_block_bytes) noexcept//contracts: final_block.size()<block_size
 	{
-		function(digest_block,process_blocks);
-		transform_counter+=process_blocks.size()/block_size;
-	}
-
-	void digest(std::span<std::byte const> final_block) noexcept//contracts: final_block.size()<block_size
-	{
-		std::uint64_t total_bits(static_cast<std::uint64_t>(transform_counter*block_size+final_block.size())*8);
+		std::uint64_t total_bits(static_cast<std::uint64_t>(transform_counter*block_size+final_block_bytes)*8);
 		::fast_io::freestanding::array<std::byte,block_size> blocks{};
-		::fast_io::details::my_memcpy(blocks.data(),final_block.data(),final_block.size());
-		blocks[final_block.size()]=std::byte{0x80};
+		::fast_io::details::my_memcpy(blocks.data(),final_block,final_block_bytes);
+		blocks[final_block_bytes]=std::byte{0x80};
 		auto start{blocks.data()+blocks.size()-8};
-		if(block_size<=final_block.size()+8)
+		if(block_size<=final_block_bytes+8)
 		{
-			function(digest_block,std::span<std::byte const,block_size>{blocks});
-			blocks.fill({});
+			function(digest_block.data(),blocks.data(),block_size);
+			::fast_io::details::my_memset(blocks.data(),0,sizeof(block_size));
 		}
 		if constexpr(endian_reverse)
 		{
@@ -62,7 +56,7 @@ public:
 		}
 		else
 			::fast_io::details::my_memcpy(start,std::addressof(total_bits),8);
-		function(digest_block,std::span<std::byte const,block_size>{blocks});
+		function(digest_block.data(),blocks.data(),block_size);
 	}
 };
 

@@ -52,14 +52,14 @@ public:
 	using digest_type = ::fast_io::freestanding::array<std::uint32_t,4>;
 	static inline constexpr digest_type digest_initial_value{0x67452301,0xefcdab89,0x98badcfe,0x10325476};
 	static inline constexpr std::size_t block_size{64};
-	void operator()(std::span<std::uint32_t,4> state,std::span<std::byte const> blocks) noexcept
+	void operator()(std::uint32_t *state,std::byte const* block_start,std::size_t block_bytes) noexcept
 	{
-		std::uint32_t at{state.front()},bt{state[1]},ct{state[2]},dt{state[3]};
-		for(auto block(blocks.data()),ed(blocks.data()+blocks.size());block!=ed;block+=block_size)
+		std::uint32_t at{*state},bt{state[1]},ct{state[2]},dt{state[3]};
+		std::uint32_t x[16];
+		for(auto block(block_start),ed(block_start+block_bytes);block!=ed;block+=block_size)
 		{
 			std::uint32_t a{at},b{bt},c{ct},d{dt};
-			::fast_io::freestanding::array<std::uint32_t,16> x;
-			::fast_io::details::my_memcpy(x.data(),block,block_size);
+			::fast_io::details::my_memcpy(x,block,block_size);
 			using namespace details::md5;
 
 			uu<operation::F>(a, b, c, d, x[ 0], 7, 0xd76aa478);
@@ -138,7 +138,7 @@ public:
 			ct+=c;
 			dt+=d;
 		}
-		state.front()=at;
+		*state=at;
 		state[1]=bt;
 		state[2]=ct;
 		state[3]=dt;

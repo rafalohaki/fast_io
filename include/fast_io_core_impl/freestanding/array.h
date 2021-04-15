@@ -1,6 +1,7 @@
 #pragma once
 
-#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
+#if 0
+//__STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
 #include<array>
 namespace fast_io::freestanding
 {
@@ -24,6 +25,10 @@ struct array
 	using difference_type = std::ptrdiff_t;
 	T element[N];
 	inline constexpr T* data() noexcept
+	{
+		return element;
+	}
+	inline constexpr T const* data() const noexcept
 	{
 		return element;
 	}

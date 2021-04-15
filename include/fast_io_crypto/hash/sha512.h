@@ -7,7 +7,7 @@ namespace fast_io
 {
 namespace details::sha512
 {
-inline constexpr std::uint64_t K512[] =
+inline constexpr std::uint64_t K512[]
 {
 0x428a2f98d728ae22, 0x7137449123ef65cd,
 0xb5c0fbcfec4d3b2f, 0xe9b5dba58189dbbc,
@@ -76,6 +76,79 @@ inline constexpr auto Maj(auto x,auto y,auto z) noexcept
 	return (x&y)^(x&z)^(y&z);
 }
 
+inline void sha512_do_function(std::uint64_t* __restrict state,std::byte const* __restrict blocks_start,std::size_t blocks_bytes) noexcept
+{
+	uint64_t a, b, c, d, e, f, g, h, s0, s1, T1, T2;
+	uint64_t X[16];
+	for(auto data(blocks_start),ed(blocks_start+blocks_bytes);data!=ed;)
+	{
+		a = state[0];
+		b = state[1];
+		c = state[2];
+		d = state[3];
+		e = state[4];
+		f = state[5];
+		g = state[6];
+		h = state[7];
+		std::uint32_t i{};
+		for (; i < 16; ++i)
+		{
+			std::uint64_t value;
+			::fast_io::details::my_memcpy(std::addressof(value),data,8);
+			X[i] = details::big_endian(value);
+			data += 8;
+
+			T1 = h;
+			T1 += Sigma1(e);
+			T1 += Ch(e, f, g);
+			T1 += K512[i];
+			T1 += X[i];
+
+			T2 = Sigma0(a);
+			T2 += Maj(a, b, c);
+
+			h = g;
+			g = f;
+			f = e;
+			e = d + T1;
+			d = c;
+			c = b;
+			b = a;
+			a = T1 + T2;
+		}
+
+		for (i = 16; i < 80; ++i)
+		{
+			s0 = X[(i + 1) & 0x0f];
+			s0 = sigma0(s0);
+			s1 = X[(i + 14) & 0x0f];
+			s1 = sigma1(s1);
+
+			T1 = X[i & 0xf] += s0 + s1 + X[(i + 9) & 0xf];
+			T1 += h + Sigma1(e) + Ch(e, f, g) + K512[i];
+			T2 = Sigma0(a) + Maj(a, b, c);
+
+			h = g;
+			g = f;
+			f = e;
+			e = d + T1;
+			d = c;
+			c = b;
+			b = a;
+			a = T1 + T2;
+		}
+
+		state[0] += a;
+		state[1] += b;
+		state[2] += c;
+		state[3] += d;
+		state[4] += e;
+		state[5] += f;
+		state[6] += g;
+		state[7] += h;
+	}
+}
+
 }
 class sha512_function
 {
@@ -83,78 +156,9 @@ public:
 	using digest_type = ::fast_io::freestanding::array<std::uint64_t,8>;
 	static inline constexpr digest_type digest_initial_value{0x6a09e667f3bcc908, 0xbb67ae8584caa73b,0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1,0x510e527fade682d1, 0x9b05688c2b3e6c1f,0x1f83d9abfb41bd6b, 0x5be0cd19137e2179};
 	static inline constexpr std::size_t block_size{128};
-	void operator()(std::span<std::uint64_t,8> state,std::span<std::byte const> blocks) noexcept
+	void operator()(std::uint64_t* __restrict__ state,std::byte const* blocks_start,std::size_t blocks_bytes) noexcept
 	{
-		using namespace details::sha512;
-		uint64_t a, b, c, d, e, f, g, h, s0, s1, T1, T2;
-		uint64_t X[16];
-		for(auto data(blocks.data()),ed(blocks.data()+blocks.size());data!=ed;)
-		{
-			a = state[0];
-			b = state[1];
-			c = state[2];
-			d = state[3];
-			e = state[4];
-			f = state[5];
-			g = state[6];
-			h = state[7];
-			std::uint32_t i{};
-			for (; i < 16; ++i)
-			{
-				std::uint64_t value;
-				::fast_io::details::my_memcpy(std::addressof(value),data,8);
-				X[i] = details::big_endian(value);
-				data += 8;
-
-				T1 = h;
-				T1 += Sigma1(e);
-				T1 += Ch(e, f, g);
-				T1 += K512[i];
-				T1 += X[i];
-
-				T2 = Sigma0(a);
-				T2 += Maj(a, b, c);
-
-				h = g;
-				g = f;
-				f = e;
-				e = d + T1;
-				d = c;
-				c = b;
-				b = a;
-				a = T1 + T2;
-			}
-
-			for (i = 16; i < 80; ++i)
-			{
-				s0 = X[(i + 1) & 0x0f];
-				s0 = sigma0(s0);
-				s1 = X[(i + 14) & 0x0f];
-				s1 = sigma1(s1);
-
-				T1 = X[i & 0xf] += s0 + s1 + X[(i + 9) & 0xf];
-				T1 += h + Sigma1(e) + Ch(e, f, g) + K512[i];
-				T2 = Sigma0(a) + Maj(a, b, c);
-
-				h = g;
-				g = f;
-				f = e;
-				e = d + T1;
-				d = c;
-				c = b;
-				b = a;
-				a = T1 + T2;
-			}
-
-			state[0] += a;
-			state[1] += b;
-			state[2] += c;
-			state[3] += d;
-			state[4] += e;
-			state[5] += f;
-			state[6] += g;
-			state[7] += h;
-		}
+		details::sha512::sha512_do_function(state,blocks_start,blocks_bytes);
 	}
 };
 

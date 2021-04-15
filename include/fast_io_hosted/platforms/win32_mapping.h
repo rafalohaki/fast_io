@@ -74,11 +74,6 @@ public:
 	}
 };
 
-inline constexpr std::span<std::byte> to_span(win32_memory_map_io_observer wmiop) noexcept
-{
-	return std::span<std::byte>(wmiop.address_begin,wmiop.address_end);
-}
-
 namespace win32::details
 {
 
