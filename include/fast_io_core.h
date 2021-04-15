@@ -85,6 +85,8 @@
 
 #include"fast_io_core_impl/enums/impl.h"
 
+#include"fast_io_core_impl/simd/impl.h"
+
 #if !(defined(FAST_IO_DISABLE_CODECVT)&&(__STDC_HOSTED__==0 || (defined(_GLIBCXX_HOSTED) && _GLIBCXX_HOSTED==0)))
 #include"fast_io_core_impl/codecvt/impl.h"
 #endif

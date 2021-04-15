@@ -167,7 +167,8 @@ https://stackoverflow.com/questions/23919515/how-to-convert-from-utf-16-to-utf-3
 		{
 		if (!std::is_constant_evaluated())
 		{
-		while(sizeof(__m128i) < static_cast<std::size_t>(src_last-src_first))
+		constexpr std::size_t m128i_size{16};
+		while(m128i_size < static_cast<std::size_t>(src_last-src_first))
 		{
 			if (static_cast<char8_t>(*src_first) < 0x80)
 			{

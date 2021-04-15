@@ -1,5 +1,5 @@
 #pragma once
-#if defined(__SSE__) && defined(__x86_64__)
+#if defined(__SSE__) && (defined(__x86_64__)||defined(_M_X64)) && (!defined(__GNUC__)||defined(__clang__)||defined(__INTEL_COMPILER))
 #include<emmintrin.h>
 #endif
 namespace fast_io
@@ -395,45 +395,90 @@ requires ((sizeof(T)==1)&&(sizeof(U)==1||sizeof(U)==2||sizeof(U)==4))
 inline code_cvt_result<T,U> convert_ascii_with_sse(T const* __restrict__ pSrc, U* __restrict__ pDst) noexcept
 {
 	uint16_t mask;
+#if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
+	using namespace fast_io::intrinsics;
+	constexpr std::size_t m128i_size{16};
 	if constexpr(sizeof(U)==1)
 	{
-		__m128i     chunk;
-		chunk = _mm_loadu_si128((__m128i const*) pSrc);     //- Load the register with 8-bit bytes
-		mask  = _mm_movemask_epi8(chunk);                   //- Determine which octets have high bit set
-		_mm_storeu_si128((__m128i*) pDst, chunk);           //- Write to memory
+		x86_64_v16qi chunk;
+		__builtin_memcpy(&chunk,pSrc,m128i_size);
+		mask = __builtin_ia32_pmovmskb128(chunk);
+		__builtin_memcpy(pDst,&chunk,m128i_size);
 	}
 	else if constexpr(sizeof(U)==2)
 	{
-		__m128i     chunk, half;
-		chunk = _mm_loadu_si128((__m128i const*) pSrc);     //- Load the register with 8-bit bytes
+		x86_64_v16qi const zero{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		x86_64_v16qi chunk;
+		__builtin_memcpy(&chunk,pSrc,m128i_size);
+		mask = __builtin_ia32_pmovmskb128(chunk);
+		x86_64_v16qi half{__builtin_ia32_punpcklbw128(chunk,zero)};
+		__builtin_memcpy(pDst,&half,m128i_size);
+		half = __builtin_ia32_punpckhbw128(chunk,zero);
+		__builtin_memcpy(pDst+8,&half,m128i_size);
+	}
+	else if constexpr(sizeof(U)==4)
+	{
+		x86_64_v16qi const zero{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		x86_64_v16qi chunk;
+		__builtin_memcpy(&chunk,pSrc,m128i_size);
+		mask = __builtin_ia32_pmovmskb128(chunk);
+		auto half_result{__builtin_ia32_punpcklbw128(chunk, zero)};
+		x86_64_v8hi half;
+		__builtin_memcpy(&half,&half_result,m128i_size);
+		x86_64_v8hi const zero8{0, 0, 0, 0, 0, 0, 0, 0};
+		auto qrtr{__builtin_ia32_punpcklwd128(half, zero8)};
+		__builtin_memcpy(pDst,&qrtr,m128i_size);
+		qrtr=__builtin_ia32_punpckhwd128(half, zero8);
+		__builtin_memcpy(pDst+4,&qrtr,m128i_size);
+		half_result=__builtin_ia32_punpckhbw128(chunk, zero);
+		__builtin_memcpy(&half,&half_result,m128i_size);
+		qrtr=__builtin_ia32_punpcklwd128(half, zero8);
+		__builtin_memcpy(pDst+8,&qrtr,m128i_size);
+		qrtr=__builtin_ia32_punpckhwd128(half, zero8);
+		__builtin_memcpy(pDst+12,&qrtr,m128i_size);
+	}
+#else
+	using x86_64_m128i = __m128i;
+	if constexpr(sizeof(U)==1)
+	{
+		x86_64_m128i     chunk;
+		chunk = _mm_loadu_si128((x86_64_m128i const*) pSrc);     //- Load the register with 8-bit bytes
+		mask  = _mm_movemask_epi8(chunk);                   //- Determine which octets have high bit set
+		_mm_storeu_si128((x86_64_m128i*) pDst, chunk);           //- Write to memory
+	}
+	else if constexpr(sizeof(U)==2)
+	{
+		x86_64_m128i     chunk, half;
+		chunk = _mm_loadu_si128((x86_64_m128i const*) pSrc);     //- Load the register with 8-bit bytes
 		mask  = _mm_movemask_epi8(chunk);                   //- Determine which octets have high bit set
 
 		half = _mm_unpacklo_epi8(chunk, _mm_set1_epi8(0));  //- Unpack lower half into 16-bit words
-		_mm_storeu_si128((__m128i*) pDst, half);            //- Write to memory
+		_mm_storeu_si128((x86_64_m128i*) pDst, half);            //- Write to memory
 
 		half = _mm_unpackhi_epi8(chunk, _mm_set1_epi8(0));  //- Unpack upper half into 16-bit words
-		_mm_storeu_si128((__m128i*) (pDst + 8), half);      //- Write to memory
+		_mm_storeu_si128((x86_64_m128i*) (pDst + 8), half);      //- Write to memory
 
 	}
 	else
 	{
-		__m128i     chunk, half, qrtr, zero;
+		x86_64_m128i     chunk, half, qrtr, zero;
 		zero  = _mm_set1_epi8(0);                           //- Zero out the interleave register
-		chunk = _mm_loadu_si128((__m128i const*) pSrc);     //- Load a register with 8-bit bytes
+		chunk = _mm_loadu_si128((x86_64_m128i const*) pSrc);     //- Load a register with 8-bit bytes
 		mask  = _mm_movemask_epi8(chunk);                   //- Determine which octets have high bit set
 
 		half = _mm_unpacklo_epi8(chunk, zero);              //- Unpack bytes 0-7 into 16-bit words
 		qrtr = _mm_unpacklo_epi16(half, zero);              //- Unpack words 0-3 into 32-bit dwords
-		_mm_storeu_si128((__m128i*) pDst, qrtr);            //- Write to memory
+		_mm_storeu_si128((x86_64_m128i*) pDst, qrtr);            //- Write to memory
 		qrtr = _mm_unpackhi_epi16(half, zero);              //- Unpack words 4-7 into 32-bit dwords
-		_mm_storeu_si128((__m128i*) (pDst + 4), qrtr);      //- Write to memory
+		_mm_storeu_si128((x86_64_m128i*) (pDst + 4), qrtr);      //- Write to memory
 
 		half = _mm_unpackhi_epi8(chunk, zero);              //- Unpack bytes 8-15 into 16-bit words
 		qrtr = _mm_unpacklo_epi16(half, zero);              //- Unpack words 8-11 into 32-bit dwords
-		_mm_storeu_si128((__m128i*) (pDst + 8), qrtr);      //- Write to memory
+		_mm_storeu_si128((x86_64_m128i*) (pDst + 8), qrtr);      //- Write to memory
 		qrtr = _mm_unpackhi_epi16(half, zero);              //- Unpack words 12-15 into 32-bit dwords
-		_mm_storeu_si128((__m128i*) (pDst + 12), qrtr);     //- Write to memory
+		_mm_storeu_si128((x86_64_m128i*) (pDst + 12), qrtr);     //- Write to memory
 	}
+#endif
 	auto const incr{std::countr_zero(mask)};
 	return {pSrc+incr,pDst+incr};
 }
