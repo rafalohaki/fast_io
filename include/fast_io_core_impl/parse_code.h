@@ -95,7 +95,7 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,parse_cod
 {
 	return details::print_reserve_parse_code_impl(iter,code);
 }
-inline void throw_parse_code([[maybe_unused]] parse_code code)
+[[noreturn]] inline void throw_parse_code([[maybe_unused]] parse_code code)
 {
 #ifdef __cpp_exceptions
 #if defined(_MSC_VER) && (!defined(_HAS_EXCEPTIONS) || _HAS_EXCEPTIONS == 0)

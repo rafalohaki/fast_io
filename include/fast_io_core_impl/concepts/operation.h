@@ -25,7 +25,7 @@ template<typename char_type, typename T, bool contiguous_only = false>
 concept context_scanable = requires(char_type const* begin, char_type const* end, T t)
 {
 	{ scan_context_define(scan_context<contiguous_only>, begin, end, t).iter }->std::convertible_to<char_type const*>;
-	{ scan_context_define(scan_context<contiguous_only>, begin, end, t).code }->std::same_as<parse_code>;
+	{ scan_context_define(scan_context<contiguous_only>, begin, end, t).code }->std::convertible_to<parse_code>;
 };
 
 template<typename char_type,typename T>

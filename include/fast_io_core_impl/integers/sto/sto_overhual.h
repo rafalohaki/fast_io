@@ -712,4 +712,3 @@ inline constexpr auto scan_context_define(scan_context_t<contiguous_only>, Iter 
 }
 
 }
-

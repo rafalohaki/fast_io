@@ -277,7 +277,9 @@ requires (status_input_stream<input>||input_stream<input>)
 		return scan_freestanding_decay(io_ref(unlocked_in),args...);
 	}
 	else if constexpr(buffer_input_stream<input>)
+	{
 		return (details::scan_single_impl(in,args)&&...);
+	}
 	else
 	{
 		unget_temp_buffer in_buffer(io_ref(in));
