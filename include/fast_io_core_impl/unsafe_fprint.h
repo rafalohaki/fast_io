@@ -241,18 +241,19 @@ inline constexpr void scatter_fprint_write(output out,
 	io_scatter_t* scatters)
 {
 	constexpr std::size_t maximum_allowed_args{::fast_io::freestanding::max(static_cast<std::size_t>(100),args_num*static_cast<std::size_t>(10))+args_num};
-	::fast_io::freestanding::array<io_scatter_t,maximum_allowed_args*2+1> new_scatters;
+	constexpr std::size_t n{maximum_allowed_args*2+1};
+	io_scatter_t new_scatters[n];
 	if constexpr(args_num==1)
 	{
-		auto res{scatter_fprint_impl(view,scatters,new_scatters.data(),fprint_args_num_para<fprint_args_num_para_enum::one>{})};
-		scatter_write(out,{new_scatters.data(),res-new_scatters.data()});
+		auto res{scatter_fprint_impl(view,scatters,new_scatters,fprint_args_num_para<fprint_args_num_para_enum::one>{})};
+		scatter_write(out,{new_scatters,res-new_scatters});
 	}
 	else
 	{
-		auto res{scatter_fprint_impl(view,scatters,new_scatters.data(),
+		auto res{scatter_fprint_impl(view,scatters,new_scatters,
 			fprint_args_num_para<args_num<11?
 			fprint_args_num_para_enum::less_than_11:fprint_args_num_para_enum::other>{args_num})};
-		scatter_write(out,{new_scatters.data(),res-new_scatters.data()});
+		scatter_write(out,{new_scatters,res-new_scatters});
 	}
 }
 
@@ -263,25 +264,28 @@ inline constexpr void unsafe_fprint_fallback(output out,::fast_io::freestanding:
 	using char_type = typename output::char_type;
 	if constexpr((scatter_output_stream<output>&&((scatter_printable<typename output::char_type,Args>||reserve_printable<typename output::char_type,Args>||dynamic_reserve_printable<typename output::char_type,Args>)&&...)))
 	{
-		::fast_io::freestanding::array<io_scatter_t,sizeof...(Args)> scatters;
+		constexpr std::size_t n{sizeof...(Args)};
+		io_scatter_t scatters[n];
 		if constexpr((scatter_printable<typename output::char_type,Args>&&...))
 		{
-			decay::scatter_print_recursive<typename output::char_type>(scatters.data(),args...);
-			scatter_fprint_write<sizeof...(Args)>(out,view,scatters.data());
+			decay::scatter_print_recursive<typename output::char_type>(scatters,args...);
+			scatter_fprint_write<sizeof...(Args)>(out,view,scatters);
 		}
 		else if constexpr(((scatter_printable<char_type,Args>||
 			reserve_printable<char_type,Args>)&&...))
 		{
-			::fast_io::freestanding::array<char_type,decay::calculate_scatter_reserve_size<char_type,Args...>()> array;
-			decay::scatter_print_with_reserve_recursive(array.data(),scatters.data(),args...);
-			scatter_fprint_write<sizeof...(Args)>(out,view,scatters.data());
+			constexpr std::size_t m{decay::calculate_scatter_reserve_size<char_type,Args...>()};
+			char_type array[m];
+			decay::scatter_print_with_reserve_recursive(array,scatters,args...);
+			scatter_fprint_write<sizeof...(Args)>(out,view,scatters);
 		}
 		else
 		{
-			::fast_io::freestanding::array<char_type,decay::calculate_scatter_reserve_size<char_type,Args...>()> array;
+			constexpr std::size_t m{decay::calculate_scatter_reserve_size<char_type,Args...>()};
+			char_type array[m];
 			local_operator_new_array_ptr<char_type> new_ptr(decay::calculate_scatter_dynamic_reserve_size<char_type>(args...));
-			decay::scatter_print_with_dynamic_reserve_recursive(scatters.data(),array.data(),new_ptr.ptr,args...);
-			scatter_fprint_write<sizeof...(Args)>(out,view,scatters.data());
+			decay::scatter_print_with_dynamic_reserve_recursive(scatters,array,new_ptr.ptr,args...);
+			scatter_fprint_write<sizeof...(Args)>(out,view,scatters);
 		}
 	}
 	else
