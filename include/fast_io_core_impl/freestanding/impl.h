@@ -7,11 +7,6 @@ no std::move, std::forward, std::addressof. WTF???
 
 */
 
-#if defined(__GLIBCXX__)
-#include"libstdc++.h"
-#else
-#include<utility>		//for std::move, std::forward, std::addressof
-#endif
 #include"to_address.h"
 #include"array.h"
 #include"iterator.h"

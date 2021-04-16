@@ -8,5 +8,11 @@
 #if defined(__GNUC__) && __GNUC__>=11 && __cplusplus<202002L
 #error "fast_io requires at least C++20 standard compiler."
 #else
+#include<concepts>
+#if defined(__GLIBCXX__)
+#include<bits/move.h>
+#else
+#include<utility>		//for std::move, std::forward, std::addressof
+#endif
 #include"fast_io_core_impl/concepts/impl.h"
 #endif

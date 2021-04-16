@@ -685,7 +685,7 @@ public:
 		return *this;
 	}
 	constexpr basic_nt_family_io_handle(basic_nt_family_io_handle&& b) noexcept:
-		basic_nt_family_io_observer<family,ch_type>(b.release()){}
+		basic_nt_family_io_observer<family,ch_type>{b.handle}{}
 	basic_nt_family_io_handle& operator=(basic_nt_family_io_handle&& b) noexcept
 	{
 		if(std::addressof(b)!=this)

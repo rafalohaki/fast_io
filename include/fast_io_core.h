@@ -9,13 +9,13 @@
 #if defined(__GNUC__) && __GNUC__>=11 && __cplusplus<202002L
 #error "fast_io requires at least C++20 standard compiler."
 #else
+#include"fast_io_concept.h"
 
 #include<version>
 #include"fast_io_core_impl/empty.h"
 #include<cstddef>
 #include<concepts>
 #include"fast_io_core_impl/freestanding/impl.h"
-#include"fast_io_concept.h"
 #include<type_traits>
 
 #include<limits>
