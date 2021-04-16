@@ -6,7 +6,7 @@
 #error "You are not using C++ compiler"
 #endif
 
-#if __cplusplus<202002L && !defined(_MSC_VER)
+#if defined(__GNUC__) && __GNUC__>=11 && __cplusplus<202002L
 #error "fast_io requires at least C++20 standard compiler."
 #else
 #if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
