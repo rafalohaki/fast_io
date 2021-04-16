@@ -1,7 +1,6 @@
 #pragma once
 
-#if 0
-//__STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
+#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
 namespace fast_io::freestanding
 {
 using ::std::find_if;
