@@ -353,8 +353,29 @@ namespace details
 extern int fileno(FILE*) noexcept asm("_fileno");
 extern std::FILE* fdopen(int,char const*) noexcept asm("_fdopen");
 #elif defined(__CYGWIN__)
-[[gnu::dllimport]] extern int fileno(FILE*) noexcept asm("fileno");
-[[gnu::dllimport]] extern std::FILE* fdopen(int,char const*) noexcept asm("fdopen");
+[[gnu::dllimport]] extern int fileno(FILE*) noexcept 
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("fileno")
+#else
+asm("_fileno")
+#endif
+#else
+asm("fileno")
+#endif
+;
+[[gnu::dllimport]] extern std::FILE* fdopen(int,char const*) noexcept
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("fdopen")
+#else
+asm("_fdopen")
+#endif
+#else
+asm("fdopen")
+#endif
+;
+
 #endif
 
 inline int fp_unlocked_to_fd(FILE* fp) noexcept
@@ -560,8 +581,29 @@ inline std::uintmax_t c_io_seek_no_lock_impl(std::FILE* fp,std::intmax_t offset,
 
 #if defined(__CYGWIN__) && !defined(__SINGLE_THREAD__)
 
-[[gnu::dllimport]] extern void my_pthread_mutex_lock(void*) noexcept asm("pthread_mutex_lock");
-[[gnu::dllimport]] extern void my_pthread_mutex_unlock(void*) noexcept asm("pthread_mutex_unlock");
+[[gnu::dllimport]] extern void my_pthread_mutex_lock(void*) noexcept
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("pthread_mutex_lock")
+#else
+asm("_pthread_mutex_lock")
+#endif
+#else
+asm("pthread_mutex_lock")
+#endif
+;
+
+[[gnu::dllimport]] extern void my_pthread_mutex_unlock(void*) noexcept
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("pthread_mutex_unlock")
+#else
+asm("_pthread_mutex_unlock")
+#endif
+#else
+asm("pthread_mutex_unlock")
+#endif
+;
 
 inline void my_cygwin_flockfile(std::FILE* fp) noexcept
 {
