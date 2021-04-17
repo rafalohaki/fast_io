@@ -1461,9 +1461,14 @@ inline constexpr basic_posix_io_observer<char_type> native_stderr() noexcept
 	return basic_posix_io_observer<char_type>{posix_stderr_number};
 }
 
-#if defined(__CYGWIN__) || (!defined(__NEWLIB__)&&!defined(_WIN32) && !defined(__MSDOS__))
+#if defined(__CYGWIN__) || (!defined(_WIN32) && !defined(__MSDOS__))
 namespace details
 {
+
+#if defined(__NEWLIB__) && !defined(__CYGWIN__)
+extern std::ptrdiff_t newlib_writev(int fd, struct iovec const* iov, int iovcnt) __asm__("writev");
+extern std::ptrdiff_t newlib_readv(int fd, struct iovec const* iov, int iovcnt) __asm__("readv");
+#endif
 
 inline std::size_t posix_scatter_read_size_impl(int fd,io_scatters_t sp)
 {
@@ -1482,7 +1487,11 @@ inline std::size_t posix_scatter_read_size_impl(int fd,io_scatters_t sp)
 #endif
 	= iovec const*;
 	auto ptr{reinterpret_cast<iovec_may_alias_const_ptr>(sp.base)};
+#if defined(__NEWLIB__) && !defined(__CYGWIN__)
+	std::ptrdiff_t val{newlib_readv(fd,ptr,static_cast<int>(sz))};
+#else
 	std::ptrdiff_t val{::readv(fd,ptr,static_cast<int>(sz))};
+#endif
 	if(val<0)
 		throw_posix_error();
 	return val;
@@ -1506,7 +1515,11 @@ inline std::size_t posix_scatter_write_size_impl(int fd,io_scatters_t sp)
 #endif
 	= iovec const*;
 	auto ptr{reinterpret_cast<iovec_may_alias_const_ptr>(sp.base)};
+#if defined(__NEWLIB__) && !defined(__CYGWIN__)
+	std::ptrdiff_t val{newlib_writev(fd,ptr,static_cast<int>(sz))};
+#else
 	std::ptrdiff_t val{::writev(fd,ptr,static_cast<int>(sz))};
+#endif
 	if(val<0)
 		throw_posix_error();
 	return val;
@@ -1540,7 +1553,7 @@ inline io_scatter_status_t posix_scatter_write_impl(int fd,io_scatters_t sp)
 #endif
 #endif
 
-#if defined(__CYGWIN__) || (!defined(__NEWLIB__) && !defined(__MSDOS__))
+#if defined(__CYGWIN__) || ((!defined(__NEWLIB__)|| defined(FAST_IO_USE_NEWLIB_CUSTOM_WRITEV)) && !defined(__MSDOS__))
 
 template<std::integral ch_type>
 [[nodiscard]] inline io_scatter_status_t scatter_read(basic_posix_io_observer<ch_type> h,io_scatters_t sp)
@@ -1718,6 +1731,6 @@ inline io_scatter_status_t scatter_write(basic_posix_pio_entry<ch_type> ppioent,
 #endif
 
 }
-#ifdef __MSDOS__
+#if defined(__MSDOS__) || (defined(__NEWLIB__)&&!defined(FAST_IO_USE_NEWLIB_CUSTOM_WRITEV))
 #include"msdos.h"
 #endif
