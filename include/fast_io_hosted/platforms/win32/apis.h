@@ -547,4 +547,104 @@ asm("MessageBoxW")
 #endif
 ;
 
+
+__declspec(dllimport) extern int __stdcall GetConsoleMode(void *, std::uint32_t *) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("GetConsoleMode@8")
+#else
+asm("_GetConsoleMode@8")
+#endif
+#else
+asm("GetConsoleMode")
+#endif
+#endif
+;
+
+__declspec(dllimport) extern int __stdcall SetConsoleMode(void *, std::uint32_t) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("SetConsoleMode@8")
+#else
+asm("_SetConsoleMode@8")
+#endif
+#else
+asm("SetConsoleMode")
+#endif
+#endif
+;
+
+__declspec(dllimport) extern int __stdcall ReadConsoleW(void*,void*,std::uint32_t,std::uint32_t*,void*) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("ReadConsoleW@20")
+#else
+asm("_ReadConsoleW@20")
+#endif
+#else
+asm("ReadConsoleW")
+#endif
+#endif
+;
+
+__declspec(dllimport) extern int __stdcall WriteConsoleW(void*,void const*,std::uint32_t,std::uint32_t*,void*) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("WriteConsoleW@20")
+#else
+asm("_WriteConsoleW@20")
+#endif
+#else
+asm("WriteConsoleW")
+#endif
+#endif
+;
+
+__declspec(dllimport) extern int __stdcall GetConsoleScreenBufferInfo(void *, console_screen_buffer_info *) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("GetConsoleScreenBufferInfo@8")
+#else
+asm("_GetConsoleScreenBufferInfo@8")
+#endif
+#else
+asm("GetConsoleScreenBufferInfo")
+#endif
+#endif
+;
+
+__declspec(dllimport) extern int __stdcall ScrollConsoleScreenBufferW(void *, small_rect const *, small_rect const *, coord, char_info const *) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("ScrollConsoleScreenBufferW@20")
+#else
+asm("_ScrollConsoleScreenBufferW@20")
+#endif
+#else
+asm("ScrollConsoleScreenBufferW")
+#endif
+#endif
+;
+
+__declspec(dllimport) extern int __stdcall SetConsoleCursorPosition(void *, coord) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("SetConsoleCursorPosition@8")
+#else
+asm("_SetConsoleCursorPosition@8")
+#endif
+#else
+asm("SetConsoleCursorPosition")
+#endif
+#endif
+;
+
+
 }

@@ -461,19 +461,34 @@ requires (std::same_as<T,::fast_io::freestanding::iter_value_t<Iter>>||std::same
 inline Iter write(basic_c_io_observer_unlocked<T> cfhd,Iter begin,Iter end);
 #endif
 
-template<std::integral T>
-inline void flush(basic_c_io_observer_unlocked<T> cfhd)
+namespace details
 {
-	if(
-#if defined(_MSC_VER)
+
+inline void c_flush_impl(std::FILE* fp)
+{
+	if(std::fflush(fp))
+		throw_posix_error();
+}
+
+inline void c_flush_unlocked_impl(std::FILE* fp)
+{
+	if(noexcept_call(
+#if defined(_MSC_VER) || defined(_UCRT)
 		_fflush_nolock
 #elif defined(_POSIX_SOURCE)
 		fflush_unlocked
 #else
 		fflush
 #endif
-	(cfhd.fp))
+	,fp))
 		throw_posix_error();
+}
+}
+
+template<std::integral T>
+inline void flush(basic_c_io_observer_unlocked<T> cfhd)
+{
+	details::c_flush_unlocked_impl(cfhd.fp);
 }
 
 namespace details
@@ -711,8 +726,7 @@ inline Iter write(basic_c_io_observer<T> cfhd,Iter begin,Iter end)
 template<std::integral T>
 inline void flush(basic_c_io_observer<T> cfhd)
 {
-	if(std::fflush(cfhd.fp))
-		throw_posix_error();
+	c_flush_impl(cfhd.fp);
 }
 
 template<std::integral ch_type>
@@ -975,6 +989,68 @@ inline constexpr auto status(basic_c_io_observer_unlocked<ch_type> ciob)
 	return status(static_cast<basic_posix_io_observer<ch_type>>(ciob));
 }
 
+namespace details
+{
+inline bool c_is_character_device_unlocked_impl(std::FILE* fp) noexcept
+{
+	return posix_is_character_device(fp_unlocked_to_fd(fp));
+}
+
+inline bool c_is_character_device_impl(std::FILE* fp) noexcept
+{
+	return posix_is_character_device(fp_to_fd(fp));
+}
+
+inline void c_clear_screen_unlocked_impl(std::FILE* fp)
+{
+#ifdef _WIN32
+	int fd{fp_unlocked_to_fd(fp)};
+	void* handle{my_get_osfile_handle(fd)};
+	if(!::fast_io::win32::details::win32_is_character_device(handle))
+		return;
+	c_flush_unlocked_impl(fp);
+	::fast_io::win32::details::win32_clear_screen_main(handle);
+#else
+	int fd{fp_unlocked_to_fd(fp)};
+	if(!posix_is_character_device(fd))
+		return;
+	c_flush_unlocked_impl(fp);
+	posix_clear_screen_main(fd);
+#endif
+}
+
+inline void c_clear_screen_impl(std::FILE* fp)
+{
+	basic_c_io_observer<char> ciob{fp};
+	lock_guard guard{ciob};
+	c_clear_screen_unlocked_impl(fp);
+}
+
+}
+
+template<std::integral ch_type>
+inline bool is_character_device(basic_c_io_observer_unlocked<ch_type> ciob) noexcept
+{
+	return details::c_is_character_device_unlocked_impl(ciob.fp);
+}
+
+template<std::integral ch_type>
+inline bool is_character_device(basic_c_io_observer<ch_type> ciob) noexcept
+{
+	return details::c_is_character_device_impl(ciob.fp);
+}
+
+template<std::integral ch_type>
+inline void clear_screen(basic_c_io_observer_unlocked<ch_type> ciob)
+{
+	details::c_clear_screen_unlocked_impl(ciob.fp);
+}
+
+template<std::integral ch_type>
+inline void clear_screen(basic_c_io_observer<ch_type> ciob)
+{
+	details::c_clear_screen_impl(ciob.fp);
+}
 
 template<std::integral ch_type>
 inline auto redirect_handle(basic_c_io_observer<ch_type> h)

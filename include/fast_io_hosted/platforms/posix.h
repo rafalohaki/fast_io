@@ -300,6 +300,16 @@ public:
 using io_async_observer=io_uring_observer;
 #endif
 
+#ifdef _WIN32
+namespace details
+{
+inline void* my_get_osfile_handle(int fd) noexcept
+{
+	return reinterpret_cast<void*>(noexcept_call(_get_osfhandle,fd));
+}
+}
+#endif
+
 template<std::integral ch_type>
 class basic_posix_io_observer
 {
@@ -322,12 +332,12 @@ public:
 #ifdef _WIN32
 	explicit operator basic_win32_io_observer<char_type>() const noexcept
 	{
-		return {reinterpret_cast<void*>(_get_osfhandle(fd))};
+		return {details::my_get_osfile_handle(fd)};
 	}
 	template<nt_family family>
 	explicit operator basic_nt_family_io_observer<family,char_type>() const noexcept
 	{
-		return {reinterpret_cast<void*>(_get_osfhandle(fd))};
+		return {details::my_get_osfile_handle(fd)};
 	}
 #endif
 	constexpr native_handle_type release() noexcept
@@ -499,7 +509,7 @@ inline std::size_t posix_write_nolock_impl(int fd,void const* address,std::size_
 
 inline std::size_t posix_write_lock_impl(int fd,void const* address,std::size_t to_write)
 {
-	auto handle{reinterpret_cast<void*>(_get_osfhandle(fd))};
+	auto handle{my_get_osfile_handle(fd)};
 	fast_io::win32::overlapped overlap{};
 	fast_io::win32::details::file_lock_guard gd{
 		fast_io::win32::LockFileEx(handle,0x00000002,0,UINT32_MAX,UINT32_MAX,std::addressof(overlap))?
@@ -511,7 +521,7 @@ inline std::size_t posix_write_lock_impl(int fd,void const* address,std::size_t 
 
 inline io_scatter_status_t posix_scatter_write_impl(int fd,io_scatters_t sp)
 {
-	auto handle{reinterpret_cast<void*>(_get_osfhandle(fd))};
+	auto handle{my_get_osfile_handle(fd)};
 	fast_io::win32::overlapped overlap{};
 	fast_io::win32::details::file_lock_guard gd{
 		fast_io::win32::LockFileEx(handle,0x00000002,0,UINT32_MAX,UINT32_MAX,std::addressof(overlap))?
@@ -562,7 +572,7 @@ inline std::uintmax_t posix_seek_impl(int fd,std::intmax_t offset,seekdir s)
 	auto ret(
 #if defined(__linux__)
 		system_call<__NR_lseek,std::ptrdiff_t>
-#elif defined(__WINNT__) || defined(_MSC_VER)
+#elif defined(_WIN32)
 		::_lseeki64
 #else
 		::lseek
@@ -572,6 +582,36 @@ inline std::uintmax_t posix_seek_impl(int fd,std::intmax_t offset,seekdir s)
 	return ret;
 }
 
+inline bool posix_is_character_device(int fd) noexcept
+{
+#if defined(_WIN32)
+	return noexcept_call(::_isatty,fd);
+#else
+	return noexcept_call(::isatty,fd);
+#endif
+}
+
+inline void posix_clear_screen_main(int fd)
+{
+#ifdef __MSDOS__
+	details::clrscr();
+#else
+	constexpr std::size_t sequence_len{2};
+	constexpr char8_t const clear_screen_control[2] {u8'\033',u8'c'};
+	posix_write_impl(fd,clear_screen_control,sequence_len);
+#endif
+}
+
+inline void posix_clear_screen_impl(int fd)
+{
+#if defined(_WIN32) && !defined(__WINE__)
+	::fast_io::win32::details::win32_clear_screen_impl(my_get_osfile_handle(fd));
+#else
+	if(!posix_is_character_device(fd))
+		return;
+	posix_clear_screen_main(fd);
+#endif
+}
 }
 
 template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
@@ -798,7 +838,7 @@ template<std::integral ch_type>
 inline auto redirect_handle(basic_posix_io_observer<ch_type> h) noexcept
 {
 #if defined(_WIN32)
-	return bit_cast<void*>(_get_osfhandle(h.fd));
+	return my_get_osfile_handle(h.fd);
 #else
 	return h.fd;
 #endif
@@ -849,10 +889,6 @@ namespace details
 {
 
 #ifdef _WIN32
-inline std::intptr_t my_get_osfhandle(int fd) noexcept
-{
-	return _get_osfhandle(fd);
-}
 
 template<posix_open_mode_text_behavior behavior>
 inline int open_fd_from_handle_impl(void* handle,open_mode md)
@@ -911,6 +947,7 @@ inline int my_posix_openat(int dirfd,char const* pathname,int flags,mode_t mode)
 extern unsigned int _dos_creat(char const*,short unsigned,int*) noexcept asm("_dos_creat");
 extern unsigned int _dos_creatnew(char const*,short unsigned,int*) noexcept asm("_dos_creatnew");
 extern unsigned int _dos_open(char const*,short unsigned,int*) noexcept asm("_dos_open");
+extern void clrscr() noexcept asm("clrscr");
 #endif
 template<bool always_terminate=false>
 inline int my_posix_open(char const* pathname,int flags,
@@ -1199,9 +1236,23 @@ inline constexpr posix_io_redirection redirect(basic_posix_pipe<ch_type>& h) noe
 {
 	return {.pipe_fds=std::addressof(h.in().fd)};
 }
-
 #endif
 
+template<std::integral ch_type>
+inline bool is_character_device(basic_posix_io_observer<ch_type> piob) noexcept
+{
+	return details::posix_is_character_device(piob.fd);
+}
+
+template<std::integral ch_type>
+inline void clear_screen(basic_posix_io_observer<ch_type> piob)
+{
+#ifdef __MSDOS__
+	details::clrscr();
+#else
+	details::posix_clear_screen_impl(piob.fd);
+#endif
+}
 
 #ifdef __linux__
 template<std::integral ch_type>
