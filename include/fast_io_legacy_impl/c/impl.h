@@ -350,8 +350,8 @@ namespace details
 {
 
 #if defined(__MSDOS__) || defined(__CYGWIN__)
-extern int fileno(FILE*) noexcept asm("fileno");
-extern std::FILE* fdopen(int,char const*) noexcept asm("fdopen");
+extern int fileno(FILE*) noexcept asm("_fileno");
+extern std::FILE* fdopen(int,char const*) noexcept asm("_fdopen");
 #endif
 
 inline int fp_unlocked_to_fd(FILE* fp) noexcept
@@ -359,14 +359,14 @@ inline int fp_unlocked_to_fd(FILE* fp) noexcept
 	if(fp==nullptr)
 		return -1;
 	return 
-#if defined(__WINNT__) || defined(_MSC_VER)
-		_fileno(fp)
+#if defined(_WIN32)
+		noexcept_call(_fileno,fp)
 #elif defined(__NEWLIB__) || defined(__DARWIN_C_LEVEL)
 		fp->_file
 #elif defined(__MSDOS__)
-		fileno(fp)
+		noexcept_call(fileno,fp)
 #else
-		fileno_unlocked(fp)
+		noexcept_call(fileno_unlocked,fp)
 #endif
 	;
 }
@@ -377,13 +377,13 @@ inline int fp_to_fd(FILE* fp) noexcept
 		return -1;
 	return 
 #if defined(__WINNT__) || defined(_MSC_VER)
-		_fileno(fp)
+		noexcept_call(_fileno,fp)
 #elif defined(__NEWLIB__)
 		fp->_file
 #elif defined(__MSDOS__)
-		fileno(fp)
+		noexcept_call(fileno,fp)
 #else
-		fileno(fp)
+		noexcept_call(fileno_unlocked,fp)
 #endif
 	;
 }

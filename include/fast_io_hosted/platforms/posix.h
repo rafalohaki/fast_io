@@ -590,11 +590,13 @@ inline bool posix_is_character_device(int fd) noexcept
 	return noexcept_call(::isatty,fd);
 #endif
 }
-
+#ifdef __MSDOS__
+extern void dos_clrscr() noexcept asm("_clrscr");
+#endif
 inline void posix_clear_screen_main(int fd)
 {
 #ifdef __MSDOS__
-	details::clrscr();
+	dos_clrscr();
 #else
 	constexpr std::size_t sequence_len{2};
 	constexpr char8_t const clear_screen_control[2] {u8'\033',u8'c'};
@@ -947,7 +949,6 @@ inline int my_posix_openat(int dirfd,char const* pathname,int flags,mode_t mode)
 extern unsigned int _dos_creat(char const*,short unsigned,int*) noexcept asm("_dos_creat");
 extern unsigned int _dos_creatnew(char const*,short unsigned,int*) noexcept asm("_dos_creatnew");
 extern unsigned int _dos_open(char const*,short unsigned,int*) noexcept asm("_dos_open");
-extern void clrscr() noexcept asm("clrscr");
 #endif
 template<bool always_terminate=false>
 inline int my_posix_open(char const* pathname,int flags,
@@ -1247,11 +1248,7 @@ inline bool is_character_device(basic_posix_io_observer<ch_type> piob) noexcept
 template<std::integral ch_type>
 inline void clear_screen(basic_posix_io_observer<ch_type> piob)
 {
-#ifdef __MSDOS__
-	details::clrscr();
-#else
 	details::posix_clear_screen_impl(piob.fd);
-#endif
 }
 
 #ifdef __linux__
