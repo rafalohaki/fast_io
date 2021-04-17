@@ -349,9 +349,12 @@ _READ_WRITE_BUFSIZE_TYPE
 namespace details
 {
 
-#if defined(__MSDOS__) || defined(__CYGWIN__)
+#if defined(__MSDOS__)
 extern int fileno(FILE*) noexcept asm("_fileno");
 extern std::FILE* fdopen(int,char const*) noexcept asm("_fdopen");
+#elif defined(__CYGWIN__)
+[[gnu::dllimport]] extern int fileno(FILE*) noexcept asm("fileno");
+[[gnu::dllimport]] extern std::FILE* fdopen(int,char const*) noexcept asm("fdopen");
 #endif
 
 inline int fp_unlocked_to_fd(FILE* fp) noexcept
