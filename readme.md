@@ -72,6 +72,7 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - Wine
 - ReactOS
 - Windows Runtime
+- Nintendo DS (devkitPro)
 - Todo list: Webassembly
 
 ## Supported libc FILE* hacks platforms
