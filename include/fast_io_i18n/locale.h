@@ -64,7 +64,7 @@ inline void load_lc_locale(void* dll_handle,lc_locale& loc)
 #else
 		throw_posix_dl_error();
 #endif
-	func(std::addressof(loc));
+	func(__builtin_addressof(loc));
 }
 
 template<std::integral T>
@@ -332,9 +332,9 @@ inline ::fast_io::freestanding::string_view acp_encoding_name() noexcept
 inline std::size_t get_lc_all_or_lang(::fast_io::freestanding::array<char,64>& buffer) noexcept
 {
 	std::size_t size_buffer{};
-	if(!fast_io::win32::getenv_s(std::addressof(size_buffer),buffer.data(),buffer.size(),reinterpret_cast<char const*>(u8"LC_ALL")))
+	if(!fast_io::win32::getenv_s(__builtin_addressof(size_buffer),buffer.data(),buffer.size(),reinterpret_cast<char const*>(u8"LC_ALL")))
 		return size_buffer;
-	if(!fast_io::win32::getenv_s(std::addressof(size_buffer),buffer.data(),buffer.size(),reinterpret_cast<char const*>(u8"LANG")))
+	if(!fast_io::win32::getenv_s(__builtin_addressof(size_buffer),buffer.data(),buffer.size(),reinterpret_cast<char const*>(u8"LANG")))
 		return size_buffer;
 	return 0;
 }
@@ -357,8 +357,13 @@ inline language_encoding_views win32_get_language_encoding_based_on_lc_all_or_la
 		language=buffer_strvw;
 	else
 	{
+#if 0
 		language=buffer_strvw.substr(0,dot_pos);
 		encoding=buffer_strvw.substr(dot_pos+1);
+#else
+		language=::fast_io::freestanding::string_view(buffer_strvw.data(),buffer_strvw.data()+dot_pos);
+		encoding=::fast_io::freestanding::string_view(buffer_strvw.data()+dot_pos+1,buffer_strvw.data()+buffer_strvw.size());
+#endif
 	}
 	return {language,encoding};
 }
@@ -437,7 +442,11 @@ inline ::fast_io::freestanding::string_view get_posix_lang_env() noexcept
 	::fast_io::freestanding::string_view lang_env{get_lc_all_or_lang()};
 	auto dot{lang_env.find(u8'.')};
 	if(dot!=::fast_io::freestanding::string_view::npos)
+#if 0
 		lang_env=lang_env.substr(0,dot);
+#else
+		lang_env=::fast_io::freestanding::string_view(lang_env.data(),lang_env.data()+dot);
+#endif
 	return lang_env;
 }
 
@@ -487,8 +496,13 @@ inline void* deal_with_local_locale_name_local_encoding(lc_locale& loc)
 	}
 	else
 	{
+#if 0
 		name=strvw.substr(0,pos);
 		coding=strvw.substr(pos+1);
+#else
+		name=::fast_io::freestanding::string_view(lang_env.data(),lang_env.data()+pos);
+		coding=::fast_io::freestanding::string_view(lang_env.data()+pos+1,lang_env.data()+lang_env.size());
+#endif
 	}
 	return load_l10n_with_real_name_impl(loc,name,coding);
 }
@@ -498,7 +512,11 @@ inline void* deal_with_local_locale_name_encoding(lc_locale& loc,::fast_io::free
 	auto name{get_lc_all_or_lang_non_empty()};
 	auto pos{name.find(u8'.')};
 	if(pos!=::fast_io::freestanding::string_view::npos)
+#if 0
 		name=name.substr(0,pos);
+#else
+		name=::fast_io::freestanding::string_view(lang_env.data(),lang_env.data()+pos);
+#endif
 	return load_l10n_with_real_name_impl(loc,name,encoding);
 }
 
@@ -509,7 +527,11 @@ inline void* deal_with_locale_name_local_encoding(lc_locale& loc,::fast_io::free
 	if(pos==::fast_io::freestanding::string_view::npos)
 		coding=exec_charset_encoding_strvw();
 	else
+#if 0
 		coding=coding.substr(pos+1);
+#else
+		coding=::fast_io::freestanding::string_view(lang_env.data()+pos+1,lang_env.data()+lang_env.size());
+#endif
 	return load_l10n_with_real_name_impl(loc,locale_name,coding);
 }
 
@@ -539,7 +561,7 @@ inline void* deal_with_locale_fullname(lc_locale& loc,::fast_io::freestanding::s
 	{
 		auto pos{fullname.find(u8'.')};
 		if(pos==0)
-			return deal_with_local_locale_name_init_encoding(loc,fullname.substr(1));
+			return deal_with_local_locale_name_init_encoding(loc,::fast_io::freestanding::string_view(fullname.data()+1,fullname.data()+fullname.size()));
 		else if(pos==::fast_io::freestanding::string_view::npos)
 			return load_l10n_with_real_name_impl(loc,fullname);
 		else
@@ -601,7 +623,7 @@ public:
 	l10n& operator=(l10n const&)=delete;
 	l10n& operator=(l10n&& other) noexcept
 	{
-		if(std::addressof(other)==this)
+		if(__builtin_addressof(other)==this)
 			return *this;
 		close();
 		loc=std::move(other.loc);

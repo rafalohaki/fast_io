@@ -496,9 +496,9 @@ inline u8cstring_view extension(posix_directory_entry ent) noexcept
 	return u8cstring_view(null_terminated,fnm.data()+pos,fnm.data()+fnm.size());
 }
 
-inline std::u8string_view stem(posix_directory_entry ent) noexcept
+inline ::fast_io::freestanding::u8string_view stem(posix_directory_entry ent) noexcept
 {
-	std::u8string_view fnm{filename(ent)};
+	::fast_io::freestanding::u8string_view fnm{filename(ent)};
 	auto pos{fnm.rfind(u8'.')};
 	if(pos==static_cast<std::size_t>(-1))
 		return fnm;
@@ -506,7 +506,7 @@ inline std::u8string_view stem(posix_directory_entry ent) noexcept
 		return fnm;
 	if(2<fnm.size()&&pos==1&&fnm.front()==u8'.')
 		return fnm;
-	return fnm.substr(0,pos);
+	return ::fast_io::freestanding::u8string_view(fnm.data(),fnm.data()+pos);
 }
 
 template<std::integral char_type>
