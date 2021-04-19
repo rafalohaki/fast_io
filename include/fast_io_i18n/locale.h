@@ -500,8 +500,8 @@ inline void* deal_with_local_locale_name_local_encoding(lc_locale& loc)
 		name=strvw.substr(0,pos);
 		coding=strvw.substr(pos+1);
 #else
-		name=::fast_io::freestanding::string_view(lang_env.data(),lang_env.data()+pos);
-		coding=::fast_io::freestanding::string_view(lang_env.data()+pos+1,lang_env.data()+lang_env.size());
+		name=::fast_io::freestanding::string_view(strvw.data(),strvw.data()+pos);
+		coding=::fast_io::freestanding::string_view(strvw.data()+pos+1,strvw.data()+strvw.size());
 #endif
 	}
 	return load_l10n_with_real_name_impl(loc,name,coding);
@@ -515,7 +515,7 @@ inline void* deal_with_local_locale_name_encoding(lc_locale& loc,::fast_io::free
 #if 0
 		name=name.substr(0,pos);
 #else
-		name=::fast_io::freestanding::string_view(lang_env.data(),lang_env.data()+pos);
+		name=::fast_io::freestanding::string_view(name.data(),name.data()+pos);
 #endif
 	return load_l10n_with_real_name_impl(loc,name,encoding);
 }
@@ -530,7 +530,7 @@ inline void* deal_with_locale_name_local_encoding(lc_locale& loc,::fast_io::free
 #if 0
 		coding=coding.substr(pos+1);
 #else
-		coding=::fast_io::freestanding::string_view(lang_env.data()+pos+1,lang_env.data()+lang_env.size());
+		coding=::fast_io::freestanding::string_view(coding.data()+pos+1,coding.data()+coding.size());
 #endif
 	return load_l10n_with_real_name_impl(loc,locale_name,coding);
 }
