@@ -313,9 +313,9 @@ inline constexpr output_iter my_copy(input_iter first,input_iter second,output_i
 		return ::fast_io::freestanding::copy(first,second,result);
 }
 
-template<::fast_io::freestanding::input_or_output_iterator output_iter,std::integral count_type,typename T>
+template<::fast_io::freestanding::input_or_output_iterator output_iter,typename T>
 requires (std::is_trivially_copyable_v<T> && sizeof(T)<=sizeof(std::uintmax_t))
-inline constexpr void my_fill_n(output_iter first,std::size_t count, T value)
+inline constexpr output_iter my_fill_n(output_iter first,std::size_t count, T value)
 {
 #if __cpp_lib_is_constant_evaluated>=201811L
 	if (std::is_constant_evaluated())
@@ -332,6 +332,7 @@ inline constexpr void my_fill_n(output_iter first,std::size_t count, T value)
 	else
 		::fast_io::freestanding::fill_n(first,count,value);
 	}
+	return first+count;
 }
 
 template<::fast_io::freestanding::forward_iterator fwd_iter,typename T>
