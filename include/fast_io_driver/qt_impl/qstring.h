@@ -57,8 +57,7 @@ inline constexpr code_cvt_t<src_scheme,dst_scheme,char16_t> code_cvt(T const& hs
 }
 }
 
-template<std::integral char_type,
-typename T>
+template<std::integral char_type,typename T>
 requires (sizeof(char_type)==sizeof(char16_t)||
 	std::same_as<std::remove_cvref_t<T>,QString>||
 	std::same_as<std::remove_cvref_t<T>,QStringRef>||
@@ -69,7 +68,7 @@ requires (sizeof(char_type)==sizeof(char16_t)||
 #endif
 #endif
 )
-inline constexpr basic_io_scatter_t<char_type> print_scatter_define(print_scatter_type<char_type>,T const& hstr) noexcept
+inline constexpr basic_io_scatter_t<char_type> print_scatter_define(print_scatter_type_t<char_type>,T const& hstr) noexcept
 {
 	using char16_may_alias_ptr
 #if __has_cpp_attribute(gnu::may_alias)
@@ -77,7 +76,7 @@ inline constexpr basic_io_scatter_t<char_type> print_scatter_define(print_scatte
 #endif
 	= char_type const*;
 	if constexpr(std::same_as<std::remove_cvref_t<T>,qt_error>)
-		return {{reinterpret_cast<char16_may_alias_ptr>(hstr.qstr.data()),hstr.qstr.size()}};
+		return {reinterpret_cast<char16_may_alias_ptr>(hstr.qstr.data()),hstr.qstr.size()};
 	else
 		return {reinterpret_cast<char16_may_alias_ptr>(hstr.data()),hstr.size()};
 }
