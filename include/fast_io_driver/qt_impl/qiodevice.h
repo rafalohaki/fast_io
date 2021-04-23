@@ -146,17 +146,13 @@ inline constexpr posix_at_entry at(basic_general_qdevice_io_observer<T,ch_type> 
 }
 
 using qiodevice_io_observer = basic_qiodevice_io_observer<char>;
-#ifndef __MSDOS__
 using wqiodevice_io_observer = basic_qiodevice_io_observer<wchar_t>;
-#endif
 using u8qiodevice_io_observer = basic_qiodevice_io_observer<char8_t>;
 using u16qiodevice_io_observer = basic_qiodevice_io_observer<char16_t>;
 using u32qiodevice_io_observer = basic_qiodevice_io_observer<char32_t>;
 
 using qt_io_observer = basic_qt_io_observer<char>;
-#ifndef __MSDOS__
 using wqt_io_observer = basic_qt_io_observer<wchar_t>;
-#endif
 using u8qt_io_observer = basic_qt_io_observer<char8_t>;
 using u16qt_io_observer = basic_qt_io_observer<char16_t>;
 using u32qt_io_observer = basic_qt_io_observer<char32_t>;
