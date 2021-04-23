@@ -17,6 +17,13 @@ struct base_t
 	T reference;
 };
 
+template<bool uppercase,typename T>
+struct hex_0x_t
+{
+	using manip_tag = manip_tag_t;
+	T reference;
+};
+
 template<typename T>
 struct chvw_t
 {
@@ -285,8 +292,6 @@ inline constexpr parameter<
 	else
 		return {reference};
 }
-
-
 
 
 template<std::size_t bs,bool upper=false,typename T>

@@ -991,7 +991,7 @@ inline void win32_clear_screen_main(void* out_hdl)
 Since many people are using console like msys2, we need to first write something to this console
 */
 	constexpr char16_t const str[] = u"\x1b[1;1H\x1b[2J";
-	constexpr std::uint32_t written_bytes{static_cast<std::uint32_t>(sizeof(str) - sizeof(char16_t))};
+	constexpr std::uint32_t written_bytes{static_cast<std::uint32_t>((sizeof(str) - sizeof(char16_t))/sizeof(char16_t))};
 	{
 	win32_console_mode_guard guard{out_hdl};
 	if(!WriteConsoleW(out_hdl, str, written_bytes, nullptr, nullptr))
