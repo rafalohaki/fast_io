@@ -275,23 +275,23 @@ namespace wuint {
 struct uint128 {
 	constexpr uint128() = default;
 
-#if (defined(__GNUC__) || defined(__clang__)) && defined(__SIZEOF_INT128__) && defined(__x86_64__)
-	unsigned __int128	internal_;
+#if defined(__SIZEOF_INT128__)
+	__uint128_t	internal;
 
 	constexpr uint128(std::uint64_t high, std::uint64_t low) noexcept :
-		internal_{ ((unsigned __int128)low) | (((unsigned __int128)high) << 64) } {}
+		internal{ ((__uint128_t)low) | (((__uint128_t)high) << 64) } {}
 
-	constexpr uint128(unsigned __int128 u) noexcept : internal_{ u } {}
+	constexpr uint128(__uint128_t u) noexcept : internal{ u } {}
 
 	constexpr std::uint64_t high() const noexcept {
-		return std::uint64_t(internal_ >> 64);
+		return std::uint64_t(internal >> 64);
 	}
 	constexpr std::uint64_t low() const noexcept {
-		return std::uint64_t(internal_);
+		return std::uint64_t(internal);
 	}
 
 	uint128& operator+=(std::uint64_t n) & noexcept {
-		internal_ += n;
+		internal += n;
 		return *this;
 	}
 #else
@@ -337,8 +337,8 @@ inline std::uint64_t umul64(std::uint32_t x, std::uint32_t y) noexcept {
 [[msvc::safebuffers]]
 #endif
 inline uint128 umul128(std::uint64_t x, std::uint64_t y) noexcept {
-#if (defined(__GNUC__) || defined(__clang__)) && defined(__SIZEOF_INT128__) && defined(__x86_64__)
-	return (unsigned __int128)(x) * (unsigned __int128)(y);
+#if defined(__SIZEOF_INT128__)
+	return uint128((__uint128_t)(x) * (__uint128_t)(y));
 #elif defined(_MSC_VER) && defined(_M_X64)
 	uint128 result;
 	result.low_ = _umul128(x, y, &result.high_);
@@ -361,12 +361,12 @@ inline uint128 umul128(std::uint64_t x, std::uint64_t y) noexcept {
 #endif
 }
 
-#if defined(_MSC_VER) && !defined(__clang__)
-__declspec(safebuffers)
+#if __has_cpp_attribute(msvc::safebuffers)
+[[msvc::safebuffers]]
 #endif
 inline std::uint64_t umul128_upper64(std::uint64_t x, std::uint64_t y) noexcept {
 #if (defined(__GNUC__) || defined(__clang__)) && defined(__SIZEOF_INT128__) && defined(__x86_64__)
-	auto p = (unsigned __int128)(x) * (unsigned __int128)(y);
+	auto p = (__uint128_t)(x) * (__uint128_t)(y);
 	return std::uint64_t(p >> 64);
 #elif defined(_MSC_VER) && defined(_M_X64)
 	return __umulh(x, y);
@@ -388,8 +388,8 @@ inline std::uint64_t umul128_upper64(std::uint64_t x, std::uint64_t y) noexcept 
 }
 
 // Get upper 64-bits of multiplication of a 64-bit unsigned integer and a 128-bit unsigned integer
-#if defined(_MSC_VER) && !defined(__clang__)
-__declspec(safebuffers)
+#if __has_cpp_attribute(msvc::safebuffers)
+[[msvc::safebuffers]]
 #endif
 inline std::uint64_t umul192_upper64(std::uint64_t x, uint128 y) noexcept {
 	auto g0 = umul128(x, y.high());
@@ -418,8 +418,8 @@ inline std::uint32_t umul96_upper32(std::uint32_t x, std::uint64_t y) noexcept {
 }
 
 // Get middle 64-bits of multiplication of a 64-bit unsigned integer and a 128-bit unsigned integer
-#if defined(_MSC_VER) && !defined(__clang__)
-__declspec(safebuffers)
+#if __has_cpp_attribute(msvc::safebuffers)
+[[msvc::safebuffers]]
 #endif
 inline std::uint64_t umul192_middle64(std::uint64_t x, uint128 y) noexcept {
 	auto g01 = x * y.high();
@@ -2243,8 +2243,8 @@ static constexpr int shorter_interval_tie_upper_threshold =
 
 template <class ReturnType, class IntervalTypeProvider, class SignPolicy,
 class TrailingZeroPolicy, class CorrectRoundingPolicy, class CachePolicy>
-#if defined(_MSC_VER) && !defined(__clang__)
-__declspec(safebuffers)
+#if __has_cpp_attribute(msvc::safebuffers)
+[[msvc::safebuffers]]
 #endif
 inline static ReturnType compute_nearest(ieee754_bits<Float> const br) noexcept
 {
@@ -3138,11 +3138,13 @@ return convert_to_policy_holder(policy_pair_list{});
 ////////////////////////////////////////////////////////////////////////////////////////
 
 template <class Float, class... Policies>
-#if defined(_MSC_VER) && !defined(__clang__)
-__declspec(safebuffers)
+#if __has_cpp_attribute(msvc::safebuffers)
+[[msvc::safebuffers]]
 #endif
-#if defined(__GNUC__) || defined(__clang__)
+#if __has_cpp_attribute(gnu::always_inline)
 [[gnu::always_inline]]
+#elif __has_cpp_attribute(msvc::forceinline)
+[[msvc::forceinline]]
 #endif
 inline auto to_decimal(Float x, Policies... policies)
 {
