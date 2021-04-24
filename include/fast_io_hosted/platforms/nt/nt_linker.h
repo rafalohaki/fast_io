@@ -601,7 +601,7 @@ asm("RtlLeaveCriticalSection@4")
 asm("_RtlLeaveCriticalSection@4")
 #endif
 #else
-asm("LeaveCriticalSection")
+asm("RtlLeaveCriticalSection")
 #endif
 #endif
 ;
