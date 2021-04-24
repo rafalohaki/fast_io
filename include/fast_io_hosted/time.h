@@ -115,7 +115,7 @@ inline constexpr auto posix_clock_id_to_native_value(posix_clock_id pcid)
 	};
 #endif
 }
-
+#ifdef _WIN32
 #if __has_cpp_attribute(gnu::pure)
 [[gnu::pure]]
 #endif
@@ -136,6 +136,7 @@ inline unix_timestamp win32_query_performance_frequency_to_unix_timestamp()
 {
 	return {0,uintiso_subseconds_per_second/static_cast<std::uint64_t>(win32_query_performance_frequency())};
 }
+#endif
 }
 
 inline
@@ -268,8 +269,8 @@ inline unix_timestamp win32_posix_clock_gettime_boottime_xp_impl()
 }
 
 }
-
 #endif
+
 #ifdef __MSDOS__
 namespace details
 {
