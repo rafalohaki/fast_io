@@ -324,6 +324,35 @@ asm("QueryUnbiasedInterruptTime")
 #endif
 ;
 
+__declspec(dllimport) extern int __stdcall QueryPerformanceCounter(std::int64_t*) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("QueryPerformanceCounter@4")
+#else
+asm("_QueryPerformanceCounter@4")
+#endif
+#else
+asm("QueryPerformanceCounter")
+#endif
+#endif
+;
+
+__declspec(dllimport) extern int __stdcall QueryPerformanceFrequency(std::int64_t*) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("QueryPerformanceFrequency@4")
+#else
+asm("_QueryPerformanceFrequency@4")
+#endif
+#else
+asm("QueryPerformanceFrequency")
+#endif
+#endif
+;
+
+
 __declspec(dllimport) extern int __stdcall GetProcessTimes(void*,filetime*,filetime*,filetime*,filetime*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))

@@ -115,6 +115,27 @@ inline constexpr auto posix_clock_id_to_native_value(posix_clock_id pcid)
 	};
 #endif
 }
+
+#if __has_cpp_attribute(gnu::pure)
+[[gnu::pure]]
+#endif
+inline std::int64_t win32_query_performance_frequency()
+{
+	std::int64_t val{};
+	if(!::fast_io::win32::QueryPerformanceFrequency(__builtin_addressof(val)))
+		throw_win32_error();
+	if(val<=0)
+		throw_win32_error(0x00000057);
+	return val;
+}
+
+#if __has_cpp_attribute(gnu::pure)
+[[gnu::pure]]
+#endif
+inline unix_timestamp win32_query_performance_frequency_to_unix_timestamp()
+{
+	return {0,uintiso_subseconds_per_second/static_cast<std::uint64_t>(win32_query_performance_frequency())};
+}
 }
 
 inline
@@ -132,14 +153,16 @@ unix_timestamp posix_clock_getres([[maybe_unused]] posix_clock_id pclk_id)
 	case posix_clock_id::tai:
 	case posix_clock_id::process_cputime_id:
 	case posix_clock_id::thread_cputime_id:
+	{
+		constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/10000000u};
+		constexpr unix_timestamp constexpr_stamp{0,mul_factor};
+		return constexpr_stamp;
+	}
 	case posix_clock_id::monotonic:
 	case posix_clock_id::monotonic_coarse:
 	case posix_clock_id::monotonic_raw:
 	case posix_clock_id::boottime:
-	{
-		constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/10000000u};
-		return {0,mul_factor};
-	}
+		return ::fast_io::details::win32_query_performance_frequency_to_unix_timestamp();
 	break;
 	default:
 		throw_win32_error(0x00000057);
@@ -186,15 +209,15 @@ namespace win32::details
 
 inline unix_timestamp win32_posix_clock_gettime_tai_impl() noexcept
 {
-	win32::filetime ftm;
-	win32::GetSystemTimePreciseAsFileTime(std::addressof(ftm));
+	::fast_io::win32::filetime ftm;
+	::fast_io::win32::GetSystemTimePreciseAsFileTime(std::addressof(ftm));
 	return static_cast<unix_timestamp>(to_win32_timestamp(ftm));
 }
 
 inline unix_timestamp win32_posix_clock_gettime_boottime_impl()
 {
 	std::uint64_t ftm{};
-	if(!win32::QueryUnbiasedInterruptTime(std::addressof(ftm)))
+	if(!::fast_io::win32::QueryUnbiasedInterruptTime(std::addressof(ftm)))
 		throw_win32_error();
 	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/10000000u};
 	std::uint64_t seconds{ftm/10000000ULL};
@@ -205,11 +228,11 @@ inline unix_timestamp win32_posix_clock_gettime_boottime_impl()
 template<bool is_thread>
 inline unix_timestamp win32_posix_clock_gettime_process_or_thread_time_impl()
 {
-	win32::filetime creation_time,exit_time,kernel_time,user_time;
+	::fast_io::win32::filetime creation_time,exit_time,kernel_time,user_time;
 	if constexpr(is_thread)
 	{
 		auto hthread{bit_cast<void*>(std::intptr_t(-2))};
-		if(!win32::GetThreadTimes(hthread,std::addressof(creation_time),
+		if(!::fast_io::win32::GetThreadTimes(hthread,std::addressof(creation_time),
 		std::addressof(exit_time),
 		std::addressof(kernel_time),
 		std::addressof(user_time)))
@@ -218,18 +241,30 @@ inline unix_timestamp win32_posix_clock_gettime_process_or_thread_time_impl()
 	else
 	{
 		auto hprocess{bit_cast<void*>(std::intptr_t(-1))};
-		if(!win32::GetProcessTimes(hprocess,std::addressof(creation_time),
+		if(!::fast_io::win32::GetProcessTimes(hprocess,std::addressof(creation_time),
 		std::addressof(exit_time),
 		std::addressof(kernel_time),
 		std::addressof(user_time)))
 			throw_win32_error();
 	}
-	std::uint64_t ftm{win32::filetime_to_uint64_t(kernel_time)+
-		win32::filetime_to_uint64_t(user_time)};
+	std::uint64_t ftm{::fast_io::win32::filetime_to_uint64_t(kernel_time)+
+		::fast_io::win32::filetime_to_uint64_t(user_time)};
 	std::uint64_t seconds{ftm/10000000ULL};
 	std::uint64_t subseconds{ftm%10000000ULL};
 	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/10000000u};
 	return {static_cast<intiso_t>(seconds),static_cast<uintiso_t>(subseconds*mul_factor)};
+}
+
+inline unix_timestamp win32_posix_clock_gettime_boottime_xp_impl()
+{
+	std::int64_t freq{::fast_io::details::win32_query_performance_frequency()};
+	std::int64_t counter{};
+	if(!::fast_io::win32::QueryPerformanceCounter(__builtin_addressof(counter)))
+		throw_win32_error();
+	std::int64_t val(uintiso_subseconds_per_second/freq);
+	std::int64_t dv{counter/freq};
+	std::uint64_t md{static_cast<std::uint64_t>(counter%freq)};
+	return unix_timestamp{dv,md*val};
 }
 
 }
@@ -377,7 +412,8 @@ inline unix_timestamp posix_clock_gettime([[maybe_unused]] posix_clock_id pclk_i
 	case posix_clock_id::monotonic_coarse:
 	case posix_clock_id::monotonic_raw:
 	case posix_clock_id::boottime:
-		return win32::details::win32_posix_clock_gettime_boottime_impl();
+//		return win32::details::win32_posix_clock_gettime_boottime_impl();
+		return win32::details::win32_posix_clock_gettime_boottime_xp_impl();
 	case posix_clock_id::process_cputime_id:
 		return win32::details::win32_posix_clock_gettime_process_or_thread_time_impl<false>();
 	case posix_clock_id::thread_cputime_id:
