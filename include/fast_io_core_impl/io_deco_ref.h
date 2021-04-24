@@ -42,7 +42,7 @@ requires requires(decot& dc,std::size_t size)
 constexpr std::size_t deco_reserve_size(io_reserve_type_t<to_char_type,deco_reference_wrapper<decot>>,deco_reference_wrapper<decot> deco,std::size_t size)
 {
 	return deco_reserve_size(io_reserve_type<to_char_type,decot>,*deco.ptr,size);
-};
+}
 
 template<::fast_io::freestanding::random_access_iterator srcIter,::fast_io::freestanding::random_access_iterator toIter,typename decot>
 requires requires(decot& deco,srcIter srcit,toIter toit)
