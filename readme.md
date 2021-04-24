@@ -75,6 +75,15 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - Nintendo DS (devkitPro)
 - Todo list: Webassembly
 
+## Legacy Windows Version Support (need define _WIN32_WINNT version by yourself)
+- Windows 2000
+- Windows XP
+- Windows 2003
+- Windows Longhorn
+- Windows Vista
+- Microsoft Neptune
+- To do: Windows NT, Windows 95, Windows 98, Windows ME, Microsoft Chicago, Windows 1.0, Windows 2.0, Windows 3.0, Windows 3.1
+
 ## Supported libc FILE* hacks platforms
 - glibc
 - MSVCRT
