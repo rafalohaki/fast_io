@@ -974,7 +974,7 @@ struct win32_console_mode_guard
 	{
 		if(!GetConsoleMode(out_hdl,__builtin_addressof(mode)))
 			throw_win32_error();
-		if(!SetConsoleMode(out_hdl,mode))
+		if(!SetConsoleMode(out_hdl,mode|0x0004))
 			throw_win32_error();
 	}
 	win32_console_mode_guard(win32_console_mode_guard const&)=delete;
@@ -990,27 +990,14 @@ inline void win32_clear_screen_main(void* out_hdl)
 /*
 Since many people are using console like msys2, we need to first write something to this console
 */
-	constexpr char16_t const str[] = u"\x1b[1;1H\x1b[2J";
-	constexpr std::uint32_t written_bytes{static_cast<std::uint32_t>((sizeof(str) - sizeof(char16_t))/sizeof(char16_t))};
+	constexpr char16_t const str[] = u"\033c";
+	constexpr std::uint32_t written_chars{static_cast<std::uint32_t>((sizeof(str) - sizeof(char16_t))/sizeof(char16_t))};
+//not bytes, but chars
 	{
 	win32_console_mode_guard guard{out_hdl};
-	if(!WriteConsoleW(out_hdl, str, written_bytes, nullptr, nullptr))
+	if(!WriteConsoleW(out_hdl, str, written_chars, nullptr, nullptr))
 		throw_win32_error();
 	}
-
-/*
-cmd and Powershell
-*/
-	console_screen_buffer_info con_info;
-	if(!GetConsoleScreenBufferInfo(out_hdl, __builtin_addressof(con_info)))
-		throw_win32_error();
-	small_rect scroll_rect{0, 0, con_info.Size.Y, con_info.Size.X};
-	coord scroll_target{0, static_cast<std::int16_t>(-con_info.Size.Y)};
-	char_info fill{u' ', con_info.Attrib};
-	if(!ScrollConsoleScreenBufferW(out_hdl, __builtin_addressof(scroll_rect), nullptr, scroll_target, __builtin_addressof(fill)))
-		throw_win32_error();
-	if(!SetConsoleCursorPosition(out_hdl, {0, 0}))
-		throw_win32_error();
 }
 
 
