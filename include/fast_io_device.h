@@ -45,14 +45,12 @@ using basic_obuf_file = basic_obuf<basic_onative_file<char_type>>;
 template<std::integral char_type>
 using basic_iobuf_file = basic_iobuf<basic_native_file<char_type>>;
 
-#if __cpp_lib_jthread >= 201703L
 template<std::integral char_type>
 using basic_ibuf_file_mutex = basic_iomutex<basic_ibuf_file<char_type>>;
 template<std::integral char_type>
 using basic_obuf_file_mutex = basic_iomutex<basic_obuf_file<char_type>>;
 template<std::integral char_type>
 using basic_iobuf_file_mutex = basic_iomutex<basic_iobuf_file<char_type>>;
-#endif
 /*
 char region
 */
@@ -67,11 +65,9 @@ using ibuf_file = basic_ibuf_file<char>;
 using obuf_file = basic_obuf_file<char>;
 using iobuf_file = basic_iobuf_file<char>;
 
-#if __cpp_lib_jthread >= 201703L
 using ibuf_file_mutex = basic_ibuf_file_mutex<char>;
 using obuf_file_mutex = basic_obuf_file_mutex<char>;
 using iobuf_file_mutex = basic_iobuf_file_mutex<char>;
-#endif
 
 /*
 wchar_t region
@@ -91,11 +87,9 @@ using wibuf_file = basic_ibuf_file<wchar_t>;
 using wobuf_file = basic_obuf_file<wchar_t>;
 using wiobuf_file = basic_iobuf_file<wchar_t>;
 
-#if __cpp_lib_jthread >= 201703L
 using wibuf_file_mutex = basic_ibuf_file_mutex<wchar_t>;
 using wobuf_file_mutex = basic_obuf_file_mutex<wchar_t>;
 using wiobuf_file_mutex = basic_iobuf_file_mutex<wchar_t>;
-#endif
 
 /*
 char8_t region
@@ -111,11 +105,9 @@ using u8ibuf_file = basic_ibuf_file<char8_t>;
 using u8obuf_file = basic_obuf_file<char8_t>;
 using u8iobuf_file = basic_iobuf_file<char8_t>;
 
-#if __cpp_lib_jthread >= 201703L
 using u8ibuf_file_mutex = basic_ibuf_file_mutex<char8_t>;
 using u8obuf_file_mutex = basic_obuf_file_mutex<char8_t>;
 using u8iobuf_file_mutex = basic_iobuf_file_mutex<char8_t>;
-#endif
 
 /*
 char16_t region
@@ -131,11 +123,9 @@ using u16ibuf_file = basic_ibuf_file<char16_t>;
 using u16obuf_file = basic_obuf_file<char16_t>;
 using u16iobuf_file = basic_iobuf_file<char16_t>;
 
-#if __cpp_lib_jthread >= 201703L
 using u16ibuf_file_mutex = basic_ibuf_file_mutex<char16_t>;
 using u16obuf_file_mutex = basic_obuf_file_mutex<char16_t>;
 using u16iobuf_file_mutex = basic_iobuf_file_mutex<char16_t>;
-#endif
 
 /*
 char32_t region
@@ -151,11 +141,9 @@ using u32ibuf_file = basic_ibuf_file<char32_t>;
 using u32obuf_file = basic_obuf_file<char32_t>;
 using u32iobuf_file = basic_iobuf_file<char32_t>;
 
-#if __cpp_lib_jthread >= 201703L
 using u32ibuf_file_mutex = basic_ibuf_file_mutex<char32_t>;
 using u32obuf_file_mutex = basic_obuf_file_mutex<char32_t>;
 using u32iobuf_file_mutex = basic_iobuf_file_mutex<char32_t>;
-#endif
 
 #if !(defined(FAST_IO_DISABLE_CODECVT)&&(__STDC_HOSTED__==0 || (defined(_GLIBCXX_HOSTED) && _GLIBCXX_HOSTED==0)))
 /*

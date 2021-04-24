@@ -52,7 +52,7 @@ requires requires(decot& deco,srcIter srcit,toIter toit)
 constexpr toIter deco_reserve_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<toIter>,deco_reference_wrapper<decot>>,deco_reference_wrapper<decot> deco,srcIter first,srcIter last,toIter iter)
 {
 	return deco_reserve_define(io_reserve_type<::fast_io::freestanding::iter_value_t<toIter>,decot>,*deco.ptr,first,last,iter);
-};
+}
 
 #if 0
 template<std::integral to_char_type,typename decot,::fast_io::freestanding::random_access_iterator fromIter>

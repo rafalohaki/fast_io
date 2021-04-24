@@ -593,7 +593,7 @@ inline bool posix_is_character_device(int fd) noexcept
 #ifdef __MSDOS__
 extern void dos_clrscr() noexcept asm("_clrscr");
 #endif
-inline void posix_clear_screen_main(int fd)
+inline void posix_clear_screen_main([[maybe_unused]] int fd)
 {
 #ifdef __MSDOS__
 	dos_clrscr();
@@ -946,9 +946,9 @@ inline int my_posix_openat(int dirfd,char const* pathname,int flags,mode_t mode)
 }
 #endif
 #ifdef __MSDOS__
-extern unsigned int _dos_creat(char const*,short unsigned,int*) noexcept asm("_dos_creat");
-extern unsigned int _dos_creatnew(char const*,short unsigned,int*) noexcept asm("_dos_creatnew");
-extern unsigned int _dos_open(char const*,short unsigned,int*) noexcept asm("_dos_open");
+extern unsigned int my_dos_creat(char const*,short unsigned,int*) noexcept asm("__dos_creat");
+extern unsigned int my_dos_creatnew(char const*,short unsigned,int*) noexcept asm("__dos_creatnew");
+extern unsigned int my_dos_open(char const*,short unsigned,int*) noexcept asm("__dos_open");
 #endif
 template<bool always_terminate=false>
 inline int my_posix_open(char const* pathname,int flags,
@@ -968,12 +968,12 @@ An Example of Multiple Inheritance in C++: A Model of the Iostream Library
 	if(((flags&O_CREAT)==O_CREAT))
 	{
 		if((flags&O_EXCL)!=O_EXCL)
-			ret=_dos_creat(pathname,0,&fd);
+			ret=my_dos_creat(pathname,0,&fd);
 		else
-			ret=_dos_creatnew(pathname,0,&fd);
+			ret=my_dos_creatnew(pathname,0,&fd);
 	}
 	else
-		ret=_dos_open(pathname,flags,&fd);
+		ret=my_dos_open(pathname,flags,&fd);
 	if(ret)
 	{
 		if constexpr(always_terminate)
@@ -1731,6 +1731,6 @@ inline io_scatter_status_t scatter_write(basic_posix_pio_entry<ch_type> ppioent,
 #endif
 
 }
-#if defined(__MSDOS__) || (defined(__NEWLIB__)&&!defined(FAST_IO_USE_NEWLIB_CUSTOM_WRITEV))
+#if defined(__MSDOS__) || (defined(__NEWLIB__)&&!defined(FAST_IO_USE_NEWLIB_CUSTOM_WRITEV)&&!defined(__CYGWIN__))
 #include"msdos.h"
 #endif

@@ -581,7 +581,7 @@ inline std::uintmax_t c_io_seek_no_lock_impl(std::FILE* fp,std::intmax_t offset,
 
 #if defined(__CYGWIN__) && !defined(__SINGLE_THREAD__)
 
-[[gnu::dllimport]] extern void my_pthread_mutex_lock(void*) noexcept
+[[gnu::dllimport]] extern void my_cygwin_pthread_mutex_lock(void*) noexcept
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
 #if defined(__GNUC__)
 asm("pthread_mutex_lock")
@@ -593,7 +593,7 @@ asm("pthread_mutex_lock")
 #endif
 ;
 
-[[gnu::dllimport]] extern void my_pthread_mutex_unlock(void*) noexcept
+[[gnu::dllimport]] extern void my_cygwin_pthread_mutex_unlock(void*) noexcept
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
 #if defined(__GNUC__)
 asm("pthread_mutex_unlock")
@@ -608,13 +608,13 @@ asm("pthread_mutex_unlock")
 inline void my_cygwin_flockfile(std::FILE* fp) noexcept
 {
 	if(!((fp->_flags)&__SSTR))
-		my_pthread_mutex_lock(fp->_lock);
+		my_cygwin_pthread_mutex_lock(fp->_lock);
 }
 
 inline void my_cygwin_funlockfile(std::FILE* fp) noexcept
 {
 	if(!((fp->_flags)&__SSTR))
-		my_pthread_mutex_unlock(fp->_lock);
+		my_cygwin_pthread_mutex_unlock(fp->_lock);
 }
 
 #endif
