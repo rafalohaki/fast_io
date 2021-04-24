@@ -3,24 +3,9 @@
 namespace fast_io
 {
 
-namespace win32
-{
-
-struct rtl_critical_section
-{
-	void* debug_info;
-	std::int32_t lock_count;
-	std::int32_t recursion_count;
-	void* owning_thread;
-	void* lock_semaphore;
-	std::uintptr_t spin_count;
-};
-
-}
-
 struct win32_critical_section
 {
-	using native_handle_type = win32::rtl_critical_section;
+	using native_handle_type = ::fast_io::win32::nt::rtl_critical_section;
 	native_handle_type critical_section;
 	win32_critical_section() noexcept
 	{

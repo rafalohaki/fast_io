@@ -550,4 +550,74 @@ asm("RtlFreeUnicodeString")
 ;
 
 
+__declspec(dllimport) extern void __stdcall RtlInitializeCriticalSection(void*) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("RtlInitializeCriticalSection@4")
+#else
+asm("_RtlInitializeCriticalSection@4")
+#endif
+#else
+asm("RtlInitializeCriticalSection")
+#endif
+#endif
+;
+
+__declspec(dllimport) extern void __stdcall RtlEnterCriticalSection(void*) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("RtlEnterCriticalSection@4")
+#else
+asm("_RtlEnterCriticalSection@4")
+#endif
+#else
+asm("RtlEnterCriticalSection")
+#endif
+#endif
+;
+
+__declspec(dllimport) extern int __stdcall RtlTryEnterCriticalSection(void*) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("RtlTryEnterCriticalSection@4")
+#else
+asm("_RtlTryEnterCriticalSection@4")
+#endif
+#else
+asm("RtlTryEnterCriticalSection")
+#endif
+#endif
+;
+
+__declspec(dllimport) extern void __stdcall RtlLeaveCriticalSection(void*) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("RtlLeaveCriticalSection@4")
+#else
+asm("_RtlLeaveCriticalSection@4")
+#endif
+#else
+asm("LeaveCriticalSection")
+#endif
+#endif
+;
+
+__declspec(dllimport) extern void __stdcall RtlDeleteCriticalSection(void*) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("RtlDeleteCriticalSection@4")
+#else
+asm("_RtlDeleteCriticalSection@4")
+#endif
+#else
+asm("RtlDeleteCriticalSection")
+#endif
+#endif
+;
+
 }

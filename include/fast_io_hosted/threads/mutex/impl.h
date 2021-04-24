@@ -6,6 +6,7 @@
 #include "mcf_gthread_mutex.h"
 #endif
 #if defined(_WIN32) || defined(__CYGWIN__)
+#include"rtl_critical_section.h"
 #include"win32_critical_section.h"
 #endif
 #if !defined(__SINGLE_THREAD__) && (!defined(__NEWLIB__) || defined(__CYGWIN__)) && !defined(_WIN32) && !defined(__MSDOS__)

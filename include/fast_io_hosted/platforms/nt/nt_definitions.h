@@ -343,4 +343,14 @@ SectionRelocationInformation,
 MaxSectionInfoClass
 };
 
+struct rtl_critical_section
+{
+	void* debug_info;
+	std::int32_t lock_count;
+	std::int32_t recursion_count;
+	void* owning_thread;
+	void* lock_semaphore;
+	std::uintptr_t spin_count;
+};
+
 }
