@@ -4,7 +4,7 @@ namespace fast_io
 {
 namespace details
 {
-template<std::integral char_type,::fast_io::freestanding::forward_iterator Iter>
+template<::fast_io::freestanding::forward_iterator Iter>
 inline constexpr Iter print_reserve_parse_code_impl(Iter iter,parse_code code) noexcept
 {
 	if constexpr(std::same_as<::fast_io::freestanding::iter_value_t<Iter>,char>)
@@ -90,8 +90,8 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,pars
 	return 16;
 }
 
-template<std::integral char_type,::fast_io::freestanding::forward_iterator Iter>
-inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,parse_code>,Iter iter,parse_code code) noexcept
+template<::fast_io::freestanding::forward_iterator Iter>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,parse_code>,Iter iter,parse_code code) noexcept
 {
 	return details::print_reserve_parse_code_impl(iter,code);
 }

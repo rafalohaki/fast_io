@@ -211,7 +211,11 @@ namespace win32::details
 inline unix_timestamp win32_posix_clock_gettime_tai_impl() noexcept
 {
 	::fast_io::win32::filetime ftm;
+#if defined(_WIN32_WINNT) && _WIN32_WINNT >= 0x0602
 	::fast_io::win32::GetSystemTimePreciseAsFileTime(std::addressof(ftm));
+#else
+	::fast_io::win32::GetSystemTimeAsFileTime(std::addressof(ftm));
+#endif
 	return static_cast<unix_timestamp>(to_win32_timestamp(ftm));
 }
 

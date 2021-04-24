@@ -310,6 +310,20 @@ asm("GetSystemTimePreciseAsFileTime")
 #endif
 ;
 
+__declspec(dllimport) extern void __stdcall GetSystemTimeAsFileTime(filetime*) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("GetSystemTimeAsFileTime@4")
+#else
+asm("_GetSystemTimeAsFileTime@4")
+#endif
+#else
+asm("GetSystemTimeAsFileTime")
+#endif
+#endif
+;
+
 __declspec(dllimport) extern int __stdcall QueryUnbiasedInterruptTime(std::uint64_t* unbiasedtime) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
