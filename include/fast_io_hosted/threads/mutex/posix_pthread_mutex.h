@@ -20,7 +20,7 @@ struct posix_pthread_mutex
 	}
 	bool try_lock() noexcept
 	{
-		return noexcept_call(pthread_mutex_trylock,__builtin_addressof(mutex));
+		return !noexcept_call(pthread_mutex_trylock,__builtin_addressof(mutex));
 	}
 	void unlock() noexcept
 	{

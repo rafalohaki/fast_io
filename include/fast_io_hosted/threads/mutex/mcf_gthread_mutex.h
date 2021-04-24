@@ -16,7 +16,7 @@ struct mcf_gthread_mutex
 	}
 	bool try_lock() noexcept
 	{
-		return __gthread_mutex_trylock(__builtin_addressof(mutex));
+		return !__gthread_mutex_trylock(__builtin_addressof(mutex));
 	}
 	void unlock() noexcept
 	{

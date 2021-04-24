@@ -34,7 +34,7 @@ struct win32_critical_section
 	}
 	bool try_lock() noexcept
 	{
-		return !::fast_io::win32::TryEnterCriticalSection(__builtin_addressof(critical_section));
+		return ::fast_io::win32::TryEnterCriticalSection(__builtin_addressof(critical_section));
 	}
 	void unlock() noexcept
 	{
