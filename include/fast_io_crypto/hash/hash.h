@@ -14,5 +14,5 @@ using md5
 }
 #include"hmac.h"
 #if defined(__GNUC__)
-#include"poly1305.h"
+//#include"poly1305.h"
 #endif

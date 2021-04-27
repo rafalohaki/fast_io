@@ -6,7 +6,7 @@ namespace fast_io
 namespace details
 {
 
-inline constexpr void U64TO8(std::byte *p, std::uint64_t v) {
+inline constexpr void U64TO8(std::byte *p, std::uint64_t v) noexcept {
 	p[0] = static_cast<std::byte>((v      ) & 0xff);
 	p[1] = static_cast<std::byte>((v >>  8) & 0xff);
 	p[2] = static_cast<std::byte>((v >> 16) & 0xff);
@@ -16,7 +16,7 @@ inline constexpr void U64TO8(std::byte *p, std::uint64_t v) {
 	p[6] = static_cast<std::byte>((v >> 48) & 0xff);
 	p[7] = static_cast<std::byte>((v >> 56) & 0xff);
 }
-inline constexpr std::uint64_t U8TO64(std::byte const *p) {
+inline constexpr std::uint64_t U8TO64(std::byte const *p) noexcept {
 	return
 		(((std::uint64_t)(std::to_integer<std::uint64_t>(p[0]))      ) |
 		(( std::uint64_t)(std::to_integer<std::uint64_t>(p[1])) <<  8) |

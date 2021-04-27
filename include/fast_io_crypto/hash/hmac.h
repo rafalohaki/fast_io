@@ -38,11 +38,11 @@ struct hmac
 	}
 	void operator()(std::byte const* process_blocks,std::size_t block_bytes) noexcept
 	{
-		function(process_blocks);
+		function(process_blocks,block_bytes);
 	}
-	void digest(std::byte const* process_blocks,std::size_t block_bytes) noexcept
+	void digest(std::byte const* final_process_blocks,std::size_t final_block_bytes) noexcept
 	{
-		function.digest(final_block);
+		function.digest(final_process_blocks,final_block_bytes);
 		for(auto & e : outer_key)
 			e^=std::byte{0x5c};
 		auto digest_block{function.digest_block};

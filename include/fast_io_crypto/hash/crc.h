@@ -13,12 +13,12 @@ inline constexpr ::fast_io::freestanding::array<std::uint32_t,256> crc32c_tb{0x0
 template<bool crc32c=false>
 inline constexpr std::uint32_t calculate_crc32(std::uint32_t crc,std::byte const* block_start,std::size_t block_bytes) noexcept
 {
-	for(std::size_t i{};i!=block_bytes;++i)
+	for(auto i{block_start},e{block_start+block_bytes};i!=e;++i)
 	{
 		if constexpr(crc32c)
-			crc=crc32c_tb[(std::to_integer<std::uint32_t>(e)^crc)&0xff]^(crc>>8);
+			crc=crc32c_tb[(std::to_integer<std::uint32_t>(*i)^crc)&0xff]^(crc>>8);
 		else
-			crc=crc32_tb[(std::to_integer<std::uint32_t>(e)^crc)&0xff]^(crc>>8);
+			crc=crc32_tb[(std::to_integer<std::uint32_t>(*i)^crc)&0xff]^(crc>>8);
 	}
 	return crc;
 }
@@ -55,10 +55,10 @@ inline constexpr std::uint32_t do_crc32c_main(std::uint32_t crc,std::byte const*
 	else
 	{
 		constexpr std::size_t block_size{8};
-		for(;process_block_start!=process_block_end;block+=block_size)
+		for(auto process_block_end{block_start+block_bytes};block_start!=process_block_end;block_start+=block_size)
 		{
 			std::uint64_t v;
-			::fast_io::details::my_memcpy(&v,block,block_size);
+			::fast_io::details::my_memcpy(&v,block_start,block_size);
 #if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
 		 	crc = __builtin_ia32_crc32di(crc,v);
 #else
@@ -73,7 +73,7 @@ inline constexpr std::uint32_t do_crc32c_main_digest(std::uint32_t crc,std::byte
 {
 	if(std::is_constant_evaluated())
 	{
-		return ~calculate_crc32<true>(crc,block_start,block_bytes);
+		return ~calculate_crc32<true>(crc,final_block,final_block_size);
 	}
 	else
 	{
@@ -82,14 +82,14 @@ inline constexpr std::uint32_t do_crc32c_main_digest(std::uint32_t crc,std::byte
 		case 7:
 		{
 			std::uint32_t fn;
-			::fast_io::details::my_memcpy(std::addressof(fn),final_block),4);
+			::fast_io::details::my_memcpy(__builtin_addressof(fn),final_block,4);
 #if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
 			crc = __builtin_ia32_crc32si (crc,fn);
 #else
 			crc = _mm_crc32_u32(crc,fn);
 #endif
 			std::uint16_t fn1;
-			::fast_io::details::my_memcpy(std::addressof(fn1),ffinal_block+4,2);
+			::fast_io::details::my_memcpy(__builtin_addressof(fn1),final_block+4,2);
 #if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
 			crc = __builtin_ia32_crc32si(crc,fn1);
 			crc = __builtin_ia32_crc32qi(crc,std::to_integer<char unsigned>(final_block[6]));
@@ -102,14 +102,14 @@ inline constexpr std::uint32_t do_crc32c_main_digest(std::uint32_t crc,std::byte
 		case 6:
 		{
 			std::uint32_t fn;
-			::fast_io::details::my_memcpy(std::addressof(fn),final_block,4);
+			::fast_io::details::my_memcpy(__builtin_addressof(fn),final_block,4);
 #if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
 			crc = __builtin_ia32_crc32si (crc,fn);
 #else
 			crc = _mm_crc32_u32(crc,fn);
 #endif
 			std::uint16_t fn1;
-			::fast_io::details::my_memcpy(std::addressof(fn1),final_block+4,2);
+			::fast_io::details::my_memcpy(__builtin_addressof(fn1),final_block+4,2);
 #if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
 			crc = __builtin_ia32_crc32si (crc,fn1);
 #else
@@ -120,7 +120,7 @@ inline constexpr std::uint32_t do_crc32c_main_digest(std::uint32_t crc,std::byte
 		case 5:
 		{
 			std::uint32_t fn;
-			::fast_io::details::my_memcpy(std::addressof(fn),final_block,4);
+			::fast_io::details::my_memcpy(__builtin_addressof(fn),final_block,4);
 #if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
 			crc = __builtin_ia32_crc32si (crc,fn);
 			crc = __builtin_ia32_crc32qi(crc,std::to_integer<char unsigned>(final_block[4]));
@@ -133,7 +133,7 @@ inline constexpr std::uint32_t do_crc32c_main_digest(std::uint32_t crc,std::byte
 		case 4:
 		{
 			std::uint32_t fn;
-			::fast_io::details::my_memcpy(std::addressof(fn),final_block,4);
+			::fast_io::details::my_memcpy(__builtin_addressof(fn),final_block,4);
 #if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
 			crc = __builtin_ia32_crc32si (crc,fn);
 #else
@@ -144,7 +144,7 @@ inline constexpr std::uint32_t do_crc32c_main_digest(std::uint32_t crc,std::byte
 		case 3:
 		{
 			std::uint16_t fn;
-			::fast_io::details::my_memcpy(std::addressof(fn),final_block,2);
+			::fast_io::details::my_memcpy(__builtin_addressof(fn),final_block,2);
 #if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
 			crc = __builtin_ia32_crc32hi (crc,fn);
 			crc = __builtin_ia32_crc32qi(crc,std::to_integer<char unsigned>(final_block[2]));
@@ -157,7 +157,7 @@ inline constexpr std::uint32_t do_crc32c_main_digest(std::uint32_t crc,std::byte
 		case 2:
 		{
 			std::uint16_t fn;
-			::fast_io::details::my_memcpy(std::addressof(fn),final_block,2);
+			::fast_io::details::my_memcpy(__builtin_addressof(fn),final_block,2);
 #if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
 			crc = __builtin_ia32_crc32hi (crc,fn);
 #else
@@ -184,11 +184,11 @@ public:
 	std::uint32_t crc{0xffffffff};
 	constexpr void operator()(std::byte const* blocks,std::size_t blocks_bytes) noexcept
 	{
-		details::crc32c::do_crc32c_main(crc,process_block_start,process_block_end);
+		details::crc32::do_crc32c_main(crc,blocks,blocks_bytes);
 	}
 	constexpr void digest(std::byte const* blocks,std::size_t blocks_bytes) noexcept//contracts: final_block.size()<8
 	{
-		crc = do_crc32c_main_digest(crc,blocks,blocks_bytes);
+		crc = details::crc32::do_crc32c_main_digest(crc,blocks,blocks_bytes);
 	}
 };
 #else
