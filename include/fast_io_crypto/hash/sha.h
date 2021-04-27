@@ -1,8 +1,10 @@
 #pragma once
 
+#include"sha256.h"
 #include"sha_impl.h"
 #include"sha1.h"
 #include"sha512.h"
+
 namespace fast_io
 {
 

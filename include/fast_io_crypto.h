@@ -9,16 +9,14 @@
 #if defined(__GNUC__) && __GNUC__>=11 && __cplusplus<202002L
 #error "fast_io requires at least C++20 standard compiler."
 #else
-#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
 
 /*
 TODO: Make crypto work in freestanding environment
 */
 #include"fast_io_core.h"
 //#include"fast_io_crypto/symmetric_crypto.h"
+#include"fast_io_crypto/hash/intrin_include.h"
 #include"fast_io_crypto/hash/hash.h"
 #include"fast_io_crypto/tls/tls.h"
-
-#endif
 
 #endif
