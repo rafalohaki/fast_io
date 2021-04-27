@@ -12,7 +12,7 @@ F,G,H,I
 };
 
 template<operation op>
-inline constexpr auto unit(auto const& x,auto const& y,auto const& z) noexcept
+inline constexpr auto unit(auto const x,auto const y,auto const z) noexcept
 {
 	if constexpr(op==operation::F)
 		return (x&y)|(~x&z);
@@ -23,10 +23,17 @@ inline constexpr auto unit(auto const& x,auto const& y,auto const& z) noexcept
 	else
 		return y^(x|(~z));
 }
+
 template<operation op>
-inline constexpr void uu(auto& a,auto const& b,auto const& c,auto const& d,auto const& x,auto const& s,auto const& ac) noexcept
+inline constexpr auto uu_impl(auto a,auto b,auto c,auto d,auto x,auto s,auto ac) noexcept
 {
-	a=std::rotl(a+unit<op>(b,c,d)+x+ac,s)+b;
+	return std::rotl(a+unit<op>(b,c,d)+x+ac,s)+b;
+}
+
+template<operation op>
+inline constexpr void uu(auto& a,auto b,auto c,auto d,auto x,auto s,auto ac) noexcept
+{
+	a=uu_impl<op>(a,b,c,d,x,s,ac);
 }
 
 /*
