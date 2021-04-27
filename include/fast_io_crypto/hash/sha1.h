@@ -153,7 +153,7 @@ inline constexpr void transform(std::uint32_t* __restrict digest, std::uint32_t*
 inline void sha1_do_function(std::uint32_t* __restrict state,std::byte const* __restrict blocks_start,std::size_t blocks_bytes) noexcept
 {
 	constexpr std::size_t block_size{64};
-#if defined(__SHA__) && defined(__SSE4_1__)
+#if (defined(_MSC_VER)&&defined(_M_AMD64)&&!defined(__clang__)) || (defined(__SHA__) && defined(__SSE4_1__))
 //https://stackoverflow.com/questions/21107350/how-can-i-access-sha-intrinsic
 	__m128i ABCD, ABCD_SAVE, E0, E0_SAVE, E1;
 	__m128i MASK, MSG0, MSG1, MSG2, MSG3;

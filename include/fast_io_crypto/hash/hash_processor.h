@@ -8,6 +8,13 @@ namespace details
 
 class compress_current_position
 {};
+
+template<typename Func>
+concept hash_require_block_init=requires(Func& func,std::byte const* ptr)
+{
+	func.block_init(ptr);
+};
+
 }
 
 template<std::integral ch_type,typename Func>
@@ -18,15 +25,18 @@ public:
 	using function_type = Func;
 	function_type& function;
 	inline static constexpr std::size_t block_size = function_type::block_size;
-	[[no_unique_address]] ::fast_io::freestanding::array<std::byte,block_size> temporary_buffer{};
-	[[no_unique_address]] std::conditional_t<block_size==0,details::compress_current_position,std::size_t> current_position{};
+#if __has_cpp_attribute(no_unique_address)
+	[[no_unique_address]]
+#endif
+	::fast_io::freestanding::array<std::byte,block_size> temporary_buffer{};
+#if __has_cpp_attribute(no_unique_address)
+	[[no_unique_address]]
+#endif
+	std::conditional_t<block_size==0,details::compress_current_position,std::size_t> current_position{};
 	constexpr basic_hash_processor(function_type& func) noexcept:function(func)
 	{
-		if constexpr(requires(Func& func)
-		{
-			func.block_init(temporary_buffer);
-		})
-			current_position+=func.block_init(temporary_buffer);
+		if constexpr(details::hash_require_block_init<Func>)
+			current_position+=func.block_init(temporary_buffer.data());
 	}
 	constexpr void do_final() noexcept
 	{

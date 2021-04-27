@@ -40,8 +40,7 @@ public:
 	}
 };
 
-
-#ifdef __SSE4_2__
+#if (defined(_MSC_VER)&&defined(_M_AMD64)&&!defined(__clang__)) || (defined(__SHA__) && defined(__SSE4_2__))
 
 namespace details::crc32
 {
@@ -62,7 +61,7 @@ inline constexpr std::uint32_t do_crc32c_main(std::uint32_t crc,std::byte const*
 #if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
 		 	crc = __builtin_ia32_crc32di(crc,v);
 #else
-			crc = _mm_crc32_u64(crc,v);
+			crc = static_cast<std::uint32_t>(_mm_crc32_u64(crc,v));
 #endif
 		}
 		return crc;

@@ -3,13 +3,6 @@
 namespace fast_io
 {
 
-namespace win32
-{
-#if defined(_MSC_VER) && !defined(__clang__)
-extern __declspec(dllimport) void __stdcall RtlSecureZeroMemory(void*,std::size_t) noexcept;
-#endif
-}
-
 /*
 Based on security paper Dead Store Elimination (Still) Considered Harmful
 
@@ -46,7 +39,26 @@ used in memzero_explicit):
 inline void secure_clear(void* data,std::size_t size) noexcept
 {
 #if defined(_MSC_VER) && !defined(__clang__)
-	win32::RtlSecureZeroMemory(data, size);
+/*
+Referenced from Microsoft's winnt.h.
+forceinline for this is nonsense
+*/
+	
+#if defined(_M_AMD64)
+	__stosb(__builtin_bit_cast(unsigned char*,data), 0, size);
+#else
+	volatile char *vptr = (volatile char *)data;
+	while (size)
+	{
+#if !defined(_M_CEE) && (defined(_M_ARM) || defined(_M_ARM64))
+		__iso_volatile_store8(vptr, 0);
+#else
+		*vptr = 0;
+#endif
+		++vptr;
+		--size;
+	}
+#endif // _M_AMD64
 #else
 /*
 https://github.com/bminor/glibc/blob/master/string/explicit_bzero.c

@@ -62,8 +62,8 @@ inline constexpr uint32_t B2U32(std::byte val, std::uint8_t sh) noexcept
 
 inline void sha256_do_function(std::uint32_t* __restrict state,std::byte const* __restrict blocks_start,std::size_t blocks_bytes) noexcept
 {
+#if (defined(_MSC_VER)&&defined(_M_AMD64)&&!defined(__clang__)) || (defined(__SHA__) && defined(__SSE4_1__))
 	constexpr std::size_t block_size{64};
-#if defined(__SHA__) && defined(__SSE4_1__)
 	__m128i STATE0, STATE1;
 	__m128i MSG, TMP;
 	__m128i MSG0, MSG1, MSG2, MSG3;
@@ -251,6 +251,7 @@ inline void sha256_do_function(std::uint32_t* __restrict state,std::byte const* 
 	_mm_storeu_si128((__m128i*) (state), STATE0);
 	_mm_storeu_si128((__m128i*) (state+4), STATE1);
 #elif defined(FAST_IO_ARM_SHA) && ( defined(__arm__) || defined(__aarch32__) || defined(__arm64__) || defined(__aarch64__) || defined(_M_ARM) )
+	constexpr std::size_t block_size{64};
 	uint32x4_t STATE0, STATE1, ABEF_SAVE, CDGH_SAVE;
 	uint32x4_t MSG0, MSG1, MSG2, MSG3;
 	uint32x4_t TMP0, TMP1, TMP2;

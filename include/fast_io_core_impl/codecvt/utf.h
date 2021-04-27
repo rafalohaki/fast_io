@@ -389,12 +389,12 @@ inline constexpr char32_t utf16_surrogate_to_utf32(char16_t high, char16_t low) 
 	return (high << 10) + low - 0x35fdc00; 
 }
 
-#if defined(__SSE__) && defined(__x86_64__)
+#if (defined(_MSC_VER)&&defined(_M_AMD64)&&!defined(__clang__)) || (defined(__SSE__) && defined(__x86_64__))
 template<std::integral T,std::integral U>
 requires ((sizeof(T)==1)&&(sizeof(U)==1||sizeof(U)==2||sizeof(U)==4))
-inline code_cvt_result<T,U> convert_ascii_with_sse(T const* __restrict__ pSrc, U* __restrict__ pDst) noexcept
+inline code_cvt_result<T,U> convert_ascii_with_sse(T const* __restrict pSrc, U* __restrict pDst) noexcept
 {
-	uint16_t mask;
+	uint32_t mask;
 #if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
 	using namespace fast_io::intrinsics;
 	constexpr std::size_t m128i_size{16};
@@ -479,7 +479,7 @@ inline code_cvt_result<T,U> convert_ascii_with_sse(T const* __restrict__ pSrc, U
 		_mm_storeu_si128((x86_64_m128i*) (pDst + 12), qrtr);     //- Write to memory
 	}
 #endif
-	auto const incr{std::countr_zero(mask)};
+	auto const incr{std::countr_zero(static_cast<std::uint16_t>(mask))};
 	return {pSrc+incr,pDst+incr};
 }
 

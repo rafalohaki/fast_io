@@ -361,8 +361,8 @@ inline constexpr void print_control(output out,T t)
 				auto end=obuffer_end(out);
 				std::size_t const len{scatter.len};
 				std::ptrdiff_t sz(end-curr-1);
-				constexpr std::size_t size_t_reserve_length{print_reserve_size(io_reserve_type<char_type,std::size_t>)+1};
 #if 0
+				constexpr std::size_t size_t_reserve_length{print_reserve_size(io_reserve_type<char_type,std::size_t>)+1};
 				if constexpr(pci==print_control_impl::serialize)
 				{
 					sz-=size_t_reserve_length;

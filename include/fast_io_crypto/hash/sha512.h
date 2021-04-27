@@ -95,7 +95,7 @@ inline void sha512_do_function(std::uint64_t* __restrict state,std::byte const* 
 		{
 			std::uint64_t value;
 			::fast_io::details::my_memcpy(std::addressof(value),data,8);
-			X[i] = details::big_endian(value);
+			X[i] = big_endian(value);
 			data += 8;
 
 			T1 = h;
@@ -156,7 +156,7 @@ public:
 	using digest_type = ::fast_io::freestanding::array<std::uint64_t,8>;
 	static inline constexpr digest_type digest_initial_value{0x6a09e667f3bcc908, 0xbb67ae8584caa73b,0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1,0x510e527fade682d1, 0x9b05688c2b3e6c1f,0x1f83d9abfb41bd6b, 0x5be0cd19137e2179};
 	static inline constexpr std::size_t block_size{128};
-	void operator()(std::uint64_t* __restrict__ state,std::byte const* blocks_start,std::size_t blocks_bytes) noexcept
+	void operator()(std::uint64_t* __restrict state,std::byte const* blocks_start,std::size_t blocks_bytes) noexcept
 	{
 		details::sha512::sha512_do_function(state,blocks_start,blocks_bytes);
 	}
