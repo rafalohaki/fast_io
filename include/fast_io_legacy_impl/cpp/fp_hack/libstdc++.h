@@ -26,7 +26,7 @@ inline std::FILE* fp_hack(std::basic_filebuf<char_type,traits_type>* fbuf) noexc
 
 template<typename T>
 requires (std::same_as<T,std::basic_streambuf<typename T::char_type,typename T::traits_type>>)
-inline std::FILE* fp_hack(T* cio) noexcept
+inline std::FILE* fp_hack([[maybe_unused]] T* cio) noexcept
 {
 #ifdef __cpp_rtti
 	using char_type = typename T::char_type;
