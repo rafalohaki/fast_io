@@ -16,7 +16,7 @@
 #include<sys/stat.h>
 struct io_uring;
 #endif
-#if defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
+#if defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL) || defined(__wasi__)
 #if defined(__CYGWIN__) || !defined(__NEWLIB__)
 #include <sys/uio.h>
 #include <sys/types.h>
@@ -1182,6 +1182,9 @@ public:
 	native_handle_type pipes;
 	basic_posix_pipe()
 	{
+#if defined(__wasi__)
+		throw_posix_error(ENOTSUP);
+#else
 		::fast_io::freestanding::array<int,2> a2{pipes.front().fd,pipes.back().fd};
 #if defined(__WINNT__) || defined(_MSC_VER)
 		if(_pipe(a2.data(),1048576,_O_BINARY)==-1)
@@ -1191,6 +1194,7 @@ public:
 			throw_posix_error();
 		pipes.front().fd=a2.front();
 		pipes.back().fd=a2.back();
+#endif
 	}
 	constexpr auto& native_handle()
 	{

@@ -650,7 +650,7 @@ inline void posix_tzset() noexcept
 	_tzset();
 #elif __NEWLIB__
 	details::m_tzset();
-#else
+#elif !defined(__wasi__) || defined(__wasilibc_unmodified_upstream)
 	tzset();
 #endif
 }
@@ -735,7 +735,7 @@ extern int m_daylight __asm__("_daylight");
 
 inline int posix_daylight()
 {
-#if defined(__MSDOS__)
+#if defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream))
 	return 0;
 #elif defined(_WIN32)
 	return _daylight;
@@ -754,7 +754,7 @@ inline int posix_daylight()
 
 inline basic_io_scatter_t<char> timezone_name([[maybe_unused]] bool dst=posix_daylight()) noexcept
 {
-#if defined(__MSDOS__)
+#if defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream))
 	return {reinterpret_cast<char const*>(u8"UTC"),3}; 
 #else
 #if defined(__NEWLIB__)
@@ -768,7 +768,7 @@ inline basic_io_scatter_t<char> timezone_name([[maybe_unused]] bool dst=posix_da
 
 #endif
 
-inline void posix_clock_settime(posix_clock_id pclk_id,unix_timestamp timestamp)
+inline void posix_clock_settime([[maybe_unused]] posix_clock_id pclk_id,[[maybe_unused]] unix_timestamp timestamp)
 {
 #ifdef _WIN32
 	nt_clock_settime(pclk_id,timestamp);
@@ -798,7 +798,7 @@ inline void posix_clock_settime(posix_clock_id pclk_id,unix_timestamp timestamp)
 	default:
 		throw_posix_error(EINVAL);
 	}
-#elif !defined(__NEWLIB__) || defined(_POSIX_TIMERS)
+#elif (!defined(__NEWLIB__) || defined(_POSIX_TIMERS)) && (!defined(__wasi__) || defined(__wasilibc_unmodified_upstream))
 	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000000u};
 	struct timespec res{static_cast<std::time_t>(timestamp.seconds),
 	static_cast<long>(timestamp.subseconds/mul_factor)};

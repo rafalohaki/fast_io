@@ -692,7 +692,7 @@ public:
 #elif !defined(__SINGLE_THREAD__)
 //	_flockfile(fp);	//TO FIX undefined reference to `__cygwin_lock_lock' why?
 #endif
-#elif defined(__MSDOS__)
+#elif defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream) && !defined(_REENTRANT))
 #else
 	flockfile(fp);
 #endif
@@ -711,7 +711,7 @@ public:
 #elif !defined(__SINGLE_THREAD__)
 //	_funlockfile(fp); //TO FIX
 #endif
-#elif defined(__MSDOS__)
+#elif defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream) && !defined(_REENTRANT))
 #else
 	funlockfile(fp);
 #endif
@@ -1221,9 +1221,7 @@ inline decltype(auto) zero_copy_out_handle(basic_c_io_observer_unlocked<ch_type>
 #elif defined(__GLIBC__)
 #include"glibc.h"
 #elif defined(__wasi__)
-#ifdef __wasilibc_unmodified_upstream
 #include"musl.h"
-#endif
 #elif defined(__NEED___isoc_va_list)
 #include"musl.h"
 #elif defined(__BSD_VISIBLE) ||defined(__DARWIN_C_LEVEL) \

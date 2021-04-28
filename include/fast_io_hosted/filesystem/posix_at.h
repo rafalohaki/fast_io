@@ -118,6 +118,12 @@ inline auto posix12_api_dispatcher(char const* oldpath,
 	}
 }
 
+#if defined(__wasi__) && !defined(__wasilibc_unmodified_upstream)
+inline void posix_fchownat_impl(int, const char *, uintmax_t, uintmax_t, int)
+{
+	throw_posix_error(ENOTSUP);
+}
+#else
 inline void posix_fchownat_impl(int dirfd, const char *pathname, uintmax_t owner, uintmax_t group, int flags)
 {
 	if constexpr(sizeof(uintmax_t)>sizeof(uid_t))
@@ -140,7 +146,14 @@ inline void posix_fchownat_impl(int dirfd, const char *pathname, uintmax_t owner
 #endif
 	(dirfd,pathname,owner,group,flags));
 }
+#endif
 
+#if defined(__wasi__) && !defined(__wasilibc_unmodified_upstream)
+inline void posix_fchmodat_impl(int, const char *, mode_t, int)
+{
+	throw_posix_error(ENOTSUP);
+}
+#else
 inline void posix_fchmodat_impl(int dirfd, const char *pathname, mode_t mode, int flags)
 {
 	system_call_throw_error(
@@ -151,6 +164,7 @@ inline void posix_fchmodat_impl(int dirfd, const char *pathname, mode_t mode, in
 #endif
 	(dirfd,pathname,mode,flags));
 }
+#endif
 
 inline posix_file_status posix_fstatat_impl(int dirfd, const char *pathname, int flags)
 {
@@ -188,11 +202,15 @@ inline void posix_mkdirat_impl(int dirfd, const char *pathname, mode_t mode)
 	(dirfd,pathname,mode));
 }
 
+#if (defined(__wasi__) && !defined(__wasilibc_unmodified_upstream)) || defined(__DARWIN_C_LEVEL)
+inline void posix_mknodat_impl(int, const char *, mode_t,std::uintmax_t)
+{
+	throw_posix_error(ENOTSUP);
+}
+#else
+
 inline void posix_mknodat_impl(int dirfd, const char *pathname, mode_t mode,std::uintmax_t dev)
 {
-#if defined(__DARWIN_C_LEVEL)
-	throw_posix_error(ENOTSUP);
-#else
 	if constexpr(sizeof(std::uintmax_t)>sizeof(dev_t))
 	{
 		constexpr std::uintmax_t mx{std::numeric_limits<dev_t>::max()};
@@ -210,8 +228,9 @@ inline void posix_mknodat_impl(int dirfd, const char *pathname, mode_t mode,std:
 	mknodat
 #endif
 	(dirfd,pathname,mode,dev));
-#endif
 }
+
+#endif
 
 inline void posix_unlinkat_impl(int dirfd,char const* path,int flags)
 {

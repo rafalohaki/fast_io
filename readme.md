@@ -58,6 +58,7 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - riscv
 - riscv64
 - powerpc64
+- wasm32-wasi
 
 ## Platform Support
 - Microsoft Windows
@@ -73,7 +74,8 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - ReactOS
 - Windows Runtime
 - Nintendo DS (devkitPro)
-- Todo list: Webassembly
+- Webassembly
+- Any other platform (if you want me to support it, tell me, including your own OS)
 
 ## Legacy Windows Version Support (need define _WIN32_WINNT version by yourself)
 - Windows 2000

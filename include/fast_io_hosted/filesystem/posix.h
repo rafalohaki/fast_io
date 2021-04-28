@@ -243,8 +243,10 @@ inline constexpr file_type type(posix_directory_entry pioe) noexcept
 		return file_type::symlink;
 	case DT_REG:
 		return file_type::regular;
+#if defined(DT_SOCK)
 	case DT_SOCK:
 		return file_type::socket;
+#endif
 	case DT_UNKNOWN:
 		return file_type::unknown;
 	default:
