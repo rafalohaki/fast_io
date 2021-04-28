@@ -1509,6 +1509,17 @@ inline std::size_t posix_scatter_write_size_impl(int fd,io_scatters_t sp)
 	auto val{system_call<__NR_writev,std::ptrdiff_t>(static_cast<unsigned int>(fd),sp.base,sp.len)};
 	system_call_throw_error(val);
 	return val;
+#elif defined(__wasi__)
+	std::size_t val;
+	using iovec_may_alias_const_ptr
+#if __has_cpp_attribute(gnu::may_alias)
+	[[gnu::may_alias]]
+#endif
+	= __wasi_ciovec_t const*;
+	auto err{__wasi_fd_write(fd,reinterpret_cast<iovec_may_alias_const_ptr>(sp.base),sp.len,__builtin_addressof(val))};
+	if(err)
+		throw_posix_error(err);
+	return val;
 #else
 	std::size_t sz{sp.len};
 	if(static_cast<std::size_t>(std::numeric_limits<int>::max())<sz)
