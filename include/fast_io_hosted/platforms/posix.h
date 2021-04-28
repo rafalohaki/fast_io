@@ -25,6 +25,10 @@ struct io_uring;
 #endif
 #endif
 
+#if defined(__wasi__)
+#include <wasi/api.h>
+#endif
+
 namespace fast_io
 {
 
@@ -544,14 +548,16 @@ inline std::size_t posix_write_impl(int fd,void const* address,std::size_t to_wr
 {
 #ifdef _WIN32
 	if constexpr(4<sizeof(std::size_t))
-	{
-//		if(static_cast<std::size_t>(INT32_MAX)<to_write)[[unlikely]]
-			return posix_write_nolock_impl(fd,address,to_write);
-//		else
-//			return posix_write_simple_impl(fd,address,to_write);
-	}
+		return posix_write_nolock_impl(fd,address,to_write);
 	else
 		return posix_write_simple_impl(fd,address,to_write);
+#elif defined(__wasi__)
+	__wasi_ciovec_t iov{.buf = reinterpret_cast<char unsigned const*>(address), .buf_len = to_write};
+	size_t bytes_written;
+	auto ern{noexcept_call(__wasi_fd_write,fd, __builtin_addressof(iov), 1, __builtin_addressof(bytes_written))};
+	if(ern)
+		throw_posix_error(ern);
+	return bytes_written;
 #else
 	auto write_bytes(
 #if defined(__linux__)
@@ -1481,6 +1487,19 @@ inline std::size_t posix_scatter_read_size_impl(int fd,io_scatters_t sp)
 	auto val{system_call<__NR_readv,std::ptrdiff_t>(static_cast<unsigned int>(fd),sp.base,sp.len)};
 	system_call_throw_error(val);
 	return val;
+#elif defined(__wasi__)
+	using iovec_may_alias_const_ptr
+#if __has_cpp_attribute(gnu::may_alias)
+	[[gnu::may_alias]]
+#endif
+	= __wasi_iovec_t const*;
+	std::size_t val{};
+	auto err{noexcept_call(__wasi_fd_read,fd,
+		reinterpret_cast<iovec_may_alias_const_ptr>(sp.base),sp.len,
+		__builtin_addressof(val))};
+	if(err)
+		throw_posix_error(err);
+	return val;
 #else
 	std::size_t sz{sp.len};
 	if(static_cast<std::size_t>(std::numeric_limits<int>::max())<sz)
@@ -1502,6 +1521,70 @@ inline std::size_t posix_scatter_read_size_impl(int fd,io_scatters_t sp)
 #endif
 }
 
+inline constexpr io_scatter_status_t scatter_size_to_status(std::size_t sz,io_scatters_t sp) noexcept
+{
+	std::size_t total{sz};
+	for(std::size_t i{};i!=sp.len;++i)
+	{
+		if(total<sp.base[i].len)[[unlikely]]
+			return {sz,i,total};
+		total-=sp.base[i].len;
+	}
+	return {sz,sp.len,0};
+}
+
+#if defined(__wasi__)
+
+#if __has_cpp_attribute(gnu::cold)
+[[gnu::cold]]
+#endif
+inline io_scatter_status_t wasmtime_bug_posix_scatter_write_cold(int fd,io_scatters_t sp)
+{
+	std::size_t total{};
+	auto i{sp.base+1};
+	auto e{sp.base+sp.len};
+	for(;i!=e;++i)
+	{
+		std::size_t val{};
+		__wasi_ciovec_t iovec{.buf = reinterpret_cast<char unsigned const*>(i->base), .buf_len = i->len};
+		auto err{noexcept_call(__wasi_fd_write,fd,__builtin_addressof(iovec),1,__builtin_addressof(val))};
+		total+=val;
+		if(val!=i->len)
+			return {total,static_cast<std::size_t>(val),val};
+	}
+	return {total,sp.len,0};
+}
+
+struct wasmtime_bug_code
+{
+	std::size_t val;
+	bool failed;
+};
+
+inline std::size_t wasmtime_bug_code_write_normal(int fd,io_scatters_t sp)
+{
+	using iovec_may_alias_const_ptr
+#if __has_cpp_attribute(gnu::may_alias)
+	[[gnu::may_alias]]
+#endif
+	= __wasi_ciovec_t const*;
+	std::size_t val{};
+	auto err{noexcept_call(__wasi_fd_write,fd,reinterpret_cast<iovec_may_alias_const_ptr>(sp.base),
+		sp.len,__builtin_addressof(val))};
+	if(err)
+		throw_posix_error(err);
+	return val;
+}
+
+inline io_scatter_status_t posix_scatter_wasmtime_bug_write_size_impl(int fd,io_scatters_t sp)
+{
+	auto val{wasmtime_bug_code_write_normal(fd,sp)};
+	if(1<sp.len&&val==sp.base->len)[[unlikely]]
+		return wasmtime_bug_posix_scatter_write_cold(fd,sp);
+	return scatter_size_to_status(val,sp);
+}
+#else
+
 inline std::size_t posix_scatter_write_size_impl(int fd,io_scatters_t sp)
 {
 #if defined(__linux__)
@@ -1509,21 +1592,7 @@ inline std::size_t posix_scatter_write_size_impl(int fd,io_scatters_t sp)
 	auto val{system_call<__NR_writev,std::ptrdiff_t>(static_cast<unsigned int>(fd),sp.base,sp.len)};
 	system_call_throw_error(val);
 	return val;
-#elif defined(__wasi__)
-	std::size_t val;
-	using iovec_may_alias_const_ptr
-#if __has_cpp_attribute(gnu::may_alias)
-	[[gnu::may_alias]]
-#endif
-	= __wasi_ciovec_t const*;
-	auto err{__wasi_fd_write(fd,reinterpret_cast<iovec_may_alias_const_ptr>(sp.base),sp.len,__builtin_addressof(val))};
-	if(err)
-		throw_posix_error(err);
-	return val;
 #else
-	std::size_t sz{sp.len};
-	if(static_cast<std::size_t>(std::numeric_limits<int>::max())<sz)
-		sz=static_cast<std::size_t>(std::numeric_limits<int>::max());
 	using iovec_may_alias_const_ptr
 #if __has_cpp_attribute(gnu::may_alias)
 	[[gnu::may_alias]]
@@ -1540,22 +1609,16 @@ inline std::size_t posix_scatter_write_size_impl(int fd,io_scatters_t sp)
 	return val;
 #endif
 }
+#endif
 
-inline constexpr io_scatter_status_t scatter_size_to_status(std::size_t sz,io_scatters_t sp) noexcept
-{
-	std::size_t total{sz};
-	for(std::size_t i{};i!=sp.len;++i)
-	{
-		if(total<sp.base[i].len)[[unlikely]]
-			return {sz,i,total};
-		total-=sp.base[i].len;
-	}
-	return {sz,sp.len,0};
-}
 
 inline io_scatter_status_t posix_scatter_write_impl(int fd,io_scatters_t sp)
 {
+#ifdef __wasi__
+	return posix_scatter_wasmtime_bug_write_size_impl(fd,sp);
+#else
 	return scatter_size_to_status(posix_scatter_write_size_impl(fd,sp),sp);
+#endif
 }
 
 [[nodiscard]] inline io_scatter_status_t posix_scatter_read_impl(int fd,io_scatters_t sp)
