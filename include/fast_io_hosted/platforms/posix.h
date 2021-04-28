@@ -1548,6 +1548,8 @@ inline io_scatter_status_t wasmtime_bug_posix_scatter_write_cold(int fd,io_scatt
 		std::size_t val{};
 		__wasi_ciovec_t iovec{.buf = reinterpret_cast<char unsigned const*>(i->base), .buf_len = i->len};
 		auto err{noexcept_call(__wasi_fd_write,fd,__builtin_addressof(iovec),1,__builtin_addressof(val))};
+		if(err)
+			throw_posix_error(err);
 		total+=val;
 		if(val!=i->len)
 			return {total,static_cast<std::size_t>(val),val};
