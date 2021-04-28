@@ -59,6 +59,7 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - riscv64
 - powerpc64
 - wasm32-wasi
+- All architectures should work. (Just i do not have time to build all cross-toolchains to test them one by one)
 
 ## Platform Support
 - Microsoft Windows
