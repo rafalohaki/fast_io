@@ -211,18 +211,41 @@ inline constexpr posix_at_entry at(basic_filebuf_io_observer<char_type,traits_ty
 }
 
 template<typename T>
+requires (std::same_as<T,std::basic_streambuf<typename T::char_type,typename T::traits_type>>||
+std::derived_from<T,std::basic_filebuf<typename T::char_type,typename T::traits_type>>)
 inline bool is_character_device(basic_general_streambuf_io_observer<T> other)
 {
 	using char_type  = typename T::char_type;
-	return is_character_device(static_cast<basic_c_io_observer<char_type>>(other));
+	basic_c_io_observer<char_type> bciob{static_cast<basic_c_io_observer<char_type>>(other)};
+	if constexpr(std::same_as<T,std::basic_streambuf<typename T::char_type,typename T::traits_type>>)
+	{
+		if(bciob.fp==nullptr)
+#ifdef EBADF
+			throw_posix_error(EBADF);
+#else
+			throw_posix_error(EINVAL);
+#endif
+	}
+	return is_character_device(bciob);
 
 }
 
 template<typename T>
+requires (std::same_as<T,std::basic_streambuf<typename T::char_type,typename T::traits_type>>||
+std::derived_from<T,std::basic_filebuf<typename T::char_type,typename T::traits_type>>)
 inline void clear_screen(basic_general_streambuf_io_observer<T> other)
 {
 	using char_type  = typename T::char_type;
 	basic_c_io_observer<char_type> bciob{static_cast<basic_c_io_observer<char_type>>(other)};
+	if constexpr(std::same_as<T,std::basic_streambuf<typename T::char_type,typename T::traits_type>>)
+	{
+		if(bciob.fp==nullptr)
+#ifdef EBADF
+			throw_posix_error(EBADF);
+#else
+			throw_posix_error(EINVAL);
+#endif
+	}
 	details::lock_guard guard{bciob};
 	std::FILE* fp{bciob.fp};
 	int fd{details::fp_unlocked_to_fd(fp)};

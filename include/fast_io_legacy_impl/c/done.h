@@ -168,10 +168,4 @@ requires (std::same_as<T,::fast_io::freestanding::iter_value_t<Iter>>||std::same
 		return begin+details::c_io_read_impl(cfhd,reinterpret_cast<char*>(::fast_io::freestanding::to_address(begin)),reinterpret_cast<char*>(::fast_io::freestanding::to_address(end)))/sizeof(*begin);
 }
 
-
-/*
-static_assert(buffer_io_stream<c_io_observer_unlocked>);
-static_assert(buffer_io_stream<wc_io_observer_unlocked>);
-static_assert(!buffer_io_stream<basic_c_io_observer_unlocked<char8_t>>);
-*/
 }

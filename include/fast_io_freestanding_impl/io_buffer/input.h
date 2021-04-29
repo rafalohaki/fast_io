@@ -143,4 +143,51 @@ inline constexpr Iter read(basic_io_buffer<handletype,mde,decorators,bfs>& bios,
 	}
 }
 
+
+
+template<random_access_stream handletype,
+buffer_mode mde,
+typename decoratorstype,
+std::size_t bfs>
+requires (!details::has_internal_decorator_impl<decoratorstype>)
+inline constexpr std::uintmax_t seek(basic_io_buffer<handletype,mde,decoratorstype,bfs>& bios,std::intmax_t pos=0,seekdir sdir=seekdir::cur)
+{
+	if(sdir==seekdir::cur)
+	{
+		std::size_t offset{static_cast<std::size_t>(bios.ibuffer.buffer_end-bios.ibuffer.buffer_curr)*sizeof(typename basic_io_buffer<handletype,mde,decoratorstype,bfs>::char_type)};
+#if defined(_MSC_VER) 
+		if(pos<INTMAX_MIN+static_cast<std::intmax_t>(static_cast<std::uintmax_t>(offset)))
+		{
+			pos=0;
+			sdir=seekdir::beg;
+		}
+		else
+		{
+			pos-=static_cast<std::intmax_t>(static_cast<std::uintmax_t>(offset));
+		}
+#else
+#if defined(__has_builtin) && __has_builtin(__builtin_sub_overflow)
+		if(__builtin_sub_overflow(pos,static_cast<std::ptrdiff_t>(offset),__builtin_addressof(pos)))
+		{
+			pos=0;
+			sdir=seekdir::beg;
+		}
+#else
+		if(pos<INTMAX_MIN+static_cast<std::intmax_t>(static_cast<std::uintmax_t>(offset)))
+		{
+			pos=0;
+			sdir=seekdir::beg;
+		}
+		else
+		{
+			pos-=static_cast<std::intmax_t>(static_cast<std::uintmax_t>(offset));
+		}
+#endif
+#endif
+	}
+	std::uintmax_t new_position{seek(bios.handle,pos,sdir)};
+	bios.ibuffer.buffer_end=bios.ibuffer.buffer_curr=bios.ibuffer.buffer_begin;
+	return new_position;
+}
+
 }

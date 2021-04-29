@@ -11,8 +11,6 @@
 #include<streambuf>
 #include<fstream>
 #include<sstream>
-#include<istream>
-#include<ostream>
 
 #include"fast_io.h"
 #include"fast_io_legacy_impl/cpp/streambuf_io_observer.h"
