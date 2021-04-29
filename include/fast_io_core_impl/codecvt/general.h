@@ -427,8 +427,10 @@ inline constexpr dest_char_type* general_code_cvt_full(src_char_type const* src_
 {
 	if constexpr(src_encoding==encoding_scheme::execution_charset)
 	{
-		return general_code_cvt_full<get_execution_charset_encoding_scheme<src_char_type>(src_encoding),
-			get_execution_charset_encoding_scheme<dest_char_type>(encoding)>(src_first,src_last,dst);
+		constexpr auto src_scheme = get_execution_charset_encoding_scheme<src_char_type>(src_encoding);
+		constexpr auto dst_scheme = get_execution_charset_encoding_scheme<dest_char_type>(encoding);
+		return general_code_cvt_full<src_scheme,
+			dst_scheme>(src_first,src_last,dst);
 	}
 	else
 	{
