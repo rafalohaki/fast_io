@@ -47,7 +47,7 @@ inline typename T::char_type* hack_buffer_ptr(T* fb) noexcept
 	+sizeof(std::locale)
 #endif
 	+position*sizeof(std::uintptr_t));
-	static_assert(offset+sizeof(std::uintptr_t)<sizeof(T));
+	static_assert(offset+sizeof(std::uintptr_t)<=sizeof(T));
 
 	typename T::char_type* value;
 	::fast_io::details::my_memcpy(std::addressof(value),
