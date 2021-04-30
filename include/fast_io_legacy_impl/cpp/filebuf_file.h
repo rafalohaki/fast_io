@@ -87,7 +87,7 @@ This function never fails. but what if fdopen fails?
 	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
 		basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>}
 	{
-		fb->__open(piohd.fd,details::calculate_fstream_open_value(mode));
+		this->fb->__open(piohd.fd,details::calculate_fstream_open_value(mode));
 		if(!this->fb->is_open())
 		{
 			delete this->fb;
