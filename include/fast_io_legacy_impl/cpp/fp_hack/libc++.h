@@ -102,9 +102,9 @@ inline std::FILE* fp_hack([[maybe_unused]] T* stdbuf) noexcept
 }
 
 template<typename char_type,typename traits_type>
-inline void fp_hack_open(std::basic_filebuf<char_type,traits_type>* fbf,std::FILE* fp) noexcept
+inline void fp_hack_open(std::basic_filebuf<char_type,traits_type>* fb,std::FILE* fp) noexcept
 {
-	::fast_io::details::my_memcpy(reinterpret_cast<std::byte*>(fbuf)+libcxx_fp_location<char_type,traits_type>,__builtin_addressof(fp),sizeof(fp));
+	::fast_io::details::my_memcpy(reinterpret_cast<std::byte*>(fb)+libcxx_fp_location<char_type,traits_type>,__builtin_addressof(fp),sizeof(fp));
 }
 
 }
