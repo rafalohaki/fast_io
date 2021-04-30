@@ -49,7 +49,7 @@ private:
 
 template <class _CharT, class _Traits>
 class libcxx_basic_filebuf_model
-    : public basic_streambuf<_CharT, _Traits>
+    : public std::basic_streambuf<_CharT, _Traits>
 {
 public:
 	typedef _CharT                           char_type;
