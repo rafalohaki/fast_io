@@ -273,7 +273,7 @@ public:
 	}
 	explicit constexpr operator ::fast_io::freestanding::string_view() noexcept
 	{
-		return ::fast_io::freestanding::string_view(address_start,address_end);
+		return ::fast_io::freestanding::string_view(address_start,static_cast<std::size_t>(address_end-address_start));
 	}
 	~win32_file_loader()
 	{

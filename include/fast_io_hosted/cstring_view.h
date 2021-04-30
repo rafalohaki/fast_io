@@ -38,13 +38,14 @@ public:
 	}
 	constexpr basic_cstring_view(null_terminated_t, const_pointer c, size_type len) noexcept:string_view_type(c,len){}
 	constexpr basic_cstring_view(null_terminated_t, string_view_type sv) noexcept:string_view_type(sv){}
-
+#if  !defined(_LIBCPP_VERSION)
 	template<std::ranges::contiguous_range crg>
 	requires (std::same_as<std::ranges::range_value_t<crg>, ch_type>&&requires(crg cont)
 	{
 		{cont.c_str()}->std::same_as<const_pointer>;
 	})
 	constexpr basic_cstring_view(crg const& cont):string_view_type(std::ranges::data(cont),std::ranges::size(cont)){}
+#endif
 
       template<::fast_io::freestanding::contiguous_iterator It, std::sized_sentinel_for<It> End>
 	requires std::same_as<::fast_io::freestanding::iter_value_t<It>, ch_type>
