@@ -66,7 +66,7 @@ public:
 	char_type* __intbuf_;
 	std::size_t __ibs_;
 	std::FILE* __file_;
-	const codecvt<char_type, char, state_type>* __cv_;
+	const std::codecvt<char_type, char, state_type>* __cv_;
 	state_type __st_;
 	state_type __st_last_;
 	std::ios_base::openmode __om_;
