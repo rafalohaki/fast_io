@@ -83,7 +83,7 @@ This function never fails. but what if fdopen fails?
 		chd.release();
 		details::streambuf_hack::hack_set_close(this->fb);
 	}
-#elif defined(__LIBCPP_VERSION)
+#elif defined(_LIBCPP_VERSION)
 	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
 		basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>}
 	{

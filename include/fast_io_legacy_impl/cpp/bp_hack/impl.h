@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(__GLIBCXX__) || defined(__LIBCPP_VERSION)
+#if defined(__GLIBCXX__) || defined(_LIBCPP_VERSION)
 #include"libstdc++_libc++.h"
 #elif defined(_MSVC_STL_UPDATE)
 #include"msvc_stl.h"
