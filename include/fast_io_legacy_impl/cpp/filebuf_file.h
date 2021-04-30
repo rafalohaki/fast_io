@@ -84,17 +84,6 @@ This function never fails. but what if fdopen fails?
 		details::streambuf_hack::hack_set_close(this->fb);
 	}
 #elif defined(_LIBCPP_VERSION)
-	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
-		basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>}
-	{
-		this->fb->__open(piohd.fd,details::calculate_fstream_open_value(mode));
-		if(!this->fb->is_open())
-		{
-			delete this->fb;
-			throw_posix_error();
-		}
-		piohd.release();
-	}
 	basic_filebuf_file(basic_c_io_handle_unlocked<char_type>&& chd,open_mode):
 		basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>}
 	{
@@ -106,6 +95,10 @@ This function never fails. but what if fdopen fails?
 	{
 		details::streambuf_hack::fp_hack_open(this->fb,chd.fp);
 		chd.fp=nullptr;
+	}
+	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode):
+		basic_filebuf_file(basic_c_file_unlocked<char_type>(std::move(piohd),mode),mode)
+	{
 	}
 #elif defined(_MSVC_STL_UPDATE)
 	basic_filebuf_file(basic_c_io_handle_unlocked<char_type>&& chd,open_mode):basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>(chd.fp)}
