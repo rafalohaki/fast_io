@@ -96,7 +96,7 @@ This function never fails. but what if fdopen fails?
 		details::streambuf_hack::fp_hack_open(this->fb,chd.fp);
 		chd.fp=nullptr;
 	}
-	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode):
+	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
 		basic_filebuf_file(basic_c_file_unlocked<char_type>(std::move(piohd),mode),mode)
 	{
 	}
