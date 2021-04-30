@@ -84,16 +84,16 @@ This function never fails. but what if fdopen fails?
 		details::streambuf_hack::hack_set_close(this->fb);
 	}
 #elif defined(_LIBCPP_VERSION)
-	basic_filebuf_file(basic_c_io_handle_unlocked<char_type>&& chd,open_mode):
+	basic_filebuf_file(basic_c_io_handle_unlocked<char_type>&& chd,open_mode mode):
 		basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>}
 	{
-		details::streambuf_hack::fp_hack_open(this->fb,chd.fp);
+		details::streambuf_hack::fp_hack_open(this->fb,chd.fp,details::calculate_fstream_open_value(mode));
 		chd.fp=nullptr;
 	}
-	basic_filebuf_file(basic_c_io_handle<char_type>&& chd,open_mode):
+	basic_filebuf_file(basic_c_io_handle<char_type>&& chd,open_mode mode):
 		basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>}
 	{
-		details::streambuf_hack::fp_hack_open(this->fb,chd.fp);
+		details::streambuf_hack::fp_hack_open(this->fb,chd.fp,details::calculate_fstream_open_value(mode));
 		chd.fp=nullptr;
 	}
 	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):

@@ -47,9 +47,41 @@ private:
   bool __always_noconv_;
 */
 
+template <class _CharT, class _Traits>
+class libcxx_basic_filebuf_model
+    : public basic_streambuf<char_type, char_type>
+{
+public:
+	typedef _CharT                           char_type;
+	typedef _Traits                          traits_type;
+	typedef typename traits_type::int_type   int_type;
+	typedef typename traits_type::pos_type   pos_type;
+	typedef typename traits_type::off_type   off_type;
+	typedef typename traits_type::state_type state_type;
+	char* __extbuf_;
+	const char* __extbufnext_;
+	const char* __extbufend_;
+	char __extbuf_min_[8];
+	size_t __ebs_;
+	char_type* __intbuf_;
+	size_t __ibs_;
+	FILE* __file_;
+	const codecvt<char_type, char, state_type>* __cv_;
+	state_type __st_;
+	state_type __st_last_;
+	ios_base::openmode __om_;
+	ios_base::openmode __cm_;
+	bool __owns_eb_;
+	bool __owns_ib_;
+	bool __always_noconv_;
+};
+
+
 template<typename char_type,typename traits_type>
-inline constexpr std::size_t libcxx_fp_location{sizeof(std::basic_streambuf<char_type, traits_type>)+
-	4*sizeof(uintptr_t)+8+2*sizeof(std::size_t)};
+inline constexpr std::size_t libcxx_fp_location{__builtin_offsetof(libcxx_basic_filebuf_model<char_type,traits_type>,__file_)};
+
+template<typename char_type,typename traits_type>
+inline constexpr std::size_t libcxx_om_location{__builtin_offsetof(libcxx_basic_filebuf_model<char_type,traits_type>,__om_)};
 
 template<typename char_type,typename traits_type>
 inline std::FILE* fp_hack_impl(std::basic_filebuf<char_type,traits_type>* fbuf) noexcept
@@ -102,8 +134,9 @@ inline std::FILE* fp_hack([[maybe_unused]] T* stdbuf) noexcept
 }
 
 template<typename char_type,typename traits_type>
-inline void fp_hack_open(std::basic_filebuf<char_type,traits_type>* fb,std::FILE* fp) noexcept
+inline void fp_hack_open(std::basic_filebuf<char_type,traits_type>* fb,std::FILE* fp,std::ios::open_mode mode) noexcept
 {
+	::fast_io::details::my_memcpy(reinterpret_cast<std::byte*>(fb)+libcxx_om_location<char_type,traits_type>,__builtin_addressof(mode),sizeof(mode));
 	::fast_io::details::my_memcpy(reinterpret_cast<std::byte*>(fb)+libcxx_fp_location<char_type,traits_type>,__builtin_addressof(fp),sizeof(fp));
 }
 
