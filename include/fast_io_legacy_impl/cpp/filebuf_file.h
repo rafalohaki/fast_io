@@ -98,13 +98,13 @@ This function never fails. but what if fdopen fails?
 	basic_filebuf_file(basic_c_io_handle_unlocked<char_type>&& chd,open_mode):
 		basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>}
 	{
-		fp_hack_open(chd.fp);
+		details::streambuf_hack::fp_hack_open(this->fb,chd.fp);
 		chd.fp=nullptr;
 	}
 	basic_filebuf_file(basic_c_io_handle<char_type>&& chd,open_mode):
 		basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>}
 	{
-		fp_hack_open(chd.fp);
+		details::streambuf_hack::fp_hack_open(this->fb,chd.fp);
 		chd.fp=nullptr;
 	}
 #elif defined(_MSVC_STL_UPDATE)
