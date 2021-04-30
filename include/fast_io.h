@@ -8,10 +8,13 @@
 #else
 #include"fast_io_hosted.h"
 #if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
+#ifndef FAST_IO_NO_LEGACY
 #include"fast_io_legacy_impl/c/impl.h"
+#endif
 
 namespace fast_io
 {
+#ifndef FAST_IO_NO_LEGACY
 inline c_io_observer c_stdin() noexcept
 {
 	return {stdin};
@@ -55,7 +58,7 @@ inline u8c_io_observer u8c_stderr() noexcept
 {
 	return {stderr};
 }
-
+#endif
 
 inline
 #if defined(__WINE__) || !defined(_WIN32)
@@ -231,10 +234,17 @@ namespace details
 template<bool line,typename... Args>
 inline constexpr void print_after_io_forward(Args ...args)
 {
+#ifdef FAST_IO_NO_LEGACY
+	if constexpr(line)
+		println_freestanding_decay(out(),args...);
+	else
+		print_freestanding_decay(out(),args...);
+#else
 	if constexpr(line)
 		println_freestanding_decay(c_stdout(),args...);
 	else
 		print_freestanding_decay(c_stdout(),args...);
+#endif
 }
 
 template<bool line,typename... Args>
@@ -265,6 +275,15 @@ inline constexpr void debug_print_after_io_forward(Args ...args)
 template<bool report,typename... Args>
 inline constexpr std::conditional_t<report,bool,void> scan_after_io_forward(Args ...args)
 {
+#ifdef FAST_IO_NO_LEGACY
+	if constexpr(report)
+		return scan_freestanding_decay(in(),args...);
+	else
+	{
+		if(!scan_freestanding_decay(in(),args...))
+			fast_io::throw_parse_code(fast_io::parse_code::end_of_file);
+	}
+#else
 	if constexpr(report)
 		return scan_freestanding_decay(c_stdin(),args...);
 	else
@@ -272,6 +291,7 @@ inline constexpr std::conditional_t<report,bool,void> scan_after_io_forward(Args
 		if(!scan_freestanding_decay(c_stdin(),args...))
 			fast_io::throw_parse_code(fast_io::parse_code::end_of_file);
 	}
+#endif
 }
 
 

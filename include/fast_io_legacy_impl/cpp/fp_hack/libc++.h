@@ -123,7 +123,7 @@ inline std::FILE* fp_hack([[maybe_unused]] T* stdbuf) noexcept
 				return stdinbuf_stdoutbuf_fp_hack(stdbuf);
 			auto fbf{dynamic_cast<std::basic_filebuf<char_type,traits_type>*>(stdbuf)};
 			if(fbf)
-				return fp_hack_impl(stdbuf);
+				return fp_hack_impl(fbf);
 		}
 #ifdef __cpp_exceptions
 	}
