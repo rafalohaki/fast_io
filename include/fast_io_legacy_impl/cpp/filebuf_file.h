@@ -95,7 +95,19 @@ This function never fails. but what if fdopen fails?
 		}
 		piohd.release();
 	}
-#else
+	basic_filebuf_file(basic_c_io_handle_unlocked<char_type>&& chd,open_mode):
+		basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>}
+	{
+		fp_hack_open(chd.fp);
+		chd.fp=nullptr;
+	}
+	basic_filebuf_file(basic_c_io_handle<char_type>&& chd,open_mode):
+		basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>}
+	{
+		fp_hack_open(chd.fp);
+		chd.fp=nullptr;
+	}
+#elif defined(_MSVC_STL_UPDATE)
 	basic_filebuf_file(basic_c_io_handle_unlocked<char_type>&& chd,open_mode):basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>(chd.fp)}
 	{
 		if(!this->fb->is_open())
@@ -104,9 +116,7 @@ This function never fails. but what if fdopen fails?
 			throw_posix_error();
 		}
 		chd.release();
-#if _MSVC_STL_UPDATE
 		details::streambuf_hack::msvc_hack_set_close(this->fb);
-#endif
 	}
 	basic_filebuf_file(basic_c_io_handle<char_type>&& chd,open_mode):basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>(chd.fp)}
 	{
@@ -116,9 +126,7 @@ This function never fails. but what if fdopen fails?
 			throw_posix_error();
 		}
 		chd.release();
-#if _MSVC_STL_UPDATE
 		details::streambuf_hack::msvc_hack_set_close(this->fb);
-#endif
 	}
 	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
 		basic_filebuf_file(basic_c_file_unlocked<char_type>(std::move(piohd),mode),mode)

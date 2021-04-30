@@ -48,13 +48,15 @@ private:
 */
 
 template<typename char_type,typename traits_type>
+inline constexpr std::size_t libcxx_fp_location{sizeof(std::basic_streambuf<char_type, traits_type>)+
+	4*sizeof(uintptr_t)+8+2*sizeof(std::size_t)};
+
+template<typename char_type,typename traits_type>
 inline std::FILE* fp_hack_impl(std::basic_filebuf<char_type,traits_type>* fbuf) noexcept
 {
 	std::FILE* fp{};
 	// we can only do this or ubsanitizer will complain. Do not do down_cast
-	::fast_io::details::my_memcpy(std::addressof(fp),
-	reinterpret_cast<std::byte*>(fbuf)+sizeof(std::basic_streambuf<char_type, traits_type>)+
-	4*sizeof(uintptr_t)+8+2*sizeof(std::size_t),sizeof(fp));
+	::fast_io::details::my_memcpy(__builtin_addressof(fp),reinterpret_cast<std::byte*>(fbuf)+libcxx_fp_location<char_type,traits_type>,sizeof(fp));
 	return fp;
 }
 
@@ -97,6 +99,12 @@ inline std::FILE* fp_hack([[maybe_unused]] T* stdbuf) noexcept
 #endif
 #endif
 	return nullptr;
-
 }
+
+template<typename char_type,typename traits_type>
+inline void fp_hack_open(std::basic_filebuf<char_type,traits_type>* fbf,std::FILE* fp) noexcept
+{
+	::fast_io::details::my_memcpy(reinterpret_cast<std::byte*>(fbuf)+libcxx_fp_location<char_type,traits_type>,__builtin_addressof(fp),sizeof(fp));
+}
+
 }
