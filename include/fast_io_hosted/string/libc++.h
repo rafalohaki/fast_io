@@ -44,11 +44,11 @@ struct model
     struct __short
     {
         value_type __data_[__min_cap];
-        struct
-            : __padding<value_type>
+        struct __pad
+            : std::__padding<value_type>
         {
             unsigned char __size_;
-        };
+        }pad;
     };
 
 #else

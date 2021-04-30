@@ -2,7 +2,7 @@
 
 #if defined(__GLIBCXX__)
 #include"libstdc++.h"
-#elif defined(__LIBCPP_VERSION)
+#elif defined(_LIBCPP_VERSION)
 #include"libc++.h"
 #elif defined(_MSVC_STL_UPDATE)
 #include"msvc_stl.h"
