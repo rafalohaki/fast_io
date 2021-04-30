@@ -1,4 +1,9 @@
 #pragma once
+
+#ifdef __GNUC__
+#pragma GCC system_header
+#endif
+
 #include<__std_stream>
 
 namespace fast_io::details::streambuf_hack
