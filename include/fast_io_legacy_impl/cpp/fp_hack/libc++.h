@@ -62,15 +62,15 @@ public:
 	const char* __extbufnext_;
 	const char* __extbufend_;
 	char __extbuf_min_[8];
-	size_t __ebs_;
+	std::size_t __ebs_;
 	char_type* __intbuf_;
-	size_t __ibs_;
-	FILE* __file_;
+	std::size_t __ibs_;
+	std::FILE* __file_;
 	const codecvt<char_type, char, state_type>* __cv_;
 	state_type __st_;
 	state_type __st_last_;
-	ios_base::openmode __om_;
-	ios_base::openmode __cm_;
+	std::ios_base::openmode __om_;
+	std::ios_base::openmode __cm_;
 	bool __owns_eb_;
 	bool __owns_ib_;
 	bool __always_noconv_;
@@ -134,7 +134,7 @@ inline std::FILE* fp_hack([[maybe_unused]] T* stdbuf) noexcept
 }
 
 template<typename char_type,typename traits_type>
-inline void fp_hack_open(std::basic_filebuf<char_type,traits_type>* fb,std::FILE* fp,std::ios::open_mode mode) noexcept
+inline void fp_hack_open(std::basic_filebuf<char_type,traits_type>* fb,std::FILE* fp,std::ios::openmode mode) noexcept
 {
 	::fast_io::details::my_memcpy(reinterpret_cast<std::byte*>(fb)+libcxx_om_location<char_type,traits_type>,__builtin_addressof(mode),sizeof(mode));
 	::fast_io::details::my_memcpy(reinterpret_cast<std::byte*>(fb)+libcxx_fp_location<char_type,traits_type>,__builtin_addressof(fp),sizeof(fp));
