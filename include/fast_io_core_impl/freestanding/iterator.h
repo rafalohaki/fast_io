@@ -21,7 +21,6 @@ using ::std::contiguous_iterator_tag;
 using ::std::iter_value_t;
 using ::std::iter_difference_t;
 using ::std::iter_rvalue_reference_t;
-using ::std::iter_common_reference_t;
 
 using ::std::distance;
 using ::std::default_sentinel_t;
