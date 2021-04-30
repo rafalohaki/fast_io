@@ -990,14 +990,12 @@ inline void win32_clear_screen_main(void* out_hdl)
 /*
 Since many people are using console like msys2, we need to first write something to this console
 */
-	constexpr char16_t const str[] = u"\033c";
-	constexpr std::uint32_t written_chars{static_cast<std::uint32_t>((sizeof(str) - sizeof(char16_t))/sizeof(char16_t))};
+	constexpr char8_t const str[] = u8"\x1B[H\x1B[2J\x1B[3J";
+	constexpr std::uint32_t written_chars{static_cast<std::uint32_t>(::fast_io::details::string_literal_size(str))};
 //not bytes, but chars
-	{
 	win32_console_mode_guard guard{out_hdl};
-	if(!WriteConsoleW(out_hdl, str, written_chars, nullptr, nullptr))
+	if(!win32::WriteFile(out_hdl, str, written_chars, nullptr, nullptr))
 		throw_win32_error();
-	}
 }
 
 
