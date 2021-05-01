@@ -422,7 +422,7 @@ inline ::fast_io::freestanding::u8string_view stem(nt_directory_entry ent) noexc
 		return fnm;
 	if(2<fnm.size()&&pos==1&&fnm.front()==u8'.')
 		return fnm;
-	return ::fast_io::freestanding::u8string_view(fnm.data(),fnm.data()+pos);
+	return ::fast_io::freestanding::u8string_view(fnm.data(),pos);
 }
 
 template<std::integral char_type>
