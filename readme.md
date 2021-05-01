@@ -48,9 +48,9 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 
 ## C++ standard library support
 
-GCC libstdc++
-LLVM libc++
-MSVC STL
+- GCC libstdc++
+- LLVM libc++
+- MSVC STL
 
 ## Architecture Support
 - i686
