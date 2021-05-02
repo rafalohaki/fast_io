@@ -4,7 +4,7 @@ fast_io is a new C++20 library for extremely fast input/output and aims to repla
 
 ## Why fmtlib considered harmful?
 
-Please, STOP USING any format string libraries; thank you. The format string is historical mistakes, like gets function. Of course fmtlib's author is a facebook troll who has no idea what he is talking about.
+Please, STOP USING any format string libraries in ANY languages; thank you. The format strings are historical mistakes, created by C programming language, like gets function. (Another reason to tell you why stdio is harmful.) You might say "every language has it". That is not an argument. 10 years ago people actually think garbage collector or OOP was a extremely important, nowadays, everyday hates GC and object-oriented programming. 10 years later, people will understand we are correct, eliminating format string is a historical trend, because they are too complex, too slow and too unsafe.
 
 Article Detection of security vulnerabilities in C language applications ( https://onlinelibrary.wiley.com/doi/pdf/10.1002/spy2.8 ) shows printf-family functions are the most dangerous target vulnerabilities in C and C++ standard libraries.
 
@@ -12,7 +12,7 @@ See talks Security Researcher at Netsparker.
 
 What Are Format String Vulnerabilities? https://www.netsparker.com/blog/web-security/format-string-vulnerabilities/
 
-The problem is that fmtlib = virus. format string vulneralibties are NO1 reason for memory safety CVEs in modern C or C++ programs.
+Of course fmtlib's author is a facebook troll who has no idea what he is talking about. The problem is that fmtlib = virus. format string vulneralibties are NO1 reason for memory safety CVEs in modern C or C++ programs.
 
 Some people would argue it is type-safe. No, it is not. Here are some examples. They throw exceptions for contract violations.
 
