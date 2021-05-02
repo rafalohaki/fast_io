@@ -51,7 +51,7 @@ I know there are reasons to use format string for localizations. However, they h
 
 C++ stream is terrible for a lot of reasons. However, no format string for iostream is correct because format string is a horrible idea for security and performance.
 
-This fast_io libraries do not use format string for IO. Instead, we deploy static manipulators (which are different from iostream's manipulators), ensuring 100% of immunization from format string vulnerabilities. There are no format strings at all.
+This fast_io library does not use any format string for IO. Instead, we deploy static manipulators (which are different from iostream's manipulators), ensuring 100% of immunization from format string vulnerabilities. There are no format strings at all.
 
 ## QQ group
 1076846339
