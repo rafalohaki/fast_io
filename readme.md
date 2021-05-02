@@ -2,9 +2,9 @@
 
 fast_io is a new C++20 library for extremely fast input/output and aims to replace iostream and cstdio. It is header-only (module only in the future) for easy inclusion in your project. It requires a capable C++20 compiler supporting concepts.
 
-## Why fmtlib considered harmful?
+## Why libraries like fmtlib considered harmful?
 
-Please, STOP USING any format string libraries in ANY languages; thank you. The format strings are historical mistakes, created by C programming language, like gets function. (Another reason to tell you why stdio is harmful.) You might say "every language has it". That is not an argument. 10 years ago people actually think garbage collector or OOP was a extremely important, nowadays, everyday hates GC and object-oriented programming. 10 years later, people will understand we are correct, eliminating format string is a historical trend, because they are too complex, too slow and too unsafe.
+Please, STOP USING any format string libraries in ANY languages; thank you. The format strings are historical mistakes created by the C programming language, like gets function. (Another reason to tell you why stdio is harmful.) You might say, "every language has it." That is not an argument. Ten years ago, people think garbage collector or OOP was critical; nowadays, everyone hates GC and object-oriented programming. Ten years later, people will understand we are correct; eliminating formatting is an unstoppable historical trend because they are too complex, too slow, and too unsafe. Even Rust language's forcing compile time approach is not a solution either. It severely harms compilation speed, and Rust's fmt performs incredibly horribly because the complexity behind format-string does not magically go away, with compile-time metaprogramming. Modern Compilers are bad at dealing with abstractions due to their engineering complexity. There are no zero-cost abstractions.
 
 Article Detection of security vulnerabilities in C language applications ( https://onlinelibrary.wiley.com/doi/pdf/10.1002/spy2.8 ) shows printf-family functions are the most dangerous target vulnerabilities in C and C++ standard libraries.
 
