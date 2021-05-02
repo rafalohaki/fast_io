@@ -2,6 +2,55 @@
 
 fast_io is a new C++20 library for extremely fast input/output and aims to replace iostream and cstdio. It is header-only (module only in the future) for easy inclusion in your project. It requires a capable C++20 compiler supporting concepts.
 
+## Why fmtlib considered harmful?
+
+Please, STOP USING any format string libraries; thank you. The format string is historical mistakes, like gets function. Of course fmtlib's author is a facebook troll who has no idea what he is talking about.
+
+Article Detection of security vulnerabilities in C language applications ( https://onlinelibrary.wiley.com/doi/pdf/10.1002/spy2.8 ) shows printf-family functions are the most dangerous target vulnerabilities in C and C++ standard libraries.
+
+See talks Security Researcher at Netsparker.
+
+What Are Format String Vulnerabilities? https://www.netsparker.com/blog/web-security/format-string-vulnerabilities/
+
+The problem is that fmtlib = virus. format string vulneralibties are NO1 reason for memory safety CVEs in modern C or C++ programs.
+
+Some people would argue it is type-safe. No, it is not. Here are some examples. They throw exceptions for contract violations.
+
+CWE-134: Use of Externally-Controlled Format String: https://cwe.mitre.org/data/definitions/134.html
+
+```cpp
+std::string str;
+std::cin>>str;
+fmt::print(str);
+//DANGER! format string vulneralbilities. Program will crash or throwing EH. If EH is not caught, it will lead to code execution.
+//See CWE: https://cwe.mitre.org/data/definitions/248.html
+```
+
+```cpp
+std::string str;
+std::cin>>str;
+fmt::print(str,24);
+//DANGER! format string vulneralbilities. This is will hit overcommit. The OS OOM killer will kill your process, leading to Denial of Serivce
+//{0:<2147483647}{0:<2147483647}{0:<2147483647}{0:<2147483647}{0:<2147483647}{0:<2147483647}{0:<2147483647}{0:<2147483647}{0:<2147483647}{0:<2147483647}{0:<2147483647}{0:<2147483647}{0:<2147483647}{0:<2147483647}{0:<2147483647}{0:<2147483647}{0:<2147483647}{0:<2147483647}{0:<2147483647}{0:<2147483647}
+```
+
+```cpp
+std::string str;
+std::cin>>str;
+fmt::print(str,str);
+//DANGER!!! This grows at square level.
+```
+
+It is so funny those so-called safe languages like Project Verona ( https://github.com/microsoft/verona ) uses fmt::print to print string, which is very harmful. Project Verona is extremely dangerous.
+
+https://github.com/microsoft/verona/blob/65fb0ba2eee7167b18315223159187b5053d9bd1/src/interpreter/bytecode.cc#L13
+
+Of course, the parsing format string is also very problematic, leading to substantial binary bloat and performance loss and complexity. Not only the complexity of parsing format string itself but the entire abstraction behinds it.
+
+I know there are reasons to use format string for localizations. However, they have to be carefully sanitized, and there is no reason format string is so powerful just for localization perspective. Things like width or floating precisions should NEVER, EVER be put as formatters, etc., because it will quickly lead to very serious CVEs. Not mentioning format strings is highly abused, just like the Project Verona is doing (just for printing strings). There are no reasons why Project Verona should not use just the stream directly to output string.
+
+C++ stream is terrible for a lot of reasons. However, no format string for iostream is correct because format string is a horrible idea for security and performance.
+
 ## QQ group
 1076846339
 
