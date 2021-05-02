@@ -4,7 +4,7 @@ fast_io is a new C++20 library for extremely fast input/output and aims to repla
 
 ## Why libraries like fmtlib considered harmful?
 
-Please, STOP USING any format string libraries in ANY languages; thank you. The format strings are historical mistakes created by the C programming language, like gets function. (Another reason to tell you why stdio is harmful.) You might say, "every language has it." That is not an argument. Ten years ago, people think garbage collector or OOP was critical; nowadays, everyone hates GC and object-oriented programming. Ten years later, people will understand we are correct; eliminating formatting is an unstoppable historical trend because they are too complex, too slow, and too unsafe. Even Rust language's forcing compile time approach is not a solution either. It severely harms compilation speed, and Rust's fmt performs incredibly horribly because the complexity behind format-string does not magically go away, with compile-time metaprogramming. Modern Compilers are bad at dealing with abstractions due to their engineering complexity. There are no zero-cost abstractions.
+Please, STOP USING any format string libraries in ANY languages; thank you. The format strings are historical mistakes created by the C programming language, like gets function. (Another reason to tell you why stdio is harmful.) You might say, "every language has it." That is not an argument. Ten years ago, people think garbage collector or OOP was critical; nowadays, everyone hates GC and object-oriented programming. Ten years later, people will understand we are correct; eliminating formatting is an unstoppable historical trend because they are too complex, too slow, and too unsafe. Even Rust language's forcing compile time approach is not a solution either. It severely harms compilation speed, and Rust's fmt performs extremely slow (see our benchmarks) because the complexity behind format-string does not magically go away, with compile-time metaprogramming. Modern Compilers are bad at dealing with abstractions due to their engineering complexity. There are no zero-cost abstractions.
 
 Article Detection of security vulnerabilities in C language applications ( https://onlinelibrary.wiley.com/doi/pdf/10.1002/spy2.8 ) shows printf-family functions are the most dangerous target vulnerabilities in C and C++ standard libraries.
 
@@ -50,6 +50,8 @@ Of course, the parsing format string is also very problematic, leading to substa
 I know there are reasons to use format string for localizations. However, they have to be carefully sanitized, and there is no reason format string is so powerful just for localization perspective. Things like width or floating precisions should NEVER, EVER be put as formatters, etc., because it will quickly lead to very serious CVEs. Not mentioning format strings is highly abused, just like the Project Verona is doing (just for printing strings). There are no reasons why Project Verona should not use just the stream directly to output string.
 
 C++ stream is terrible for a lot of reasons. However, no format string for iostream is correct because format string is a horrible idea for security and performance.
+
+This fast_io libraries do not use format string for IO. Instead, we deploy static manipulators (which are different from iostream's manipulators), ensuring 100% of immunization from format string vulnerabilities. There are no format strings at all.
 
 ## QQ group
 1076846339
