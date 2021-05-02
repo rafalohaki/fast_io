@@ -12,7 +12,7 @@ See talks Security Researcher at Netsparker.
 
 What Are Format String Vulnerabilities? https://www.netsparker.com/blog/web-security/format-string-vulnerabilities/
 
-Of course fmtlib's author is a facebook troll who has no idea what he is talking about. The problem is that fmtlib = virus. format string vulneralibties are NO1 reason for memory safety CVEs in modern C or C++ programs.
+Of course fmtlib's author is a facebook troll who has no idea what he is talking about. The problem is that fmtlib = virus. format string vulnerabilities are NO1 reason for memory safety CVEs in modern C or C++ programs.
 
 Some people would argue it is type-safe. No, it is not. Here are some examples. They throw exceptions for contract violations.
 
