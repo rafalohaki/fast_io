@@ -20,8 +20,8 @@ For hosted implementations the set of standard library headers required by the C
 #include<cerrno>
 #include"fast_io_hosted/string/impl.h"
 #include"fast_io_hosted/concat.h"
-#include"fast_io_hosted/posix_error.h"
 #include"fast_io_hosted/posix_error_scatter.h"
+#include"fast_io_hosted/posix_error.h"
 #ifdef __MSDOS__
 #undef __STRICT_ANSI__
 #endif
