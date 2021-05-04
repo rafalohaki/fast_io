@@ -430,7 +430,7 @@ explicit constexpr lock_guard(mutex_type& m) : device(m)
 #if __cpp_constexpr >= 201907L
 constexpr
 #endif
-~lock_guard()
+~lock_guard() noexcept
 { device.unlock(); }
 
 lock_guard(lock_guard const&) = delete;
@@ -821,8 +821,8 @@ inline constexpr std::size_t cal_max_int_size() noexcept
 	return i;
 }
 
-static_assert(cal_max_int_size<std::uint64_t,10>()==20);
-static_assert(cal_max_int_size<std::uint32_t,10>()==10);
+//static_assert(cal_max_int_size<std::uint64_t,10>()==20);
+//static_assert(cal_max_int_size<std::uint32_t,10>()==10);
 template<typename char_type,std::size_t N>
 inline constexpr basic_io_scatter_t<char_type> tsc(char_type const (&a)[N]) noexcept
 {

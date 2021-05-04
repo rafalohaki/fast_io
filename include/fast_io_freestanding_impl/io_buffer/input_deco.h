@@ -104,7 +104,7 @@ inline constexpr Iter iobuf_read_unhappy_decay_impl_deco(T t,decot deco,
 			std::size_t cap{static_cast<std::size_t>(ibuffer.buffer_cap-ibuffer.buffer_begin)};
 			if(cap<new_size)
 			{
-				deallocate_iobuf_space<char_type,nsecure>(ibuffer.buffer_begin,cap);
+				deallocate_iobuf_space<nsecure,char_type>(ibuffer.buffer_begin,cap);
 				ibuffer.buffer_cap=ibuffer.buffer_end=ibuffer.buffer_curr=ibuffer.buffer_begin=nullptr;
 				ibuffer.buffer_cap=(ibuffer.buffer_end=ibuffer.buffer_curr=ibuffer.buffer_begin=
 				allocate_iobuf_space<char_type>(new_size))+new_size;
