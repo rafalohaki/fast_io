@@ -145,13 +145,17 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - MSVCRT
 - Universal CRT
 - Wine's Emulated MSVCRT
+- Wine's Emulated UCRT
+- ReactOS Emulated MSVCRT
+- ReactOS Emulated UCRT
 - BSD libc/Apple Darwin
 - MUSL libc
 - DJGPP
 - Newlib
 - Bionic(Android)
 - uclibc-ng
-- Todo list: mlibc, wasi libc??
+- wasi libc
+- Todo list: mlibc, avr-libc ??
 
 ## Supported C++ standard library std::streambuf/std::filebuf hacks platforms
 - GCC libstdc++
