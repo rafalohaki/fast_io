@@ -53,20 +53,43 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,sha<
 	return sizeof(typename T::digest_type)*8;
 }
 
-template<std::integral char_type,::fast_io::freestanding::random_access_iterator caiter,typename T,bool endian_reverse>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,sha<T,endian_reverse>>,caiter iter,auto& i) noexcept
+template<std::integral char_type,::fast_io::freestanding::forward_iterator caiter,typename T,bool endian_reverse>
+inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,sha<T,endian_reverse>>,caiter iter,sha<T,endian_reverse> const& i) noexcept
 {
-	constexpr std::size_t offset{sizeof(typename T::digest_type::value_type)*2};
-	for(auto e : i.digest_block)
-	{
-		if constexpr(!endian_reverse)
-			e=details::byte_swap(e);
-		fast_io::details::optimize_size::output_unsigned_dummy<offset,16>(iter,e);
-		iter+=offset;
-	}
-	return iter;
+	return details::crypto_hash_print_reserve_define_common_impl<false,endian_reverse>(reinterpret_cast<char unsigned const*>(i.digest_block.data()),
+										reinterpret_cast<char unsigned const*>(i.digest_block.data()+i.digest_block.size()),iter);
+}
+template<std::integral char_type,typename T,bool endian_reverse>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manipulators::base_full_t<16,true,sha<T,endian_reverse> const&>>) noexcept
+{
+	return sizeof(typename T::digest_type)*8;
+}
+
+template<std::integral char_type,::fast_io::freestanding::forward_iterator caiter,typename T,bool endian_reverse>
+inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manipulators::base_full_t<16,true,sha<T,endian_reverse> const&>>,caiter iter,manipulators::base_full_t<16,true,sha<T,endian_reverse> const&> i) noexcept
+{
+	return details::crypto_hash_print_reserve_define_common_impl<true,endian_reverse>(reinterpret_cast<char unsigned const*>(i.reference.digest_block.data()),
+										reinterpret_cast<char unsigned const*>(i.reference.digest_block.data()+i.reference.digest_block.size()),iter);
 }
 
 using sha256 = sha<sha256_function>;
+
+
+namespace manipulators
+{
+
+template<typename T,bool endian_reverse>
+inline constexpr base_full_t<16,true,::fast_io::sha<T,endian_reverse> const&> upper(::fast_io::sha<T,endian_reverse> const& res) noexcept
+{
+	return {res};
+}
+
+template<typename T,bool endian_reverse>
+inline constexpr parameter<::fast_io::sha<T,endian_reverse> const&> lower(::fast_io::sha<T,endian_reverse> const& res) noexcept
+{
+	return {res};
+}
+
+}
 
 }

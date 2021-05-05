@@ -2,6 +2,12 @@
 #include<openssl/bio.h>
 #include<openssl/ssl.h>
 #include<openssl/err.h>
+
+#ifdef FAST_IO_OPENSSL_ENABLE_MD2
+#include<openssl/md2.h>
+#endif
+#include<openssl/md4.h>
+#include<openssl/md5.h>
 #include<openssl/sha.h>
 #include<openssl/crypto.h>
 #include<typeinfo>

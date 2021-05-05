@@ -6,6 +6,7 @@
 #include"jiaendu/jiaendu.h"
 #include"sto/sto_overhual.h"
 #include"append_nine_digits.h"
+#include"crypto_hash.h"
 
 namespace fast_io
 {
