@@ -36,23 +36,7 @@ inline constexpr void uu(auto& a,auto b,auto c,auto d,auto x,auto s,auto ac) noe
 	a=uu_impl<op>(a,b,c,d,x,s,ac);
 }
 
-/*
-https://github.com/krisprice/simd_md5/blob/master/simd_md5/md5_rfc.c
-namespace avx2
-{
-inline auto rotate_left(auto& x,auto& n){return _mm256_or_si256(_mm256_slli_epi32(x, n), _mm256_srli_epi32(x, 32-n));}
-
-
-inline auto F(auto& x,auto& y,auto& z){return _mm256_or_si256(_mm256_and_si256(x, y), _mm256_andnot_si256(x, z));}
-inline auto G(auto& x,auto& y,auto& z){return _mm256_or_si256(_mm256_and_si256(x, z), _mm256_andnot_si256(z, y));}
-inline auto H(auto& x,auto& y,auto& z){return _mm256_xor_si256(x, _mm256_xor_si256(y, z));}
-inline auto I(auto& x,auto& y,auto& z){return _mm256_xor_si256(y, _mm256_or_si256(x, _mm256_andnot_si256(z, _mm256_cmpeq_epi32(z, z))));}
-
-inline auto avx2_step()
-}
-*/
-
-inline void md5_main(std::uint32_t *state,std::byte const* block_start,std::size_t block_bytes) noexcept
+inline void md5_main(std::uint32_t * __restrict state,std::byte const* __restrict block_start,std::size_t block_bytes) noexcept
 {
 	std::uint32_t at{*state},bt{state[1]},ct{state[2]},dt{state[3]};
 	std::uint32_t x[16];
@@ -60,8 +44,7 @@ inline void md5_main(std::uint32_t *state,std::byte const* block_start,std::size
 	for(auto block(block_start),ed(block_start+block_bytes);block!=ed;block+=block_size)
 	{
 		std::uint32_t a{at},b{bt},c{ct},d{dt};
-		::fast_io::details::my_memcpy(x,block,block_size);
-
+		my_memcpy(x,block,block_size);
 		uu<operation::F>(a, b, c, d, x[ 0], 7, 0xd76aa478);
 		uu<operation::F>(d, a, b, c, x[ 1], 12, 0xe8c7b756);
 		uu<operation::F>(c, d, a, b, x[ 2], 17, 0x242070db);

@@ -1,7 +1,8 @@
 #pragma once
-#include<CryptoPP/sha.h>
 namespace fast_io::cryptopp
 {
+
+using cryptopp_byte = char unsigned;
 
 template<typename T>
 class iterated_hash_ref
@@ -19,7 +20,7 @@ namespace details
 template<typename T>
 inline void cryptopp_hash_write_impl(T& ihb,std::byte const* first,std::byte const* last)
 {
-	ihb.Update(reinterpret_cast<CryptoPP::byte const*>(first),static_cast<std::size_t>(last-first));
+	ihb.Update(reinterpret_cast<cryptopp_byte const*>(first),static_cast<std::size_t>(last-first));
 }
 
 template<typename T>
@@ -53,7 +54,7 @@ template<std::size_t N>
 class digest_result
 {
 public:
-	using digest_type = ::fast_io::freestanding::array<CryptoPP::byte,N>;
+	using digest_type = ::fast_io::freestanding::array<cryptopp_byte,N>;
 	digest_type digest_block;
 	constexpr digest_result()=default;
 	constexpr digest_result(digest_result const&) noexcept=default;
