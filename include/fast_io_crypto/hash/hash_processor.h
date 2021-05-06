@@ -35,7 +35,7 @@ public:
 	std::conditional_t<block_size==0,details::compress_current_position,std::size_t> current_position{};
 	constexpr basic_hash_processor(function_type& func) noexcept:function(func)
 	{
-		if constexpr(details::hash_require_block_init<Func>)
+		if constexpr(details::hash_require_block_init<function_type>)
 			current_position+=func.block_init(temporary_buffer.data());
 	}
 	constexpr void do_final() noexcept

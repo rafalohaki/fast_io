@@ -11,6 +11,9 @@ public:
 	using digest_type = typename T::digest_type;
 	digest_type digest_block = T::digest_initial_value;
 	static inline constexpr std::size_t block_size = T::block_size;
+#if __has_cpp_attribute(no_unique_address)
+	[[no_unique_address]]
+#endif
 	T function;
 	std::uint64_t transform_counter{};
 
@@ -53,11 +56,10 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,sha<
 	return sizeof(typename T::digest_type)*8;
 }
 
-template<std::integral char_type,::fast_io::freestanding::forward_iterator caiter,typename T,bool endian_reverse>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator caiter,typename T,bool endian_reverse>
 inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,sha<T,endian_reverse>>,caiter iter,sha<T,endian_reverse> const& i) noexcept
 {
-	return details::crypto_hash_print_reserve_define_common_impl<false,endian_reverse>(reinterpret_cast<char unsigned const*>(i.digest_block.data()),
-										reinterpret_cast<char unsigned const*>(i.digest_block.data()+i.digest_block.size()),iter);
+	return details::crypto_hash_main_reserve_define_common_impl<false,endian_reverse>(i.digest_block.data(),i.digest_block.data()+i.digest_block.size(),iter);
 }
 template<std::integral char_type,typename T,bool endian_reverse>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manipulators::base_full_t<16,true,sha<T,endian_reverse> const&>>) noexcept
@@ -65,11 +67,10 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,mani
 	return sizeof(typename T::digest_type)*8;
 }
 
-template<std::integral char_type,::fast_io::freestanding::forward_iterator caiter,typename T,bool endian_reverse>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator caiter,typename T,bool endian_reverse>
 inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manipulators::base_full_t<16,true,sha<T,endian_reverse> const&>>,caiter iter,manipulators::base_full_t<16,true,sha<T,endian_reverse> const&> i) noexcept
 {
-	return details::crypto_hash_print_reserve_define_common_impl<true,endian_reverse>(reinterpret_cast<char unsigned const*>(i.reference.digest_block.data()),
-										reinterpret_cast<char unsigned const*>(i.reference.digest_block.data()+i.reference.digest_block.size()),iter);
+	return details::crypto_hash_main_reserve_define_common_impl<true,endian_reverse>(i.reference.digest_block.data(),i.reference.digest_block.data()+i.reference.digest_block.size(),iter);
 }
 
 using sha256 = sha<sha256_function>;

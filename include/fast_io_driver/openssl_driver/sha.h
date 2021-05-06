@@ -5,7 +5,7 @@ namespace fast_io::ossl
 
 enum class hash_flag
 {
-md2,md4,md5,sha,sha224,sha256,sha384,sha512
+md2,md4,md5,sha1,sha224,sha256,sha384,sha512
 };
 
 template<std::size_t N>
@@ -75,7 +75,7 @@ inline constexpr auto hash_type_cal() noexcept
 		return hash_native_handle_type_carrier<MD4_CTX>{};
 	else if constexpr(ctx_type==md5)
 		return hash_native_handle_type_carrier<MD5_CTX>{};
-	else if constexpr(ctx_type==sha)
+	else if constexpr(ctx_type==sha1)
 		return hash_native_handle_type_carrier<SHA_CTX>{};
 	else if constexpr(ctx_type==sha224||ctx_type==sha256)
 		return hash_native_handle_type_carrier<SHA256_CTX>{};
@@ -108,9 +108,9 @@ inline constexpr auto hash_type_initialize(T* context)
 		if(!MD5_Init(context))
 			throw_openssl_error();
 	}
-	else if constexpr(ctx_type==sha)
+	else if constexpr(ctx_type==sha1)
 	{
-		if(!SHA_Init(context))
+		if(!SHA1_Init(context))
 			throw_openssl_error();
 	}
 	else if constexpr(ctx_type==sha224)
@@ -163,10 +163,10 @@ inline constexpr auto hash_do_final(T* ctx)
 			throw_openssl_error();
 		return ret;
 	}
-	else if constexpr(ctx_type==sha)
+	else if constexpr(ctx_type==sha1)
 	{
 		hash_final_result<SHA_DIGEST_LENGTH> ret; 
-		if(!SHA_Final(ret.digest_block.data(),ctx))
+		if(!SHA1_Final(ret.digest_block.data(),ctx))
 			throw_openssl_error();
 		return ret;
 	}
@@ -227,9 +227,9 @@ inline void write_hash_impl(T* context,char unsigned const* first,char unsigned 
 		if(!MD5_Update(context,first,last-first))
 			throw_openssl_error();
 	}
-	else if constexpr(ctx_type==sha)
+	else if constexpr(ctx_type==sha1)
 	{
-		if(!SHA_Update(context,first,last-first))
+		if(!SHA1_Update(context,first,last-first))
 			throw_openssl_error();
 	}
 	else if constexpr(ctx_type==sha224)
@@ -320,9 +320,9 @@ using md4
 using md5
 [[deprecated("The weaknesses of MD5 have been exploited in the field, most infamously by the Flame malware in 2012. See wikipedia https://en.wikipedia.org/wiki/MD5")]]
 =basic_hash_context<char,hash_flag::md5>;
-using sha
-[[deprecated("SHA is no longer a secure algorithm. See wikipedia https://en.wikipedia.org/wiki/SHA-1")]]
-=basic_hash_context<char,hash_flag::sha>;
+using sha1
+[[deprecated("SHA1 is no longer a secure algorithm. See wikipedia https://en.wikipedia.org/wiki/SHA-1")]]
+=basic_hash_context<char,hash_flag::sha1>;
 using sha224=basic_hash_context<char,hash_flag::sha224>;
 using sha256=basic_hash_context<char,hash_flag::sha256>;
 using sha384=basic_hash_context<char,hash_flag::sha384>;

@@ -97,4 +97,20 @@ So we do not need to tweak more things around. Just plainly do addition
 	return iter;
 }
 
+
+template<bool upper_case,bool endian_reverse,std::integral T,::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter crypto_hash_main_reserve_define_common_impl(T const* first,T const* last,Iter iter)
+{
+	constexpr std::size_t offset{sizeof(T)*2};
+	for(;first!=last;++first)
+	{
+		auto e{*first};
+		if constexpr(endian_reverse)
+			e=byte_swap(e);
+		optimize_size::output_unsigned_dummy<offset,16,upper_case>(iter,byte_swap(e));
+		iter+=offset;
+	}
+	return iter;
+}
+
 }

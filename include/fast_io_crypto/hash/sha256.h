@@ -8,8 +8,8 @@ namespace fast_io
 
 namespace details::sha256
 {
-#if !(defined(__SHA__) && defined(__SSE4_1__))
-inline constexpr std::uint32_t K256[] =
+
+inline constexpr std::uint32_t K256[]
 {
 0x428A2F98, 0x71374491, 0xB5C0FBCF, 0xE9B5DBA5,
 0x3956C25B, 0x59F111F1, 0x923F82A4, 0xAB1C5ED5,
@@ -58,7 +58,6 @@ inline constexpr uint32_t B2U32(std::byte val, std::uint8_t sh) noexcept
 {
 	return (std::to_integer<std::uint32_t>(val)) << sh;
 }
-#endif
 
 inline void sha256_do_function(std::uint32_t* __restrict state,std::byte const* __restrict blocks_start,std::size_t blocks_bytes) noexcept
 {
