@@ -263,14 +263,14 @@ inline void sha512_do_function(std::uint64_t* __restrict state,std::byte const* 
 		sha512_round((x13+=sigma0(x14)+sigma1(x11)+x6),d,e,f,g,h,a,b,c,0x597f299cfc657e2a);
 		sha512_round((x14+=sigma0(x15)+sigma1(x12)+x7),c,d,e,f,g,h,a,b,0x5fcb6fab3ad6faec);
 		sha512_round((x15+=sigma0(x0)+sigma1(x13)+x8),b,c,d,e,f,g,h,a,0x6c44198c4a475817);
-		a=(*state+=a);
-		b=(state[1]+=b);
-		c=(state[2]+=c);
-		d=(state[3]+=d);
-		e=(state[4]+=e);
-		f=(state[5]+=f);
-		g=(state[6]+=g);
-		h=(state[7]+=h);
+		*state+=a;
+		state[1]+=b;
+		state[2]+=c;
+		state[3]+=d;
+		state[4]+=e;
+		state[5]+=f;
+		state[6]+=g;
+		state[7]+=h;
 	}
 #endif
 }
