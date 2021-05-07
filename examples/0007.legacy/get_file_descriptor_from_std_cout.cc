@@ -29,3 +29,14 @@ int main()
 #endif
 	);
 }
+
+/*
+On Windows 10, it works like this
+D:\hg\fast_io\examples\0007.legacy>get_file_descriptor_from_std_cout
+std::cout.rdbuf():0x00007ff91879baa0
+FILE*:0x00007ff95961fa30
+fd:1
+win32 HANDLE:0x0000000000000054
+nt HANDLE:0x0000000000000054
+zw HANDLE:0x0000000000000054
+*/
