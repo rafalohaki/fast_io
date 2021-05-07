@@ -53,8 +53,10 @@ inline constexpr char* hack_obuffer_end_impl(std::FILE* fp) noexcept
 inline constexpr void hack_obuffer_set_curr_impl(std::FILE* fp,char* ptr) noexcept
 {
 	std::size_t new_size{static_cast<std::size_t>(ptr-fp->__buffer_ptr)};
+	fp->__offset=new_size;
 	fp->__io_offset=new_size;
 	fp->__valid_limit=new_size;
+	fp->__dirty_begin=new_size;
 	fp->__dirty_end=new_size;
 }
 
