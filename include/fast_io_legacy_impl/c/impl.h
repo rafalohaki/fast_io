@@ -533,7 +533,7 @@ https://www.gnu.org/software/libc/manual/html_node/File-Positioning.html
 	if(
 #if defined(_WIN32)
 		_fseeki64
-#elif defined(__linux__)
+#elif defined(__linux__) && !defined(__mlibc__)
 		fseeko64
 #else
 		fseek
@@ -543,7 +543,7 @@ https://www.gnu.org/software/libc/manual/html_node/File-Positioning.html
 	auto val{
 #if defined(_WIN32)
 		_ftelli64
-#elif defined(__linux__)
+#elif defined(__linux__) && !defined(__mlibc__)
 		ftello64 
 #else
 		ftell
@@ -692,7 +692,7 @@ public:
 #elif !defined(__SINGLE_THREAD__)
 //	_flockfile(fp);	//TO FIX undefined reference to `__cygwin_lock_lock' why?
 #endif
-#elif defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream) && !defined(_REENTRANT))
+#elif defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream) && !defined(_REENTRANT)) || defined(__mlibc__)
 #else
 	flockfile(fp);
 #endif
@@ -711,7 +711,7 @@ public:
 #elif !defined(__SINGLE_THREAD__)
 //	_funlockfile(fp); //TO FIX
 #endif
-#elif defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream) && !defined(_REENTRANT))
+#elif defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream) && !defined(_REENTRANT)) || defined(__mlibc__)
 #else
 	funlockfile(fp);
 #endif
@@ -1218,6 +1218,8 @@ inline decltype(auto) zero_copy_out_handle(basic_c_io_observer_unlocked<ch_type>
 #if defined(__STDIO_BUFFERS)
 #include"uclibc.h"
 #endif
+#elif defined(__mlibc__)
+#include"mlibc.h"
 #elif defined(__GLIBC__)
 #include"glibc.h"
 #elif defined(__wasi__)

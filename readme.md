@@ -155,7 +155,8 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - Bionic(Android)
 - uclibc-ng
 - wasi libc
-- Todo list: mlibc, avr-libc ??
+- mlibc (this is a new libc which still contains a lot of bugs currently)
+- Todo list: avr-libc ??
 
 ## Supported C++ standard library std::streambuf/std::filebuf hacks platforms
 - GCC libstdc++

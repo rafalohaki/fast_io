@@ -10,7 +10,7 @@ inline std::size_t posix_loader_get_file_size(int fd)
 {
 #ifdef _WIN32
 	struct __stat64 st;
-#elif defined(__linux__)
+#elif defined(__linux__) && !defined(__mlibc__)
 	struct stat64 st;
 #else
 	struct stat st;
@@ -18,7 +18,7 @@ inline std::size_t posix_loader_get_file_size(int fd)
 	if(
 #ifdef _WIN32
 _fstat64
-#elif defined(__linux__)
+#elif defined(__linux__) && !defined(__mlibc__)
 fstat64
 #else
 fstat

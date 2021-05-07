@@ -12,8 +12,8 @@
 #include<fcntl.h>
 #ifdef __linux__
 #include<sys/uio.h>
-#include<sys/sendfile.h>
 #include<sys/stat.h>
+#include<features.h>
 struct io_uring;
 #endif
 #if defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL) || defined(__wasi__)
@@ -794,7 +794,7 @@ inline posix_file_status fstat_impl(int fd)
 {
 #ifdef _WIN32
 	struct __stat64 st;
-#elif defined(__linux__)
+#elif defined(__linux__) && !defined(__mlibc__)
 	struct stat64 st;
 #else
 	struct stat st;
@@ -802,7 +802,7 @@ inline posix_file_status fstat_impl(int fd)
 	if(
 #ifdef _WIN32
 _fstat64
-#elif defined(__linux__)
+#elif defined(__linux__) && !defined(__mlibc__)
 fstat64
 #else
 fstat
@@ -1319,14 +1319,28 @@ inline std::conditional_t<report_einval,std::pair<std::size_t,bool>,std::size_t>
 	std::intmax_t *np{};
 	if constexpr(random_access)
 		np=std::addressof(offset);
-	auto transmitted_bytes(::sendfile(zero_copy_out_handle(outp),zero_copy_in_handle(inp),np,bytes));
+	std::ptrdiff_t transmitted_bytes{system_call<__NR_sendfile,std::ptrdiff_t>(zero_copy_out_handle(outp),zero_copy_in_handle(inp),np,bytes)};
+	if(static_cast<std::size_t>(transmitted_bytes)+static_cast<std::size_t>(4096)<static_cast<std::size_t>(4096))
+	{
+		if constexpr(report_einval)
+		{
+			return {0,true};
+		}
+		else
+		{
+			throw_posix_error(static_cast<int>(-transmitted_bytes));
+		}
+	}
+	if constexpr(report_einval)
+		return {transmitted_bytes,false};
+	else
+		return transmitted_bytes;
 #else
 	off_t np{};
 	if constexpr(random_access)
 		np=static_cast<off_t>(offset);
 	auto transmitted_bytes(::sendfile(zero_copy_out_handle(outp),zero_copy_in_handle(inp),np,bytes,nullptr,nullptr,0));
 	//it looks like BSD platforms supports async I/O for sendfile. To do
-#endif
 	if(transmitted_bytes==-1)
 	{
 		if constexpr(report_einval)
@@ -1342,6 +1356,7 @@ inline std::conditional_t<report_einval,std::pair<std::size_t,bool>,std::size_t>
 		return {transmitted_bytes,false};
 	else
 		return transmitted_bytes;
+#endif
 }
 
 

@@ -232,14 +232,14 @@ inline bool bsd_underflow_impl(std::FILE* __restrict fp)
 	sFILE* fpp{reinterpret_cast<sFILE*>(fpp)};
 	++fpp->_r;
 	--fpp->_p;
-	return true;
+	return eof;
 #else
 	bool eof{bsd_srget(fp)!=EOF};
 	if(!eof&&ferror_unlocked(fp))[[unlikely]]
 		throw_posix_error();
 	++fp->_r;
 	--fp->_p;
-	return true;
+	return eof;
 #endif
 }
 
