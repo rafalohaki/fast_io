@@ -4,6 +4,9 @@ namespace fast_io
 {
 namespace details
 {
+#if __has_cpp_attribute(gnu::pure)
+[[gnu::pure]]
+#endif
 inline constexpr auto posix_clock_id_to_native_value(posix_clock_id pcid)
 {
 #ifdef _WIN32
@@ -695,7 +698,7 @@ inline int posix_daylight() noexcept
 inline win32_timezone_t timezone_name(bool is_dst=posix_daylight())
 {
 	win32_timezone_t tzt{.is_dst=is_dst};
-	auto errn{_get_tzname(&tzt.tz_name_len,nullptr,0,is_dst)};
+	auto errn{_get_tzname(__builtin_addressof(tzt.tz_name_len),nullptr,0,is_dst)};
 	if(errn)
 		throw_posix_error(static_cast<int>(errn));
 	return tzt;
@@ -714,7 +717,10 @@ inline std::size_t print_reserve_define_impl(char* first,win32_timezone_t tzt)
 	auto errn{_get_tzname(&tzt.tz_name_len,first,tzt.tz_name_len,tzt.is_dst)};
 	if(errn)
 		throw_posix_error(static_cast<int>(errn));
-	return tzt.tz_name_len;
+	if(tzt.tz_name_len)
+		return tzt.tz_name_len-1;
+	else
+		return 0;
 }
 
 }
@@ -814,4 +820,80 @@ inline void posix_clock_settime([[maybe_unused]] posix_clock_id pclk_id,[[maybe_
 #endif
 }
 
+
+#if 0
+#ifdef _WIN32
+
+
+namespace details
+{
+
+inline void 
+
+}
+
+inline void posix_clock_sleep_abstime_complete(posix_clock_id pclk_id,unix_timestamp timestamp)
+{
+	switch(pclk_id)
+	{
+	case posix_clock_id::realtime:
+	case posix_clock_id::realtime_alarm:
+	case posix_clock_id::realtime_coarse:
+	case posix_clock_id::tai:
+		return win32::details::win32_posix_clock_gettime_tai_impl();
+	case posix_clock_id::monotonic:
+	case posix_clock_id::monotonic_coarse:
+	case posix_clock_id::monotonic_raw:
+	case posix_clock_id::boottime:
+//		return win32::details::win32_posix_clock_gettime_boottime_impl();
+		return win32::details::win32_posix_clock_gettime_boottime_xp_impl();
+	case posix_clock_id::process_cputime_id:
+		return win32::details::win32_posix_clock_gettime_process_or_thread_time_impl<false>();
+	case posix_clock_id::thread_cputime_id:
+		return win32::details::win32_posix_clock_gettime_process_or_thread_time_impl<true>();
+	default:
+		throw_win32_error(0x00000057);
+	}
+}
+
+inline [[nodiscard]] bool posix_clock_sleep_abstime(posix_clock_id pclk_id,unix_timestamp timestamp)
+{
+	posix_clock_sleep_abstime_complete(pclk_id,timestamp);
+	return false;
+}
+
+#else
+
+inline [[nodiscard]] bool posix_clock_sleep_abstime(posix_clock_id pclk_id,unix_timestamp timestamp)
+{
+	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000000u};
+	struct timespec timestamp_spec{static_cast<std::time_t>(timestamp.seconds),static_cast<long>(timestamp.subseconds/mul_factor)};
+	auto ret{::clock_nanosleep(pclk_id,TIMER_ABSTIME,__builtin_addressof(timestamp_spec),ptr,nullptr)};
+	if(ret<0)
+	{
+		auto ern{errno};
+		if(ern!=EINTR)
+			throw_posix_error(ern);
+		return true;
+	}
+	return false;
+}
+
+inline void posix_clock_sleep_abstime_complete(posix_clock_id pclk_id,unix_timestamp timestamp)
+{
+	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000000u};
+	struct timespec timestamp_spec{static_cast<std::time_t>(timestamp.seconds),static_cast<long>(timestamp.subseconds/mul_factor)}
+	for(;;)
+	{
+		auto ret{::clock_nanosleep(pclk_id,TIMER_ABSTIME,__builtin_addressof(timestamp_spec),nullptr)};
+		if(ret==0)[[likely]]
+			return;
+		auto ern{errno};
+		if(ern!=EINTR)
+			throw_posix_error(ern);
+	}
+}
+
+#endif
+#endif
 }
