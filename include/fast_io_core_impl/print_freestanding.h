@@ -379,7 +379,7 @@ inline constexpr void print_control(output out,T t)
 					}
 #endif
 					curr=details::non_overlapped_copy_n(scatter.base,len,curr);
-					put(out,lfch);
+					*curr=lfch;
 					++curr;
 					obuffer_set_curr(out,curr);
 				}

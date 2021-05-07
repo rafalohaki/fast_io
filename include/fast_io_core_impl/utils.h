@@ -313,6 +313,37 @@ inline constexpr output_iter my_copy(input_iter first,input_iter second,output_i
 		return ::fast_io::freestanding::copy(first,second,result);
 }
 
+template<std::bidirectional_iterator input_iter,std::bidirectional_iterator output_iter>
+inline constexpr output_iter my_copy_backward(input_iter first,input_iter last,output_iter d_last)
+{
+#if __cpp_lib_is_constant_evaluated>=201811L
+	if (std::is_constant_evaluated())
+		return ::fast_io::freestanding::copy_backward(first,last,d_last);
+	else
+#endif
+	{
+	using input_value_type = typename std::iterator_traits<input_iter>::value_type;
+	using output_value_type = typename std::iterator_traits<output_iter>::value_type;
+	if constexpr
+	(std::contiguous_iterator<input_iter>&&
+	std::contiguous_iterator<output_iter>&&
+	std::is_trivially_copyable_v<input_value_type>&&
+	std::is_trivially_copyable_v<output_value_type>&&
+	(std::same_as<input_value_type,output_value_type>||
+	(std::integral<input_value_type>&&std::integral<output_value_type>&&
+	sizeof(input_value_type)==sizeof(output_value_type))))
+	{
+		std::size_t const count(last-first);
+		d_last-=count;
+		if(count)	//to avoid nullptr UB
+			my_memmove(std::to_address(d_last),std::to_address(first),sizeof(input_value_type)*count);
+		return d_last;
+	}
+	else
+		return ::fast_io::freestanding::copy_backward(first,last,d_last);
+	}
+}
+
 template<::fast_io::freestanding::input_or_output_iterator output_iter,typename T>
 requires (std::is_trivially_copyable_v<T> && sizeof(T)<=sizeof(std::uintmax_t))
 inline constexpr output_iter my_fill_n(output_iter first,std::size_t count, T value)

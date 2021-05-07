@@ -7,7 +7,6 @@ namespace fast_io
 {
 namespace details::sha512
 {
-#ifdef FAST_IO_OPTIMIZE_SIZE
 inline constexpr std::uint64_t K512[]
 {
 0x428a2f98d728ae22, 0x7137449123ef65cd,
@@ -51,8 +50,6 @@ inline constexpr std::uint64_t K512[]
 0x4cc5d4becb3e42b6, 0x597f299cfc657e2a,
 0x5fcb6fab3ad6faec, 0x6c44198c4a475817
 };
-#endif
-
 
 inline constexpr auto Sigma0(auto x) noexcept
 {

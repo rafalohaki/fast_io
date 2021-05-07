@@ -8,6 +8,7 @@ using ::std::min;
 using ::std::max;
 using ::std::copy_n;
 using ::std::copy;
+using ::std::copy_backward;
 using ::std::fill;
 using ::std::fill_n;
 }
@@ -76,6 +77,13 @@ inline constexpr void fill_n(fwd_iter first,std::size_t n,T value)
 		*first=value;
 }
 
+
+template<::fast_io::freestanding::bidirectional_iterator BidirIt1, ::fast_io::freestanding::bidirectional_iterator BidirIt2 >
+constexpr BidirIt2 copy_backward(BidirIt1 first, BidirIt1 last, BidirIt2 d_last)
+{
+	for(;first!=last;*(--d_last)=*(--last));
+	return d_last;
+}
 
 }
 
