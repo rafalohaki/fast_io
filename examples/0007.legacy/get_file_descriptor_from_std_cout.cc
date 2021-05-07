@@ -2,11 +2,11 @@
 #include<fast_io_legacy.h>
 
 /*
-C++ iostream is a holy crap. It does not access FILE* inside std::cout because of the OO garbage.
+C++ iostream is a holy crap. You cannot access FILE* inside std::cout because of the OO garbage.
 See an old blog: https://www.ginac.de/~kreckel/fileno/
 
 Also see wiki in fast_io to understand how C++ std::fstream work. It is implemented by FILE*.
-So why do you use iostream?? It is just a garbage quality of RAII wrapper.
+So why do you use iostream?? It is just a garbage quality of RAII wrapper for FILE*.
 https://github.com/expnkx/fast_io/wiki/0014.-How-does-std::fstream-work-internally%3F
 */
 
