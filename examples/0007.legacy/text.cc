@@ -50,3 +50,17 @@ c_file_unlocked will not lock FILE*
 #endif
 );
 }
+/*
+Demo output:
+Unix Timestamp:1620354611.4156443
+Universe Timestamp:434602343049589811.4156443
+UTC:2021-05-07T02:30:11.4156443Z
+Local:2021-05-06T22:30:11.4156443-04:00 Timezone:Eastern Daylight Time
+gcc 12
+GCC libstdc++ 20210505
+FILE*:0x00007ff95961fa90
+fd:3
+win32 HANDLE:0x00000000000000b8
+zw HANDLE:0x00000000000000b8
+nt HANDLE:0x00000000000000b8
+*/
