@@ -165,13 +165,6 @@ inline constexpr std::size_t get_gb18030_code_units(char32_t cdpt, T* p_dst) noe
 	}
 	return get_gb18030_code_units_unhappy(cdpt,p_dst);
 }
-template<typename T T>
-requires (sizeof(T)==1)
-struct gb18030_advance_unchecked_result
-{
-	char32_t cdpt;
-	char8_t adv;
-};
 
 inline constexpr char32_t lookup_gb18030_to_uni4_func(char32_t index) noexcept
 {
@@ -200,7 +193,7 @@ inline constexpr char32_t utf32cp_by_gb18030_index(char32_t index) noexcept
 	return 0xFFFD;
 }
 
-template<typename T T>
+template<typename T>
 requires (sizeof(T)==1)
 inline constexpr gb18030_advance_unchecked_result<T> gb18030_advance_unchecked(T const* src) noexcept
 {
@@ -232,7 +225,7 @@ inline constexpr gb18030_advance_unchecked_result<T> gb18030_advance_unchecked(T
 	return {utf32cp_by_gb18030_index(linear_18030(src0,src1,src2,src3)),4};
 }
 
-template<typename T T>
+template<typename T>
 requires (sizeof(T)==1)
 inline constexpr gb18030_advance_unchecked_result<T> gb18030_advance(T const* src,std::size_t sz) noexcept
 {
