@@ -42,20 +42,20 @@ struct gz_state_model{
 inline int hack_gz_file_fd(gzFile gzfile)
 {
 	int fdn;
-	::fast_io::details::my_memcpy(std::addressof(fdn),reinterpret_cast<std::byte const*>(gzfile)+offsetof(gz_state_model,fd),sizeof(int));
+	::fast_io::details::my_memcpy(__builtin_addressof(fdn),reinterpret_cast<std::byte const*>(gzfile)+offsetof(gz_state_model,fd),sizeof(int));
 	return fdn;
 }
 /*
 inline char* hack_gz_file_in(gzFile gzfile)
 {
 	char* ptr;
-	::fast_io::details::my_memcpy(std::addressof(ptr),reinterpret_cast<std::byte const*>(gzfile)+offsetof(gz_state_model,in),sizeof(char *));
+	::fast_io::details::my_memcpy(__builtin_addressof(ptr),reinterpret_cast<std::byte const*>(gzfile)+offsetof(gz_state_model,in),sizeof(char *));
 	return ptr;
 }
 inline char* hack_gz_file_out(gzFile gzfile)
 {
 	char* ptr;
-	::fast_io::details::my_memcpy(std::addressof(ptr),reinterpret_cast<std::byte const*>(gzfile)+offsetof(gz_state_model,out),sizeof(char *));
+	::fast_io::details::my_memcpy(__builtin_addressof(ptr),reinterpret_cast<std::byte const*>(gzfile)+offsetof(gz_state_model,out),sizeof(char *));
 	return ptr;
 }
 */
@@ -108,7 +108,7 @@ public:
 	}
 	basic_gz_file& operator=(basic_gz_file&& bmv) noexcept
 	{
-		if(std::addressof(bmv)==this)[[unlikely]]
+		if(__builtin_addressof(bmv)==this)[[unlikely]]
 			return *this;
 		if(this->native_handle())[[likely]]
 			gzclose(this->native_handle());

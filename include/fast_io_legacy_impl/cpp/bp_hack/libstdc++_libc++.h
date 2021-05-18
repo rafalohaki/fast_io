@@ -50,7 +50,7 @@ inline typename T::char_type* hack_buffer_ptr(T* fb) noexcept
 	static_assert(offset+sizeof(std::uintptr_t)<=sizeof(T));
 
 	typename T::char_type* value;
-	::fast_io::details::my_memcpy(std::addressof(value),
+	::fast_io::details::my_memcpy(__builtin_addressof(value),
 	reinterpret_cast<std::byte*>(fb)+offset,
 	sizeof(std::uintptr_t));
 	return value;
@@ -63,7 +63,7 @@ inline void hack_set_buffer_curr(T* fb,typename T::char_type* ptr) noexcept
 	+sizeof(std::locale)
 #endif
 	+position*sizeof(std::uintptr_t));
-	::fast_io::details::my_memcpy(reinterpret_cast<std::byte*>(fb)+offset,std::addressof(ptr),sizeof(std::uintptr_t));
+	::fast_io::details::my_memcpy(reinterpret_cast<std::byte*>(fb)+offset,__builtin_addressof(ptr),sizeof(std::uintptr_t));
 }
 }
 

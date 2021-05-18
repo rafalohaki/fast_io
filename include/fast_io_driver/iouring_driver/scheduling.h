@@ -26,14 +26,14 @@ inline void deal_with_cqe(io_uring_observer ring,io_uring_cqe *cqe)
 inline void io_async_wait(io_uring_observer ring)
 {
 	io_uring_cqe *cqe{};
-	int ret{io_uring_wait_cqe(ring.ring,std::addressof(cqe))};
+	int ret{io_uring_wait_cqe(ring.ring,__builtin_addressof(cqe))};
 	details::deal_with_cqe(ring,cqe);
 }
 
 inline bool io_async_peek(io_uring_observer ring)
 {
 	io_uring_cqe *cqe{};
-	int ret{io_uring_wait_cqe(ring.ring,std::addressof(cqe))};
+	int ret{io_uring_wait_cqe(ring.ring,__builtin_addressof(cqe))};
 	if(ret<0)
 	{
 		if(ret!=-EAGAIN)
@@ -50,7 +50,7 @@ namespace details
 inline bool io_uring_io_async_wait_timeout_detail(io_uring_observer ring,__kernel_timespec ts)
 {
 	io_uring_cqe *cqe{};
-	int ret{io_uring_wait_cqe_timeout(ring.ring,std::addressof(cqe),std::addressof(ts))};
+	int ret{io_uring_wait_cqe_timeout(ring.ring,__builtin_addressof(cqe),__builtin_addressof(ts))};
 	if(ret<0)
 	{
 		if(ret!=-ETIME)

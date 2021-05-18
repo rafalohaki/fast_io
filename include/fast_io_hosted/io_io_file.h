@@ -169,7 +169,7 @@ public:
 #endif
 	basic_io_io_handle& operator=(basic_io_io_handle&& other) noexcept
 	{
-		if(std::addressof(other)==this)
+		if(__builtin_addressof(other)==this)
 			return *this;
 		delete this->io_ptr;
 		this->io_ptr=other.io_ptr;

@@ -35,7 +35,7 @@ inline typename T::char_type*& hack_first_next(T* fb)
 	+sizeof(std::uintptr_t)*2		//_Gfirst,_Pfirst. Why do they set these useless fields??? OOP just encourages bad code tbh
 	+sizeof(std::uintptr_t)*pos);	//Yes to C with concepts. No to C with classes.
 	typename T::char_type** value;
-	::fast_io::details::my_memcpy(std::addressof(value),reinterpret_cast<std::byte*>(fb)+offset,sizeof(typename T::char_type**));
+	::fast_io::details::my_memcpy(__builtin_addressof(value),reinterpret_cast<std::byte*>(fb)+offset,sizeof(typename T::char_type**));
 	return *value;
 }
 
@@ -48,7 +48,7 @@ inline int& hack_last(T* fb)
 	+sizeof(std::uintptr_t)*pos);
 //	printf("offset : %zu\n",offset);
 	int* value;
-	::fast_io::details::my_memcpy(std::addressof(value),reinterpret_cast<std::byte*>(fb)+offset,sizeof(int*));
+	::fast_io::details::my_memcpy(__builtin_addressof(value),reinterpret_cast<std::byte*>(fb)+offset,sizeof(int*));
 	return *value;
 }
 

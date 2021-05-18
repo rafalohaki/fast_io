@@ -189,7 +189,7 @@ inline void keygen_init(evp_pkey_ctx_observer evob)
 inline evp_pkey keygen(evp_pkey_ctx_observer evob)
 {
 	EVP_PKEY* add{};
-	if(EVP_PKEY_keygen(evob.ctx,std::addressof(add))<=0)
+	if(EVP_PKEY_keygen(evob.ctx,__builtin_addressof(add))<=0)
 		throw_openssl_error();
 	return evp_pkey(add);
 }

@@ -31,7 +31,7 @@ inline async_result<ch_type> async_wait(win32_io_observer port)
 	std::uint32_t trans{};
 	void* hd{};
 	overlapped* over{};
-	get_queued_completion_status(port.native_handle(),std::addressof(trans),std::addressof(hd),std::addressof(over),-1);
+	get_queued_completion_status(port.native_handle(),__builtin_addressof(trans),__builtin_addressof(hd),__builtin_addressof(over),-1);
 	
 }
 }

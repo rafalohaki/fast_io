@@ -516,7 +516,7 @@ inline std::size_t posix_write_lock_impl(int fd,void const* address,std::size_t 
 	auto handle{my_get_osfile_handle(fd)};
 	fast_io::win32::overlapped overlap{};
 	fast_io::win32::details::file_lock_guard gd{
-		fast_io::win32::LockFileEx(handle,0x00000002,0,UINT32_MAX,UINT32_MAX,std::addressof(overlap))?
+		fast_io::win32::LockFileEx(handle,0x00000002,0,UINT32_MAX,UINT32_MAX,__builtin_addressof(overlap))?
 		handle:
 		reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))
 	};
@@ -528,7 +528,7 @@ inline io_scatter_status_t posix_scatter_write_impl(int fd,io_scatters_t sp)
 	auto handle{my_get_osfile_handle(fd)};
 	fast_io::win32::overlapped overlap{};
 	fast_io::win32::details::file_lock_guard gd{
-		fast_io::win32::LockFileEx(handle,0x00000002,0,UINT32_MAX,UINT32_MAX,std::addressof(overlap))?
+		fast_io::win32::LockFileEx(handle,0x00000002,0,UINT32_MAX,UINT32_MAX,__builtin_addressof(overlap))?
 		handle:
 		reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))
 	};
@@ -807,7 +807,7 @@ fstat64
 #else
 fstat
 #endif
-(fd,std::addressof(st))<0)
+(fd,__builtin_addressof(st))<0)
 		throw_posix_error();
 	return struct_stat_to_posix_file_status(st);
 }
@@ -1238,14 +1238,14 @@ inline void flush(basic_posix_pipe<ch_type>&)
 template<std::integral ch_type>
 inline ::fast_io::freestanding::array<int*,2> redirect_handle(basic_posix_pipe<ch_type>& h)
 {
-	return {std::addressof(h.in().fd),
-		std::addressof(h.out().fd)};
+	return {__builtin_addressof(h.in().fd),
+		__builtin_addressof(h.out().fd)};
 }
 #else
 template<std::integral ch_type>
 inline constexpr posix_io_redirection redirect(basic_posix_pipe<ch_type>& h) noexcept
 {
-	return {.pipe_fds=std::addressof(h.in().fd)};
+	return {.pipe_fds=__builtin_addressof(h.in().fd)};
 }
 #endif
 
@@ -1318,7 +1318,7 @@ inline std::conditional_t<report_einval,std::pair<std::size_t,bool>,std::size_t>
 #ifdef __linux__
 	std::intmax_t *np{};
 	if constexpr(random_access)
-		np=std::addressof(offset);
+		np=__builtin_addressof(offset);
 	std::ptrdiff_t transmitted_bytes{system_call<__NR_sendfile,std::ptrdiff_t>(zero_copy_out_handle(outp),zero_copy_in_handle(inp),np,bytes)};
 	if(static_cast<std::size_t>(transmitted_bytes)+static_cast<std::size_t>(4096)<static_cast<std::size_t>(4096))
 	{

@@ -31,7 +31,7 @@ inline constexpr auto io_deco_ref(decot& deco) noexcept
 	if constexpr(details::has_deco_value_handle_impl<decot>)
 		return deco_value_handle(deco);
 	else
-		return deco_reference_wrapper<std::remove_cvref_t<decot>>{std::addressof(deco)};
+		return deco_reference_wrapper<std::remove_cvref_t<decot>>{__builtin_addressof(deco)};
 }
 
 template<std::integral to_char_type,typename decot>

@@ -68,7 +68,7 @@ inline void* win32_create_file_a_impld(wchar_t const* lpFileName,win32_open_mode
 	auto handle(win32::CreateFileW(lpFileName,
 	mode.dwDesiredAccess,
 	mode.dwShareMode,
-	mode.inherit?std::addressof(sec_attr):nullptr,
+	mode.inherit?__builtin_addressof(sec_attr):nullptr,
 	mode.dwCreationDisposition,
 	mode.dwFlagsAndAttributes,
 	nullptr));
@@ -357,7 +357,7 @@ inline void* win32_dup_impl(void* handle)
 {
 	void* current_process{reinterpret_cast<void*>(static_cast<intptr_t>(-1))};
 	void* new_handle{};
-	if(!DuplicateHandle(current_process,handle,current_process,std::addressof(new_handle), 0, true, 2/*DUPLICATE_SAME_ACCESS*/))
+	if(!DuplicateHandle(current_process,handle,current_process,__builtin_addressof(new_handle), 0, true, 2/*DUPLICATE_SAME_ACCESS*/))
 		throw_win32_error();
 	return handle;
 }
@@ -395,7 +395,7 @@ public:
 	{}
 	basic_win32_io_handle& operator=(basic_win32_io_handle&& b) noexcept
 	{
-		if(std::addressof(b)!=this)
+		if(__builtin_addressof(b)!=this)
 		{
 			if(*this)[[likely]]
 				fast_io::win32::CloseHandle(this->handle);
@@ -436,7 +436,7 @@ inline std::size_t read_impl(void* __restrict handle,void* __restrict begin,std:
 	if constexpr(4<sizeof(std::size_t))
 		if(static_cast<std::size_t>(UINT32_MAX)<to_read)
 			to_read=static_cast<std::size_t>(UINT32_MAX);
-	if(!win32::ReadFile(handle,begin,static_cast<std::uint32_t>(to_read),std::addressof(number_of_bytes_read),nullptr))
+	if(!win32::ReadFile(handle,begin,static_cast<std::uint32_t>(to_read),__builtin_addressof(number_of_bytes_read),nullptr))
 	{
 		auto err(win32::GetLastError());
 		if(err==109)
@@ -454,7 +454,7 @@ inline std::size_t pread_impl(void* __restrict handle,void* __restrict begin,std
 			to_read=static_cast<std::size_t>(UINT32_MAX);
 	win32::overlapped overlap{};
 	overlap.dummy_union_name.dummy_struct_name={static_cast<std::uint32_t>(u64off),static_cast<std::uint32_t>(u64off>>32)};
-	if(!win32::ReadFile(handle,begin,static_cast<std::uint32_t>(to_read),std::addressof(number_of_bytes_read),std::addressof(overlap)))
+	if(!win32::ReadFile(handle,begin,static_cast<std::uint32_t>(to_read),__builtin_addressof(number_of_bytes_read),__builtin_addressof(overlap)))
 	{
 		auto err(win32::GetLastError());
 		if(err==109)
@@ -475,7 +475,7 @@ struct file_lock_guard
 		if(handle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))
 		{
 			win32::overlapped overlap{};
-			win32::UnlockFileEx(handle,0,UINT32_MAX,UINT32_MAX,std::addressof(overlap));
+			win32::UnlockFileEx(handle,0,UINT32_MAX,UINT32_MAX,__builtin_addressof(overlap));
 		}
 	}
 };
@@ -496,7 +496,7 @@ inline io_scatter_status_t scatter_read_impl(void* __restrict handle,io_scatters
 inline std::uint32_t write_simple_impl(void* __restrict handle,void const* __restrict cbegin,std::size_t to_write)
 {
 	std::uint32_t number_of_bytes_written{};
-	if(!win32::WriteFile(handle,cbegin,static_cast<std::uint32_t>(to_write),std::addressof(number_of_bytes_written),nullptr))
+	if(!win32::WriteFile(handle,cbegin,static_cast<std::uint32_t>(to_write),__builtin_addressof(number_of_bytes_written),nullptr))
 		throw_win32_error();
 	return number_of_bytes_written;
 }
@@ -526,7 +526,7 @@ inline std::uint32_t pwrite_simple_impl(void* __restrict handle,void const* __re
 	std::uint32_t number_of_bytes_written{};
 	win32::overlapped overlap{};
 	overlap.dummy_union_name.dummy_struct_name={static_cast<std::uint32_t>(u64off),static_cast<std::uint32_t>(u64off>>32)};
-	if(!win32::WriteFile(handle,cbegin,static_cast<std::uint32_t>(to_write),std::addressof(number_of_bytes_written),std::addressof(overlap)))
+	if(!win32::WriteFile(handle,cbegin,static_cast<std::uint32_t>(to_write),__builtin_addressof(number_of_bytes_written),__builtin_addressof(overlap)))
 		throw_win32_error();
 	return number_of_bytes_written;
 }
@@ -605,7 +605,7 @@ inline std::size_t write_impl(void* __restrict handle,void const* __restrict cbe
 inline std::uintmax_t seek_impl(void* handle,std::intmax_t offset,seekdir s)
 {
 	std::int64_t distance_to_move_high{};
-	if(!win32::SetFilePointerEx(handle,offset,std::addressof(distance_to_move_high),static_cast<std::uint32_t>(s)))
+	if(!win32::SetFilePointerEx(handle,offset,__builtin_addressof(distance_to_move_high),static_cast<std::uint32_t>(s)))
 		throw_win32_error();
 	return distance_to_move_high;
 }
@@ -614,7 +614,7 @@ inline io_scatter_status_t scatter_write_impl(void* __restrict handle,io_scatter
 {
 	win32::overlapped overlap{};
 	file_lock_guard gd{
-		win32::LockFileEx(handle,0x00000002,0,UINT32_MAX,UINT32_MAX,std::addressof(overlap))?
+		win32::LockFileEx(handle,0x00000002,0,UINT32_MAX,UINT32_MAX,__builtin_addressof(overlap))?
 		handle:
 		reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))
 	};
@@ -932,7 +932,7 @@ inline posix_file_status win32_status_impl(void* __restrict handle)
 			static_cast<std::uintmax_t>(reinterpret_cast<std::uintptr_t>(handle)),
 			0,131072,0,{},{},{},{},0,0};
 	by_handle_file_information bhdi;
-	if(!GetFileInformationByHandle(handle,std::addressof(bhdi)))
+	if(!GetFileInformationByHandle(handle,__builtin_addressof(bhdi)))
 		throw_win32_error();
 	std::uintmax_t file_size{static_cast<std::uintmax_t>((static_cast<std::uint64_t>(bhdi.nFileSizeHigh)<<32)|bhdi.nFileSizeLow)};
 	std::underlying_type_t<perms> pm{0444};
@@ -1025,9 +1025,9 @@ public:
 	{
 		win32::security_attributes sec_attr{sizeof(win32::security_attributes),nullptr,true};
 		if(!win32::CreatePipe(
-			std::addressof(pipes.front().handle),
-			std::addressof(pipes.back().handle),
-			std::addressof(sec_attr),0))
+			__builtin_addressof(pipes.front().handle),
+			__builtin_addressof(pipes.back().handle),
+			__builtin_addressof(sec_attr),0))
 			throw_win32_error();
 	}
 	auto& native_handle()

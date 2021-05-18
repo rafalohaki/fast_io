@@ -325,7 +325,7 @@ public:
 #endif
 	basic_io_buffer& operator=(basic_io_buffer&& other) noexcept requires(std::movable<handle_type>)
 	{
-		if(this==std::addressof(other))
+		if(this==__builtin_addressof(other))
 			return *this;
 		cleanup_impl();
 		ibuffer=other.ibuffer;

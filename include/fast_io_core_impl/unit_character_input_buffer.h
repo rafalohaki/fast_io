@@ -25,7 +25,7 @@ constexpr Iter read(single_character_input_buffer<input>& in,Iter begin,Iter end
 		{
 			if(begin==end)
 				return begin;
-			details::non_overlapped_copy_n(std::addressof(in.single_character),1,::fast_io::freestanding::to_address(begin));
+			details::non_overlapped_copy_n(__builtin_addressof(in.single_character),1,::fast_io::freestanding::to_address(begin));
 			in.pos=in.pos_end;
 			++begin;
 		}
@@ -40,29 +40,29 @@ constexpr Iter read(single_character_input_buffer<input>& in,Iter begin,Iter end
 template<input_stream input>
 constexpr auto ibuffer_begin(single_character_input_buffer<input>& in)
 {
-	return std::addressof(in.single_character);
+	return __builtin_addressof(in.single_character);
 }
 template<input_stream input>
 constexpr auto ibuffer_curr(single_character_input_buffer<input>& in)
 {
-	return std::addressof(in.single_character)+static_cast<std::size_t>(in.pos);
+	return __builtin_addressof(in.single_character)+static_cast<std::size_t>(in.pos);
 }
 template<input_stream input>
 constexpr auto ibuffer_end(single_character_input_buffer<input>& in)
 {
-	return std::addressof(in.single_character)+static_cast<std::size_t>(in.pos_end);
+	return __builtin_addressof(in.single_character)+static_cast<std::size_t>(in.pos_end);
 }
 
 template<input_stream input>
 constexpr void ibuffer_set_curr(single_character_input_buffer<input>& in,typename input::char_type* ptr)
 {
-	in.pos=(ptr!=std::addressof(in.single_character));
+	in.pos=(ptr!=__builtin_addressof(in.single_character));
 }
 
 template<input_stream input>
 constexpr bool ibuffer_underflow(single_character_input_buffer<input>& in)
 {
-	in.pos_end=(read(in.reference,std::addressof(in.single_character),std::addressof(in.single_character)+1)!=std::addressof(in.single_character));
+	in.pos_end=(read(in.reference,__builtin_addressof(in.single_character),__builtin_addressof(in.single_character)+1)!=__builtin_addressof(in.single_character));
 	in.pos={};
 	return in.pos_end;
 }

@@ -87,7 +87,7 @@ public:
 	{
 		++*this;
 	}
-	constexpr scan_iterator(input& pt) requires(!value_based_stream<input>):nullable_handle(std::addressof(pt))
+	constexpr scan_iterator(input& pt) requires(!value_based_stream<input>):nullable_handle(__builtin_addressof(pt))
 	{
 		++*this;
 	}

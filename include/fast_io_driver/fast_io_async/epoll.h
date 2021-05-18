@@ -56,7 +56,7 @@ public:
 	}
 	handle_pool& operator=(handle_pool&& b) noexcept
 	{
-		if(std::addressof(b)!=this)
+		if(__builtin_addressof(b)!=this)
 		{
 			close_impl();
 			fd=b.fd;
@@ -160,7 +160,7 @@ inline output& add_control(handle_pool& pool,output& out,event e)
 {
 	auto const out_ultimate(ultimate_native_handle(out));
 	epoll_event evt{static_cast<std::uint32_t>(e),{.fd=out_ultimate}};
-	if(::epoll_ctl(pool.native_handle(),1,out_ultimate,std::addressof(evt))==-1)
+	if(::epoll_ctl(pool.native_handle(),1,out_ultimate,__builtin_addressof(evt))==-1)
 		throw posix_error();
 	return out;
 }
@@ -170,7 +170,7 @@ inline output& delete_control(handle_pool& pool,output& out)
 {
 	auto const out_ultimate(ultimate_native_handle(out));
 	epoll_event evt{1,{.fd=out_ultimate}};
-	if(::epoll_ctl(pool.native_handle(),2,out_ultimate,std::addressof(evt))==-1)
+	if(::epoll_ctl(pool.native_handle(),2,out_ultimate,__builtin_addressof(evt))==-1)
 		throw posix_error();
 	return out;
 }
@@ -179,7 +179,7 @@ inline output& modify_control(handle_pool& pool,output& out,event e)
 {
 	auto const out_ultimate(ultimate_native_handle(out));
 	epoll_event evt{static_cast<std::uint32_t>(e),{.fd=out_ultimate}};
-	if(::epoll_ctl(pool.native_handle(),3,out_ultimate,std::addressof(evt))==-1)
+	if(::epoll_ctl(pool.native_handle(),3,out_ultimate,__builtin_addressof(evt))==-1)
 		throw posix_error();
 	return out;
 }
@@ -207,14 +207,14 @@ inline std::span<events> wait(handle_pool& pool,std::span<events> evs)
 template<output_stream output>
 inline void delete_control(handle_pool& pool,output& out,std::integral auto value)
 {
-	if(::epoll_ctl(pool.native_handle(),std::addressof(func),2,nullptr,epoll_event{0,static_cast<std::uint64_t>(value)})==-1)
+	if(::epoll_ctl(pool.native_handle(),__builtin_addressof(func),2,nullptr,epoll_event{0,static_cast<std::uint64_t>(value)})==-1)
 		throw posix_error();
 }
 
 template<output_stream output>
 inline void modify_control(handle_pool& pool,output& out,event e,std::integral auto value)
 {
-	if(::epoll_ctl(pool.native_handle(),std::addressof(func),3,epoll_event{e,static_cast<std::uint64_t>(value)})==-1)
+	if(::epoll_ctl(pool.native_handle(),__builtin_addressof(func),3,epoll_event{e,static_cast<std::uint64_t>(value)})==-1)
 		throw posix_error();
 }
 */

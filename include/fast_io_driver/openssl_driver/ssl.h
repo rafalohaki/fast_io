@@ -152,7 +152,7 @@ template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter
 inline Iter read(basic_ssl_io_observer<ch_type> iob,Iter begin,Iter end)
 {
 	std::size_t read_bytes{};
-	auto ret(SSL_read_ex(iob.native_handle(),::fast_io::freestanding::to_address(begin),sizeof(*begin)*(end-begin),std::addressof(read_bytes)));
+	auto ret(SSL_read_ex(iob.native_handle(),::fast_io::freestanding::to_address(begin),sizeof(*begin)*(end-begin),__builtin_addressof(read_bytes)));
 	if(ret<=0)
 	{
 		int error{SSL_get_error(iob.native_handle(),ret)};
@@ -167,7 +167,7 @@ template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter
 inline Iter write(basic_ssl_io_observer<ch_type> iob,Iter begin,Iter end)
 {
 	std::size_t written_bytes{};
-	auto ret(SSL_write_ex(iob.native_handle(),::fast_io::freestanding::to_address(begin),sizeof(*begin)*(end-begin),std::addressof(written_bytes)));
+	auto ret(SSL_write_ex(iob.native_handle(),::fast_io::freestanding::to_address(begin),sizeof(*begin)*(end-begin),__builtin_addressof(written_bytes)));
 	if(ret<=0)
 	{
 		int error{SSL_get_error(iob.native_handle(),ret)};

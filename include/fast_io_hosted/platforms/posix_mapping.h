@@ -90,7 +90,7 @@ public:
 	}
 	posix_memory_map_file& operator=(posix_memory_map_file&& other) noexcept
 	{
-		if(std::addressof(other)==this)
+		if(__builtin_addressof(other)==this)
 			return *this;
 		if(this->address_begin!=reinterpret_cast<std::byte*>(MAP_FAILED))[[likely]]
 			munmap(this->address_begin,this->bytes());

@@ -456,7 +456,7 @@ requires std::same_as<std::uint64_t,T>
 inline constexpr basic_unsigned_extension<std::uint64_t> mul_extend(T const& a,T const& b)
 {
 	std::uint64_t high;
-	std::uint64_t low(_umul128(a,b,std::addressof(high)));
+	std::uint64_t low(_umul128(a,b,__builtin_addressof(high)));
 	return {low,high};
 }
 #endif
@@ -572,7 +572,7 @@ template<typename T>
 inline uint32_t in_place_div_mod(basic_unsigned_extension<T>& a,std::uint32_t value)
 {
 	::fast_io::freestanding::array<std::uint32_t,sizeof(T)/2> v;
-	::fast_io::details::my_memcpy(v.data(),std::addressof(a),sizeof(v));		//should use std::bit_cast instead. However, current compilers haven't implemented std::bit_cast magic. ::fast_io::details::my_memcpy first.
+	::fast_io::details::my_memcpy(v.data(),__builtin_addressof(a),sizeof(v));		//should use std::bit_cast instead. However, current compilers haven't implemented std::bit_cast magic. ::fast_io::details::my_memcpy first.
 	std::uint64_t quo(0);
 	for(std::size_t i(v.size());i--;)
 	{
@@ -580,7 +580,7 @@ inline uint32_t in_place_div_mod(basic_unsigned_extension<T>& a,std::uint32_t va
 		v[i]=tot/value;
 		quo=tot%value;
 	}
-	::fast_io::details::my_memcpy(static_cast<void*>(std::addressof(a)),v.data(),sizeof(v));
+	::fast_io::details::my_memcpy(static_cast<void*>(__builtin_addressof(a)),v.data(),sizeof(v));
 	return quo;
 }
 
@@ -594,7 +594,7 @@ template<typename T>
 inline constexpr std::uint32_t operator%(basic_unsigned_extension<T> const& a,std::uint32_t value)
 {
 	::fast_io::freestanding::array<std::uint32_t,sizeof(T)/2> v;
-	::fast_io::details::my_memcpy(v.data(),std::addressof(a),sizeof(v));		//should use std::bit_cast instead. However, current compilers haven't implemented std::bit_cast magic. ::fast_io::details::my_memcpy first.
+	::fast_io::details::my_memcpy(v.data(),__builtin_addressof(a),sizeof(v));		//should use std::bit_cast instead. However, current compilers haven't implemented std::bit_cast magic. ::fast_io::details::my_memcpy first.
 	std::uint64_t quo(0);
 	for(std::size_t i(v.size());i--;)
 	{
@@ -783,13 +783,13 @@ inline constexpr void scan_define(input& in,basic_unsigned_extension<T>& a)
 template<character_output_stream output,typename T>
 inline constexpr void write_define(output& out,basic_unsigned_extension<T> const& n)
 {
-	write(out,std::addressof(n),std::addressof(n)+1);
+	write(out,__builtin_addressof(n),__builtin_addressof(n)+1);
 }
 /*
 template<character_input_stream input,typename T>
 inline constexpr void read_define(input& in,basic_unsigned_extension<T>& n)
 {
-	receive(in,std::addressof(n),std::addressof(n)+1);
+	receive(in,__builtin_addressof(n),__builtin_addressof(n)+1);
 }
 */
 #ifdef __SIZEOF_INT128__

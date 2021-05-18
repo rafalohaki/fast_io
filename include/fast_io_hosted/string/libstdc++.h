@@ -51,7 +51,7 @@ inline decltype(auto) hack_M_data(T& str)
 	using model_t = model<T>;
 	using alloc_hider = typename model_t::_Alloc_hider;
 	using pointer = typename T::pointer;
-	return *reinterpret_cast<pointer*>(reinterpret_cast<std::byte*>(std::addressof(str))+__builtin_offsetof(model_t,_M_dataplus)+__builtin_offsetof(alloc_hider,_M_p));
+	return *reinterpret_cast<pointer*>(reinterpret_cast<std::byte*>(__builtin_addressof(str))+__builtin_offsetof(model_t,_M_dataplus)+__builtin_offsetof(alloc_hider,_M_p));
 }
 
 template<typename T>
@@ -59,7 +59,7 @@ inline decltype(auto) hack_M_string_length(T& str)
 {
 	using model_t = model<T>;
 	using size_type = typename T::size_type;
-	return *reinterpret_cast<size_type*>(reinterpret_cast<std::byte*>(std::addressof(str))+__builtin_offsetof(model_t,_M_string_length));
+	return *reinterpret_cast<size_type*>(reinterpret_cast<std::byte*>(__builtin_addressof(str))+__builtin_offsetof(model_t,_M_string_length));
 }
 
 template<typename T>
@@ -67,7 +67,7 @@ inline auto hack_M_local_buf(T& str)
 {
 	using model_t = model<T>;
 	using value_type = typename T::value_type;
-	return reinterpret_cast<value_type*>(reinterpret_cast<std::byte*>(std::addressof(str))+__builtin_offsetof(model_t,_M_local_buf));
+	return reinterpret_cast<value_type*>(reinterpret_cast<std::byte*>(__builtin_addressof(str))+__builtin_offsetof(model_t,_M_local_buf));
 }
 
 template<typename T>
@@ -75,7 +75,7 @@ inline decltype(auto) hack_M_allocated_capacity(T& str)
 {
 	using model_t = model<T>;
 	using size_type = typename T::size_type;
-	return *reinterpret_cast<size_type*>(reinterpret_cast<std::byte*>(std::addressof(str))+__builtin_offsetof(model_t,_M_allocated_capacity));
+	return *reinterpret_cast<size_type*>(reinterpret_cast<std::byte*>(__builtin_addressof(str))+__builtin_offsetof(model_t,_M_allocated_capacity));
 }
 
 template<typename T>

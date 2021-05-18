@@ -120,25 +120,25 @@ inline constexpr Iter read(unget_temp_buffer<T>& in,Iter begin, Iter end)
 template<typename T>
 inline constexpr auto ibuffer_begin(unget_temp_buffer<T>& in) noexcept
 {
-	return std::addressof(in.buffer);
+	return __builtin_addressof(in.buffer);
 }
 
 template<typename T>
 inline constexpr auto ibuffer_curr(unget_temp_buffer<T>& in) noexcept
 {
-	return std::addressof(in.buffer)+in.pos;
+	return __builtin_addressof(in.buffer)+in.pos;
 }
 
 template<typename T>
 inline constexpr auto ibuffer_end(unget_temp_buffer<T>& in) noexcept
 {
-	return std::addressof(in.buffer)+in.pos_end;
+	return __builtin_addressof(in.buffer)+in.pos_end;
 }
 
 template<typename T>
 inline constexpr auto ibuffer_set_curr(unget_temp_buffer<T>& in,typename T::char_type* ptr) noexcept
 {
-	in.pos=ptr-std::addressof(in.buffer);
+	in.pos=ptr-__builtin_addressof(in.buffer);
 }
 
 template<typename T>
@@ -154,7 +154,7 @@ inline constexpr bool ibuffer_underflow(unget_temp_buffer<T>& in)
 	}
 	else
 	{
-		bool not_eof{read(in.input,std::addressof(in.buffer),std::addressof(in.buffer)+1)!=std::addressof(in.buffer)};
+		bool not_eof{read(in.input,__builtin_addressof(in.buffer),__builtin_addressof(in.buffer)+1)!=__builtin_addressof(in.buffer)};
 		in.pos={};
 		in.pos_end=not_eof;
 		return not_eof;

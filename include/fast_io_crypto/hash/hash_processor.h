@@ -50,7 +50,7 @@ public:
 	constexpr ~basic_hash_processor()
 	{
 		secure_clear(temporary_buffer.data(),block_size);
-		secure_clear(std::addressof(current_position),sizeof(current_position));
+		secure_clear(__builtin_addressof(current_position),sizeof(current_position));
 	}
 };
 

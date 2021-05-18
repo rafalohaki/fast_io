@@ -109,7 +109,7 @@ inline constexpr decltype(auto) hack_rep(std::basic_string<elem,traits,alloc>& s
 {
 	using model_t = model<elem,traits,alloc>;
 	using __rep = typename model_t::__rep;
-	return *reinterpret_cast<__rep*>(reinterpret_cast<std::byte*>(std::addressof(str))+offsetof(model_t,__r_));
+	return *reinterpret_cast<__rep*>(reinterpret_cast<std::byte*>(__builtin_addressof(str))+offsetof(model_t,__r_));
 }
 
 template<typename elem,typename traits,typename alloc>

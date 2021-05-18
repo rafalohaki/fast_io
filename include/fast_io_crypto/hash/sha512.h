@@ -108,7 +108,7 @@ inline void sha512_do_function(std::uint64_t* __restrict state,std::byte const* 
 		for (; i < 16; ++i)
 		{
 			std::uint64_t value;
-			::fast_io::details::my_memcpy(std::addressof(value),data,8);
+			::fast_io::details::my_memcpy(__builtin_addressof(value),data,8);
 			X[i] = big_endian(value);
 			data += 8;
 

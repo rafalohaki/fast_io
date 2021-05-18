@@ -92,9 +92,9 @@ inline posix_wait_status posix_waitpid(pid_t pid)
 	posix_wait_status status;
 	system_call_throw_error(
 	#if defined(__linux__)
-		system_call<__NR_wait4,int>(pid,std::addressof(status.wait_loc),0,nullptr)
+		system_call<__NR_wait4,int>(pid,__builtin_addressof(status.wait_loc),0,nullptr)
 	#else
-		waitpid(pid,std::addressof(status.wait_loc),0)
+		waitpid(pid,__builtin_addressof(status.wait_loc),0)
 	#endif
 	);
 	return status;
@@ -360,7 +360,7 @@ public:
 	}
 	posix_process& operator=(posix_process&& other) noexcept
 	{
-		if(std::addressof(other)==this)
+		if(__builtin_addressof(other)==this)
 			return *this;
 		details::posix_waitpid_noexcept(this->pid);
 		this->pid=other.pid;

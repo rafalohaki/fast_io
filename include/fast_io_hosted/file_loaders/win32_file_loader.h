@@ -15,7 +15,7 @@ struct win32_file_loader_return_value_t
 inline std::size_t win32_load_file_get_file_size(void* handle)
 {
 	by_handle_file_information bhdi;
-	if(!GetFileInformationByHandle(handle,std::addressof(bhdi)))
+	if(!GetFileInformationByHandle(handle,__builtin_addressof(bhdi)))
 		throw_win32_error();
 	if constexpr(sizeof(std::size_t)<sizeof(std::uint64_t))
 	{
@@ -175,7 +175,7 @@ public:
 	}
 	win32_file_loader& operator=(win32_file_loader && other) noexcept
 	{
-		if(std::addressof(other)==this)
+		if(__builtin_addressof(other)==this)
 			return *this;
 		win32::details::win32_unload_address(address_start);
 		address_start=other.address_start;

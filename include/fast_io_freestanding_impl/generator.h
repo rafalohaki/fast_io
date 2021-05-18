@@ -31,7 +31,7 @@ public:
 	constexpr std::suspend_always yield_value(T value) noexcept
 	{
 		ptr=value;
-//		ptr = std::addressof(value);
+//		ptr = __builtin_addressof(value);
 		return {};
 	}
 	constexpr void unhandled_exception() noexcept

@@ -51,7 +51,7 @@ public:
 
 	constexpr naive_vector& operator=(naive_vector<T>&& other) noexcept
 	{
-		if(this==std::addressof(other))[[unlikely]]
+		if(this==__builtin_addressof(other))[[unlikely]]
 			return *this;
 		destroy();
 		beg_ptr=other.beg_ptr;

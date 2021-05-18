@@ -23,7 +23,7 @@ fstat64
 #else
 fstat
 #endif
-	(fd,std::addressof(st))<0)
+	(fd,__builtin_addressof(st))<0)
 		throw_posix_error();
 	using st_size_unsigned_type = std::make_unsigned_t<decltype(st.st_size)>;
 	if constexpr(sizeof(st_size_unsigned_type)>sizeof(std::size_t))
@@ -246,7 +246,7 @@ public:
 	}
 	posix_file_loader_impl& operator=(posix_file_loader_impl && other) noexcept
 	{
-		if(std::addressof(other)==this)
+		if(__builtin_addressof(other)==this)
 			return *this;
 		posix_unload_address<allocation>(address_start,static_cast<std::size_t>(address_end-address_start));
 		address_start=other.address_start;

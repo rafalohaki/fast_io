@@ -62,10 +62,10 @@ inline iconv_deco_from_chars_result iconv_do_impl(iconv_t cd,
 		std::size_t inbytes_left{static_cast<std::size_t>(from_last-from_first)};
 		std::size_t outbytes_left{static_cast<std::size_t>(to_last-to_first)};
 		std::size_t ret{iconv(cd,
-		std::addressof(from_first),
-		std::addressof(inbytes_left),
-		std::addressof(to_first),
-		std::addressof(outbytes_left))};
+		__builtin_addressof(from_first),
+		__builtin_addressof(inbytes_left),
+		__builtin_addressof(to_first),
+		__builtin_addressof(outbytes_left))};
 		from_first=from_last-inbytes_left;
 		to_first=to_last-outbytes_left;
 		if(ret!=static_cast<std::size_t>(-1))
@@ -216,7 +216,7 @@ public:
 	constexpr posix_iconv_file(posix_iconv_file&& other) noexcept:posix_iconv_io_observer{other.release()}{}	
 	posix_iconv_file& operator=(posix_iconv_file&& other) noexcept
 	{
-		if(std::addressof(other)==this)[[unlikely]]
+		if(__builtin_addressof(other)==this)[[unlikely]]
 			return *this;
 		iconv_close(this->cd);
 		this->cd=other.release();

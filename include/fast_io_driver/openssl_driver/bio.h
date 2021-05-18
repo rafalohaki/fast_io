@@ -41,7 +41,7 @@ struct bio_new_fp_flags
 inline std::FILE* bio_to_fp(BIO* bio) noexcept
 {
 	std::FILE* fp{};
-	BIO_get_fp(bio,std::addressof(fp));
+	BIO_get_fp(bio,__builtin_addressof(fp));
 	return fp;
 }
 
@@ -51,7 +51,7 @@ inline int bio_to_fd(BIO* bio) noexcept
 	if(fp==nullptr)
 	{
 		int fd{-1};
-		BIO_get_fd(bio,std::addressof(fd));
+		BIO_get_fd(bio,__builtin_addressof(fd));
 		return fd;
 	}
 	return ::fast_io::details::fp_to_fd(fp);
@@ -149,7 +149,7 @@ inline BIO* bio_new_stream_type(bio_method_st const* methods)
 template<stream stm>
 inline BIO* construct_bio_by_t(stm* ptr)
 {
-	auto bp{bio_new_stream_type(std::addressof(bio_io_cookie_functions<stm>.functions))};
+	auto bp{bio_new_stream_type(__builtin_addressof(bio_io_cookie_functions<stm>.functions))};
 	BIO_set_data(bp,ptr);
 	return bp;
 }
@@ -340,7 +340,7 @@ namespace details
 inline std::size_t bio_read_impl(BIO* bio,void* address,std::size_t size)
 {
 	std::size_t read_bytes{};
-	if(BIO_read_ex(bio,address,size,std::addressof(read_bytes))==-1)
+	if(BIO_read_ex(bio,address,size,__builtin_addressof(read_bytes))==-1)
 		throw_openssl_error();
 	return read_bytes;
 }
@@ -348,7 +348,7 @@ inline std::size_t bio_read_impl(BIO* bio,void* address,std::size_t size)
 inline std::size_t bio_write_impl(BIO* bio,void const* address,std::size_t size)
 {
 	std::size_t written_bytes{};
-	if(BIO_write_ex(bio,address,size,std::addressof(written_bytes))==-1)
+	if(BIO_write_ex(bio,address,size,__builtin_addressof(written_bytes))==-1)
 		throw_openssl_error();
 	return written_bytes;
 }

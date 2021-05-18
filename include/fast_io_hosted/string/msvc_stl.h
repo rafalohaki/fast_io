@@ -25,7 +25,7 @@ inline constexpr decltype(auto) hack_scary_val(std::basic_string<elem,traits,all
 	using model_t = model<elem,traits,alloc>;
 	using compress_pair_type = typename model_t::compress_pair_type;
 	using _Scary_val = typename model_t::_Scary_val;
-	return *reinterpret_cast<_Scary_val*>(reinterpret_cast<std::byte*>(std::addressof(str))+offsetof(model_t,_Mypair)+offsetof(compress_pair_type,_Myval2));
+	return *reinterpret_cast<_Scary_val*>(reinterpret_cast<std::byte*>(__builtin_addressof(str))+offsetof(model_t,_Mypair)+offsetof(compress_pair_type,_Myval2));
 }
 
 template<typename T>

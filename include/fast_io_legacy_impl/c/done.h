@@ -15,7 +15,7 @@ inline std::size_t c_fwrite_unlocked_impl(void const* __restrict begin,std::size
 {
 #if defined(__NEWLIB__) && !defined(__CYGWIN__)
 	struct _reent rent;
-	std::size_t written_count{_fwrite_unlocked_r(std::addressof(rent),begin,type_size,count,fp)};
+	std::size_t written_count{_fwrite_unlocked_r(__builtin_addressof(rent),begin,type_size,count,fp)};
 	if(!written_count)[[unlikely]]
 		throw_posix_error(rent._errno);
 	return written_count;
@@ -51,7 +51,7 @@ inline std::size_t c_fread_unlocked_impl(void* __restrict begin,std::size_t type
 {
 #if defined(__NEWLIB__) && !defined(__CYGWIN__)
 	struct _reent rent;
-	std::size_t read_count{_fread_unlocked_r(std::addressof(rent),begin,type_size,count,fp)};
+	std::size_t read_count{_fread_unlocked_r(__builtin_addressof(rent),begin,type_size,count,fp)};
 	if(read_count==0)[[unlikely]]
 	{
 		if(__sferror(fp))

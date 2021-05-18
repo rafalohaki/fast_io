@@ -120,7 +120,7 @@ inline std::byte* hack_wide_data(FILE* fp) noexcept
 {
 	constexpr std::size_t off{sizeof(__off64_t)+2*sizeof(std::uintptr_t)};
 	std::byte* value;
-	::fast_io::details::my_memcpy(std::addressof(value),reinterpret_cast<std::byte*>(std::addressof(fp->_lock))+off,sizeof(std::byte*));
+	::fast_io::details::my_memcpy(__builtin_addressof(value),reinterpret_cast<std::byte*>(__builtin_addressof(fp->_lock))+off,sizeof(std::byte*));
 	return value;
 }
 
@@ -130,7 +130,7 @@ inline char_type* hack_wp(FILE* fp) noexcept
 {
 	constexpr std::size_t off{position*sizeof(uintptr_t)};
 	char_type* value;
-	::fast_io::details::my_memcpy(std::addressof(value),hack_wide_data(fp)+off,sizeof(wchar_t*));
+	::fast_io::details::my_memcpy(__builtin_addressof(value),hack_wide_data(fp)+off,sizeof(wchar_t*));
 	return value;
 }
 template<std::size_t position,std::integral char_type>
@@ -138,7 +138,7 @@ requires (sizeof(char_type)==sizeof(wchar_t))
 inline void hack_wpset(FILE* fp,char_type* ptr) noexcept
 {
 	constexpr std::size_t off{position*sizeof(uintptr_t)};
-	::fast_io::details::my_memcpy(hack_wide_data(fp)+off,std::addressof(ptr),sizeof(wchar_t*));
+	::fast_io::details::my_memcpy(hack_wide_data(fp)+off,__builtin_addressof(ptr),sizeof(wchar_t*));
 }
 }
 //wchar_t supports

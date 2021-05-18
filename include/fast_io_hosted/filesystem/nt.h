@@ -45,7 +45,7 @@ inline nt_dirent* set_nt_dirent(nt_dirent* entry,bool start)
 	::fast_io::freestanding::array<std::byte,0x4000> buffer;
 	win32::nt::dir_information d_info{buffer.data()};
 	auto status{nt_query_directory_file<family==nt_family::zw>(entry->d_handle,nullptr,nullptr,nullptr,
-	std::addressof(block),d_info.DirInfo,
+	__builtin_addressof(block),d_info.DirInfo,
 	static_cast<std::uint32_t>(buffer.size()),file_information_class::FileFullDirectoryInformation,
 	true,nullptr,start)};
 	if(status)

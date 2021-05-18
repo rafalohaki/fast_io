@@ -50,7 +50,7 @@ struct cxa_demangle
 	}
 	cxa_demangle& operator=(cxa_demangle&& other) noexcept
 	{
-		if(std::addressof(other)==this)
+		if(__builtin_addressof(other)==this)
 			return *this;
 		free(buffer);
 		buffer=other.buffer;

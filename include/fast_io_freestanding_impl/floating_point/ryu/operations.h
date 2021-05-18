@@ -164,9 +164,9 @@ inline constexpr T mul_shift(T m, ::fast_io::freestanding::array<T,2> const& mul
 	{
 		// m is maximum 55 bits
 		std::uint64_t high1;                                   // 128
-		std::uint64_t low1{_umul128(m, mul[1], std::addressof(high1))}; // 64
+		std::uint64_t low1{_umul128(m, mul[1], __builtin_addressof(high1))}; // 64
 		std::uint64_t high0;                                   // 64
-		_umul128(m, mul.front(), std::addressof(high0));                       // 0
+		_umul128(m, mul.front(), __builtin_addressof(high0));                       // 0
 		std::uint64_t const sum{high0 + low1};
 		if (sum < high0)
 			++high1; // overflow into high1

@@ -56,7 +56,7 @@ inline caiter print_reserve_define(io_reserve_type_t<char_type,manip::representa
 {
 	if constexpr(sizeof(T)!=0)
 	{
-		auto pointer{reinterpret_cast<std::byte*>(std::addressof(i.reference))};
+		auto pointer{reinterpret_cast<std::byte*>(__builtin_addressof(i.reference))};
 		auto pointer_end{pointer+sizeof(T)};
 		if constexpr(space)
 		{

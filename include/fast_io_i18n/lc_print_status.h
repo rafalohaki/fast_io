@@ -359,19 +359,19 @@ inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type>
 				if constexpr(std::same_as<char_type,char>)
 				{
 					char_type ch('\n');
-					scatters.back()={std::addressof(ch),sizeof(ch)};
+					scatters.back()={__builtin_addressof(ch),sizeof(ch)};
 					scatter_write(out,{scatters.data(),scatters.size()});
 				}
 				else if constexpr(std::same_as<char_type,wchar_t>)
 				{
 					char_type ch(L'\n');
-					scatters.back()={std::addressof(ch),sizeof(ch)};
+					scatters.back()={__builtin_addressof(ch),sizeof(ch)};
 					scatter_write(out,{scatters.data(),scatters.size()});
 				}
 				else
 				{
 					char_type ch(u8'\n');
-					scatters.back()={std::addressof(ch),sizeof(ch)};
+					scatters.back()={__builtin_addressof(ch),sizeof(ch)};
 					scatter_write(out,{scatters.data(),scatters.size()});
 				}
 			}
@@ -388,19 +388,19 @@ inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type>
 				if constexpr(std::same_as<char_type,char>)
 				{
 					char_type ch('\n');
-					scatters.back()={std::addressof(ch),sizeof(ch)};
+					scatters.back()={__builtin_addressof(ch),sizeof(ch)};
 					scatter_write(out,{scatters.data(),scatters.size()});
 				}
 				else if constexpr(std::same_as<char_type,wchar_t>)
 				{
 					char_type ch(L'\n');
-					scatters.back()={std::addressof(ch),sizeof(ch)};
+					scatters.back()={__builtin_addressof(ch),sizeof(ch)};
 					scatter_write(out,{scatters.data(),scatters.size()});
 				}
 				else
 				{
 					char_type ch(u8'\n');
-					scatters.back()={std::addressof(ch),sizeof(ch)};
+					scatters.back()={__builtin_addressof(ch),sizeof(ch)};
 					scatter_write(out,{scatters.data(),scatters.size()});
 				}
 			}

@@ -185,7 +185,7 @@ inline posix_file_status posix_fstatat_impl(int dirfd, const char *pathname, int
 #else
 	fstatat
 #endif
-	(dirfd,pathname,std::addressof(buf),flags));
+	(dirfd,pathname,__builtin_addressof(buf),flags));
 	return struct_stat_to_posix_file_status(buf);
 }
 

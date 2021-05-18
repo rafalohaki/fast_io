@@ -250,7 +250,7 @@ struct nt_file_openmode
 
 inline void nt_file_rtl_path(wchar_t const* filename,win32::nt::unicode_string& nt_name,wchar_t const*& part_name,win32::nt::rtl_relative_name_u& relative_name)
 {
-	if(!win32::nt::rtl_dos_path_name_to_nt_path_name_u(filename,std::addressof(nt_name),std::addressof(part_name),std::addressof(relative_name)))
+	if(!win32::nt::rtl_dos_path_name_to_nt_path_name_u(filename,__builtin_addressof(nt_name),__builtin_addressof(part_name),__builtin_addressof(relative_name)))
 		throw_nt_error(0xC0000039);
 }
 
@@ -262,13 +262,13 @@ inline void* nt_create_file_common_impl(void* directory,win32::nt::unicode_strin
 		.RootDirectory=directory,
 		.ObjectName=relative_path,
 		.Attributes=mode.ObjAttributes,
-		.SecurityDescriptor=mode.ObjAttributes&0x00000002?std::addressof(sec_attr):nullptr,
+		.SecurityDescriptor=mode.ObjAttributes&0x00000002?__builtin_addressof(sec_attr):nullptr,
 		.SecurityQualityOfService=nullptr
 	};
 	void* handle{};
 	win32::nt::io_status_block block{};
 	auto const status{win32::nt::nt_create_file<zw>(
-	std::addressof(handle),mode.DesiredAccess,std::addressof(obj),std::addressof(block),nullptr,mode.FileAttributes,
+	__builtin_addressof(handle),mode.DesiredAccess,__builtin_addressof(obj),__builtin_addressof(block),nullptr,mode.FileAttributes,
 	mode.ShareAccess,mode.CreateDisposition,mode.CreateOptions,nullptr,0)};
 	if(status)
 		throw_nt_error(status);
@@ -310,8 +310,8 @@ inline void* nt_create_file_impl(basic_cstring_view<char_type> filename,nt_open_
 		::fast_io::details::win32_path_dealer dealer(filename.data(),filename.size());
 		nt_file_rtl_path(reinterpret_cast<wchar_t_may_alias_ptr>(dealer.c_str()),nt_name,part_name,relative_name);
 	}
-	win32::nt::rtl_unicode_string_unique_ptr us_ptr{std::addressof(nt_name)};
-	return nt_create_file_common_impl<zw>(nullptr,std::addressof(nt_name),mode);
+	win32::nt::rtl_unicode_string_unique_ptr us_ptr{__builtin_addressof(nt_name)};
+	return nt_create_file_common_impl<zw>(nullptr,__builtin_addressof(nt_name),mode);
 }
 
 template<bool zw,std::integral char_type>
@@ -324,7 +324,7 @@ inline void* nt_create_file_directory_impl(void* directory,basic_cstring_view<ch
 			.Length=bytes,
 			.MaximumLength=bytes,
 			.Buffer=const_cast<wchar_t*>(filename.c_str())};
-		return nt_create_file_common_impl<zw>(directory,std::addressof(relative_path),mode);
+		return nt_create_file_common_impl<zw>(directory,__builtin_addressof(relative_path),mode);
 	}
 	else if constexpr(std::same_as<char_type,char16_t>)
 	{
@@ -344,7 +344,7 @@ inline void* nt_create_file_directory_impl(void* directory,basic_cstring_view<ch
 			.MaximumLength=bytes,
 			.Buffer=const_cast<wchar_t_may_alias_ptr>(
 				reinterpret_cast<wchar_t_may_alias_const_ptr>(filename.c_str()))};
-		return nt_create_file_common_impl<zw>(directory,std::addressof(relative_path),mode);
+		return nt_create_file_common_impl<zw>(directory,__builtin_addressof(relative_path),mode);
 	}
 	else
 	{
@@ -359,7 +359,7 @@ inline void* nt_create_file_directory_impl(void* directory,basic_cstring_view<ch
 			.Length=bytes,
 			.MaximumLength=bytes,
 			.Buffer=reinterpret_cast<wchar_t_may_alias_ptr>(dealer.buffer_data)};
-		return nt_create_file_common_impl<zw>(directory,std::addressof(relative_path),mode);
+		return nt_create_file_common_impl<zw>(directory,__builtin_addressof(relative_path),mode);
 	}
 
 }
@@ -373,7 +373,7 @@ inline std::size_t nt_read_impl(void* __restrict handle,void* __restrict begin,s
 			size=static_cast<std::size_t>(UINT32_MAX);
 	win32::nt::io_status_block block{};
 	auto const status{win32::nt::nt_read_file<zw>(handle,nullptr,nullptr,nullptr,
-		std::addressof(block), begin, static_cast<std::uint32_t>(size), nullptr, nullptr)};
+		__builtin_addressof(block), begin, static_cast<std::uint32_t>(size), nullptr, nullptr)};
 	if(status)
 		throw_nt_error(status);
 	return block.Information;
@@ -392,7 +392,7 @@ inline std::size_t nt_write_impl(void* __restrict handle,void const* __restrict 
 				to_write_this_round=static_cast<std::uint32_t>(size);
 			win32::nt::io_status_block block{};
 			auto const status{win32::nt::nt_write_file<zw>(handle,nullptr,nullptr,nullptr,
-				std::addressof(block), begin, to_write_this_round, nullptr, nullptr)};
+				__builtin_addressof(block), begin, to_write_this_round, nullptr, nullptr)};
 			if(status)
 				throw_nt_error(status);
 			std::uint32_t number_of_bytes_written{static_cast<std::uint32_t>(block.Information)};
@@ -407,7 +407,7 @@ inline std::size_t nt_write_impl(void* __restrict handle,void const* __restrict 
 	{
 		win32::nt::io_status_block block{};
 		auto const status{win32::nt::nt_write_file<zw>(handle,nullptr,nullptr,nullptr,
-			std::addressof(block), begin, static_cast<std::uint32_t>(size), nullptr, nullptr)};
+			__builtin_addressof(block), begin, static_cast<std::uint32_t>(size), nullptr, nullptr)};
 		if(status)
 			throw_nt_error(status);
 		return block.Information;
@@ -561,8 +561,8 @@ inline std::uint64_t nt_seek64_impl(void* __restrict handle,std::int64_t offset,
 	{
 		std::uint64_t fps{};
 		auto status{win32::nt::nt_query_information_file<zw>(handle,
-			std::addressof(block),
-			std::addressof(fps),
+			__builtin_addressof(block),
+			__builtin_addressof(fps),
 			sizeof(std::uint64_t),
 			win32::nt::file_information_class::FilePositionInformation)};
 		if(status)
@@ -574,8 +574,8 @@ inline std::uint64_t nt_seek64_impl(void* __restrict handle,std::int64_t offset,
 	{
 		win32::nt::file_standard_information fsi;
 		auto status{win32::nt::nt_query_information_file<zw>(handle,
-			std::addressof(block),
-			std::addressof(fsi),
+			__builtin_addressof(block),
+			__builtin_addressof(fsi),
 			sizeof(win32::nt::file_standard_information),
 			win32::nt::file_information_class::FileStandardInformation)};
 		if(status)
@@ -589,8 +589,8 @@ inline std::uint64_t nt_seek64_impl(void* __restrict handle,std::int64_t offset,
 	if(static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max())<file_position)
 		file_position=0;
 	auto status{win32::nt::nt_set_information_file<zw>(handle,
-		std::addressof(block),
-		std::addressof(file_position),
+		__builtin_addressof(block),
+		__builtin_addressof(file_position),
 		sizeof(std::uint64_t),
 		win32::nt::file_information_class::FilePositionInformation)};
 	if(status)
@@ -609,7 +609,7 @@ inline void* nt_dup_impl(void* handle)
 {
 	void* current_process{reinterpret_cast<void*>(static_cast<intptr_t>(-1))};
 	void* new_handle{};
-	auto status{win32::nt::nt_duplicate_object<zw>(current_process,handle,current_process,std::addressof(new_handle),0,0x00000002L,2)};
+	auto status{win32::nt::nt_duplicate_object<zw>(current_process,handle,current_process,__builtin_addressof(new_handle),0,0x00000002L,2)};
 	if(status)
 		throw_nt_error(status);
 	return new_handle;
@@ -630,8 +630,8 @@ inline void nt_truncate_impl(void* handle,std::uintmax_t newfilesizem)
 	std::uint64_t newfilesize{static_cast<std::uint64_t>(newfilesizem)};
 	win32::nt::io_status_block block{};
 	auto status{win32::nt::nt_set_information_file<zw>(handle,
-		std::addressof(block),
-		std::addressof(newfilesize),
+		__builtin_addressof(block),
+		__builtin_addressof(newfilesize),
 		sizeof(std::uint64_t),
 		win32::nt::file_information_class::FileEndOfFileInformation)};
 	if(status)
@@ -688,7 +688,7 @@ public:
 		basic_nt_family_io_observer<family,ch_type>{b.handle}{}
 	basic_nt_family_io_handle& operator=(basic_nt_family_io_handle&& b) noexcept
 	{
-		if(std::addressof(b)!=this)
+		if(__builtin_addressof(b)!=this)
 		{
 			if(this->handle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))[[likely]]
 				win32::nt::nt_close<family==nt_family::zw>(this->handle);

@@ -41,7 +41,7 @@ inline std::FILE* fp_hack_impl(std::basic_filebuf<char_type,traits_type>* fbuf) 
 	std::FILE* fp{};
 	static_assert(sizeof(filebuf_model_type)==sizeof(std::basic_filebuf<char_type,traits_type>),"unmatched std::basic_filebuf model");
 	// we can only do this or ubsanitizer will complain. Do not do down_cast
-	::fast_io::details::my_memcpy(std::addressof(fp),reinterpret_cast<std::byte*>(fbuf)+offsetof(filebuf_model_type,_Myfile),sizeof(fp));
+	::fast_io::details::my_memcpy(__builtin_addressof(fp),reinterpret_cast<std::byte*>(fbuf)+offsetof(filebuf_model_type,_Myfile),sizeof(fp));
 	return fp;
 }
 

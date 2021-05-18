@@ -117,7 +117,7 @@ public:
 	}
 	win32_memory_map_file& operator=(win32_memory_map_file&& other) noexcept
 	{
-		if(std::addressof(other)==this)
+		if(__builtin_addressof(other)==this)
 			return *this;
 		if(this->address_begin)[[likely]]
 			win32::UnmapViewOfFile(this->address_begin);

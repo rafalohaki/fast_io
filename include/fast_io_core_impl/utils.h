@@ -25,7 +25,7 @@ constexpr
 #else
 		std::memcpy
 #endif
-	(std::addressof(dst), std::addressof(src), sizeof(To));
+	(__builtin_addressof(dst), __builtin_addressof(src), sizeof(To));
 	return dst;
 #endif
 }

@@ -39,12 +39,12 @@ public:
 		{
 			total_bits=details::byte_swap(total_bits);
 			std::uint32_t bu3(static_cast<std::uint32_t>(total_bits));
-			::fast_io::details::my_memcpy(start,std::addressof(bu3),4);
+			::fast_io::details::my_memcpy(start,__builtin_addressof(bu3),4);
 			std::uint32_t bu4(static_cast<std::uint32_t>(total_bits>>32));
-			::fast_io::details::my_memcpy(start+4,std::addressof(bu4),4);
+			::fast_io::details::my_memcpy(start+4,__builtin_addressof(bu4),4);
 		}
 		else
-			::fast_io::details::my_memcpy(start,std::addressof(total_bits),8);
+			::fast_io::details::my_memcpy(start,__builtin_addressof(total_bits),8);
 		function(digest_block.data(),blocks.data(),block_size);
 	}
 };

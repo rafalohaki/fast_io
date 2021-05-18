@@ -97,7 +97,7 @@ public:
 
 	posix_directory_io_handle& operator=(posix_directory_io_handle&& other) noexcept
 	{
-		if(this==std::addressof(other))
+		if(this==__builtin_addressof(other))
 			return *this;
 		if(this->native_handle())[[likely]]
 			::closedir(this->native_handle());

@@ -71,7 +71,7 @@ inline void nt_duplicate_object_std(void* parent_process,void*& standard_io_hand
 {
 	if(standard_io_handle==nullptr)
 		return;
-	check_nt_status(nt_duplicate_object<family>(parent_process,standard_io_handle,process_handle,std::addressof(standard_io_handle),0,0,0x00000002|0x00000004));
+	check_nt_status(nt_duplicate_object<family>(parent_process,standard_io_handle,process_handle,__builtin_addressof(standard_io_handle),0,0,0x00000002|0x00000004));
 }
 
 inline void check_nt_status(std::uint32_t status)
@@ -85,32 +85,32 @@ inline nt_user_process_information* nt_process_create_impl(void* __restrict fhan
 {
 	std::unique_ptr<nt_user_process_information> uptr(new nt_user_process_information);
 	void* hsection{reinterpret_cast<void*>(-1)};
-	check_nt_status(nt_create_section<family==nt_family::zw>(std::addressof(hsection),0xf001f /*SECTION_ALL_ACCESS*/,
+	check_nt_status(nt_create_section<family==nt_family::zw>(__builtin_addressof(hsection),0xf001f /*SECTION_ALL_ACCESS*/,
 		nullptr,nullptr,0x02 /*PAGE_READONLY*/,0x1000000 /*SEC_IMAGE*/,fhandle));
 	basic_nt_family_file<family,char> section(hsection);
 	void* const current_process{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
 	void* hprocess{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
-	check_nt_status(nt_create_process<family==nt_family::zw>(std::addressof(hprocess),0x000F0000U|0x00100000U|0xFFF
+	check_nt_status(nt_create_process<family==nt_family::zw>(__builtin_addressof(hprocess),0x000F0000U|0x00100000U|0xFFF
 		/*PROCESS_ALL_ACCESS==(STANDARD_RIGHTS_REQUIRED | SYNCHRONIZE | 0xFFF)*/,
 		nullptr,current_process,true,hsection,nullptr,nullptr));
 	println_freestanding(fast_io::win32_stdout(),__FILE__," ",__LINE__);
 	basic_nt_family_file<family,char> process(hprocess);
 	process_basic_information pb_info{};
 	check_nt_status(nt_query_information_process<family==nt_family::zw>(hprocess,process_information_class::ProcessBasicInformation,
-		std::addressof(pb_info),sizeof(pb_info),nullptr));
+		__builtin_addressof(pb_info),sizeof(pb_info),nullptr));
 	println_freestanding(fast_io::win32_stdout(),__FILE__," ",__LINE__);
 	section_image_information sec_info{};
 	check_nt_status(nt_query_section<family==nt_family::zw>(hsection,section_information_class::SectionImageInformation,
-		std::addressof(sec_info),sizeof(sec_info),nullptr));
+		__builtin_addressof(sec_info),sizeof(sec_info),nullptr));
 	println_freestanding(fast_io::win32_stdout(),__FILE__," ",__LINE__);
 	rtl_user_process_parameters rtl_up{};
-//	check_nt_status(rtl_p_init_environment(hprocess,pb_info.PebBaseAddress,std::addressof(rtl_up)));
+//	check_nt_status(rtl_p_init_environment(hprocess,pb_info.PebBaseAddress,__builtin_addressof(rtl_up)));
 	println_freestanding(fast_io::win32_stdout(),__FILE__," ",__LINE__);
 	void* hthread{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
 	client_id cid{};
 	println_freestanding(fast_io::win32_stdout(),__FILE__," ",__LINE__);
 	check_nt_status(rtl_create_user_thread(hprocess,nullptr,true,sec_info.ZeroBits,sec_info.MaximumStackSize,
-			sec_info.CommittedStackSize,sec_info.TransferAddress,pb_info.PebBaseAddress,std::addressof(hthread),std::addressof(cid)));
+			sec_info.CommittedStackSize,sec_info.TransferAddress,pb_info.PebBaseAddress,__builtin_addressof(hthread),__builtin_addressof(cid)));
 	println_freestanding(fast_io::win32_stdout(),__FILE__," ",__LINE__," ",cid.hprocess," ",cid.hthread);
 
 	*uptr={process.release(),hthread};
@@ -257,7 +257,7 @@ public:
 	constexpr nt_family_process(nt_family_process&& b) noexcept:nt_family_process_observer<family>{b.release()}{}
 	nt_family_process& operator=(nt_family_process&& b) noexcept
 	{
-		if(std::addressof(b)!=this)
+		if(__builtin_addressof(b)!=this)
 		{
 			win32::nt::details::close_nt_user_process_information_and_wait<family>(this->hnt_user_process_info);
 			this->hnt_user_process_info = b.release();
