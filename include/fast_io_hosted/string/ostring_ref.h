@@ -78,7 +78,7 @@ inline constexpr bool ocan_takeover(ostring_ref<char_type,traits_type,allocator_
 #endif
 
 template<std::integral CharT,typename Traits,typename Allocator>
-inline constexpr void overflow(basic_ostring_ref<CharT,Traits,Allocator> ob,CharT ch)
+inline constexpr void obuffer_overflow(basic_ostring_ref<CharT,Traits,Allocator> ob,CharT ch)
 {
 	ob.ptr->push_back(ch);
 }

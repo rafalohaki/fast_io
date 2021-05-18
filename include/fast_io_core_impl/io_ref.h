@@ -69,16 +69,16 @@ constexpr io_reference_wrapper<stm> io_value_handle(io_reference_wrapper<stm> wr
 	return wrap;
 }
 
-template<output_stream output,typename... Args>
-constexpr decltype(auto) write(io_reference_wrapper<output> out,Args&& ...args)
+template<output_stream output,std::input_or_output_iterator Iter>
+constexpr decltype(auto) write(io_reference_wrapper<output> out,Iter first,Iter last)
 {
-	return write(*out.ptr,std::forward<Args>(args)...);
+	return write(*out.ptr,first,last);
 }
 
-template<character_output_stream output,typename... Args>
-constexpr decltype(auto) overflow(io_reference_wrapper<output> out,Args&& ...args)
+template<buffer_output_stream output>
+constexpr void obuffer_overflow(io_reference_wrapper<output> out,typename std::remove_cvref_t<output>::char_type ch)
 {
-	return overflow(*out.ptr,std::forward<Args>(args)...);
+	obuffer_overflow(*out.ptr,ch);
 }
 
 template<buffer_output_stream output>
@@ -105,10 +105,10 @@ constexpr decltype(auto) zero_copy_out_handle(io_reference_wrapper<output> out)
 	return zero_copy_out_handle(*out.ptr);
 }
 
-template<buffer_output_stream output,typename... Args>
-constexpr void obuffer_set_curr(io_reference_wrapper<output> out,Args&& ...args)
+template<buffer_output_stream output>
+constexpr void obuffer_set_curr(io_reference_wrapper<output> out,std::remove_cvref_t<decltype(obuffer_curr(*out.ptr))> ptr)
 {
-	obuffer_set_curr(*out.ptr,std::forward<Args>(args)...);
+	obuffer_set_curr(*out.ptr,ptr);
 }
 
 template<dynamic_output_stream output>
@@ -123,10 +123,10 @@ constexpr void oshrink_to_fit(io_reference_wrapper<output> out)
 	oshrink_to_fit(*out.ptr);
 }
 
-template<scatter_output_stream output,typename... Args>
-constexpr decltype(auto) scatter_write(io_reference_wrapper<output> out,Args&& ...args)
+template<scatter_output_stream output>
+constexpr decltype(auto) scatter_write(io_reference_wrapper<output> out,io_scatters_t sp)
 {
-	return scatter_write(*out.ptr,std::forward<Args>(args)...);
+	return scatter_write(*out.ptr,sp);
 }
 
 template<buffer_output_stream output>
@@ -139,10 +139,10 @@ constexpr void obuffer_initialize(io_reference_wrapper<output> out)
 	obuffer_initialize(*out.ptr);
 }
 
-template<input_stream input,typename... Args>
-constexpr decltype(auto) read(io_reference_wrapper<input> in,Args&& ...args)
+template<input_stream input,std::input_or_output_iterator Iter>
+constexpr Iter read(io_reference_wrapper<input> in,Iter first,Iter last)
 {
-	return read(*in.ptr,std::forward<Args>(args)...);
+	return read(*in.ptr,first,last);
 }
 
 template<character_input_stream input>
@@ -152,9 +152,9 @@ constexpr decltype(auto) igenerator(io_reference_wrapper<input> in)
 }
 
 template<buffer_input_stream input>
-constexpr decltype(auto) underflow(io_reference_wrapper<input> in)
+constexpr decltype(auto) ibuffer_underflow(io_reference_wrapper<input> in)
 {
-	return underflow(*in.ptr);
+	return ibuffer_underflow(*in.ptr);
 }
 
 template<capacity_available_buffer_input_stream input>
@@ -180,10 +180,10 @@ constexpr decltype(auto) ibuffer_end(io_reference_wrapper<input> in)
 	return ibuffer_end(*in.ptr);
 }
 
-template<buffer_input_stream input,typename... Args>
-constexpr decltype(auto) ibuffer_set_curr(io_reference_wrapper<input> in,Args&& ...args)
+template<buffer_input_stream input>
+constexpr void ibuffer_set_curr(io_reference_wrapper<input> in,std::remove_cvref_t<decltype(ibuffer_curr(*in.ptr))> ptr)
 {
-	return ibuffer_set_curr(*in.ptr,std::forward<Args>(args)...);
+	ibuffer_set_curr(*in.ptr,ptr);
 }
 
 template<refill_buffer_input_stream input>
@@ -209,10 +209,10 @@ constexpr decltype(auto) zero_copy_in_handle(io_reference_wrapper<input> in)
 	return zero_copy_in_handle(*in.ptr);
 }
 
-template<scatter_input_stream input,typename... Args>
-constexpr decltype(auto) scatter_read(io_reference_wrapper<input> in,Args&& ...args)
+template<scatter_input_stream input>
+constexpr decltype(auto) scatter_read(io_reference_wrapper<input> in,io_scatters_t sp)
 {
-	return scatter_read(*in.ptr,std::forward<Args>(args)...);
+	return scatter_read(*in.ptr,sp);
 }
 
 template<buffer_input_stream input>
@@ -225,10 +225,10 @@ constexpr void ibuffer_initialize(io_reference_wrapper<input> in)
 	ibuffer_initialize(*in.ptr);
 }
 
-template<random_access_stream racs,typename... Args>
-constexpr decltype(auto) seek(io_reference_wrapper<racs> rac,Args&& ...args)
+template<random_access_stream racs>
+constexpr std::uintmax_t seek(io_reference_wrapper<racs> rac,std::intmax_t pos=0,seekdir sdir=seekdir::cur)
 {
-	return seek(*rac.ptr,std::forward<Args>(args)...);
+	return seek(*rac.ptr,pos,sdir);
 }
 
 template<secure_clear_requirement_stream scrs>
@@ -238,16 +238,10 @@ constexpr decltype(auto) require_secure_clear(io_reference_wrapper<scrs> sc)
 }
 
 template<contiguous_input_stream cis>
-constexpr void underflow_forever_false(io_reference_wrapper<cis> ci)
-{
-	return underflow_forever_false(*ci.ptr);
-}
+constexpr void ibuffer_underflow_never(io_reference_wrapper<cis> ci){}
 
 template<contiguous_output_stream cos>
-constexpr decltype(auto) overflow_never(io_reference_wrapper<cos> co)
-{
-	return overflow_never(*co.ptr);
-}
+constexpr void obuffer_overflow_never(io_reference_wrapper<cos> co){}
 
 template<flush_output_stream output>
 constexpr void flush(io_reference_wrapper<output> co)

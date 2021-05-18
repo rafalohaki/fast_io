@@ -55,7 +55,7 @@ constexpr char_type* obuffer_end(basic_omemory_map<char_type>& bomp) noexcept
 }
 
 template<std::integral char_type>
-constexpr void overflow(basic_omemory_map<char_type>&,char_type) noexcept
+constexpr void obuffer_overflow(basic_omemory_map<char_type>&,char_type) noexcept
 {
 	fast_terminate();
 }
@@ -67,7 +67,7 @@ constexpr void obuffer_set_curr(basic_omemory_map<char_type>& bomp,char_type* pt
 }
 
 template<std::integral char_type>
-constexpr void overflow_never(basic_omemory_map<char_type>&) noexcept{}
+constexpr void obuffer_obuffer_overflow_never(basic_omemory_map<char_type>&) noexcept{}
 
 using omemory_map = basic_omemory_map<char>;
 
@@ -110,7 +110,7 @@ constexpr char_type* ibuffer_end(basic_imemory_map<char_type>& bomp) noexcept
 }
 
 template<std::integral char_type>
-constexpr bool underflow(basic_imemory_map<char_type>&) noexcept
+constexpr bool ibuffer_underflow(basic_imemory_map<char_type>&) noexcept
 {
 	return false;
 }
@@ -122,7 +122,7 @@ constexpr void ibuffer_set_curr(basic_imemory_map<char_type>& bomp,char_type* pt
 }
 
 template<std::integral char_type>
-constexpr void underflow_forever_false(basic_imemory_map<char_type>&) noexcept{}
+constexpr void ibuffer_underflow_never(basic_imemory_map<char_type>&) noexcept{}
 
 using imemory_map = basic_imemory_map<char>;
 

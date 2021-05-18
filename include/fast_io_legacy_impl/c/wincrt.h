@@ -419,7 +419,7 @@ inline void ibuffer_set_curr(basic_c_io_observer_unlocked<char_type> ciob,char_t
 }
 
 template<std::integral char_type>
-inline bool underflow(basic_c_io_observer_unlocked<char_type> ciob)
+inline bool ibuffer_underflow(basic_c_io_observer_unlocked<char_type> ciob)
 {
 	return details::wincrt_fp_underflow_impl<char_type>(ciob.fp);
 }
@@ -459,7 +459,7 @@ inline void obuffer_set_curr(basic_c_io_observer_unlocked<char_type> ciob,char_t
 }
 
 template<std::integral char_type>
-inline void overflow(basic_c_io_observer_unlocked<char_type> ciob,char_type ch)
+inline void obuffer_overflow(basic_c_io_observer_unlocked<char_type> ciob,char_type ch)
 {
 	details::wincrt_fp_overflow_impl(ciob.fp,ch);
 }

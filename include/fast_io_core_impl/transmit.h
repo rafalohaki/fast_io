@@ -100,7 +100,7 @@ inline constexpr std::uintmax_t bufferred_transmit_impl(output& outp,input& inp)
 				transmitted_chars+=transmitted_this_round;
 			}
 		}
-		while(underflow(inp));
+		while(ibuffer_underflow(inp));
 		return transmitted_chars;
 	}
 	else
@@ -203,7 +203,7 @@ inline constexpr std::uintmax_t bufferred_transmit_impl(output& outp,input& inp,
 				}
 			}
 		}
-		while(underflow(inp));
+		while(ibuffer_underflow(inp));
 		return transmitted_chars;
 	}
 	else

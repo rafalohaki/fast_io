@@ -120,7 +120,7 @@ typename decorators,
 std::size_t bfs>
 requires ((mde&buffer_mode::out)==buffer_mode::out&&
 (mde&buffer_mode::deco_out_no_internal)!=buffer_mode::deco_out_no_internal)
-inline constexpr auto overflow(basic_io_buffer<handletype,mde,decorators,bfs>& bios,
+inline constexpr void obuffer_overflow(basic_io_buffer<handletype,mde,decorators,bfs>& bios,
 	typename basic_io_buffer<handletype,mde,decorators,bfs>::char_type ch)
 {
 	if constexpr(details::has_external_decorator_impl<decorators>)

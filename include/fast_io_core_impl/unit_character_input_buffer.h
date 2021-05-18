@@ -60,7 +60,7 @@ constexpr void ibuffer_set_curr(single_character_input_buffer<input>& in,typenam
 }
 
 template<input_stream input>
-constexpr bool underflow(single_character_input_buffer<input>& in)
+constexpr bool ibuffer_underflow(single_character_input_buffer<input>& in)
 {
 	in.pos_end=(read(in.reference,std::addressof(in.single_character),std::addressof(in.single_character)+1)!=std::addressof(in.single_character));
 	in.pos={};

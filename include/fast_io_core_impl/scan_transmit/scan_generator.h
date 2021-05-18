@@ -31,7 +31,7 @@ private:
 		obuffer_set_curr(buffer,obuffer_begin(buffer));
 		write(buffer,bg,ed);
 		decltype(auto) ref{reference()};
-		while(underflow(ref))
+		while(ibuffer_underflow(ref))
 		{
 			auto bg{ibuffer_begin(ref)};
 			auto ed{ibuffer_end(ref)};

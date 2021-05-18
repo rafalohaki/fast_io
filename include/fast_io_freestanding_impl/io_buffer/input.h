@@ -61,7 +61,7 @@ buffer_mode mde,
 typename decoratorstype,
 std::size_t bfs>
 requires ((mde&buffer_mode::in)==buffer_mode::in)
-inline constexpr bool underflow(basic_io_buffer<handletype,mde,decoratorstype,bfs>& bios)
+inline constexpr bool ibuffer_underflow(basic_io_buffer<handletype,mde,decoratorstype,bfs>& bios)
 {
 	if constexpr(((mde&buffer_mode::out)==buffer_mode::out)&&
 	((mde&buffer_mode::tie)==buffer_mode::tie))
@@ -72,9 +72,9 @@ inline constexpr bool underflow(basic_io_buffer<handletype,mde,decoratorstype,bf
 			details::iobuf_output_flush_impl(io_ref(bios.handle),bios.obuffer);
 	}
 	if constexpr(details::has_internal_decorator_impl<decoratorstype>)
-		return details::underflow_impl_deco<basic_io_buffer<handletype,mde,decoratorstype,bfs>::need_secure_clear,bfs>(io_ref(bios.handle),internal_decorator(bios.decorators),bios.ibuffer,bios.ibuffer_external);
+		return details::ibuffer_underflow_impl_deco<basic_io_buffer<handletype,mde,decoratorstype,bfs>::need_secure_clear,bfs>(io_ref(bios.handle),internal_decorator(bios.decorators),bios.ibuffer,bios.ibuffer_external);
 	else
-		return details::underflow_impl<bfs>(io_ref(bios.handle),bios.ibuffer);
+		return details::ibuffer_underflow_impl<bfs>(io_ref(bios.handle),bios.ibuffer);
 }
 
 namespace details

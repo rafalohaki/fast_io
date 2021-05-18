@@ -105,7 +105,7 @@ inline constexpr void obuffer_set_curr(c_io_observer_unlocked ciob,char* ptr) no
 	details::mlibc_hack::hack_obuffer_set_curr_impl(ciob.fp,ptr);
 }
 
-inline void overflow(c_io_observer_unlocked ciob,char ch)
+inline void obuffer_overflow(c_io_observer_unlocked ciob,char ch)
 {
 	details::mlibc_hack::hack_overflow_impl(ciob.fp,static_cast<char unsigned>(ch));
 }
@@ -139,7 +139,7 @@ inline void obuffer_set_curr(u8c_io_observer_unlocked ciob,char8_t* ptr) noexcep
 	details::mlibc_hack::hack_obuffer_set_curr_impl(ciob.fp,reinterpret_cast<char*>(ptr));
 }
 
-inline void overflow(u8c_io_observer_unlocked ciob,char8_t ch)
+inline void obuffer_overflow(u8c_io_observer_unlocked ciob,char8_t ch)
 {
 	details::mlibc_hack::hack_overflow_impl(ciob.fp,static_cast<char unsigned>(ch));
 }
@@ -166,7 +166,7 @@ inline constexpr void ibuffer_set_curr(c_io_observer_unlocked ciob,char* ptr) no
 	details::mlibc_hack::hack_ibuffer_set_curr_impl(ciob.fp,ptr);
 }
 
-inline bool underflow(c_io_observer_unlocked ciob)
+inline bool ibuffer_underflow(c_io_observer_unlocked ciob)
 {
 	return details::mlibc_hack::hack_underflow_impl(ciob.fp);
 }
@@ -193,7 +193,7 @@ inline char8_t* ibuffer_end(u8c_io_observer_unlocked ciob) noexcept
 	return reinterpret_cast<char8_t*>(details::mlibc_hack::hack_ibuffer_end_impl(ciob.fp));
 }
 
-inline bool underflow(u8c_io_observer_unlocked ciob)
+inline bool ibuffer_underflow(u8c_io_observer_unlocked ciob)
 {
 	return details::mlibc_hack::hack_underflow_impl(ciob.fp);
 }

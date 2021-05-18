@@ -64,19 +64,19 @@ concept buffer_input_stream_impl = requires(T&& in)
 	ibuffer_begin(in);
 	ibuffer_set_curr(in,ibuffer_curr(in));
 	ibuffer_end(in);
-	{underflow(in)}->std::convertible_to<bool>;
+	{ibuffer_underflow(in)}->std::convertible_to<bool>;
 };
 
 template<typename T>
 concept contiguous_input_stream_impl = requires(T&& in)
 {
-	underflow_forever_false(in);
+	ibuffer_underflow_never(in);
 };
 
 template<typename T>
 concept contiguous_output_stream_impl = requires(T&& out)
 {
-	overflow_never(out);
+	obuffer_overflow_never(out);
 };
 
 template<typename T>
@@ -91,7 +91,7 @@ concept buffer_output_stream_impl = requires(T&& out,typename std::remove_cvref_
 	obuffer_begin(out);
 	obuffer_end(out);
 	obuffer_set_curr(out,obuffer_curr(out));
-	overflow(out,ch);
+	obuffer_overflow(out,ch);
 };
 
 template<typename T>

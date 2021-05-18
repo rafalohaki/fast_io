@@ -35,7 +35,7 @@ inline void ibuffer_set_curr(basic_general_streambuf_io_observer<T> cio,typename
 }
 
 template<typename T>
-inline bool underflow(basic_general_streambuf_io_observer<T> cio)
+inline bool ibuffer_underflow(basic_general_streambuf_io_observer<T> cio)
 {
 	ibuffer_set_curr(cio,ibuffer_end(cio));
 	using traits_type = typename T::traits_type;
@@ -70,7 +70,7 @@ inline void obuffer_set_curr(basic_general_streambuf_io_observer<T> cio,typename
 }
 
 template<typename T>
-inline void overflow(basic_general_streambuf_io_observer<T> cio,typename T::char_type ch)
+inline void obuffer_overflow(basic_general_streambuf_io_observer<T> cio,typename T::char_type ch)
 {
 	obuffer_set_curr(cio,obuffer_end(cio));
 	using traits_type = typename T::traits_type;

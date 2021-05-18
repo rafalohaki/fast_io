@@ -15,7 +15,7 @@ template<buffer_input_stream input>
 constexpr basic_input_buffer_iterator<input>& deal_with_underflow(basic_input_buffer_iterator<input>& gen)
 {
 	auto& ref(*gen.ptr);
-	if(!underflow(ref))[[unlikely]]
+	if(!ibuffer_underflow(ref))[[unlikely]]
 	{
 		gen.ptr={};
 		return gen;
@@ -107,11 +107,11 @@ inline constexpr basic_input_buffer_generator<input> igenerator(input& in)
 	{
 		if(ibuffer_curr(in)==ibuffer_end(in))[[unlikely]]
 		{
-			if(!underflow(in))[[unlikely]]
+			if(!ibuffer_underflow(in))[[unlikely]]
 				return {};
 		}
 	}
-	return {std::addressof(in)};
+	return {__builtin_addresssof(in)};
 }
 
 }

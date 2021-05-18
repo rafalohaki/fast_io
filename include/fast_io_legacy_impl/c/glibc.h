@@ -24,7 +24,7 @@ inline constexpr void ibuffer_set_curr(c_io_observer_unlocked cio,char* ptr) noe
 }
 
 extern int __underflow (std::FILE*) noexcept asm("__underflow");
-inline bool underflow(c_io_observer_unlocked cio) noexcept
+inline bool ibuffer_underflow(c_io_observer_unlocked cio) noexcept
 {
 	cio.fp->_IO_read_ptr=cio.fp->_IO_read_end;
 	return __underflow(cio.fp)!=EOF;
@@ -52,7 +52,7 @@ inline constexpr void obuffer_set_curr(c_io_observer_unlocked cio,char* ptr) noe
 
 //extern "C" int __overflow (FILE *,int) noexcept;
 
-inline void overflow(c_io_observer_unlocked cio,char ch)
+inline void obuffer_overflow(c_io_observer_unlocked cio,char ch)
 {
 	if(__overflow(cio.fp,static_cast<int>(static_cast<unsigned char>(ch)))==EOF)[[unlikely]]
 		throw_posix_error();
@@ -79,7 +79,7 @@ inline void ibuffer_set_curr(u8c_io_observer_unlocked cio,char8_t* ptr) noexcept
 	cio.fp->_IO_read_ptr=bit_cast<char*>(ptr);
 }
 
-inline bool underflow(u8c_io_observer_unlocked cio) noexcept
+inline bool ibuffer_underflow(u8c_io_observer_unlocked cio) noexcept
 {
 	cio.fp->_IO_read_ptr=cio.fp->_IO_read_end;
 	return __underflow(cio.fp)!=EOF;
@@ -105,7 +105,7 @@ inline void obuffer_set_curr(u8c_io_observer_unlocked cio,[[gnu::may_alias]] cha
 	cio.fp->_IO_write_ptr=bit_cast<char*>(ptr);
 }
 
-inline void overflow(u8c_io_observer_unlocked cio,char8_t ch)
+inline void obuffer_overflow(u8c_io_observer_unlocked cio,char8_t ch)
 {
 	if(__overflow(cio.fp,static_cast<int>(ch))==EOF)[[unlikely]]
 		throw_posix_error();
@@ -164,7 +164,7 @@ inline void ibuffer_set_curr(wc_io_observer_unlocked cio,wchar_t* ptr) noexcept
 }
 
 extern std::wint_t __wunderflow (FILE *) noexcept;
-inline bool underflow(wc_io_observer_unlocked cio) noexcept
+inline bool ibuffer_underflow(wc_io_observer_unlocked cio) noexcept
 {
 	ibuffer_set_curr(cio,ibuffer_end(cio));
 	return __wunderflow(cio.fp)!=WEOF;
@@ -196,7 +196,7 @@ namespace details
 extern std::wint_t glibc_woverflow (FILE *,std::wint_t) noexcept asm("__woverflow");
 }
 
-inline void overflow(wc_io_observer_unlocked cio,wchar_t ch)
+inline void obuffer_overflow(wc_io_observer_unlocked cio,wchar_t ch)
 {
 	if(details::glibc_woverflow(cio.fp,static_cast<std::wint_t>(ch))==WEOF)[[unlikely]]
 		throw_posix_error();
@@ -223,7 +223,7 @@ inline void ibuffer_set_curr(u32c_io_observer_unlocked cio,[[gnu::may_alias]] ch
 	details::fp_wide_hack::hack_wpset<0,char32_t>(cio.fp,ptr);
 }
 
-inline bool underflow(u32c_io_observer_unlocked cio) noexcept
+inline bool ibuffer_underflow(u32c_io_observer_unlocked cio) noexcept
 {
 	ibuffer_set_curr(cio,ibuffer_end(cio));
 	return __wunderflow(cio.fp)!=WEOF;
@@ -249,7 +249,7 @@ inline void obuffer_set_curr(u32c_io_observer_unlocked cio,[[gnu::may_alias]] ch
 	details::fp_wide_hack::hack_wpset<4,char32_t>(cio.fp,ptr);
 }
 
-inline void overflow(u32c_io_observer_unlocked cio,char32_t ch)
+inline void obuffer_overflow(u32c_io_observer_unlocked cio,char32_t ch)
 {
 	if(details::glibc_woverflow(cio.fp,static_cast<std::wint_t>(ch))==WEOF)[[unlikely]]
 		throw_posix_error();

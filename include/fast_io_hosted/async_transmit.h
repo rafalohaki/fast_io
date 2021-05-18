@@ -97,7 +97,7 @@ public:
 	{
 		output_overlapped=typename io_async_overlapped_t<output>::type(std::in_place,[handle,this](std::size_t)
 		{
-			if(underflow(in))
+			if(ibuffer_underflow(in))
 			{
 				auto b{ibuffer_curr(in)};
 				auto e{ibuffer_end(in)};
@@ -114,7 +114,7 @@ public:
 			transferred+=e-b;
 			async_write_callback(this->out_sch,this->out,b,e,this->output_overlapped,-1);
 		}
-		else if(underflow(in))
+		else if(ibuffer_underflow(in))
 		{
 			auto b{ibuffer_curr(in)};
 			auto e{ibuffer_end(in)};

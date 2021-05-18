@@ -142,7 +142,7 @@ inline constexpr auto ibuffer_set_curr(unget_temp_buffer<T>& in,typename T::char
 }
 
 template<typename T>
-inline constexpr bool underflow(unget_temp_buffer<T>& in)
+inline constexpr bool ibuffer_underflow(unget_temp_buffer<T>& in)
 {
 	if constexpr(try_get_input_stream<T>)
 	{
@@ -170,7 +170,7 @@ inline constexpr bool scan_single_status_impl(input in,T& state_machine,P arg)
 {
 	for(;state_machine.code==parse_code::partial;)
 	{
-		if(!underflow(in))
+		if(!ibuffer_underflow(in))
 		{
 			if(!state_machine.test_eof(arg))
 				return false;
@@ -232,7 +232,7 @@ requires (context_scanable<typename input::char_type,T,false>||skipper<typename 
 		{
 			for(;(curr=skip_define(curr,end,arg))==end;)
 			{
-				if(!underflow(in))
+				if(!ibuffer_underflow(in))
 					return true;
 				curr=ibuffer_curr(in);
 				end=ibuffer_end(in);
@@ -246,7 +246,7 @@ requires (context_scanable<typename input::char_type,T,false>||skipper<typename 
 			{
 				for(;(curr=scan_skip_define(scan_skip_type<T>,curr,end))==end;)
 				{
-					if(!underflow(in))[[unlikely]]
+					if(!ibuffer_underflow(in))[[unlikely]]
 						return false;
 					curr=ibuffer_curr(in);
 					end=ibuffer_end(in);

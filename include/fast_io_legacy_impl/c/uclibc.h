@@ -121,7 +121,7 @@ inline void ibuffer_set_curr(c_io_observer_unlocked ciob,char* ptr) noexcept
 	ciob.fp->__bufpos=reinterpret_cast<char unsigned*>(ptr);
 }
 
-inline bool underflow(c_io_observer_unlocked ciob)
+inline bool ibuffer_underflow(c_io_observer_unlocked ciob)
 {
 	return details::uclibc_underflow_impl(ciob.fp);
 }
@@ -147,7 +147,7 @@ inline void obuffer_set_curr(c_io_observer_unlocked ciob,char* ptr) noexcept
 	details::uclibc_set_curr_ptr_impl(ciob.fp,reinterpret_cast<char unsigned*>(ptr));
 }
 
-inline void overflow(c_io_observer_unlocked ciob,char ch)
+inline void obuffer_overflow(c_io_observer_unlocked ciob,char ch)
 {
 	details::uclibc_overflow_impl(ciob.fp,static_cast<char unsigned>(ch));
 }
@@ -184,7 +184,7 @@ inline void ibuffer_set_curr(u8c_io_observer_unlocked ciob,char8_t* ptr) noexcep
 	ciob.fp->__bufpos=reinterpret_cast<char unsigned*>(ptr);
 }
 
-inline bool underflow(u8c_io_observer_unlocked ciob)
+inline bool ibuffer_underflow(u8c_io_observer_unlocked ciob)
 {
 	return details::uclibc_underflow_impl(ciob.fp);
 }
@@ -218,7 +218,7 @@ inline void obuffer_set_curr(u8c_io_observer_unlocked ciob,char8_t* ptr) noexcep
 	details::uclibc_set_curr_ptr_impl(ciob.fp,reinterpret_cast<char unsigned*>(ptr));
 }
 
-inline void overflow(u8c_io_observer_unlocked ciob,char8_t ch)
+inline void obuffer_overflow(u8c_io_observer_unlocked ciob,char8_t ch)
 {
 	details::uclibc_overflow_impl(ciob.fp,static_cast<char unsigned>(ch));
 }

@@ -4,7 +4,7 @@ namespace fast_io::details
 {
 
 template<stream T,std::integral char_type>
-inline constexpr bool underflow_rl_impl(T t,basic_io_buffer_pointers<char_type>& ibuffer,std::size_t bfsz)
+inline constexpr bool ibuffer_underflow_rl_impl(T t,basic_io_buffer_pointers<char_type>& ibuffer,std::size_t bfsz)
 {
 	if(ibuffer.buffer_begin==nullptr)
 		ibuffer.buffer_end=ibuffer.buffer_curr=ibuffer.buffer_begin=allocate_iobuf_space<char_type>(bfsz);
@@ -17,9 +17,9 @@ template<std::size_t bfsz,stream T,std::integral char_type>
 #if __has_cpp_attribute(gnu::cold)
 [[gnu::cold]]
 #endif
-inline constexpr bool underflow_impl(T t,basic_io_buffer_pointers<char_type>& ibuffer)
+inline constexpr bool ibuffer_underflow_impl(T t,basic_io_buffer_pointers<char_type>& ibuffer)
 {
-	return underflow_rl_impl(t,ibuffer,bfsz);
+	return ibuffer_underflow_rl_impl(t,ibuffer,bfsz);
 }
 
 template<typename T,std::integral char_type,::fast_io::freestanding::random_access_iterator Iter>

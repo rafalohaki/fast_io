@@ -287,7 +287,7 @@ inline void obuffer_set_curr(c_io_observer_unlocked cio,char* __restrict ptr) no
 	details::bsd_set_buffer_curr_ptr_impl<true>(cio.fp,ptr);
 }
 
-inline void overflow(c_io_observer_unlocked cio,char ch)
+inline void obuffer_overflow(c_io_observer_unlocked cio,char ch)
 {
 	details::bsd_overflow(cio.fp,static_cast<char unsigned>(ch));
 }
@@ -312,7 +312,7 @@ inline void ibuffer_set_curr(c_io_observer_unlocked cio,char* __restrict ptr) no
 	details::bsd_set_buffer_curr_ptr_impl<false>(cio.fp,ptr);
 }
 
-inline bool underflow(c_io_observer_unlocked cio)
+inline bool ibuffer_underflow(c_io_observer_unlocked cio)
 {
 	return details::bsd_underflow_impl(cio.fp);
 }
@@ -353,7 +353,7 @@ char8_t* __restrict ptr) noexcept
 	details::bsd_set_buffer_curr_ptr_impl<true>(cio.fp,ptr);
 }
 
-inline void overflow(u8c_io_observer_unlocked cio,char8_t ch)
+inline void obuffer_overflow(u8c_io_observer_unlocked cio,char8_t ch)
 {
 	details::bsd_overflow(cio.fp,static_cast<char unsigned>(ch));
 }
@@ -391,7 +391,7 @@ char8_t* ptr) noexcept
 	details::bsd_set_buffer_curr_ptr_impl<false>(cio.fp,ptr);
 }
 
-inline bool underflow(u8c_io_observer_unlocked cio)
+inline bool ibuffer_underflow(u8c_io_observer_unlocked cio)
 {
 	return details::bsd_underflow_impl(cio.fp);
 }

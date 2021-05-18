@@ -130,7 +130,7 @@ inline constexpr void oshrink_to_fit(dynamic_io_buffer<ch_type>& ob)  noexcept
 }
 
 template<std::integral ch_type>
-inline constexpr void overflow(dynamic_io_buffer<ch_type>& ob,ch_type ch) noexcept
+inline constexpr void obuffer_overflow(dynamic_io_buffer<ch_type>& ob,ch_type ch) noexcept
 {
 	details::dynamic_io_buffer_overflow_impl(ob,ch);
 }

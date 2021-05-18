@@ -33,7 +33,7 @@ enclave_unvalidated = 0x20000000,
 enclave_no_change = 0x20000000,
 enclave_nodecommit = 0x10000000,
 };
-
+#if 0
 template<reserve_output_stream output>
 constexpr void print_define(output& out,win32_memory_page_protect info)
 {
@@ -115,6 +115,7 @@ constexpr void print_define(output& out,win32_memory_page_protect info)
 		print_freestanding(out,"unknown(",static_cast<std::uint32_t>(info),")");
 	}
 }
+#endif
 
 constexpr win32_memory_page_protect operator&(win32_memory_page_protect x, win32_memory_page_protect y) noexcept
 {
@@ -156,7 +157,7 @@ struct win32_memory_basic_information
 	std::uint32_t protect{};
 	std::uint32_t type{};
 };
-
+#if 0
 template<reserve_output_stream output>
 constexpr void print_define(output& out,win32_memory_basic_information const& info)
 {
@@ -169,7 +170,7 @@ constexpr void print_define(output& out,win32_memory_basic_information const& in
 	"\nprotect:",info.protect,
 	"\ntype:",info.type);
 }
-
+#endif
 namespace win32
 {
 extern "C" void* __stdcall OpenProcess(std::uint32_t,int,std::uint32_t);

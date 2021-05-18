@@ -56,13 +56,13 @@ inline constexpr auto ibuffer_set_curr(basic_istring_view<char_type>& sp,char_ty
 }
 
 template<std::integral char_type>
-inline constexpr bool underflow(basic_istring_view<char_type>&) noexcept
+inline constexpr bool ibuffer_underflow(basic_istring_view<char_type>&) noexcept
 {
 	return false;
 }
 
 template<std::integral char_type>
-inline constexpr void underflow_forever_false(basic_istring_view<char_type>&) noexcept{}
+inline constexpr void ibuffer_underflow_never(basic_istring_view<char_type>&) noexcept{}
 
 template<std::integral char_type,::fast_io::freestanding::contiguous_iterator Iter>
 requires (std::same_as<char_type,::fast_io::freestanding::iter_value_t<Iter>>||std::same_as<char,char_type>)

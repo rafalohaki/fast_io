@@ -193,12 +193,12 @@ inline bool musl_fp_underflow_impl(std::FILE* fp)
 
 }
 
-inline bool underflow(c_io_observer_unlocked cio)
+inline bool ibuffer_underflow(c_io_observer_unlocked cio)
 {
 	return details::fp_hack::musl_fp_underflow_impl(cio.fp);
 }
 
-inline bool underflow(u8c_io_observer_unlocked cio)
+inline bool ibuffer_underflow(u8c_io_observer_unlocked cio)
 {
 	return details::fp_hack::musl_fp_underflow_impl(cio.fp);
 }
@@ -261,13 +261,13 @@ namespace details
 extern int libc_overflow(_IO_FILE *, int) noexcept asm("__overflow");
 }
 
-inline void overflow(c_io_observer_unlocked cio,char ch)
+inline void obuffer_overflow(c_io_observer_unlocked cio,char ch)
 {
 	if(details::libc_overflow(cio.fp,static_cast<int>(static_cast<unsigned char>(ch)))==EOF)[[unlikely]]
 		throw_posix_error();
 }
 
-inline void overflow(u8c_io_observer_unlocked cio,char8_t ch)
+inline void obuffer_overflow(u8c_io_observer_unlocked cio,char8_t ch)
 {
 	if(details::libc_overflow(cio.fp,static_cast<int>(static_cast<unsigned char>(ch)))==EOF)[[unlikely]]
 		throw_posix_error();

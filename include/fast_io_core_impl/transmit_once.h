@@ -21,7 +21,7 @@ inline constexpr std::size_t transmit_once(output&& outp,input&& inp)
 			write(outp,ibuffer_curr(inp),ibuffer_end(inp));
 			bytes += ibuffer_end(inp)-ibuffer_curr(inp);
 		}
-		if(!underflow(inp))[[unlikely]]
+		if(!ibuffer_underflow(inp))[[unlikely]]
 			return bytes;
 		write(outp,ibuffer_curr(inp),ibuffer_end(inp));
 		bytes += ibuffer_end(inp)-ibuffer_curr(inp);
