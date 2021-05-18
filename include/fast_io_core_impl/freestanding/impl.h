@@ -3,7 +3,7 @@
 /*
 
 GCC provides more headers in freestanding environment than standard requires because WG21 sucks very badly.
-no std::move, std::forward, __builtin_addressof. WTF???
+no std::move, std::forward, std::addressof. WTF???
 
 */
 
