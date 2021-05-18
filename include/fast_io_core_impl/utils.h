@@ -313,7 +313,7 @@ inline constexpr output_iter my_copy(input_iter first,input_iter second,output_i
 		return ::fast_io::freestanding::copy(first,second,result);
 }
 
-template<std::bidirectional_iterator input_iter,std::bidirectional_iterator output_iter>
+template<::fast_io::freestanding::bidirectional_iterator input_iter,::fast_io::freestanding::bidirectional_iterator output_iter>
 inline constexpr output_iter my_copy_backward(input_iter first,input_iter last,output_iter d_last)
 {
 #if __cpp_lib_is_constant_evaluated>=201811L
@@ -325,8 +325,8 @@ inline constexpr output_iter my_copy_backward(input_iter first,input_iter last,o
 	using input_value_type = typename std::iterator_traits<input_iter>::value_type;
 	using output_value_type = typename std::iterator_traits<output_iter>::value_type;
 	if constexpr
-	(std::contiguous_iterator<input_iter>&&
-	std::contiguous_iterator<output_iter>&&
+	(::fast_io::freestanding::contiguous_iterator<input_iter>&&
+	::fast_io::freestanding::contiguous_iterator<output_iter>&&
 	std::is_trivially_copyable_v<input_value_type>&&
 	std::is_trivially_copyable_v<output_value_type>&&
 	(std::same_as<input_value_type,output_value_type>||

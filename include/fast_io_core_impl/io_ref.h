@@ -60,7 +60,7 @@ inline constexpr auto io_ref(strm& stm) noexcept
 	if constexpr(details::require_io_value_handle_impl<strm>)
 		return io_value_handle(stm);
 	else
-		return io_reference_wrapper<std::remove_cvref_t<strm>>{std::addressof(stm)};
+		return io_reference_wrapper<std::remove_cvref_t<strm>>{__builtin_addressof(stm)};
 }
 
 template<stream stm>
@@ -69,7 +69,7 @@ constexpr io_reference_wrapper<stm> io_value_handle(io_reference_wrapper<stm> wr
 	return wrap;
 }
 
-template<output_stream output,std::input_or_output_iterator Iter>
+template<output_stream output,::fast_io::freestanding::input_or_output_iterator Iter>
 constexpr decltype(auto) write(io_reference_wrapper<output> out,Iter first,Iter last)
 {
 	return write(*out.ptr,first,last);
@@ -139,7 +139,7 @@ constexpr void obuffer_initialize(io_reference_wrapper<output> out)
 	obuffer_initialize(*out.ptr);
 }
 
-template<input_stream input,std::input_or_output_iterator Iter>
+template<input_stream input,::fast_io::freestanding::input_or_output_iterator Iter>
 constexpr Iter read(io_reference_wrapper<input> in,Iter first,Iter last)
 {
 	return read(*in.ptr,first,last);
@@ -152,7 +152,7 @@ constexpr decltype(auto) igenerator(io_reference_wrapper<input> in)
 }
 
 template<buffer_input_stream input>
-constexpr decltype(auto) ibuffer_underflow(io_reference_wrapper<input> in)
+constexpr bool ibuffer_underflow(io_reference_wrapper<input> in)
 {
 	return ibuffer_underflow(*in.ptr);
 }
