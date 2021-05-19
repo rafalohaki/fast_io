@@ -215,7 +215,7 @@ class basic_bio_file:public basic_bio_io_observer<ch_type>
 {
 	void detect_open_failure()
 	{
-		if(this->native_handle()==nullptr)[[unlikely]]
+		if(this->bio==nullptr)[[unlikely]]
 			throw_openssl_error();
 	}
 public:
@@ -233,13 +233,13 @@ public:
 	}
 
 	basic_bio_file(basic_c_io_handle<char_type>&& bmv,fast_io::open_mode om):
-		basic_bio_io_observer<char_type>(BIO_new_fp(bmv.native_handle(),details::calculate_bio_new_fp_flags<true>(om)))
+		basic_bio_io_observer<char_type>(BIO_new_fp(bmv.fp,details::calculate_bio_new_fp_flags<true>(om)))
 	{
 		detect_open_failure();
 		bmv.release();
 	}
 	basic_bio_file(basic_posix_io_handle<char_type>&& bmv,fast_io::open_mode om):
-		basic_bio_io_observer<char_type>(BIO_new_fd(bmv.native_handle(),details::calculate_bio_new_fp_flags<true>(om)))
+		basic_bio_io_observer<char_type>(BIO_new_fd(bmv.fd,details::calculate_bio_new_fp_flags<true>(om)))
 	{
 		detect_open_failure();
 		bmv.release();
@@ -247,7 +247,6 @@ public:
 
 
 #if defined(_WIN32)
-	template<typename... Args>
 	basic_bio_file(basic_win32_io_handle<char_type>&& bmv,fast_io::open_mode om):
 		basic_bio_file(basic_posix_file(std::move(bmv),om),om)
 	{
@@ -258,35 +257,30 @@ public:
 	{
 	}
 #endif
-	template<typename... Args>
 	basic_bio_file(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_bio_file(basic_c_file<char_type>(file,om,pm),om)
 	{}
 	basic_bio_file(native_at_entry nate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_bio_file(basic_c_file<char_type>(nate,file,om,pm),om)
 	{}
-	template<typename... Args>
 	basic_bio_file(wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_bio_file(basic_c_file<char_type>(file,om,pm),om)
 	{}
 	basic_bio_file(native_at_entry nate,wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_bio_file(basic_c_file<char_type>(nate,file,om,pm),om)
 	{}
-	template<typename... Args>
 	basic_bio_file(u8cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_bio_file(basic_c_file<char_type>(file,om,pm),om)
 	{}
 	basic_bio_file(native_at_entry nate,u8cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_bio_file(basic_c_file<char_type>(nate,file,om,pm),om)
 	{}
-	template<typename... Args>
 	basic_bio_file(u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_bio_file(basic_c_file<char_type>(file,om,pm),om)
 	{}
 	basic_bio_file(native_at_entry nate,u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_bio_file(basic_c_file<char_type>(nate,file,om,pm),om)
 	{}
-	template<typename... Args>
 	basic_bio_file(u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_bio_file(basic_c_file<char_type>(file,om,pm),om)
 	{}
@@ -295,32 +289,32 @@ public:
 	{}
 	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept
 	{
-		if(this->native_handle())[[likely]]
-			BIO_free(this->native_handle());
-		this->native_handle()=newhandle;
+		if(this->bio)[[likely]]
+			BIO_free(this->bio);
+		this->bio=newhandle;
 	}
 
 
 	basic_bio_file(basic_bio_file const&)=delete;
 	basic_bio_file& operator=(basic_bio_file const&)=delete;
-	constexpr basic_bio_file(basic_bio_file&& bf) noexcept:basic_bio_io_observer<char_type>(bf.native_handle())
+	constexpr basic_bio_file(basic_bio_file&& bf) noexcept:basic_bio_io_observer<char_type>(bf.bio)
 	{
-		bf.native_handle()=nullptr;
+		bf.bio=nullptr;
 	}
 	basic_bio_file& operator=(basic_bio_file&& bf) noexcept
 	{
-		if(bf.native_handle()==this->native_handle())
+		if(__builtin_addressof(bf)==this)
 			return *this;
-		if(this->native_handle())[[likely]]
-			BIO_free(this->native_handle());
-		this->native_handle()=bf.native_handle();
-		bf.native_handle()=nullptr;
+		if(this->bio)[[likely]]
+			BIO_free(this->bio);
+		this->bio=bf.bio;
+		bf.bio=nullptr;
 		return *this;
 	}
 	~basic_bio_file()
 	{
-		if(this->native_handle())[[likely]]
-			BIO_free(this->native_handle());
+		if(this->bio)[[likely]]
+			BIO_free(this->bio);
 	}
 };
 
@@ -410,13 +404,13 @@ template<output_stream output,std::integral ch_type>
 inline void print_define(output& out,openssl_error const& err)
 {
 	bio_file bf(io_cookie,out);
-	ERR_print_errors(bf.native_handle());
+	ERR_print_errors(bf.bio);
 }
 #if 0
 inline void openssl_error::report(error_reporter& err) const
 {
 	bio_file bf(io_cookie,err);
-	ERR_print_errors(bf.native_handle());
+	ERR_print_errors(bf.bio);
 }
 #endif
 }
