@@ -16,7 +16,7 @@ inline constexpr bool add_carry_naive(bool carry,T a,T b,T& out) noexcept
 {
 	T temp{carry+a};
 	out=temp+b;
-	return out<temp;
+	return (out < b) | (temp < a);
 }
 
 template<typename T>
@@ -102,7 +102,7 @@ inline constexpr bool sub_borrow_naive(bool carry,T a,T b,T& out) noexcept
 {
 	T temp{a-carry};
 	out=temp-b;
-	return temp<out;
+	return (temp<out)|(a<temp);
 }
 
 template<typename T>

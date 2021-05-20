@@ -31,7 +31,7 @@ https://github.com/bminor/glibc/blob/21c3f4b5368686ade28d90d8c7d79c4c95c72c1b/li
 	{
 		if(curr==end)[[unlikely]]
 		{
-			overflow(out,ch);
+			obuffer_overflow(out,ch);
 			return;
 		}
 	}
@@ -39,7 +39,7 @@ https://github.com/bminor/glibc/blob/21c3f4b5368686ade28d90d8c7d79c4c95c72c1b/li
 	{
 		if(end<=curr)[[unlikely]]
 		{
-			overflow(out,ch);
+			obuffer_overflow(out,ch);
 			return;
 		}
 	}
