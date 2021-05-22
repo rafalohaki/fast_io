@@ -404,10 +404,8 @@ inline int fp_to_fd(FILE* fp) noexcept
 		noexcept_call(_fileno,fp)
 #elif defined(__NEWLIB__)
 		fp->_file
-#elif defined(__MSDOS__)
-		noexcept_call(fileno,fp)
 #else
-		noexcept_call(fileno_unlocked,fp)
+		noexcept_call(fileno,fp)
 #endif
 	;
 }

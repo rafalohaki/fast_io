@@ -1608,6 +1608,9 @@ inline std::size_t posix_scatter_write_size_impl(int fd,io_scatters_t sp)
 	system_call_throw_error(val);
 	return val;
 #else
+	std::size_t sz{sp.len};
+	if(static_cast<std::size_t>(std::numeric_limits<int>::max())<sz)
+		sz=static_cast<std::size_t>(std::numeric_limits<int>::max());
 	using iovec_may_alias_const_ptr
 #if __has_cpp_attribute(gnu::may_alias)
 	[[gnu::may_alias]]
