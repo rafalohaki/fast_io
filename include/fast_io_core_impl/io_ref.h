@@ -7,7 +7,13 @@ template<typename T>
 inline constexpr auto io_forward(T&& t) noexcept
 {
 	using no_cvref_t=std::remove_cvref_t<T>;
-	if constexpr(std::is_trivially_copyable_v<no_cvref_t>&&sizeof(no_cvref_t)<=sizeof(std::max_align_t))		//predict the cost of passing by value
+	if constexpr(std::is_trivially_copyable_v<no_cvref_t>&&sizeof(no_cvref_t)<=
+#if defined(_WIN32) || defined(__CYGWIN__)
+	8
+#else
+	sizeof(std::size_t)*2
+#endif
+	)		//predict the cost of passing by value
 		return static_cast<no_cvref_t>(t);
 	else
 		return parameter<std::remove_reference_t<T> const&>{t};

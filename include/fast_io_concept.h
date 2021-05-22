@@ -12,7 +12,7 @@
 #if defined(__GLIBCXX__)
 #include<bits/move.h>
 #else
-#include<utility>		//for std::move, std::forward, __builtin_addressof
+#include<utility>		//for std::move, std::forward, std::addressof
 #endif
 #include"fast_io_core_impl/concepts/impl.h"
 #endif
