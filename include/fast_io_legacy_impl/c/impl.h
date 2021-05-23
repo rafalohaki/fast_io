@@ -436,9 +436,10 @@ public:
 		return basic_posix_io_observer<char_type>{details::fp_unlocked_to_fd(fp)};
 	}
 #ifdef _WIN32
-	explicit operator basic_win32_io_observer<char_type>() const noexcept
+	template<win32_family fam>
+	explicit operator basic_win32_family_io_observer<fam,char_type>() const noexcept
 	{
-		return static_cast<basic_win32_io_observer<char_type>>(static_cast<basic_posix_io_observer<char_type>>(*this));
+		return static_cast<basic_win32_family_io_observer<fam,char_type>>(static_cast<basic_posix_io_observer<char_type>>(*this));
 	}
 	template<nt_family fam>
 	explicit operator basic_nt_family_io_observer<fam,char_type>() const noexcept
@@ -661,9 +662,10 @@ public:
 		return {details::fp_to_fd(fp)};
 	}
 #ifdef _WIN32
-	explicit operator basic_win32_io_observer<char_type>() const noexcept
+	template<win32_family family>
+	explicit operator basic_win32_family_io_observer<family,char_type>() const noexcept
 	{
-		return static_cast<basic_win32_io_observer<char_type>>(static_cast<basic_posix_io_observer<char_type>>(*this));
+		return static_cast<basic_win32_family_io_observer<family,char_type>>(static_cast<basic_posix_io_observer<char_type>>(*this));
 	}
 	template<nt_family fam>
 	explicit operator basic_nt_family_io_observer<fam,char_type>() const noexcept

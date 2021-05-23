@@ -452,8 +452,8 @@ struct nt_fs_dirent
 
 using zw_at_entry=nt_family_at_entry<nt_family::zw>;
 
-template<std::integral ch_type>
-class basic_win32_io_observer;
+template<win32_family family,std::integral ch_type>
+class basic_win32_family_io_observer;
 
 template<nt_family family,std::integral ch_type>
 requires (family==nt_family::nt||family==nt_family::zw)
@@ -475,9 +475,10 @@ public:
 	{
 		return handle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
 	}
-	explicit operator basic_win32_io_observer<char_type>() const noexcept
+	template<win32_family family2>
+	explicit operator basic_win32_family_io_observer<family2,char_type>() const noexcept
 	{
-		return basic_win32_io_observer<char_type>{reinterpret_cast<void*>(handle)};
+		return basic_win32_family_io_observer<family2,char_type>{reinterpret_cast<void*>(handle)};
 	}
 	template<nt_family family2>
 	explicit constexpr operator basic_nt_family_io_observer<family2,char_type>() const noexcept
@@ -794,10 +795,6 @@ using u32nt_io_observer=basic_nt_io_observer<char32_t>;
 using u32nt_io_handle=basic_nt_io_handle<char32_t>;
 using u32nt_file=basic_nt_file<char32_t>;
 
-inline constexpr std::uint32_t nt_stdin_number(static_cast<std::uint32_t>(-10));
-inline constexpr std::uint32_t nt_stdout_number(static_cast<std::uint32_t>(-11));
-inline constexpr std::uint32_t nt_stderr_number(static_cast<std::uint32_t>(-12));
-
 template<std::integral char_type=char>
 inline basic_nt_io_observer<char_type> nt_stdin() noexcept
 {
@@ -845,10 +842,6 @@ using u16zw_file=basic_zw_file<char16_t>;
 using u32zw_io_observer=basic_zw_io_observer<char32_t>;
 using u32zw_io_handle=basic_zw_io_handle<char32_t>;
 using u32zw_file=basic_zw_file<char32_t>;
-
-inline constexpr std::uint32_t zw_stdin_number(static_cast<std::uint32_t>(-10));
-inline constexpr std::uint32_t zw_stdout_number(static_cast<std::uint32_t>(-11));
-inline constexpr std::uint32_t zw_stderr_number(static_cast<std::uint32_t>(-12));
 
 template<std::integral char_type=char>
 inline basic_zw_io_observer<char_type> zw_stdin() noexcept

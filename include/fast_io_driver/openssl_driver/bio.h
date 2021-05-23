@@ -247,7 +247,8 @@ public:
 
 
 #if defined(_WIN32)
-	basic_bio_file(basic_win32_io_handle<char_type>&& bmv,fast_io::open_mode om):
+	template<win32_family family>
+	basic_bio_file(basic_win32_family_io_handle<family,char_type>&& bmv,fast_io::open_mode om):
 		basic_bio_file(basic_posix_file(std::move(bmv),om),om)
 	{
 	}

@@ -129,7 +129,8 @@ This function never fails. but what if fdopen fails?
 
 #ifdef _WIN32
 //windows specific. open posix file from win32 io handle
-	basic_filebuf_file(basic_win32_io_handle<char_type>&& win32_handle,open_mode mode):
+	template<win32_family family>
+	basic_filebuf_file(basic_win32_family_io_handle<family,char_type>&& win32_handle,open_mode mode):
 		basic_filebuf_file(basic_posix_file<char_type>(std::move(win32_handle),mode),mode)
 	{
 	}

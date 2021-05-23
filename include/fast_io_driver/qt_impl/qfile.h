@@ -58,7 +58,8 @@ public:
 	basic_qt_file(basic_posix_io_handle<ch_type>&& pioh,open_mode mode)
 		:basic_qt_file(basic_c_file_unlocked<ch_type>(std::move(pioh),mode),mode){}
 #ifdef _WIN32
-	basic_qt_file(basic_win32_io_handle<ch_type>&& wioh,open_mode mode):
+	template<win32_family family>
+	basic_qt_file(basic_win32_family_io_handle<family,ch_type>&& wioh,open_mode mode):
 		basic_qt_file(basic_posix_file<ch_type>(std::move(wioh),mode),mode)
 	{}
 	template<nt_family family>

@@ -14,7 +14,8 @@ public:
 	{
 		return phandle;
 	}
-	explicit operator basic_win32_io_observer<char_type>() const
+	template<win32_family family>
+	explicit operator basic_win32_family_io_observer<family,char_type>() const
 	{
 		return {static_cast<void*>(handle)};
 	}
