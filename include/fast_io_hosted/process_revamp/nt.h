@@ -93,25 +93,25 @@ inline nt_user_process_information* nt_process_create_impl(void* __restrict fhan
 	check_nt_status(nt_create_process<family==nt_family::zw>(__builtin_addressof(hprocess),0x000F0000U|0x00100000U|0xFFF
 		/*PROCESS_ALL_ACCESS==(STANDARD_RIGHTS_REQUIRED | SYNCHRONIZE | 0xFFF)*/,
 		nullptr,current_process,true,hsection,nullptr,nullptr));
-	println_freestanding(fast_io::win32_stdout(),__FILE__," ",__LINE__);
+	println_freestanding(fast_io::win32_stdout(),std::source_location::current());
 	basic_nt_family_file<family,char> process(hprocess);
 	process_basic_information pb_info{};
 	check_nt_status(nt_query_information_process<family==nt_family::zw>(hprocess,process_information_class::ProcessBasicInformation,
 		__builtin_addressof(pb_info),sizeof(pb_info),nullptr));
-	println_freestanding(fast_io::win32_stdout(),__FILE__," ",__LINE__);
+	println_freestanding(fast_io::win32_stdout(),std::source_location::current());
 	section_image_information sec_info{};
 	check_nt_status(nt_query_section<family==nt_family::zw>(hsection,section_information_class::SectionImageInformation,
 		__builtin_addressof(sec_info),sizeof(sec_info),nullptr));
-	println_freestanding(fast_io::win32_stdout(),__FILE__," ",__LINE__);
+	println_freestanding(fast_io::win32_stdout(),std::source_location::current());
 	rtl_user_process_parameters rtl_up{};
 //	check_nt_status(rtl_p_init_environment(hprocess,pb_info.PebBaseAddress,__builtin_addressof(rtl_up)));
-	println_freestanding(fast_io::win32_stdout(),__FILE__," ",__LINE__);
+	println_freestanding(fast_io::win32_stdout(),std::source_location::current());
 	void* hthread{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
 	client_id cid{};
-	println_freestanding(fast_io::win32_stdout(),__FILE__," ",__LINE__);
-	check_nt_status(rtl_create_user_thread(hprocess,nullptr,true,sec_info.ZeroBits,sec_info.MaximumStackSize,
+	println_freestanding(fast_io::win32_stdout(),std::source_location::current());
+	check_nt_status(RtlCreateUserThread(hprocess,nullptr,true,sec_info.ZeroBits,sec_info.MaximumStackSize,
 			sec_info.CommittedStackSize,sec_info.TransferAddress,pb_info.PebBaseAddress,__builtin_addressof(hthread),__builtin_addressof(cid)));
-	println_freestanding(fast_io::win32_stdout(),__FILE__," ",__LINE__," ",cid.hprocess," ",cid.hthread);
+	println_freestanding(fast_io::win32_stdout(),std::source_location::current()," ",cid.hprocess," ",cid.hthread);
 
 	*uptr={process.release(),hthread};
 	return uptr.release();

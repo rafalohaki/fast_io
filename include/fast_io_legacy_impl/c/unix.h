@@ -341,9 +341,6 @@ inline char8_t* obuffer_end(u8c_io_observer_unlocked cio) noexcept
 	return details::bsd_get_buffer_ptr_impl<char8_t,2>(cio.fp);
 }
 
-#if __has_cpp_attribute(gnu::may_alias)
-[[gnu::may_alias]]
-#endif
 inline void obuffer_set_curr(u8c_io_observer_unlocked cio,
 #if __has_cpp_attribute(gnu::may_alias)
 [[gnu::may_alias]]

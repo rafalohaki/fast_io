@@ -510,7 +510,6 @@ asm("ZwSetSystemTime")
 #endif
 ;
 
-
 template<bool zw,typename... Args>
 requires (sizeof...(Args)==2)
 inline std::uint32_t nt_set_system_time(Args... args) noexcept
@@ -519,6 +518,44 @@ inline std::uint32_t nt_set_system_time(Args... args) noexcept
 		return ZwSetSystemTime(args...);
 	else
 		return NtSetSystemTime(args...);
+}
+
+__declspec(dllimport) std::uint32_t __stdcall NtCreateProcess(void**,std::uint32_t,object_attributes*,void*,std::uint32_t,void*,void*,void*) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("NtCreateProcess@32")
+#else
+asm("_NtCreateProcess@32")
+#endif
+#else
+asm("NtCreateProcess")
+#endif
+#endif
+;
+
+__declspec(dllimport) std::uint32_t __stdcall ZwCreateProcess(void**,std::uint32_t,object_attributes*,void*,std::uint32_t,void*,void*,void*) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("ZwCreateProcess@32")
+#else
+asm("_ZwCreateProcess@32")
+#endif
+#else
+asm("ZwCreateProcess")
+#endif
+#endif
+;
+
+template<bool zw,typename... Args>
+requires (sizeof...(Args)==8)
+inline std::uint32_t nt_create_process(Args... args) noexcept
+{
+	if constexpr(zw)
+		return NtCreateProcess(args...);
+	else
+		return ZwCreateProcess(args...);
 }
 
 __declspec(dllimport) extern std::uint32_t __stdcall rtl_dos_path_name_to_nt_path_name_u(wchar_t const*,unicode_string*,wchar_t const**,rtl_relative_name_u*) noexcept
@@ -616,6 +653,20 @@ asm("_RtlDeleteCriticalSection@4")
 #endif
 #else
 asm("RtlDeleteCriticalSection")
+#endif
+#endif
+;
+
+__declspec(dllimport) extern std::uint32_t __stdcall RtlCreateUserThread(void*,void*,int,std::uint32_t,std::size_t,std::size_t,void*,void*,void**,client_id*) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("RtlCreateUserThread@40")
+#else
+asm("_RtlCreateUserThread@40")
+#endif
+#else
+asm("RtlCreateUserThread")
 #endif
 #endif
 ;

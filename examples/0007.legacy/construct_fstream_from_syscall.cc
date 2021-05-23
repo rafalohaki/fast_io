@@ -2,13 +2,20 @@
 #include<fstream>
 
 int main()
+try
 {
 /*
 This is an example to explain how fast_io's files work with each other, and how you could use fast_io with existing FILE* or fstream apis
 */
-
 #ifdef _WIN32
+#ifdef _WIN32_WINDOWS
+//_WIN32_WINDOWS macro targets WIN9X kernel (windows 95, windows 98 and windows ME)
+//On 9x kernel, although ntdll.dll does exist, but it does not do anything
+	fast_io::win32_file nf("win32_file.txt",fast_io::open_mode::out);
+#else
+//NT kernel
 	fast_io::nt_file nf("nt_file.txt",fast_io::open_mode::out);
+#endif
 	fast_io::posix_file pf(std::move(nf),fast_io::open_mode::out);
 #else
 	fast_io::posix_file pf("posix_file.txt",fast_io::open_mode::out);
@@ -48,11 +55,19 @@ This is an example to explain how fast_io's files work with each other, and how 
 	"fd:",static_cast<fast_io::posix_io_observer>(fiob).fd
 #ifdef _WIN32
 	,"\n"
-	"win32 HANDLE:",static_cast<fast_io::win32_io_observer>(fiob).handle,"\n"
+	"win32 HANDLE:",static_cast<fast_io::win32_io_observer>(fiob).handle
+#ifndef _WIN32_WINDOWS
+//NT kernel
+	,"\n"
 	"zw HANDLE:",static_cast<fast_io::zw_io_observer>(fiob).handle,"\n"
 	"nt HANDLE:",static_cast<fast_io::nt_io_observer>(fiob).handle
 #endif
+#endif
 );
+}
+catch(fast_io::posix_error e)
+{
+	perrln(e);
 }
 /*
 MinGW-w64 needs -lntdll

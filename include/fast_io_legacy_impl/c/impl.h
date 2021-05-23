@@ -383,7 +383,7 @@ inline int fp_unlocked_to_fd(FILE* fp) noexcept
 	if(fp==nullptr)
 		return -1;
 	return 
-#if defined(_WIN32)
+#ifdef _WIN32
 		noexcept_call(_fileno,fp)
 #elif defined(__NEWLIB__) || defined(__DARWIN_C_LEVEL)
 		fp->_file
@@ -400,7 +400,7 @@ inline int fp_to_fd(FILE* fp) noexcept
 	if(fp==nullptr)
 		return -1;
 	return 
-#if defined(__WINNT__) || defined(_MSC_VER)
+#ifdef _WIN32
 		noexcept_call(_fileno,fp)
 #elif defined(__NEWLIB__)
 		fp->_file

@@ -3,28 +3,6 @@
 namespace fast_io
 {
 
-namespace details
-{
-#if 0
-inline constexpr void report_win32_error(error_reporter& report,std::uint32_t ec)
-{
-	constexpr std::size_t buffer_size{32768};
-	reserve_write(report,buffer_size,[&](auto ptr)
-	{
-		auto const buffer_length(win32::FormatMessageA(
-		0x00000200 | 0x00001000,
-		nullptr,
-		ec,
-		(1 << 10),
-		ptr,
-		buffer_size,
-		nullptr));
-		return ptr+buffer_length;
-	});
-}
-#endif
-}
-
 class win32_error
 {
 public:
@@ -34,15 +12,6 @@ public:
 	{
 		return ec;
 	}
-#if 0
-#if __cpp_constexpr >= 201907L
-	constexpr
-#endif
-	void report(error_reporter& report) const override
-	{
-		details::report_win32_error(report,ec);
-	}
-#endif
 };
 
 namespace details
@@ -114,7 +83,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,win3
 template<::fast_io::freestanding::contiguous_iterator Iter>
 inline constexpr Iter print_reserve_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,win32_error>,Iter iter,win32_error const& e) noexcept
 {
-	return details::print_reserve_define_win32_error_impl(iter,e.code());
+	return details::print_reserve_define_win32_error_impl(iter,e.ec);
 }
 
 [[noreturn]] inline void throw_win32_error()

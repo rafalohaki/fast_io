@@ -2,6 +2,18 @@
 
 namespace fast_io
 {
+
+enum class win32_family
+{
+ansi_9x,
+wide_nt,
+#ifdef _WIN32_WINDOWS
+native = ansi_9x
+#else
+native = wide_nt
+#endif
+};
+
 namespace details
 {
 #if 0
@@ -101,8 +113,6 @@ inline void* win32_create_file_impl(basic_cstring_view<char_type> path,win32_ope
 		}
 	}
 }
-
-
 
 inline constexpr win32_open_mode calculate_win32_open_mode(open_mode value,perms pm)
 {
@@ -290,6 +300,7 @@ I tried this. Oh no. It cannot
 }
 
 }
+
 template<std::integral ch_type>
 class basic_win32_io_observer
 {
