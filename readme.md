@@ -83,7 +83,9 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 ## Legacy Windows Version Support (need define _WIN32_WINNT and _WIN32_WINDOWS version by yourself)
 - Microsoft Chicago
 - Windows 95
-- Windows 98
+- Windows 95 Plus!
+- Windows 98 FE
+- Windows 98 SE
 - Windows ME
 - Microsoft Neptune
 - Windows NT
@@ -104,7 +106,9 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - Windows 3.1
 - Microsoft Chicago
 - Windows 95
-- Windows 98
+- Windows 95 Plus!
+- Windows 98 FE
+- Windows 98 SE
 - Windows ME
 
 ## Supported libc FILE* hacks platforms
