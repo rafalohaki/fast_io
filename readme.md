@@ -93,12 +93,15 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - Windows 2000
 - Windows Whistler
 - Windows XP
-- Windows 2003
+- Windows Server 2003
 - Windows Longhorn
 - Windows Vista
+- Windows Server 2008
 - Windows 7
 - Windows 8
 - Windows 8.1
+- Windows Server 2012
+- Windows Server 2015
 
 ## Legacy Windows Version Support with DJGPP toolchain
 - Windows 1.0
