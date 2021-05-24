@@ -2,7 +2,6 @@
 #include<fstream>
 
 int main()
-try
 {
 /*
 This is an example to explain how fast_io's files work with each other, and how you could use fast_io with existing FILE* or fstream apis
@@ -64,10 +63,6 @@ This is an example to explain how fast_io's files work with each other, and how 
 #endif
 #endif
 );
-}
-catch(fast_io::posix_error e)
-{
-	perrln(e);
 }
 /*
 MinGW-w64 needs -lntdll
