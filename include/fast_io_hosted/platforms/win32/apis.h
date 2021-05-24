@@ -6,7 +6,7 @@ namespace fast_io::win32
 __declspec(dllimport) extern std::uint32_t __stdcall GetLastError(void) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("GetLastError@0")
 #else
 asm("_GetLastError@0")
@@ -20,7 +20,7 @@ asm("GetLastError")
 __declspec(dllimport) extern void* __stdcall LoadLibraryA(char const*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("LoadLibraryA@4")
 #else
 asm("_LoadLibraryA@4")
@@ -34,7 +34,7 @@ asm("LoadLibraryA")
 __declspec(dllimport) extern void * __stdcall LoadLibraryW(wchar_t const*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("LoadLibraryW@4")
 #else
 asm("_LoadLibraryW@4")
@@ -49,7 +49,7 @@ asm("LoadLibraryW")
 __declspec(dllimport) extern std::uint32_t __stdcall FormatMessageA(std::uint32_t, char const*, std::uint32_t,std::uint32_t, char*, std::uint32_t, void /*va_list*/ *) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("FormatMessageA@28")
 #else
 asm("_FormatMessageA@28")
@@ -63,7 +63,7 @@ asm("FormatMessageA")
 __declspec(dllimport) extern std::uint32_t __stdcall FormatMessageW(std::uint32_t, wchar_t const*, std::uint32_t,std::uint32_t, wchar_t*, std::uint32_t, void /*va_list*/ *) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("FormatMessageW@28")
 #else
 asm("_FormatMessageW@28")
@@ -77,7 +77,7 @@ asm("FormatMessageW")
 __declspec(dllimport) extern void* __stdcall CreateFileMappingA(void*,security_attributes*,std::uint32_t,std::uint32_t,std::uint32_t,char const*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("CreateFileMappingA@24")
 #else
 asm("_CreateFileMappingA@24")
@@ -91,7 +91,7 @@ asm("CreateFileMappingA")
 __declspec(dllimport) extern void* __stdcall CreateFileMappingW(void*,security_attributes*,std::uint32_t,std::uint32_t,std::uint32_t,wchar_t const*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("CreateFileMappingW@24")
 #else
 asm("_CreateFileMappingW@24")
@@ -105,7 +105,7 @@ asm("CreateFileMappingW")
 __declspec(dllimport) extern void* __stdcall MapViewOfFile(void*,std::uint32_t,std::uint32_t,std::uint32_t,std::size_t) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("MapViewOfFile@20")
 #else
 asm("_MapViewOfFile@20")
@@ -119,7 +119,7 @@ asm("MapViewOfFile")
 __declspec(dllimport) extern int __stdcall SetEndOfFile(void*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("SetEndOfFile@4")
 #else
 asm("_SetEndOfFile@4")
@@ -133,7 +133,7 @@ asm("SetEndOfFile")
 __declspec(dllimport) extern int __stdcall UnmapViewOfFile(void const*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("UnmapViewOfFile@4")
 #else
 asm("_UnmapViewOfFile@4")
@@ -147,7 +147,7 @@ asm("UnmapViewOfFile")
 __declspec(dllimport) extern int __stdcall WriteFile(void*,void const*,std::uint32_t,std::uint32_t*,overlapped*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("WriteFile@20")
 #else
 asm("_WriteFile@20")
@@ -171,7 +171,7 @@ asm("ReadFile")
 __declspec(dllimport) extern int __stdcall SetFilePointerEx(void*,std::int64_t,std::int64_t*,std::uint32_t) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("SetFilePointerEx@20")
 #else
 asm("_SetFilePointerEx@20")
@@ -185,7 +185,7 @@ asm("SetFilePointerEx")
 __declspec(dllimport) extern int __stdcall DuplicateHandle(void*,void*,void*,void**,std::uint32_t,int,std::uint32_t) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("DuplicateHandle@28")
 #else
 asm("_DuplicateHandle@28")
@@ -199,7 +199,7 @@ asm("DuplicateHandle")
 __declspec(dllimport) extern void* __stdcall GetStdHandle(std::uint32_t) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("GetStdHandle@4")
 #else
 asm("_GetStdHandle@4")
@@ -213,7 +213,7 @@ asm("GetStdHandle")
 __declspec(dllimport) extern int __stdcall CreatePipe(void**,void**,security_attributes*,std::uint32_t) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("CreatePipe@16")
 #else
 asm("_CreatePipe@16")
@@ -227,7 +227,7 @@ asm("CreatePipe")
 __declspec(dllimport) extern int __stdcall FreeLibrary(void*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("FreeLibrary@4")
 #else
 asm("_FreeLibrary@4")
@@ -243,7 +243,7 @@ using farproc = intptr_t(__stdcall*)() noexcept;
 __declspec(dllimport) extern farproc __stdcall GetProcAddress(void*,char const*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("GetProcAddress@8")
 #else
 asm("_GetProcAddress@8")
@@ -257,7 +257,7 @@ asm("GetProcAddress")
 __declspec(dllimport) extern void* __stdcall GetModuleHandleA(char const*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("GetModuleHandleA@4")
 #else
 asm("_GetModuleHandleA@4")
@@ -271,7 +271,7 @@ asm("GetModuleHandleA")
 __declspec(dllimport) extern void* __stdcall GetModuleHandleW(wchar_t const*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("GetModuleHandleW@4")
 #else
 asm("_GetModuleHandleW@4")
@@ -285,7 +285,7 @@ asm("GetModuleHandleW")
 __declspec(dllimport) extern std::uint32_t __stdcall WaitForSingleObject(void*,std::uint32_t) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("WaitForSingleObject@8")
 #else
 asm("_WaitForSingleObject@8")
@@ -299,7 +299,7 @@ asm("WaitForSingleObject")
 __declspec(dllimport) extern std::uint32_t __stdcall CancelIo(void*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("CancelIo@4")
 #else
 asm("_CancelIo@4")
@@ -313,7 +313,7 @@ asm("CancelIo")
 __declspec(dllimport) extern int __stdcall GetFileInformationByHandle(void* __restrict,by_handle_file_information* __restrict) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("GetFileInformationByHandle@8")
 #else
 asm("_GetFileInformationByHandle@8")
@@ -327,7 +327,7 @@ asm("GetFileInformationByHandle")
 __declspec(dllimport) extern int __stdcall GetUserDefaultLocaleName(wchar_t*,int) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("GetUserDefaultLocaleName@8")
 #else
 asm("_GetUserDefaultLocaleName@8")
@@ -341,7 +341,7 @@ asm("GetUserDefaultLocaleName")
 __declspec(dllimport) extern void __stdcall GetSystemTimePreciseAsFileTime(filetime*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("GetSystemTimePreciseAsFileTime@4")
 #else
 asm("_GetSystemTimePreciseAsFileTime@4")
@@ -355,7 +355,7 @@ asm("GetSystemTimePreciseAsFileTime")
 __declspec(dllimport) extern void __stdcall GetSystemTimeAsFileTime(filetime*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("GetSystemTimeAsFileTime@4")
 #else
 asm("_GetSystemTimeAsFileTime@4")
@@ -369,7 +369,7 @@ asm("GetSystemTimeAsFileTime")
 __declspec(dllimport) extern int __stdcall QueryUnbiasedInterruptTime(std::uint64_t*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("QueryUnbiasedInterruptTime@4")
 #else
 asm("_QueryUnbiasedInterruptTime@4")
@@ -383,7 +383,7 @@ asm("QueryUnbiasedInterruptTime")
 __declspec(dllimport) extern int __stdcall QueryPerformanceCounter(std::int64_t*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("QueryPerformanceCounter@4")
 #else
 asm("_QueryPerformanceCounter@4")
@@ -397,7 +397,7 @@ asm("QueryPerformanceCounter")
 __declspec(dllimport) extern int __stdcall QueryPerformanceFrequency(std::int64_t*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("QueryPerformanceFrequency@4")
 #else
 asm("_QueryPerformanceFrequency@4")
@@ -412,7 +412,7 @@ asm("QueryPerformanceFrequency")
 __declspec(dllimport) extern int __stdcall GetProcessTimes(void*,filetime*,filetime*,filetime*,filetime*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("GetProcessTimes@20")
 #else
 asm("_GetProcessTimes@20")
@@ -426,7 +426,7 @@ asm("GetProcessTimes")
 __declspec(dllimport) extern int __stdcall GetThreadTimes(void*,filetime*,filetime*,filetime*,filetime*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("GetThreadTimes@20")
 #else
 asm("_GetThreadTimes@20")
@@ -440,7 +440,7 @@ asm("GetThreadTimes")
 __declspec(dllimport) extern int __stdcall GetHandleInformation(void*,std::uint32_t*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("GetHandleInformation@8")
 #else
 asm("_GetHandleInformation@8")
@@ -453,7 +453,7 @@ asm("GetHandleInformation")
 __declspec(dllimport) extern int __stdcall SetHandleInformation(void*,std::uint32_t,std::uint32_t) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("SetHandleInformation@12")
 #else
 asm("_SetHandleInformation@12")
@@ -467,7 +467,7 @@ asm("SetHandleInformation")
 __declspec(dllimport) extern std::uint32_t __stdcall GetTempPathA(std::uint32_t,char* buffer) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("GetTempPathA@8")
 #else
 asm("_GetTempPathA@8")
@@ -481,7 +481,7 @@ asm("GetTempPathA")
 __declspec(dllimport) extern std::uint32_t __stdcall GetTempPathW(std::uint32_t,wchar_t* buffer) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("GetTempPathW@8")
 #else
 asm("_GetTempPathW@8")
@@ -495,7 +495,7 @@ asm("GetTempPathW")
 __declspec(dllimport) extern void* __stdcall CreateFileA(char const*,std::uint32_t,std::uint32_t,security_attributes*,std::uint32_t,std::uint32_t,void*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("CreateFileA@28")
 #else
 asm("_CreateFileA@28")
@@ -509,7 +509,7 @@ asm("CreateFileA")
 __declspec(dllimport) extern void* __stdcall CreateFileW(wchar_t const*,std::uint32_t,std::uint32_t,security_attributes*,std::uint32_t,std::uint32_t,void*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("CreateFileW@28")
 #else
 asm("_CreateFileW@28")
@@ -523,7 +523,7 @@ asm("CreateFileW")
 __declspec(dllimport) extern void* __stdcall CreateIoCompletionPort(void*,void*,std::uintptr_t,std::uint32_t) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("CreateIoCompletionPort@16")
 #else
 asm("_CreateIoCompletionPort@16")
@@ -536,7 +536,7 @@ asm("CreateIoCompletionPort")
 __declspec(dllimport) extern int __stdcall SystemFunction036(void*,std::uint32_t) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("SystemFunction036@8")
 #else
 asm("_SystemFunction036@8")
@@ -549,7 +549,7 @@ asm("SystemFunction036")
 __declspec(dllimport) extern int __stdcall CloseHandle(void*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("CloseHandle@4")
 #else
 asm("_CloseHandle@4")
@@ -562,7 +562,7 @@ asm("CloseHandle")
 __declspec(dllimport) extern int __stdcall LockFileEx(void*,std::uint32_t,std::uint32_t,std::uint32_t,std::uint32_t,overlapped*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("LockFileEx@24")
 #else
 asm("_LockFileEx@24")
@@ -576,7 +576,7 @@ asm("LockFileEx")
 __declspec(dllimport) extern int __stdcall UnlockFileEx(void*,std::uint32_t,std::uint32_t,std::uint32_t,overlapped*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("UnlockFileEx@20")
 #else
 asm("_UnlockFileEx@20")
@@ -590,7 +590,7 @@ asm("UnlockFileEx")
 __declspec(dllimport) extern int __stdcall DeviceIoControl(void*,std::uint32_t,void*,std::uint32_t,void*,std::uint32_t,void*,overlapped*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("DeviceIoControl@32")
 #else
 asm("_DeviceIoControl@32")
@@ -604,7 +604,7 @@ asm("DeviceIoControl")
 __declspec(dllimport) extern std::uint32_t __stdcall GetFileType(void*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("GetFileType@4")
 #else
 asm("_GetFileType@4")
@@ -619,7 +619,7 @@ asm("GetFileType")
 __declspec(dllimport) extern std::uint32_t __stdcall GetACP() noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("GetACP@0")
 #else
 asm("_GetACP@0")
@@ -633,7 +633,7 @@ asm("GetACP")
 __declspec(dllimport) extern errno_t __cdecl getenv_s(std::size_t *,char* buffer,std::size_t ,char const *) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("getenv_s")
 #else
 asm("_getenv_s")
@@ -648,7 +648,7 @@ asm("getenv_s")
 __declspec(dllimport) extern std::uint32_t __stdcall MessageBoxA(void*,char const*,char const*,std::uint32_t) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("MessageBoxA@16")
 #else
 asm("_MessageBoxA@16")
@@ -662,7 +662,7 @@ asm("MessageBoxA")
 __declspec(dllimport) extern std::uint32_t __stdcall MessageBoxW(void*,wchar_t const*,wchar_t const*,std::uint32_t) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("MessageBoxW@16")
 #else
 asm("_MessageBoxW@16")
@@ -676,7 +676,7 @@ asm("MessageBoxW")
 __declspec(dllimport) extern int __stdcall GetConsoleMode(void *, std::uint32_t *) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("GetConsoleMode@8")
 #else
 asm("_GetConsoleMode@8")
@@ -690,7 +690,7 @@ asm("GetConsoleMode")
 __declspec(dllimport) extern int __stdcall SetConsoleMode(void *, std::uint32_t) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("SetConsoleMode@8")
 #else
 asm("_SetConsoleMode@8")
@@ -704,7 +704,7 @@ asm("SetConsoleMode")
 __declspec(dllimport) extern int __stdcall ReadConsoleA(void*,void*,std::uint32_t,std::uint32_t*,void*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("ReadConsoleA@20")
 #else
 asm("_ReadConsoleA@20")
@@ -718,7 +718,7 @@ asm("ReadConsoleA")
 __declspec(dllimport) extern int __stdcall ReadConsoleW(void*,void*,std::uint32_t,std::uint32_t*,void*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("ReadConsoleW@20")
 #else
 asm("_ReadConsoleW@20")
@@ -732,7 +732,7 @@ asm("ReadConsoleW")
 __declspec(dllimport) extern int __stdcall WriteConsoleA(void*,void const*,std::uint32_t,std::uint32_t*,void*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("WriteConsoleA@20")
 #else
 asm("_WriteConsoleA@20")
@@ -746,7 +746,7 @@ asm("WriteConsoleA")
 __declspec(dllimport) extern int __stdcall WriteConsoleW(void*,void const*,std::uint32_t,std::uint32_t*,void*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("WriteConsoleW@20")
 #else
 asm("_WriteConsoleW@20")
@@ -760,7 +760,7 @@ asm("WriteConsoleW")
 __declspec(dllimport) extern int __stdcall GetConsoleScreenBufferInfo(void *, console_screen_buffer_info *) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("GetConsoleScreenBufferInfo@8")
 #else
 asm("_GetConsoleScreenBufferInfo@8")
@@ -774,7 +774,7 @@ asm("GetConsoleScreenBufferInfo")
 __declspec(dllimport) extern int __stdcall ScrollConsoleScreenBufferA(void *, small_rect const *, small_rect const *, coord, char_info const *) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("ScrollConsoleScreenBufferA@20")
 #else
 asm("_ScrollConsoleScreenBufferA@20")
@@ -788,7 +788,7 @@ asm("ScrollConsoleScreenBufferA")
 __declspec(dllimport) extern int __stdcall ScrollConsoleScreenBufferW(void *, small_rect const *, small_rect const *, coord, char_info const *) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("ScrollConsoleScreenBufferW@20")
 #else
 asm("_ScrollConsoleScreenBufferW@20")
@@ -802,7 +802,7 @@ asm("ScrollConsoleScreenBufferW")
 __declspec(dllimport) extern int __stdcall SetConsoleCursorPosition(void *, coord) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("SetConsoleCursorPosition@8")
 #else
 asm("_SetConsoleCursorPosition@8")
@@ -817,7 +817,7 @@ asm("SetConsoleCursorPosition")
 __declspec(dllimport) extern void __stdcall InitializeCriticalSection(void*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("InitializeCriticalSection@4")
 #else
 asm("_InitializeCriticalSection@4")
@@ -831,7 +831,7 @@ asm("InitializeCriticalSection")
 __declspec(dllimport) extern void __stdcall EnterCriticalSection(void*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("EnterCriticalSection@4")
 #else
 asm("_EnterCriticalSection@4")
@@ -845,7 +845,7 @@ asm("EnterCriticalSection")
 __declspec(dllimport) extern int __stdcall TryEnterCriticalSection(void*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("TryEnterCriticalSection@4")
 #else
 asm("_TryEnterCriticalSection@4")
@@ -859,7 +859,7 @@ asm("TryEnterCriticalSection")
 __declspec(dllimport) extern void __stdcall LeaveCriticalSection(void*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("LeaveCriticalSection@4")
 #else
 asm("_LeaveCriticalSection@4")
@@ -873,7 +873,7 @@ asm("LeaveCriticalSection")
 __declspec(dllimport) extern void __stdcall DeleteCriticalSection(void*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
-#if defined(__GNUC__)
+#if !defined(__clang__)
 asm("DeleteCriticalSection@4")
 #else
 asm("_DeleteCriticalSection@4")

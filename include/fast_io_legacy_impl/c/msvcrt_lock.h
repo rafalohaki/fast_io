@@ -12,15 +12,31 @@ https://github.com/Alexpux/mingw-w64/blob/d0d7f784833bbb0b2d279310ddc6afb52fe47a
 
 [[gnu::dllimport,gnu::cdecl]] extern void _lock(int) noexcept
 #if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if !defined(__clang__)
+asm("_lock")
+#else
+asm("__lock")
+#endif
+#else
 asm("_lock")
 #endif
-;
-[[gnu::dllimport,gnu::cdecl]]extern void _unlock(int) noexcept
-#if defined(__clang__) || defined(__GNUC__)
-asm("_unlock")
 #endif
 ;
 
+[[gnu::dllimport,gnu::cdecl]] extern void _unlock(int) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if !defined(__clang__)
+asm("_unlock")
+#else
+asm("__unlock")
+#endif
+#else
+asm("_unlock")
+#endif
+#endif
+;
 
 inline void my_msvcrt_lock_file(std::FILE* fp) noexcept
 {

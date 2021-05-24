@@ -145,7 +145,11 @@ inline constexpr bool sub_borrow(bool borrow,T a,T b,T& out) noexcept
 				std::uint32_t b_high;
 				my_memcpy(&b_low,&b,4);
 				my_memcpy(&b_high,reinterpret_cast<char const*>(&b)+4,4);
-#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
+#if defined(__clang__)
+				return __builtin_ia32_subborrow_u32(__builtin_ia32_subborrow_u32(borrow,
+				a_low,b_low,reinterpret_cast<may_alias_ptr_type>(&out)),
+				a_high,b_high,reinterpret_cast<may_alias_ptr_type>(&out)+1);
+#elif defined(__GNUC__) && !defined(__INTEL_COMPILER)
 				return __builtin_ia32_sbb_u32(__builtin_ia32_sbb_u32(borrow,
 				a_low,b_low,reinterpret_cast<may_alias_ptr_type>(&out)),
 				a_high,b_high,reinterpret_cast<may_alias_ptr_type>(&out)+1);

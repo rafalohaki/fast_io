@@ -80,14 +80,32 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - Webassembly
 - Any other platform (if you want me to support it, tell me, including your own OS)
 
-## Legacy Windows Version Support (need define _WIN32_WINNT version by yourself)
+## Legacy Windows Version Support (need define _WIN32_WINNT and _WIN32_WINDOWS version by yourself)
+- Microsoft Chicago
+- Windows 95
+- Windows 98
+- Windows ME
+- Microsoft Neptune
+- Windows NT
 - Windows 2000
+- Windows Whistler
 - Windows XP
 - Windows 2003
 - Windows Longhorn
 - Windows Vista
-- Microsoft Neptune
-- To do: Windows NT, Windows 95, Windows 98, Windows ME, Microsoft Chicago, Windows 1.0, Windows 2.0, Windows 3.0, Windows 3.1
+- Windows 7
+- Windows 8
+- Windows 8.1
+
+## Legacy Windows Version Support with DJGPP toolchain
+- Windows 1.0
+- Windows 2.0
+- Windows 3.0
+- Windows 3.1
+- Microsoft Chicago
+- Windows 95
+- Windows 98
+- Windows ME
 
 ## Supported libc FILE* hacks platforms
 - glibc
