@@ -161,7 +161,11 @@ asm("WriteFile")
 __declspec(dllimport) extern int __stdcall ReadFile(void*,void const*,std::uint32_t,std::uint32_t*,overlapped*) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if !defined(__clang__)
 asm("ReadFile@20")
+#else
+asm("_ReadFile@20")
+#endif
 #else
 asm("ReadFile")
 #endif
