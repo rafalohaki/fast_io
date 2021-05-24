@@ -24,6 +24,7 @@
 #if 0
 #include"fast_io_freestanding_impl/serialize.h"
 #endif
+#include"fast_io_freestanding_impl/api_encoding_converter/impl.h"
 
 namespace fast_io
 {

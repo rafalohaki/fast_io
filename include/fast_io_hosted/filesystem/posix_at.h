@@ -325,7 +325,7 @@ inline auto posix_deal_with22(int olddirfd,char const* oldpath,
 	}
 	else
 	{
-		posix_path_dealer newpdealer(newpath.data(),newpath.size());
+		posix_api_encoding_converter newpdealer(newpath.data(),newpath.size());
 		return posix22_api_dispatcher<dsp>(olddirfd,oldpath,newdirfd,newpdealer.c_str());
 	}
 }
@@ -341,23 +341,22 @@ inline auto posix_deal_with22(int olddirfd,basic_cstring_view<char_type1> oldpat
 	}
 	else if constexpr(sizeof(char_type1)==1&&sizeof(char_type2)!=1)
 	{
-
-		posix_path_dealer dealer(newpath.data(),newpath.size());
+		posix_api_encoding_converter converter(newpath.data(),newpath.size());
 		return posix22_api_dispatcher<dsp>(olddirfd,reinterpret_cast<char const*>(oldpath.c_str()),
-		newdirfd,dealer.c_str());
+		newdirfd,converter.native_c_str());
 	}
 	else if constexpr(sizeof(char_type1)!=1&&sizeof(char_type2)==1)
 	{
-		posix_path_dealer opdealer(oldpath.data(),oldpath.size());
-		return posix22_api_dispatcher<dsp>(olddirfd,opdealer.c_str(),
+		posix_api_encoding_converter op_converter(oldpath.data(),oldpath.size());
+		return posix22_api_dispatcher<dsp>(olddirfd,op_converter.native_c_str(),
 		newdirfd,reinterpret_cast<char const*>(newpath.c_str()));
 	}
 	else
 	{
-		posix_path_dealer opdealer(oldpath.data(),oldpath.size());
-		posix_path_dealer newpdealer(newpath.data(),newpath.size());
-		return posix22_api_dispatcher<dsp>(olddirfd,opdealer.c_str(),
-		newdirfd,newpdealer.c_str());
+		posix_api_encoding_converter opdealer(oldpath.data(),oldpath.size());
+		posix_api_encoding_converter newpdealer(newpath.data(),newpath.size());
+		return posix22_api_dispatcher<dsp>(olddirfd,opdealer.native_c_str(),
+		newdirfd,newpdealer.native_c_str());
 	}
 }
 
@@ -374,23 +373,22 @@ inline auto posix_deal_with12(
 	}
 	else if constexpr(sizeof(char_type1)==1&&sizeof(char_type2)!=1)
 	{
-
-		posix_path_dealer dealer(newpath.data(),newpath.size());
+		posix_api_encoding_converter converter(newpath.data(),newpath.size());
 		return posix12_api_dispatcher<dsp>(reinterpret_cast<char const*>(oldpath.c_str()),
-		newdirfd,dealer.c_str());
+		newdirfd,converter.native_c_str());
 	}
 	else if constexpr(sizeof(char_type1)!=1&&sizeof(char_type2)==1)
 	{
-		posix_path_dealer opdealer(oldpath.data(),oldpath.size());
-		return posix12_api_dispatcher<dsp>(opdealer.c_str(),
+		posix_api_encoding_converter op_converter(oldpath.data(),oldpath.size());
+		return posix12_api_dispatcher<dsp>(op_converter.native_c_str(),
 		newdirfd,reinterpret_cast<char const*>(newpath.c_str()));
 	}
 	else
 	{
-		posix_path_dealer opdealer(oldpath.data(),oldpath.size());
-		posix_path_dealer newpdealer(newpath.data(),newpath.size());
-		return posix12_api_dispatcher<dsp>(opdealer.c_str(),
-		newdirfd,newpdealer.c_str());
+		posix_api_encoding_converter op_converter(oldpath.data(),oldpath.size());
+		posix_api_encoding_converter new_converter(newpath.data(),newpath.size());
+		return posix12_api_dispatcher<dsp>(op_converter.native_c_str(),
+		newdirfd,new_converter.native_c_str());
 	}
 }
 
@@ -408,8 +406,8 @@ inline auto posix_deal_with1x(
 	}
 	else
 	{
-		posix_path_dealer dealer(path.data(),path.size());
-		return posix1x_api_dispatcher<dsp>(dirfd,dealer.c_str(),args...);
+		posix_api_encoding_converter converter(path.data(),path.size());
+		return posix1x_api_dispatcher<dsp>(dirfd,converter.native_c_str(),args...);
 	}
 }
 
@@ -643,8 +641,8 @@ inline std::size_t read_linkat_impl_phase2(char* dst,basic_posix_readlinkat_t<pa
 	}
 	else
 	{
-		posix_path_dealer dealer(rlkat.path.data(),rlkat.path.size());
-		return posix_readlinkat_common_impl(rlkat.dirfd,dealer.c_str(),dst);
+		posix_api_encoding_converter converter(rlkat.path.data(),rlkat.path.size());
+		return posix_readlinkat_common_impl(rlkat.dirfd,converter.native_c_str(),dst);
 	}
 }
 

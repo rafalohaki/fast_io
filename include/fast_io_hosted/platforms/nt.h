@@ -301,14 +301,14 @@ inline void* nt_create_file_impl(basic_cstring_view<char_type> filename,nt_open_
 	{
 		nt_file_rtl_path(filename.c_str(),nt_name,part_name,relative_name);
 	}
-	else if constexpr(std::same_as<char_type,char16_t>)
+	else if constexpr(sizeof(char_type)==sizeof(wchar_t))
 	{
 		nt_file_rtl_path(reinterpret_cast<wchar_t_may_alias_ptr>(filename.c_str()),nt_name,part_name,relative_name);
 	}
 	else
 	{
-		::fast_io::details::win32_path_dealer dealer(filename.data(),filename.size());
-		nt_file_rtl_path(reinterpret_cast<wchar_t_may_alias_ptr>(dealer.c_str()),nt_name,part_name,relative_name);
+		nt_api_encoding_converter converter(filename.data(),filename.size());
+		nt_file_rtl_path(converter.native_c_str(),nt_name,part_name,relative_name);
 	}
 	win32::nt::rtl_unicode_string_unique_ptr us_ptr{__builtin_addressof(nt_name)};
 	return nt_create_file_common_impl<zw>(nullptr,__builtin_addressof(nt_name),mode);
@@ -348,8 +348,8 @@ inline void* nt_create_file_directory_impl(void* directory,basic_cstring_view<ch
 	}
 	else
 	{
-		::fast_io::details::win32_path_dealer dealer(filename.data(),filename.size());
-		std::uint16_t const bytes(filename_bytes(dealer.size()));
+		nt_api_encoding_converter converter(filename.data(),filename.size());
+		std::uint16_t const bytes(filename_bytes(converter.size()));
 		using wchar_t_may_alias_ptr
 #if __has_cpp_attribute(gnu::may_alias)
 		[[gnu::may_alias]]
@@ -358,7 +358,7 @@ inline void* nt_create_file_directory_impl(void* directory,basic_cstring_view<ch
 		win32::nt::unicode_string relative_path{
 			.Length=bytes,
 			.MaximumLength=bytes,
-			.Buffer=reinterpret_cast<wchar_t_may_alias_ptr>(dealer.buffer_data)};
+			.Buffer=reinterpret_cast<wchar_t_may_alias_ptr>(converter.buffer_data)};
 		return nt_create_file_common_impl<zw>(directory,__builtin_addressof(relative_path),mode);
 	}
 

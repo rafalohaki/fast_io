@@ -63,7 +63,9 @@ std::uint32_t dwCreationDisposition{};	//depends on EXCL
 std::uint32_t dwFlagsAndAttributes{};//=128|0x10000000;//FILE_ATTRIBUTE_NORMAL|FILE_FLAG_RANDOM_ACCESS
 };
 
-inline void* win32_create_file_a_impld(wchar_t const* lpFileName,win32_open_mode const& mode)
+template<win32_family family>
+requires (family==win32_family::wide_nt)
+inline void* win32_create_file_impld(wchar_t const* lpFileName,win32_open_mode const& mode)
 {
 	win32::security_attributes sec_attr{sizeof(win32::security_attributes),nullptr,true};
 	auto handle(win32::CreateFileW(lpFileName,
@@ -78,31 +80,49 @@ inline void* win32_create_file_a_impld(wchar_t const* lpFileName,win32_open_mode
 	return handle;
 }
 
-template<std::integral char_type>
+template<win32_family family>
+requires (family==win32_family::ansi_9x)
+inline void* win32_create_file_impld(char const* lpFileName,win32_open_mode const& mode)
+{
+	auto handle(win32::CreateFileA(lpFileName,
+	mode.dwDesiredAccess,
+	mode.dwShareMode,
+	nullptr,//9x kernel does not support security attributes
+	mode.dwCreationDisposition,
+	mode.dwFlagsAndAttributes,
+	nullptr));
+	if(handle==((void*) (std::intptr_t)-1))
+		throw_win32_error();
+	return handle;
+}
+
+template<win32_family family,std::integral char_type>
+#if __has_cpp_attribute(gnu::cold)
+[[gnu::cold]]
+#endif
 inline void* win32_create_file_impl(basic_cstring_view<char_type> path,win32_open_mode const& mode)
 {
-	static_assert(sizeof(wchar_t)==2);
-	if constexpr(std::same_as<char_type,wchar_t>)
+	using family_char_type = std::conditional_t<family==win32_family::wide_nt,wchar_t,char>;
+	if constexpr(std::same_as<char_type,family_char_type>)
+		return win32_create_file_impld<family>(path.data(),mode);
+	else if constexpr(sizeof(char_type)==sizeof(family_char_type))
 	{
-		return win32_create_file_a_impld(path.data(),mode);
-	}
-	else
-	{
-		using wchar_t_may_alias_ptr
+		using family_char_type_may_alias_ptr
 #if __has_cpp_attribute(gnu::may_alias)
 		[[gnu::may_alias]]
 #endif
-		= wchar_t const*;
-		if constexpr(std::same_as<char_type,char16_t>)
-			return win32_create_file_a_impld(reinterpret_cast<wchar_t_may_alias_ptr>(path.data()),mode);
-		else
-		{
-			::fast_io::details::win32_path_dealer dealer(path.data(),path.size());
-			return win32_create_file_a_impld(reinterpret_cast<wchar_t_may_alias_ptr>(dealer.c_str()),mode);
-		}
+		= family_char_type const*;
+		return win32_create_file_impld<family>(reinterpret_cast<family_char_type_may_alias_ptr>(path.data()),mode);
+	}
+	else
+	{
+		win32_family_api_encoding_converter<family> converter(path.data(),path.size());
+		return win32_create_file_impld<family>(converter.native_c_str(),mode);
 	}
 }
-
+#if __has_cpp_attribute(gnu::cold)
+[[gnu::cold]]
+#endif
 inline constexpr win32_open_mode calculate_win32_open_mode(open_mode value,perms pm)
 {
 	win32_open_mode mode;
@@ -776,7 +796,7 @@ public:
 	{}
 
 	explicit basic_win32_family_file(cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-				basic_win32_family_io_handle<family,char_type>(details::win32_create_file_impl(filename,details::calculate_win32_open_mode(om,pm)))
+				basic_win32_family_io_handle<family,char_type>(details::win32_create_file_impl<family>(filename,details::calculate_win32_open_mode(om,pm)))
 
 	{}
 	explicit basic_win32_family_file(nt_at_entry nate,wcstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
@@ -784,7 +804,7 @@ public:
 	{}
 
 	explicit basic_win32_family_file(wcstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-				basic_win32_family_io_handle<family,char_type>(details::win32_create_file_impl(filename,details::calculate_win32_open_mode(om,pm)))
+				basic_win32_family_io_handle<family,char_type>(details::win32_create_file_impl<family>(filename,details::calculate_win32_open_mode(om,pm)))
 	{}
 
 
@@ -793,7 +813,7 @@ public:
 	{}
 
 	explicit basic_win32_family_file(u8cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-				basic_win32_family_io_handle<family,char_type>(details::win32_create_file_impl(filename,details::calculate_win32_open_mode(om,pm)))
+				basic_win32_family_io_handle<family,char_type>(details::win32_create_file_impl<family>(filename,details::calculate_win32_open_mode(om,pm)))
 
 	{}
 	explicit basic_win32_family_file(nt_at_entry nate,u16cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
@@ -801,7 +821,7 @@ public:
 	{}
 
 	explicit basic_win32_family_file(u16cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-				basic_win32_family_io_handle<family,char_type>(details::win32_create_file_impl(filename,details::calculate_win32_open_mode(om,pm)))
+				basic_win32_family_io_handle<family,char_type>(details::win32_create_file_impl<family>(filename,details::calculate_win32_open_mode(om,pm)))
 	{}
 
 
@@ -810,7 +830,7 @@ public:
 	{}
 
 	explicit basic_win32_family_file(u32cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-				basic_win32_family_io_handle<family,char_type>(details::win32_create_file_impl(filename,details::calculate_win32_open_mode(om,pm)))
+				basic_win32_family_io_handle<family,char_type>(details::win32_create_file_impl<family>(filename,details::calculate_win32_open_mode(om,pm)))
 	{}
 
 

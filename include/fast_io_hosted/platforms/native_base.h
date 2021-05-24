@@ -7,22 +7,10 @@
 #include"../../fast_io_crypto/hash/sha_impl.h"
 #endif
 #include"win32/impl.h"
-#include"win32_error.h"
-#include"win32_path_dealer.h"
 
 #if defined(_WIN32) || defined(__CYGWIN__)
 namespace fast_io
 {
-enum class win32_family
-{
-ansi_9x,
-wide_nt,
-#ifdef _WIN32_WINDOWS
-native = ansi_9x
-#else
-native = wide_nt
-#endif
-};
 
 inline constexpr std::uint32_t win32_stdin_number(static_cast<std::uint32_t>(-10));
 inline constexpr std::uint32_t win32_stdout_number(static_cast<std::uint32_t>(-11));
@@ -30,7 +18,7 @@ inline constexpr std::uint32_t win32_stderr_number(static_cast<std::uint32_t>(-1
 
 }
 #endif
-
+#include"win32_error.h"
 #include"nt/impl.h"
 #include"nt_error.h"
 #include"nt.h"
@@ -38,7 +26,6 @@ inline constexpr std::uint32_t win32_stderr_number(static_cast<std::uint32_t>(-1
 #include"win32.h"
 //#include"com_error.h"
 #endif
-#include"posix_path_dealer.h"
 #include"linux/system_call.h"
 #include"posix.h"
 

@@ -1011,17 +1011,14 @@ inline int my_posix_openat_file_impl(int dirfd,basic_cstring_view<char_type> fil
 	{
 		return my_posix_openat_file_internal_impl(dirfd,filepath.c_str(),om,pm);
 	}
-	else if constexpr(std::same_as<char_type,char8_t>)
+	else if constexpr(sizeof(char_type)==1)
 	{
 		return my_posix_openat_file_internal_impl(dirfd,reinterpret_cast<char const*>(filepath.c_str()),om,pm);
 	}
 	else
 	{
-		::fast_io::details::local_operator_new_array_ptr<char8_t> buffer(
-			::fast_io::details::intrinsics::add_or_overflow_die(
-			::fast_io::details::cal_decorated_reserve_size<sizeof(char_type),sizeof(char8_t)>(filepath.size()),1));
-		*::fast_io::details::codecvt::general_code_cvt_full(filepath.data(),filepath.data()+filepath.size(),buffer.ptr)=0;
-		return my_posix_openat_file_internal_impl(dirfd,reinterpret_cast<char const*>(buffer.ptr),om,pm);
+		posix_api_encoding_converter converter(filepath.data(),filepath.size());
+		return my_posix_openat_file_internal_impl(dirfd,converter.native_c_str(),om,pm);
 	}
 }
 
@@ -1038,17 +1035,14 @@ inline int my_posix_open_file_impl(basic_cstring_view<char_type> filepath,open_m
 	{
 		return my_posix_open_file_internal_impl(filepath.c_str(),om,pm);
 	}
-	else if constexpr(std::same_as<char_type,char8_t>)
+	else if constexpr(sizeof(char_type)==1)
 	{
 		return my_posix_open_file_internal_impl(reinterpret_cast<char const*>(filepath.c_str()),om,pm);
 	}
 	else
 	{
-		::fast_io::details::local_operator_new_array_ptr<char8_t> buffer(
-			::fast_io::details::intrinsics::add_or_overflow_die(
-			::fast_io::details::cal_decorated_reserve_size<sizeof(char_type),sizeof(char8_t)>(filepath.size()),1));
-		*::fast_io::details::codecvt::general_code_cvt_full(filepath.data(),filepath.data()+filepath.size(),buffer.ptr)=0;
-		return my_posix_open_file_internal_impl(reinterpret_cast<char const*>(buffer.ptr),om,pm);
+		posix_api_encoding_converter converter(filepath.data(),filepath.size());
+		return my_posix_open_file_internal_impl(converter.native_c_str(),om,pm);
 	}
 #else
 	return my_posix_openat_file_impl(AT_FDCWD,filepath,om,pm);
