@@ -82,9 +82,6 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - Any other platform (if you want me to support it, tell me, including your own OS)
 
 ## Legacy Windows Version Support (need define _WIN32_WINNT and _WIN32_WINDOWS version by yourself)
-- Microsoft Chicago
-- Windows 95
-- Windows 95 Plus!
 - Microsoft Memphis
 - Windows 98 FE
 - Windows 98 SE
