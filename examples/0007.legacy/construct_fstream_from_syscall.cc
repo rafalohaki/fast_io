@@ -67,4 +67,7 @@ This is an example to explain how fast_io's files work with each other, and how 
 /*
 MinGW-w64 needs -lntdll
 g++ -o construct_fstream_from_syscall construct_fstream_from_syscall.cc -Ofast -std=c++20 -s -flto -march=native -lntdll
+
+9x kernel with clang might need
+-Wl,--major-subsystem-version -Wl,4 -Wl,--minor-subsystem-version -Wl,0
 */
