@@ -84,6 +84,7 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - Microsoft Chicago
 - Windows 95
 - Windows 95 Plus!
+- Microsoft Memphis
 - Windows 98 FE
 - Windows 98 SE
 - Windows ME
@@ -107,6 +108,7 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - Microsoft Chicago
 - Windows 95
 - Windows 95 Plus!
+- Microsoft Memphis
 - Windows 98 FE
 - Windows 98 SE
 - Windows ME
