@@ -34,12 +34,8 @@ inline std::size_t win32_load_file_get_file_size(void* handle)
 	}
 }
 
-inline win32_file_loader_return_value_t win32_load_address_impl(void* handle)
+inline win32_file_loader_return_value_t win32_load_address_common_impl(void* hfilemappingobj,std::size_t file_size)
 {
-	std::size_t file_size{win32_load_file_get_file_size(handle)};
-	if(file_size==0)
-		return {nullptr,nullptr};
-	void* hfilemappingobj{CreateFileMappingW(handle,nullptr,0x08,0,0,nullptr)};
 	if(hfilemappingobj==nullptr)
 		throw_win32_error();
 	win32_file map_hd{hfilemappingobj};
@@ -49,24 +45,37 @@ inline win32_file_loader_return_value_t win32_load_address_impl(void* handle)
 	return {reinterpret_cast<char*>(base_ptr),reinterpret_cast<char*>(base_ptr)+file_size};
 }
 
+template<win32_family family>
+inline win32_file_loader_return_value_t win32_load_address_impl(void* handle)
+{
+	std::size_t file_size{win32_load_file_get_file_size(handle)};
+	if(file_size==0)
+		return {nullptr,nullptr};
+	if constexpr(family==win32_family::wide_nt)
+		return win32_load_address_common_impl(CreateFileMappingW(handle,nullptr,0x08,0,0,nullptr),file_size);
+	else
+		return win32_load_address_common_impl(CreateFileMappingA(handle,nullptr,0x08,0,0,nullptr),file_size);
+}
+
+template<win32_family family>
 inline auto win32_load_file_impl(nt_fs_dirent fsdirent,perms pm)
 {
-	win32_file wf(fsdirent,fast_io::open_mode::in,pm);
-	return win32_load_address_impl(wf.handle);
+	basic_win32_family_file<family,char> wf(fsdirent,fast_io::open_mode::in,pm);
+	return win32_load_address_impl<family>(wf.handle);
 }
 
-template<std::integral char_type>
+template<win32_family family,std::integral char_type>
 inline auto win32_load_file_impl(basic_cstring_view<char_type> str,perms pm)
 {
-	win32_file wf(str,fast_io::open_mode::in,pm);
-	return win32_load_address_impl(wf.handle);
+	basic_win32_family_file<family,char> wf(str,fast_io::open_mode::in,pm);
+	return win32_load_address_impl<family>(wf.handle);
 }
 
-template<std::integral char_type>
+template<win32_family family,std::integral char_type>
 inline auto win32_load_file_impl(nt_at_entry ent,basic_cstring_view<char_type> str,perms pm)
 {
-	win32_file wf(ent,str,fast_io::open_mode::in,pm);
-	return win32_load_address_impl(wf.handle);
+	basic_win32_family_file<family,char> wf(ent,str,fast_io::open_mode::in,pm);
+	return win32_load_address_impl<family>(wf.handle);
 }
 
 inline void win32_unload_address(void const* address) noexcept
@@ -77,7 +86,8 @@ inline void win32_unload_address(void const* address) noexcept
 
 }
 
-class win32_file_loader
+template<win32_family family>
+class win32_family_file_loader
 {
 public:
 	using value_type = char;
@@ -94,86 +104,86 @@ public:
 
 	pointer address_start{};
 	pointer address_end{};
-	inline constexpr win32_file_loader() noexcept=default;
-	inline explicit win32_file_loader(win32_io_observer wiob)
+	inline constexpr win32_family_file_loader() noexcept=default;
+	inline explicit win32_family_file_loader(basic_win32_family_io_observer<family,char> wiob)
 	{
-		auto ret{win32::details::win32_load_address_impl(wiob.handle)};
+		auto ret{win32::details::win32_load_address_impl<family>(wiob.handle)};
 		address_start=ret.address_start;
 		address_end=ret.address_end;
 	}
-	inline explicit win32_file_loader(nt_fs_dirent fsdirent,perms pm=static_cast<perms>(436))
+	inline explicit win32_family_file_loader(nt_fs_dirent fsdirent,perms pm=static_cast<perms>(436))
 	{
-		auto ret{win32::details::win32_load_file_impl(fsdirent,pm)};
+		auto ret{win32::details::win32_load_file_impl<family>(fsdirent,pm)};
 		address_start=ret.address_start;
 		address_end=ret.address_end;
 	}
-	inline explicit win32_file_loader(cstring_view filename,perms pm=static_cast<perms>(436))
+	inline explicit win32_family_file_loader(cstring_view filename,perms pm=static_cast<perms>(436))
 	{
-		auto ret{win32::details::win32_load_file_impl(filename,pm)};
+		auto ret{win32::details::win32_load_file_impl<family>(filename,pm)};
 		address_start=ret.address_start;
 		address_end=ret.address_end;
 	}
-	inline explicit win32_file_loader(wcstring_view filename,perms pm=static_cast<perms>(436))
+	inline explicit win32_family_file_loader(wcstring_view filename,perms pm=static_cast<perms>(436))
 	{
-		auto ret{win32::details::win32_load_file_impl(filename,pm)};
+		auto ret{win32::details::win32_load_file_impl<family>(filename,pm)};
 		address_start=ret.address_start;
 		address_end=ret.address_end;
 	}
-	inline explicit win32_file_loader(u8cstring_view filename,perms pm=static_cast<perms>(436))
+	inline explicit win32_family_file_loader(u8cstring_view filename,perms pm=static_cast<perms>(436))
 	{
-		auto ret{win32::details::win32_load_file_impl(filename,pm)};
+		auto ret{win32::details::win32_load_file_impl<family>(filename,pm)};
 		address_start=ret.address_start;
 		address_end=ret.address_end;
 	}
-	inline explicit win32_file_loader(u16cstring_view filename,perms pm=static_cast<perms>(436))
+	inline explicit win32_family_file_loader(u16cstring_view filename,perms pm=static_cast<perms>(436))
 	{
-		auto ret{win32::details::win32_load_file_impl(filename,pm)};
+		auto ret{win32::details::win32_load_file_impl<family>(filename,pm)};
 		address_start=ret.address_start;
 		address_end=ret.address_end;
 	}
-	inline explicit win32_file_loader(u32cstring_view filename,perms pm=static_cast<perms>(436))
+	inline explicit win32_family_file_loader(u32cstring_view filename,perms pm=static_cast<perms>(436))
 	{
-		auto ret{win32::details::win32_load_file_impl(filename,pm)};
+		auto ret{win32::details::win32_load_file_impl<family>(filename,pm)};
 		address_start=ret.address_start;
 		address_end=ret.address_end;
 	}
-	inline explicit win32_file_loader(nt_at_entry ent,cstring_view filename,perms pm=static_cast<perms>(436))
+	inline explicit win32_family_file_loader(nt_at_entry ent,cstring_view filename,perms pm=static_cast<perms>(436))
 	{
-		auto ret{win32::details::win32_load_file_impl(ent,filename,pm)};
+		auto ret{win32::details::win32_load_file_impl<family>(ent,filename,pm)};
 		address_start=ret.address_start;
 		address_end=ret.address_end;
 	}
-	inline explicit win32_file_loader(nt_at_entry ent,wcstring_view filename,perms pm=static_cast<perms>(436))
+	inline explicit win32_family_file_loader(nt_at_entry ent,wcstring_view filename,perms pm=static_cast<perms>(436))
 	{
-		auto ret{win32::details::win32_load_file_impl(ent,filename,pm)};
+		auto ret{win32::details::win32_load_file_impl<family>(ent,filename,pm)};
 		address_start=ret.address_start;
 		address_end=ret.address_end;
 	}
-	inline explicit win32_file_loader(nt_at_entry ent,u8cstring_view filename,perms pm=static_cast<perms>(436))
+	inline explicit win32_family_file_loader(nt_at_entry ent,u8cstring_view filename,perms pm=static_cast<perms>(436))
 	{
-		auto ret{win32::details::win32_load_file_impl(ent,filename,pm)};
+		auto ret{win32::details::win32_load_file_impl<family>(ent,filename,pm)};
 		address_start=ret.address_start;
 		address_end=ret.address_end;
 	}
-	inline explicit win32_file_loader(nt_at_entry ent,u16cstring_view filename,perms pm=static_cast<perms>(436))
+	inline explicit win32_family_file_loader(nt_at_entry ent,u16cstring_view filename,perms pm=static_cast<perms>(436))
 	{
-		auto ret{win32::details::win32_load_file_impl(ent,filename,pm)};
+		auto ret{win32::details::win32_load_file_impl<family>(ent,filename,pm)};
 		address_start=ret.address_start;
 		address_end=ret.address_end;
 	}
-	inline explicit win32_file_loader(nt_at_entry ent,u32cstring_view filename,perms pm=static_cast<perms>(436))
+	inline explicit win32_family_file_loader(nt_at_entry ent,u32cstring_view filename,perms pm=static_cast<perms>(436))
 	{
-		auto ret{win32::details::win32_load_file_impl(ent,filename,pm)};
+		auto ret{win32::details::win32_load_file_impl<family>(ent,filename,pm)};
 		address_start=ret.address_start;
 		address_end=ret.address_end;
 	}
-	win32_file_loader(win32_file_loader const&)=delete;
-	win32_file_loader& operator=(win32_file_loader const&)=delete;
-	constexpr win32_file_loader(win32_file_loader&& other) noexcept:address_start(other.address_start),address_end(other.address_end)
+	win32_family_file_loader(win32_family_file_loader const&)=delete;
+	win32_family_file_loader& operator=(win32_family_file_loader const&)=delete;
+	constexpr win32_family_file_loader(win32_family_file_loader&& other) noexcept:address_start(other.address_start),address_end(other.address_end)
 	{
 		other.address_end=other.address_start=nullptr;
 	}
-	win32_file_loader& operator=(win32_file_loader && other) noexcept
+	win32_family_file_loader& operator=(win32_family_file_loader && other) noexcept
 	{
 		if(__builtin_addressof(other)==this)
 			return *this;
@@ -275,16 +285,20 @@ public:
 	{
 		return ::fast_io::freestanding::string_view(address_start,static_cast<std::size_t>(address_end-address_start));
 	}
-	~win32_file_loader()
+	~win32_family_file_loader()
 	{
 		win32::details::win32_unload_address(address_start);
 	}
 };
 
-
-inline constexpr basic_io_scatter_t<char> print_alias_define(io_alias_t,win32_file_loader const& load) noexcept
+template<win32_family family>
+inline constexpr basic_io_scatter_t<char> print_alias_define(io_alias_t,win32_family_file_loader<family> const& load) noexcept
 {
 	return {load.data(),load.size()};
 }
+
+using win32_file_loader_9xa=win32_family_file_loader<win32_family::ansi_9x>;
+using win32_file_loader_ntw=win32_family_file_loader<win32_family::wide_nt>;
+using win32_file_loader=win32_family_file_loader<win32_family::native>;
 
 }
