@@ -60,7 +60,7 @@ inline constexpr Iter print_reserve_nt_error_impl(Iter iter,std::uint32_t ntstat
 	else
 		*iter=u8']';
 	++iter;
-	return print_reserve_define_win32_error_impl(iter,win32::nt::rtl_nt_status_to_dos_error(ntstatus));
+	return print_reserve_define_win32_error_impl<win32_family::wide_nt>(iter,win32::nt::rtl_nt_status_to_dos_error(ntstatus));
 }
 
 }

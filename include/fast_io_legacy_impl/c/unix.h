@@ -198,8 +198,8 @@ extern int newlib_ssrefill_r(struct _reent * __restrict,std::FILE * __restrict) 
 #elif defined(__BSD_VISIBLE) ||defined(__DARWIN_C_LEVEL)
 extern int bsd_srget(std::FILE *) noexcept asm("__srget");
 #elif defined(__MSDOS__)
-extern int _filbuf(std::FILE *) noexcept asm("_filbuf");
-extern int _flsbuf(int, std::FILE*) noexcept asm("_flsbuf");
+extern int _filbuf(std::FILE *) noexcept asm("__filbuf");
+extern int _flsbuf(int, std::FILE*) noexcept asm("__flsbuf");
 #elif defined(_MSC_VER)
 //extern "C" int __cdecl __acrt_stdio_refill_and_read_narrow_nolock(FILE*);
 #endif
