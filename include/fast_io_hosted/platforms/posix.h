@@ -1072,7 +1072,8 @@ public:
 	{}
 #if defined(_WIN32)
 //windows specific. open posix file from win32 io handle
-	basic_posix_file(basic_win32_io_handle<char_type>&& hd,open_mode m):
+	template<win32_family family>
+	basic_posix_file(basic_win32_family_io_handle<family,char_type>&& hd,open_mode m):
 		basic_posix_io_handle<char_type>{details::open_fd_from_handle<ch_type>(hd.handle,m)}
 	{
 		hd.release();

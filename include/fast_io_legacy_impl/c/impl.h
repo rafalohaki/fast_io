@@ -940,7 +940,8 @@ public:
 
 #ifdef _WIN32
 //windows specific. open posix file from win32 io handle
-	basic_c_file_impl(basic_win32_io_handle<char_type>&& win32_handle,open_mode om):
+	template<win32_family family>
+	basic_c_file_impl(basic_win32_family_io_handle<family,char_type>&& win32_handle,open_mode om):
 		basic_c_file_impl(basic_posix_file<char_type>(std::move(win32_handle),om),to_native_c_mode(om))
 	{
 	}
