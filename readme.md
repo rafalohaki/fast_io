@@ -105,7 +105,7 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - Windows Server 2015
 
 ## Windows 95 or 95 Plus! Support
-You can only enable -O2. Do not enable -Ofast or -O3 since Win 95 does not recognize any SIMD instructions.
+Do not enable -Ofast.
 Also need to install msvcrt.dll
 
 ## Legacy Windows Version Support with DJGPP toolchain
