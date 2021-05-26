@@ -110,7 +110,7 @@ inline void posix_unload_address(void* address,[[maybe_unused]] std::size_t file
 
 struct posix_file_loader_return_value_t
 {
-	char* address_start;
+	char* address_begin;
 	char* address_end;
 };
 
@@ -160,126 +160,126 @@ public:
 	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 	using reverse_iterator = std::reverse_iterator<iterator>;
 
-	pointer address_start{};
+	pointer address_begin{};
 	pointer address_end{};
 	inline constexpr posix_file_loader_impl() noexcept=default;
 	inline explicit posix_file_loader_impl(posix_io_observer piob)
 	{
 		auto ret{posix_load_address_impl<allocation>(piob.fd)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	inline explicit posix_file_loader_impl(native_fs_dirent fsdirent,perms pm=static_cast<perms>(436))
 	{
 		auto ret{posix_load_file_impl<allocation>(fsdirent,pm)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	inline explicit posix_file_loader_impl(cstring_view filename,perms pm=static_cast<perms>(436))
 	{
 		auto ret{posix_load_file_impl<allocation>(filename,pm)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	inline explicit posix_file_loader_impl(wcstring_view filename,perms pm=static_cast<perms>(436))
 	{
 		auto ret{posix_load_file_impl<allocation>(filename,pm)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	inline explicit posix_file_loader_impl(u8cstring_view filename,perms pm=static_cast<perms>(436))
 	{
 		auto ret{posix_load_file_impl<allocation>(filename,pm)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	inline explicit posix_file_loader_impl(u16cstring_view filename,perms pm=static_cast<perms>(436))
 	{
 		auto ret{posix_load_file_impl<allocation>(filename,pm)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	inline explicit posix_file_loader_impl(u32cstring_view filename,perms pm=static_cast<perms>(436))
 	{
 		auto ret{posix_load_file_impl<allocation>(filename,pm)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	inline explicit posix_file_loader_impl(posix_at_entry ent,cstring_view filename,perms pm=static_cast<perms>(436))
 	{
 		auto ret{posix_load_file_impl<allocation>(ent,filename,pm)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	inline explicit posix_file_loader_impl(posix_at_entry ent,wcstring_view filename,perms pm=static_cast<perms>(436))
 	{
 		auto ret{posix_load_file_impl<allocation>(ent,filename,pm)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	inline explicit posix_file_loader_impl(posix_at_entry ent,u8cstring_view filename,perms pm=static_cast<perms>(436))
 	{
 		auto ret{posix_load_file_impl<allocation>(ent,filename,pm)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	inline explicit posix_file_loader_impl(posix_at_entry ent,u16cstring_view filename,perms pm=static_cast<perms>(436))
 	{
 		auto ret{posix_load_file_impl<allocation>(ent,filename,pm)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	inline explicit posix_file_loader_impl(posix_at_entry ent,u32cstring_view filename,perms pm=static_cast<perms>(436))
 	{
 		auto ret{posix_load_file_impl<allocation>(ent,filename,pm)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	posix_file_loader_impl(posix_file_loader_impl const&)=delete;
 	posix_file_loader_impl& operator=(posix_file_loader_impl const&)=delete;
-	constexpr posix_file_loader_impl(posix_file_loader_impl&& other) noexcept:address_start(other.address_start),address_end(other.address_end)
+	constexpr posix_file_loader_impl(posix_file_loader_impl&& other) noexcept:address_begin(other.address_begin),address_end(other.address_end)
 	{
 		if constexpr(allocation)
-			other.address_end=other.address_start=nullptr;
+			other.address_end=other.address_begin=nullptr;
 		else
-			other.address_end=other.address_start=(void*)-1;
+			other.address_end=other.address_begin=(void*)-1;
 	}
 	posix_file_loader_impl& operator=(posix_file_loader_impl && other) noexcept
 	{
 		if(__builtin_addressof(other)==this)
 			return *this;
-		posix_unload_address<allocation>(address_start,static_cast<std::size_t>(address_end-address_start));
-		address_start=other.address_start;
+		posix_unload_address<allocation>(address_begin,static_cast<std::size_t>(address_end-address_begin));
+		address_begin=other.address_begin;
 		address_end=other.address_end;
 		if constexpr(allocation)
-			other.address_end=other.address_start=nullptr;
+			other.address_end=other.address_begin=nullptr;
 		else
-			other.address_end=other.address_start=(void*)-1;
+			other.address_end=other.address_begin=(void*)-1;
 		return *this;
 	}
-	constexpr char const* data() const noexcept
+	constexpr pointer data() const noexcept
 	{
-		return address_start;
+		return address_begin;
 	}
 	constexpr bool empty() const noexcept
 	{
-		return address_start==address_end;
+		return address_begin==address_end;
 	}
 	constexpr std::size_t size() const noexcept
 	{
-		return static_cast<std::size_t>(address_end-address_start);
+		return static_cast<std::size_t>(address_end-address_begin);
 	}
 	constexpr const_iterator cbegin() const noexcept
 	{
-		return address_start;
+		return address_begin;
 	}
 	constexpr const_iterator begin() const noexcept
 	{
-		return address_start;
+		return address_begin;
 	}
 	constexpr iterator begin() noexcept
 	{
-		return address_start;
+		return address_begin;
 	}
 	constexpr const_iterator cend() const noexcept
 	{
@@ -311,23 +311,23 @@ public:
 	}
 	constexpr const_reverse_iterator crend() const noexcept
 	{
-		return const_reverse_iterator{address_start};
+		return const_reverse_iterator{address_begin};
 	}
 	constexpr reverse_iterator rend() noexcept
 	{
-		return reverse_iterator{address_start};
+		return reverse_iterator{address_begin};
 	}
 	constexpr const_reverse_iterator rend() const noexcept
 	{
-		return const_reverse_iterator{address_start};
+		return const_reverse_iterator{address_begin};
 	}
 	constexpr const_reference front() const noexcept
 	{
-		return *address_start;
+		return *address_begin;
 	}
 	constexpr reference front() noexcept
 	{
-		return *address_start;
+		return *address_begin;
 	}
 	constexpr const_reference back() const noexcept
 	{
@@ -339,19 +339,15 @@ public:
 	}
 	inline constexpr reference operator[](size_type size) noexcept
 	{
-		return address_start[size];
+		return address_begin[size];
 	}
 	inline constexpr const_reference operator[](size_type size) const noexcept
 	{
-		return address_start[size];
-	}
-	explicit constexpr operator ::fast_io::freestanding::string_view() noexcept
-	{
-		return ::fast_io::freestanding::string_view(address_start,static_cast<std::size_t>(address_end-address_start));
+		return address_begin[size];
 	}
 	~posix_file_loader_impl()
 	{
-		posix_unload_address<allocation>(address_start,address_end-address_start);
+		posix_unload_address<allocation>(address_begin,address_end-address_begin);
 	}
 };
 

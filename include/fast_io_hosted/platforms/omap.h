@@ -10,7 +10,7 @@ public:
 	using char_type = ch_type;
 	char_type *begin_ptr{},*curr_ptr{},*end_ptr{};
 	constexpr basic_omemory_map() = default;
-	basic_omemory_map(native_memory_map_io_observer iob,std::size_t offset=0):begin_ptr(reinterpret_cast<char_type*>(iob.address_begin+offset)),curr_ptr(begin_ptr),end_ptr(begin_ptr+iob.bytes()/sizeof(char_type)){}
+	constexpr basic_omemory_map(native_memory_map_file const& iob,std::size_t offset=0):begin_ptr(reinterpret_cast<char_type*>(iob.address_begin+offset)),curr_ptr(begin_ptr),end_ptr(begin_ptr+iob.size()/sizeof(char_type)){}
 
 	constexpr std::size_t written_bytes() const noexcept
 	{
@@ -78,7 +78,7 @@ public:
 	using char_type = ch_type;
 	char_type *begin_ptr{},*curr_ptr{},*end_ptr{};
 	constexpr basic_imemory_map() = default;
-	basic_imemory_map(native_memory_map_io_observer iob,std::size_t offset=0):begin_ptr(reinterpret_cast<char_type*>(iob.address_begin+offset)),curr_ptr(this->begin_ptr),end_ptr(this->begin_ptr+iob.bytes()/sizeof(char_type)){}
+	constexpr basic_imemory_map(native_memory_map_file const& iob,std::size_t offset=0):begin_ptr(reinterpret_cast<char_type*>(iob.address_begin+offset)),curr_ptr(this->begin_ptr),end_ptr(this->begin_ptr+iob.size()/sizeof(char_type)){}
 };
 
 template<std::integral char_type,::fast_io::freestanding::contiguous_iterator Iter>

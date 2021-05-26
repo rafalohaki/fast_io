@@ -8,7 +8,7 @@ namespace win32::details
 
 struct win32_file_loader_return_value_t
 {
-	char* address_start;
+	char* address_begin;
 	char* address_end;
 };
 
@@ -102,108 +102,108 @@ public:
 	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 	using reverse_iterator = std::reverse_iterator<iterator>;
 
-	pointer address_start{};
+	pointer address_begin{};
 	pointer address_end{};
 	inline constexpr win32_family_file_loader() noexcept=default;
 	inline explicit win32_family_file_loader(basic_win32_family_io_observer<family,char> wiob)
 	{
 		auto ret{win32::details::win32_load_address_impl<family>(wiob.handle)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	inline explicit win32_family_file_loader(nt_fs_dirent fsdirent,perms pm=static_cast<perms>(436))
 	{
 		auto ret{win32::details::win32_load_file_impl<family>(fsdirent,pm)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	inline explicit win32_family_file_loader(cstring_view filename,perms pm=static_cast<perms>(436))
 	{
 		auto ret{win32::details::win32_load_file_impl<family>(filename,pm)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	inline explicit win32_family_file_loader(wcstring_view filename,perms pm=static_cast<perms>(436))
 	{
 		auto ret{win32::details::win32_load_file_impl<family>(filename,pm)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	inline explicit win32_family_file_loader(u8cstring_view filename,perms pm=static_cast<perms>(436))
 	{
 		auto ret{win32::details::win32_load_file_impl<family>(filename,pm)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	inline explicit win32_family_file_loader(u16cstring_view filename,perms pm=static_cast<perms>(436))
 	{
 		auto ret{win32::details::win32_load_file_impl<family>(filename,pm)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	inline explicit win32_family_file_loader(u32cstring_view filename,perms pm=static_cast<perms>(436))
 	{
 		auto ret{win32::details::win32_load_file_impl<family>(filename,pm)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	inline explicit win32_family_file_loader(nt_at_entry ent,cstring_view filename,perms pm=static_cast<perms>(436))
 	{
 		auto ret{win32::details::win32_load_file_impl<family>(ent,filename,pm)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	inline explicit win32_family_file_loader(nt_at_entry ent,wcstring_view filename,perms pm=static_cast<perms>(436))
 	{
 		auto ret{win32::details::win32_load_file_impl<family>(ent,filename,pm)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	inline explicit win32_family_file_loader(nt_at_entry ent,u8cstring_view filename,perms pm=static_cast<perms>(436))
 	{
 		auto ret{win32::details::win32_load_file_impl<family>(ent,filename,pm)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	inline explicit win32_family_file_loader(nt_at_entry ent,u16cstring_view filename,perms pm=static_cast<perms>(436))
 	{
 		auto ret{win32::details::win32_load_file_impl<family>(ent,filename,pm)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	inline explicit win32_family_file_loader(nt_at_entry ent,u32cstring_view filename,perms pm=static_cast<perms>(436))
 	{
 		auto ret{win32::details::win32_load_file_impl<family>(ent,filename,pm)};
-		address_start=ret.address_start;
+		address_begin=ret.address_begin;
 		address_end=ret.address_end;
 	}
 	win32_family_file_loader(win32_family_file_loader const&)=delete;
 	win32_family_file_loader& operator=(win32_family_file_loader const&)=delete;
-	constexpr win32_family_file_loader(win32_family_file_loader&& other) noexcept:address_start(other.address_start),address_end(other.address_end)
+	constexpr win32_family_file_loader(win32_family_file_loader&& other) noexcept:address_begin(other.address_begin),address_end(other.address_end)
 	{
-		other.address_end=other.address_start=nullptr;
+		other.address_end=other.address_begin=nullptr;
 	}
 	win32_family_file_loader& operator=(win32_family_file_loader && other) noexcept
 	{
 		if(__builtin_addressof(other)==this)
 			return *this;
-		win32::details::win32_unload_address(address_start);
-		address_start=other.address_start;
+		win32::details::win32_unload_address(address_begin);
+		address_begin=other.address_begin;
 		address_end=other.address_end;
-		other.address_end=other.address_start=nullptr;
+		other.address_end=other.address_begin=nullptr;
 		return *this;
 	}
-	constexpr char const* data() const noexcept
+	constexpr pointer data() const noexcept
 	{
-		return address_start;
+		return address_begin;
 	}
 	constexpr bool empty() const noexcept
 	{
-		return address_start==address_end;
+		return address_begin==address_end;
 	}
 	constexpr std::size_t size() const noexcept
 	{
-		return static_cast<std::size_t>(address_end-address_start);
+		return static_cast<std::size_t>(address_end-address_begin);
 	}
 	constexpr std::size_t max_size() const noexcept
 	{
@@ -211,15 +211,15 @@ public:
 	}
 	constexpr const_iterator cbegin() const noexcept
 	{
-		return address_start;
+		return address_begin;
 	}
 	constexpr const_iterator begin() const noexcept
 	{
-		return address_start;
+		return address_begin;
 	}
 	constexpr iterator begin() noexcept
 	{
-		return address_start;
+		return address_begin;
 	}
 	constexpr const_iterator cend() const noexcept
 	{
@@ -247,23 +247,23 @@ public:
 	}
 	constexpr const_reverse_iterator crend() const noexcept
 	{
-		return const_reverse_iterator{address_start};
+		return const_reverse_iterator{address_begin};
 	}
 	constexpr reverse_iterator rend() noexcept
 	{
-		return reverse_iterator{address_start};
+		return reverse_iterator{address_begin};
 	}
 	constexpr const_reverse_iterator rend() const noexcept
 	{
-		return const_reverse_iterator{address_start};
+		return const_reverse_iterator{address_begin};
 	}
 	constexpr const_reference front() const noexcept
 	{
-		return *address_start;
+		return *address_begin;
 	}
 	constexpr reference front() noexcept
 	{
-		return *address_start;
+		return *address_begin;
 	}
 	constexpr const_reference back() const noexcept
 	{
@@ -275,19 +275,15 @@ public:
 	}
 	inline constexpr reference operator[](size_type size) noexcept
 	{
-		return address_start[size];
+		return address_begin[size];
 	}
 	inline constexpr const_reference operator[](size_type size) const noexcept
 	{
-		return address_start[size];
-	}
-	explicit constexpr operator ::fast_io::freestanding::string_view() noexcept
-	{
-		return ::fast_io::freestanding::string_view(address_start,static_cast<std::size_t>(address_end-address_start));
+		return address_begin[size];
 	}
 	~win32_family_file_loader()
 	{
-		win32::details::win32_unload_address(address_start);
+		win32::details::win32_unload_address(address_begin);
 	}
 };
 
