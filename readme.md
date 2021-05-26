@@ -82,6 +82,9 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - Any other platform (if you want me to support it, tell me, including your own OS)
 
 ## Legacy Windows Version Support (need define _WIN32_WINNT and _WIN32_WINDOWS version by yourself)
+- Windows 95
+- Windows 95 Plus!
+- Windows Nashville
 - Microsoft Memphis
 - Windows 98 FE
 - Windows 98 SE
@@ -100,6 +103,10 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - Windows 8.1
 - Windows Server 2012
 - Windows Server 2015
+
+## Windows 95 or 95 Plus! Support
+You can only enable -O2. Do not enable -Ofast or -O3 since Win 95 does not recognize any SIMD instructions.
+Also need to install msvcrt.dll
 
 ## Legacy Windows Version Support with DJGPP toolchain
 - Windows 1.0
