@@ -105,7 +105,7 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - Windows Server 2015
 
 ## Windows 95 or 95 Plus! Support
-Do not enable -Ofast.
+You can enable -O3 but you cannot not enable -Ofast.
 Also need to install msvcrt.dll
 
 ## Legacy Windows Version Support with DJGPP toolchain
