@@ -504,17 +504,17 @@ struct file_lock_guard
 	}
 };
 
-inline io_scatter_status_t scatter_read_impl(void* __restrict handle,io_scatters_t sp)
+inline io_scatter_status_t scatter_read_impl(void* __restrict handle,io_scatter_t const* scatters,std::size_t n)
 {
 	std::size_t total_size{};
-	for(std::size_t i{};i!=sp.len;++i)
+	for(std::size_t i{};i!=n;++i)
 	{
-		std::size_t pos_in_span{read_impl(handle,const_cast<void*>(sp.base[i].base),sp.base[i].len)};
+		std::size_t pos_in_span{read_impl(handle,const_cast<void*>(scatters[i].base),scatters[i].len)};
 		total_size+=pos_in_span;
-		if(pos_in_span<sp.base[i].len)[[unlikely]]
+		if(pos_in_span<scatters[i].len)[[unlikely]]
 			return {total_size,i,pos_in_span};
 	}
-	return {total_size,sp.len,0};
+	return {total_size,n,0};
 }
 
 inline std::uint32_t write_simple_impl(void* __restrict handle,void const* __restrict cbegin,std::size_t to_write)
@@ -634,7 +634,7 @@ inline std::uintmax_t seek_impl(void* handle,std::intmax_t offset,seekdir s)
 	return distance_to_move_high;
 }
 
-inline io_scatter_status_t scatter_write_impl(void* __restrict handle,io_scatters_t sp)
+inline io_scatter_status_t scatter_write_impl(void* __restrict handle,io_scatter_t const* scatters,std::size_t n)
 {
 	win32::overlapped overlap{};
 	file_lock_guard gd{
@@ -643,14 +643,14 @@ inline io_scatter_status_t scatter_write_impl(void* __restrict handle,io_scatter
 		reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))
 	};
 	std::size_t total_size{};
-	for(std::size_t i{};i!=sp.len;++i)
+	for(std::size_t i{};i!=n;++i)
 	{
-		std::size_t written{write_nolock_impl(handle,sp.base[i].base,sp.base[i].len)};
+		std::size_t written{write_nolock_impl(handle,scatters[i].base,scatters[i].len)};
 		total_size+=written;
-		if(sp.base[i].len<written)[[unlikely]]
+		if(scatters[i].len<written)[[unlikely]]
 			return {total_size,i,written};
 	}
-	return {total_size,sp.len,0};
+	return {total_size,n,0};
 }
 
 
@@ -677,13 +677,13 @@ inline Iter write(basic_win32_family_io_observer<family,ch_type> handle,Iter cbe
 template<win32_family family,std::integral ch_type>
 inline io_scatter_status_t scatter_read(basic_win32_family_io_observer<family,ch_type> handle,io_scatters_t sp)
 {
-	return win32::details::scatter_read_impl(handle.handle,sp);
+	return win32::details::scatter_read_impl(handle.handle,sp.base,sp.len);
 }
 
 template<win32_family family,std::integral ch_type>
 inline io_scatter_status_t scatter_write(basic_win32_family_io_observer<family,ch_type> handle,io_scatters_t sp)
 {
-	return win32::details::scatter_write_impl(handle.handle,sp);
+	return win32::details::scatter_write_impl(handle.handle,sp.base,sp.len);
 }
 #if 0
 template<win32_family family,std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
