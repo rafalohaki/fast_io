@@ -2,10 +2,9 @@
 
 int main(int argc,char** argv)
 {
-	using namespace fast_io::mnp;
 	if(argc!=2)
 	{
-		perr("Usage: ",chvw(*argv)," <file>\n");
+		perr("Usage: ",fast_io::mnp::chvw(*argv)," <file>\n");
 		return 1;
 	}
 	fast_io::native_file_loader loader(argv[1]);

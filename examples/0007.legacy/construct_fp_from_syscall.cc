@@ -1,5 +1,4 @@
 #include<fast_io_legacy.h>
-#include<fstream>
 
 int main()
 {
@@ -20,12 +19,13 @@ This is an example to explain how fast_io's files work with each other, and how 
 	fast_io::posix_file pf("posix_file.txt",fast_io::open_mode::out);
 #endif
 	fast_io::c_file cf(std::move(pf),fast_io::open_mode::out);
-	fast_io::filebuf_file fbf(std::move(cf),fast_io::open_mode::out);
-	std::ofstream fout;
-	*fout.rdbuf()=std::move(*fbf.fb);
-	fast_io::filebuf_io_observer fiob{fout.rdbuf()};
-	fout<<"Hello World from std::ofstream\n";
-	print(fiob,"Hello World from fast_io::filebuf_io_observer\n");
+	fprintf(cf.fp,"%s","Hello World from fprintf\n");
+/*
+do not write
+	fprintf(cf.fp,"Hello World from fprintf\n");
+This potentially contains format string vuln.
+*/
+	print(cf,"Hello World from fast_io::c_file\n");
 	fast_io::posix_tzset();
 	auto unix_ts{fast_io::posix_clock_gettime(fast_io::posix_clock_id::realtime)};
 	println(
@@ -51,24 +51,23 @@ This is an example to explain how fast_io's files work with each other, and how 
 #else
 	"Unknown C++ standard library\n"
 #endif
-	"fstream.rdbuf():",fiob.fb,"\n"
-	"FILE*:",static_cast<fast_io::c_io_observer>(fiob).fp,"\n"
-	"fd:",static_cast<fast_io::posix_io_observer>(fiob).fd
+	"FILE*:",static_cast<fast_io::c_io_observer>(cf).fp,"\n"
+	"fd:",static_cast<fast_io::posix_io_observer>(cf).fd
 #ifdef _WIN32
 	,"\n"
-	"win32 HANDLE:",static_cast<fast_io::win32_io_observer>(fiob).handle
+	"win32 HANDLE:",static_cast<fast_io::win32_io_observer>(cf).handle
 #ifndef _WIN32_WINDOWS
 //NT kernel
 	,"\n"
-	"zw HANDLE:",static_cast<fast_io::zw_io_observer>(fiob).handle,"\n"
-	"nt HANDLE:",static_cast<fast_io::nt_io_observer>(fiob).handle
+	"zw HANDLE:",static_cast<fast_io::zw_io_observer>(cf).handle,"\n"
+	"nt HANDLE:",static_cast<fast_io::nt_io_observer>(cf).handle
 #endif
 #endif
 );
 }
 /*
 MinGW-w64 needs -lntdll
-g++ -o construct_fstream_from_syscall construct_fstream_from_syscall.cc -Ofast -std=c++20 -s -flto -march=native -lntdll
+g++ -o construct_fp_from_syscall construct_fp_from_syscall.cc -Ofast -std=c++20 -s -flto -march=native -lntdll
 
 9x kernel with clang might need
 -Wl,--major-subsystem-version -Wl,4 -Wl,--minor-subsystem-version -Wl,0 -D_WIN32_WINDOWS=0x0400 -DWINVER=0x0400
