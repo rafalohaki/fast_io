@@ -72,10 +72,10 @@ public:
 	using reverse_iterator = std::reverse_iterator<iterator>;
 	pointer address_begin{},address_end{};
 	constexpr posix_memory_map_file()=default;
-	constexpr posix_memory_map_file(std::byte* addbg,std::byte* added):posix_memory_map_io_observer{addbg,added}
+	constexpr posix_memory_map_file(std::byte* addbg,std::byte* added):address_begin{addbg},address_end{added}
 	{}
 	posix_memory_map_file(posix_at_entry bf,file_map_attribute attr,std::size_t bytes,std::uintmax_t start_address=0)
-		:posix_memory_map_io_observer{reinterpret_cast<std::byte*>(mmap64(nullptr,bytes,static_cast<int>(to_posix_file_map_attribute(attr)),MAP_SHARED,bf.native_handle(),start_address))}
+		:address_begin{reinterpret_cast<std::byte*>(mmap64(nullptr,bytes,static_cast<int>(to_posix_file_map_attribute(attr)),MAP_SHARED,bf.fd,start_address))}
 	{
 		if(this->address_begin==MAP_FAILED)[[unlikely]]
 			throw_posix_error();
@@ -83,7 +83,7 @@ public:
 	}
 	posix_memory_map_file(posix_memory_map_file const&)=delete;
 	posix_memory_map_file& operator=(posix_memory_map_file const&)=delete;
-	posix_memory_map_file(posix_memory_map_file&& other) noexcept:posix_memory_map_io_observer{other.address_begin,other.address_end}
+	posix_memory_map_file(posix_memory_map_file&& other) noexcept:address_begin{other.address_begin},address_end{other.address_end}
 	{
 		other.address_end=other.address_begin=reinterpret_cast<std::byte*>(MAP_FAILED);
 	}
@@ -92,7 +92,7 @@ public:
 		if(__builtin_addressof(other)==this)
 			return *this;
 		if(this->address_begin!=reinterpret_cast<std::byte*>(MAP_FAILED))[[likely]]
-			munmap(this->address_begin,this->bytes());
+			munmap(this->address_begin,this->size());
 		this->address_begin=other.address_begin;
 		this->address_end=other.address_end;
 		other.address_begin=reinterpret_cast<std::byte*>(MAP_FAILED);
@@ -179,26 +179,26 @@ public:
 	{
 		return address_end[-1];
 	}
-	constexpr reference operator[](size_type size) noexcept
+	constexpr reference operator[](size_type pos) noexcept
 	{
-		return address_begin[size];
+		return address_begin[pos];
 	}
-	constexpr const_reference operator[](size_type size) const noexcept
+	constexpr const_reference operator[](size_type pos) const noexcept
 	{
-		return address_begin[size];
+		return address_begin[pos];
 	}
 	void close() noexcept
 	{
 		if(this->address_begin!=MAP_FAILED)[[likely]]
 		{
-			munmap(this->address_begin,this->bytes());
-			this->address_begin=reinterpret_cast<std::byte*>(MAP_FAILED);
+			munmap(this->address_begin,size());
+			this->address_end=this->address_begin=reinterpret_cast<std::byte*>(MAP_FAILED);
 		}
 	}
 	~posix_memory_map_file()
 	{
 		if(this->address_begin!=MAP_FAILED)[[likely]]
-			munmap(this->address_begin,this->bytes());
+			munmap(this->address_begin,size());
 	}
 };
 
