@@ -73,19 +73,18 @@ inline char* posix_load_address(int fd,std::size_t file_size)
 	}
 	else
 	{
-#if defined(_WIN32) || (defined(__NEWLIB__)&&!defined(__CYGWIN__)) || defined(__MSDOS__) || defined(__wasi__)
+#if defined(_WIN32) || (defined(__NEWLIB__)&&!defined(__CYGWIN__)) || defined(__MSDOS__) || (defined(__wasi__)&&!defined(_WASI_EMULATED_MMAN))
 	static_assert(allocation);
 #else
 	if(file_size==0)
 		return (char*)-1;
-	void* address{mmap(nullptr,file_size,PROT_READ|PROT_WRITE,MAP_PRIVATE
+	void* address{};
+	return reinterpret_cast<char*>(
+sys_mmap(nullptr,file_size,PROT_READ|PROT_WRITE,MAP_PRIVATE
 #if defined(MAP_POPULATE)
 |MAP_POPULATE
 #endif
-,fd,0)};
-	if(address==MAP_FAILED)
-		throw_posix_error();
-	return reinterpret_cast<char*>(address);
+,fd,0));
 #endif
 	}
 }
@@ -103,7 +102,7 @@ inline void posix_unload_address(void* address,[[maybe_unused]] std::size_t file
 		static_assert(allocation);
 #else
 		if(address!=(void*)-1)[[likely]]
-			munmap(address,file_size);
+			sys_munmap(address,file_size);
 #endif
 	}
 }

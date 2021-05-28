@@ -7,7 +7,7 @@
 #include"posix_mapping.h"
 #endif
 #include"omap.h"
-#elif !defined(__NEWLIB__) && !defined(__MSDOS__) && !defined(__wasi__)
+#elif !defined(__NEWLIB__) && !defined(__MSDOS__) && (!defined(__wasi__) || (defined(__wasi__)&&defined(_WASI_EMULATED_MMAN)))
 #include"posix_mapping.h"
 #include"omap.h"
 #endif
