@@ -12,28 +12,6 @@ struct win32_file_loader_return_value_t
 	char* address_end;
 };
 
-inline std::size_t win32_load_file_get_file_size(void* handle)
-{
-	by_handle_file_information bhdi;
-	if(!GetFileInformationByHandle(handle,__builtin_addressof(bhdi)))
-		throw_win32_error();
-	if constexpr(sizeof(std::size_t)<sizeof(std::uint64_t))
-	{
-		if(bhdi.nFileSizeHigh)
-			throw_win32_error(0x000000DF);
-		if constexpr(sizeof(std::size_t)<sizeof(std::uint32_t))
-		{
-			if(bhdi.nFileSizeLow>static_cast<std::uint32_t>(SIZE_MAX))
-				throw_win32_error(0x000000DF);
-		}
-		return static_cast<std::size_t>(bhdi.nFileSizeLow);
-	}
-	else
-	{
-		return static_cast<std::size_t>((static_cast<std::uint64_t>(bhdi.nFileSizeHigh)<<32)|bhdi.nFileSizeLow);
-	}
-}
-
 inline win32_file_loader_return_value_t win32_load_address_common_impl(void* hfilemappingobj,std::size_t file_size)
 {
 	if(hfilemappingobj==nullptr)

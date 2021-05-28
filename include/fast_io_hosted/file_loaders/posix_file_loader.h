@@ -5,6 +5,32 @@
 
 namespace fast_io
 {
+#if defined(_WIN32) || defined(__CYGWIN__)
+namespace win32::details
+{
+inline std::size_t win32_load_file_get_file_size(void* handle)
+{
+	by_handle_file_information bhdi;
+	if(!GetFileInformationByHandle(handle,__builtin_addressof(bhdi)))
+		throw_win32_error();
+	if constexpr(sizeof(std::size_t)<sizeof(std::uint64_t))
+	{
+		if(bhdi.nFileSizeHigh)
+			throw_win32_error(0x000000DF);
+		if constexpr(sizeof(std::size_t)<sizeof(std::uint32_t))
+		{
+			if(bhdi.nFileSizeLow>static_cast<std::uint32_t>(SIZE_MAX))
+				throw_win32_error(0x000000DF);
+		}
+		return static_cast<std::size_t>(bhdi.nFileSizeLow);
+	}
+	else
+	{
+		return static_cast<std::size_t>((static_cast<std::uint64_t>(bhdi.nFileSizeHigh)<<32)|bhdi.nFileSizeLow);
+	}
+}
+}
+#endif
 
 namespace details
 {
@@ -13,7 +39,7 @@ inline std::size_t posix_loader_get_file_size(int fd)
 {
 #if defined(_WIN32)
 //windows 95 and windows 98 msvcrt do not provide struct __stat64. Directly invoke win32 api
-	return win32_load_file_get_file_size(reinterpret_cast<void*>(noexcept_call(_get_osfhandle,fd)));
+	return ::fast_io::win32::details::win32_load_file_get_file_size(reinterpret_cast<void*>(noexcept_call(_get_osfhandle,fd)));
 #elif defined(__linux__) && defined(__NR_statx)
 //Linux kernel provides new __NR_statx syscall. That allows us to only extract part of information and avoid libc braindeath beneath.
 	struct statx statxbuf;
