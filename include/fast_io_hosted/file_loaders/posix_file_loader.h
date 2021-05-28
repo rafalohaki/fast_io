@@ -129,7 +129,6 @@ inline char* posix_load_address(int fd,std::size_t file_size)
 #else
 	if(file_size==0)
 		return (char*)-1;
-	void* address{};
 	return reinterpret_cast<char*>(
 sys_mmap(nullptr,file_size,PROT_READ|PROT_WRITE,MAP_PRIVATE
 #if defined(MAP_POPULATE)
