@@ -1,4 +1,7 @@
 #pragma once
+#if defined(__linux__) && defined(__NR_statx)
+#include<linux/stat.h>
+#endif
 
 namespace fast_io
 {
@@ -8,6 +11,27 @@ namespace details
 
 inline std::size_t posix_loader_get_file_size(int fd)
 {
+#if defined(_WIN32)
+//windows 95 and windows 98 msvcrt do not provide struct __stat64. Directly invoke win32 api
+	return win32_load_file_get_file_size(reinterpret_cast<void*>(noexcept_call(_get_osfhandle,fd)));
+#elif defined(__linux__) && defined(__NR_statx)
+//Linux kernel provides new __NR_statx syscall. That allows us to only extract part of information and avoid libc braindeath beneath.
+	struct statx statxbuf;
+	system_call_throw_error(system_call<__NR_statx,int>(fd,reinterpret_cast<char const*>(u8""),
+#if defined(AT_EMPTY_PATH)
+		AT_EMPTY_PATH
+#else
+		0x1000	//AT_EMPTY_PATH requires _GNU_SOURCE gets defined which might not be available for all libcs
+#endif
+		,STATX_SIZE,__builtin_addressof(statxbuf)));
+	using stx_size_unsigned_type = std::make_unsigned_t<decltype(statxbuf.stx_size)>;
+	if constexpr(sizeof(stx_size_unsigned_type)>sizeof(std::size_t))
+	{
+		if(static_cast<stx_size_unsigned_type>(statxbuf.stx_size)>static_cast<stx_size_unsigned_type>(SIZE_MAX))
+			throw_posix_error(EINVAL);
+	}
+	return static_cast<std::size_t>(statxbuf.stx_size);
+#else
 #ifdef _WIN32
 	struct __stat64 st;
 #elif defined(__linux__) && !defined(__mlibc__)
@@ -32,6 +56,7 @@ fstat
 			throw_posix_error(EINVAL);
 	}
 	return static_cast<std::size_t>(st.st_size);
+#endif
 }
 
 struct load_file_allocation_guard
