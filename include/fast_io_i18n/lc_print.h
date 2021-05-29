@@ -448,7 +448,7 @@ inline constexpr void print_define(output bos,basic_lc_numeric<char_type> const&
 namespace details
 {
 template<buffer_output_stream output>
-inline constexpr void print_loc_days_impl(output bos,::fast_io::freestanding::basic_string_view<typename output::char_type> category_name,basic_io_scatter_t<typename output::char_type> const* day_strings,std::size_t day_strings_len)
+inline constexpr void print_loc_days_real_impl(output bos,::fast_io::freestanding::basic_string_view<typename output::char_type> category_name,basic_io_scatter_t<typename output::char_type> const* day_strings,std::size_t day_strings_len)
 {
 	using char_type = typename output::char_type;
 	if(day_strings_len==0||day_strings_len==0)
@@ -495,8 +495,15 @@ inline constexpr void print_loc_days_impl(output bos,::fast_io::freestanding::ba
 template<buffer_output_stream output>
 inline constexpr void print_loc_days_impl(output bos,::fast_io::freestanding::basic_string_view<typename output::char_type> category_name,basic_io_scatter_t<basic_io_scatter_t<typename output::char_type>> day_strings)
 {
-	print_loc_days_impl(bos,category_name,day_strings.base,day_strings.len);
+	print_loc_days_real_impl(bos,category_name,day_strings.base,day_strings.len);
 }
+
+template<buffer_output_stream output,std::size_t n>
+inline constexpr void print_loc_days_impl(output bos,::fast_io::freestanding::basic_string_view<typename output::char_type> category_name,basic_io_scatter_t<typename output::char_type> const (&day_strings)[n])
+{
+	print_loc_days_real_impl(bos,category_name,day_strings,n);
+}
+
 }
 
 template<buffer_output_stream output,std::integral char_type>

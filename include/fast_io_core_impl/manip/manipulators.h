@@ -519,6 +519,13 @@ constexpr auto print_scatter_define(print_scatter_type_t<char_type>,purify_t<val
 	return print_scatter_define(print_scatter_type<char_type>,para.reference);
 }
 
+template<std::integral char_type,typename T>
+requires status_io_print_forwardable<char_type,T>
+inline constexpr decltype(auto) status_io_print_forward(io_alias_type_t<char_type>,purify_t<T> para) noexcept
+{
+	return status_io_print_forward(io_alias_type<char_type>,para.reference);
+}
+
 template<typename T>
 inline constexpr auto purify(T&& ref) noexcept
 {

@@ -129,6 +129,13 @@ concept alias_printable=requires(T&& t)
 {
 	print_alias_define(io_alias,std::forward<T>(t));
 };
+
+template<typename char_type,typename T>
+concept status_io_print_forwardable=std::integral<char_type>&&requires(T&& t)
+{
+	status_io_print_forward(io_alias_type<char_type>,std::forward<T>(t));
+};
+
 template<typename io_device,typename... Args>
 concept io_controllable=requires(io_device device,Args&& ...args)
 {
