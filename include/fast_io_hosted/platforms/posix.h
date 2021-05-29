@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(__WINNT__) || defined(_MSC_VER) || defined(__MSDOS__)
+#if defined(_WIN32) || defined(__MSDOS__)
 #include<io.h>
 #include<sys/stat.h>
 #include<sys/types.h>
@@ -1188,8 +1188,8 @@ public:
 		throw_posix_error(ENOTSUP);
 #else
 		::fast_io::freestanding::array<int,2> a2{pipes.front().fd,pipes.back().fd};
-#if defined(__WINNT__) || defined(_MSC_VER)
-		if(_pipe(a2.data(),1048576,_O_BINARY)==-1)
+#if defined(_WIN32)
+		if(noexcept_call(_pipe,a2.data(),1048576,_O_BINARY)==-1)
 #else
 		if(::pipe(a2.data())==-1)
 #endif

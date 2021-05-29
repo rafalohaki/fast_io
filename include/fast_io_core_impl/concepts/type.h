@@ -148,6 +148,12 @@ explicit constexpr io_alias_type_t() noexcept = default;
 template<std::integral char_type>
 inline constexpr io_alias_type_t<char_type> io_alias_type{};
 
+template<typename char_type,typename T>
+concept status_io_print_forwardable=std::integral<char_type>&&requires(T&& t)
+{
+	status_io_print_forward(io_alias_type<char_type>,std::forward<T>(t));
+};
+
 template<bool contiguous_only = false>
 struct scan_context_t
 {

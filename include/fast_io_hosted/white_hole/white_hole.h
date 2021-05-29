@@ -1,5 +1,5 @@
 #pragma once
-#if defined(__WINNT__) || defined(_MSC_VER)
+#if defined(_WIN32) || defined(__CYGWIN__)
 #include"rtl_gen_random.h"
 #endif
 #include"posix_dev_urandom.h"
@@ -9,7 +9,7 @@ namespace fast_io
 
 template<std::integral char_type>
 using basic_white_hole =
-#if defined(__WINNT__) || defined(_MSC_VER)
+#ifdef _WIN32
 basic_rtl_gen_random<char_type>;
 #else
 posix_dev_urandom<basic_native_file<char_type>>;

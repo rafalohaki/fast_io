@@ -718,7 +718,7 @@ inline constexpr void print_freestanding_decay(output out,Args ...args)
 		details::decay::print_freestanding_decay_normal<false>(out,args...);
 }
 
-template<std::integral char_type,typename T>
+template<typename T>
 inline constexpr decltype(auto) io_print_alias(T&& t)
 {
 	if constexpr(alias_printable<std::remove_cvref_t<T>>)
@@ -731,7 +731,7 @@ template<typename output,typename ...Args>
 requires (output_stream<output>||status_output_stream<output>)
 inline constexpr void print_freestanding(output&& out,Args&& ...args)
 {
-	print_freestanding_decay(io_ref(out),io_forward(io_print_alias<typename std::remove_cvref_t<output>::char_type>(args))...);
+	print_freestanding_decay(io_ref(out),io_forward<typename std::remove_cvref_t<output>::char_type>(io_print_alias(args))...);
 }
 
 namespace details
