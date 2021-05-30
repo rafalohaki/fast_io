@@ -608,7 +608,7 @@ inline constexpr void print_fallback(output out,Args ...args)
 	if constexpr(line&&sizeof...(Args)==0)
 	{
 		char_type ch{lfch};
-		write(out,&ch,&ch+1);
+		write(out,__builtin_addressof(ch),__builtin_addressof(ch)+1);
 	}
 	else if constexpr((scatter_output_stream<output>&&((scatter_printable<typename output::char_type,Args>||reserve_printable<typename output::char_type,Args>||dynamic_reserve_printable<typename output::char_type,Args>)&&...)))
 	{
@@ -620,7 +620,7 @@ inline constexpr void print_fallback(output out,Args ...args)
 			if constexpr(line)
 			{
 				char_type ch{lfch};
-				scatters[n-1]={&ch,sizeof(ch)};
+				scatters[n-1]={__builtin_addressof(ch),sizeof(ch)};
 				scatter_write(out,{scatters,n});
 			}
 			else
@@ -635,7 +635,7 @@ inline constexpr void print_fallback(output out,Args ...args)
 			if constexpr(line)
 			{
 				char_type ch{lfch};
-				scatters[n-1]={&ch,sizeof(ch)};
+				scatters[n-1]={__builtin_addressof(ch),sizeof(ch)};
 				scatter_write(out,{scatters,n});
 			}
 			else
@@ -650,7 +650,7 @@ inline constexpr void print_fallback(output out,Args ...args)
 			if constexpr(line)
 			{
 				char_type ch{lfch};
-				scatters[n-1]={&ch,sizeof(ch)};
+				scatters[n-1]={__builtin_addressof(ch),sizeof(ch)};
 				scatter_write(out,{scatters,n});
 			}
 			else
@@ -770,7 +770,7 @@ inline constexpr void println_freestanding_decay(output out,Args ...args)
 template<output_stream output,typename ...Args>
 inline constexpr void println_freestanding(output&& out,Args&& ...args)
 {
-	println_freestanding_decay(io_ref(out),io_forward(io_print_alias<typename std::remove_cvref_t<output>::char_type>(args))...);
+	println_freestanding_decay(io_ref(out),io_forward<typename std::remove_cvref_t<output>::char_type>(io_print_alias(args))...);
 }
 
 
