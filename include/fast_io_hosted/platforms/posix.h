@@ -311,10 +311,10 @@ inline void* my_get_osfile_handle(int fd) noexcept
 {
 	if(fd==-1)
 		return nullptr;
-	auto ret{noexcept_call(_get_osfhandle,fd)};
+	std::intptr_t ret{noexcept_call(_get_osfhandle,fd)};
 	if(ret==-1)
 		return nullptr;
-	return ret;
+	return reinterpret_cast<void*>(ret);
 }
 }
 #endif
