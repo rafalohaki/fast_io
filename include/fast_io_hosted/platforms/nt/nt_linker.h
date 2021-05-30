@@ -478,9 +478,9 @@ requires (sizeof...(Args)==3)
 inline std::uint32_t nt_wait_for_single_object(Args... args) noexcept
 {
 	if constexpr(zw)
-		return ZwDuplicateObject(args...);
+		return ZwWaitForSingleObject(args...);
 	else
-		return NtDuplicateObject(args...);
+		return NtWaitForSingleObject(args...);
 }
 
 __declspec(dllimport) extern std::uint32_t __stdcall NtSetSystemTime(std::uint64_t*,std::uint64_t*) noexcept
@@ -670,5 +670,43 @@ asm("RtlCreateUserThread")
 #endif
 #endif
 ;
+
+__declspec(dllimport) extern std::uint32_t __stdcall NtResumeThread(void*,std::uint32_t*) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if !defined(__clang__)
+asm("NtResumeThread@8")
+#else
+asm("_NtResumeThread@8")
+#endif
+#else
+asm("NtResumeThread")
+#endif
+#endif
+;
+
+__declspec(dllimport) extern std::uint32_t __stdcall ZwResumeThread(void*,std::uint32_t*) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if !defined(__clang__)
+asm("ZwResumeThread@8")
+#else
+asm("_ZwResumeThread@8")
+#endif
+#else
+asm("ZwResumeThread")
+#endif
+#endif
+;
+
+template<bool zw,typename... Args>
+requires (sizeof...(Args)==2)
+inline std::uint32_t nt_resume_thread(Args... args) noexcept
+{
+	if constexpr(zw)
+		return ZwResumeThread(args...);
+	else
+		return NtResumeThread(args...);
+}
 
 }

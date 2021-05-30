@@ -426,7 +426,7 @@ inline void* my_get_osfile_handle(int fd) noexcept;
 struct nt_at_entry
 {
 	using native_handle_type = void*;
-	void* handle{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
+	void* handle{};
 	explicit constexpr nt_at_entry() noexcept=default;
 	explicit constexpr nt_at_entry(void* mhandle) noexcept:handle(mhandle){}
 #ifndef __CYGWIN__
@@ -444,7 +444,7 @@ struct nt_family_at_entry:nt_at_entry
 
 struct nt_fs_dirent
 {
-	void* handle{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
+	void* handle{};
 	wcstring_view filename{};
 	explicit constexpr nt_fs_dirent() noexcept = default;
 	explicit constexpr nt_fs_dirent(void* mhandle,wcstring_view mfilename) noexcept:handle(mhandle),filename(mfilename){}
@@ -462,7 +462,7 @@ class basic_nt_family_io_observer
 public:
 	using native_handle_type = void*;
 	using char_type = ch_type;
-	native_handle_type handle{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
+	native_handle_type handle{};
 	constexpr auto& native_handle() noexcept
 	{
 		return handle;
@@ -471,9 +471,9 @@ public:
 	{
 		return handle;
 	}
-	explicit operator bool() const noexcept
+	explicit constexpr operator bool() const noexcept
 	{
-		return handle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
+		return handle;
 	}
 	template<win32_family family2>
 	explicit operator basic_win32_family_io_observer<family2,char_type>() const noexcept
@@ -481,14 +481,14 @@ public:
 		return basic_win32_family_io_observer<family2,char_type>{reinterpret_cast<void*>(handle)};
 	}
 	template<nt_family family2>
-	explicit constexpr operator basic_nt_family_io_observer<family2,char_type>() const noexcept
+	constexpr operator basic_nt_family_io_observer<family2,char_type>() const noexcept
 	{
 		return basic_nt_family_io_observer<family2,char_type>{handle};
 	}
 	constexpr native_handle_type release() noexcept
 	{
 		auto temp{handle};
-		handle=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
+		handle=nullptr;
 		return temp;
 	}
 };
@@ -620,7 +620,7 @@ template<bool zw>
 inline void* nt_dup2_impl(void* handle,void* newhandle)
 {
 	auto temp{nt_dup_impl<zw>(handle)};
-	if(newhandle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))[[likely]]
+	if(newhandle)[[likely]]
 		win32::nt::nt_close<zw>(newhandle);
 	return temp;
 }
@@ -663,20 +663,20 @@ public:
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	explicit constexpr basic_nt_family_io_handle(native_hd hd) noexcept:basic_nt_family_io_observer<family,ch_type>{hd}{}
-	void reset(native_handle_type newhandle=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))) noexcept
+	void reset(native_handle_type newhandle=nullptr) noexcept
 	{
-		if(this->handle!=static_cast<std::uintptr_t>(-1))[[likely]]
+		if(this->handle)[[likely]]
 			win32::nt::nt_close<family==nt_family::zw>(this->handle);
 		this->handle=newhandle;
 	}
 	void close()
 	{
-		if(this->handle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))[[likely]]
+		if(this->handle)[[likely]]
 		{
 			auto status{win32::nt::nt_close<family==nt_family::zw>(this->handle)};
 			if(status)[[unlikely]]
 				throw_nt_error(status);
-			this->handle=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
+			this->handle=nullptr;
 		}
 	}
 	basic_nt_family_io_handle(basic_nt_family_io_handle const& other):basic_nt_family_io_observer<family,ch_type>(win32::nt::details::nt_dup_impl<family==nt_family::zw>(other.handle)){}
@@ -691,10 +691,10 @@ public:
 	{
 		if(__builtin_addressof(b)!=this)
 		{
-			if(this->handle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))[[likely]]
+			if(this->handle)[[likely]]
 				win32::nt::nt_close<family==nt_family::zw>(this->handle);
 			this->handle = b.handle;
-			b.handle=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
+			b.handle=nullptr;
 		}
 		return *this;
 	}
@@ -761,7 +761,7 @@ public:
 	basic_nt_family_file& operator=(basic_nt_family_file&&) noexcept=default;
 	~basic_nt_family_file()
 	{
-		if(this->handle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))[[likely]]
+		if(this->handle)[[likely]]
 			win32::nt::nt_close<family==nt_family::zw>(this->handle);
 	}
 };

@@ -41,9 +41,7 @@ For hosted implementations the set of standard library headers required by the C
 #include"fast_io_hosted/wrapper.h"
 #include"fast_io_hosted/filesystem/native.h"
 
-#ifdef FAST_IO_PROCESS_REVAMP
 #include"fast_io_hosted/process_revamp/native.h"
-#endif
 
 #include"fast_io_hosted/white_hole/white_hole.h"
 //#include<memory_resource>

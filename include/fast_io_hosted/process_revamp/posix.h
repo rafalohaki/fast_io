@@ -303,18 +303,17 @@ char const* const* dup_enviro_entry(Iter begin,Iter end)
 
 }
 
-
 struct posix_process_args
 {
 	char const* const* args{};
 	bool is_dynamic_allocated{};
-	inline constexpr posix_process_args(char const* const* envir) noexcept:args(envir){}
+	constexpr posix_process_args(char const* const* envir) noexcept:args(envir){}
 	template<::fast_io::freestanding::forward_iterator Iter>
 	requires (std::convertible_to<::fast_io::freestanding::iter_value_t<Iter>,char const*>||requires(::fast_io::freestanding::iter_value_t<Iter> v)
 	{
 		{v.c_str()}->std::convertible_to<char const*>;
 	})
-	inline constexpr posix_process_args(Iter begin,Iter end):
+	constexpr posix_process_args(Iter begin,Iter end):
 		args(details::dup_enviro_entry(begin,end)),is_dynamic_allocated(true)
 	{}
 	template<std::ranges::contiguous_range range>
@@ -322,14 +321,14 @@ struct posix_process_args
 	{
 		{v.c_str()}->std::convertible_to<char const*>;
 	})
-	inline constexpr posix_process_args(range&& rg):posix_process_args(std::ranges::cbegin(rg),std::ranges::cend(rg))
+	constexpr posix_process_args(range&& rg):posix_process_args(std::ranges::cbegin(rg),std::ranges::cend(rg))
 	{}
-	inline constexpr posix_process_args(std::initializer_list<char const*> ilist):
+	constexpr posix_process_args(std::initializer_list<char const*> ilist):
 		posix_process_args(ilist.begin(),ilist.end()){}
 	posix_process_args(posix_process_args const&)=delete;
 	posix_process_args& operator=(posix_process_args const&)=delete;
 #if __cpp_constexpr_dynamic_alloc >= 201907L
-	inline constexpr
+	constexpr
 #endif
 	~posix_process_args()
 	{

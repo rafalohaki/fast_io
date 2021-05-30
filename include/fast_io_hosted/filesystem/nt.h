@@ -19,7 +19,7 @@ FindFirstFileExW(IN LPCWSTR lpFileName,
 
 struct nt_dirent
 {
-	void* d_handle{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
+	void* d_handle{};
 	file_type d_type{};
 	::fast_io::freestanding::array<wchar_t,0x2001> native_d_name_array{};
 	std::size_t native_d_name_size{};
@@ -245,7 +245,7 @@ inline zw_directory_generator current(zw_at_entry nate)
 template<nt_family family>
 struct nt_family_recursive_directory_iterator
 {
-	void* root_handle{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
+	void* root_handle{};
 	nt_dirent* entry{};
 	details::naive_vector<basic_nt_family_file<family,char>> stack;
 	nt_family_recursive_directory_iterator()=default;
@@ -259,7 +259,7 @@ struct nt_family_recursive_directory_iterator
 template<nt_family family>
 struct nt_family_recursive_directory_generator
 {
-	void* root_handle{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
+	void* root_handle{};
 	std::unique_ptr<nt_dirent> entry;
 };
 

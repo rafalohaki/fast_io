@@ -246,10 +246,10 @@ constexpr decltype(auto) require_secure_clear(io_reference_wrapper<scrs> sc)
 }
 
 template<contiguous_input_stream cis>
-constexpr void ibuffer_underflow_never(io_reference_wrapper<cis> ci){}
+constexpr void ibuffer_underflow_never(io_reference_wrapper<cis>){}
 
 template<contiguous_output_stream cos>
-constexpr void obuffer_overflow_never(io_reference_wrapper<cos> co){}
+constexpr void obuffer_overflow_never(io_reference_wrapper<cos>){}
 
 template<flush_output_stream output>
 constexpr void flush(io_reference_wrapper<output> co)

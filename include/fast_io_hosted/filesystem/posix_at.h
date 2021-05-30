@@ -51,11 +51,12 @@ unlinkat
 };
 
 #if defined(__CYGWIN__)
+extern int faccessat(int olddirfd,char const* oldpath,int newdirfd, char const* newpath) noexcept asm("faccessat");
 extern int renameat(int olddirfd,char const* oldpath,int newdirfd, char const* newpath) noexcept asm("renameat");
 extern int linkat(int olddirfd,char const* oldpath,int newdirfd, char const* newpath,int flags) noexcept asm("linkat");
 extern int symlinkat(char const* oldpath, int newdirfd, char const *newpath) noexcept asm("symlinkat");
 extern int fchmodat(int dirfd, char const *pathname, mode_t mode, int flags) noexcept asm("fchmodat");
-extern int utimensat(int dirfd, char const *pathname,struct timespec const times[2], int flags) noexcept asm("utimensat");
+extern int utimensat(int dirfd, char const *pathname,struct timespec const* times, int flags) noexcept asm("utimensat");
 extern int fchownat(int dirfd, char const *pathname,uid_t owner, gid_t group, int flags) noexcept asm("fchownat");
 extern int fstatat(int dirfd, char const *pathname, struct stat *buf,int flags) noexcept asm("fstatat");
 extern int mkdirat(int dirfd, char const* pathname, mode_t mode) noexcept asm("mkdirat");
@@ -116,6 +117,19 @@ inline auto posix12_api_dispatcher(char const* oldpath,
 #endif
 		(oldpath,newdirfd,newpath));
 	}
+}
+
+inline void posix_faccessat_impl(int dirfd, char const *pathname, int mode, int flags)
+{
+	system_call_throw_error(
+#if defined(__linux__) && defined(__NR_faccessat2)
+	system_call<__NR_faccessat2,int>
+#elif defined(__linux__) && defined(__NR_faccessat)
+	system_call<__NR_faccessat,int>
+#else
+	faccessat
+#endif
+	(dirfd,pathname,mode,flags));
 }
 
 #if defined(__wasi__) && !defined(__wasilibc_unmodified_upstream)
@@ -281,7 +295,6 @@ int flags)
 	struct timespec* tsptr{ts};
 	system_call_throw_error(
 #if defined(__linux__)
-
 #if defined(__NR_utimensat64)
 	system_call<__NR_utimensat64,int>
 #else
@@ -480,7 +493,7 @@ empty_path=
 #ifdef AT_EMPTY_PATH
 AT_EMPTY_PATH
 #else
-0
+0x1000
 #endif
 };
 

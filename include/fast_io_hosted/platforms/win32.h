@@ -310,13 +310,39 @@ I tried this. Oh no. It cannot
 
 }
 
+struct win32_io_redirection
+{
+	void *win32_pipe_in_handle{};
+	void *win32_pipe_out_handle{};
+	void *win32_handle{};
+	bool is_dev_null{};
+};
+
+struct win32_io_redirection_std:win32_io_redirection
+{
+	constexpr win32_io_redirection_std() noexcept=default;
+	template<typename T>
+	requires requires(T&& t)
+	{
+		{redirect(std::forward<T>(t))}->std::same_as<win32_io_redirection>;
+	}
+	constexpr win32_io_redirection_std(T&& t) noexcept:win32_io_redirection(redirect(std::forward<T>(t))){}
+};
+
+struct win32_process_io
+{
+	win32_io_redirection_std in;
+	win32_io_redirection_std out;
+	win32_io_redirection_std err;
+};
+
 template<win32_family family,std::integral ch_type>
 class basic_win32_family_io_observer
 {
 public:
 	using native_handle_type = void*;
 	using char_type = ch_type;
-	native_handle_type handle{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
+	native_handle_type handle{};
 	constexpr auto& native_handle() noexcept
 	{
 		return handle;
@@ -325,9 +351,9 @@ public:
 	{
 		return handle;
 	}
-	explicit operator bool() const noexcept
+	explicit constexpr operator bool() const noexcept
 	{
-		return handle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
+		return handle;
 	}
 	template<nt_family family2>
 	explicit constexpr operator basic_nt_family_io_observer<family2,char_type>() const noexcept
@@ -339,10 +365,10 @@ public:
 	{
 		return basic_win32_family_io_observer<family2,char_type>{handle};
 	}
-	inline native_handle_type release() noexcept
+	constexpr native_handle_type release() noexcept
 	{
 		auto temp{handle};
-		handle=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
+		handle=nullptr;
 		return temp;
 	}
 };
@@ -375,6 +401,12 @@ inline constexpr basic_win32_family_io_observer<family,ch_type> io_value_handle(
 	return other;
 }
 
+template<win32_family family,std::integral ch_type>
+inline constexpr win32_io_redirection redirect(basic_win32_family_io_observer<family,ch_type> other) noexcept
+{
+	return {.win32_handle=other.handle};
+}
+
 namespace win32::details
 {
 
@@ -390,7 +422,7 @@ inline void* win32_dup_impl(void* handle)
 inline void* win32_dup2_impl(void* handle,void* newhandle)
 {
 	auto temp{win32_dup_impl(handle)};
-	if(newhandle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))[[likely]]
+	if(newhandle)[[likely]]
 		CloseHandle(newhandle);
 	return temp;
 }
@@ -421,22 +453,22 @@ public:
 	{
 		if(__builtin_addressof(b)!=this)
 		{
-			if(this->handle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))[[likely]]
+			if(this->handle)[[likely]]
 				fast_io::win32::CloseHandle(this->handle);
 			this->handle = b.handle;
-			b.handle=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1));
+			b.handle=nullptr;
 		}
 		return *this;
 	}
-	void reset(native_handle_type newhandle=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))) noexcept
+	void reset(native_handle_type newhandle=nullptr) noexcept
 	{
-		if(this->handle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))[[likely]]
+		if(this->handle)[[likely]]
 			fast_io::win32::CloseHandle(this->handle);
 		this->handle=newhandle;
 	}
 	void close()
 	{
-		if(this->handle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))[[likely]]
+		if(this->handle)[[likely]]
 		{
 			if(!fast_io::win32::CloseHandle(this->handle))[[unlikely]]
 				throw_win32_error();
@@ -444,12 +476,6 @@ public:
 		}
 	}
 };
-
-template<win32_family family,std::integral ch_type>
-inline constexpr auto redirect_handle(basic_win32_family_io_observer<family,ch_type> hd)
-{
-	return hd.handle;
-}
 
 namespace win32::details
 {
@@ -496,7 +522,7 @@ struct file_lock_guard
 	file_lock_guard& operator=(file_lock_guard const&)=delete;
 	~file_lock_guard()
 	{
-		if(handle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))
+		if(handle)
 		{
 			win32::overlapped overlap{};
 			win32::UnlockFileEx(handle,0,UINT32_MAX,UINT32_MAX,__builtin_addressof(overlap));
@@ -640,7 +666,7 @@ inline io_scatter_status_t scatter_write_impl(void* __restrict handle,io_scatter
 	file_lock_guard gd{
 		win32::LockFileEx(handle,0x00000002,0,UINT32_MAX,UINT32_MAX,__builtin_addressof(overlap))?
 		handle:
-		reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))
+		nullptr
 	};
 	std::size_t total_size{};
 	for(std::size_t i{};i!=n;++i)
@@ -836,7 +862,7 @@ public:
 
 #if 0
 	explicit basic_win32_family_file(io_async_t) requires(std::same_as<char_type,char>):
-		basic_win32_family_io_handle<family,char_type>(details::create_io_completion_port(bit_cast<void*>(static_cast<std::uintptr_t>(-1)),nullptr,0,0)){}
+		basic_win32_family_io_handle<family,char_type>(details::create_io_completion_port(nullptr,nullptr,0,0)){}
 
 	template<typename... Args>
 	basic_win32_family_file(io_async_t,basic_win32_family_io_observer<family,char> iob,nt_at_entry nate,basic_cstring_view<filename_char_type auto> filename,Args&& ...args):basic_win32_family_file(nate,filename,std::forward<Args>(args)...)
@@ -848,7 +874,7 @@ public:
 #endif
 	~basic_win32_family_file()
 	{
-		if(this->handle!=reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)))[[likely]]
+		if(this->handle)[[likely]]
 			fast_io::win32::CloseHandle(this->handle);
 	}
 	constexpr basic_win32_family_file(basic_win32_family_file const&)=default;
@@ -965,7 +991,7 @@ inline bool win32_is_character_device(void* handle) noexcept
 
 struct win32_console_mode_guard
 {
-	void *out_hdl{reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1))};
+	void *out_hdl{};
 	std::uint32_t mode{};
 	win32_console_mode_guard(void* hd):out_hdl{hd}
 	{
@@ -1066,7 +1092,7 @@ inline io_scatter_status_t scatter_write(basic_win32_family_pipe<family,ch_type>
 }
 
 template<win32_family family,std::integral ch_type>
-inline ::fast_io::freestanding::array<void*,2> redirect_handle(basic_win32_family_pipe<family,ch_type>& hd)
+inline ::fast_io::freestanding::array<void*,2> redirect(basic_win32_family_pipe<family,ch_type>& hd)
 {
 	return {hd.in().handle,hd.out().handle};
 }
