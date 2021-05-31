@@ -80,10 +80,6 @@ inline void check_nt_status(std::uint32_t status)
 		throw_nt_error(status);
 }
 
-/*
-
-*/
-
 template<bool zw>
 inline void* nt_duplicate_process_std_handle_impl(void* __restrict hprocess,win32_io_redirection const& redi)
 {
@@ -135,8 +131,6 @@ inline nt_user_process_information* nt_process_create_impl(void* __restrict fhan
 	check_nt_status(nt_query_section<zw>(hsection,section_information_class::SectionImageInformation,
 		__builtin_addressof(sec_info),sizeof(sec_info),nullptr));
 
-//	check_nt_status(nt_duplicate_object<zw>(current_process,GetStdHandle(-10)));
-//	println_freestanding(fast_io::win32_stdout(),std::source_location::current());
 	rtl_user_process_parameters rtl_up{};
 	nt_duplicate_process_std_handles_impl<zw>(hprocess,processio,rtl_up);
 //	check_nt_status(RtlpInitEnvironment(hprocess,pb_info.PebBaseAddress,__builtin_addressof(rtl_up)));

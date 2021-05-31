@@ -91,6 +91,7 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - Windows ME
 - Microsoft Neptune
 - Windows NT
+- Windows Odyssey
 - Windows 2000
 - Windows Whistler
 - Windows XP
@@ -98,11 +99,13 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - Windows Longhorn
 - Windows Vista
 - Windows Server 2008
+- Windows Vienna
 - Windows 7
 - Windows 8
 - Windows 8.1
+- Windows Home Server 2011
 - Windows Server 2012
-- Windows Server 2015
+- Windows Server 2016
 
 ## Windows 95 or 95 Plus! Support
 You can enable -O3 but you cannot not enable -Ofast.
