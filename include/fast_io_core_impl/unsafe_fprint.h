@@ -329,7 +329,7 @@ template<typename output,typename... Args>
 requires ((output_stream<output>||status_output_stream<output>)&&(sizeof...(Args)!=0))
 inline constexpr void unsafe_fprint(output&& out,::fast_io::freestanding::basic_string_view<typename std::remove_cvref_t<output>::char_type> view,Args&& ...args)
 {
-	unsafe_fprint_freestanding_decay(io_ref(out),view,io_forward(io_print_alias<typename std::remove_cvref_t<output>::char_type>(args))...);
+	unsafe_fprint_freestanding_decay(io_ref(out),view,io_print_forward<typename std::remove_cvref_t<output>::char_type>(io_print_alias(args))...);
 }
 
 

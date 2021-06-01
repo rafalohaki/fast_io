@@ -232,7 +232,7 @@ namespace details
 {
 
 template<bool line,typename... Args>
-inline constexpr void print_after_io_forward(Args ...args)
+inline constexpr void print_after_io_print_forward(Args ...args)
 {
 #ifdef FAST_IO_NO_LEGACY
 	if constexpr(line)
@@ -251,7 +251,7 @@ template<bool line,typename... Args>
 #if __has_cpp_attribute(gnu::cold)
 [[gnu::cold]]
 #endif
-inline constexpr void perr_after_io_forward(Args ...args)
+inline constexpr void perr_after_io_print_forward(Args ...args)
 {
 	if constexpr(line)
 		println_freestanding_decay(err(),args...);
@@ -263,7 +263,7 @@ template<bool line,typename... Args>
 #if __has_cpp_attribute(gnu::cold)
 [[gnu::cold]]
 #endif
-inline constexpr void debug_print_after_io_forward(Args ...args)
+inline constexpr void debug_print_after_io_print_forward(Args ...args)
 {
 	if constexpr(line)
 		println_freestanding_decay(out(),args...);
@@ -273,7 +273,7 @@ inline constexpr void debug_print_after_io_forward(Args ...args)
 
 
 template<bool report,typename... Args>
-inline constexpr std::conditional_t<report,bool,void> scan_after_io_forward(Args ...args)
+inline constexpr std::conditional_t<report,bool,void> scan_after_io_scan_forward(Args ...args)
 {
 #ifdef FAST_IO_NO_LEGACY
 	if constexpr(report)
@@ -305,11 +305,11 @@ template<typename T,typename... Args>
 inline constexpr void print(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>)
-		fast_io::print_freestanding_decay(fast_io::io_ref(t),fast_io::io_forward<typename std::remove_cvref_t<T>::char_type>(fast_io::io_print_alias(args))...);
+		fast_io::print_freestanding_decay(fast_io::io_ref(t),fast_io::io_print_forward<typename std::remove_cvref_t<T>::char_type>(fast_io::io_print_alias(args))...);
 	else
 	{
 #if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
-		fast_io::details::print_after_io_forward<false>(fast_io::io_forward<char>(fast_io::io_print_alias(t)),fast_io::io_forward<char>(fast_io::io_print_alias(args))...);
+		fast_io::details::print_after_io_print_forward<false>(fast_io::io_print_forward<char>(fast_io::io_print_alias(t)),fast_io::io_print_forward<char>(fast_io::io_print_alias(args))...);
 #else
 		static_assert(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>,"freestanding environment must provide IO device");
 #endif
@@ -320,11 +320,11 @@ template<typename T,typename... Args>
 inline constexpr void println(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>)
-		fast_io::println_freestanding_decay(fast_io::io_ref(t),fast_io::io_forward<typename std::remove_cvref_t<T>::char_type>(fast_io::io_print_alias(args))...);
+		fast_io::println_freestanding_decay(fast_io::io_ref(t),fast_io::io_print_forward<typename std::remove_cvref_t<T>::char_type>(fast_io::io_print_alias(args))...);
 	else
 	{
 #if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
-		fast_io::details::print_after_io_forward<true>(fast_io::io_forward<char>(fast_io::io_print_alias(t)),fast_io::io_forward<char>(fast_io::io_print_alias(args))...);
+		fast_io::details::print_after_io_print_forward<true>(fast_io::io_print_forward<char>(fast_io::io_print_alias(t)),fast_io::io_print_forward<char>(fast_io::io_print_alias(args))...);
 #else
 		static_assert(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>,"freestanding environment must provide IO device");
 #endif
@@ -335,11 +335,11 @@ template<typename T,typename... Args>
 inline constexpr void perr(T&& t,Args&&... args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>)
-		fast_io::details::print_freestanding_decay_cold_impl<false>(fast_io::io_ref(t),fast_io::io_forward<typename std::remove_cvref_t<T>::char_type>(fast_io::io_print_alias(args))...);
+		fast_io::details::print_freestanding_decay_cold_impl<false>(fast_io::io_ref(t),fast_io::io_print_forward<typename std::remove_cvref_t<T>::char_type>(fast_io::io_print_alias(args))...);
 	else
 	{
 #if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
-		fast_io::details::perr_after_io_forward<false>(fast_io::io_forward<char>(fast_io::io_print_alias(t)),fast_io::io_forward<char>(fast_io::io_print_alias(args))...);
+		fast_io::details::perr_after_io_print_forward<false>(fast_io::io_print_forward<char>(fast_io::io_print_alias(t)),fast_io::io_print_forward<char>(fast_io::io_print_alias(args))...);
 #else
 		static_assert(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>,"freestanding environment must provide IO device");
 #endif
@@ -350,11 +350,11 @@ template<typename T,typename... Args>
 inline constexpr void perrln(T&& t,Args&&... args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>)
-		fast_io::details::print_freestanding_decay_cold_impl<true>(fast_io::io_ref(t),fast_io::io_forward<typename std::remove_cvref_t<T>::char_type>(fast_io::io_print_alias(args))...);
+		fast_io::details::print_freestanding_decay_cold_impl<true>(fast_io::io_ref(t),fast_io::io_print_forward<typename std::remove_cvref_t<T>::char_type>(fast_io::io_print_alias(args))...);
 	else
 	{
 #if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
-		fast_io::details::perr_after_io_forward<true>(fast_io::io_forward<char>(fast_io::io_print_alias(t)),fast_io::io_forward<char>(fast_io::io_print_alias(args))...);
+		fast_io::details::perr_after_io_print_forward<true>(fast_io::io_print_forward<char>(fast_io::io_print_alias(t)),fast_io::io_print_forward<char>(fast_io::io_print_alias(args))...);
 #else
 		static_assert(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>,"freestanding environment must provide IO device");
 #endif
@@ -403,11 +403,11 @@ template<typename T,typename... Args>
 inline constexpr void debug_print(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>)
-		fast_io::details::print_freestanding_decay_cold_impl<false>(io_ref(t),fast_io::io_forward<typename std::remove_cvref_t<T>::char_type>(fast_io::io_print_alias(args))...);
+		fast_io::details::print_freestanding_decay_cold_impl<false>(io_ref(t),fast_io::io_print_forward<typename std::remove_cvref_t<T>::char_type>(fast_io::io_print_alias(args))...);
 	else
 	{
 #if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
-		fast_io::details::debug_print_after_io_forward<false>(fast_io::io_forward<char>(fast_io::io_print_alias(t)),fast_io::io_forward<char>(fast_io::io_print_alias(args))...);
+		fast_io::details::debug_print_after_io_print_forward<false>(fast_io::io_print_forward<char>(fast_io::io_print_alias(t)),fast_io::io_print_forward<char>(fast_io::io_print_alias(args))...);
 #else
 		static_assert(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>,"freestanding environment must provide IO device");
 #endif
@@ -418,11 +418,11 @@ template<typename T,typename... Args>
 inline constexpr void debug_println(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>)
-		fast_io::details::print_freestanding_decay_cold_impl<true>(io_ref(t),fast_io::io_forward<typename std::remove_cvref_t<T>::char_type>(fast_io::io_print_alias(args))...);
+		fast_io::details::print_freestanding_decay_cold_impl<true>(io_ref(t),fast_io::io_print_forward<typename std::remove_cvref_t<T>::char_type>(fast_io::io_print_alias(args))...);
 	else
 	{
 #if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
-		fast_io::details::debug_print_after_io_forward<true>(fast_io::io_forward<char>(fast_io::io_print_alias(t)),fast_io::io_forward<char>(fast_io::io_print_alias(args))...);
+		fast_io::details::debug_print_after_io_print_forward<true>(fast_io::io_print_forward<char>(fast_io::io_print_alias(t)),fast_io::io_print_forward<char>(fast_io::io_print_alias(args))...);
 #else
 		static_assert(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>,"freestanding environment must provide IO device");
 #endif
@@ -451,18 +451,18 @@ inline constexpr std::conditional_t<report,bool,void> scan(input&& in,Args&& ...
 	if constexpr(fast_io::input_stream<std::remove_cvref_t<input>>)
 	{
 		if constexpr(report)
-			return fast_io::scan_freestanding_decay(fast_io::io_ref(in),fast_io::io_scan_alias<typename std::remove_cvref_t<input>::char_type>(args)...);
+			return fast_io::scan_freestanding_decay(fast_io::io_ref(in),fast_io::io_scan_forward<typename std::remove_cvref_t<input>::char_type>(fast_io::io_scan_alias(args))...);
 		else
 		{
 
-			if(!fast_io::scan_freestanding_decay(fast_io::io_ref(in),fast_io::io_scan_alias<typename std::remove_cvref_t<input>::char_type>(args)...))
+			if(!fast_io::scan_freestanding_decay(fast_io::io_ref(in),fast_io::io_scan_forward<typename std::remove_cvref_t<input>::char_type>(fast_io::io_scan_alias(args))...))
 				fast_io::throw_parse_code(fast_io::parse_code::end_of_file);
 		}
 	}
 	else
 	{
 #if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
-		return fast_io::details::scan_after_io_forward<report>(fast_io::io_scan_alias<char>(in),fast_io::io_scan_alias<char>(args)...);
+		return fast_io::details::scan_after_io_scan_forward<report>(fast_io::io_scan_alias<char>(in),fast_io::io_scan_forward<typename std::remove_cvref_t<input>::char_type>(fast_io::io_scan_alias(args))...);
 #else
 			static_assert(fast_io::input_stream<std::remove_cvref_t<input>>,"freestanding environment must provide IO device");
 #endif

@@ -718,20 +718,11 @@ inline constexpr void print_freestanding_decay(output out,Args ...args)
 		details::decay::print_freestanding_decay_normal<false>(out,args...);
 }
 
-template<typename T>
-inline constexpr decltype(auto) io_print_alias(T&& t)
-{
-	if constexpr(alias_printable<std::remove_cvref_t<T>>)
-		return print_alias_define(io_alias,std::forward<T>(t));
-	else
-		return std::forward<T>(t);
-}
-
 template<typename output,typename ...Args>
 requires (output_stream<output>||status_output_stream<output>)
 inline constexpr void print_freestanding(output&& out,Args&& ...args)
 {
-	print_freestanding_decay(io_ref(out),io_forward<typename std::remove_cvref_t<output>::char_type>(io_print_alias(args))...);
+	print_freestanding_decay(io_ref(out),io_print_forward<typename std::remove_cvref_t<output>::char_type>(io_print_alias(args))...);
 }
 
 namespace details
@@ -770,7 +761,7 @@ inline constexpr void println_freestanding_decay(output out,Args ...args)
 template<output_stream output,typename ...Args>
 inline constexpr void println_freestanding(output&& out,Args&& ...args)
 {
-	println_freestanding_decay(io_ref(out),io_forward<typename std::remove_cvref_t<output>::char_type>(io_print_alias(args))...);
+	println_freestanding_decay(io_ref(out),io_print_forward<typename std::remove_cvref_t<output>::char_type>(io_print_alias(args))...);
 }
 
 

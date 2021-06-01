@@ -3,19 +3,6 @@
 namespace fast_io
 {
 
-template<std::integral char_type,typename T>
-[[nodiscard]] inline constexpr auto io_scan_alias(T&& t)
-{
-	if constexpr(alias_type_scanable<char_type,std::remove_reference_t<T>>)
-		return scan_alias_define(io_alias_type<char_type>,std::forward<T>(t));
-	else if constexpr(alias_scanable<std::remove_reference_t<T>>)
-		return scan_alias_define(io_alias,std::forward<T>(t));
-	else if constexpr(manipulator<std::remove_cvref_t<T>>)
-		return t;
-	else
-		return parameter<std::remove_reference_t<T>&>{t};
-}
-
 template<input_stream T>
 requires std::is_trivially_copyable_v<T>
 struct unget_temp_buffer
@@ -294,7 +281,7 @@ template<typename input,typename ...Args>
 requires (status_input_stream<input>||input_stream<input>)
 [[nodiscard("scan does not require checking return value but scan_freestanding requires")]] inline constexpr bool scan_freestanding(input&& in,Args&& ...args)
 {
-	return scan_freestanding_decay(io_ref(in),io_scan_alias<typename std::remove_cvref_t<input>::char_type>(args)...);
+	return scan_freestanding_decay(io_ref(in),io_scan_forward<typename std::remove_cvref_t<input>::char_type>(io_scan_alias(args))...);
 }
 
 }

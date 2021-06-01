@@ -112,12 +112,6 @@ concept scatter_type_printable=scatter_printable<char_type,T>&&requires(char_typ
 template<typename output,typename T>
 concept general_printable=reserve_printable<typename output::char_type,T>||printable<output,T>;
 
-template<typename char_type,typename T>
-concept alias_type_scanable=std::integral<char_type>&&requires(T&& t)
-{
-	scan_alias_define(io_alias_type<char_type>,std::forward<T>(t));
-};
-
 template<typename T>
 concept alias_scanable=requires(T&& t)
 {
@@ -128,6 +122,12 @@ template<typename T>
 concept alias_printable=requires(T&& t)
 {
 	print_alias_define(io_alias,std::forward<T>(t));
+};
+
+template<typename char_type,typename T>
+concept status_io_scan_forwardable=std::integral<char_type>&&requires(T t)
+{
+	status_io_scan_forward(io_alias_type<char_type>,t);
 };
 
 template<typename char_type,typename T>
