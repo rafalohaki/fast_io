@@ -14,4 +14,7 @@ inline constexpr bool exec_charset_is_ebcdic() noexcept
 		return false;
 }
 
+template<std::integral char_type>
+inline constexpr bool is_ebcdic{exec_charset_is_ebcdic<char_type>()};
+
 }
