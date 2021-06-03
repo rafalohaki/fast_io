@@ -5,6 +5,7 @@
 #include"optimize_size/impl.h"
 #include"jiaendu/jiaendu.h"
 #include"sto/sto_overhual.h"
+#include"sto/sto_contiguous.h"
 #include"append_nine_digits.h"
 #include"crypto_hash.h"
 

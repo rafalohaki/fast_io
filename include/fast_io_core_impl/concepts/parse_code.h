@@ -12,4 +12,13 @@ invalid = 3,
 overflow = 4
 };
 
+
+template<typename Iter>
+struct parse_result
+{
+	using iterator = Iter;
+	iterator iter;
+	parse_code code;
+};
+
 }

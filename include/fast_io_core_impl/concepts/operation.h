@@ -40,6 +40,38 @@ concept skipper = requires(char_type const* begin, char_type const* end,T t)
 	{ skip_define(begin, end, t) }->std::convertible_to<char_type const*>;
 };
 
+
+template<typename char_type, typename T>
+concept contiguous_scanable = requires(char_type const* begin, char_type const* end, T t)
+{
+	{scan_contiguous_define(io_reserve_type<char_type,T>,begin,end,t)}->std::convertible_to<parse_result<char_type const*>>;
+};
+#if 0
+//potentially useful
+template<typename char_type, typename T>
+concept contiguous_test_scanable = contiguous_scanable<char_type,T>&&requires(char_type ch,T t)
+{
+	{scan_contiguous_test(io_reserve_type<char_type,T>,ch)}->std::convertible_to<bool>;
+};
+#endif
+
+template<typename char_type, typename T>
+concept context_scanable2 = requires(char_type const* begin, char_type const* end, T t,parse_code code)
+{
+	requires requires(typename std::remove_cvref_t<decltype(scan_context_type(io_reserve_type<char_type,T>))>::type st)
+	{
+		{scan_context_define2(io_reserve_type<char_type,T>,st,begin,end,t,code)}->std::convertible_to<parse_result<char_type const*>>;
+		{scan_context_eof_define(io_reserve_type<char_type,T>,st,t,code)}->std::convertible_to<parse_code>;
+	};
+};
+#if 0
+template<typename char_type, typename T>
+concept contiguous_context_scanable = contiguous_scanable<char_type,T> && context_scanable2<char_type, T> && requires(char_type const* begin, char_type const* end, T t,parse_code code)
+{
+	scan_contiguous_context_verified_define(io_reserve_type<char_type,T>,scan_context_construct(io_reserve_type<char_type,T>,t),begin,end,t,code);
+};
+#endif
+
 template<typename char_type,typename T>
 concept reserve_printable=std::integral<char_type>&&requires(T t,char_type* ptr)
 {
