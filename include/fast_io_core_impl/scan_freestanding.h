@@ -174,6 +174,38 @@ inline constexpr bool scan_single_status_impl(input in,T& state_machine,P arg)
 	}
 	throw_parse_code(state_machine.code);
 }
+
+
+template<buffer_input_stream input,typename P>
+#if __has_cpp_attribute(gnu::cold)
+[[gnu::cold]]
+#endif
+inline constexpr bool scan_context_status2_impl(input in,P arg)
+{
+	using char_type = typename input::char_type;
+	typename std::remove_cvref_t<decltype(scan_context_type(io_reserve_type<char_type,P>))>::type state;
+	for(;;)
+	{
+		auto curr{ibuffer_curr(in)};
+		auto end{ibuffer_end(in)};
+		auto [it,ec]=scan_context_define2(io_reserve_type<char_type,P>,state,curr,end,arg);
+		if(ec==parse_code::ok)[[likely]]
+			return true;
+		else if(ec!=parse_code::partial)
+			throw_parse_code(ec);
+		ibuffer_set_curr(in,it);
+		if(!ibuffer_underflow(in))[[unlikely]]
+		{
+			ec=scan_context_eof_define(io_reserve_type<char_type,P>,state,arg);
+			if(ec==parse_code::ok)
+				return true;
+			else if(ec==parse_code::end_of_file)
+				return false;
+			throw_parse_code(ec);
+		}
+	}
+}
+
 template<buffer_input_stream input,typename T>
 requires (context_scanable<typename input::char_type,T,false>||skipper<typename input::char_type,T>
 ||(contiguous_input_stream<input>&&context_scanable<typename input::char_type,T,true>))
@@ -215,6 +247,19 @@ requires (context_scanable<typename input::char_type,T,false>||skipper<typename 
 	}
 	else
 	{
+#if 0
+		if constexpr(contiguous_scanable<char_type,T>&&context_scanable2<char_type,T>)
+		{
+			auto [it,ec] = scan_contiguous_define(io_reserve_type<char_type,T>,curr,end,arg);
+			if(it==end)
+				return scan_context_status2_impl(in,arg);
+			else if(ec!=parse_code::ok)
+				throw_parse_code(ec);
+			ibuffer_set_curr(in,it);
+			return true;
+		}
+		else
+#endif
 		if constexpr(skipper<char_type,T>)
 		{
 			for(;(curr=skip_define(curr,end,arg))==end;)

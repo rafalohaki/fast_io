@@ -67,9 +67,7 @@ inline constexpr parse_result<Iter> scan_int_contiguous_none_space_part_define_i
 		overflow|=__builtin_add_overflow(res,ch,__builtin_addressof(res));
 	}
 	if(first==first_saved_point)
-	{
 		return {first,parse_code::invalid};
-	}
 	if(overflow)
 		return {first,parse_code::overflow};
 	if constexpr(my_signed_integral<T>)
@@ -119,11 +117,13 @@ digit,
 overflow
 };
 
-template<std::integral char_type,details::my_integral T>
-inline constexpr auto scan_context_type(io_reserve_type_t<char_type,parameter<T&>>) noexcept
+namespace details
+{
+template<char8_t base,std::integral char_type,details::my_integral T>
+inline constexpr auto scan_context_type_impl_int(io_reserve_type_t<char_type,parameter<T&>>) noexcept
 {
 	using unsigned_type = details::my_make_unsigned_t<std::remove_cvref_t<T>>;
-	constexpr std::size_t max_size{details::cal_max_int_size<unsigned_type,10>()+2};
+	constexpr std::size_t max_size{details::cal_max_int_size<unsigned_type,base>()+2};
 	struct scan_integer_context
 	{
 		::fast_io::freestanding::array<char_type,max_size> buffer;
@@ -137,12 +137,19 @@ inline constexpr auto scan_context_type(io_reserve_type_t<char_type,parameter<T&
 	};
 	return io_type_t<scan_integer_context>{};
 }
+}
+
+template<std::integral char_type,details::my_integral T>
+inline constexpr auto scan_context_type(io_reserve_type_t<char_type,parameter<T&>>) noexcept
+{
+	return details::scan_context_type_impl_int<10>(io_reserve_type<char_type,parameter<T&>>);
+}
 
 namespace details
 {
 
 
-template<char8_t base,::fast_io::freestanding::random_access_iterator Iter>
+template<char8_t base,::fast_io::freestanding::input_iterator Iter>
 inline constexpr Iter scan_skip_all_digits_impl(Iter first,Iter last)
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
@@ -150,7 +157,7 @@ inline constexpr Iter scan_skip_all_digits_impl(Iter first,Iter last)
 	return first;
 }
 
-template<char8_t base,typename State,::fast_io::freestanding::random_access_iterator Iter,my_integral T>
+template<char8_t base,typename State,::fast_io::freestanding::input_iterator Iter,my_integral T>
 inline constexpr parse_result<Iter> scan_context_define_parse_impl(State& st,Iter first_start,Iter last,T& t) noexcept
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
@@ -179,7 +186,6 @@ inline constexpr parse_result<Iter> scan_context_define_parse_impl(State& st,Ite
 				*st.buffer.data()=*first;
 				st.size=1;
 				++first;
-				phase=scan_integral_context_phase::sign;
 			}
 		}
 		[[fallthrough]];
@@ -204,7 +210,7 @@ inline constexpr parse_result<Iter> scan_context_define_parse_impl(State& st,Ite
 	case scan_integral_context_phase::digit:
 	{
 		auto it{scan_skip_all_digits_impl<base>(first,last)};
-		auto diff{st.buffer.size()-st.size};
+		std::size_t const diff{st.buffer.size()-st.size};
 		std::size_t const first_it_diff{static_cast<std::size_t>(it-first)};
 		if(first_it_diff<diff)
 		{
@@ -212,7 +218,10 @@ inline constexpr parse_result<Iter> scan_context_define_parse_impl(State& st,Ite
 			auto e{non_overlapped_copy_n(first,first_it_diff,start)};
 			st.size+=static_cast<char8_t>(first_it_diff);
 			if(it==last)
+			{
+				st.integer_phase=scan_integral_context_phase::digit;
 				return {it,parse_code::partial};
+			}
 			auto [p,ec]=scan_int_contiguous_none_space_part_define_impl<base>(st.buffer.data(),e,t);
 			return {p-start+it,ec};
 		}
@@ -224,7 +233,9 @@ inline constexpr parse_result<Iter> scan_context_define_parse_impl(State& st,Ite
 				return {it,parse_code::partial};
 			}
 			else
+			{
 				return {it,parse_code::overflow};
+			}
 		}
 	}
 	default:
@@ -252,7 +263,7 @@ inline constexpr parse_code scan_context_eof_define_parse_impl(State& st,T& t) n
 
 }
 
-template<::fast_io::freestanding::random_access_iterator Iter,typename State,details::my_integral T>
+template<::fast_io::freestanding::input_iterator Iter,typename State,details::my_integral T>
 inline constexpr parse_result<Iter> scan_context_define2(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,parameter<T&>>,State& state,Iter begin,Iter end,parameter<T&> t) noexcept
 {
 	return details::scan_context_define_parse_impl<10>(state,begin,end,t.reference);

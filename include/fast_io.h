@@ -462,7 +462,7 @@ inline constexpr std::conditional_t<report,bool,void> scan(input&& in,Args&& ...
 	else
 	{
 #if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
-		return fast_io::details::scan_after_io_scan_forward<report>(fast_io::io_scan_alias<char>(in),fast_io::io_scan_forward<typename std::remove_cvref_t<input>::char_type>(fast_io::io_scan_alias(args))...);
+		return fast_io::details::scan_after_io_scan_forward<report>(fast_io::io_scan_forward<char>(fast_io::io_scan_alias(in)),fast_io::io_scan_forward<char>(fast_io::io_scan_alias(args))...);
 #else
 			static_assert(fast_io::input_stream<std::remove_cvref_t<input>>,"freestanding environment must provide IO device");
 #endif

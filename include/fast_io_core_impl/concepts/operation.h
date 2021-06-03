@@ -56,12 +56,12 @@ concept contiguous_test_scanable = contiguous_scanable<char_type,T>&&requires(ch
 #endif
 
 template<typename char_type, typename T>
-concept context_scanable2 = requires(char_type const* begin, char_type const* end, T t,parse_code code)
+concept context_scanable2 = requires(char_type const* begin, char_type const* end, T t)
 {
 	requires requires(typename std::remove_cvref_t<decltype(scan_context_type(io_reserve_type<char_type,T>))>::type st)
 	{
-		{scan_context_define2(io_reserve_type<char_type,T>,st,begin,end,t,code)}->std::convertible_to<parse_result<char_type const*>>;
-		{scan_context_eof_define(io_reserve_type<char_type,T>,st,t,code)}->std::convertible_to<parse_code>;
+		{scan_context_define2(io_reserve_type<char_type,T>,st,begin,end,t)}->std::convertible_to<parse_result<char_type const*>>;
+		{scan_context_eof_define(io_reserve_type<char_type,T>,st,t)}->std::convertible_to<parse_code>;
 	};
 };
 #if 0
