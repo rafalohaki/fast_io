@@ -322,8 +322,8 @@ inline constexpr output_iter my_copy_backward(input_iter first,input_iter last,o
 	else
 #endif
 	{
-	using input_value_type = typename std::iterator_traits<input_iter>::value_type;
-	using output_value_type = typename std::iterator_traits<output_iter>::value_type;
+	using input_value_type = typename ::fast_io::freestanding::iter_value_t<input_iter>;
+	using output_value_type = typename ::fast_io::freestanding::iter_value_t<output_iter>;
 	if constexpr
 	(::fast_io::freestanding::contiguous_iterator<input_iter>&&
 	::fast_io::freestanding::contiguous_iterator<output_iter>&&
@@ -336,7 +336,7 @@ inline constexpr output_iter my_copy_backward(input_iter first,input_iter last,o
 		std::size_t const count(last-first);
 		d_last-=count;
 		if(count)	//to avoid nullptr UB
-			my_memmove(std::to_address(d_last),std::to_address(first),sizeof(input_value_type)*count);
+			my_memmove(::fast_io::freestanding::to_address(d_last),::fast_io::freestanding::to_address(first),sizeof(input_value_type)*count);
 		return d_last;
 	}
 	else

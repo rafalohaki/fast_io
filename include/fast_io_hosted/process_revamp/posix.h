@@ -255,7 +255,7 @@ namespace details
 template<::fast_io::freestanding::forward_iterator Iter>
 inline
 #if __cpp_constexpr_dynamic_alloc >= 201907L
-	constexpr
+//	constexpr
 #endif
 char const* const* dup_enviro_impl_with_size(Iter begin,Iter end,std::size_t size)
 {
@@ -265,7 +265,7 @@ char const* const* dup_enviro_impl_with_size(Iter begin,Iter end,std::size_t siz
 		{v.c_str()}->std::convertible_to<char const*>;
 	})
 	{
-		for(char const* it{uptr.get()};begin!=end;++begin)
+		for(char const** it{uptr.get()};begin!=end;++begin)
 		{
 			*it=begin->c_str();
 			++it;

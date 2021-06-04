@@ -66,7 +66,12 @@ namespace intrinsics
 using x86_64_m128 [[gnu::__vector_size__(16),gnu::may_alias]] = float ;
 using x86_64_m128i [[gnu::__vector_size__ (16),gnu::may_alias]] = long long;
 using x86_64_v16qi [[gnu::__vector_size__ (16)]] = char;
+using x86_64_v16qs [[gnu::__vector_size__ (16)]] = char signed;
+using x86_64_v16qu [[gnu::__vector_size__ (16)]] = char unsigned;
 using x86_64_v8hi [[gnu::__vector_size__ (16)]] = short;
+using x86_64_v8hu [[gnu::__vector_size__ (16)]] = short unsigned;
+using x86_64_v4si [[gnu::__vector_size__ (16)]] = int;
+using x86_64_v4su [[gnu::__vector_size__ (16)]] = int unsigned;
 
 using x86_64_m256 [[gnu::__vector_size__(32),gnu::may_alias]]  = float;
 using x86_64_m256i [[gnu::__vector_size__ (32),gnu::may_alias]] = long long;
@@ -84,6 +89,7 @@ template<std::integral char_type,typename T>
 requires
 (
 std::same_as<T,intrinsics::x86_64_m128>||std::same_as<T,intrinsics::x86_64_m128i>
+||std::same_as<T,intrinsics::x86_64_v16qu>||std::same_as<T,intrinsics::x86_64_v16qi>||std::same_as<T,intrinsics::x86_64_v16qs>
 ||std::same_as<T,intrinsics::x86_64_m256>||std::same_as<T,intrinsics::x86_64_m256i>
 ||std::same_as<T,intrinsics::x86_64_m512>||std::same_as<T,intrinsics::x86_64_m512i>
 ||std::same_as<T,intrinsics::x86_64_m1024>||std::same_as<T,intrinsics::x86_64_m1024i>
@@ -100,6 +106,7 @@ template<std::integral char_type,::fast_io::freestanding::forward_iterator Iter,
 requires
 (
 std::same_as<T,intrinsics::x86_64_m128>||std::same_as<T,intrinsics::x86_64_m128i>
+||std::same_as<T,intrinsics::x86_64_v16qu>||std::same_as<T,intrinsics::x86_64_v16qi>||std::same_as<T,intrinsics::x86_64_v16qs>
 ||std::same_as<T,intrinsics::x86_64_m256>||std::same_as<T,intrinsics::x86_64_m256i>
 ||std::same_as<T,intrinsics::x86_64_m512>||std::same_as<T,intrinsics::x86_64_m512i>
 ||std::same_as<T,intrinsics::x86_64_m1024>||std::same_as<T,intrinsics::x86_64_m1024i>

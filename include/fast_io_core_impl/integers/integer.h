@@ -5,9 +5,6 @@
 #include"optimize_size/impl.h"
 #include"jiaendu/jiaendu.h"
 #include"sto/sto_overhual.h"
-#if !defined(_MSC_VER) || defined(__clang__)
-#include"sto/sto_contiguous.h"
-#endif
 #include"append_nine_digits.h"
 #include"crypto_hash.h"
 
