@@ -259,9 +259,6 @@ inline constexpr parse_result<Iter> scan_int_contiguous_none_simd_space_part_def
 }
 
 template<char8_t base,::fast_io::freestanding::random_access_iterator Iter,my_integral T>
-#if __has_cpp_attribute(gnu::hot)
-[[gnu::hot]]
-#endif
 inline constexpr parse_result<Iter> scan_int_contiguous_none_space_part_define_impl(Iter first,Iter last,T& t) noexcept
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
