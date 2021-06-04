@@ -287,7 +287,7 @@ inline constexpr parse_result<Iter> scan_int_contiguous_none_space_part_define_i
 		if(!std::is_constant_evaluated()&&last-first>=32)[[likely]]
 		{
 			constexpr bool smaller_than_uint64{sizeof(unsigned_type)<sizeof(std::uint64_t)};
-			std::uint64_t temp;
+			std::uint64_t temp{};
 			auto [digits,ec]=sse_parse<is_ebcdic<char_type>,smaller_than_uint64>(reinterpret_cast<char unsigned const*>(first),reinterpret_cast<char unsigned const*>(last),temp,has_zero);
 			it=first+digits;
 			if(ec!=parse_code::ok)[[unlikely]]
