@@ -41,7 +41,7 @@ inline constexpr caiter print_reserve_address_impl(caiter iter,std::uintptr_t va
 		iter=details::copy_string_literal(U"0x",iter);
 	else
 		iter=details::copy_string_literal(u8"0x",iter);
-#ifdef FAST_IO_OPTIMIZE_SIZE
+#ifdef __OPTIMIZE_SIZE__
 	details::optimize_size::output_unsigned_dummy<uisz,16>(iter,value);
 	return iter+=uisz;
 #else

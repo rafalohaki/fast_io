@@ -62,7 +62,7 @@ inline constexpr Iter print_reserve_define_iso3166_numeric_impl(Iter iter,basic_
 {
 	if(1000<=v.code)
 		return print_reserve_define(io_reserve_type<char_type,std::uint16_t>,iter,v.code);
-#ifdef FAST_IO_OPTIMIZE_SIZE
+#ifdef __OPTIMIZE_SIZE__
 	optimize_size::with_length::output_unsigned(iter,v.code,3);
 	iter+=3;
 	return iter;

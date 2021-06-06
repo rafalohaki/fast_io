@@ -47,7 +47,7 @@ inline constexpr Iter output_exp(std::int32_t exp,Iter result)
 	}
 	++result;
 	std::uint32_t unsigned_exp(exp);
-#ifdef FAST_IO_OPTIMIZE_SIZE
+#ifdef __OPTIMIZE_SIZE__
 	std::size_t len{2};
 	if constexpr(four_digits)
 	{

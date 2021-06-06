@@ -151,7 +151,7 @@ inline constexpr Iter output_exp(T exp,Iter result)
 	}
 	using char_type = std::remove_reference_t<decltype(*result)>;
 	std::make_unsigned_t<T> unsigned_exp(exp);
-#ifdef FAST_IO_OPTIMIZE_SIZE
+#ifdef __OPTIMIZE_SIZE__
 	std::size_t len{2};
 	if constexpr(four_digits)
 	{

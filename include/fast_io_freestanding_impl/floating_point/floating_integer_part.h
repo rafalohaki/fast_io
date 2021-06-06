@@ -31,7 +31,7 @@ inline constexpr std::size_t fp_output_unsigned(Iter iter,U i)
 	else
 	{
 		namespace algo_decision = 
-#ifdef FAST_IO_OPTIMIZE_SIZE
+#ifdef __OPTIMIZE_SIZE__
 			optimize_size;
 #elif defined(FAST_IO_OPTIMIZE_TIME)
 			jiaendu::fp;
@@ -51,7 +51,7 @@ inline constexpr void fp_output_unsigned_with_len(Iter iter,U i,std::size_t len)
 	}
 	else
 	{
-#ifdef FAST_IO_OPTIMIZE_SIZE
+#ifdef __OPTIMIZE_SIZE__
 		optimize_size::with_length::output_unsigned(iter,static_cast<std::remove_cvref_t<U>>(i),len);
 #elif defined(FAST_IO_OPTIMIZE_TIME)
 		jiaendu::fp::output_unsigned(iter,static_cast<std::remove_cvref_t<U>>(i));
@@ -80,7 +80,7 @@ inline constexpr std::size_t fp_output_unsigned_point([[maybe_unused]]compile_ti
 		{
 
 			namespace algo_decision = 
-#ifdef FAST_IO_OPTIMIZE_SIZE
+#ifdef __OPTIMIZE_SIZE__
 				optimize_size;
 #elif defined(FAST_IO_OPTIMIZE_TIME)
 				jiaendu::fp;
@@ -139,7 +139,7 @@ inline constexpr std::size_t fp_output_unsigned_point_no_dcm(U value,Iter str) n
 		{
 
 			namespace algo_decision = 
-#ifdef FAST_IO_OPTIMIZE_SIZE
+#ifdef __OPTIMIZE_SIZE__
 				optimize_size;
 #elif defined(FAST_IO_OPTIMIZE_TIME)
 				jiaendu::fp;
@@ -214,7 +214,7 @@ inline constexpr std::size_t fp_output_unsigned_trans(Iter iter,U i)
 	{
 
 		namespace algo_decision = 
-#ifdef FAST_IO_OPTIMIZE_SIZE
+#ifdef __OPTIMIZE_SIZE__
 			transparent;
 #elif defined(FAST_IO_OPTIMIZE_TIME)
 			jiaendu::fp;
@@ -228,7 +228,7 @@ inline constexpr std::size_t fp_output_unsigned_trans(Iter iter,U i)
 template<::fast_io::freestanding::contiguous_iterator Iter,my_unsigned_integral U>
 inline constexpr void fp_output_two_digits(Iter iter,U i)
 {
-#ifdef FAST_IO_OPTIMIZE_SIZE
+#ifdef __OPTIMIZE_SIZE__
 	std::uint32_t u(i/10);
 	std::uint32_t v(i%10);
 	*iter=u;

@@ -51,7 +51,7 @@ inline constexpr Iter print_reserve_define_iso6709_coordinate_impl(Iter iter,iso
 			*iter=u8'+';
 	}
 	++iter;
-#ifdef FAST_IO_OPTIMIZE_SIZE
+#ifdef __OPTIMIZE_SIZE__
 	optimize_size::with_length::output_unsigned(iter,absolute,3);
 	iter+=3;
 	if(dms.subseconds||dms.seconds||dms.minutes)[[likely]]

@@ -91,19 +91,14 @@ inline constexpr void sha512_round(std::uint64_t T1,std::uint64_t a,std::uint64_
 
 inline void sha512_do_function(std::uint64_t* __restrict state,std::byte const* __restrict blocks_start,std::size_t blocks_bytes) noexcept
 {
-#if defined(FAST_IO_OPTIMIZE_SIZE)
-	uint64_t a, b, c, d, e, f, g, h, s0, s1, T1, T2;
+#if defined(__OPTIMIZE_SIZE__) || defined(_MSC_VER)
+/*
+optimization of msvc is very bad
+*/
+	uint64_t a{state[0]}, b{state[1]}, c{state[2]}, d{state[3]}, e{state[4]}, f{state[5]}, g{state[6]}, h{state[7]}, s0, s1, T1, T2;
 	uint64_t X[16];
 	for(auto data(blocks_start),ed(blocks_start+blocks_bytes);data!=ed;)
 	{
-		a = state[0];
-		b = state[1];
-		c = state[2];
-		d = state[3];
-		e = state[4];
-		f = state[5];
-		g = state[6];
-		h = state[7];
 		std::uint32_t i{};
 		for (; i < 16; ++i)
 		{
@@ -152,33 +147,32 @@ inline void sha512_do_function(std::uint64_t* __restrict state,std::byte const* 
 			a = T1 + T2;
 		}
 
-		state[0] += a;
-		state[1] += b;
-		state[2] += c;
-		state[3] += d;
-		state[4] += e;
-		state[5] += f;
-		state[6] += g;
-		state[7] += h;
+		a=(state[0] += a);
+		b=(state[1] += b);
+		c=(state[2] += c);
+		d=(state[3] += d);
+		e=(state[4] += e);
+		f=(state[5] += f);
+		g=(state[6] += g);
+		h=(state[7] += h);
 	}
-
 #else
 	using uint64_may_alias
 #if __has_cpp_attribute(gnu::may_alias)
 	[[gnu::may_alias]]
 #endif
 	= std::uint64_t;
+	std::uint64_t a{state[0]};
+	std::uint64_t b{state[1]};
+	std::uint64_t c{state[2]};
+	std::uint64_t d{state[3]};
+	std::uint64_t e{state[4]};
+	std::uint64_t f{state[5]};
+	std::uint64_t g{state[6]};
+	std::uint64_t h{state[7]};
 	for(auto data(blocks_start),ed(blocks_start+blocks_bytes);data!=ed;data+=128)
 	{
-		uint64_may_alias const* W{reinterpret_cast<std::uint64_t const*>(data)};
-		std::uint64_t a{state[0]};
-		std::uint64_t b{state[1]};
-		std::uint64_t c{state[2]};
-		std::uint64_t d{state[3]};
-		std::uint64_t e{state[4]};
-		std::uint64_t f{state[5]};
-		std::uint64_t g{state[6]};
-		std::uint64_t h{state[7]};
+		uint64_may_alias const* W{reinterpret_cast<uint64_may_alias const*>(data)};
 		std::uint64_t x0,x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15;
 		sha512_round(x0=big_endian(W[0]),a,b,c,d,e,f,g,h,0x428a2f98d728ae22);
 		sha512_round(x1=big_endian(W[1]),h,a,b,c,d,e,f,g,0x7137449123ef65cd);
@@ -260,14 +254,14 @@ inline void sha512_do_function(std::uint64_t* __restrict state,std::byte const* 
 		sha512_round((x13+=sigma0(x14)+sigma1(x11)+x6),d,e,f,g,h,a,b,c,0x597f299cfc657e2a);
 		sha512_round((x14+=sigma0(x15)+sigma1(x12)+x7),c,d,e,f,g,h,a,b,0x5fcb6fab3ad6faec);
 		sha512_round((x15+=sigma0(x0)+sigma1(x13)+x8),b,c,d,e,f,g,h,a,0x6c44198c4a475817);
-		*state+=a;
-		state[1]+=b;
-		state[2]+=c;
-		state[3]+=d;
-		state[4]+=e;
-		state[5]+=f;
-		state[6]+=g;
-		state[7]+=h;
+		a=(*state+=a);
+		b=(state[1]+=b);
+		c=(state[2]+=c);
+		d=(state[3]+=d);
+		e=(state[4]+=e);
+		f=(state[5]+=f);
+		g=(state[6]+=g);
+		h=(state[7]+=h);
 	}
 #endif
 }

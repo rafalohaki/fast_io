@@ -2,8 +2,17 @@
 
 namespace fast_io
 {
+namespace details
+{
+struct pesudo_uint128_t
+{
+	std::uint64_t low{},high{};
+};
 
-template<typename T,bool endian_reverse=true>
+}
+
+template<typename T,bool endian_reverse=true,std::size_t transform_counter_bytes=8>
+requires (transform_counter_bytes==8 || transform_counter_bytes==16)
 class sha
 {
 public:
@@ -11,53 +20,71 @@ public:
 	using digest_type = typename T::digest_type;
 	digest_type digest_block = T::digest_initial_value;
 	static inline constexpr std::size_t block_size = T::block_size;
+	static_assert(block_size>(transform_counter_bytes/8));
 #if __has_cpp_attribute(no_unique_address)
 	[[no_unique_address]]
 #endif
 	T function;
-	std::uint64_t transform_counter{};
-
+	using transform_counter_type =
+#ifdef __SIZEOF_INT128__
+	std::conditional_t<transform_counter_bytes==8,std::uint64_t,__uint128_t>;
+#else
+	std::conditional_t<transform_counter_bytes==8,std::uint64_t,details::pesudo_uint128_t>;
+#endif
+	transform_counter_type transform_counter{};
 	void operator()(std::byte const* process_blocks,std::size_t process_block_bytes) noexcept//This is multiple blocks
 	{
 		function(digest_block.data(),process_blocks,process_block_bytes);
-		transform_counter+=process_block_bytes/block_size;
+		if constexpr(std::same_as<transform_counter_type,details::pesudo_uint128_t>)
+			details::intrinsics::add_carry(details::intrinsics::add_carry(false,transform_counter.low,static_cast<std::uint64_t>(process_block_bytes)<<3,transform_counter.low),
+				transform_counter.high,static_cast<std::uint64_t>(0),transform_counter.high);
+		else
+			transform_counter+=static_cast<std::uint64_t>(process_block_bytes)<<3;
 	}
-
 	void digest(std::byte const* final_block,std::size_t final_block_bytes) noexcept//contracts: final_block.size()<block_size
 	{
-		std::uint64_t total_bits(static_cast<std::uint64_t>(transform_counter*block_size+final_block_bytes)*8);
-		::fast_io::freestanding::array<std::byte,block_size> blocks{};
-		::fast_io::details::my_memcpy(blocks.data(),final_block,final_block_bytes);
+		transform_counter_type temp{transform_counter};
+		if constexpr(std::same_as<transform_counter_type,details::pesudo_uint128_t>)
+			details::intrinsics::add_carry(details::intrinsics::add_carry(false,temp.low,(static_cast<std::uint64_t>(final_block_bytes)<<3),temp.low),
+				temp.high,static_cast<std::uint64_t>(0),temp.high);
+		else
+			temp+=static_cast<std::uint64_t>(final_block_bytes)<<3;
+		freestanding::array<std::byte,(block_size<<1)> blocks{};
+		details::my_memcpy(blocks.data(),final_block,final_block_bytes);
 		blocks[final_block_bytes]=std::byte{0x80};
-		auto start{blocks.data()+blocks.size()-8};
-		if(block_size<=final_block_bytes+8)
-		{
-			function(digest_block.data(),blocks.data(),block_size);
-			::fast_io::details::my_memset(blocks.data(),0,sizeof(block_size));
-		}
+		std::byte* end_of_padding_block{blocks.data()+blocks.size()};
+		if(final_block_bytes+transform_counter_bytes<block_size)
+			end_of_padding_block=blocks.data()+block_size;
 		if constexpr(endian_reverse)
 		{
-			total_bits=details::byte_swap(total_bits);
-			std::uint32_t bu3(static_cast<std::uint32_t>(total_bits));
-			::fast_io::details::my_memcpy(start,__builtin_addressof(bu3),4);
-			std::uint32_t bu4(static_cast<std::uint32_t>(total_bits>>32));
-			::fast_io::details::my_memcpy(start+4,__builtin_addressof(bu4),4);
+			if constexpr(std::same_as<transform_counter_type,details::pesudo_uint128_t>&&std::endian::native!=std::endian::big)
+			{
+				std::uint64_t high{details::big_endian(temp.high)};
+				std::uint64_t low{details::big_endian(temp.low)};
+				details::my_memcpy(end_of_padding_block-(sizeof(high)+sizeof(low)),__builtin_addressof(high),sizeof(high));
+				details::my_memcpy(end_of_padding_block-sizeof(low),__builtin_addressof(low),sizeof(low));
+			}
+			else
+			{
+				temp=details::big_endian(temp);
+				details::my_memcpy(end_of_padding_block-sizeof(temp),__builtin_addressof(temp),sizeof(temp));
+			}
 		}
 		else
-			::fast_io::details::my_memcpy(start,__builtin_addressof(total_bits),8);
-		function(digest_block.data(),blocks.data(),block_size);
+			details::my_memcpy(end_of_padding_block-transform_counter_bytes,__builtin_addressof(temp),transform_counter_bytes);
+		function(digest_block.data(),blocks.data(),static_cast<std::size_t>(end_of_padding_block-blocks.data()));
 	}
 };
 
 
-template<std::integral char_type,typename T,bool endian_reverse>
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,sha<T,endian_reverse>>) noexcept
+template<std::integral char_type,typename T,bool endian_reverse,std::size_t transform_counter_bytes>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,sha<T,endian_reverse,transform_counter_bytes>>) noexcept
 {
 	return sizeof(typename T::digest_type)*8;
 }
 
-template<std::integral char_type,::fast_io::freestanding::random_access_iterator caiter,typename T,bool endian_reverse>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,sha<T,endian_reverse>>,caiter iter,sha<T,endian_reverse> const& i) noexcept
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator caiter,typename T,bool endian_reverse,std::size_t transform_counter_bytes>
+inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,sha<T,endian_reverse,transform_counter_bytes>>,caiter iter,sha<T,endian_reverse,transform_counter_bytes> const& i) noexcept
 {
 	return details::crypto_hash_main_reserve_define_common_impl<false,endian_reverse>(i.digest_block.data(),i.digest_block.data()+i.digest_block.size(),iter);
 }
@@ -67,8 +94,8 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,mani
 	return sizeof(typename T::digest_type)*8;
 }
 
-template<std::integral char_type,::fast_io::freestanding::random_access_iterator caiter,typename T,bool endian_reverse>
-inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manipulators::base_full_t<16,true,sha<T,endian_reverse> const&>>,caiter iter,manipulators::base_full_t<16,true,sha<T,endian_reverse> const&> i) noexcept
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator caiter,typename T,bool endian_reverse,std::size_t transform_counter_bytes>
+inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manipulators::base_full_t<16,true,sha<T,endian_reverse,transform_counter_bytes> const&>>,caiter iter,manipulators::base_full_t<16,true,sha<T,endian_reverse,transform_counter_bytes> const&> i) noexcept
 {
 	return details::crypto_hash_main_reserve_define_common_impl<true,endian_reverse>(i.reference.digest_block.data(),i.reference.digest_block.data()+i.reference.digest_block.size(),iter);
 }
@@ -79,14 +106,14 @@ using sha256 = sha<sha256_function>;
 namespace manipulators
 {
 
-template<typename T,bool endian_reverse>
-inline constexpr base_full_t<16,true,::fast_io::sha<T,endian_reverse> const&> upper(::fast_io::sha<T,endian_reverse> const& res) noexcept
+template<typename T,bool endian_reverse,std::size_t transform_counter_bytes>
+inline constexpr base_full_t<16,true,::fast_io::sha<T,endian_reverse,transform_counter_bytes> const&> upper(::fast_io::sha<T,endian_reverse,transform_counter_bytes> const& res) noexcept
 {
 	return {res};
 }
 
-template<typename T,bool endian_reverse>
-inline constexpr parameter<::fast_io::sha<T,endian_reverse> const&> lower(::fast_io::sha<T,endian_reverse> const& res) noexcept
+template<typename T,bool endian_reverse,std::size_t transform_counter_bytes>
+inline constexpr parameter<::fast_io::sha<T,endian_reverse,transform_counter_bytes> const&> lower(::fast_io::sha<T,endian_reverse,transform_counter_bytes> const& res) noexcept
 {
 	return {res};
 }

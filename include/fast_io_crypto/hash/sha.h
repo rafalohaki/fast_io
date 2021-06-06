@@ -12,6 +12,6 @@ using sha1
 [[deprecated("SHA1 is no longer a secure algorithm. See wikipedia https://en.wikipedia.org/wiki/SHA-1")]]
 = sha<sha1_function>;
 
-using sha512 = sha<sha512_function>;
+using sha512 = sha<sha512_function,true,16>;
 
 }

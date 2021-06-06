@@ -63,7 +63,7 @@ constexpr Iter process_integer_output(Iter iter,int_type i) noexcept
 		if constexpr(base==10)
 		{
 			namespace algo_decision = 
-#ifdef FAST_IO_OPTIMIZE_SIZE
+#ifdef __OPTIMIZE_SIZE__
 				details::optimize_size;
 #elif defined(FAST_IO_OPTIMIZE_TIME)
 				details::jiaendu;//Jiaendu is objectively the fastest algorithm since it avoids division. There is no point this isn't the fastest
@@ -96,7 +96,7 @@ constexpr Iter process_integer_output(Iter iter,int_type i) noexcept
 		else
 		{
 			namespace algo_decision = 
-#ifdef FAST_IO_OPTIMIZE_SIZE
+#ifdef __OPTIMIZE_SIZE__
 				details::optimize_size;
 #else
 				details::twodigits;
@@ -131,7 +131,7 @@ template<char8_t base,bool uppercase,::fast_io::freestanding::random_access_iter
 constexpr Iter process_full_integer_output(Iter iter,int_type i) noexcept
 {
 	namespace algo_decision = 
-#ifdef FAST_IO_OPTIMIZE_SIZE
+#ifdef __OPTIMIZE_SIZE__
 		details::optimize_size;
 #else
 		details::twodigits;
@@ -300,7 +300,7 @@ namespace details
 template<::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
 inline constexpr void output_unsigned_with_size(Iter str,U value,std::size_t len) noexcept
 {
-#ifdef FAST_IO_OPTIMIZE_SIZE
+#ifdef __OPTIMIZE_SIZE__
 	optimize_size::with_length::output_unsigned(str,value,len);
 #else
 	twodigits::with_length::output_unsigned(str,value,len);
@@ -320,7 +320,7 @@ inline constexpr Iter output_unsigned_serialize_size(std::size_t val,Iter iter) 
 		++iter;
 		return iter;
 	}
-#ifdef FAST_IO_OPTIMIZE_SIZE
+#ifdef __OPTIMIZE_SIZE__
 	else
 		return optimize_size::output_unsigned(iter,val);
 #elif defined(FAST_IO_OPTIMIZE_TIME)

@@ -171,7 +171,7 @@ constexpr void output_unsigned_with_3_seperator_len(::fast_io::freestanding::ite
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 #ifdef FAST_IO_OPTIMIZE_TIME
 	constexpr auto table3(jiaendu::static_tables<char_type>::table3.data());
-#elif !defined(FAST_IO_OPTIMIZE_SIZE)
+#elif !defined(__OPTIMIZE_SIZE__)
 	constexpr auto table(get_shared_inline_constexpr_base_table<char_type,10,false>().data());
 #endif
 	for(;value>=1000u;*--iter=seperator_ch)
@@ -180,7 +180,7 @@ constexpr void output_unsigned_with_3_seperator_len(::fast_io::freestanding::ite
 		auto low3digits{value%1000u};
 		value/=1000u;
 		non_overlapped_copy_n(table3[low3digits].data(),3,iter-=3);
-#elif defined(FAST_IO_OPTIMIZE_SIZE)
+#elif defined(__OPTIMIZE_SIZE__)
 		for(std::size_t i{};i!=3;++i)
 		{
 			auto remained{value%10u};
@@ -224,7 +224,7 @@ constexpr void output_unsigned_with_3_seperator_len(::fast_io::freestanding::ite
 		else
 			*--iter=static_cast<char_type>(value+u8'0');
 	}
-#elif defined(FAST_IO_OPTIMIZE_SIZE)
+#elif defined(__OPTIMIZE_SIZE__)
 	for(;value;)
 	{
 		auto remained{value%10u};

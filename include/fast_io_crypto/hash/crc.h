@@ -13,7 +13,7 @@ inline constexpr ::fast_io::freestanding::array<std::uint32_t,256> crc32c_tb{0x0
 template<bool crc32c=false>
 inline constexpr std::uint32_t calculate_crc32(std::uint32_t crc,std::byte const* block_start,std::size_t block_bytes) noexcept
 {
-	for(auto i{block_start},e{block_start+block_bytes};i!=e;++i)
+	for(auto i{block_start},ed{block_start+block_bytes};i!=ed;++i)
 	{
 		if constexpr(crc32c)
 			crc=crc32c_tb[(std::to_integer<std::uint32_t>(*i)^crc)&0xff]^(crc>>8);

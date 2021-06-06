@@ -19,11 +19,11 @@ inline constexpr void append_nine_digits_dummy(Iter str,std::uint32_t value)
 template<char8_t start=u8'0',::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr void append_nine_digits(Iter str,std::uint32_t value)
 {
-#ifndef FAST_IO_OPTIMIZE_SIZE
+#ifndef __OPTIMIZE_SIZE__
 	if(std::is_constant_evaluated())
 #endif
 		append_nine_digits_dummy<start>(str,value);
-#ifndef FAST_IO_OPTIMIZE_SIZE
+#ifndef __OPTIMIZE_SIZE__
 
 	else
 	{

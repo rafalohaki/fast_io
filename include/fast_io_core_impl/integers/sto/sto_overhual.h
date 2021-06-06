@@ -365,7 +365,7 @@ inline constexpr T powmul(T v, std::size_t sz) noexcept
 {
 	// powmul(v,sz)=v*(base^sz)
 	// make a table
-#ifdef FAST_IO_OPTIMIZE_SIZE
+#ifdef __OPTIMIZE_SIZE__
 	for (std::size_t i{};i!=sz;++i)
 		v *= base;
 #else

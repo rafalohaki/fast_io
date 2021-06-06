@@ -38,7 +38,7 @@ inline constexpr Iter chrono_one_digit_impl(Iter it,U uv) noexcept
 template<bool unchecked=false,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
 inline constexpr Iter chrono_two_digits_impl(Iter it,U u) noexcept
 {
-#ifdef FAST_IO_OPTIMIZE_SIZE
+#ifdef __OPTIMIZE_SIZE__
 	if constexpr(!unchecked)
 	{
 		if(100u<=u)[[unlikely]]
@@ -120,7 +120,7 @@ inline constexpr Iter chrono_year_impl(Iter it,integ i) noexcept
 			*it=u8'-';
 		++it;
 	}
-#ifdef FAST_IO_OPTIMIZE_SIZE
+#ifdef __OPTIMIZE_SIZE__
 	if(10000u<=u)[[unlikely]]
 		return process_integer_output<10,false>(it,u);
 	optimize_size::with_length::output_unsigned(it,u,4);

@@ -401,7 +401,6 @@ Notice: I modified libstdc++'s std::filebuf's BUFSIZ to 1048576 due to BUFSIZE i
 
 4. Binary Size
 Just use the benchmark in benchmarks/0014.file_io/file_io.
-That would introduce Ryu floating table for printing time, and I did not compile the code with -DFAST_IO_OPTIMIZE_SIZE. Or it would be nothing.
 Dude, you should avoid stream as plague tbh. It is not healthy.
 
 
