@@ -133,7 +133,7 @@ int main()
 	
 	println("str = ", str); // this will print the pointer's value instead of the string. See the correct solutions above:
 	println("str = ", std::string_view(str)); // use std::string_view instead
-	println("str = ", fast_io::chvw(str));    // use  fast_io::chvw()
+	println("str = ", fast_io::mnp::chvw(str));    // use  fast_io::chvw()
 }
 .EE
 .in -8n
@@ -148,7 +148,7 @@ int main()
 {
 	char ch = 'Y';
 	println(ch); // this will print the ASCII code (89) of 'Y' instead character 'Y'
-	println(std::chvw(ch)); // this can print 'Y'
+	println(fast_io::mnp::chvw(ch)); // this can print 'Y'
 }
 .EE
 .in -8n
