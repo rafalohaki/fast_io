@@ -91,7 +91,7 @@ inline constexpr void sha512_round(std::uint64_t T1,std::uint64_t a,std::uint64_
 
 inline void sha512_do_function(std::uint64_t* __restrict state,std::byte const* __restrict blocks_start,std::size_t blocks_bytes) noexcept
 {
-#if defined(__OPTIMIZE_SIZE__) || defined(_MSC_VER)
+#if defined(__OPTIMIZE_SIZE__) || (defined(_MSC_VER) && !defined(__clang__))
 /*
 optimization of msvc is very bad
 */
