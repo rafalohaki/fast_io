@@ -15,7 +15,7 @@ int main(int argc,char** argv)
 		return 1;
 	}
 	auto t0{fast_io::posix_clock_gettime(fast_io::posix_clock_id::realtime)};
-	fast_io::hmac_sha512 md(argv[1]);
+	fast_io::hmac_sha256 md(argv[1]);
 	fast_io::hash_processor processor(md);
 	fast_io::ibuf_file ibf(argv[2]);
 	auto transmitted{transmit(processor,ibf)};

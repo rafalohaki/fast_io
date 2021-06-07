@@ -90,9 +90,9 @@ struct hmac
 #endif
 			::fast_io::details::initialize_hmac<std::byte>(*this,reinterpret_cast<std::byte const*>(key.data()),key.size()*sizeof(char32_t));;
 	}
-	constexpr std::size_t block_init(std::byte const* sp) noexcept
+	constexpr std::size_t block_init(std::byte* sp) noexcept
 	{
-		::fast_io::details::compile_time_type_punning_copy_n(sp,sizeof(key_type),inner_key.data());
+		::fast_io::details::compile_time_type_punning_copy_n(inner_key.data(),sizeof(key_type),sp);
 		return sizeof(key_type);
 	}
 	constexpr void operator()(std::byte const* process_blocks,std::size_t block_bytes) noexcept
@@ -124,23 +124,6 @@ struct hmac
 				reinterpret_cast<std::byte const*>(digest_block.data()+digest_block.size()));
 		processor.do_final();
 	}
-	constexpr hmac(hmac const&)=default;
-	constexpr hmac& operator=(hmac const&)=default;
-	constexpr hmac(hmac&&) noexcept=default;
-	constexpr hmac& operator=(hmac&&) noexcept=default;
-#if __cpp_lib_is_constant_evaluated >= 201811L
-	constexpr
-#endif
-	~hmac()
-	{
-#if __cpp_lib_is_constant_evaluated >= 201811L
-		if(!std::is_constant_evaluated())
-#endif
-		{
-			secure_clear(inner_key.data(),sizeof(inner_key));
-			secure_clear(outer_key.data(),sizeof(outer_key));
-		}	
-	}
 };
 
 namespace details
@@ -164,14 +147,13 @@ void initialize_hmac(hmac<func,endian_reverse>& obj,range_type const* init_key_d
 		else
 #endif
 		{
-			if constexpr(std::same_as<std::byte,range_type>)
-				hash_processor_impl::hash_write_impl<std::byte>(processor,reinterpret_cast<std::byte const*>(init_key_data),reinterpret_cast<std::byte const*>(init_key_data+init_key_size));
+			hash_processor_impl::hash_write_impl<std::byte>(processor,reinterpret_cast<std::byte const*>(init_key_data),reinterpret_cast<std::byte const*>(init_key_data+init_key_size));
 		}
 		processor.do_final();
 		if constexpr(endian_reverse)
 			for(auto & e : obj.function.digest_block)
 				e=details::byte_swap(e);
-		compile_time_type_punning_copy_n(obj.function.digest_block.data(),obj.function.digest_block.size(),outer_key.data());
+		compile_time_type_punning_copy_n(obj.function.digest_block.data(),sizeof(obj.function.digest_block),outer_key.data());
 		obj.function={};
 	}
 	else

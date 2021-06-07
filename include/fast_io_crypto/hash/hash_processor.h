@@ -10,7 +10,7 @@ class compress_current_position
 {};
 
 template<typename Func>
-concept hash_require_block_init=requires(Func& func,std::byte const* ptr)
+concept hash_require_block_init=requires(Func& func,std::byte* ptr)
 {
 	func.block_init(ptr);
 };
