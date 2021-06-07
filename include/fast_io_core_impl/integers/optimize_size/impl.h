@@ -12,11 +12,12 @@ template<char8_t base=10,bool uppercase=false,::fast_io::freestanding::random_ac
 inline constexpr void output_unsigned(Iter str,U value,std::size_t const len) noexcept
 {
 	using char_type=::fast_io::freestanding::iter_value_t<Iter>;
-	str+=len-1;
+	str+=len;
 	for(std::size_t i{};i!=len;++i)
 	{
 		U const temp(value/base);
 		char_type const res(value%base);
+		--str;
 		if constexpr(base<=10)
 		{
 			if constexpr(exec_charset_is_ebcdic<char_type>())
@@ -95,7 +96,6 @@ inline constexpr void output_unsigned(Iter str,U value,std::size_t const len) no
 				}
 			}
 		}
-		--str;
 		value = temp;
 	}
 }
