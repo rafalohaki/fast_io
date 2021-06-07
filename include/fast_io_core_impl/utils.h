@@ -332,7 +332,7 @@ inline constexpr output_iter non_overlapped_copy_n(input_iter first,std::size_t 
 		return result+=count;
 	}
 	else
-		::fast_io::freestanding::copy_n(first,count,result);
+		return ::fast_io::freestanding::copy_n(first,count,result);
 	}
 }
 
@@ -443,6 +443,44 @@ inline constexpr output_iter my_copy_backward(input_iter first,input_iter last,o
 	}
 	else
 		return ::fast_io::freestanding::copy_backward(first,last,d_last);
+	}
+}
+
+
+template<typename range_type>
+inline 
+#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
+constexpr
+#endif
+void compile_time_type_punning_copy_n(range_type const* first,std::size_t bytes,std::byte* out)
+{
+#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
+	if(std::is_constant_evaluated())
+	{
+		if constexpr(std::same_as<range_type,std::byte>)
+		{
+			for(auto i{first},e{first+bytes};i!=e;++i)
+			{
+				*out=*i;
+				++out;
+			}
+		}
+		else
+		{
+			auto j{out};
+			auto first_end{first+bytes/sizeof(range_type)};
+			for(auto i{first};i!=first_end;++i)
+			{
+				::fast_io::freestanding::array<std::byte,sizeof(range_type)> arr{std::bit_cast<::fast_io::freestanding::array<std::byte,sizeof(range_type)>>(*i)};
+				j=non_overlapped_copy_n(arr.data(),arr.size(),j);
+			}
+		}
+	}
+	else
+#endif
+	{
+		if(bytes)[[likely]]
+			my_memcpy(out,first,bytes);
 	}
 }
 

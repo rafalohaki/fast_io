@@ -54,9 +54,87 @@ inline constexpr auto Maj(auto x,auto y,auto z) noexcept
 	return (x&y)^(x&z)^(y&z);
 }
 
-inline constexpr uint32_t B2U32(std::byte val, std::uint8_t sh) noexcept
+inline constexpr std::uint32_t B2U32(std::byte val, std::uint8_t sh) noexcept
 {
 	return (std::to_integer<std::uint32_t>(val)) << sh;
+}
+
+inline 
+#if __cpp_lib_is_constant_evaluated >= 201811L
+constexpr
+#endif
+void sha256_do_constexpr_function(std::uint32_t* __restrict state,std::byte const* __restrict blocks_start,std::size_t blocks_bytes) noexcept
+{
+	std::uint32_t a{state[0]}, b{state[1]}, c{state[2]}, d{state[3]}, e{state[4]}, f{state[5]}, g{state[6]}, h{state[7]}, s0, s1, T1, T2;
+	std::uint32_t X[16];
+	using namespace fast_io::details::sha256;
+	for(auto data(blocks_start),ed(blocks_start+blocks_bytes);data!=ed;)
+	{
+		std::uint32_t i{};
+		for (; i < 16; ++i)
+		{
+#if __cpp_lib_is_constant_evaluated >= 201811L
+			if (std::is_constant_evaluated())
+			{
+				X[i] = B2U32(data[0], 24) | B2U32(data[1], 16) | B2U32(data[2], 8) | B2U32(data[3], 0);
+			}
+			else
+#endif
+			{
+				std::uint32_t value;
+				::fast_io::details::my_memcpy(__builtin_addressof(value),data,8);
+				X[i] = big_endian(value);
+			}
+			data += 4;
+
+			T1 = h;
+			T1 += Sigma1(e);
+			T1 += Ch(e, f, g);
+			T1 += K256[i];
+			T1 += X[i];
+
+			T2 = Sigma0(a);
+			T2 += Maj(a, b, c);
+
+			h = g;
+			g = f;
+			f = e;
+			e = d + T1;
+			d = c;
+			c = b;
+			b = a;
+			a = T1 + T2;
+		}
+
+		for (; i < 64; ++i)
+		{
+			s0 = X[(i + 1) & 0x0f];
+			s0 = sigma0(s0);
+			s1 = X[(i + 14) & 0x0f];
+			s1 = sigma1(s1);
+
+			T1 = X[i & 0xf] += s0 + s1 + X[(i + 9) & 0xf];
+			T1 += h + Sigma1(e) + Ch(e, f, g) + K256[i];
+			T2 = Sigma0(a) + Maj(a, b, c);
+			h = g;
+			g = f;
+			f = e;
+			e = d + T1;
+			d = c;
+			c = b;
+			b = a;
+			a = T1 + T2;
+		}
+
+		a=(state[0] += a);
+		b=(state[1] += b);
+		c=(state[2] += c);
+		d=(state[3] += d);
+		e=(state[4] += e);
+		f=(state[5] += f);
+		g=(state[6] += g);
+		h=(state[7] += h);
+	}
 }
 
 inline void sha256_do_function(std::uint32_t* __restrict state,std::byte const* __restrict blocks_start,std::size_t blocks_bytes) noexcept
@@ -403,73 +481,7 @@ inline void sha256_do_function(std::uint32_t* __restrict state,std::byte const* 
 	vst1q_u32(state, STATE0);
 	vst1q_u32(state+4, STATE1);
 #else
-	uint32_t a, b, c, d, e, f, g, h, s0, s1, T1, T2;
-	uint32_t X[16];
-	using namespace fast_io::details::sha256;
-	for(auto data(blocks_start),ed(blocks_start+blocks_bytes);data!=ed;)
-	{
-		a = state[0];
-		b = state[1];
-		c = state[2];
-		d = state[3];
-		e = state[4];
-		f = state[5];
-		g = state[6];
-		h = state[7];
-		uint32_t i = 0;
-		for (; i < 16; ++i)
-		{
-			X[i] = B2U32(data[0], 24) | B2U32(data[1], 16) | B2U32(data[2], 8) | B2U32(data[3], 0);
-			data += 4;
-
-			T1 = h;
-			T1 += Sigma1(e);
-			T1 += Ch(e, f, g);
-			T1 += K256[i];
-			T1 += X[i];
-
-			T2 = Sigma0(a);
-			T2 += Maj(a, b, c);
-
-			h = g;
-			g = f;
-			f = e;
-			e = d + T1;
-			d = c;
-			c = b;
-			b = a;
-			a = T1 + T2;
-		}
-
-		for (; i < 64; ++i)
-		{
-			s0 = X[(i + 1) & 0x0f];
-			s0 = sigma0(s0);
-			s1 = X[(i + 14) & 0x0f];
-			s1 = sigma1(s1);
-
-			T1 = X[i & 0xf] += s0 + s1 + X[(i + 9) & 0xf];
-			T1 += h + Sigma1(e) + Ch(e, f, g) + K256[i];
-			T2 = Sigma0(a) + Maj(a, b, c);
-			h = g;
-			g = f;
-			f = e;
-			e = d + T1;
-			d = c;
-			c = b;
-			b = a;
-			a = T1 + T2;
-		}
-
-		state[0] += a;
-		state[1] += b;
-		state[2] += c;
-		state[3] += d;
-		state[4] += e;
-		state[5] += f;
-		state[6] += g;
-		state[7] += h;
-	}
+	sha256_do_constexpr_function(state,blocks_start,blocks_bytes);
 #endif
 }
 
@@ -480,9 +492,17 @@ public:
 	using digest_type = ::fast_io::freestanding::array<std::uint32_t,8>;
 	static inline constexpr digest_type digest_initial_value{0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
 	static inline constexpr std::size_t block_size{64};
-	void operator()(std::uint32_t* state,std::byte const* blocks_start,std::size_t blocks_size) noexcept
+#if __cpp_lib_is_constant_evaluated >= 201811L
+	constexpr
+#endif
+	void operator()(std::uint32_t* state,std::byte const* blocks_start,std::size_t blocks_bytes) noexcept
 	{
-		details::sha256::sha256_do_function(state,blocks_start,blocks_size);
+#if __cpp_lib_is_constant_evaluated >= 201811L
+		if(std::is_constant_evaluated())
+			details::sha256::sha256_do_constexpr_function(state,blocks_start,blocks_bytes);
+		else
+#endif
+			details::sha256::sha256_do_function(state,blocks_start,blocks_bytes);
 	}
 };
 

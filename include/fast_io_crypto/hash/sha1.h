@@ -50,103 +50,129 @@ inline constexpr void R4(std::uint32_t* __restrict block, std::uint32_t const v,
 }
 
 
-inline constexpr void transform(std::uint32_t* __restrict digest, std::uint32_t* __restrict block) noexcept
+inline 
+#if __cpp_lib_is_constant_evaluated >= 201811L
+constexpr
+#endif
+void sha1_do_constexpr_function(std::uint32_t* __restrict state,std::byte const* __restrict blocks_start,std::size_t blocks_bytes) noexcept
 {
-	/* Copy digest[] to working vars */
-	std::uint32_t a(digest[0]);
-	std::uint32_t b(digest[1]);
-	std::uint32_t c(digest[2]);
-	std::uint32_t d(digest[3]);
-	std::uint32_t e(digest[4]);
+	std::uint32_t a{state[0]}, b{state[1]}, c{state[2]}, d{state[3]}, e{state[4]};
+	std::uint32_t X[16];
+	constexpr std::size_t block_size{64};
+	for(std::byte const* data(blocks_start),*ed(blocks_start+blocks_bytes);data!=ed;data+=block_size)
+	{
+#if __cpp_lib_is_constant_evaluated >= 201811L
+		if(std::is_constant_evaluated())
+		{
+			for(std::size_t j{};j!=16;++j)
+			{
+				auto dj{data+j*4};
+				X[j]=(std::to_integer<std::uint32_t>(*dj)<<24)|(std::to_integer<std::uint32_t>(dj[1])<<16)|
+					(std::to_integer<std::uint32_t>(dj[2])<<8)|std::to_integer<std::uint32_t>(dj[3]);
+			}
+		}
+		else
+#endif
+		{
+			my_memcpy(X,data,block_size);
+			X[0]=big_endian(X[0]);
+			X[1]=big_endian(X[1]);
+			X[2]=big_endian(X[2]);
+			X[3]=big_endian(X[3]);
+			X[4]=big_endian(X[4]);
+			X[5]=big_endian(X[5]);
+			X[6]=big_endian(X[6]);
+			X[7]=big_endian(X[7]);
+		}
+		/* 4 rounds of 20 operations each. Loop unrolled. */
+		R0(X, a, b, c, d, e,  0);
+		R0(X, e, a, b, c, d,  1);
+		R0(X, d, e, a, b, c,  2);
+		R0(X, c, d, e, a, b,  3);
+		R0(X, b, c, d, e, a,  4);
+		R0(X, a, b, c, d, e,  5);
+		R0(X, e, a, b, c, d,  6);
+		R0(X, d, e, a, b, c,  7);
+		R0(X, c, d, e, a, b,  8);
+		R0(X, b, c, d, e, a,  9);
+		R0(X, a, b, c, d, e, 10);
+		R0(X, e, a, b, c, d, 11);
+		R0(X, d, e, a, b, c, 12);
+		R0(X, c, d, e, a, b, 13);
+		R0(X, b, c, d, e, a, 14);
+		R0(X, a, b, c, d, e, 15);
+		R1(X, e, a, b, c, d,  0);
+		R1(X, d, e, a, b, c,  1);
+		R1(X, c, d, e, a, b,  2);
+		R1(X, b, c, d, e, a,  3);
+		R2(X, a, b, c, d, e,  4);
+		R2(X, e, a, b, c, d,  5);
+		R2(X, d, e, a, b, c,  6);
+		R2(X, c, d, e, a, b,  7);
+		R2(X, b, c, d, e, a,  8);
+		R2(X, a, b, c, d, e,  9);
+		R2(X, e, a, b, c, d, 10);
+		R2(X, d, e, a, b, c, 11);
+		R2(X, c, d, e, a, b, 12);
+		R2(X, b, c, d, e, a, 13);
+		R2(X, a, b, c, d, e, 14);
+		R2(X, e, a, b, c, d, 15);
+		R2(X, d, e, a, b, c,  0);
+		R2(X, c, d, e, a, b,  1);
+		R2(X, b, c, d, e, a,  2);
+		R2(X, a, b, c, d, e,  3);
+		R2(X, e, a, b, c, d,  4);
+		R2(X, d, e, a, b, c,  5);
+		R2(X, c, d, e, a, b,  6);
+		R2(X, b, c, d, e, a,  7);
+		R3(X, a, b, c, d, e,  8);
+		R3(X, e, a, b, c, d,  9);
+		R3(X, d, e, a, b, c, 10);
+		R3(X, c, d, e, a, b, 11);
+		R3(X, b, c, d, e, a, 12);
+		R3(X, a, b, c, d, e, 13);
+		R3(X, e, a, b, c, d, 14);
+		R3(X, d, e, a, b, c, 15);
+		R3(X, c, d, e, a, b,  0);
+		R3(X, b, c, d, e, a,  1);
+		R3(X, a, b, c, d, e,  2);
+		R3(X, e, a, b, c, d,  3);
+		R3(X, d, e, a, b, c,  4);
+		R3(X, c, d, e, a, b,  5);
+		R3(X, b, c, d, e, a,  6);
+		R3(X, a, b, c, d, e,  7);
+		R3(X, e, a, b, c, d,  8);
+		R3(X, d, e, a, b, c,  9);
+		R3(X, c, d, e, a, b, 10);
+		R3(X, b, c, d, e, a, 11);
+		R4(X, a, b, c, d, e, 12);
+		R4(X, e, a, b, c, d, 13);
+		R4(X, d, e, a, b, c, 14);
+		R4(X, c, d, e, a, b, 15);
+		R4(X, b, c, d, e, a,  0);
+		R4(X, a, b, c, d, e,  1);
+		R4(X, e, a, b, c, d,  2);
+		R4(X, d, e, a, b, c,  3);
+		R4(X, c, d, e, a, b,  4);
+		R4(X, b, c, d, e, a,  5);
+		R4(X, a, b, c, d, e,  6);
+		R4(X, e, a, b, c, d,  7);
+		R4(X, d, e, a, b, c,  8);
+		R4(X, c, d, e, a, b,  9);
+		R4(X, b, c, d, e, a, 10);
+		R4(X, a, b, c, d, e, 11);
+		R4(X, e, a, b, c, d, 12);
+		R4(X, d, e, a, b, c, 13);
+		R4(X, c, d, e, a, b, 14);
+		R4(X, b, c, d, e, a, 15);
 
-	/* 4 rounds of 20 operations each. Loop unrolled. */
-	R0(block, a, b, c, d, e,  0);
-	R0(block, e, a, b, c, d,  1);
-	R0(block, d, e, a, b, c,  2);
-	R0(block, c, d, e, a, b,  3);
-	R0(block, b, c, d, e, a,  4);
-	R0(block, a, b, c, d, e,  5);
-	R0(block, e, a, b, c, d,  6);
-	R0(block, d, e, a, b, c,  7);
-	R0(block, c, d, e, a, b,  8);
-	R0(block, b, c, d, e, a,  9);
-	R0(block, a, b, c, d, e, 10);
-	R0(block, e, a, b, c, d, 11);
-	R0(block, d, e, a, b, c, 12);
-	R0(block, c, d, e, a, b, 13);
-	R0(block, b, c, d, e, a, 14);
-	R0(block, a, b, c, d, e, 15);
-	R1(block, e, a, b, c, d,  0);
-	R1(block, d, e, a, b, c,  1);
-	R1(block, c, d, e, a, b,  2);
-	R1(block, b, c, d, e, a,  3);
-	R2(block, a, b, c, d, e,  4);
-	R2(block, e, a, b, c, d,  5);
-	R2(block, d, e, a, b, c,  6);
-	R2(block, c, d, e, a, b,  7);
-	R2(block, b, c, d, e, a,  8);
-	R2(block, a, b, c, d, e,  9);
-	R2(block, e, a, b, c, d, 10);
-	R2(block, d, e, a, b, c, 11);
-	R2(block, c, d, e, a, b, 12);
-	R2(block, b, c, d, e, a, 13);
-	R2(block, a, b, c, d, e, 14);
-	R2(block, e, a, b, c, d, 15);
-	R2(block, d, e, a, b, c,  0);
-	R2(block, c, d, e, a, b,  1);
-	R2(block, b, c, d, e, a,  2);
-	R2(block, a, b, c, d, e,  3);
-	R2(block, e, a, b, c, d,  4);
-	R2(block, d, e, a, b, c,  5);
-	R2(block, c, d, e, a, b,  6);
-	R2(block, b, c, d, e, a,  7);
-	R3(block, a, b, c, d, e,  8);
-	R3(block, e, a, b, c, d,  9);
-	R3(block, d, e, a, b, c, 10);
-	R3(block, c, d, e, a, b, 11);
-	R3(block, b, c, d, e, a, 12);
-	R3(block, a, b, c, d, e, 13);
-	R3(block, e, a, b, c, d, 14);
-	R3(block, d, e, a, b, c, 15);
-	R3(block, c, d, e, a, b,  0);
-	R3(block, b, c, d, e, a,  1);
-	R3(block, a, b, c, d, e,  2);
-	R3(block, e, a, b, c, d,  3);
-	R3(block, d, e, a, b, c,  4);
-	R3(block, c, d, e, a, b,  5);
-	R3(block, b, c, d, e, a,  6);
-	R3(block, a, b, c, d, e,  7);
-	R3(block, e, a, b, c, d,  8);
-	R3(block, d, e, a, b, c,  9);
-	R3(block, c, d, e, a, b, 10);
-	R3(block, b, c, d, e, a, 11);
-	R4(block, a, b, c, d, e, 12);
-	R4(block, e, a, b, c, d, 13);
-	R4(block, d, e, a, b, c, 14);
-	R4(block, c, d, e, a, b, 15);
-	R4(block, b, c, d, e, a,  0);
-	R4(block, a, b, c, d, e,  1);
-	R4(block, e, a, b, c, d,  2);
-	R4(block, d, e, a, b, c,  3);
-	R4(block, c, d, e, a, b,  4);
-	R4(block, b, c, d, e, a,  5);
-	R4(block, a, b, c, d, e,  6);
-	R4(block, e, a, b, c, d,  7);
-	R4(block, d, e, a, b, c,  8);
-	R4(block, c, d, e, a, b,  9);
-	R4(block, b, c, d, e, a, 10);
-	R4(block, a, b, c, d, e, 11);
-	R4(block, e, a, b, c, d, 12);
-	R4(block, d, e, a, b, c, 13);
-	R4(block, c, d, e, a, b, 14);
-	R4(block, b, c, d, e, a, 15);
-
-	/* Add the working vars back into digest[] */
-	digest[0] += a;
-	digest[1] += b;
-	digest[2] += c;
-	digest[3] += d;
-	digest[4] += e;
+		/* Add the working vars back into state[] */
+		a=(state[0] += a);
+		b=(state[1] += b);
+		c=(state[2] += c);
+		d=(state[3] += d);
+		e=(state[4] += e);
+	}
 }
 
 
@@ -504,14 +530,7 @@ inline void sha1_do_function(std::uint32_t* __restrict state,std::byte const* __
 	vst1q_u32(state, ABCD);
 	state[4] = E0;
 #else
-	std::uint32_t tblocks[16];
-	for(auto block(blocks_start),ed(blocks_start+blocks_bytes);block!=ed;block+=block_size)
-	{
-		my_memcpy(tblocks,block,block_size);
-		for(auto& e : tblocks)
-			e=byte_swap(e);
-		transform(state,tblocks);
-	}
+	sha1_do_constexpr_function(state,blocks_start,blocks_bytes);
 #endif
 
 }
@@ -524,9 +543,17 @@ public:
 	using digest_type = ::fast_io::freestanding::array<std::uint32_t,5>;
 	static inline constexpr digest_type digest_initial_value{0x67452301,0xefcdab89,0x98badcfe,0x10325476,0xc3d2e1f0};
 	static inline constexpr std::size_t block_size{64};
+#if __cpp_lib_is_constant_evaluated >= 201811L
+	constexpr
+#endif
 	void operator()(std::uint32_t* __restrict state,std::byte const* __restrict blocks_start,std::size_t blocks_bytes) noexcept
 	{
-		details::sha1::sha1_do_function(state,blocks_start,blocks_bytes);
+#if __cpp_lib_is_constant_evaluated >= 201811L
+		if(std::is_constant_evaluated())
+			details::sha1::sha1_do_constexpr_function(state,blocks_start,blocks_bytes);
+		else
+#endif
+			details::sha1::sha1_do_function(state,blocks_start,blocks_bytes);
 	}
 };
 

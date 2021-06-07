@@ -8,6 +8,7 @@ namespace fast_io::freestanding
 using ::std::char_traits;
 using ::std::basic_string_view;
 using ::std::string_view;
+using ::std::wstring_view;
 using ::std::u8string_view;
 using ::std::u16string_view;
 using ::std::u32string_view;

@@ -3,6 +3,17 @@
 namespace fast_io
 {
 template<typename func,bool endian_reverse>
+struct hmac;
+
+namespace details
+{
+
+template<typename range_type,typename func,bool endian_reverse>
+inline constexpr void initialize_hmac(hmac<func,endian_reverse>& obj,range_type const* init_key_data, std::size_t init_key_size);
+
+}
+
+template<typename func,bool endian_reverse>
 struct hmac
 {
 	using function_type = func;
@@ -10,37 +21,85 @@ struct hmac
 	function_type function;
 	key_type inner_key;
 	key_type outer_key{};
-	inline static constexpr std::size_t block_size = function_type::block_size;
+	static inline constexpr std::size_t block_size = function_type::block_size;
+
+#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
+	constexpr
+#endif
 	hmac(std::byte const* init_key_data, std::size_t init_key_size) noexcept
 	{
-		if(block_size<init_key_size)
-		{
-			hash_processor processor(function);
-			write(processor,reinterpret_cast<char const*>(init_key_data),
-				reinterpret_cast<char const*>(init_key_data+init_key_size));
-			processor.do_final();
-			if constexpr(endian_reverse)
-				for(auto & e : function.digest_block)
-					e=details::byte_swap(e);
-			::fast_io::details::my_memcpy(outer_key.data(),function.digest_block.data(),function.digest_block.size());
-			function={};
-		}
-		else
-			::fast_io::details::my_memcpy(outer_key.data(),init_key_data,init_key_size);
-		for(std::size_t i{};i!=inner_key.size();++i)
-			inner_key[i]=outer_key[i]^std::byte{0x36};
+		details::initialize_hmac<std::byte>(*this,init_key_data,init_key_size);
 	}
-	hmac(::fast_io::freestanding::string_view key) noexcept:hmac(reinterpret_cast<std::byte const*>(key.data()),key.size()){}
-	std::size_t block_init(std::byte const* sp) noexcept
+#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
+	constexpr
+#endif
+	hmac(::fast_io::freestanding::string_view key) noexcept
 	{
-		::fast_io::details::my_memcpy(inner_key.data(),sp,sizeof(key_type));
+#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
+		if(std::is_constant_evaluated())
+			::fast_io::details::initialize_hmac<char>(*this,key.data(),key.size());
+		else
+#endif
+			::fast_io::details::initialize_hmac<std::byte>(*this,reinterpret_cast<std::byte const*>(key.data()),key.size()*sizeof(char));
+	}
+#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
+	constexpr
+#endif
+	hmac(::fast_io::freestanding::wstring_view key) noexcept
+	{
+#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
+		if(std::is_constant_evaluated())
+			::fast_io::details::initialize_hmac<wchar_t>(*this,key.data(),key.size());
+		else
+#endif
+			::fast_io::details::initialize_hmac<std::byte>(*this,reinterpret_cast<std::byte const*>(key.data()),key.size()*sizeof(wchar_t));
+	}
+#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
+	constexpr
+#endif
+	hmac(::fast_io::freestanding::u8string_view key) noexcept
+	{
+#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
+		if(std::is_constant_evaluated())
+			::fast_io::details::initialize_hmac<char8_t>(*this,key.data(),key.size());
+		else
+#endif
+			::fast_io::details::initialize_hmac<std::byte>(*this,reinterpret_cast<std::byte const*>(key.data()),key.size()*sizeof(char8_t));
+	}
+#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
+	constexpr
+#endif
+	hmac(::fast_io::freestanding::u16string_view key) noexcept
+	{
+#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
+		if(std::is_constant_evaluated())
+			::fast_io::details::initialize_hmac<char16_t>(*this,key.data(),key.size());
+		else
+#endif
+			::fast_io::details::initialize_hmac<std::byte>(*this,reinterpret_cast<std::byte const*>(key.data()),key.size()*sizeof(char16_t));
+	}
+#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
+	constexpr
+#endif
+	hmac(::fast_io::freestanding::u32string_view key) noexcept
+	{
+#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
+		if(std::is_constant_evaluated())
+			::fast_io::details::initialize_hmac<char32_t>(*this,key.data(),key.size());
+		else
+#endif
+			::fast_io::details::initialize_hmac<std::byte>(*this,reinterpret_cast<std::byte const*>(key.data()),key.size()*sizeof(char32_t));;
+	}
+	constexpr std::size_t block_init(std::byte const* sp) noexcept
+	{
+		::fast_io::details::compile_time_type_punning_copy_n(sp,sizeof(key_type),inner_key.data());
 		return sizeof(key_type);
 	}
-	void operator()(std::byte const* process_blocks,std::size_t block_bytes) noexcept
+	constexpr void operator()(std::byte const* process_blocks,std::size_t block_bytes) noexcept
 	{
 		function(process_blocks,block_bytes);
 	}
-	void digest(std::byte const* final_process_blocks,std::size_t final_block_bytes) noexcept
+	constexpr void digest(std::byte const* final_process_blocks,std::size_t final_block_bytes) noexcept
 	{
 		function.digest(final_process_blocks,final_block_bytes);
 		for(auto & e : outer_key)
@@ -51,12 +110,76 @@ struct hmac
 				e=details::byte_swap(e);
 		function={};
 		hash_processor processor(function);
-		write(processor,outer_key.data(),outer_key.data()+outer_key.size());
-		write(processor,digest_block.data(),digest_block.data()+digest_block.size());
+		details::hash_processor_impl::hash_write_impl<std::byte>(processor,outer_key.data(),outer_key.data()+outer_key.size());
+#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
+		if(std::is_constant_evaluated())
+		{
+			auto blck{std::bit_cast<::fast_io::freestanding::array<std::byte,sizeof(digest_block)>>(digest_block)};
+			details::hash_processor_impl::hash_write_impl<std::byte>(processor,blck.data(),blck.data()+blck.size());
+		}
+		else
+#endif
+			details::hash_processor_impl::hash_write_impl<std::byte>(processor,
+				reinterpret_cast<std::byte const*>(digest_block.data()),
+				reinterpret_cast<std::byte const*>(digest_block.data()+digest_block.size()));
 		processor.do_final();
+	}
+	constexpr hmac(hmac const&)=default;
+	constexpr hmac& operator=(hmac const&)=default;
+	constexpr hmac(hmac&&) noexcept=default;
+	constexpr hmac& operator=(hmac&&) noexcept=default;
+#if __cpp_lib_is_constant_evaluated >= 201811L
+	constexpr
+#endif
+	~hmac()
+	{
+#if __cpp_lib_is_constant_evaluated >= 201811L
+		if(!std::is_constant_evaluated())
+#endif
+		{
+			secure_clear(inner_key.data(),sizeof(inner_key));
+			secure_clear(outer_key.data(),sizeof(outer_key));
+		}	
 	}
 };
 
+namespace details
+{
+template<typename range_type,typename func,bool endian_reverse>
+inline 
+#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
+constexpr
+#endif
+void initialize_hmac(hmac<func,endian_reverse>& obj,range_type const* init_key_data, std::size_t init_key_size)
+{
+	auto& inner_key{obj.inner_key};
+	auto& outer_key{obj.outer_key};
+	constexpr std::size_t block_size{func::block_size};
+	if(block_size<init_key_size)
+	{
+		hash_processor processor(obj.function);
+#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
+		if(std::is_constant_evaluated())
+			hash_processor_impl::hash_write_impl<range_type>(processor,init_key_data,init_key_data+init_key_size);
+		else
+#endif
+		{
+			if constexpr(std::same_as<std::byte,range_type>)
+				hash_processor_impl::hash_write_impl<std::byte>(processor,reinterpret_cast<std::byte const*>(init_key_data),reinterpret_cast<std::byte const*>(init_key_data+init_key_size));
+		}
+		processor.do_final();
+		if constexpr(endian_reverse)
+			for(auto & e : obj.function.digest_block)
+				e=details::byte_swap(e);
+		compile_time_type_punning_copy_n(obj.function.digest_block.data(),obj.function.digest_block.size(),outer_key.data());
+		obj.function={};
+	}
+	else
+		compile_time_type_punning_copy_n(init_key_data,init_key_size,outer_key.data());
+	for(std::size_t i{};i!=inner_key.size();++i)
+		inner_key[i]=outer_key[i]^std::byte{0x36};
+}
+}
 
 template<std::integral char_type,typename T,bool endian_reverse>
 requires reserve_printable<char_type,T>

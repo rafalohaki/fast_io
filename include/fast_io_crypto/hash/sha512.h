@@ -89,12 +89,8 @@ inline constexpr void sha512_round(std::uint64_t T1,std::uint64_t a,std::uint64_
 	h+=T1;
 }
 
-inline void sha512_do_function(std::uint64_t* __restrict state,std::byte const* __restrict blocks_start,std::size_t blocks_bytes) noexcept
+inline constexpr void sha512_do_constexpr_function(std::uint64_t* __restrict state,std::byte const* __restrict blocks_start,std::size_t blocks_bytes) noexcept
 {
-#if defined(__OPTIMIZE_SIZE__) || (defined(_MSC_VER) && !defined(__clang__))
-/*
-optimization of msvc is very bad
-*/
 	uint64_t a{state[0]}, b{state[1]}, c{state[2]}, d{state[3]}, e{state[4]}, f{state[5]}, g{state[6]}, h{state[7]}, s0, s1, T1, T2;
 	uint64_t X[16];
 	for(auto data(blocks_start),ed(blocks_start+blocks_bytes);data!=ed;)
@@ -102,9 +98,22 @@ optimization of msvc is very bad
 		std::uint32_t i{};
 		for (; i < 16; ++i)
 		{
-			std::uint64_t value;
-			::fast_io::details::my_memcpy(__builtin_addressof(value),data,8);
-			X[i] = big_endian(value);
+			if (std::is_constant_evaluated())
+			{
+				std::uint64_t value{};
+				for(std::size_t j{};j!=8;++j)
+				{
+					value<<=8;
+					value|=std::to_integer<std::uint64_t>(data[j]);
+				}
+				X[i] = value;
+			}
+			else
+			{
+				std::uint64_t value;
+				::fast_io::details::my_memcpy(__builtin_addressof(value),data,8);
+				X[i] = big_endian(value);
+			}
 			data += 8;
 
 			T1 = h;
@@ -156,7 +165,12 @@ optimization of msvc is very bad
 		g=(state[6] += g);
 		h=(state[7] += h);
 	}
-#else
+}
+
+#if !(defined(__OPTIMIZE_SIZE__) || (defined(_MSC_VER) && !defined(__clang__)))
+
+inline void sha512_do_function(std::uint64_t* __restrict state,std::byte const* __restrict blocks_start,std::size_t blocks_bytes) noexcept
+{
 	using uint64_may_alias
 #if __has_cpp_attribute(gnu::may_alias)
 	[[gnu::may_alias]]
@@ -263,9 +277,8 @@ optimization of msvc is very bad
 		g=(state[6]+=g);
 		h=(state[7]+=h);
 	}
-#endif
 }
-
+#endif
 }
 class sha512_function
 {
@@ -273,9 +286,25 @@ public:
 	using digest_type = ::fast_io::freestanding::array<std::uint64_t,8>;
 	static inline constexpr digest_type digest_initial_value{0x6a09e667f3bcc908, 0xbb67ae8584caa73b,0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1,0x510e527fade682d1, 0x9b05688c2b3e6c1f,0x1f83d9abfb41bd6b, 0x5be0cd19137e2179};
 	static inline constexpr std::size_t block_size{128};
+	inline
+#if __cpp_lib_is_constant_evaluated >= 201811L
+	constexpr
+#endif
 	void operator()(std::uint64_t* __restrict state,std::byte const* blocks_start,std::size_t blocks_bytes) noexcept
 	{
-		details::sha512::sha512_do_function(state,blocks_start,blocks_bytes);
+#if defined(__OPTIMIZE_SIZE__) || (defined(_MSC_VER) && !defined(__clang__))
+/*
+optimization of msvc is very bad
+*/
+		details::sha512::sha512_do_constexpr_function(state,blocks_start,blocks_bytes);
+#else
+#if __cpp_lib_is_constant_evaluated >= 201811L
+		if(std::is_constant_evaluated())
+			details::sha512::sha512_do_constexpr_function(state,blocks_start,blocks_bytes);
+		else
+#endif
+			details::sha512::sha512_do_function(state,blocks_start,blocks_bytes);
+#endif
 	}
 };
 

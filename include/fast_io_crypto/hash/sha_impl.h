@@ -32,7 +32,7 @@ public:
 	std::conditional_t<transform_counter_bytes==8,std::uint64_t,details::pesudo_uint128_t>;
 #endif
 	transform_counter_type transform_counter{};
-	void operator()(std::byte const* process_blocks,std::size_t process_block_bytes) noexcept//This is multiple blocks
+	constexpr void operator()(std::byte const* process_blocks,std::size_t process_block_bytes) noexcept//This is multiple blocks
 	{
 		function(digest_block.data(),process_blocks,process_block_bytes);
 		if constexpr(std::same_as<transform_counter_type,details::pesudo_uint128_t>)
@@ -41,6 +41,9 @@ public:
 		else
 			transform_counter+=static_cast<std::uint64_t>(process_block_bytes)<<3;
 	}
+#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
+	constexpr
+#endif
 	void digest(std::byte const* final_block,std::size_t final_block_bytes) noexcept//contracts: final_block.size()<block_size
 	{
 		transform_counter_type temp{transform_counter};
@@ -50,7 +53,7 @@ public:
 		else
 			temp+=static_cast<std::uint64_t>(final_block_bytes)<<3;
 		freestanding::array<std::byte,(block_size<<1)> blocks{};
-		details::my_memcpy(blocks.data(),final_block,final_block_bytes);
+		details::non_overlapped_copy_n(final_block,final_block_bytes,blocks.data());
 		blocks[final_block_bytes]=std::byte{0x80};
 		std::byte* end_of_padding_block{blocks.data()+blocks.size()};
 		if(final_block_bytes+transform_counter_bytes<block_size)
@@ -61,17 +64,51 @@ public:
 			{
 				std::uint64_t high{details::big_endian(temp.high)};
 				std::uint64_t low{details::big_endian(temp.low)};
-				details::my_memcpy(end_of_padding_block-(sizeof(high)+sizeof(low)),__builtin_addressof(high),sizeof(high));
-				details::my_memcpy(end_of_padding_block-sizeof(low),__builtin_addressof(low),sizeof(low));
+#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
+				if(std::is_constant_evaluated())
+				{
+					using type_punning_array = freestanding::array<std::byte,sizeof(std::uint64_t)>;
+					type_punning_array high_array{std::bit_cast<type_punning_array>(high)};
+					type_punning_array low_array{std::bit_cast<type_punning_array>(low)};
+					details::non_overlapped_copy_n(high_array.data(),sizeof(std::uint64_t),end_of_padding_block-(sizeof(high)+sizeof(low)));
+					details::non_overlapped_copy_n(low_array.data(),sizeof(std::uint64_t),end_of_padding_block-sizeof(low));
+				}
+				else
+				{
+#endif
+					details::my_memcpy(end_of_padding_block-(sizeof(high)+sizeof(low)),__builtin_addressof(high),sizeof(high));
+					details::my_memcpy(end_of_padding_block-sizeof(low),__builtin_addressof(low),sizeof(low));
+				}
 			}
 			else
 			{
 				temp=details::big_endian(temp);
-				details::my_memcpy(end_of_padding_block-sizeof(temp),__builtin_addressof(temp),sizeof(temp));
+#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
+				if(std::is_constant_evaluated())
+				{
+					using type_punning_array = freestanding::array<std::byte,sizeof(temp)>;
+					type_punning_array temp_array{std::bit_cast<type_punning_array>(temp)};
+					details::non_overlapped_copy_n(temp_array.data(),sizeof(temp),end_of_padding_block-sizeof(temp));
+				}
+				else
+#endif
+					details::my_memcpy(end_of_padding_block-sizeof(temp),__builtin_addressof(temp),sizeof(temp));
+
 			}
 		}
 		else
-			details::my_memcpy(end_of_padding_block-transform_counter_bytes,__builtin_addressof(temp),transform_counter_bytes);
+		{
+#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
+			if(std::is_constant_evaluated())
+			{
+				using type_punning_array = freestanding::array<std::byte,transform_counter_bytes>;
+				type_punning_array temp_array{std::bit_cast<type_punning_array>(temp)};
+				details::non_overlapped_copy_n(temp_array.data(),sizeof(temp),end_of_padding_block-sizeof(temp));
+			}
+			else
+#endif
+				details::my_memcpy(end_of_padding_block-transform_counter_bytes,__builtin_addressof(temp),transform_counter_bytes);
+		}
 		function(digest_block.data(),blocks.data(),static_cast<std::size_t>(end_of_padding_block-blocks.data()));
 	}
 };
@@ -80,7 +117,7 @@ public:
 template<std::integral char_type,typename T,bool endian_reverse,std::size_t transform_counter_bytes>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,sha<T,endian_reverse,transform_counter_bytes>>) noexcept
 {
-	return sizeof(typename T::digest_type)*8;
+	return sizeof(typename T::digest_type)*2;
 }
 
 template<std::integral char_type,::fast_io::freestanding::random_access_iterator caiter,typename T,bool endian_reverse,std::size_t transform_counter_bytes>
@@ -91,7 +128,7 @@ inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,sha<T,e
 template<std::integral char_type,typename T,bool endian_reverse>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manipulators::base_full_t<16,true,sha<T,endian_reverse> const&>>) noexcept
 {
-	return sizeof(typename T::digest_type)*8;
+	return sizeof(typename T::digest_type)*2;
 }
 
 template<std::integral char_type,::fast_io::freestanding::random_access_iterator caiter,typename T,bool endian_reverse,std::size_t transform_counter_bytes>
