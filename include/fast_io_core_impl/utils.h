@@ -581,30 +581,56 @@ inline constexpr auto compile_pow5() noexcept
 	constexpr auto value{compile_time_pow(std::remove_cvref_t<T>(5),pow)};
 	return value;
 }
-#if 0
-template<std::unsigned_integral uint_type>
-inline constexpr auto power10_table_generator() noexcept
-{
-	constexpr std::size_t digits10(std::numeric_limits<uint_type>::digits10+1);
-	::fast_io::freestanding::array<uint_type,digits10> array{};
-	uint_type v{1};
-	for(std::size_t i{1};i!=digits10;++i)
-		array[i]=(v*=static_cast<uint_type>(10));
-	return array;
-}
 
-template<std::unsigned_integral uint_type>
-inline constexpr auto power10table{power10_table_generator<uint_type>()};
+#if 0
+inline constexpr std::uint64_t fast_lup_table[]{
+      4294967296,  8589934582,  8589934582,  8589934582,  12884901788,
+      12884901788, 12884901788, 17179868184, 17179868184, 17179868184,
+      21474826480, 21474826480, 21474826480, 21474826480, 25769703776,
+      25769703776, 25769703776, 30063771072, 30063771072, 30063771072,
+      34349738368, 34349738368, 34349738368, 34349738368, 38554705664,
+      38554705664, 38554705664, 41949672960, 41949672960, 41949672960,
+      42949672960, 42949672960};
+
+inline constexpr std::uint64_t fast_lup_switch(std::uint32_t value) noexcept
+{
+	switch(value)
+	{
+	case 0:case 1:case 2:case 3:case 4: return 42949672960ULL;
+	case 5:case 6:case 7:return 38554705664ULL;
+	case 8:case 9:case 10:case 11:return 34349738368ULL;
+	case 12:case 13:case 14:return 30063771072ULL;
+	case 15:case 16:case 17:return 25769703776ULL;
+	case 18:case 19:case 20:case 21:return 21474826480ULL;
+	case 22:case 23:case 24:return 17179868184ULL;
+	case 25:case 26:case 27:return 12884901788ULL;
+	case 28:case 29:case 30:return 8589934582ULL;
+	case 31:case 32:return 4294967296ULL;
+	default:
+#if defined(__GNUC__)||defined(__clang__)
+		__builtin_unreachable();
+#endif
+	}
+}
 #endif
 
 template<std::uint32_t base,bool ryu_mode=false,std::size_t mx_size=std::numeric_limits<std::size_t>::max(),my_unsigned_integral U>
 inline constexpr std::uint32_t chars_len(U value) noexcept
 {
 #if 0
-	if constexpr(base==10&&sizeof(U)<=8)
+	if constexpr(base==10&&2<=sizeof(U)&&sizeof(U)<=4&&sizeof(std::size_t)>=8&&!ryu_mode)
 	{
-		std::uint32_t t{static_cast<std::uint32_t>(std::bit_width(static_cast<std::remove_cvref_t<U>>(value|1)))*1233 >> 12};
-		return t-(value<power10table<std::remove_cvref_t<U>>[t]) + 1;
+		return (static_cast<std::uint32_t>(value) + fast_lup_switch(
+#if defined(_MSC_VER) && !defined(__clang__)
+		std::countl_zero(static_cast<std::uint32_t>(value))
+#elif __has_builtin(__builtin_ia32_lzcnt_u32)
+		__builtin_ia32_lzcnt_u32(static_cast<std::uint32_t>(value))
+#elif __has_builtin(__builtin_clz)
+		__builtin_clz(static_cast<std::uint32_t>(value) | 1)
+#else
+		std::countl_zero(static_cast<std::uint32_t>(value))
+#endif
+		)) >> 32;
 	}
 	else
 #endif
