@@ -51,7 +51,7 @@ public:
 			details::intrinsics::add_carry(details::intrinsics::add_carry(false,temp.low,(static_cast<std::uint64_t>(final_block_bytes)<<3),temp.low),
 				temp.high,static_cast<std::uint64_t>(0),temp.high);
 		else
-			temp+=static_cast<std::uint64_t>(final_block_bytes)<<3;
+			temp+=static_cast<transform_counter_type>(final_block_bytes)<<3;
 		freestanding::array<std::byte,(block_size<<1)> blocks{};
 		details::non_overlapped_copy_n(final_block,final_block_bytes,blocks.data());
 		blocks[final_block_bytes]=std::byte{0x80};
@@ -67,11 +67,11 @@ public:
 #if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
 				if(std::is_constant_evaluated())
 				{
-					using type_punning_array = freestanding::array<std::byte,sizeof(std::uint64_t)>;
+					using type_punning_array = freestanding::array<std::byte,sizeof(high)>;
 					type_punning_array high_array{std::bit_cast<type_punning_array>(high)};
 					type_punning_array low_array{std::bit_cast<type_punning_array>(low)};
-					details::non_overlapped_copy_n(high_array.data(),sizeof(std::uint64_t),end_of_padding_block-(sizeof(high)+sizeof(low)));
-					details::non_overlapped_copy_n(low_array.data(),sizeof(std::uint64_t),end_of_padding_block-sizeof(low));
+					details::non_overlapped_copy_n(high_array.data(),sizeof(high),end_of_padding_block-(sizeof(high)+sizeof(low)));
+					details::non_overlapped_copy_n(low_array.data(),sizeof(low),end_of_padding_block-sizeof(low));
 				}
 				else
 				{

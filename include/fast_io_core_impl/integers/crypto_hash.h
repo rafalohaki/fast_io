@@ -105,9 +105,9 @@ inline constexpr Iter crypto_hash_main_reserve_define_common_impl(T const* first
 	for(;first!=last;++first)
 	{
 		auto e{*first};
-		if constexpr(endian_reverse)
-			e=byte_swap(e);
-		optimize_size::output_unsigned_dummy<offset,16,upper_case>(iter,byte_swap(e));
+		if constexpr(!endian_reverse)
+			e=big_endian(e);
+		optimize_size::output_unsigned_dummy<offset,16,upper_case>(iter,e);
 		iter+=offset;
 	}
 	return iter;

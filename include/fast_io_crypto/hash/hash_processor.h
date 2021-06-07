@@ -117,7 +117,7 @@ void hash_write_impl(basic_hash_processor<ch_type,function_type>& out,range_type
 	if constexpr(function_type::block_size==0)
 	{
 		if constexpr(std::same_as<range_type,std::byte>)
-			out.function(first,last-first);
+			out.function(first,static_cast<std::size_t>(last-first));
 		else
 		{
 			for(auto i{first};i!=last;++i)

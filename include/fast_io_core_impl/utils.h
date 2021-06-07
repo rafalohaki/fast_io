@@ -158,7 +158,7 @@ inline constexpr U byte_swap_naive_impl(U a) noexcept
 			((a & 0x00ff000000000000ULL) >> 40) |
 			((a & 0x0000ff0000000000ULL) >> 24) |
 			((a & 0x000000ff00000000ULL) >> 8)  |
-			((a & 0x00000000ff000000ULL) >> 8)  |
+			((a & 0x00000000ff000000ULL) << 8)  |
 			((a & 0x0000000000ff0000ULL) << 24) |
 			((a & 0x000000000000ff00ULL) << 40) |
 			((a & 0x00000000000000ffULL) << 56) ;

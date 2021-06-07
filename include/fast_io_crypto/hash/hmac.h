@@ -107,7 +107,7 @@ struct hmac
 		auto digest_block{function.digest_block};
 		if constexpr(endian_reverse)
 			for(auto& e : digest_block)
-				e=details::byte_swap(e);
+				e=details::big_endian(e);
 		function={};
 		hash_processor processor(function);
 		details::hash_processor_impl::hash_write_impl<std::byte>(processor,outer_key.data(),outer_key.data()+outer_key.size());
