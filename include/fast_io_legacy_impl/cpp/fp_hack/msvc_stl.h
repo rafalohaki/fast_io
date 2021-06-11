@@ -1,5 +1,9 @@
 #pragma once
 
+#if defined(__clang__)
+#pragma GCC system_header
+#endif
+
 namespace fast_io::details::streambuf_hack
 {
 
