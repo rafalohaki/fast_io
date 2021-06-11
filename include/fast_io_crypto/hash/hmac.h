@@ -152,7 +152,7 @@ void initialize_hmac(hmac<func,endian_reverse>& obj,range_type const* init_key_d
 		processor.do_final();
 		if constexpr(endian_reverse)
 			for(auto & e : obj.function.digest_block)
-				e=details::byte_swap(e);
+				e=byte_swap(e);
 		compile_time_type_punning_copy_n(obj.function.digest_block.data(),sizeof(obj.function.digest_block),outer_key.data());
 		obj.function={};
 	}
