@@ -45,7 +45,7 @@ struct simd_parse_result
 	fast_io::parse_code code;
 };
 
-#if defined(__SSE4_1__)
+#if defined(__SSE4_1__) && defined(__x86_64__)
 
 template<bool char_execharset>
 inline std::uint32_t detect_length(char unsigned const* buffer) noexcept
@@ -211,7 +211,7 @@ inline simd_parse_result sse_parse(char unsigned const* buffer,char unsigned con
 #endif
 
 template<char8_t base,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral T>
-#if defined(__SSE4_1__) && __has_cpp_attribute(gnu::cold)
+#if defined(__SSE4_1__) && __has_cpp_attribute(gnu::cold) && defined(__x86_64__)
 [[gnu::cold]]
 #endif
 inline constexpr parse_result<Iter> scan_int_contiguous_none_simd_space_part_define_impl(Iter first,Iter last,T& res,bool has_zero) noexcept
@@ -278,7 +278,7 @@ inline constexpr parse_result<Iter> scan_int_contiguous_none_space_part_define_i
 	using unsigned_type = my_make_unsigned_t<std::remove_cvref_t<T>>;
 	unsigned_type res{};
 	Iter it;
-#if defined(__SSE4_1__)
+#if defined(__SSE4_1__) && defined(__x86_64__)
 	if constexpr(base==10&&sizeof(char_type)==1&&sizeof(unsigned_type)<=sizeof(std::uint64_t))
 	{
 		if(!std::is_constant_evaluated()&&last-first>=32)[[likely]]
