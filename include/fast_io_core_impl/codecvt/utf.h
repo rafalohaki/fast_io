@@ -1,5 +1,5 @@
 #pragma once
-#if defined(__SSE__) && (defined(__x86_64__)||defined(_M_X64)) && (!defined(__GNUC__)||defined(__clang__)||defined(__INTEL_COMPILER))
+#if defined(__SSE__) && (defined(__x86_64__)||defined(_M_X64)) && (!defined(__GNUC__)&&!defined(__clang__)||defined(__INTEL_COMPILER))
 #include<emmintrin.h>
 #endif
 namespace fast_io
@@ -395,47 +395,79 @@ requires ((sizeof(T)==1)&&(sizeof(U)==1||sizeof(U)==2||sizeof(U)==4))
 inline code_cvt_result<T,U> convert_ascii_with_sse(T const* __restrict pSrc, U* __restrict pDst) noexcept
 {
 	uint32_t mask;
-#if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
+#if (defined(__GNUC__) || defined(__clang__)) && !defined(__INTEL_COMPILER)
 	using namespace fast_io::intrinsics;
 	constexpr std::size_t m128i_size{16};
 	if constexpr(sizeof(U)==1)
 	{
 		x86_64_v16qi chunk;
-		__builtin_memcpy(&chunk,pSrc,m128i_size);
+		__builtin_memcpy(__builtin_addressof(chunk),pSrc,m128i_size);
 		mask = __builtin_ia32_pmovmskb128(chunk);
-		__builtin_memcpy(pDst,&chunk,m128i_size);
+		__builtin_memcpy(pDst,__builtin_addressof(chunk),m128i_size);
 	}
 	else if constexpr(sizeof(U)==2)
 	{
 		x86_64_v16qi const zero{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		x86_64_v16qi chunk;
-		__builtin_memcpy(&chunk,pSrc,m128i_size);
+		__builtin_memcpy(__builtin_addressof(chunk),pSrc,m128i_size);
 		mask = __builtin_ia32_pmovmskb128(chunk);
+#ifdef __clang__
+		x86_64_v16qi half{__builtin_shufflevector(chunk, zero, 0, 16+0, 1, 16+1, 2, 16+2, 3, 16+3, 4, 16+4, 5, 16+5, 6, 16+6, 7, 16+7)};
+#else
 		x86_64_v16qi half{__builtin_ia32_punpcklbw128(chunk,zero)};
-		__builtin_memcpy(pDst,&half,m128i_size);
-		half = __builtin_ia32_punpckhbw128(chunk,zero);
-		__builtin_memcpy(pDst+8,&half,m128i_size);
+#endif
+		__builtin_memcpy(pDst,__builtin_addressof(half),m128i_size);
+#ifdef __clang__
+		half = __builtin_shufflevector(chunk, zero, 8, 16+8, 9, 16+9, 10, 16+10, 11, 16+11, 12, 16+12, 13, 16+13, 14, 16+14, 15, 16+15);
+#else
+		half = __builtin_ia32_punpckhbw128(chunk,zero);		
+#endif
+		__builtin_memcpy(pDst+8,__builtin_addressof(half),m128i_size);
 	}
 	else if constexpr(sizeof(U)==4)
 	{
 		x86_64_v16qi const zero{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		x86_64_v16qi chunk;
-		__builtin_memcpy(&chunk,pSrc,m128i_size);
+		__builtin_memcpy(__builtin_addressof(chunk),pSrc,m128i_size);
 		mask = __builtin_ia32_pmovmskb128(chunk);
-		auto half_result{__builtin_ia32_punpcklbw128(chunk, zero)};
+#ifdef __clang__
+		x86_64_v16qi half_result{__builtin_shufflevector(chunk, zero, 0, 16+0, 1, 16+1, 2, 16+2, 3, 16+3, 4, 16+4, 5, 16+5, 6, 16+6, 7, 16+7)};
+#else
+		x86_64_v16qi half_result{__builtin_ia32_punpcklbw128(chunk, zero)};
+#endif
 		x86_64_v8hi half;
-		__builtin_memcpy(&half,&half_result,m128i_size);
+		__builtin_memcpy(__builtin_addressof(half),__builtin_addressof(half_result),m128i_size);
 		x86_64_v8hi const zero8{0, 0, 0, 0, 0, 0, 0, 0};
-		auto qrtr{__builtin_ia32_punpcklwd128(half, zero8)};
-		__builtin_memcpy(pDst,&qrtr,m128i_size);
-		qrtr=__builtin_ia32_punpckhwd128(half, zero8);
-		__builtin_memcpy(pDst+4,&qrtr,m128i_size);
-		half_result=__builtin_ia32_punpckhbw128(chunk, zero);
-		__builtin_memcpy(&half,&half_result,m128i_size);
+#ifdef __clang__
+		x86_64_v16qi qrtr{__builtin_shufflevector(half, zero8, 0, 8+0, 1, 8+1, 2, 8+2, 3, 8+3)};
+#else
+		x86_64_v16qi qrtr{__builtin_ia32_punpcklwd128(half, zero8)};
+#endif
+		__builtin_memcpy(pDst,__builtin_addressof(qrtr),m128i_size);
+#ifdef __clang__
+		qrtr = __builtin_shufflevector(half, zero8, 4, 8+4, 5, 8+5, 6, 8+6, 7, 8+7);
+#else
+		qrtr = __builtin_ia32_punpckhwd128(half, zero8);
+#endif
+		__builtin_memcpy(pDst+4,__builtin_addressof(qrtr),m128i_size);
+#ifdef __clang__
+		half_result = __builtin_shufflevector(chunk, zero, 8, 16+8, 9, 16+9, 10, 16+10, 11, 16+11, 12, 16+12, 13, 16+13, 14, 16+14, 15, 16+15);
+#else
+		half_result = __builtin_ia32_punpckhbw128(chunk, zero);
+#endif
+		__builtin_memcpy(__builtin_addressof(half),__builtin_addressof(half_result),m128i_size);
+#ifdef __clang__
+		qrtr=__builtin_shufflevector(half, zero8, 0, 8+0, 1, 8+1, 2, 8+2, 3, 8+3);
+#else
 		qrtr=__builtin_ia32_punpcklwd128(half, zero8);
-		__builtin_memcpy(pDst+8,&qrtr,m128i_size);
-		qrtr=__builtin_ia32_punpckhwd128(half, zero8);
-		__builtin_memcpy(pDst+12,&qrtr,m128i_size);
+#endif
+		__builtin_memcpy(pDst+8,__builtin_addressof(qrtr),m128i_size);
+#ifdef __clang__
+		qrtr = __builtin_shufflevector(half, zero8, 4, 8+4, 5, 8+5, 6, 8+6, 7, 8+7);
+#else
+		qrtr = __builtin_ia32_punpckhwd128(half, zero8);
+#endif
+		__builtin_memcpy(pDst+12,__builtin_addressof(qrtr),m128i_size);
 	}
 #else
 	using x86_64_m128i = __m128i;
