@@ -274,7 +274,7 @@ inline constexpr parse_result<Iter> scan_int_contiguous_none_space_part_define_i
 	}
 	bool has_zero{};
 	constexpr auto zero{get_char_with_type<u8'0',char_type>()};
-	for(;first!=last&&(has_zero=(*first==zero))!=false;++first);
+	for(;first!=last&&(has_zero|=(*first==zero))!=false;++first);
 	using unsigned_type = my_make_unsigned_t<std::remove_cvref_t<T>>;
 	unsigned_type res{};
 	Iter it;
