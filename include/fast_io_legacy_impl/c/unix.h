@@ -172,7 +172,7 @@ T* ptr) noexcept
 #endif
 	if constexpr(w)	//set dirty for output
 		fp->_flag|=0x010000;
-	fp->_cnt-=reinterpret_cast<char*>(ptr)-fp->_ptr;
+	fp->_cnt-=static_cast<int>(reinterpret_cast<char*>(ptr)-fp->_ptr);
 	fp->_ptr=reinterpret_cast<char*>(ptr);
 #else
 #if defined(__BIONIC__)
@@ -282,7 +282,7 @@ inline char* obuffer_end(c_io_observer_unlocked cio) noexcept
 	return details::bsd_get_buffer_ptr_impl<char,2>(cio.fp);
 }
 
-inline void obuffer_set_curr(c_io_observer_unlocked cio,char* __restrict ptr) noexcept
+inline void obuffer_set_curr(c_io_observer_unlocked cio,char* ptr) noexcept
 {
 	details::bsd_set_buffer_curr_ptr_impl<true>(cio.fp,ptr);
 }
@@ -392,8 +392,5 @@ inline bool ibuffer_underflow(u8c_io_observer_unlocked cio)
 {
 	return details::bsd_underflow_impl(cio.fp);
 }
-
-static_assert(buffer_io_stream<c_io_observer_unlocked>);
-static_assert(buffer_io_stream<u8c_io_observer_unlocked>);
 
 }

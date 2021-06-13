@@ -1230,11 +1230,12 @@ inline decltype(auto) zero_copy_out_handle(basic_c_io_observer_unlocked<ch_type>
 #elif defined(__BSD_VISIBLE) ||defined(__DARWIN_C_LEVEL) \
 	|| (defined(__NEWLIB__) &&!defined(__CUSTOM_FILE_IO__)) \
 	|| defined(__BIONIC__) || defined(__MSDOS__)  \
-	|| (defined(_WIN32)&&defined(FAST_IO_WIN32_USE_SYS_FWRITE))
+	|| (defined(_WIN32))
 #include"unix.h"
 #endif
-#if defined(_WIN32) && !defined(FAST_IO_WIN32_USE_SYS_FWRITE)
-#include"wincrt.h"
+#if defined(_WIN32)// && !defined(FAST_IO_WIN32_USE_SYS_FWRITE)
+//#include"wincrt.h"
+#include"done.h"
 #else
 #if !defined(__MSDOS__)
 #include"general.h"
