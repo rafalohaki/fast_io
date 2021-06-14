@@ -75,6 +75,16 @@ inline constexpr void wincrt_fp_set_flag_dirty_impl(fileptr* __restrict fp) noex
 }
 
 template<typename fileptr>
+inline constexpr void wincrt_fp_set_flag_mybuf_impl(fileptr* __restrict fp) noexcept
+{
+#if defined(_MSC_VER) || defined(_UCRT)
+	fp->_flag|=0x0040;
+#else
+	fp->_flag|=0x0008;
+#endif
+}
+
+template<typename fileptr>
 inline constexpr bool wincrt_fp_is_dirty_impl(fileptr* __restrict fp) noexcept
 {
 	constexpr unsigned int mask{
@@ -85,6 +95,43 @@ inline constexpr bool wincrt_fp_is_dirty_impl(fileptr* __restrict fp) noexcept
 #endif
 	};
 	return (fp->_flag&mask)==mask;
+}
+
+inline void* my_malloc_crt(std::size_t buffer_size) noexcept
+{
+	auto ptr{
+#if defined(_DEBUG) && defined(_MSC_VER)
+
+/*
+https://docs.microsoft.com/en-us/visualstudio/debugger/crt-debug-heap-details
+_NORMAL_BLOCK A call to malloc or calloc creates a Normal block. If you intend to use Normal blocks only, and have no need for Client blocks, you may want to define _CRTDBG_MAP_ALLOC, which causes all heap allocation calls to be mapped to their debug equivalents in Debug builds. This will allow file name and line number information about each allocation call to be stored in the corresponding block header.
+
+_CRT_BLOCK The memory blocks allocated internally by many run-time library functions are marked as CRT blocks so they can be handled separately. As a result, leak detection and other operations need not be affected by them. An allocation must never allocate, reallocate, or free any block of CRT type.
+
+_CLIENT_BLOCK An application can keep special track of a given group of allocations for debugging purposes by allocating them as this type of memory block, using explicit calls to the debug heap functions. MFC, for example, allocates all CObjects as Client blocks; other applications might keep different memory objects in Client blocks. Subtypes of Client blocks can also be specified for greater tracking granularity. To specify subtypes of Client blocks, shift the number left by 16 bits and OR it with _CLIENT_BLOCK. For example:
+
+*/
+
+	_malloc_dbg(buffer_size,
+#if defined(_CRT_BLOCK)
+	_CRT_BLOCK
+#else
+	2 /*_CRT_BLOCK*/
+#endif
+,__FILE__,__LINE__)
+// Provide Debugging information to this file so if people find out issues with hacking they can report to fast_io project
+#else
+/*
+https://github.com/mirror/mingw-w64/blob/master/mingw-w64-headers/crt/crtdbg.h
+CRT heap debugging does not exist on mingw-w64
+*/
+	malloc(buffer_size)
+#endif
+	};
+//handling allocation failure is a historical mistake and it never happens on windows. Just let it crash.
+	if(ptr==nullptr)[[unlikely]]
+		fast_terminate();
+	return ptr;
 }
 
 inline void wincrt_fp_allocate_buffer_impl(std::FILE* __restrict fpp) noexcept
@@ -101,11 +148,10 @@ inline void wincrt_fp_allocate_buffer_impl(std::FILE* __restrict fpp) noexcept
 	fp->_bufsiz>>=2;
 	fp->_bufsiz<<=2;
 	std::size_t allocated_buffer_size{static_cast<std::size_t>(static_cast<unsigned int>(fp->_bufsiz))};
-	auto new_buffer{malloc(allocated_buffer_size)};
-	if(new_buffer==nullptr)
-		fast_terminate();
+	auto new_buffer{my_malloc_crt(allocated_buffer_size)};
 	fp->_ptr=fp->_base=reinterpret_cast<char*>(new_buffer);
 	fp->_cnt=0;
+	wincrt_fp_set_flag_mybuf_impl(fp);
 }
 
 #if __has_cpp_attribute(gnu::cold)
@@ -132,14 +178,13 @@ inline void wincrt_fp_write_cold_malloc_case_impl(std::FILE* __restrict fpp,char
 		posix_write_nolock_impl(static_cast<int>(fp->_file),first,diff);
 		return;
 	}
-	auto newbuffer{malloc(allocated_buffer_size)};
-	if(newbuffer==nullptr)[[unlikely]]
-		fast_terminate();
+	auto newbuffer{my_malloc_crt(allocated_buffer_size)};
 	my_memcpy(newbuffer,first,diff);
 	fp->_ptr=(fp->_base=reinterpret_cast<char*>(newbuffer))+diff;
+	wincrt_fp_set_flag_mybuf_impl(fp);
 	fp->_bufsiz=static_cast<int>(allocated_buffer_size);
 	fp->_cnt=fp->_bufsiz-static_cast<int>(diff);
-	wincrt_fp_set_flag_dirty_impl(fp);
+	wincrt_fp_set_flag_dirty_impl(fp);	
 }
 
 inline void wincrt_fp_write_cold_normal_case_impl(std::FILE* __restrict fpp,char const* __restrict first,std::size_t diff)
@@ -276,12 +321,11 @@ inline std::size_t wincrt_fp_read_cold_impl(std::FILE* __restrict fpp,char* firs
 	{
 		if(fp->_base==nullptr)
 		{
-			auto new_buffer{malloc(allocated_buffer_size)};
-			if(new_buffer==nullptr)
-				fast_terminate();
+			auto new_buffer{my_malloc_crt(allocated_buffer_size)};
 			fp->_ptr=fp->_base=reinterpret_cast<char*>(new_buffer);
 			fp->_cnt=0;
 			fp->_bufsiz=static_cast<int>(static_cast<unsigned int>(allocated_buffer_size));
+			wincrt_fp_set_flag_mybuf_impl(fp);
 		}
 		std::size_t readed{posix_read_impl(static_cast<int>(fp->_file),fp->_base,static_cast<std::size_t>(static_cast<unsigned int>(fp->_bufsiz)))};
 		fp->_cnt=static_cast<int>(static_cast<unsigned int>(readed));
