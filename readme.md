@@ -129,6 +129,7 @@ Also need to install msvcrt.dll
 - glibc
 - MSVCRT
 - Universal CRT
+- Universal CRT with MSVC debugging
 - Wine's Emulated MSVCRT
 - Wine's Emulated UCRT
 - ReactOS Emulated MSVCRT
