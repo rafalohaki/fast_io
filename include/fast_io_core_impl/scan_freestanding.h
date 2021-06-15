@@ -209,49 +209,94 @@ inline constexpr bool scan_context_status2_impl(input in,P arg)
 	return false;
 }
 
+template<bool>
+inline constexpr bool type_not_scannable=false;
+
 template<buffer_input_stream input,typename T>
+#if 0
 requires (context_scanable<typename input::char_type,T,false>||skipper<typename input::char_type,T>
 ||(contiguous_input_stream<input>&&context_scanable<typename input::char_type,T,true>))
+#endif
 [[nodiscard]] inline constexpr bool scan_single_impl(input in,T arg)
 {
 	using char_type = typename input::char_type;
-	auto curr{ibuffer_curr(in)};
-	auto end{ibuffer_end(in)};
 	if constexpr(contiguous_input_stream<input>)
 	{
-		if constexpr(skipper<char_type,T>)
+		if constexpr(contiguous_scanable<char_type,T>)
 		{
+			auto curr{ibuffer_curr(in)};
+			auto end{ibuffer_end(in)};
+			auto [it,ec] = scan_contiguous_define(io_reserve_type<char_type,T>,curr,end,arg);
+			if(ec!=parse_code::ok)
+				throw_parse_code(ec);
+			ibuffer_set_curr(in,it);
+			return true;
+		}
+		else if constexpr(context_scanable2<char_type,T>)
+		{
+			using char_type = typename input::char_type;
+			typename std::remove_cvref_t<decltype(scan_context_type(io_reserve_type<char_type,T>))>::type state;
+			auto curr{ibuffer_curr(in)};
+			auto end{ibuffer_end(in)};
+			auto [it,ec]=scan_context_define2(io_reserve_type<char_type,T>,state,curr,end,arg);
+			if(ec==parse_code::ok)
+			{
+				ibuffer_set_curr(in,it);
+				return true;
+			}
+			else if(ec!=parse_code::partial)
+				throw_parse_code(ec);
+			ibuffer_set_curr(in,it);
+			ec=scan_context_eof_define(io_reserve_type<char_type,T>,state,arg);
+			if(ec==parse_code::ok)
+				return true;
+			else if(ec!=parse_code::end_of_file)
+				throw_parse_code(ec);
+			return false;
+		}
+		else if constexpr(skipper<char_type,T>)
+		{
+			auto curr{ibuffer_curr(in)};
+			auto end{ibuffer_end(in)};
 			ibuffer_set_curr(in,skip_define(curr,end,arg));
 			return true;
 		}
+		else if constexpr(scanable_skipping<char_type,T>)
+		{
+			auto curr{ibuffer_curr(in)};
+			auto end{ibuffer_end(in)};
+			curr=scan_skip_define(scan_skip_type<T>,curr,end);
+			if(curr==end)
+				return false;
+		}
+		else if constexpr(context_scanable<char_type,T,true>||context_scanable<char_type,T,false>)
+		{
+			auto curr{ibuffer_curr(in)};
+			auto end{ibuffer_end(in)};
+			auto state_machine{scan_context_define(scan_context<context_scanable<char_type,T,true>>,curr,end,arg)};
+			ibuffer_set_curr(in, state_machine.iter);
+			if(state_machine.code!=parse_code{})[[unlikely]]
+			{
+				if(state_machine.code==parse_code::partial)
+					return false;
+				throw_parse_code(state_machine.code);
+			}
+			return true;
+		}
+		else if constexpr(scanable<input,T>)
+			return scan_define(in,arg);
 		else
 		{
-			if constexpr(scanable_skipping<char_type,T>)
-			{
-				curr=scan_skip_define(scan_skip_type<T>,curr,end);
-				if(curr==end)
-					return false;
-			}
-			if constexpr(context_scanable<char_type,T,true>||context_scanable<char_type,T,false>)
-			{
-				auto state_machine{scan_context_define(scan_context<context_scanable<char_type,T,true>>,curr,end,arg)};
-				ibuffer_set_curr(in, state_machine.iter);
-				if(state_machine.code!=parse_code{})[[unlikely]]
-				{
-					if(state_machine.code==parse_code::partial)
-						return false;
-					throw_parse_code(state_machine.code);
-				}
-				return true;
-			}
-			else if constexpr(scanable<input,T>)
-				return scan_define(in,arg);
+			static_assert(type_not_scannable<scanable<input,T>>,"type not scannable. need context_scanable");
+			return false;
 		}
 	}
 	else
 	{
 		if constexpr(contiguous_scanable<char_type,T>&&context_scanable2<char_type,T>)
 		{
+			auto curr{ibuffer_curr(in)};
+			auto end{ibuffer_end(in)};
 			auto [it,ec] = scan_contiguous_define(io_reserve_type<char_type,T>,curr,end,arg);
 			if(it==end)
 				return scan_context_status2_impl(in,arg);
@@ -260,8 +305,38 @@ requires (context_scanable<typename input::char_type,T,false>||skipper<typename 
 			ibuffer_set_curr(in,it);
 			return true;
 		}
+		else if constexpr(context_scanable2<char_type,T>)
+		{
+			using char_type = typename input::char_type;
+			for(typename std::remove_cvref_t<decltype(scan_context_type(io_reserve_type<char_type,T>))>::type state;;)
+			{
+				auto curr{ibuffer_curr(in)};
+				auto end{ibuffer_end(in)};
+				auto [it,ec]=scan_context_define2(io_reserve_type<char_type,T>,state,curr,end,arg);
+				if(ec==parse_code::ok)
+				{
+					ibuffer_set_curr(in,it);
+					return true;
+				}
+				else if(ec!=parse_code::partial)
+					throw_parse_code(ec);
+				ibuffer_set_curr(in,it);
+				if(!ibuffer_underflow(in))[[unlikely]]
+				{
+					ec=scan_context_eof_define(io_reserve_type<char_type,T>,state,arg);
+					if(ec==parse_code::ok)
+						return true;
+					else if(ec==parse_code::end_of_file)
+						break;
+					throw_parse_code(ec);
+				}
+			}
+			return false;
+		}
 		else if constexpr(skipper<char_type,T>)
 		{
+			auto curr{ibuffer_curr(in)};
+			auto end{ibuffer_end(in)};
 			for(;(curr=skip_define(curr,end,arg))==end;)
 			{
 				if(!ibuffer_underflow(in))
@@ -276,6 +351,8 @@ requires (context_scanable<typename input::char_type,T,false>||skipper<typename 
 		{
 			if constexpr(scanable_skipping<char_type,T>)
 			{
+				auto curr{ibuffer_curr(in)};
+				auto end{ibuffer_end(in)};
 				for(;(curr=scan_skip_define(scan_skip_type<T>,curr,end))==end;)
 				{
 					if(!ibuffer_underflow(in))[[unlikely]]
@@ -286,6 +363,8 @@ requires (context_scanable<typename input::char_type,T,false>||skipper<typename 
 			}
 			if constexpr(context_scanable<char_type,T,false>)
 			{
+				auto curr{ibuffer_curr(in)};
+				auto end{ibuffer_end(in)};
 				auto state_machine{scan_context_define(scan_context<false>,curr,end,arg)};
 				ibuffer_set_curr(in, state_machine.iter);
 				if(state_machine.code!=parse_code{})[[unlikely]]
@@ -294,6 +373,11 @@ requires (context_scanable<typename input::char_type,T,false>||skipper<typename 
 			}
 			else if constexpr(scanable<input,T>)
 				return scan_define(in,arg);
+			else
+			{
+				static_assert(type_not_scannable<scanable<input,T>>,"type not scannable. need context_scanable");
+				return false;
+			}
 		}
 	}
 }

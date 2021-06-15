@@ -173,6 +173,35 @@ inline constexpr base_t<2,false,T&> bin_get(T& reference) noexcept
 	return {reference};
 }
 
+template<typename char_type>
+struct ch_get_t
+{
+	using manip_tag = manip_tag_t;
+	char_type& reference;
+};
+#if 0
+template<typename char_type,typename T>
+struct ch_get_carrier_t
+{
+	using manip_tag = manip_tag_t;
+	T reference;
+	char_type ch;
+	constexpr ch_get_carrier_t(T t) noexcept:reference(t){}
+	ch_get_carrier_t(ch_get_carrier_t const&)=delete;
+	ch_get_carrier_t& operator=(ch_get_carrier_t const&)=delete;
+	constexpr ~ch_get_carrier_t()
+	{
+		reference=ch;
+	}
+};
+#endif
+
+template<::fast_io::details::my_integral T>
+inline constexpr ch_get_t<T&> ch_get(T& reference) noexcept
+{
+	return {reference};
+}
+
 template<std::size_t bs,bool upper=false,typename T>
 requires (2<=bs&&bs<=36&&(::fast_io::details::my_integral<T>||
 	(std::is_pointer_v<T>||::fast_io::freestanding::contiguous_iterator<T>)))
