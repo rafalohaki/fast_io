@@ -73,6 +73,32 @@ https://github.com/freebsd/freebsd/blob/e8142e44905fa62147ba10703e7ce2c5464fb2b7
 #endif
 }
 
+enum class posix_code:int
+{};
+
+#if 0
+template<>
+inline constexpr std::size_t error_code_domain_value<posix_code>
+{
+#if SIZE_MAX==UINT16_MAX
+
+#elif SIZE_MAX==UINT32_MAX
+
+#elif SIZE_MAX==UINT64_MAX
+
+#elif defined(UINT128_MAX) && SIZE_MAX==UINT128_MAX
+
+#else
+#error "unsupport architecture"
+#endif
+};
+
+inline constexpr bool operator==(error e,posix_code code) noexcept
+{
+
+}
+#endif
+
 class posix_error
 {
 public:
