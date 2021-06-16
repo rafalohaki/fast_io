@@ -170,7 +170,7 @@ extern std::uint32_t glibc_wunderflow (FILE *) noexcept asm("__wunderflow");
 inline bool ibuffer_underflow(wc_io_observer_unlocked cio) noexcept
 {
 	ibuffer_set_curr(cio,ibuffer_end(cio));
-	return details::glibc_wunderflow(cio.fp)!=WEOF;
+	return details::glibc_wunderflow(cio.fp)!=static_cast<std::uint32_t>(0xffffffffu);
 }
 
 inline wchar_t* obuffer_begin(wc_io_observer_unlocked cio) noexcept
@@ -197,7 +197,6 @@ inline void obuffer_set_curr(wc_io_observer_unlocked cio,wchar_t* ptr) noexcept
 namespace details
 {
 extern std::uint32_t glibc_woverflow (FILE *,std::uint32_t) noexcept asm("__woverflow");
-extern std::uint32_t glibc_wunderflow (FILE *) noexcept asm("__wunderflow");
 }
 
 inline void obuffer_overflow(wc_io_observer_unlocked cio,wchar_t ch)
