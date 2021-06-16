@@ -182,7 +182,7 @@ namespace details::fp_hack
 {
 extern int libc_uflow (FILE *) noexcept asm("__uflow");
 
-inline bool musl_fp_underflow_impl(std::FILE* fp)
+inline bool musl_fp_underflow_impl(FILE* fp)
 {
 	bool eof{libc_uflow(fp)!=EOF};
 	if(!eof&&ferror_unlocked(fp))

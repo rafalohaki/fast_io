@@ -121,14 +121,14 @@ template<typename T,std::size_t num>
 #if __has_cpp_attribute(gnu::may_alias)
 [[gnu::may_alias]]
 #endif
-inline T* bsd_get_buffer_ptr_impl(std::FILE* __restrict fpp) noexcept
+inline T* bsd_get_buffer_ptr_impl(FILE* __restrict fpp) noexcept
 {
 	static_assert(num<4);
 #if defined(__MSDOS__) || defined(_WIN32)
 #if defined(_UCRT) || defined(_MSC_VER)
 	ucrt_iobuf* fp{reinterpret_cast<ucrt_iobuf*>(fpp)};
 #else
-	std::FILE* fp{fpp};
+	FILE* fp{fpp};
 #endif
 	if constexpr(num==0)
 		return reinterpret_cast<T*>(fp->_base);
@@ -140,7 +140,7 @@ inline T* bsd_get_buffer_ptr_impl(std::FILE* __restrict fpp) noexcept
 #if defined(__BIONIC__)
 	sFILE* fp{reinterpret_cast<sFILE*>(fpp)};
 #else
-	std::FILE* fp{fpp};
+	FILE* fp{fpp};
 #endif
 	if constexpr(num==0)
 		return reinterpret_cast<T*>(fp->_bf._base);
@@ -158,7 +158,7 @@ template<bool w,typename T>
 #if __has_cpp_attribute(gnu::may_alias)
 [[gnu::may_alias]]
 #endif
-inline void bsd_set_buffer_curr_ptr_impl(std::FILE* __restrict fpp,
+inline void bsd_set_buffer_curr_ptr_impl(FILE* __restrict fpp,
 #if __has_cpp_attribute(gnu::may_alias)
 [[gnu::may_alias]]
 #endif
@@ -168,7 +168,7 @@ T* ptr) noexcept
 #if defined(_MSC_VER) || defined(_UCRT)
 	ucrt_iobuf* fp{reinterpret_cast<ucrt_iobuf*>(fpp)};
 #else
-	std::FILE* fp{fpp};
+	FILE* fp{fpp};
 #endif
 	if constexpr(w)	//set dirty for output
 		fp->_flag|=0x010000;
@@ -178,7 +178,7 @@ T* ptr) noexcept
 #if defined(__BIONIC__)
 	sFILE* fp{reinterpret_cast<sFILE*>(fpp)};
 #else
-	std::FILE* fp{fpp};
+	FILE* fp{fpp};
 #endif
 	if constexpr(w)
 	{
@@ -194,17 +194,17 @@ T* ptr) noexcept
 }
 
 #if defined(__NEWLIB__)
-extern int newlib_ssrefill_r(struct _reent * __restrict,std::FILE * __restrict) noexcept asm("__ssrefill_r");
+extern int newlib_ssrefill_r(struct _reent * __restrict,FILE * __restrict) noexcept asm("__ssrefill_r");
 #elif defined(__BSD_VISIBLE) ||defined(__DARWIN_C_LEVEL)
-extern int bsd_srget(std::FILE *) noexcept asm("__srget");
+extern int bsd_srget(FILE *) noexcept asm("__srget");
 #elif defined(__MSDOS__)
-extern int _filbuf(std::FILE *) noexcept asm("__filbuf");
-extern int _flsbuf(int, std::FILE*) noexcept asm("__flsbuf");
+extern int _filbuf(FILE *) noexcept asm("__filbuf");
+extern int _flsbuf(int, FILE*) noexcept asm("__flsbuf");
 #elif defined(_MSC_VER)
 //extern "C" int __cdecl __acrt_stdio_refill_and_read_narrow_nolock(FILE*);
 #endif
 
-inline bool bsd_underflow_impl(std::FILE* __restrict fp)
+inline bool bsd_underflow_impl(FILE* __restrict fp)
 {
 #if defined(__NEWLIB__)
 	struct _reent rent;
@@ -243,7 +243,7 @@ inline bool bsd_underflow_impl(std::FILE* __restrict fp)
 #endif
 }
 
-inline void bsd_overflow(std::FILE* __restrict fp,char unsigned ch)
+inline void bsd_overflow(FILE* __restrict fp,char unsigned ch)
 {
 #if defined(_MSC_VER)
 	if(_fputc_nolock(static_cast<int>(static_cast<unsigned char>(ch)),fp)==EOF)[[unlikely]]

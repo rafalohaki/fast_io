@@ -15,7 +15,7 @@ namespace fast_io
 namespace details
 {
 template<std::integral char_type>
-inline auto fgetc_unlocked_impl(std::FILE* fp)
+inline auto fgetc_unlocked_impl(FILE* fp)
 {
 	if constexpr(std::same_as<char_type,char>||std::same_as<char_type,char8_t>)
 	{
@@ -50,7 +50,7 @@ inline constexpr bool equals_to_eof_macro(int_type inv) noexcept
 }
 
 template<std::integral char_type>
-inline auto ungetc_unlocked_impl(char_type ch,std::FILE* fp)
+inline auto ungetc_unlocked_impl(char_type ch,FILE* fp)
 {
 	if constexpr(std::same_as<char_type,char>||std::same_as<char_type,char8_t>)
 	{

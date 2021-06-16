@@ -38,7 +38,7 @@ asm("_unlock")
 #endif
 ;
 
-inline void my_msvcrt_lock_file(std::FILE* fp) noexcept
+inline void my_msvcrt_lock_file(FILE* fp) noexcept
 {
 	auto iob{_iob};
 	std::size_t entry(fp-iob);
@@ -57,7 +57,7 @@ https://github.com/Alexpux/mingw-w64/blob/d0d7f784833bbb0b2d279310ddc6afb52fe47a
 		EnterCriticalSection(fp+1);
 }
 
-inline void my_msvcrt_unlock_file(std::FILE* fp) noexcept
+inline void my_msvcrt_unlock_file(FILE* fp) noexcept
 {
 	auto iob{_iob};
 	std::size_t entry(fp-iob);

@@ -73,12 +73,12 @@ namespace fast_io
 
 namespace details
 {
-extern int uclibc_fgetc_unlocked(std::FILE*) noexcept __asm__("__fgetc_unlocked");
+extern int uclibc_fgetc_unlocked(FILE*) noexcept __asm__("__fgetc_unlocked");
 
-extern int uclibc_fputc_unlocked(int,std::FILE*) noexcept __asm__("__fputc_unlocked");
+extern int uclibc_fputc_unlocked(int,FILE*) noexcept __asm__("__fputc_unlocked");
 
 
-inline bool uclibc_underflow_impl(std::FILE* fp)
+inline bool uclibc_underflow_impl(FILE* fp)
 {
 	bool eof{uclibc_fgetc_unlocked(fp)==EOF};
 	if(eof&&((fp->__modeflags&__FLAG_ERROR)==__FLAG_ERROR))
@@ -87,13 +87,13 @@ inline bool uclibc_underflow_impl(std::FILE* fp)
 	return !eof;
 }
 
-inline void uclibc_overflow_impl(std::FILE* fp,char unsigned ch)
+inline void uclibc_overflow_impl(FILE* fp,char unsigned ch)
 {
 	if(uclibc_fputc_unlocked(static_cast<int>(ch),fp)==EOF)
 		throw_posix_error();
 }
 
-inline void uclibc_set_curr_ptr_impl(std::FILE* fp,char unsigned* ptr) noexcept
+inline void uclibc_set_curr_ptr_impl(FILE* fp,char unsigned* ptr) noexcept
 {
 	fp->__modeflags|=__FLAG_WRITING;
 	fp->__bufpos=reinterpret_cast<char unsigned*>(ptr);

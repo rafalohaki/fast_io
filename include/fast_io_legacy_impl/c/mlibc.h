@@ -11,38 +11,38 @@ namespace details::mlibc_hack
 {
 
 
-inline constexpr char* hack_ibuffer_begin_impl(std::FILE* fp) noexcept
+inline constexpr char* hack_ibuffer_begin_impl(FILE* fp) noexcept
 {
 	return fp->__buffer_ptr;
 }
 
-inline constexpr char* hack_ibuffer_curr_impl(std::FILE* fp) noexcept
+inline constexpr char* hack_ibuffer_curr_impl(FILE* fp) noexcept
 {
 	return fp->__buffer_ptr+fp->__offset;
 }
 
-inline constexpr char* hack_ibuffer_end_impl(std::FILE* fp) noexcept
+inline constexpr char* hack_ibuffer_end_impl(FILE* fp) noexcept
 {
 	return fp->__buffer_ptr+fp->__valid_limit;
 }
 
-inline constexpr void hack_ibuffer_set_curr_impl(std::FILE* fp,char* ptr) noexcept
+inline constexpr void hack_ibuffer_set_curr_impl(FILE* fp,char* ptr) noexcept
 {
 	std::size_t new_size{static_cast<std::size_t>(ptr-fp->__buffer_ptr)};
 	fp->__offset=fp->__io_offset=new_size;
 }
 
-inline constexpr char* hack_obuffer_begin_impl(std::FILE* fp) noexcept
+inline constexpr char* hack_obuffer_begin_impl(FILE* fp) noexcept
 {
 	return fp->__buffer_ptr;
 }
 
-inline constexpr char* hack_obuffer_curr_impl(std::FILE* fp) noexcept
+inline constexpr char* hack_obuffer_curr_impl(FILE* fp) noexcept
 {
 	return fp->__buffer_ptr+fp->__offset;
 }
 
-inline constexpr char* hack_obuffer_end_impl(std::FILE* fp) noexcept
+inline constexpr char* hack_obuffer_end_impl(FILE* fp) noexcept
 {
 	if(fp->__buffer_ptr)[[likely]]
 		return fp->__buffer_ptr+fp->__io_offset;
@@ -50,7 +50,7 @@ inline constexpr char* hack_obuffer_end_impl(std::FILE* fp) noexcept
 		return nullptr;
 }
 
-inline constexpr void hack_obuffer_set_curr_impl(std::FILE* fp,char* ptr) noexcept
+inline constexpr void hack_obuffer_set_curr_impl(FILE* fp,char* ptr) noexcept
 {
 	std::size_t new_size{static_cast<std::size_t>(ptr-fp->__buffer_ptr)};
 	if(fp->__dirty_begin==fp->__io_offset)
@@ -64,13 +64,13 @@ inline constexpr void hack_obuffer_set_curr_impl(std::FILE* fp,char* ptr) noexce
 
 }
 
-inline void hack_overflow_impl(std::FILE* fp,char unsigned ch)
+inline void hack_overflow_impl(FILE* fp,char unsigned ch)
 {
 	if(noexcept_call(putc_unlocked,ch,fp)==EOF)
 		throw_posix_error();
 }
 
-inline bool hack_underflow_impl(std::FILE* fp)
+inline bool hack_underflow_impl(FILE* fp)
 {
 	int ch{noexcept_call(getc_unlocked,fp)};
 	if(ch==EOF)

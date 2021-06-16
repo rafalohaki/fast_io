@@ -23,7 +23,7 @@ inline constexpr void ibuffer_set_curr(c_io_observer_unlocked cio,char* ptr) noe
 	cio.fp->_IO_read_ptr=ptr;
 }
 
-extern int __underflow (std::FILE*) noexcept asm("__underflow");
+extern int __underflow (FILE*) noexcept asm("__underflow");
 inline bool ibuffer_underflow(c_io_observer_unlocked cio) noexcept
 {
 	cio.fp->_IO_read_ptr=cio.fp->_IO_read_end;
@@ -257,7 +257,7 @@ inline void obuffer_overflow(u32c_io_observer_unlocked cio,char32_t ch)
 
 namespace details
 {
-extern int glibc_flbf(std::FILE* fp) noexcept asm("__flbf");
+extern int glibc_flbf(FILE* fp) noexcept asm("__flbf");
 }
 
 template<std::integral ch_type>

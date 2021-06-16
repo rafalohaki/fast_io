@@ -1,6 +1,9 @@
 #pragma once
+#if __has_include(<cstdio>)
 #include<cstdio>
-#include<cwchar>
+#elif __has_include(<stdio.h>)
+#include<stdio.h>
+#endif
 
 #if defined(__MINGW32__) && !defined(_UCRT)
 #include"msvcrt_lock.h"
@@ -244,7 +247,7 @@ extern FILE	*funopen (const void *__cookie,
 #endif
 //funopen
 template<stream value_type>
-inline std::FILE* funopen_wrapper(value_type* cookie)
+inline FILE* funopen_wrapper(value_type* cookie)
 {
 	using bf_size_type =
 #ifdef 	_READ_WRITE_BUFSIZE_TYPE
@@ -351,7 +354,7 @@ namespace details
 
 #if defined(__MSDOS__)
 extern int fileno(FILE*) noexcept asm("_fileno");
-extern std::FILE* fdopen(int,char const*) noexcept asm("_fdopen");
+extern FILE* fdopen(int,char const*) noexcept asm("_fdopen");
 #elif defined(__CYGWIN__)
 [[gnu::dllimport]] extern int fileno(FILE*) noexcept 
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
@@ -364,7 +367,7 @@ asm("_fileno")
 asm("fileno")
 #endif
 ;
-[[gnu::dllimport]] extern std::FILE* fdopen(int,char const*) noexcept
+[[gnu::dllimport]] extern FILE* fdopen(int,char const*) noexcept
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
 #if defined(__GNUC__)
 asm("fdopen")
@@ -417,7 +420,7 @@ class basic_c_io_observer_unlocked
 {
 public:
 	using char_type = ch_type;
-	using native_handle_type = std::FILE*;
+	using native_handle_type = FILE*;
 	native_handle_type fp{};
 	constexpr auto& native_handle() noexcept
 	{
@@ -487,13 +490,13 @@ inline Iter write(basic_c_io_observer_unlocked<T> cfhd,Iter begin,Iter end);
 namespace details
 {
 
-inline void c_flush_impl(std::FILE* fp)
+inline void c_flush_impl(FILE* fp)
 {
-	if(std::fflush(fp))
+	if(fflush(fp))
 		throw_posix_error();
 }
 
-inline void c_flush_unlocked_impl(std::FILE* fp)
+inline void c_flush_unlocked_impl(FILE* fp)
 {
 	if(noexcept_call(
 #if defined(_MSC_VER) || defined(_UCRT)
@@ -517,7 +520,7 @@ inline void flush(basic_c_io_observer_unlocked<T> cfhd)
 namespace details
 {
 
-inline std::uintmax_t c_io_seek_impl(std::FILE* fp,std::intmax_t offset,seekdir s)
+inline std::uintmax_t c_io_seek_impl(FILE* fp,std::intmax_t offset,seekdir s)
 {
 /*
 We avoid standard C functions since they cannot deal with large file on 32 bits platforms
@@ -556,7 +559,7 @@ https://www.gnu.org/software/libc/manual/html_node/File-Positioning.html
 
 #if defined(_MSC_VER) || defined(_UCRT)  || __MSVCRT_VERSION__ >= 0x800
 
-inline std::uintmax_t c_io_seek_no_lock_impl(std::FILE* fp,std::intmax_t offset,seekdir s)
+inline std::uintmax_t c_io_seek_no_lock_impl(FILE* fp,std::intmax_t offset,seekdir s)
 {
 	if(_fseeki64_nolock(fp,offset,static_cast<int>(s)))
 		throw_posix_error();
@@ -566,7 +569,7 @@ inline std::uintmax_t c_io_seek_no_lock_impl(std::FILE* fp,std::intmax_t offset,
 	return val;
 }
 #else
-inline std::uintmax_t c_io_seek_no_lock_impl(std::FILE* fp,std::intmax_t offset,seekdir s)
+inline std::uintmax_t c_io_seek_no_lock_impl(FILE* fp,std::intmax_t offset,seekdir s)
 {
 	if(fseeko64(fp,offset,static_cast<int>(s)))
 		throw_posix_error();
@@ -604,13 +607,13 @@ asm("pthread_mutex_unlock")
 #endif
 ;
 
-inline void my_cygwin_flockfile(std::FILE* fp) noexcept
+inline void my_cygwin_flockfile(FILE* fp) noexcept
 {
 	if(!((fp->_flags)&__SSTR))
 		my_cygwin_pthread_mutex_lock(fp->_lock);
 }
 
-inline void my_cygwin_funlockfile(std::FILE* fp) noexcept
+inline void my_cygwin_funlockfile(FILE* fp) noexcept
 {
 	if(!((fp->_flags)&__SSTR))
 		my_cygwin_pthread_mutex_unlock(fp->_lock);
@@ -643,7 +646,7 @@ class basic_c_io_observer
 {
 public:
 	using char_type = ch_type;
-	using native_handle_type = std::FILE*;
+	using native_handle_type = FILE*;
 	native_handle_type fp{};
 	constexpr auto& native_handle() const noexcept
 	{
@@ -751,7 +754,7 @@ template<std::integral T,::fast_io::freestanding::contiguous_iterator Iter>
 
 namespace details
 {
-inline void c_write_impl(void const* __restrict ptr,std::size_t size,std::size_t count,std::FILE* __restrict fp)
+inline void c_write_impl(void const* __restrict ptr,std::size_t size,std::size_t count,FILE* __restrict fp)
 {
 	if(fwrite(ptr,size,count,fp)<count)
 		throw_posix_error();
@@ -814,7 +817,7 @@ class basic_c_io_handle_impl:public T
 {
 public:
 	using char_type = typename T::char_type;
-	using native_handle_type = std::FILE*;
+	using native_handle_type = FILE*;
 	constexpr basic_c_io_handle_impl()=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
@@ -830,7 +833,7 @@ public:
 		if(b.fp==this->fp)[[unlikely]]
 			return *this;
 		if(this->fp)[[likely]]
-			std::fclose(this->fp);
+			fclose(this->fp);
 		this->fp=b.release();
 		return *this;
 	}
@@ -838,7 +841,7 @@ public:
 	{
 		if(this->fp)[[likely]]
 		{
-			if(std::fclose(this->fp)==EOF)
+			if(fclose(this->fp)==EOF)
 				throw_posix_error();
 			this->fp=nullptr;
 		}
@@ -846,12 +849,12 @@ public:
 	inline constexpr void reset(native_handle_type newfp=nullptr) noexcept
 	{
 		if(this->fp)[[likely]]
-			std::fclose(this->fp);
+			fclose(this->fp);
 		this->fp=newfp;
 	}
 };
 
-inline std::FILE* my_fdopen_impl(int fd,char const* mode) 
+inline FILE* my_fdopen_impl(int fd,char const* mode) 
 {
 	auto fp{
 #if defined(_WIN32)
@@ -870,7 +873,7 @@ inline std::FILE* my_fdopen_impl(int fd,char const* mode)
 }
 #if 0
 #if defined(__GLIBC__) || defined(__NEED___isoc_va_list)
-inline std::FILE* open_cookie_throw_cookie_impl(void* ptr,open_mode mode,cookie_io_functions_t func)
+inline FILE* open_cookie_throw_cookie_impl(void* ptr,open_mode mode,cookie_io_functions_t func)
 {
 	auto fp{::fopencookie(ptr,to_native_c_mode(mode),func)};
 	if(fp==nullptr)[[unlikely]]
@@ -879,13 +882,13 @@ inline std::FILE* open_cookie_throw_cookie_impl(void* ptr,open_mode mode,cookie_
 }
 
 template<typename T>
-inline std::FILE* open_cookie_throw_cookie_type_impl(T* ptr,open_mode mode)
+inline FILE* open_cookie_throw_cookie_type_impl(T* ptr,open_mode mode)
 {
 	return open_cookie_throw_cookie_impl(ptr,mode,c_io_cookie_functions<T>.native_functions);
 }
 
 template<typename T,typename... Args>
-inline std::FILE* open_cookie_type_with_mode(open_mode mode,Args&&...args)
+inline FILE* open_cookie_type_with_mode(open_mode mode,Args&&...args)
 {
 	std::unique_ptr<T> up{new T(std::forward<Args>(args)...)};
 	auto fp{open_cookie_throw_cookie_type_impl(up.get(),mode)};
@@ -895,7 +898,7 @@ inline std::FILE* open_cookie_type_with_mode(open_mode mode,Args&&...args)
 
 #elif defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL) || defined(__BIONIC__) || defined(__NEWLIB__)
 template<typename T,typename... Args>
-inline std::FILE* open_cookie_type(Args&&...args)
+inline FILE* open_cookie_type(Args&&...args)
 {
 	std::unique_ptr<T> uptr(new T(std::forward<Args>(args)...));
 	auto fp{funopen_wrapper<T>(uptr.get())};
@@ -903,7 +906,7 @@ inline std::FILE* open_cookie_type(Args&&...args)
 	return fp;
 }
 template<typename T,typename... Args>
-inline std::FILE* open_cookie_type_with_mode(open_mode,Args&&...args)
+inline FILE* open_cookie_type_with_mode(open_mode,Args&&...args)
 {
 	return open_cookie_type<T>(std::forward<Args>(args)...);
 }
@@ -914,7 +917,7 @@ inline std::FILE* open_cookie_type_with_mode(open_mode,Args&&...args)
 }
 
 template<typename,typename... Args>
-[[noreturn]] inline std::FILE* open_cookie_type_with_mode(open_mode,Args&&...)
+[[noreturn]] inline FILE* open_cookie_type_with_mode(open_mode,Args&&...)
 {
 	open_cookie_throw_einval_impl();
 }
@@ -1000,7 +1003,7 @@ public:
 	~basic_c_file_impl()
 	{
 		if(this->fp)[[likely]]
-			std::fclose(this->fp);
+			fclose(this->fp);
 	}
 };
 
@@ -1040,17 +1043,17 @@ inline constexpr auto status(basic_c_io_observer_unlocked<ch_type> ciob)
 
 namespace details
 {
-inline bool c_is_character_device_unlocked_impl(std::FILE* fp) noexcept
+inline bool c_is_character_device_unlocked_impl(FILE* fp) noexcept
 {
 	return posix_is_character_device(fp_unlocked_to_fd(fp));
 }
 
-inline bool c_is_character_device_impl(std::FILE* fp) noexcept
+inline bool c_is_character_device_impl(FILE* fp) noexcept
 {
 	return posix_is_character_device(fp_to_fd(fp));
 }
 
-inline void c_clear_screen_unlocked_impl(std::FILE* fp)
+inline void c_clear_screen_unlocked_impl(FILE* fp)
 {
 #ifdef _WIN32
 	int fd{fp_unlocked_to_fd(fp)};
@@ -1068,7 +1071,7 @@ inline void c_clear_screen_unlocked_impl(std::FILE* fp)
 #endif
 }
 
-inline void c_clear_screen_impl(std::FILE* fp)
+inline void c_clear_screen_impl(FILE* fp)
 {
 	basic_c_io_observer<char> ciob{fp};
 	lock_guard guard{ciob};

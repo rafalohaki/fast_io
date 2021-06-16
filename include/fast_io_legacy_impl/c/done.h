@@ -11,7 +11,7 @@ namespace details
 [[gnu::dllimport]] extern std::size_t __cdecl my_cygwin_fread_unlocked(void* __restrict buffer,std::size_t size,std::size_t count,FILE* __restrict) noexcept asm("fread_unlocked");
 #endif
 
-inline std::size_t c_fwrite_unlocked_impl(void const* __restrict begin,std::size_t type_size,std::size_t count,std::FILE* __restrict fp)
+inline std::size_t c_fwrite_unlocked_impl(void const* __restrict begin,std::size_t type_size,std::size_t count,FILE* __restrict fp)
 {
 #if defined(__NEWLIB__) && !defined(__CYGWIN__)
 	struct _reent rent;
@@ -47,7 +47,7 @@ inline std::size_t c_fwrite_unlocked_impl(void const* __restrict begin,std::size
 	return written_count;
 }
 
-inline std::size_t c_fread_unlocked_impl(void* __restrict begin,std::size_t type_size,std::size_t count,std::FILE* __restrict fp)
+inline std::size_t c_fread_unlocked_impl(void* __restrict begin,std::size_t type_size,std::size_t count,FILE* __restrict fp)
 {
 #if defined(__NEWLIB__) && !defined(__CYGWIN__)
 	struct _reent rent;

@@ -138,12 +138,12 @@ CRT heap debugging does not exist on mingw-w64
 	return ptr;
 }
 
-inline void wincrt_fp_allocate_buffer_impl(std::FILE* __restrict fpp) noexcept
+inline void wincrt_fp_allocate_buffer_impl(FILE* __restrict fpp) noexcept
 {
 #if defined(_MSC_VER) || defined(_UCRT)
 	ucrt_iobuf* fp{reinterpret_cast<ucrt_iobuf*>(fpp)};
 #else
-	std::FILE* fp{fpp};
+	FILE* fp{fpp};
 #endif
 	if(fp->_bufsiz<4)
 	{
@@ -161,12 +161,12 @@ inline void wincrt_fp_allocate_buffer_impl(std::FILE* __restrict fpp) noexcept
 #if __has_cpp_attribute(gnu::cold)
 [[gnu::cold]]
 #endif
-inline void wincrt_fp_write_cold_malloc_case_impl(std::FILE* __restrict fpp,char const* __restrict first,std::size_t diff)
+inline void wincrt_fp_write_cold_malloc_case_impl(FILE* __restrict fpp,char const* __restrict first,std::size_t diff)
 {
 #if defined(_MSC_VER) || defined(_UCRT)
 	ucrt_iobuf* fp{reinterpret_cast<ucrt_iobuf*>(fpp)};
 #else
-	std::FILE* fp{fpp};
+	FILE* fp{fpp};
 #endif
 	if(diff==0)
 		return;
@@ -191,12 +191,12 @@ inline void wincrt_fp_write_cold_malloc_case_impl(std::FILE* __restrict fpp,char
 	wincrt_fp_set_flag_dirty_impl(fp);	
 }
 
-inline void wincrt_fp_write_cold_normal_case_impl(std::FILE* __restrict fpp,char const* __restrict first,std::size_t diff)
+inline void wincrt_fp_write_cold_normal_case_impl(FILE* __restrict fpp,char const* __restrict first,std::size_t diff)
 {
 #if defined(_MSC_VER) || defined(_UCRT)
 	ucrt_iobuf* fp{reinterpret_cast<ucrt_iobuf*>(fpp)};
 #else
-	std::FILE* fp{fpp};
+	FILE* fp{fpp};
 #endif
 	std::size_t remain{static_cast<std::size_t>(static_cast<unsigned int>(fp->_cnt))};
 	non_overlapped_copy_n(first,remain,fp->_ptr);
@@ -219,12 +219,12 @@ inline void wincrt_fp_write_cold_normal_case_impl(std::FILE* __restrict fpp,char
 #if __has_cpp_attribute(gnu::cold)
 [[gnu::cold]]
 #endif
-inline void wincrt_fp_write_cold_impl(std::FILE* __restrict fp,char const* __restrict first,std::size_t diff)
+inline void wincrt_fp_write_cold_impl(FILE* __restrict fp,char const* __restrict first,std::size_t diff)
 {
 #if defined(_MSC_VER) || defined(_UCRT)
 	ucrt_iobuf* fpp{reinterpret_cast<ucrt_iobuf*>(fp)};
 #else
-	std::FILE* fpp{fp};
+	FILE* fpp{fp};
 #endif
 	if(fpp->_base==nullptr)
 		wincrt_fp_write_cold_malloc_case_impl(fp,first,diff);
@@ -233,12 +233,12 @@ inline void wincrt_fp_write_cold_impl(std::FILE* __restrict fp,char const* __res
 }
 
 template<std::integral char_type>
-inline void wincrt_fp_write_impl(std::FILE* __restrict fpp,char_type const* first,char_type const* last)
+inline void wincrt_fp_write_impl(FILE* __restrict fpp,char_type const* first,char_type const* last)
 {
 #if defined(_MSC_VER) || defined(_UCRT)
 	ucrt_iobuf* fp{reinterpret_cast<ucrt_iobuf*>(fpp)};
 #else
-	std::FILE* fp{fpp};
+	FILE* fp{fpp};
 #endif
 	std::size_t diff{static_cast<std::size_t>(last-first)*sizeof(char_type)};
 	std::size_t remain{static_cast<std::size_t>(static_cast<unsigned int>(fp->_cnt))};
@@ -262,12 +262,12 @@ requires (sizeof(char_type)<=4)
 #if __has_cpp_attribute(gnu::cold)
 [[gnu::cold]]
 #endif
-inline void wincrt_fp_overflow_impl(std::FILE* __restrict fpp,char_type ch)
+inline void wincrt_fp_overflow_impl(FILE* __restrict fpp,char_type ch)
 {
 #if defined(_MSC_VER) || defined(_UCRT)
 	ucrt_iobuf* fp{reinterpret_cast<ucrt_iobuf*>(fpp)};
 #else
-	std::FILE* fp{fpp};
+	FILE* fp{fpp};
 #endif
 	if(fp->_base==nullptr)
 		wincrt_fp_allocate_buffer_impl(fpp);
@@ -288,7 +288,7 @@ inline void wincrt_fp_flush_stdout_impl()
 #if defined(_MSC_VER) || defined(_UCRT)
 	ucrt_iobuf* fp{reinterpret_cast<ucrt_iobuf*>(stdout)};
 #else
-	std::FILE* fp{stdout};
+	FILE* fp{stdout};
 #endif
 	std::size_t diff{static_cast<std::size_t>(fp->_ptr-fp->_base)};
 	if(diff==0||!wincrt_fp_is_dirty_impl(fp))
@@ -300,14 +300,14 @@ inline void wincrt_fp_flush_stdout_impl()
 #if __has_cpp_attribute(gnu::cold)
 [[gnu::cold]]
 #endif
-inline std::size_t wincrt_fp_read_cold_impl(std::FILE* __restrict fpp,char* first,std::size_t diff)
+inline std::size_t wincrt_fp_read_cold_impl(FILE* __restrict fpp,char* first,std::size_t diff)
 {
 	if(fpp==stdin)
 		wincrt_fp_flush_stdout_impl();
 #if defined(_MSC_VER) || defined(_UCRT)
 	ucrt_iobuf* fp{reinterpret_cast<ucrt_iobuf*>(fpp)};
 #else
-	std::FILE* fp{fpp};
+	FILE* fp{fpp};
 #endif
 	std::size_t cnt{static_cast<std::size_t>(static_cast<unsigned int>(fp->_cnt))};
 	non_overlapped_copy_n(fp->_ptr,cnt,first);
@@ -344,12 +344,12 @@ inline std::size_t wincrt_fp_read_cold_impl(std::FILE* __restrict fpp,char* firs
 }
 
 template<std::integral char_type>
-inline char_type* wincrt_fp_read_impl(std::FILE* __restrict fpp,char_type* first,char_type* last)
+inline char_type* wincrt_fp_read_impl(FILE* __restrict fpp,char_type* first,char_type* last)
 {
 #if defined(_MSC_VER) || defined(_UCRT)
 	ucrt_iobuf* fp{reinterpret_cast<ucrt_iobuf*>(fpp)};
 #else
-	std::FILE* fp{fpp};
+	FILE* fp{fpp};
 #endif
 	std::size_t diff{static_cast<std::size_t>(last-first)*sizeof(char_type)};
 	std::size_t remain{static_cast<std::size_t>(static_cast<unsigned int>(fp->_cnt))};
@@ -371,14 +371,14 @@ template<std::integral char_type>
 #if __has_cpp_attribute(gnu::cold)
 [[gnu::cold]]
 #endif
-inline bool wincrt_fp_underflow_impl(std::FILE* __restrict fpp)
+inline bool wincrt_fp_underflow_impl(FILE* __restrict fpp)
 {
 	if(fpp==stdin)
 		wincrt_fp_flush_stdout_impl();
 #if defined(_MSC_VER) || defined(_UCRT)
 	ucrt_iobuf* fp{reinterpret_cast<ucrt_iobuf*>(fpp)};
 #else
-	std::FILE* fp{fpp};
+	FILE* fp{fpp};
 #endif
 	if(fp->_base==nullptr)
 		wincrt_fp_allocate_buffer_impl(fpp);
@@ -395,13 +395,13 @@ template<typename T,std::size_t num>
 #if __has_cpp_attribute(gnu::may_alias)
 [[gnu::may_alias]]
 #endif
-inline T* wincrt_get_buffer_ptr_impl(std::FILE* __restrict fpp) noexcept
+inline T* wincrt_get_buffer_ptr_impl(FILE* __restrict fpp) noexcept
 {
 	static_assert(num<4);
 #if defined(_UCRT) || defined(_MSC_VER)
 	ucrt_iobuf* fp{reinterpret_cast<ucrt_iobuf*>(fpp)};
 #else
-	std::FILE* fp{fpp};
+	FILE* fp{fpp};
 #endif
 	if constexpr(num==0)
 		return reinterpret_cast<T*>(fp->_base);
@@ -416,7 +416,7 @@ template<typename T>
 #if __has_cpp_attribute(gnu::may_alias)
 [[gnu::may_alias]]
 #endif
-inline void wincrt_set_buffer_curr_ptr_impl(std::FILE* __restrict fpp,
+inline void wincrt_set_buffer_curr_ptr_impl(FILE* __restrict fpp,
 #if __has_cpp_attribute(gnu::may_alias)
 [[gnu::may_alias]]
 #endif
@@ -425,7 +425,7 @@ T* ptr) noexcept
 #if defined(_MSC_VER) || defined(_UCRT)
 	ucrt_iobuf* fp{reinterpret_cast<ucrt_iobuf*>(fpp)};
 #else
-	std::FILE* fp{fpp};
+	FILE* fp{fpp};
 #endif
 	fp->_cnt-=static_cast<int>(static_cast<unsigned int>(static_cast<std::size_t>(reinterpret_cast<char*>(ptr)-fp->_ptr)/sizeof(T)));
 	fp->_ptr=reinterpret_cast<char*>(ptr);
