@@ -103,4 +103,19 @@ inline constexpr Iter find(Iter first,Iter last,T t)
 	return last;
 }
 
+template<input_iterator Iter,input_iterator Iter2>
+struct mismatch_result
+{
+	Iter first;
+	Iter2 second;
+};
+
+template<input_iterator Iter,input_iterator Iter2>
+inline constexpr mismatch_result<Iter,Iter2> my_mismatch(Iter first1,Iter last1,Iter2 first2,Iter2 last2)
+{
+	for(;first1!=last1&&first2!=last2&&*first1==*first2;++first2)
+		++first1;
+	return {first1,first2};
+}
+
 }

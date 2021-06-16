@@ -540,7 +540,6 @@ namespace details
 template<::fast_io::freestanding::input_iterator Iter>
 inline constexpr parse_result<Iter> ch_get_context_impl(Iter first,Iter last,::fast_io::freestanding::iter_value_t<Iter>& t) noexcept
 {
-	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	for(;first!=last&&::fast_io::char_category::is_c_space(*first);++first);
 	if(first==last)[[unlikely]]
 		return {first,parse_code::partial};
@@ -567,7 +566,5 @@ inline constexpr parse_code scan_context_eof_define(io_reserve_type_t<char_type,
 {
 	return parse_code::end_of_file;
 }
-
-static_assert(context_scanable2<char,manipulators::ch_get_t<char&>>);
 
 }
