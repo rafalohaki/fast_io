@@ -337,7 +337,7 @@ inline constexpr void perr(T&& t,Args&&... args)
 		fast_io::details::print_freestanding_decay_cold_impl<false>(fast_io::io_ref(t),fast_io::io_print_forward<typename std::remove_cvref_t<T>::char_type>(fast_io::io_print_alias(args))...);
 	else
 	{
-#if __has_include(<stdio.h>)
+#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
 		fast_io::details::perr_after_io_print_forward<false>(fast_io::io_print_forward<char>(fast_io::io_print_alias(t)),fast_io::io_print_forward<char>(fast_io::io_print_alias(args))...);
 #else
 		static_assert(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>,"freestanding environment must provide IO device");
@@ -352,7 +352,7 @@ inline constexpr void perrln(T&& t,Args&&... args)
 		fast_io::details::print_freestanding_decay_cold_impl<true>(fast_io::io_ref(t),fast_io::io_print_forward<typename std::remove_cvref_t<T>::char_type>(fast_io::io_print_alias(args))...);
 	else
 	{
-#if __has_include(<stdio.h>)
+#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
 		fast_io::details::perr_after_io_print_forward<true>(fast_io::io_print_forward<char>(fast_io::io_print_alias(t)),fast_io::io_print_forward<char>(fast_io::io_print_alias(args))...);
 #else
 		static_assert(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>,"freestanding environment must provide IO device");
