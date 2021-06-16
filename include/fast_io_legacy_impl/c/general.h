@@ -1,5 +1,9 @@
 #pragma once
-
+#if __has_include(<cwchar>)
+#include<cwchar>
+#elif __has_include(<wchar.h>)
+#include<wchar.h>
+#endif
 /*
 
 Provide a general emulation of FILE*'s internal implementation with fgetc_unlocked and ungetc_unlocked.
