@@ -37,8 +37,6 @@ public:
 	using reference = char_type const&;
 	using const_reference = char_type const&;
 	using difference_type = std::ptrdiff_t;
-	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-	using reverse_iterator = std::reverse_iterator<iterator>;
 	char_type const* ptr{};
 	size_type n{};
 	constexpr basic_string_view() noexcept=default;
