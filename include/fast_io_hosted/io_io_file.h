@@ -51,7 +51,7 @@ public:
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
-	basic_io_io_derived(std::in_place_type_t<handle_type>,Args&& ...args):handle(std::forward<Args>(args)...){}
+	basic_io_io_derived(io_cookie_type_t<handle_type>,Args&& ...args):handle(std::forward<Args>(args)...){}
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
@@ -192,8 +192,8 @@ public:
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
-	basic_io_file(std::in_place_type_t<smt>,Args&& ...args)
-		:basic_io_io_handle<ch_type>(new basic_io_io_derived<char_type,smt>(std::in_place_type<smt>,std::forward<Args>(args)...)){}
+	basic_io_file(io_cookie_type_t<smt>,Args&& ...args)
+		:basic_io_io_handle<ch_type>(new basic_io_io_derived<char_type,smt>(io_cookie_type<smt>,std::forward<Args>(args)...)){}
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif

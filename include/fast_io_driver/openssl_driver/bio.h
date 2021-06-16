@@ -153,7 +153,7 @@ inline BIO* construct_bio_by_t(stm* ptr)
 	BIO_set_data(bp,ptr);
 	return bp;
 }
-
+#if 0
 template<stream stm,typename... Args>
 inline BIO* construct_bio_by_args(Args... args)
 {
@@ -163,6 +163,7 @@ inline BIO* construct_bio_by_args(Args... args)
 	p.release();
 	return fp;
 }
+#endif
 }
 
 template<std::integral ch_type>
@@ -225,13 +226,15 @@ public:
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	explicit constexpr basic_bio_file(native_hd bio):basic_bio_io_observer<char_type>{bio}{}
+
+#if 0
 	template<stream stm,typename ...Args>
 	requires std::constructible_from<stm,Args...>
 	basic_bio_file(std::in_place_type_t<stm>,Args&& ...args):
 		basic_bio_io_observer<char_type>(details::construct_bio_by_args<stm>(std::forward<Args>(args)...))
 	{
 	}
-
+#endif
 	basic_bio_file(basic_c_io_handle<char_type>&& bmv,fast_io::open_mode om):
 		basic_bio_io_observer<char_type>(BIO_new_fp(bmv.fp,details::calculate_bio_new_fp_flags<true>(om)))
 	{

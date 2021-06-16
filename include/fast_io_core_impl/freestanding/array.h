@@ -1,11 +1,9 @@
 #pragma once
 
-#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
-#include<array>
+#if defined(_GLIBCXX_ARRAY) || defined(_LIBCPP_ARRAY) || defined(_ARRAY_)
 namespace fast_io::freestanding
 {
-template<typename T,std::size_t N>
-using array = ::std::array<T,N>;
+using ::std::array;
 }
 #else
 namespace fast_io::freestanding
@@ -88,5 +86,6 @@ struct array
 		return element[i];
 	}
 };
+
 }
 #endif

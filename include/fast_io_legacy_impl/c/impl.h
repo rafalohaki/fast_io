@@ -868,7 +868,7 @@ inline std::FILE* my_fdopen_impl(int fd,char const* mode)
 		throw_posix_error();
 	return fp;
 }
-
+#if 0
 #if defined(__GLIBC__) || defined(__NEED___isoc_va_list)
 inline std::FILE* open_cookie_throw_cookie_impl(void* ptr,open_mode mode,cookie_io_functions_t func)
 {
@@ -918,6 +918,7 @@ template<typename,typename... Args>
 {
 	open_cookie_throw_einval_impl();
 }
+#endif
 #endif
 
 template<typename T>
@@ -986,10 +987,12 @@ public:
 	basic_c_file_impl(native_at_entry nate,u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_c_file_impl(basic_posix_file<typename T::char_type>(nate,file,om,pm),om)
 	{}
+#if 0
 	template<stream stm,typename... Args>
-	basic_c_file_impl(open_mode om,std::in_place_type_t<stm>,[[maybe_unused]] Args&& ...args)
+	basic_c_file_impl(open_mode om,io_cookie_type_t<stm>,[[maybe_unused]] Args&& ...args)
 		:basic_c_file_impl(open_cookie_type_with_mode<stm>(om,std::forward<Args>(args)...))
 	{}
+#endif
 	basic_c_file_impl(basic_c_file_impl const&)=default;
 	basic_c_file_impl& operator=(basic_c_file_impl const&)=default;
 	constexpr basic_c_file_impl(basic_c_file_impl&&) noexcept=default;

@@ -199,22 +199,38 @@ inline constexpr bool operator!=(nt_family_directory_iterator<family> b, ::fast_
 	return !(other==b);
 }
 
-namespace details
-{
-
-inline std::unique_ptr<nt_dirent> make_nt_dirent(void* handle)
-{
-	std::unique_ptr<nt_dirent> ent(new nt_dirent);
-	ent->d_handle=handle;
-	return ent;
-}
-
-}
-
 template<nt_family family>
-struct nt_family_directory_generator
+struct
+#if __has_cpp_attribute(gnu::trivial_abi)
+[[gnu::trivial_abi]]
+#endif
+nt_family_directory_generator
 {
-	std::unique_ptr<nt_dirent> entry;
+	nt_dirent* entry{};
+	constexpr nt_family_directory_generator()=default;
+	constexpr nt_family_directory_generator(void* directory_handle):entry(new nt_dirent)
+	{
+		entry->d_handle=directory_handle;
+	}
+	nt_family_directory_generator(nt_family_directory_generator const&)=delete;
+	nt_family_directory_generator& operator=(nt_family_directory_generator const&)=delete;
+	constexpr nt_family_directory_generator(nt_family_directory_generator&& other) noexcept:entry(other.entry)
+	{
+		other.entry=nullptr;
+	}
+	constexpr nt_family_directory_generator& operator=(nt_family_directory_generator&& other) noexcept
+	{
+		if(__builtin_addressof(other)==this)[[unlikely]]
+			return *this;
+		delete entry;
+		entry=other.entry;
+		other.entry=nullptr;
+		return *this;
+	}
+	constexpr ~nt_family_directory_generator()
+	{
+		delete entry;
+	}
 };
 
 template<nt_family family>
@@ -234,12 +250,12 @@ using zw_directory_generator = nt_family_directory_generator<nt_family::zw>;
 
 inline nt_directory_generator current(nt_at_entry nate)
 {
-	return {details::make_nt_dirent(nate.handle)};
+	return nt_directory_generator(nate.handle);
 }
 
 inline zw_directory_generator current(zw_at_entry nate)
 {
-	return {details::make_nt_dirent(nate.handle)};
+	return zw_directory_generator(nate.handle);
 }
 
 template<nt_family family>
@@ -260,7 +276,29 @@ template<nt_family family>
 struct nt_family_recursive_directory_generator
 {
 	void* root_handle{};
-	std::unique_ptr<nt_dirent> entry;
+	nt_dirent* entry{};
+	constexpr nt_family_recursive_directory_generator()=default;
+	explicit constexpr nt_family_recursive_directory_generator(void* rhd):root_handle(rhd),entry(new nt_dirent){}
+	nt_family_recursive_directory_generator(nt_family_recursive_directory_generator const&)=delete;
+	nt_family_recursive_directory_generator& operator=(nt_family_recursive_directory_generator const&)=delete;
+	constexpr nt_family_recursive_directory_generator(nt_family_recursive_directory_generator&& other) noexcept:root_handle(other.root_handle),entry(other.entry)
+	{
+		other.root_handle=nullptr;
+		entry=nullptr;
+	}
+	constexpr nt_family_recursive_directory_generator& operator=(nt_family_recursive_directory_generator&& other) noexcept
+	{
+		if(__builtin_addressof(other)==this)[[unlikely]]
+			return *this;
+		delete entry;
+		root_handle=other.root_handle;
+		entry=other.entry;
+		return *this;
+	}
+	constexpr ~nt_family_recursive_directory_generator()
+	{
+		delete entry;
+	}
 };
 
 template<nt_family family>
@@ -376,12 +414,12 @@ using zw_recursive_directory_generator = nt_family_recursive_directory_generator
 
 inline nt_recursive_directory_generator recursive(nt_at_entry nate)
 {
-	return {nate.handle,std::unique_ptr<nt_dirent>(new nt_dirent)};
+	return nt_recursive_directory_generator{nate.handle};
 }
 
 inline zw_recursive_directory_generator recursive(zw_at_entry zate)
 {
-	return {zate.handle,std::unique_ptr<nt_dirent>(new nt_dirent)};
+	return zw_recursive_directory_generator{zate.handle};
 }
 
 
@@ -403,7 +441,7 @@ inline u8cstring_view extension(nt_directory_entry ent) noexcept
 {
 	auto fnm{filename(ent)};
 	auto pos{fnm.rfind(u8'.')};
-	if(pos==static_cast<std::size_t>(-1))
+	if(pos==SIZE_MAX)
 		return {};
 	if(pos==0)
 		return {};
@@ -414,14 +452,14 @@ inline u8cstring_view extension(nt_directory_entry ent) noexcept
 
 inline ::fast_io::freestanding::u8string_view stem(nt_directory_entry ent) noexcept
 {
-	::fast_io::freestanding::u8string_view fnm{filename(ent)};
+	auto fnm{filename(ent)};
 	auto pos{fnm.rfind(u8'.')};
-	if(pos==static_cast<std::size_t>(-1))
-		return fnm;
+	if(pos==SIZE_MAX)
+		return ::fast_io::freestanding::u8string_view(fnm.data(),fnm.size());
 	if(pos==0)
-		return fnm;
+		return ::fast_io::freestanding::u8string_view(fnm.data(),fnm.size());
 	if(2<fnm.size()&&pos==1&&fnm.front()==u8'.')
-		return fnm;
+		return ::fast_io::freestanding::u8string_view(fnm.data(),fnm.size());
 	return ::fast_io::freestanding::u8string_view(fnm.data(),pos);
 }
 

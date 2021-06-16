@@ -1,7 +1,12 @@
 #pragma once
 
 #if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
+
+#if defined(__GLIBCXX__)
+#include<bits/ptr_traits.h>
+#else
 #include<memory>
+#endif
 namespace fast_io::freestanding
 {
 using ::std::pointer_traits;

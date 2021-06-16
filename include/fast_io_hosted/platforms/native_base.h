@@ -22,7 +22,7 @@ inline constexpr std::uint32_t win32_stderr_number(static_cast<std::uint32_t>(-1
 #include"nt/impl.h"
 #include"nt_error.h"
 #include"nt.h"
-#include"win32_iocp_overlapped.h"
+//#include"win32_iocp_overlapped.h"
 #include"win32.h"
 //#include"com_error.h"
 #endif

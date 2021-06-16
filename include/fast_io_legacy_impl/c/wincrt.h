@@ -125,7 +125,11 @@ _CLIENT_BLOCK An application can keep special track of a given group of allocati
 https://github.com/mirror/mingw-w64/blob/master/mingw-w64-headers/crt/crtdbg.h
 CRT heap debugging does not exist on mingw-w64
 */
+#if defined(__GNUC__) || defined(__clang__)
+	__builtin_malloc(buffer_size)
+#else
 	malloc(buffer_size)
+#endif
 #endif
 	};
 //handling allocation failure is a historical mistake and it never happens on windows. Just let it crash.

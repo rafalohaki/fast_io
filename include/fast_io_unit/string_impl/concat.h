@@ -269,7 +269,7 @@ inline constexpr decltype(auto) deal_with_first_is_string_rvalue_reference(U&& u
 	}
 	else
 	{
-		deal_with_first_is_string_rvalue_reference_decay<line,char_type>(std::forward<U>(u),io_print_forward<char_type>(io_print_alias(args))...);
+		deal_with_first_is_string_rvalue_reference_decay<line,char_type>(std::forward<U>(u),io_forward(io_print_alias<char_type>(args))...);
 	}
 	return std::forward<U>(u);
 }
@@ -282,13 +282,13 @@ inline constexpr T concat(Args&& ...args)
 	if constexpr(sizeof...(Args)==0)
 		return {};
 	else if constexpr(sizeof...(Args)==1&&details::test_one<false,T,Args...>())
-		return details::deal_with_one<T,false>(io_print_forward<typename T::value_type>(io_print_alias(args))...);
+		return details::deal_with_one<T,false>(io_forward(io_print_alias<typename T::value_type>(args))...);
 	else
 	{
 		if constexpr(details::test_first_is_string_rvalue_reference<T,Args&&...>())
 			return details::deal_with_first_is_string_rvalue_reference<false,typename T::value_type>(std::forward<Args>(args)...);
 		else
-			return details::concat_fallback<false,typename T::value_type>(io_print_forward<typename T::value_type>(io_print_alias(args))...);
+			return details::concat_fallback<false,typename T::value_type>(io_forward(io_print_alias<typename T::value_type>(args))...);
 	}
 }
 
@@ -304,14 +304,14 @@ inline constexpr T concatln(Args&& ...args)
 	}
 	else if constexpr(sizeof...(Args)==1&&details::test_one<true,T,Args...>())
 	{
-		return details::deal_with_one<T,true>(io_print_forward<typename T::value_type>(io_print_alias(args))...);
+		return details::deal_with_one<T,true>(io_forward(io_print_alias<typename T::value_type>(args))...);
 	}
 	else
 	{
 		if constexpr(details::test_first_is_string_rvalue_reference<T,Args&&...>())
 			return details::deal_with_first_is_string_rvalue_reference<true,typename T::value_type>(std::forward<Args>(args)...);
 		else
-			return details::concat_fallback<true,typename T::value_type>(io_print_forward<typename T::value_type>(io_print_alias(args))...);
+			return details::concat_fallback<true,typename T::value_type>(io_forward(io_print_alias<typename T::value_type>(args))...);
 	}
 }
 
@@ -325,7 +325,7 @@ void in_place_to(T& t,Args&& ...args)
 	std::string str;
 	ostring_ref ref{&str};
 	print_freestanding(ref,std::forward<Args>(args)...);
-	basic_istring_view<char> is(str.data(),str.size());
+	basic_istring_view<char> is(str);
 	if(!scan_freestanding(is,t))
 		throw_parse_code(parse_code::partial);
 	//No Decoration?

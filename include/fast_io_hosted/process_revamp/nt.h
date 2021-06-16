@@ -106,11 +106,42 @@ Referenced from ReactOS
 https://doxygen.reactos.org/d3/d4d/sdk_2lib_2rtl_2process_8c.html
 */
 
+struct
+#if __has_cpp_attribute(gnu::trivial_abi)
+[[gnu::trivial_abi]]
+#endif
+nt_user_process_information_scoped_ptr
+{
+	nt_user_process_information* ptr{};
+	constexpr nt_user_process_information_scoped_ptr()=default;
+	explicit constexpr nt_user_process_information_scoped_ptr(nt_user_process_information* p):ptr(p){}
+	nt_user_process_information_scoped_ptr(nt_user_process_information_scoped_ptr const&)=delete;
+	nt_user_process_information_scoped_ptr& operator=(nt_user_process_information_scoped_ptr const&)=delete;
+	inline constexpr nt_user_process_information& operator*() noexcept
+	{
+		return *ptr;
+	}
+	inline constexpr nt_user_process_information const& operator*() const noexcept
+	{
+		return *ptr;
+	}
+	inline constexpr nt_user_process_information* release() noexcept
+	{
+		auto temp{ptr};
+		ptr=nullptr;
+		return temp;
+	}
+	constexpr ~nt_user_process_information_scoped_ptr()
+	{
+		delete ptr;
+	}
+};
+
 template<nt_family family>
 inline nt_user_process_information* nt_process_create_impl(void* __restrict fhandle,win32_process_io const& processio)
 {
 	constexpr bool zw{family==nt_family::zw};
-	std::unique_ptr<nt_user_process_information> uptr(new nt_user_process_information);
+	nt_user_process_information_scoped_ptr uptr(new nt_user_process_information);
 	void* hsection{};
 	check_nt_status(nt_create_section<zw>(__builtin_addressof(hsection),0xf001f /*SECTION_ALL_ACCESS*/,
 		nullptr,nullptr,0x02 /*PAGE_READONLY*/,0x1000000 /*SEC_IMAGE*/,fhandle));

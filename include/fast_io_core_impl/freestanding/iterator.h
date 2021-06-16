@@ -1,7 +1,13 @@
 #pragma once
 
 #if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
+
+#ifdef __GLIBCXX__
+#include<bits/stl_iterator.h>
+#include<bits/ranges_base.h>
+#else
 #include<iterator>
+#endif
 
 namespace fast_io::freestanding
 {
@@ -22,7 +28,6 @@ using ::std::iter_value_t;
 using ::std::iter_difference_t;
 using ::std::iter_rvalue_reference_t;
 
-using ::std::distance;
 using ::std::default_sentinel_t;
 using ::std::default_sentinel;
 
@@ -102,6 +107,16 @@ concept contiguous_iterator = random_access_iterator<Iter>&&requires(Iter iter)
 	{ to_address(iter) } -> std::same_as<std::add_pointer_t<iter_reference_t<Iter>>>;
 };
 
+struct default_sentinel_t { };
+inline constexpr default_sentinel_t default_sentinel{};
+
+}
+
+#endif
+
+namespace fast_io::freestanding
+{
+
 template<input_or_output_iterator Iter>
 constexpr iter_difference_t<Iter> distance(Iter first, Iter last) noexcept
 {
@@ -109,16 +124,10 @@ constexpr iter_difference_t<Iter> distance(Iter first, Iter last) noexcept
 		return last-first;
 	else
 	{
-		iter_reference_t<Iter> result{};
+		iter_difference_t<Iter> result{};
 		for (;first != last;++first)
 			++result;
 		return result;
 	}
 }
-
-struct default_sentinel_t { };
-inline constexpr default_sentinel_t default_sentinel{};
-
 }
-
-#endif

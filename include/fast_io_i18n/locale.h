@@ -37,19 +37,6 @@ inline basic_io_scatter_t<char> print_alias_define(io_alias_t,posix_dl_error con
 namespace details
 {
 
-struct close_dll
-{
-	void operator()(void* handle) const noexcept
-	{
-		if(handle)[[likely]]
-#ifdef _WIN32
-			fast_io::win32::FreeLibrary(handle);
-#else
-			dlclose(handle);	
-#endif
-	}
-};
-
 inline void load_lc_locale(void* dll_handle,lc_locale& loc)
 {
 #ifdef _WIN32
@@ -85,7 +72,6 @@ inline void* load_library_general(T const* loc_file_path) noexcept
 #endif
 }
 
-
 template<typename T>
 requires (std::same_as<T,char>
 #ifdef _WIN32
@@ -94,14 +80,14 @@ requires (std::same_as<T,char>
 )
 inline void* load_dll(T const* loc_file_path,lc_locale& loc)
 {
-	std::unique_ptr<void,close_dll> ptr{load_library_general(loc_file_path)};
+	native_dll_file ptr{load_library_general(loc_file_path)};
 	if(!ptr)
 #ifdef _WIN32
 		throw_win32_error();
 #else
 		throw_posix_dl_error();
 #endif
-	load_lc_locale(ptr.get(),loc);
+	load_lc_locale(ptr.native_handle(),loc);
 	return ptr.release();
 }
 
@@ -143,20 +129,21 @@ inline constexpr auto exec_encoding_dll_array() noexcept
 	if constexpr(std::same_as<wchar_t,char_type>)
 	{
 		if constexpr('A'!=u8'A')
-			return std::to_array(u".IBM12712.so");
+			return ::fast_io::freestanding::array<char16_t,13>{u".IBM12712.so"};
 		else if constexpr(compile_time_compare("我",u8"我"))
-			return std::to_array(u".UTF-8.so");
+			return ::fast_io::freestanding::array<char16_t,10>{u".UTF-8.so"};
 		else
-			return std::to_array(u".GB18030.so");
+			return ::fast_io::freestanding::array<char16_t,12>{u".GB18030.so"};
+
 	}
 	else
 	{
-	if constexpr('A'!=u8'A')
-		return std::to_array(u8".IBM12712.so");
-	else if constexpr(compile_time_compare("我",u8"我"))
-		return std::to_array(u8".UTF-8.so");
-	else
-		return std::to_array(u8".GB18030.so");
+		if constexpr('A'!=u8'A')
+			return ::fast_io::freestanding::array<char8_t,13>{u8".IBM12712.so"};
+		else if constexpr(compile_time_compare("我",u8"我"))
+			return ::fast_io::freestanding::array<char8_t,10>{u8".UTF-8.so"};
+		else
+			return ::fast_io::freestanding::array<char8_t,12>{u8".GB18030.so"};
 	}
 }
 
@@ -165,9 +152,9 @@ requires (std::same_as<char_type,char>||(std::same_as<char_type,wchar_t>&&(sizeo
 inline constexpr auto exec_dll_array() noexcept
 {
 	if constexpr(std::same_as<wchar_t,char_type>)
-		return std::to_array(u".so");
+		return ::fast_io::freestanding::array<char16_t,4>{u".so"};
 	else
-		return std::to_array(u8".so");
+		return ::fast_io::freestanding::array<char8_t,4>{u8".so"};
 }
 
 template<std::integral char_type>
@@ -176,14 +163,14 @@ inline constexpr auto l10n_path_prefix_dll_array() noexcept
 {
 #ifdef _WIN32
 	if constexpr(std::same_as<wchar_t,char_type>)
-		return std::to_array(u"fast_io_i18n_data\\locale\\");
+		return ::fast_io::freestanding::array<char16_t,26>{u"fast_io_i18n_data\\locale\\"};
 	else
-		return std::to_array(u8"fast_io_i18n_data\\locale\\");
+		return ::fast_io::freestanding::array<char8_t,26>{u8"fast_io_i18n_data\\locale\\"};
 #else
 	if constexpr(std::same_as<wchar_t,char_type>)
-		return std::to_array(u"/usr/local/lib/fast_io_i18n_data/locale/");
+		return ::fast_io::freestanding::array<char16_t,41>{u"/usr/local/lib/fast_io_i18n_data/locale/"};
 	else
-		return std::to_array(u8"/usr/local/lib/fast_io_i18n_data/locale/");
+		return ::fast_io::freestanding::array<char8_t,41>{u8"/usr/local/lib/fast_io_i18n_data/locale/"};
 #endif
 }
 template<bool full=false,std::integral char_type>
@@ -247,7 +234,7 @@ inline void* load_l10n_with_real_name_impl(lc_locale& loc,::fast_io::freestandin
 	constexpr auto prefix(l10n_path_prefix_dll_array<char_type>());
 	constexpr auto encoding{exec_encoding_dll_array<char_type>()};
 	constexpr auto prefix_no_0_size{prefix.size()-1};
-	std::unique_ptr<char_type[]> arrptr(new char_type[prefix_no_0_size+locale_name.size()+encoding.size()]);
+	local_operator_new_array_ptr<char_type> arrptr(prefix_no_0_size+locale_name.size()+encoding.size());
 	::fast_io::details::my_memcpy(arrptr.get(),prefix.data(),prefix_no_0_size*sizeof(char_type));
 	::fast_io::details::my_memcpy(arrptr.get()+prefix_no_0_size,locale_name.data(),locale_name.size()*sizeof(char_type));
 	::fast_io::details::my_memcpy(arrptr.get()+prefix_no_0_size+locale_name.size(),encoding.data(),encoding.size()*sizeof(char_type));
@@ -262,7 +249,7 @@ inline void* load_l10n_with_real_name_impl(lc_locale& loc,::fast_io::freestandin
 	constexpr auto prefix(l10n_path_prefix_dll_array<char_type>());
 	constexpr auto prefix_no_0_size{prefix.size()-1};
 	constexpr auto dll_postfix{exec_dll_array<char_type>()};
-	std::unique_ptr<char_type[]> arrptr(new char_type[prefix_no_0_size+locale_name.size()+1+encoding.size()+dll_postfix.size()]);
+	local_operator_new_array_ptr<char_type> arrptr(prefix_no_0_size+locale_name.size()+1+encoding.size()+dll_postfix.size());
 	::fast_io::details::my_memcpy(arrptr.get(),prefix.data(),prefix_no_0_size*sizeof(char_type));
 	::fast_io::details::my_memcpy(arrptr.get()+prefix_no_0_size,locale_name.data(),locale_name.size()*sizeof(char_type));
 	arrptr[prefix_no_0_size+locale_name.size()]=u8'.';
@@ -279,7 +266,7 @@ inline void* load_l10n_with_full_name_impl(lc_locale& loc,::fast_io::freestandin
 	constexpr auto prefix(l10n_path_prefix_dll_array<char_type>());
 	constexpr auto prefix_no_0_size{prefix.size()-1};
 	constexpr auto dll_postfix{exec_dll_array<char_type>()};
-	std::unique_ptr<char_type[]> arrptr(new char_type[prefix_no_0_size+locale_fullname.size()+dll_postfix.size()]);
+	local_operator_new_array_ptr<char_type> arrptr(prefix_no_0_size+locale_fullname.size()+dll_postfix.size());
 	::fast_io::details::my_memcpy(arrptr.get(),prefix.data(),prefix_no_0_size*sizeof(char_type));
 	::fast_io::details::my_memcpy(arrptr.get()+prefix_no_0_size,locale_fullname.data(),locale_fullname.size()*sizeof(char_type));
 	::fast_io::details::my_memcpy(arrptr.get()+prefix_no_0_size+locale_fullname.size(),dll_postfix.data(),dll_postfix.size()*sizeof(char_type));
@@ -307,7 +294,7 @@ inline ::fast_io::freestanding::string_view get_win32_lang_env(::fast_io::freest
 
 
 
-inline constexpr std::u8string_view get_code_page_encoding(std::uint32_t codepage) noexcept
+inline constexpr ::fast_io::freestanding::u8string_view get_code_page_encoding(std::uint32_t codepage) noexcept
 {
 //we only deal with GB2312/GB18030 and UTF-8
 	switch(codepage)

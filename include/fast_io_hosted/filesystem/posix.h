@@ -500,14 +500,14 @@ inline u8cstring_view extension(posix_directory_entry ent) noexcept
 
 inline ::fast_io::freestanding::u8string_view stem(posix_directory_entry ent) noexcept
 {
-	::fast_io::freestanding::u8string_view fnm{filename(ent)};
+	auto fnm{filename(ent)};
 	auto pos{fnm.rfind(u8'.')};
 	if(pos==static_cast<std::size_t>(-1))
-		return fnm;
+		return ::fast_io::freestanding::u8string_view(fnm.data(),fnm.size());
 	if(pos==0)
-		return fnm;
+		return ::fast_io::freestanding::u8string_view(fnm.data(),fnm.size());
 	if(2<fnm.size()&&pos==1&&fnm.front()==u8'.')
-		return fnm;
+		return ::fast_io::freestanding::u8string_view(fnm.data(),fnm.size());
 	return ::fast_io::freestanding::u8string_view(fnm.data(),pos);
 }
 

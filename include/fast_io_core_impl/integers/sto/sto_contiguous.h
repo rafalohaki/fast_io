@@ -562,7 +562,7 @@ inline constexpr parse_result<Iter> scan_context_define2(io_reserve_type_t<::fas
 }
 
 template<std::integral char_type>
-inline constexpr parse_code scan_context_eof_define(io_reserve_type_t<char_type,manipulators::ch_get_t<char_type&>>,details::empty,manipulators::ch_get_t<char_type&> t) noexcept
+inline constexpr parse_code scan_context_eof_define(io_reserve_type_t<char_type,manipulators::ch_get_t<char_type&>>,details::empty,manipulators::ch_get_t<char_type&>) noexcept
 {
 	return parse_code::end_of_file;
 }

@@ -68,15 +68,17 @@ inline constexpr manipulators::basic_matcher_t<basic_io_scatter_t<char_type>> sc
 }
 
 #if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
+#if 0
 namespace manipulators
 {
-template<::std::ranges::contiguous_range rg>
-requires (std::integral<std::ranges::range_value_t<rg>>)
+template<typename rg>
+//requires (std::integral<std::ranges::range_value_t<rg>>)
 inline constexpr manipulators::basic_matcher_t<basic_io_scatter_t<std::ranges::range_value_t<rg>>> mtvw(rg&& r) noexcept
 {
 	return {{std::ranges::data(r),std::ranges::size(r)}};
 }
 }
+#endif
 #endif
 
 }

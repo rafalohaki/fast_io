@@ -2,6 +2,7 @@
 
 namespace fast_io
 {
+
 namespace details
 {
 #if __has_cpp_attribute(gnu::pure)

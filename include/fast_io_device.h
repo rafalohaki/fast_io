@@ -272,6 +272,40 @@ using u8utf_ebcdic_file = basic_utf_ebcdic_file<char8_t>;
 using u16utf_ebcdic_file = basic_utf_ebcdic_file<char16_t>;
 using u32utf_ebcdic_file = basic_utf_ebcdic_file<char32_t>;
 #endif
+
+
+template<std::integral char_type>
+using basic_iobuf_io_io_observer = basic_iobuf<basic_io_io_observer<char_type>>;
+template<std::integral char_type>
+using basic_iobuf_io_io_handle = basic_iobuf<basic_io_io_handle<char_type>>;
+template<std::integral char_type>
+using basic_iobuf_io_file = basic_iobuf<basic_io_file<char_type>>;
+#ifndef _MSC_VER
+template<std::integral char_type>
+using basic_io_files = basic_ovector<basic_io_file<char_type>>;
+using io_files = basic_io_files<char>;
+#endif
+
+using iobuf_io_io_observer = basic_iobuf_io_io_observer<char>;
+using iobuf_io_io_handle = basic_iobuf_io_io_handle<char>;
+using iobuf_io_file = basic_iobuf_io_file<char>;
+
+using wiobuf_io_io_observer = basic_iobuf_io_io_observer<wchar_t>;
+using wiobuf_io_io_handle = basic_iobuf_io_io_handle<wchar_t>;
+using wiobuf_io_file = basic_iobuf_io_file<wchar_t>;
+
+using u8iobuf_io_io_observer = basic_iobuf_io_io_observer<char8_t>;
+using u8iobuf_io_io_handle = basic_iobuf_io_io_handle<char8_t>;
+using u8iobuf_io_file = basic_iobuf_io_file<char8_t>;
+
+using u16iobuf_io_io_observer = basic_iobuf_io_io_observer<char16_t>;
+using u16iobuf_io_io_handle = basic_iobuf_io_io_handle<char16_t>;
+using u16iobuf_io_file = basic_iobuf_io_file<char16_t>;
+
+using u32iobuf_io_io_observer = basic_iobuf_io_io_observer<char32_t>;
+using u32iobuf_io_io_handle = basic_iobuf_io_io_handle<char32_t>;
+using u32iobuf_io_file = basic_iobuf_io_file<char32_t>;
+
 }
 #endif
 

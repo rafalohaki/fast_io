@@ -88,7 +88,13 @@ fstat
 struct load_file_allocation_guard
 {
 	void* address{};
-	explicit load_file_allocation_guard(std::size_t file_size):address(malloc(file_size))
+	explicit load_file_allocation_guard(std::size_t file_size):address(
+#if defined(__GNUC__) || defined(__clang__)
+__builtin_malloc
+#else
+malloc
+#endif
+(file_size))
 	{
 		if(address==nullptr)
 			throw_posix_error(EINVAL);
@@ -97,7 +103,11 @@ struct load_file_allocation_guard
 	load_file_allocation_guard& operator=(load_file_allocation_guard const&)=delete;
 	~load_file_allocation_guard()
 	{
+#if defined(__GNUC__) || defined(__clang__)
+		__builtin_free(address);
+#else
 		free(address);
+#endif
 	}
 };
 
@@ -144,7 +154,11 @@ inline void posix_unload_address(void* address,[[maybe_unused]] std::size_t file
 {
 	if constexpr(allocation)
 	{
+#if defined(__GNUC__) || defined(__clang__)
+		__builtin_free(address);
+#else
 		free(address);
+#endif
 	}
 	else
 	{

@@ -56,6 +56,22 @@ struct buffer_alloc_arr_ptr
 
 	buffer_alloc_arr_ptr(buffer_alloc_arr_ptr const&)=delete;
 	buffer_alloc_arr_ptr& operator=(buffer_alloc_arr_ptr const&)=delete;
+	constexpr T* get() noexcept
+	{
+		return ptr;
+	}
+	constexpr T const* get() const noexcept
+	{
+		return ptr;
+	}
+	constexpr T& operator[](std::size_t pos) noexcept
+	{
+		return ptr[pos];
+	}
+	constexpr T const& operator[](std::size_t pos) const noexcept
+	{
+		return ptr[pos];
+	}
 #if __cpp_constexpr >=201907L && __cpp_constexpr_dynamic_alloc >= 201907L && __cpp_lib_is_constant_evaluated >=201811L
 	constexpr
 #endif
@@ -65,7 +81,7 @@ struct buffer_alloc_arr_ptr
 	}
 };
 
-template<std::integral char_type>
+template<typename char_type>
 using local_operator_new_array_ptr=buffer_alloc_arr_ptr<char_type,false>;
 
 }

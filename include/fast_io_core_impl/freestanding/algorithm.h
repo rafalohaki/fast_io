@@ -1,6 +1,7 @@
 #pragma once
 
-#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
+#if 0
+//__STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
 namespace fast_io::freestanding
 {
 using ::std::find_if;
@@ -117,5 +118,18 @@ inline constexpr mismatch_result<Iter,Iter2> my_mismatch(Iter first1,Iter last1,
 		++first1;
 	return {first1,first2};
 }
-
+template<forward_iterator ForwardIt, class T >
+requires (std::is_trivially_copyable_v<T>)
+inline constexpr ForwardIt remove(ForwardIt first, ForwardIt last, T value)
+{
+	first = find(first, last, value);
+	if(first != last)
+		for(ForwardIt i = first; ++i != last; )
+			if (!(*i == value))
+			{
+				*first = std::move(*i);
+				++first;
+			}
+	return first;
+}
 }

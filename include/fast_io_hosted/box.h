@@ -45,7 +45,7 @@ template<win32_family family>
 requires (family==win32_family::wide_nt)
 inline void win32_box_write_impl(char16_t* first,char16_t* last)
 {
-	*std::remove(first,last,0)=0;
+	*::fast_io::freestanding::remove(first,last,0)=0;
 	using wchar_t_may_alias_ptr
 #if __has_cpp_attribute(gnu::may_alias)
 	[[gnu::may_alias]]
@@ -62,7 +62,7 @@ template<win32_family family>
 requires (family==win32_family::ansi_9x)
 inline void win32_box_write_impl(char8_t* first,char8_t* last)
 {
-	*std::remove(first,last,0)=0;
+	*::fast_io::freestanding::remove(first,last,0)=0;
 	if(!::fast_io::win32::MessageBoxA(nullptr,
 		reinterpret_cast<char const*>(first),
 		reinterpret_cast<char const*>(u8"fast_io"),

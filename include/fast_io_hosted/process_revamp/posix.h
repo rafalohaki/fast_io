@@ -1,4 +1,7 @@
 #pragma once
+#if __has_include(<initializer_list>)
+#include<initializer_list>
+#endif
 
 namespace fast_io
 {
@@ -22,8 +25,10 @@ inline constexpr posix_wait_reason reason(posix_wait_status pws) noexcept
 	if(WIFCORED(pws.wait_loc))
 		return posix_wait_reason::if_core_dump;
 #endif
+#ifdef WIFSTOPPED
 	if(WIFSTOPPED(pws.wait_loc))
 		return posix_wait_reason::if_stopped;
+#endif
 	return posix_wait_reason::none;
 }
 
@@ -252,6 +257,45 @@ inline constexpr auto operator<=>(posix_process_observer a,posix_process_observe
 namespace details
 {
 
+template<typename T>
+struct temp_array_scoped_ptr
+{
+	T* ptr{};
+	constexpr temp_array_scoped_ptr() noexcept = default;
+	explicit constexpr temp_array_scoped_ptr(std::size_t n):ptr(new T[n]){}
+	temp_array_scoped_ptr(temp_array_scoped_ptr const&)=delete;
+	temp_array_scoped_ptr& operator=(temp_array_scoped_ptr const&)=delete;
+#if __cpp_constexpr_dynamic_alloc >= 201907L
+	constexpr
+#endif
+	~temp_array_scoped_ptr()
+	{
+		delete[] ptr;
+	}
+	inline constexpr T* release() noexcept
+	{
+		auto temp{ptr};
+		ptr=nullptr;
+		return temp;
+	}
+	inline constexpr T const* get() const noexcept
+	{
+		return ptr;
+	}
+	inline constexpr T* get() noexcept
+	{
+		return ptr;
+	}
+	constexpr T& operator[](std::size_t pos) noexcept
+	{
+		return ptr[pos];
+	}
+	constexpr T const& operator[](std::size_t pos) const noexcept
+	{
+		return ptr[pos];
+	}
+};
+
 template<::fast_io::freestanding::forward_iterator Iter>
 inline
 #if __cpp_constexpr_dynamic_alloc >= 201907L
@@ -259,7 +303,7 @@ inline
 #endif
 char const* const* dup_enviro_impl_with_size(Iter begin,Iter end,std::size_t size)
 {
-	std::unique_ptr<char const*[]> uptr(new char const*[size+1]);
+	temp_array_scoped_ptr<char const*> uptr(size+1);
 	if constexpr(requires(::fast_io::freestanding::iter_value_t<Iter> v)
 	{
 		{v.c_str()}->std::convertible_to<char const*>;
@@ -323,8 +367,10 @@ struct posix_process_args
 	})
 	constexpr posix_process_args(range&& rg):posix_process_args(std::ranges::cbegin(rg),std::ranges::cend(rg))
 	{}
+#if __has_include(<initializer_list>)
 	constexpr posix_process_args(std::initializer_list<char const*> ilist):
 		posix_process_args(ilist.begin(),ilist.end()){}
+#endif
 	posix_process_args(posix_process_args const&)=delete;
 	posix_process_args& operator=(posix_process_args const&)=delete;
 #if __cpp_constexpr_dynamic_alloc >= 201907L
