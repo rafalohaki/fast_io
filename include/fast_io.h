@@ -307,7 +307,7 @@ inline constexpr void print(T&& t,Args&& ...args)
 		fast_io::print_freestanding_decay(fast_io::io_ref(t),fast_io::io_print_forward<typename std::remove_cvref_t<T>::char_type>(fast_io::io_print_alias(args))...);
 	else
 	{
-#if __has_include(<stdio.h>)
+#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __has_include(<stdio.h>)
 		fast_io::details::print_after_io_print_forward<false>(fast_io::io_print_forward<char>(fast_io::io_print_alias(t)),fast_io::io_print_forward<char>(fast_io::io_print_alias(args))...);
 #else
 		static_assert(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>,"freestanding environment must provide IO device");
@@ -322,7 +322,7 @@ inline constexpr void println(T&& t,Args&& ...args)
 		fast_io::println_freestanding_decay(fast_io::io_ref(t),fast_io::io_print_forward<typename std::remove_cvref_t<T>::char_type>(fast_io::io_print_alias(args))...);
 	else
 	{
-#if __has_include(<stdio.h>)
+#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __has_include(<stdio.h>)
 		fast_io::details::print_after_io_print_forward<true>(fast_io::io_print_forward<char>(fast_io::io_print_alias(t)),fast_io::io_print_forward<char>(fast_io::io_print_alias(args))...);
 #else
 		static_assert(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>,"freestanding environment must provide IO device");
@@ -460,7 +460,7 @@ inline constexpr std::conditional_t<report,bool,void> scan(input&& in,Args&& ...
 	}
 	else
 	{
-#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
+#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __has_include(<stdio.h>)
 		return fast_io::details::scan_after_io_scan_forward<report>(fast_io::io_scan_forward<char>(fast_io::io_scan_alias(in)),fast_io::io_scan_forward<char>(fast_io::io_scan_alias(args))...);
 #else
 			static_assert(fast_io::input_stream<std::remove_cvref_t<input>>,"freestanding environment must provide IO device");
