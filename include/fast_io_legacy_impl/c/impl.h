@@ -5,6 +5,12 @@
 #include<stdio.h>
 #endif
 
+#if __has_include(<cwchar>)
+#include<cwchar>
+#elif __has_include(<wchar.h>)
+#include<wchar.h>
+#endif
+
 #if defined(__MINGW32__) && !defined(_UCRT)
 #include"msvcrt_lock.h"
 #endif
