@@ -111,15 +111,6 @@ Should match the output of libstdc++ iostream
 		return details::copy_string_literal(u8"nullptr",iter);
 }
 
-#if 0
-template<output_stream output,std::integral char_type>
-requires (std::same_as<typename output::char_type,char_type>)
-inline constexpr void print_define(output out,basic_io_scatter_t<char_type> iosc) noexcept
-{
-	write(out,iosc.base,iosc.base+iosc.len);
-}
-#endif
-
 template<std::integral char_type>
 inline constexpr basic_io_scatter_t<char_type> print_scatter_define(print_scatter_type_t<char_type>,basic_io_scatter_t<char_type> iosc) noexcept
 {

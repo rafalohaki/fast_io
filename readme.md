@@ -65,6 +65,7 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - All architectures should work. (Just i do not have time to build all cross-toolchains to test them one by one)
 
 ## Platform Support
+- Windows 11
 - Windows 10
 - Windows Server 2019
 - Linux
