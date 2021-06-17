@@ -10,7 +10,7 @@ struct posix_wait_status
 {
 	int wait_loc{};
 };
-
+#if 0
 inline constexpr posix_wait_reason reason(posix_wait_status pws) noexcept
 {
 #ifdef WIFEXITED
@@ -40,7 +40,6 @@ inline constexpr int native_code(posix_wait_status pws) noexcept
 inline constexpr std::uintmax_t code(posix_wait_status pws) noexcept
 {
 	return static_cast<std::uintmax_t>(pws.wait_loc);
-}
 
 template<std::integral char_type>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,posix_wait_status>) noexcept
@@ -75,10 +74,10 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,posix_wai
 		iter=details::copy_string_literal(u8" native_code:",iter);
 	return print_reserve_define(io_reserve_type<char_type,int>,iter,pws.wait_loc);
 }
+#endif
 
 namespace details
 {
-
 inline pid_t posix_fork()
 {
 	pid_t pid{	

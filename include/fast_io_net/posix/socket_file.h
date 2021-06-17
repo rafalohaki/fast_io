@@ -1,5 +1,4 @@
 #pragma once
-#include <sys/socket.h>
 
 namespace fast_io
 {
@@ -15,11 +14,11 @@ public:
 	{
 		return fd!=-1;
 	}
-	constexpr auto& native_handle() const noexcept
+	constexpr int const& native_handle() const noexcept
 	{
 		return fd;
 	}
-	constexpr auto& native_handle() noexcept
+	constexpr int& native_handle() noexcept
 	{
 		return fd;
 	}
@@ -60,9 +59,10 @@ class basic_posix_socket_io_handle: public basic_posix_socket_io_observer<ch_typ
 public:
 	using char_type = ch_type;
 	using native_handle_type = int;
+	constexpr basic_posix_socket_io_handle() noexcept = default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	explicit constexpr basic_posix_socket_io_handle(native_hd fd) noexcept: basic_posix_socket_io_observer{fd}
+	explicit constexpr basic_posix_socket_io_handle(native_hd fd) noexcept: basic_posix_socket_io_observer<char_type>{fd}
 	{}
 	basic_posix_socket_io_handle(basic_posix_socket_io_handle const& dp):basic_posix_io_observer<char_type>{details::sys_dup(dp.fd)}
 	{
@@ -78,7 +78,7 @@ public:
 	}
 	basic_posix_socket_io_handle& operator=(basic_posix_socket_io_handle&& b) noexcept
 	{
-		if(b.fd!=this->fd)
+		if(__builtin_addressof(b)!=__builtin_addressof(b))
 		{
 			if(this->fd!=-1)[[likely]]
 				details::sys_close(this->fd);
@@ -95,7 +95,7 @@ public:
 	}
 	void close()
 	{
-		if(*this)[[likely]]
+		if(this->fd!=-1)[[likely]]
 		{
 			details::sys_close_throw_error(this->fd);
 			this->fd=-1;
@@ -106,20 +106,16 @@ public:
 namespace details
 {
 
-inline constexpr int native_sock_domain(sock_domain dom)
+inline constexpr int native_sock_domain(sock_domain dom) noexcept
 {
 switch(dom)
 {
-#ifdef AF_UNSPEC
-case sock_domain::unspec:
-	return AF_UNSPEC;
-#endif
 #ifdef AF_ALG
 case sock_domain::alg:
 	return AF_ALG;
 #endif
 #ifdef AF_APPLETALK
-case sock_domain::apple_talk:
+case sock_domain::appletalk:
 	return AF_APPLETALK;
 #endif
 #ifdef AF_ARP
@@ -162,14 +158,6 @@ case sock_domain::bluetooth:
 case sock_domain::bridge:
 	return AF_BRIDGE;
 #endif
-#ifdef AF_BRIDGE
-case sock_domain::bridge:
-	return AF_BRIDGE;
-#endif
-#ifdef AF_BRIDGE
-case sock_domain::bridge:
-	return AF_BRIDGE;
-#endif
 #ifdef AF_CAIF
 case sock_domain::caif:
 	return AF_CAIF;
@@ -205,10 +193,6 @@ case sock_domain::datakit:
 #ifdef AF_DECnet
 case sock_domain::decnet:
 	return AF_DECnet;
-#endif
-#ifdef AF_NETBEUI
-case sock_domain::netbeui:
-	return AF_NETBEUI;
 #endif
 #ifdef AF_DII
 case sock_domain::dii:
@@ -287,7 +271,7 @@ case sock_domain::iso:
 	return AF_ISO;
 #endif
 #ifdef AF_IUCV
-case sock_domain::icuv:
+case sock_domain::iucv:
 	return AF_IUCV;
 #endif
 #ifdef AF_KCM
@@ -338,9 +322,9 @@ case sock_domain::netgraph:
 case sock_domain::netrom:
 	return AF_NETROM;
 #endif
-#ifdef AF_NETWORK_DESIGNERS
-case sock_domain::network_designers:
-	return AF_NETWORK_DESIGNERS;
+#ifdef AF_NETDES
+case sock_domain::netdes:
+	return AF_NETDES;
 #endif
 #ifdef AF_NFC
 case sock_domain::nfc:
@@ -426,6 +410,14 @@ case sock_domain::smc:
 case sock_domain::sna:
 	return AF_SNA;
 #endif
+#ifdef AF_TCNPROCESS
+case sock_domain::tcnprocess:
+	return AF_TCNPROCESS;
+#endif
+#ifdef AF_TCNMESSAGE
+case sock_domain::tcnmessage:
+	return AF_TCNMESSAGE;
+#endif
 #ifdef AF_TIPC
 case sock_domain::tipc:
 	return AF_TIPC;
@@ -433,10 +425,6 @@ case sock_domain::tipc:
 #ifdef AF_VOICEVIEW
 case sock_domain::voiceview:
 	return AF_VOICEVIEW;
-#endif
-#ifdef AF_VSOCK
-case sock_domain::vsock:
-	return AF_VSOCK;
 #endif
 #ifdef AF_VSOCK
 case sock_domain::vsock:
@@ -455,11 +443,15 @@ case sock_domain::xdp:
 	return AF_XDP;
 #endif
 default:
-	throw_posix_error(EINVAL);
+#ifdef AF_UNSPEC
+	return AF_UNSPEC;
+#else
+	return -1;
+#endif
 }
 }
 
-inline constexpr int native_sock_protocal(sock_protocal dom)
+inline constexpr int native_sock_protocal(sock_protocal dom) noexcept
 {
 switch(dom)
 {
@@ -664,13 +656,13 @@ case sock_protocal::vrrp:
 	return IPPROTO_VRRP;
 #endif
 default:
-	throw_posix_error(EINVAL);
+	return -1;
 }
 }
 
-inline constexpr int native_sock_type(sock_type dom)
+inline constexpr int native_sock_type(sock_type soc) noexcept
 {
-switch(sock_type)
+switch(soc)
 {
 #ifdef SOCK_STREAM
 case sock_type::stream:
@@ -697,11 +689,11 @@ case sock_type::packet:
 	return SOCK_PACKET;
 #endif
 default:
-	throw_posix_error(EINVAL);
+	return -1;
 };
 }
 
-inline constexpr int native_sock_open_mode(open_mode om)
+inline constexpr int native_sock_open_mode(open_mode om) noexcept
 {
 	int ret{
 #ifdef SOCK_CLOEXEC
@@ -714,7 +706,7 @@ inline constexpr int native_sock_open_mode(open_mode om)
 #ifdef SOCK_NONBLOCK
 		ret|=SOCK_NONBLOCK;
 #else
-		throw_posix_error(EINVAL);
+		ret=-1;
 #endif
 	return ret;
 }
@@ -722,7 +714,7 @@ inline constexpr int native_sock_open_mode(open_mode om)
 inline int open_socket_impl(sock_domain d,sock_type t,open_mode m,sock_protocal p)
 {
 	int fd{socket(native_sock_domain(d),native_sock_type(t)|native_sock_open_mode(m),native_sock_protocal(p))};
-	if(fd=-1)
+	if(fd==-1)
 		throw_posix_error();
 	return fd;
 }
@@ -735,28 +727,36 @@ class basic_posix_socket_file: public basic_posix_socket_io_handle<ch_type>
 public:
 	using char_type = ch_type;
 	using native_handle_type = int;
+	constexpr basic_posix_socket_file() noexcept = default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	explicit constexpr basic_posix_socket_file(native_hd fd) noexcept: basic_posix_socket_io_handle<char_type>{fd}
+	explicit constexpr basic_posix_socket_file(native_hd fd) noexcept: basic_posix_socket_io_handle<char_type>{fd}{}
 
-	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	constexpr basic_posix_socket_file(native_hd fd) noexcept: basic_posix_socket_io_handle<ch_type>{fd}{}
-
-	constexpr basic_posix_socket_file(sock_domain d,sock_type t,open_mode m,sock_protocal p)
+	basic_posix_socket_file(sock_domain d,sock_type t,open_mode m,sock_protocal p)
 		:basic_posix_socket_io_handle<ch_type>{details::open_socket_impl(d,t,m,p)}
 	{}
 
 	basic_posix_socket_file(io_dup_t,basic_posix_socket_io_observer<ch_type> piob):basic_posix_socket_io_handle<ch_type>{details::sys_dup(piob.fd)}
 	{}
-	constexpr basic_posix_socket_file(basic_posix_socket_file const&)=default;
-	constexpr basic_posix_socket_file& operator=(basic_posix_socket_file const&)=default;
+	basic_posix_socket_file(basic_posix_socket_file const&)=default;
+	basic_posix_socket_file& operator=(basic_posix_socket_file const&)=default;
 	constexpr basic_posix_socket_file(basic_posix_socket_file &&) noexcept=default;
-	constexpr basic_posix_socket_file& operator=(basic_posix_socket_file &&) noexcept=default;
+	basic_posix_socket_file& operator=(basic_posix_socket_file &&) noexcept=default;
 	~basic_posix_socket_file()
 	{
 		if(this->fd!=-1)[[likely]]
 			details::sys_close(this->fd);
 	}
 };
+
+using posix_socket_file=basic_posix_socket_file<char>;
+using wposix_socket_file=basic_posix_socket_file<wchar_t>;
+using u8posix_socket_file=basic_posix_socket_file<char8_t>;
+using u16posix_socket_file=basic_posix_socket_file<char16_t>;
+using u32posix_socket_file=basic_posix_socket_file<char32_t>;
+
+template<std::integral ch_type>
+using basic_native_socket_file = basic_posix_socket_file<ch_type>;
+
 
 }

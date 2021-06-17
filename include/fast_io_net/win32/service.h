@@ -1,0 +1,28 @@
+#pragma once
+
+namespace fast_io
+{
+
+struct win32_wsa_service
+{
+	using native_handle_type = win32::wsadata;
+	win32::wsadata wsa_data;
+	explicit win32_wsa_service(std::uint16_t version)
+	{
+		if(win32::WSAStartup(version,__builtin_addressof(wsa_data)))
+			throw_win32_error(win32::WSAGetLastError());
+	}
+	win32_wsa_service():win32_wsa_service(514)
+	{}
+	win32_wsa_service(win32_wsa_service const&)=delete;
+	win32_wsa_service& operator=(win32_wsa_service const&)=delete;
+	~win32_wsa_service()
+	{
+		win32::WSACleanup();
+	}
+};
+
+#ifndef __CYGWIN__
+using native_network_service = win32_wsa_service;
+#endif
+}
