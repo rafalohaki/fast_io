@@ -275,6 +275,9 @@ inline constexpr auto transmit_impl(output& outp,input& inp,Args&& ...args)
 		else
 		{
 #endif
+
+
+#if 0
 		if constexpr(zero_copy_output_stream<output>&&zero_copy_input_stream<input>)
 		{
 			if constexpr(buffer_input_stream<input>)
@@ -284,13 +287,14 @@ inline constexpr auto transmit_impl(output& outp,input& inp,Args&& ...args)
 			}
 			if constexpr(buffer_output_stream<output>)
 				flush(outp);
-#if 0
+
 			return zero_copy_transmit_impl(outp,inp,std::forward<Args>(args)...);
 #else
 			return zero_copy_transmit<false>(outp,inp,0,std::forward<Args>(args)...);
-#endif
 		}
 		else
+#endif
+
 			return bufferred_transmit_impl(outp,inp,std::forward<Args>(args)...);
 #ifdef __cpp_lib_is_constant_evaluated
 		}
