@@ -79,7 +79,7 @@ public:
 	{
 		return ptr+n;
 	}
-	inline static constexpr std::size_t npos = -1;
+	inline static constexpr std::size_t npos = static_cast<std::size_t>(-1);
 	constexpr std::size_t max_size() const noexcept
 	{
 		return static_cast<std::size_t>(npos)/sizeof(ch_type);
