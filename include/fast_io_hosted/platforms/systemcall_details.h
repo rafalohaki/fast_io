@@ -14,33 +14,48 @@ extern int dup2(int,int) noexcept asm("dup2");
 
 inline int sys_dup(int old_fd)
 {
-	auto fd{
 #if defined(__linux__) && defined(__NR_dup)
-		system_call<__NR_dup,int>
-#elif defined(_WIN32)
+	int fd{system_call<__NR_dup,int>(old_fd)};
+	system_call_throw_error(fd);
+	return fd;
+#else
+	auto fd{
+#if defined(_WIN32)
 		_dup
 #else
 		dup
 #endif
 	(old_fd)};
-	system_call_throw_error(fd);
+	if(fd==-1)
+		throw_posix_error();
 	return fd;
+#endif
 }
 
 template<bool always_terminate=false>
 inline int sys_dup2(int old_fd,int new_fd)
 {
-	auto fd{
 #if defined(__linux__) && defined(__NR_dup2)
-		system_call<__NR_dup2,int>
-#elif defined(_WIN32)
+	int fd{system_call<__NR_dup2,int>(old_fd,new_fd)};
+	system_call_throw_error<always_terminate>(fd);
+	return fd;
+#else
+	auto fd{
+#ifdef _WIN32
 		_dup2
 #else
 		dup2
 #endif
 	(old_fd,new_fd)};
-	system_call_throw_error<always_terminate>(fd);
+	if(fd==-1)
+	{
+		if constexpr(always_terminate)
+			fast_terminate();
+		else
+			throw_posix_error();
+	}
 	return fd;
+#endif
 }
 
 inline int sys_close(int fd) noexcept

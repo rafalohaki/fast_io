@@ -200,11 +200,7 @@ inline constexpr bool operator!=(nt_family_directory_iterator<family> b, ::fast_
 }
 
 template<nt_family family>
-struct
-#if __has_cpp_attribute(gnu::trivial_abi)
-[[gnu::trivial_abi]]
-#endif
-nt_family_directory_generator
+struct nt_family_directory_generator
 {
 	nt_dirent* entry{};
 	constexpr nt_family_directory_generator()=default;

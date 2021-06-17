@@ -179,12 +179,9 @@ inline constexpr U byte_swap_naive_impl(U a) noexcept
 		return a;
 }
 
-template<typename U>
-requires (sizeof(U)==1||sizeof(U)==2||sizeof(U)==4||sizeof(U)==8
-#ifdef __SIZEOF_INT128__ 
-||sizeof(U)==16
-#endif
-)
+}
+
+template<details::my_unsigned_integral U>
 inline constexpr U byte_swap(U a) noexcept
 {
 	if constexpr(sizeof(U)==1)
@@ -216,7 +213,7 @@ inline constexpr U byte_swap(U a) noexcept
 #if __cpp_lib_is_constant_evaluated>=201811L
 	if (std::is_constant_evaluated())
 	{
-		return byte_swap_naive_impl(a);
+		return details::byte_swap_naive_impl(a);
 	}
 	else
 #endif
@@ -229,14 +226,14 @@ inline constexpr U byte_swap(U a) noexcept
 	else
 		return _byteswap_ushort(a);
 #else
-	return byte_swap_naive_impl(a);
+	return details::byte_swap_naive_impl(a);
 #endif
 	}
 #endif
 	}
 }
 
-template<my_unsigned_integral U>
+template<details::my_unsigned_integral U>
 inline constexpr U big_endian(U u) noexcept
 {
 	if constexpr(sizeof(U)==1||std::endian::big==std::endian::native)
@@ -244,8 +241,11 @@ inline constexpr U big_endian(U u) noexcept
 	else if constexpr(std::endian::little==std::endian::native)
 		return byte_swap(u);
 	else
-		return byte_swap_naive_impl(u);	//support architectures like PDP11
+		return details::byte_swap_naive_impl(u);	//support architectures like PDP11
 }
+
+namespace details
+{
 
 inline
 #if defined(__has_builtin)

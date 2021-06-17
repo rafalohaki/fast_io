@@ -11,9 +11,11 @@
 
 #include"fast_io_hosted.h"
 
-#include"fast_io_net/sock_domain.h"
+#include"fast_io_net/sock_family.h"
 #include"fast_io_net/sock_protocal.h"
 #include"fast_io_net/sock_type.h"
+#include"fast_io_net/posix_sockaddr.h"
+#include"fast_io_net/ip.h"
 
 #if defined(_WIN32) || defined(__CYGWIN__)
 #include "fast_io_net/win32/win32.h"

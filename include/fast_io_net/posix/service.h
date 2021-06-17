@@ -10,5 +10,5 @@ struct
 posix_empty_network_service{};
 //a dummy service to make serivce work with windows at a cross platform level
 
-using native_network_service = posix_empty_network_service;
+using net_service = posix_empty_network_service;
 }

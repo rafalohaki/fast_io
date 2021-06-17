@@ -3,7 +3,7 @@
 namespace fast_io
 {
 
-enum class sock_domain
+enum class sock_family
 {
 unspec=-1,		/* Unspec */
 alg=0,            	/* Algorithm sockets.  */

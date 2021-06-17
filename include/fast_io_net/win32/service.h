@@ -23,6 +23,6 @@ struct win32_wsa_service
 };
 
 #ifndef __CYGWIN__
-using native_network_service = win32_wsa_service;
+using net_service = win32_wsa_service;
 #endif
 }

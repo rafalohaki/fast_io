@@ -62,8 +62,8 @@ public:
 		{
 			if constexpr(std::same_as<transform_counter_type,details::pesudo_uint128_t>&&std::endian::native!=std::endian::big)
 			{
-				std::uint64_t high{details::big_endian(temp.high)};
-				std::uint64_t low{details::big_endian(temp.low)};
+				std::uint64_t high{big_endian(temp.high)};
+				std::uint64_t low{big_endian(temp.low)};
 #if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
 				if(std::is_constant_evaluated())
 				{
@@ -82,7 +82,7 @@ public:
 			}
 			else
 			{
-				temp=details::big_endian(temp);
+				temp=big_endian(temp);
 #if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
 				if(std::is_constant_evaluated())
 				{
