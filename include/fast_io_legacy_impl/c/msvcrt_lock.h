@@ -10,7 +10,7 @@ Referenced from MinGW-w64 CRT
 https://github.com/Alexpux/mingw-w64/blob/d0d7f784833bbb0b2d279310ddc6afb52fe47a46/mingw-w64-crt/stdio/mingw_lock.c#L36
 */
 
-[[gnu::dllimport,gnu::cdecl]] extern void _lock(int) noexcept
+[[gnu::dllimport]] extern void __cdecl _lock(int) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
 #if !defined(__clang__)
@@ -24,7 +24,7 @@ asm("_lock")
 #endif
 ;
 
-[[gnu::dllimport,gnu::cdecl]] extern void _unlock(int) noexcept
+[[gnu::dllimport]] extern void __cdecl _unlock(int) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
 #if !defined(__clang__)
