@@ -36,7 +36,7 @@ posix_sockaddr_in
 
 struct posix_in6_addr
 {
-	std::uint16_t address[8]{};
+	unsigned char address[16]{};
 };
 
 struct

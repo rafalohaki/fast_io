@@ -70,16 +70,15 @@ inline std::size_t win32_socket_write_impl(std::uintptr_t socket, void const* da
 }
 inline std::size_t win32_socket_read_impl(std::uintptr_t socket, void* data,std::size_t to_read)
 {
-	if constexpr(sizeof(std::uint32_t)<sizeof(std::size_t))
+	if constexpr(sizeof(int)<sizeof(std::size_t)||(sizeof(int)==sizeof(std::size_t)))
 	{
-		if(UINT32_MAX<to_read)
-			to_read=UINT32_MAX;
+		if(std::numeric_limits<int>::max()<to_read)
+			to_read=std::numeric_limits<int>::max();
 	}
-	wsabuf buffer{static_cast<std::uint32_t>(to_read),reinterpret_cast<char*>(data)};
-	std::uint32_t recved{};
-	if(WSARecv(socket,__builtin_addressof(buffer),1,__builtin_addressof(recved),0,nullptr,nullptr))
+	int recved{::fast_io::win32::recv(socket,reinterpret_cast<char*>(data),static_cast<int>(static_cast<unsigned>(to_read)),0)};
+	if(recved==-1)
 		throw_win32_error(WSAGetLastError());
-	return static_cast<std::size_t>(recved);
+	return static_cast<std::size_t>(static_cast<int>(recved));
 }
 
 inline io_scatter_status_t win32_socket_scatter_read_impl(std::uintptr_t socket,io_scatter_t* scatter,std::size_t len)
