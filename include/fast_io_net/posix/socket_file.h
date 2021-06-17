@@ -3,6 +3,9 @@
 namespace fast_io
 {
 
+using posix_socklen_t=::socklen_t;
+using native_socklen_t=posix_socklen_t;
+
 template<std::integral ch_type>
 class basic_posix_socket_io_observer
 {
@@ -84,7 +87,7 @@ inline std::size_t posix_socket_read_impl(int fd, void* data,std::size_t to_writ
 #endif
 }
 
-inline void posix_connect_posix_socket_real_impl(int fd,void const* addr,socklen_t addrlen)
+inline void posix_connect_posix_socket_impl(int fd,void const* addr,posix_socklen_t addrlen)
 {
 #if defined(__linux__) && defined(__NR_connect)
 	system_call_throw_error(system_call<__NR_connect,int>(fd,addr,addrlen));
@@ -99,18 +102,53 @@ inline void posix_connect_posix_socket_real_impl(int fd,void const* addr,socklen
 #endif
 }
 
-inline void posix_connect_posix_socket_impl(int fd,void const* addr,std::size_t addrlen)
+inline void posix_bind_posix_socket_impl(int fd,void const* addr,posix_socklen_t addrlen)
 {
-	if constexpr(sizeof(socklen_t)<sizeof(std::size_t)||(sizeof(socklen_t)==sizeof(std::size_t)&&std::signed_integral<socklen_t>))
-	{
-		if(static_cast<std::size_t>(std::numeric_limits<socklen_t>::max())<addrlen)
-			throw_posix_error(EINVAL);
-		posix_connect_posix_socket_real_impl(fd,addr,static_cast<socklen_t>(static_cast<std::make_unsigned_t<socklen_t>>(addrlen)));
-	}
-	else
-	{
-		posix_connect_posix_socket_real_impl(fd,addr,static_cast<socklen_t>(static_cast<std::make_unsigned_t<socklen_t>>(addrlen)));
-	}
+#if defined(__linux__) && defined(__NR_bind)
+	system_call_throw_error(system_call<__NR_bind,int>(fd,addr,addrlen));
+#else
+	using sockaddr_alias_const_ptr
+#if __has_cpp_attribute(gnu::may_alias)
+	[[gnu::may_alias]]
+#endif
+	= struct sockaddr const*;
+	if(::bind(fd,reinterpret_cast<sockaddr_alias_const_ptr>(addr),addrlen)==-1)
+		throw_posix_error();
+#endif
+}
+
+inline void posix_listen_posix_socket_impl(int fd,int backlog)
+{
+#if defined(__linux__) && defined(__NR_listen)
+	system_call_throw_error(system_call<__NR_listen,int>(fd,backlog));
+#else
+	using sockaddr_alias_const_ptr
+#if __has_cpp_attribute(gnu::may_alias)
+	[[gnu::may_alias]]
+#endif
+	= struct sockaddr const*;
+	if(::listen(fd,backlog)==-1)
+		throw_posix_error();
+#endif
+}
+
+inline int posix_accept_posix_socket_impl(int fd,void* addr,posix_socklen_t* addrlen)
+{
+#if defined(__linux__) && defined(__NR_accept)
+	int socfd{system_call<__NR_accept,int>(fd,addr,addrlen)};
+	system_call_throw_error(socfd);
+	return socfd;
+#else
+	using sockaddr_alias_const_ptr
+#if __has_cpp_attribute(gnu::may_alias)
+	[[gnu::may_alias]]
+#endif
+	= struct sockaddr const*;
+	int socfd{::accept(fd,addr,addrlen)};
+	if(socfd==-1)
+		throw_posix_error();
+	return socfd;
+#endif
 }
 
 }
@@ -141,9 +179,21 @@ inline io_scatter_status_t scatter_write(basic_posix_socket_io_observer<ch_type>
 }
 
 template<std::integral ch_type>
-inline constexpr void posix_connect(basic_posix_socket_io_observer<ch_type> h,void const* addr,std::size_t addrlen)
+inline void posix_connect(basic_posix_socket_io_observer<ch_type> h,void const* addr,posix_socklen_t addrlen)
 {
 	details::posix_connect_posix_socket_impl(h.fd,addr,addrlen);
+}
+
+template<std::integral ch_type>
+inline void posix_bind(basic_posix_socket_io_observer<ch_type> h,void const* addr,posix_socklen_t addrlen)
+{
+	details::posix_bind_posix_socket_impl(h.fd,addr,addrlen);
+}
+
+template<std::integral ch_type>
+inline void posix_listen(basic_posix_socket_io_observer<ch_type> h,int backlog)
+{
+	details::posix_listen_posix_socket_impl(h.fd,backlog);
 }
 
 template<std::integral ch_type>
@@ -859,6 +909,18 @@ posix_socket_factory
 };
 
 template<std::integral ch_type>
+inline posix_socket_factory posix_accept(basic_posix_socket_io_observer<ch_type> h,void* addr, posix_socklen_t* addrlen)
+{
+	return details::posix_accept_posix_socket_impl(h.fd,addr,addrlen);
+}
+
+template<std::integral ch_type>
+inline posix_socket_factory tcp_accept(basic_posix_socket_io_observer<ch_type> h)
+{
+	return details::posix_accept_posix_socket_impl(h.fd,nullptr,nullptr);
+}
+
+template<std::integral ch_type>
 class basic_posix_socket_file: public basic_posix_socket_io_handle<ch_type>
 {
 public:
@@ -908,7 +970,7 @@ namespace details
 
 inline int posix_tcp_connect_v4_impl(ipv4 v4,open_mode m)
 {
-	basic_posix_socket_file<char> soc(sock_family::inet,sock_type::stream,m,sock_protocal::ip);
+	basic_posix_socket_file<char> soc(sock_family::inet,sock_type::stream,m,sock_protocal::tcp);
 	constexpr auto inet{to_posix_sock_family(sock_family::inet)};
 	posix_sockaddr_in in{.sin_family=inet,.sin_port=big_endian(static_cast<std::uint16_t>(v4.port)),.sin_addr=v4.address};
 	posix_connect(soc,__builtin_addressof(in),sizeof(in));
@@ -917,7 +979,7 @@ inline int posix_tcp_connect_v4_impl(ipv4 v4,open_mode m)
 
 inline int posix_tcp_connect_v6_impl(ipv6 v6,open_mode m)
 {
-	basic_posix_socket_file<char> soc(sock_family::inet6,sock_type::stream,m,sock_protocal::ip);
+	basic_posix_socket_file<char> soc(sock_family::inet6,sock_type::stream,m,sock_protocal::tcp);
 	constexpr auto inet6{to_posix_sock_family(sock_family::inet6)};
 	posix_sockaddr_in6 in6{.sin6_family=inet6,.sin6_port=big_endian(static_cast<std::uint16_t>(v6.port)),.sin6_addr=v6.address};
 	posix_connect(soc,__builtin_addressof(in6),sizeof(in6));
@@ -926,7 +988,7 @@ inline int posix_tcp_connect_v6_impl(ipv6 v6,open_mode m)
 
 inline int posix_tcp_connect_ip_impl(ip v,open_mode m)
 {
-	basic_posix_socket_file<char> soc(v.isv4?sock_family::inet:sock_family::inet6,sock_type::stream,m,sock_protocal::ip);
+	basic_posix_socket_file<char> soc(v.isv4?sock_family::inet:sock_family::inet6,sock_type::stream,m,sock_protocal::tcp);
 	if(v.isv4)
 	{
 		constexpr auto inet{to_posix_sock_family(sock_family::inet)};
@@ -941,6 +1003,18 @@ inline int posix_tcp_connect_ip_impl(ip v,open_mode m)
 	}
 	return soc.release();
 }
+
+
+inline int posix_tcp_listen_impl(std::uint16_t port,open_mode m)
+{
+	basic_posix_socket_file<char> soc(sock_family::inet,sock_type::stream,m,sock_protocal::tcp);
+	constexpr auto inet{to_posix_sock_family(sock_family::inet)};
+	posix_sockaddr_in in{.sin_family=inet,.sin_port=big_endian(port),.sin_addr={}};
+	posix_bind_posix_socket_impl(soc.fd,__builtin_addressof(in),sizeof(in));
+	posix_listen_posix_socket_impl(soc.fd,128);
+	return soc.release();
+}
+
 
 }
 
@@ -997,6 +1071,10 @@ inline posix_socket_factory tcp_connect(ipv6 v6,open_mode m=open_mode{})
 inline posix_socket_factory tcp_connect(ip v,open_mode m=open_mode{})
 {
 	return {details::posix_tcp_connect_ip_impl(v,m)};
+}
+inline posix_socket_factory tcp_listen(std::uint16_t port,open_mode m=open_mode{})
+{
+	return {details::posix_tcp_listen_impl(port,m)};
 }
 
 }
