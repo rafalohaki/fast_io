@@ -361,7 +361,6 @@ inline constexpr void perrln(T&& t,Args&&... args)
 }
 
 template<typename... Args>
-requires (sizeof...(Args)!=0)
 [[noreturn]] inline constexpr void panic(Args&&... args) noexcept
 {
 	if constexpr(sizeof...(Args)!=0)
@@ -370,7 +369,7 @@ requires (sizeof...(Args)!=0)
 	try
 	{
 #endif
-		perr(std::forward<Args>(args)...);
+			perr(std::forward<Args>(args)...);
 #ifdef __cpp_exceptions
 	}
 	catch(...){}
