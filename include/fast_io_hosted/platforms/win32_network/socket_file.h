@@ -404,10 +404,22 @@ inline constexpr std::uint32_t to_win32_sock_open_mode(open_mode m) noexcept
 	std::uint32_t flags{};
 	if((m&open_mode::no_block)==open_mode::no_block)
 		flags|=0x01;
+#if defined(_WIN32_WINDOWS) || _WIN32_WINNT >= 0x0602
+//this flag only supports after windows 7 sp1. So we start supporting this flag from windows 8
 	if((m&open_mode::inherit)!=open_mode::inherit)
 		flags|=0x80;
+#endif
 	return flags;
 }
+
+inline constexpr std::uint32_t to_win32_sock_open_mode_9xa(open_mode m) noexcept
+{
+	std::uint32_t flags{};
+	if((m&open_mode::no_block)==open_mode::no_block)
+		flags|=0x01;
+	return flags;
+}
+
 
 #ifndef __CYGWIN__
 
@@ -442,9 +454,9 @@ inline std::uintptr_t open_win32_socket_impl(sock_family d,sock_type t,open_mode
 	int af{to_win32_sock_family(d)};
 	int tp{to_win32_sock_type(t)};
 	int prt{to_win32_sock_protocal(p)};
-	std::uint32_t dwflags{to_win32_sock_open_mode(m)};
 	if constexpr(family==win32_family::wide_nt)
 	{
+		std::uint32_t dwflags{to_win32_sock_open_mode(m)};
 		std::uintptr_t ret{WSASocketW(af,tp,prt,nullptr,0,dwflags)};
 		if(ret==UINTPTR_MAX)
 			throw_win32_error(WSAGetLastError());
@@ -452,7 +464,7 @@ inline std::uintptr_t open_win32_socket_impl(sock_family d,sock_type t,open_mode
 	}
 	else
 	{
-		std::uintptr_t ret{WSASocketA(af,tp,prt,nullptr,0,dwflags)};
+		std::uintptr_t ret{WSASocketA(af,tp,prt,nullptr,0,to_win32_sock_open_mode_9xa(m))};
 		if(ret==UINTPTR_MAX)
 			throw_win32_error(WSAGetLastError());
 		return ret;
