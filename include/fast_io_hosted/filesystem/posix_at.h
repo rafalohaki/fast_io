@@ -51,7 +51,7 @@ unlinkat
 };
 
 #if defined(__CYGWIN__)
-extern int faccessat(int olddirfd,char const* oldpath,int newdirfd, char const* newpath) noexcept asm("faccessat");
+extern int faccessat(int dirfd,char const* pathname,int mode, int flags) noexcept asm("faccessat");
 extern int renameat(int olddirfd,char const* oldpath,int newdirfd, char const* newpath) noexcept asm("renameat");
 extern int linkat(int olddirfd,char const* oldpath,int newdirfd, char const* newpath,int flags) noexcept asm("linkat");
 extern int symlinkat(char const* oldpath, int newdirfd, char const *newpath) noexcept asm("symlinkat");
@@ -63,6 +63,8 @@ extern int mkdirat(int dirfd, char const* pathname, mode_t mode) noexcept asm("m
 extern int mknodat(int dirfd, char const* pathname, mode_t mode, dev_t dev) noexcept asm("mknodat");
 extern int unlinkat(int dirfd, char const*pathname, int flags) noexcept asm("unlinkat");
 extern int readlinkat(int dirfd, char const *pathname,char *buf, size_t bufsiz) noexcept asm("readlinkat");
+#elif (defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)) && !defined(__NEWLIB__)
+extern int renameat(int olddirfd,char const* oldpath,int newdirfd, char const* newpath) noexcept asm("renameat");
 #endif
 
 inline void posix_renameat_impl(int olddirfd,char const* oldpath,

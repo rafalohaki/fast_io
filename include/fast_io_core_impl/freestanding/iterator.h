@@ -3,8 +3,13 @@
 #if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
 
 #ifdef __GLIBCXX__
+
+#if __has_include(<bits/ranges_base.h>) && __has_include(<bits/stl_iterator.h>)
 #include<bits/stl_iterator.h>
 #include<bits/ranges_base.h>
+#else
+#include<iterator>
+#endif
 #else
 #include<iterator>
 #endif

@@ -308,7 +308,7 @@ inline void* nt_create_file_impl(basic_cstring_view<char_type> filename,nt_open_
 	else
 	{
 		nt_api_encoding_converter converter(filename.data(),filename.size());
-		nt_file_rtl_path(converter.native_c_str(),nt_name,part_name,relative_name);
+		nt_file_rtl_path(reinterpret_cast<wchar_t_may_alias_ptr>(converter.c_str()),nt_name,part_name,relative_name);
 	}
 	win32::nt::rtl_unicode_string_unique_ptr us_ptr{__builtin_addressof(nt_name)};
 	return nt_create_file_common_impl<zw>(nullptr,__builtin_addressof(nt_name),mode);

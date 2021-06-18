@@ -31,10 +31,6 @@ case sock_family::ash:
 case sock_family::atm:
 	return AF_ATM;
 #endif
-#ifdef AF_ATM
-case sock_family::atm:
-	return AF_ATM;
-#endif
 #ifdef AF_ATMPVC
 case sock_family::atmpvc:
 	return AF_ATMPVC;
@@ -149,7 +145,7 @@ case sock_family::inet6:
 #endif
 #ifdef AF_INET6_SDP
 case sock_family::inet6_sdp:
-	return AF_INET6_sdp;
+	return AF_INET6_SDP;
 #endif
 #ifdef AF_INET_SDP
 case sock_family::inet_sdp:
@@ -714,11 +710,6 @@ inline void posix_listen_posix_socket_impl(int fd,int backlog)
 #if defined(__linux__) && defined(__NR_listen)
 	system_call_throw_error(system_call<__NR_listen,int>(fd,backlog));
 #else
-	using sockaddr_alias_const_ptr
-#if __has_cpp_attribute(gnu::may_alias)
-	[[gnu::may_alias]]
-#endif
-	= struct sockaddr const*;
 	if(::listen(fd,backlog)==-1)
 		throw_posix_error();
 #endif
@@ -731,12 +722,12 @@ inline int posix_accept_posix_socket_impl(int fd,void* addr,posix_socklen_t* add
 	system_call_throw_error(socfd);
 	return socfd;
 #else
-	using sockaddr_alias_const_ptr
+	using sockaddr_alias_ptr
 #if __has_cpp_attribute(gnu::may_alias)
 	[[gnu::may_alias]]
 #endif
-	= struct sockaddr const*;
-	int socfd{::accept(fd,addr,addrlen)};
+	= struct sockaddr*;
+	int socfd{::accept(fd,reinterpret_cast<sockaddr_alias_ptr>(addr),addrlen)};
 	if(socfd==-1)
 		throw_posix_error();
 	return socfd;

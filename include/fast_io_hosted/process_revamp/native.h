@@ -4,7 +4,8 @@
 
 #if defined(_WIN32)
 #include"nt.h"
-#else
+#elif __has_include(<sys/wait.h>)
+#include <sys/wait.h>
 #include"posix.h"
 #endif
 #endif
