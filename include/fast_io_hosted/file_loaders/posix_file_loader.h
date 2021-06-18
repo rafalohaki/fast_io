@@ -3,6 +3,14 @@
 #include<linux/stat.h>
 #endif
 
+#if defined(__has_builtin)
+#if !__has_builtin(__builtin_malloc) || !__has_builtin(__builtin_free)
+#include<cstdlib>
+#endif
+#else
+#include<cstdlib>
+#endif
+
 namespace fast_io
 {
 #if defined(_WIN32) || defined(__CYGWIN__)
@@ -85,12 +93,17 @@ fstat
 #endif
 }
 
+
 struct load_file_allocation_guard
 {
 	void* address{};
 	explicit load_file_allocation_guard(std::size_t file_size):address(
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_malloc)
 __builtin_malloc
+#else
+malloc
+#endif
 #else
 malloc
 #endif
@@ -103,8 +116,12 @@ malloc
 	load_file_allocation_guard& operator=(load_file_allocation_guard const&)=delete;
 	~load_file_allocation_guard()
 	{
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_free)
 		__builtin_free(address);
+#else
+		free(address);
+#endif
 #else
 		free(address);
 #endif
@@ -154,8 +171,12 @@ inline void posix_unload_address(void* address,[[maybe_unused]] std::size_t file
 {
 	if constexpr(allocation)
 	{
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_free)
 		__builtin_free(address);
+#else
+		free(address);
+#endif
 #else
 		free(address);
 #endif

@@ -24,8 +24,9 @@
 #endif
 #endif
 
-#if !defined(_WIN32) && __has_include(<sys/socket.h>) && !defined(__wasi__)
+#if !defined(_WIN32) && __has_include(<sys/socket.h>) && __has_include(<netinet/in.h>) && !defined(__wasi__)
 #include <sys/socket.h>
+#include <netinet/in.h>
 #include "fast_io_net/posix/posix.h"
 #include "fast_io_net/socket_file_common.h"
 #endif
