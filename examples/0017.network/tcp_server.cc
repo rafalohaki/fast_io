@@ -1,16 +1,17 @@
 #include<fast_io.h>
-#include<fast_io_network.h>
+#include<fast_io_device.h>
 
 int main()
 {
 	fast_io::net_service service;
-	
-	for(fast_io::native_socket_file socket(fast_io::tcp_listen(200));;)
+	fast_io::native_socket_file socket(fast_io::tcp_listen(2000));
+	for(fast_io::iobuf_socket_file file;;)
 		try
 		{
-			fast_io::native_socket_file file(tcp_accept(socket));
-			println(fast_io::err(),utc(fast_io::posix_clock_gettime(fast_io::posix_clock_id::realtime)));
-			print(file,"Hello World\n");
+			file.reopen(tcp_accept(socket));
+			auto t{utc(fast_io::posix_clock_gettime(fast_io::posix_clock_id::realtime))};
+			println(file,t);
+			file.close();
 		}
 		catch(...)
 		{

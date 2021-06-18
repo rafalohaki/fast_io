@@ -7,7 +7,7 @@
 #if !__has_builtin(__builtin_malloc) || !__has_builtin(__builtin_free)
 #include<cstdlib>
 #endif
-#else
+#elif !defined(_MSC_VER)
 #include<cstdlib>
 #endif
 

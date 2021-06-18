@@ -285,17 +285,20 @@ public:
 		return *this;
 	}
 	constexpr basic_io_buffer& operator=(basic_io_buffer const&)=delete;
-#if 0
 	template<typename... Args>
-	requires requires(Args&& ...args)
-	{
-		handle.reopen(std::forward<Args>(args)...);
-	}
+	requires std::movable<handle_type>
 	constexpr void reopen(Args&& ...args)
 	{
-		handle.reopen(std::forward<Args>(args)...);
+		close_impl();
+		if constexpr((mode&buffer_mode::in)==buffer_mode::in)
+			ibuffer.buffer_curr=ibuffer.buffer_end;
+		if constexpr((mode&buffer_mode::out)==buffer_mode::out)
+			obuffer.buffer_curr=obuffer.buffer_begin;
+		if constexpr(std::movable<handle_type>)
+			handle=handle_type(std::forward<Args>(args)...);
 	}
-#endif
+
+
 	constexpr void close() requires requires()
 	{
 		handle.close();

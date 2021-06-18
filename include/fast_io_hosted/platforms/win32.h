@@ -796,6 +796,25 @@ inline void io_control(basic_win32_family_io_observer<family,ch_type> h,Args&& .
 		throw_win32_error();
 }
 
+
+struct
+#if __has_cpp_attribute(gnu::trivial_abi)
+[[gnu::trivial_abi]]
+#endif
+win32_file_factory
+{
+	using native_handle_type=void*;
+	void* handle{};
+	explicit constexpr win32_file_factory(void* hd) noexcept:handle(hd){};
+	win32_file_factory(win32_file_factory const&)=delete;
+	win32_file_factory& operator=(win32_file_factory const&)=delete;
+	~win32_file_factory()
+	{
+		if(handle)[[likely]]
+			fast_io::win32::CloseHandle(handle);
+	}
+};
+
 template<win32_family family,std::integral ch_type>
 class basic_win32_family_file:public basic_win32_family_io_handle<family,ch_type>
 {
@@ -811,6 +830,10 @@ public:
 	basic_win32_family_file(io_dup_t,basic_win32_family_io_observer<family,ch_type> wiob):basic_win32_family_io_handle<family,ch_type>(win32::details::win32_dup_impl(wiob.handle))
 	{}
 
+	explicit constexpr basic_win32_family_file(win32_file_factory&& fact) noexcept: basic_win32_family_io_handle<family,ch_type>(fact.handle)
+	{
+		fact.handle=nullptr;
+	}
 
 #if 0
 	explicit basic_win32_family_file(io_temp_t):basic_win32_family_io_handle<family,char_type>(details::create_win32_temp_file()){}

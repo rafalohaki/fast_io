@@ -306,6 +306,19 @@ using u32iobuf_io_io_observer = basic_iobuf_io_io_observer<char32_t>;
 using u32iobuf_io_io_handle = basic_iobuf_io_io_handle<char32_t>;
 using u32iobuf_io_file = basic_iobuf_io_file<char32_t>;
 
+#if defined(_WIN32) || (__has_include(<sys/socket.h>) && __has_include(<netinet/in.h>) && !defined(__wasi__))
+
+template<std::integral char_type>
+using basic_iobuf_socket_file = basic_iobuf<basic_native_socket_file<char_type>>;
+
+using iobuf_socket_file = basic_iobuf_socket_file<char>;
+using wiobuf_socket_file = basic_iobuf_socket_file<wchar_t>;
+using u8iobuf_socket_file = basic_iobuf_socket_file<char8_t>;
+using u16iobuf_socket_file = basic_iobuf_socket_file<char16_t>;
+using u32iobuf_socket_file = basic_iobuf_socket_file<char32_t>;
+
+#endif
+
 }
 #endif
 

@@ -700,6 +700,28 @@ public:
 	}
 };
 
+template<nt_family family>
+struct
+#if __has_cpp_attribute(gnu::trivial_abi)
+[[gnu::trivial_abi]]
+#endif
+nt_family_file_factory
+{
+	using native_handle_type=void*;
+	void* handle{};
+	explicit constexpr nt_family_file_factory(void* hd) noexcept:handle(hd){};
+	nt_family_file_factory(nt_family_file_factory const&)=delete;
+	nt_family_file_factory& operator=(nt_family_file_factory const&)=delete;
+	~nt_family_file_factory()
+	{
+		if(handle)[[likely]]
+			win32::nt::nt_close<family==nt_family::zw>(this->handle);
+	}
+};
+
+using nt_file_factory = nt_family_file_factory<nt_family::nt>;
+using zw_file_factory = nt_family_file_factory<nt_family::zw>;
+
 template<nt_family family,std::integral ch_type>
 class basic_nt_family_file:public basic_nt_family_io_handle<family,ch_type>
 {
@@ -710,6 +732,10 @@ public:
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	explicit constexpr basic_nt_family_file(native_hd hd):basic_nt_family_io_handle<family,ch_type>(hd){}
+	explicit constexpr basic_nt_family_file(nt_family_file_factory<family>&& hd):basic_nt_family_io_handle<family,ch_type>(hd)
+	{
+		hd.handle=nullptr;
+	}
 	explicit basic_nt_family_file(io_dup_t,basic_nt_family_io_observer<family,ch_type> wiob):
 		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_dup_impl<family==nt_family::zw>(wiob.handle))
 	{}

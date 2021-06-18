@@ -11,10 +11,9 @@
 #include"systemcall_details.h"
 #include<fcntl.h>
 #ifdef __linux__
+#include<features.h>
 #include<sys/uio.h>
 #include<sys/stat.h>
-#include<features.h>
-struct io_uring;
 #endif
 #if defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL) || defined(__wasi__)
 #if defined(__CYGWIN__) || !defined(__NEWLIB__)
@@ -27,6 +26,12 @@ struct io_uring;
 
 #if defined(__wasi__)
 #include <wasi/api.h>
+#endif
+
+#if !defined(_WIN32) && __has_include(<sys/socket.h>) && __has_include(<netinet/in.h>) && !defined(__wasi__)
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include "posix_netmode.h"
 #endif
 
 namespace fast_io
@@ -278,31 +283,6 @@ inline constexpr posix_io_redirection redirect(posix_dev_null_t) noexcept
 {
 	return {.dev_null=true};
 }
-
-
-#ifdef __linux__
-class io_uring_observer
-{
-public:
-	using native_handle_type = struct ::io_uring*;
-	native_handle_type ring{};
-	constexpr native_handle_type& native_handle() noexcept
-	{
-		return ring;
-	}
-	constexpr native_handle_type const& native_handle() const noexcept
-	{
-		return ring;
-	}
-	constexpr native_handle_type release() noexcept
-	{
-		auto temp{ring};
-		ring=nullptr;
-		return temp;
-	}
-};
-using io_async_observer=io_uring_observer;
-#endif
 
 #ifdef _WIN32
 namespace details
@@ -626,6 +606,7 @@ inline void posix_clear_screen_impl(int fd)
 	posix_clear_screen_main(fd);
 #endif
 }
+
 }
 
 template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
@@ -1058,6 +1039,24 @@ inline int my_posix_open_file_impl(basic_cstring_view<char_type> filepath,open_m
 
 }
 
+struct
+#if __has_cpp_attribute(gnu::trivial_abi)
+[[gnu::trivial_abi]]
+#endif
+posix_file_factory
+{
+	using native_handle_type = int;
+	int fd{-1};
+	explicit constexpr posix_file_factory(int v) noexcept:fd(v){};
+	posix_file_factory(posix_file_factory const&)=delete;
+	posix_file_factory& operator=(posix_file_factory const&)=delete;
+	~posix_file_factory()
+	{
+		if(fd!=-1)[[likely]]
+			details::sys_close(fd);
+	}
+};
+
 template<std::integral ch_type>
 class basic_posix_file:public basic_posix_io_handle<ch_type>
 {
@@ -1071,10 +1070,14 @@ public:
 	constexpr basic_posix_file() noexcept = default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	constexpr basic_posix_file(native_hd fd) noexcept: basic_posix_io_handle<ch_type>(fd){}
+	explicit constexpr basic_posix_file(native_hd fd) noexcept: basic_posix_io_handle<ch_type>(fd){}
 
 	basic_posix_file(io_dup_t,basic_posix_io_observer<ch_type> piob):basic_posix_io_handle<ch_type>(details::sys_dup(piob.fd))
 	{}
+	explicit constexpr basic_posix_file(posix_file_factory&& factory) noexcept: basic_posix_io_handle<ch_type>(factory.fd)
+	{
+		factory.fd=-1;
+	}
 #if defined(_WIN32)
 //windows specific. open posix file from win32 io handle
 	template<win32_family family>
@@ -1135,6 +1138,10 @@ public:
 	basic_posix_file(posix_at_entry pate,u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_openat_file_impl(pate.fd,file,om,pm)){}
 	basic_posix_file(u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_open_file_impl(file,om,pm)){}
 	basic_posix_file(posix_at_entry pate,u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_openat_file_impl(pate.fd,file,om,pm)){}
+#if !defined(_WIN32) && !defined(__wasi__) && __has_include(<sys/socket.h>) && __has_include(<netinet/in.h>)
+	basic_posix_file(sock_family d,sock_type t,open_mode m,sock_protocal p):basic_posix_io_handle<char_type>(details::open_socket_impl(d,t,m,p)){}
+#endif
+
 #endif
 
 

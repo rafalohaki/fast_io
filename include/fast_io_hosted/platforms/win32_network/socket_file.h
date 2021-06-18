@@ -461,19 +461,18 @@ inline std::uintptr_t open_win32_socket_impl(sock_family d,sock_type t,open_mode
 
 }
 
-template<win32_family family>
 struct
 #if __has_cpp_attribute(gnu::trivial_abi)
 [[gnu::trivial_abi]]
 #endif
-win32_family_socket_factory
+win32_socket_factory
 {
 	using native_handle_type = std::uintptr_t;
 	std::uintptr_t hsocket{};
-	constexpr win32_family_socket_factory(std::uintptr_t v) noexcept:hsocket(v){};
-	win32_family_socket_factory(win32_family_socket_factory const&)=delete;
-	win32_family_socket_factory& operator=(win32_family_socket_factory const&)=delete;
-	~win32_family_socket_factory()
+	explicit constexpr win32_socket_factory(std::uintptr_t v) noexcept:hsocket(v){};
+	win32_socket_factory(win32_socket_factory const&)=delete;
+	win32_socket_factory& operator=(win32_socket_factory const&)=delete;
+	~win32_socket_factory()
 	{
 		if(hsocket)[[likely]]
 			win32::closesocket(hsocket);
@@ -482,15 +481,15 @@ win32_family_socket_factory
 
 
 template<win32_family family,std::integral ch_type>
-inline win32_family_socket_factory<family> posix_accept(basic_win32_family_socket_io_observer<family,ch_type> h,void* addr,win32_socklen_t* addrlen)
+inline win32_socket_factory posix_accept(basic_win32_family_socket_io_observer<family,ch_type> h,void* addr,win32_socklen_t* addrlen)
 {
-	return win32::details::posix_accept_win32_socket_impl(h.hsocket,addr,addrlen);
+	return win32_socket_factory{win32::details::posix_accept_win32_socket_impl(h.hsocket,addr,addrlen)};
 }
 
 template<win32_family family,std::integral ch_type>
-inline win32_family_socket_factory<family> tcp_accept(basic_win32_family_socket_io_observer<family,ch_type> h)
+inline win32_socket_factory tcp_accept(basic_win32_family_socket_io_observer<family,ch_type> h)
 {
-	return win32::details::posix_accept_win32_socket_impl(h.hsocket,nullptr,nullptr);
+	return win32_socket_factory{win32::details::posix_accept_win32_socket_impl(h.hsocket,nullptr,nullptr)};
 }
 
 template<win32_family family,std::integral ch_type>
@@ -513,26 +512,12 @@ public:
 	basic_win32_family_socket_file(sock_family d,sock_type t,open_mode m,sock_protocal p)
 		:basic_win32_family_socket_file<family,ch_type>{win32::details::open_win32_socket_impl<family>(d,t,m,p)}
 	{}
-
-	void open(sock_family d,sock_type t,open_mode m,sock_protocal p)
-	{
-		if(this->hsocket)
-			return;
-		this->hsocket = win32::details::open_win32_socket_impl<family>(d,t,m,p);
-	}
-	void reopen(sock_family d,sock_type t,open_mode m,sock_protocal p)
-	{
-		auto newtemp{win32::details::open_win32_socket_impl<family>(d,t,m,p)};
-		if(this->newtemp)
-			win32::closesocket(this->newtemp);
-		this->fd=newtemp;
-	}
 	basic_win32_family_socket_file(basic_win32_family_socket_file const&)=default;
 	basic_win32_family_socket_file& operator=(basic_win32_family_socket_file const&)=default;
 	constexpr basic_win32_family_socket_file(basic_win32_family_socket_file&&) noexcept=default;
 	basic_win32_family_socket_file& operator=(basic_win32_family_socket_file&&) noexcept=default;
 
-	explicit constexpr basic_win32_family_socket_file(win32_family_socket_factory<family>&& other) noexcept : basic_win32_family_socket_io_handle<family,char_type>{other.hsocket}
+	explicit constexpr basic_win32_family_socket_file(win32_socket_factory&& other) noexcept : basic_win32_family_socket_io_handle<family,char_type>{other.hsocket}
 	{
 		other.hsocket=0;
 	}
@@ -607,83 +592,83 @@ inline std::uintptr_t win32_tcp_listen_impl(std::uint16_t port,open_mode m)
 }
 
 template<win32_family family>
-inline win32_family_socket_factory<family> win32_family_tcp_connect(ipv4 v4,open_mode m=open_mode{})
+inline win32_socket_factory win32_family_tcp_connect(ipv4 v4,open_mode m=open_mode{})
 {
-	return {details::win32_family_tcp_connect_v4_impl<family>(v4,m)};
+	return win32_socket_factory{details::win32_family_tcp_connect_v4_impl<family>(v4,m)};
 }
 
-inline win32_family_socket_factory<win32_family::ansi_9x> win32_tcp_connect_9xa(ipv4 v4,open_mode m=open_mode{})
+inline win32_socket_factory win32_tcp_connect_9xa(ipv4 v4,open_mode m=open_mode{})
 {
-	return {details::win32_family_tcp_connect_v4_impl<win32_family::ansi_9x>(v4,m)};
+	return win32_socket_factory{details::win32_family_tcp_connect_v4_impl<win32_family::ansi_9x>(v4,m)};
 }
 
-inline win32_family_socket_factory<win32_family::wide_nt> win32_tcp_connect_ntw(ipv4 v4,open_mode m=open_mode{})
+inline win32_socket_factory win32_tcp_connect_ntw(ipv4 v4,open_mode m=open_mode{})
 {
-	return {details::win32_family_tcp_connect_v4_impl<win32_family::wide_nt>(v4,m)};
+	return win32_socket_factory{details::win32_family_tcp_connect_v4_impl<win32_family::wide_nt>(v4,m)};
 }
 
-inline win32_family_socket_factory<win32_family::native> win32_tcp_connect(ipv4 v4,open_mode m=open_mode{})
+inline win32_socket_factory win32_tcp_connect(ipv4 v4,open_mode m=open_mode{})
 {
-	return {details::win32_family_tcp_connect_v4_impl<win32_family::native>(v4,m)};
-}
-
-
-template<win32_family family>
-inline win32_family_socket_factory<family> win32_family_tcp_connect(ipv6 v6,open_mode m=open_mode{})
-{
-	return {details::win32_family_tcp_connect_v6_impl<family>(v6,m)};
-}
-
-inline win32_family_socket_factory<win32_family::ansi_9x> win32_tcp_connect_9xa(ipv6 v6,open_mode m=open_mode{})
-{
-	return {details::win32_family_tcp_connect_v6_impl<win32_family::ansi_9x>(v6,m)};
-}
-
-inline win32_family_socket_factory<win32_family::wide_nt> win32_tcp_connect_ntw(ipv6 v6,open_mode m=open_mode{})
-{
-	return {details::win32_family_tcp_connect_v6_impl<win32_family::wide_nt>(v6,m)};
-}
-
-inline win32_family_socket_factory<win32_family::native> win32_tcp_connect(ipv6 v6,open_mode m=open_mode{})
-{
-	return {details::win32_family_tcp_connect_v6_impl<win32_family::native>(v6,m)};
-}
-
-inline win32_family_socket_factory<win32_family::ansi_9x> win32_tcp_connect_9xa(ip v,open_mode m=open_mode{})
-{
-	return {details::win32_family_tcp_connect_ip_impl<win32_family::ansi_9x>(v,m)};
-}
-
-inline win32_family_socket_factory<win32_family::wide_nt> win32_tcp_connect_ntw(ip v,open_mode m=open_mode{})
-{
-	return {details::win32_family_tcp_connect_ip_impl<win32_family::wide_nt>(v,m)};
-}
-
-inline win32_family_socket_factory<win32_family::native> win32_tcp_connect(ip v,open_mode m=open_mode{})
-{
-	return {details::win32_family_tcp_connect_ip_impl<win32_family::native>(v,m)};
+	return win32_socket_factory{details::win32_family_tcp_connect_v4_impl<win32_family::native>(v4,m)};
 }
 
 
 template<win32_family family>
-inline win32_family_socket_factory<family> win32_family_tcp_listen(std::uint16_t port,open_mode m=open_mode{})
+inline win32_socket_factory win32_family_tcp_connect(ipv6 v6,open_mode m=open_mode{})
 {
-	return {details::win32_tcp_listen_impl<family>(port,m)};
+	return win32_socket_factory{details::win32_family_tcp_connect_v6_impl<family>(v6,m)};
 }
 
-inline win32_family_socket_factory<win32_family::wide_nt> win32_tcp_listen_ntw(std::uint16_t port,open_mode m=open_mode{})
+inline win32_socket_factory win32_tcp_connect_9xa(ipv6 v6,open_mode m=open_mode{})
 {
-	return {details::win32_tcp_listen_impl<win32_family::wide_nt>(port,m)};
+	return win32_socket_factory{details::win32_family_tcp_connect_v6_impl<win32_family::ansi_9x>(v6,m)};
 }
 
-inline win32_family_socket_factory<win32_family::ansi_9x> win32_tcp_listen_9xa(std::uint16_t port,open_mode m=open_mode{})
+inline win32_socket_factory win32_tcp_connect_ntw(ipv6 v6,open_mode m=open_mode{})
 {
-	return {details::win32_tcp_listen_impl<win32_family::ansi_9x>(port,m)};
+	return win32_socket_factory{details::win32_family_tcp_connect_v6_impl<win32_family::wide_nt>(v6,m)};
 }
 
-inline win32_family_socket_factory<win32_family::native> win32_tcp_listen(std::uint16_t port,open_mode m=open_mode{})
+inline win32_socket_factory win32_tcp_connect(ipv6 v6,open_mode m=open_mode{})
 {
-	return {details::win32_tcp_listen_impl<win32_family::native>(port,m)};
+	return win32_socket_factory{details::win32_family_tcp_connect_v6_impl<win32_family::native>(v6,m)};
+}
+
+inline win32_socket_factory win32_tcp_connect_9xa(ip v,open_mode m=open_mode{})
+{
+	return win32_socket_factory{details::win32_family_tcp_connect_ip_impl<win32_family::ansi_9x>(v,m)};
+}
+
+inline win32_socket_factory win32_tcp_connect_ntw(ip v,open_mode m=open_mode{})
+{
+	return win32_socket_factory{details::win32_family_tcp_connect_ip_impl<win32_family::wide_nt>(v,m)};
+}
+
+inline win32_socket_factory win32_tcp_connect(ip v,open_mode m=open_mode{})
+{
+	return win32_socket_factory{details::win32_family_tcp_connect_ip_impl<win32_family::native>(v,m)};
+}
+
+
+template<win32_family family>
+inline win32_socket_factory win32_family_tcp_listen(std::uint16_t port,open_mode m=open_mode{})
+{
+	return win32_socket_factory{details::win32_tcp_listen_impl<family>(port,m)};
+}
+
+inline win32_socket_factory win32_tcp_listen_ntw(std::uint16_t port,open_mode m=open_mode{})
+{
+	return win32_socket_factory{details::win32_tcp_listen_impl<win32_family::wide_nt>(port,m)};
+}
+
+inline win32_socket_factory win32_tcp_listen_9xa(std::uint16_t port,open_mode m=open_mode{})
+{
+	return win32_socket_factory{details::win32_tcp_listen_impl<win32_family::ansi_9x>(port,m)};
+}
+
+inline win32_socket_factory win32_tcp_listen(std::uint16_t port,open_mode m=open_mode{})
+{
+	return win32_socket_factory{details::win32_tcp_listen_impl<win32_family::native>(port,m)};
 }
 
 template<std::integral ch_type>
@@ -767,10 +752,6 @@ using u8win32_socket_file=basic_win32_socket_file<char8_t>;
 using u16win32_socket_file=basic_win32_socket_file<char16_t>;
 using u32win32_socket_file=basic_win32_socket_file<char32_t>;
 
-using win32_socket_factory_9xa = win32_family_socket_factory<win32_family::ansi_9x>;
-using win32_socket_factory_ntw = win32_family_socket_factory<win32_family::wide_nt>;
-using win32_socket_factory = win32_family_socket_factory<win32_family::native>;
-
 #ifndef __CYGWIN__
 
 template<std::integral ch_type>
@@ -779,25 +760,24 @@ template<std::integral ch_type>
 using basic_native_socket_io_handle = basic_win32_socket_io_handle<ch_type>;
 template<std::integral ch_type>
 using basic_native_socket_file = basic_win32_socket_file<ch_type>;
-using native_socket_factory = win32_socket_factory;
-using native_socklen_t=win32_socklen_t;
+using native_socklen_t = win32_socklen_t;
 
 inline win32_socket_factory tcp_connect(ipv4 v4,open_mode m=open_mode{})
 {
-	return {details::win32_family_tcp_connect_v4_impl<win32_family::native>(v4,m)};
+	return win32_socket_factory{details::win32_family_tcp_connect_v4_impl<win32_family::native>(v4,m)};
 }
 inline win32_socket_factory tcp_connect(ipv6 v6,open_mode m=open_mode{})
 {
-	return {details::win32_family_tcp_connect_v6_impl<win32_family::native>(v6,m)};
+	return win32_socket_factory{details::win32_family_tcp_connect_v6_impl<win32_family::native>(v6,m)};
 }
 inline win32_socket_factory tcp_connect(ip v,open_mode m=open_mode{})
 {
-	return {details::win32_family_tcp_connect_ip_impl<win32_family::native>(v,m)};
+	return win32_socket_factory{details::win32_family_tcp_connect_ip_impl<win32_family::native>(v,m)};
 }
 
 inline win32_socket_factory tcp_listen(std::uint16_t port,open_mode m=open_mode{})
 {
-	return {details::win32_tcp_listen_impl<win32_family::native>(port,m)};
+	return win32_socket_factory{details::win32_tcp_listen_impl<win32_family::native>(port,m)};
 }
 
 #endif

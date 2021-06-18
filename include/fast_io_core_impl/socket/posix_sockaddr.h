@@ -62,9 +62,6 @@ posix_sockaddr_storage
 	std::uint16_t ss_family{};
 };
 
-static_assert(sizeof(posix_sockaddr)==sizeof(posix_sockaddr_in));
-static_assert(sizeof(posix_sockaddr_in)<sizeof(posix_sockaddr_in6));
-static_assert(sizeof(posix_sockaddr_in6)<sizeof(posix_sockaddr_storage));
 #if defined(_MSC_VER) && !defined(__clang__)
 #pragma warning(pop)
 #endif

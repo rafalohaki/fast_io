@@ -24,10 +24,13 @@ inline constexpr std::uint32_t win32_stderr_number(static_cast<std::uint32_t>(-1
 #include"nt.h"
 //#include"win32_iocp_overlapped.h"
 #include"win32.h"
-//#include"com_error.h"
+#include"win32_network/win32.h"
 #endif
 #include"linux/system_call.h"
 #include"posix.h"
+#if !defined(_WIN32) && __has_include(<sys/socket.h>) && __has_include(<netinet/in.h>) && !defined(__wasi__)
+#include"posix_netop.h"
+#endif
 
 namespace fast_io
 {
@@ -91,5 +94,28 @@ using u32native_io_observer = basic_native_io_observer<char32_t>;
 using u32native_io_handle = basic_native_io_handle<char32_t>;
 using u32native_file = basic_native_file<char32_t>;
 using u32native_pipe = basic_native_pipe<char32_t>;
+
+
+#if defined(_WIN32) || (__has_include(<sys/socket.h>) && __has_include(<netinet/in.h>) && !defined(__wasi__))
+using native_socket_io_observer = basic_native_socket_io_observer<char>;
+using native_socket_io_handle = basic_native_socket_io_handle<char>;
+using native_socket_file = basic_native_socket_file<char>;
+
+using wnative_socket_io_observer = basic_native_socket_io_observer<wchar_t>;
+using wnative_socket_io_handle = basic_native_socket_io_handle<wchar_t>;
+using wnative_socket_file = basic_native_socket_file<wchar_t>;
+
+using u8native_socket_io_observer = basic_native_socket_io_observer<char8_t>;
+using u8native_socket_io_handle = basic_native_socket_io_handle<char8_t>;
+using u8native_socket_file = basic_native_socket_file<char8_t>;
+
+using u16native_socket_io_observer = basic_native_socket_io_observer<char16_t>;
+using u16native_socket_io_handle = basic_native_socket_io_handle<char16_t>;
+using u16native_socket_file = basic_native_socket_file<char16_t>;
+
+using u32native_socket_io_observer = basic_native_socket_io_observer<char32_t>;
+using u32native_socket_io_handle = basic_native_socket_io_handle<char32_t>;
+using u32native_socket_file = basic_native_socket_file<char32_t>;
+#endif
 
 }
