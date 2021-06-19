@@ -167,7 +167,7 @@ inline posix_dns_file dns_once(char const* node,char const* service)	//place hol
 	return posix_dns_once(node,service);
 }
 
-inline posix_file_factory ip_connect(posix_dns_io_observer dniob,open_mode mode={})
+inline posix_file_factory connect(posix_dns_io_observer dniob,open_mode mode={})
 {
 	auto& info{*dniob.res};
 	posix_file pf(details::sys_socket(info.ai_family,info.ai_socktype|to_native_sock_open_mode(mode),info.ai_protocol));
