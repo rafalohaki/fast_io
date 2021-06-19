@@ -32,11 +32,8 @@ public:
 	{
 		return fb;
 	}
-	explicit operator basic_c_io_observer_unlocked<char_type>() const noexcept
-	{
-		return basic_c_io_observer_unlocked<char_type>{details::streambuf_hack::fp_hack(fb)};
-	}
-	explicit operator basic_c_io_observer<char_type>() const noexcept
+	template<c_family family>
+	explicit operator basic_c_family_io_observer<family,char_type>() const noexcept
 	{
 		return basic_c_io_observer<char_type>{details::streambuf_hack::fp_hack(fb)};
 	}
