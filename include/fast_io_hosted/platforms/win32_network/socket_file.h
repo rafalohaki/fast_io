@@ -315,65 +315,65 @@ inline constexpr int to_win32_sock_family(sock_family dom) noexcept
 }
 
 
-inline constexpr int to_win32_sock_protocal(sock_protocal prot) noexcept
+inline constexpr int to_win32_sock_protocol(sock_protocol prot) noexcept
 {
 	switch(prot)
 	{
-	case sock_protocal::ip:
+	case sock_protocol::ip:
 		return 0;
-	case sock_protocal::hopopts:
+	case sock_protocol::hopopts:
 		return 0;
-	case sock_protocal::icmp:
+	case sock_protocol::icmp:
 		return 1;
-	case sock_protocal::igmp:
+	case sock_protocol::igmp:
 		return 2;
-	case sock_protocal::ggp:
+	case sock_protocol::ggp:
 		return 3;
-	case sock_protocal::ipv4:
+	case sock_protocol::ipv4:
 		return 4;
-	case sock_protocal::st:
+	case sock_protocol::st:
 		return 5;
-	case sock_protocal::tcp:
+	case sock_protocol::tcp:
 		return 6;
-	case sock_protocal::cbt:
+	case sock_protocol::cbt:
 		return 7;
-	case sock_protocal::egp:
+	case sock_protocol::egp:
 		return 8;
-	case sock_protocal::igp:
+	case sock_protocol::igp:
 		return 9;
-	case sock_protocal::pup:
+	case sock_protocol::pup:
 		return 12;
-	case sock_protocal::udp:
+	case sock_protocol::udp:
 		return 17;
-	case sock_protocal::idp:
+	case sock_protocol::idp:
 		return 22;
-	case sock_protocal::rdp:
+	case sock_protocol::rdp:
 		return 27;
-	case sock_protocal::ipv6:
+	case sock_protocol::ipv6:
 		return 41;
-	case sock_protocal::routing:
+	case sock_protocol::routing:
 		return 43;
-	case sock_protocal::fragment:
+	case sock_protocol::fragment:
 		return 44;
-	case sock_protocal::icmpv6:
+	case sock_protocol::icmpv6:
 		return 58;
-	case sock_protocal::none:
+	case sock_protocol::none:
 		return 59;
-	case sock_protocal::dstopts:
+	case sock_protocol::dstopts:
 		return 60;
-	case sock_protocal::nd:
+	case sock_protocol::nd:
 		return 77;
-	case sock_protocal::iclfxbm:
+	case sock_protocol::iclfxbm:
 		return 78;
-	case sock_protocal::pim:
+	case sock_protocol::pim:
 		return 103;
-	case sock_protocal::pgm:
+	case sock_protocol::pgm:
 		return 113;
-	case sock_protocal::l2tp:
+	case sock_protocol::l2tp:
 		return 115;
-	case sock_protocal::sctp:
+	case sock_protocol::sctp:
 		return 132;
-	case sock_protocal::raw:
+	case sock_protocol::raw:
 		return 255;
 	default:
 		return -1;
@@ -433,9 +433,9 @@ inline constexpr int to_native_sock_type(sock_type dom) noexcept
 	return to_win32_sock_type(dom);
 }
 
-inline constexpr int to_native_sock_protocal(sock_protocal prot) noexcept
+inline constexpr int to_native_sock_protocol(sock_protocol prot) noexcept
 {
-	return to_win32_sock_protocal(prot);
+	return to_win32_sock_protocol(prot);
 }
 
 inline constexpr std::uint32_t to_native_sock_open_mode(open_mode m) noexcept
@@ -449,11 +449,11 @@ namespace win32::details
 {
 
 template<win32_family family>
-inline std::uintptr_t open_win32_socket_impl(sock_family d,sock_type t,open_mode m,sock_protocal p)
+inline std::uintptr_t open_win32_socket_impl(sock_family d,sock_type t,open_mode m,sock_protocol p)
 {
 	int af{to_win32_sock_family(d)};
 	int tp{to_win32_sock_type(t)};
-	int prt{to_win32_sock_protocal(p)};
+	int prt{to_win32_sock_protocol(p)};
 	if constexpr(family==win32_family::wide_nt)
 	{
 		std::uint32_t dwflags{to_win32_sock_open_mode(m)};
@@ -521,7 +521,7 @@ public:
 	{}
 	basic_win32_family_socket_file(io_dup_t,basic_win32_family_socket_io_observer<family,ch_type> wsiob):basic_win32_family_socket_io_handle<family,ch_type>{win32::details::win32_duphsocket(wsiob.hsocket)}
 	{}
-	basic_win32_family_socket_file(sock_family d,sock_type t,open_mode m,sock_protocal p)
+	basic_win32_family_socket_file(sock_family d,sock_type t,open_mode m,sock_protocol p)
 		:basic_win32_family_socket_file<family,ch_type>{win32::details::open_win32_socket_impl<family>(d,t,m,p)}
 	{}
 	basic_win32_family_socket_file(basic_win32_family_socket_file const&)=default;
@@ -548,7 +548,7 @@ namespace details
 template<win32_family family>
 inline std::uintptr_t win32_family_tcp_connect_v4_impl(ipv4 v4,open_mode m)
 {
-	basic_win32_family_socket_file<family,char> soc(sock_family::inet,sock_type::stream,m,sock_protocal::tcp);
+	basic_win32_family_socket_file<family,char> soc(sock_family::inet,sock_type::stream,m,sock_protocol::tcp);
 	constexpr auto inet{to_win32_sock_family(sock_family::inet)};
 	posix_sockaddr_in in{.sin_family=inet,.sin_port=big_endian(static_cast<std::uint16_t>(v4.port)),.sin_addr=v4.address};
 	posix_connect(soc,__builtin_addressof(in),sizeof(in));
@@ -559,7 +559,7 @@ inline std::uintptr_t win32_family_tcp_connect_v4_impl(ipv4 v4,open_mode m)
 template<win32_family family>
 inline std::uintptr_t win32_family_tcp_connect_v6_impl(ipv6 v6,open_mode m)
 {
-	basic_win32_family_socket_file<family,char> soc(sock_family::inet6,sock_type::stream,m,sock_protocal::tcp);
+	basic_win32_family_socket_file<family,char> soc(sock_family::inet6,sock_type::stream,m,sock_protocol::tcp);
 	constexpr auto inet6{to_win32_sock_family(sock_family::inet6)};
 	posix_sockaddr_in6 in6{.sin6_family=inet6,.sin6_port=big_endian(static_cast<std::uint16_t>(v6.port)),.sin6_addr=v6.address};
 	posix_connect(soc,__builtin_addressof(in6),sizeof(in6));
@@ -569,7 +569,7 @@ inline std::uintptr_t win32_family_tcp_connect_v6_impl(ipv6 v6,open_mode m)
 template<win32_family family>
 inline std::uintptr_t win32_family_tcp_connect_ip_impl(ip v,open_mode m)
 {
-	basic_win32_family_socket_file<family,char> soc(v.isv4?sock_family::inet:sock_family::inet6,sock_type::stream,m,sock_protocal::tcp);
+	basic_win32_family_socket_file<family,char> soc(v.isv4?sock_family::inet:sock_family::inet6,sock_type::stream,m,sock_protocol::tcp);
 	if(v.isv4)
 	{
 		constexpr auto inet{to_win32_sock_family(sock_family::inet)};
@@ -596,7 +596,7 @@ inline void win32_tcp_listen_common_impl(std::uintptr_t hsocket,std::uint16_t po
 template<win32_family family>
 inline std::uintptr_t win32_tcp_listen_impl(std::uint16_t port,open_mode m)
 {
-	basic_win32_family_socket_file<family,char> soc(sock_family::inet,sock_type::stream,m,sock_protocal::tcp);
+	basic_win32_family_socket_file<family,char> soc(sock_family::inet,sock_type::stream,m,sock_protocol::tcp);
 	win32_tcp_listen_common_impl(soc.hsocket,port);
 	return soc.release();
 }

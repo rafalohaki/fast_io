@@ -1,7 +1,7 @@
 #pragma once
 
 #include"sock_family.h"
-#include"sock_protocal.h"
+#include"sock_protocol.h"
 #include"sock_type.h"
 #include"posix_sockaddr.h"
 #include"ip.h"

@@ -1136,7 +1136,7 @@ public:
 	basic_posix_file(u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_open_file_impl(file,om,pm)){}
 	basic_posix_file(posix_at_entry pate,u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_openat_file_impl(pate.fd,file,om,pm)){}
 #if !defined(_WIN32) && !defined(__wasi__) && __has_include(<sys/socket.h>) && __has_include(<netinet/in.h>)
-	basic_posix_file(sock_family d,sock_type t,open_mode m,sock_protocal p):basic_posix_io_handle<char_type>(details::open_socket_impl(d,t,m,p)){}
+	basic_posix_file(sock_family d,sock_type t,open_mode m,sock_protocol p):basic_posix_io_handle<char_type>(details::open_socket_impl(d,t,m,p)){}
 #endif
 
 #endif

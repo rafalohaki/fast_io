@@ -353,208 +353,208 @@ inline constexpr int to_native_sock_family(sock_family dom) noexcept
 	return to_posix_sock_family(dom);
 }
 
-inline constexpr int to_posix_sock_protocal(sock_protocal dom) noexcept
+inline constexpr int to_posix_sock_protocol(sock_protocol dom) noexcept
 {
 switch(dom)
 {
 #ifdef IPPROTO_AH
-case sock_protocal::ah:
+case sock_protocol::ah:
 	return IPPROTO_AH;
 #endif
 #ifdef IPPROTO_BEETPH
-case sock_protocal::beetph:
+case sock_protocol::beetph:
 	return IPPROTO_BEETPH;
 #endif
 #ifdef IPPROTO_CARP
-case sock_protocal::carp:
+case sock_protocol::carp:
 	return IPPROTO_CARP;
 #endif
 #ifdef IPPROTO_CBT
-case sock_protocal::cbt:
+case sock_protocol::cbt:
 	return IPPROTO_CBT;
 #endif
 #ifdef IPPROTO_COMP
-case sock_protocal::comp:
+case sock_protocol::comp:
 	return IPPROTO_COMP;
 #endif
 #ifdef IPPROTO_DCCP
-case sock_protocal::dccp:
+case sock_protocol::dccp:
 	return IPPROTO_DCCP;
 #endif
 #ifdef IPPROTO_DSTOPTS
-case sock_protocal::dstopts:
+case sock_protocol::dstopts:
 	return IPPROTO_DSTOPTS;
 #endif
 #ifdef IPPROTO_EGP
-case sock_protocal::egp:
+case sock_protocol::egp:
 	return IPPROTO_EGP;
 #endif
 #ifdef IPPROTO_EIGRP
-case sock_protocal::eigrp:
+case sock_protocol::eigrp:
 	return IPPROTO_EIGRP;
 #endif
 #ifdef IPPROTO_ENCAP
-case sock_protocal::encap:
+case sock_protocol::encap:
 	return IPPROTO_ENCAP;
 #endif
 #ifdef IPPROTO_ESP
-case sock_protocal::esp:
+case sock_protocol::esp:
 	return IPPROTO_ESP;
 #endif
 #ifdef IPPROTO_ETHERNET
-case sock_protocal::ethernet:
+case sock_protocol::ethernet:
 	return IPPROTO_ETHERNET;
 #endif
 #ifdef IPPROTO_FRAGMENT
-case sock_protocal::fragment:
+case sock_protocol::fragment:
 	return IPPROTO_FRAGMENT;
 #endif
 #ifdef IPPROTO_GGP
-case sock_protocal::ggp:
+case sock_protocol::ggp:
 	return IPPROTO_GGP;
 #endif
 #ifdef IPPROTO_GRE
-case sock_protocal::gre:
+case sock_protocol::gre:
 	return IPPROTO_GRE;
 #endif
 #ifdef IPPROTO_HOPOPTS
-case sock_protocal::hopopts:
+case sock_protocol::hopopts:
 	return IPPROTO_HOPOPTS;
 #endif
 #ifdef IPPROTO_ICLFXBM
-case sock_protocal::iclfxbm:
+case sock_protocol::iclfxbm:
 	return IPPROTO_ICLFXBM;
 #endif
 #ifdef IPPROTO_ICMP
-case sock_protocal::icmp:
+case sock_protocol::icmp:
 	return IPPROTO_ICMP;
 #endif
 #ifdef IPPROTO_ICMPV6
-case sock_protocal::icmpv6:
+case sock_protocol::icmpv6:
 	return IPPROTO_ICMPV6;
 #endif
 #ifdef IPPROTO_IDP
-case sock_protocal::idp:
+case sock_protocol::idp:
 	return IPPROTO_IDP;
 #endif
 #ifdef IPPROTO_IGMP
-case sock_protocal::igmp:
+case sock_protocol::igmp:
 	return IPPROTO_IGMP;
 #endif
 #ifdef IPPROTO_IGP
-case sock_protocal::igp:
+case sock_protocol::igp:
 	return IPPROTO_IGP;
 #endif
 #ifdef IPPROTO_IP
-case sock_protocal::ip:
+case sock_protocol::ip:
 	return IPPROTO_IP;
 #endif
 #ifdef IPPROTO_IPV4
-case sock_protocal::ipv4:
+case sock_protocol::ipv4:
 	return IPPROTO_IPV4;
 #endif
 #ifdef IPPROTO_IPV6
-case sock_protocal::ipv6:
+case sock_protocol::ipv6:
 	return IPPROTO_IPV6;
 #endif
 #ifdef IPPROTO_L2TP
-case sock_protocal::l2tp:
+case sock_protocol::l2tp:
 	return IPPROTO_L2TP;
 #endif
 #ifdef IPPROTO_MOBILE
-case sock_protocal::mobile:
+case sock_protocol::mobile:
 	return IPPROTO_MOBILE;
 #endif
 #ifdef IPPROTO_MOBILITY
-case sock_protocal::mobility:
+case sock_protocol::mobility:
 	return IPPROTO_MOBILITY;
 #endif
 #ifdef IPPROTO_MOBILITY_OLD
-case sock_protocal::mobility_old:
+case sock_protocol::mobility_old:
 	return IPPROTO_MOBILITY_OLD;
 #endif
 #ifdef IPPROTO_MPLS
-case sock_protocal::mpls:
+case sock_protocol::mpls:
 	return IPPROTO_MPLS;
 #endif
 #ifdef IPPROTO_MPTCP
-case sock_protocal::mptcp:
+case sock_protocol::mptcp:
 	return IPPROTO_MPTCP;
 #endif
 #ifdef IPPROTO_MTP
-case sock_protocal::mtp:
+case sock_protocol::mtp:
 	return IPPROTO_MTP;
 #endif
 #ifdef IPPROTO_ND
-case sock_protocal::nd:
+case sock_protocol::nd:
 	return IPPROTO_ND;
 #endif
 #ifdef IPPROTO_NONE
-case sock_protocal::none:
+case sock_protocol::none:
 	return IPPROTO_NONE;
 #endif
 #ifdef IPPROTO_OSPF
-case sock_protocal::ospf:
+case sock_protocol::ospf:
 	return IPPROTO_OSPF;
 #endif
 #ifdef IPPROTO_PGM
-case sock_protocal::pgm:
+case sock_protocol::pgm:
 	return IPPROTO_PGM;
 #endif
 #ifdef IPPROTO_PIGP
-case sock_protocal::pigp:
+case sock_protocol::pigp:
 	return IPPROTO_PIGP;
 #endif
 #ifdef IPPROTO_PIM
-case sock_protocal::pim:
+case sock_protocol::pim:
 	return IPPROTO_PIM;
 #endif
 #ifdef IPPROTO_PUP
-case sock_protocal::pup:
+case sock_protocol::pup:
 	return IPPROTO_PUP;
 #endif
 #ifdef IPPROTO_RAW
-case sock_protocal::raw:
+case sock_protocol::raw:
 	return IPPROTO_RAW;
 #endif
 #ifdef IPPROTO_RDP
-case sock_protocal::rdp:
+case sock_protocol::rdp:
 	return IPPROTO_RDP;
 #endif
 #ifdef IPPROTO_ROUTING
-case sock_protocal::routing:
+case sock_protocol::routing:
 	return IPPROTO_ROUTING;
 #endif
 #ifdef IPPROTO_RSVP
-case sock_protocal::rsvp:
+case sock_protocol::rsvp:
 	return IPPROTO_RSVP;
 #endif
 #ifdef IPPROTO_SCTP
-case sock_protocal::sctp:
+case sock_protocol::sctp:
 	return IPPROTO_SCTP;
 #endif
 #ifdef IPPROTO_ST
-case sock_protocal::st:
+case sock_protocol::st:
 	return IPPROTO_ST;
 #endif
 #ifdef IPPROTO_TCP
-case sock_protocal::tcp:
+case sock_protocol::tcp:
 	return IPPROTO_TCP;
 #endif
 #ifdef IPPROTO_TP
-case sock_protocal::tp:
+case sock_protocol::tp:
 	return IPPROTO_TP;
 #endif
 #ifdef IPPROTO_UDP
-case sock_protocal::udp:
+case sock_protocol::udp:
 	return IPPROTO_UDP;
 #endif
 #ifdef IPPROTO_UDPLITE
-case sock_protocal::udplite:
+case sock_protocol::udplite:
 	return IPPROTO_UDPLITE;
 #endif
 #ifdef IPPROTO_VRRP
-case sock_protocal::vrrp:
+case sock_protocol::vrrp:
 	return IPPROTO_VRRP;
 #endif
 default:
@@ -562,9 +562,9 @@ default:
 }
 }
 
-inline constexpr int to_native_sock_protocal(sock_protocal prot) noexcept
+inline constexpr int to_native_sock_protocol(sock_protocol prot) noexcept
 {
-	return to_posix_sock_protocal(prot);
+	return to_posix_sock_protocol(prot);
 }
 
 inline constexpr int to_posix_sock_type(sock_type soc) noexcept
@@ -632,18 +632,23 @@ inline constexpr int to_native_sock_open_mode(open_mode om) noexcept
 namespace details
 {
 
-inline int open_socket_impl(sock_family d,sock_type t,open_mode m,sock_protocal p)
+inline int sys_socket(int domain,int type, int protocol)
 {
 #if defined(__linux__) && defined(__NR_socket)
-	int fd{system_call<__NR_socket,int>(to_posix_sock_family(d),to_posix_sock_type(t)|to_posix_sock_open_mode(m),to_posix_sock_protocal(p))};
+	int fd{system_call<__NR_socket,int>(domain,type,protocol)};
 	system_call_throw_error(fd);
 	return fd;
 #else
-	int fd{socket(to_posix_sock_family(d),to_posix_sock_type(t)|to_posix_sock_open_mode(m),to_posix_sock_protocal(p))};
+	int fd{socket(domain,type,protocol)};
 	if(fd==-1)
 		throw_posix_error();
 	return fd;
 #endif
+}
+
+inline int open_socket_impl(sock_family d,sock_type t,open_mode m,sock_protocol p)
+{
+	return sys_socket(to_posix_sock_family(d),to_posix_sock_type(t)|to_posix_sock_open_mode(m),to_posix_sock_protocol(p));
 }
 
 

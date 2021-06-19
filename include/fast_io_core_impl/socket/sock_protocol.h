@@ -7,7 +7,7 @@ namespace fast_io
 https://github.com/mirror/mingw-w64/blob/99b840e52d6e46f689b9cd086d925fad88db2b17/mingw-w64-headers/include/winsock2.h
 */
 
-enum class sock_protocal
+enum class sock_protocol
 {
 ah,          	/* authentication header.  */
 beetph,      	/* IP option pseudo header for BEET.  */
