@@ -7,7 +7,11 @@ namespace fast_io::freestanding
 using ::std::char_traits;
 using ::std::basic_string_view;
 using ::std::string_view;
+#if defined(__MSDOS__)
+using wstring_view=::std::basic_string_view<wchar_t>;
+#else
 using ::std::wstring_view;
+#endif
 using ::std::u8string_view;
 using ::std::u16string_view;
 using ::std::u32string_view;
