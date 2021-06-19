@@ -114,9 +114,10 @@ public:
 	{
 		if(*this)[[likely]]
 		{
-			if(::closedir(this->native_handle())==-1)
-				throw_posix_error();
+			int ret{::closedir(this->native_handle())};
 			this->native_handle()=nullptr;
+			if(ret==-1)
+				throw_posix_error();
 		}
 	}
 };

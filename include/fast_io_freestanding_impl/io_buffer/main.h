@@ -103,6 +103,13 @@ concept has_external_decorator_impl = requires(decorators_type&& decos)
 	external_decorator(decos);
 };
 
+
+template<typename handle_type,typename... Args>
+concept iobuffer_reopenable_impl =  requires(handle_type handle,Args&& ...args)
+{
+	handle.reopen(std::forward<Args>(args)...);
+};
+
 }
 
 template<stream handletype,
@@ -286,7 +293,7 @@ public:
 	}
 	constexpr basic_io_buffer& operator=(basic_io_buffer const&)=delete;
 	template<typename... Args>
-	requires std::movable<handle_type>
+	requires (std::movable<handle_type>&&std::constructible_from<handle_type,Args...>)||(details::iobuffer_reopenable_impl<handle_type,Args...>)
 	constexpr void reopen(Args&& ...args)
 	{
 		close_impl();
@@ -294,11 +301,11 @@ public:
 			ibuffer.buffer_curr=ibuffer.buffer_end;
 		if constexpr((mode&buffer_mode::out)==buffer_mode::out)
 			obuffer.buffer_curr=obuffer.buffer_begin;
-		if constexpr(std::movable<handle_type>)
+		if constexpr(details::iobuffer_reopenable_impl<handle_type,Args...>)
+			handle.reopen(std::forward<Args>(args)...);
+		else
 			handle=handle_type(std::forward<Args>(args)...);
 	}
-
-
 	constexpr void close() requires requires()
 	{
 		handle.close();

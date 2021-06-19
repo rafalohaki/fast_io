@@ -369,7 +369,7 @@ template<typename... Args>
 	try
 	{
 #endif
-			perr(std::forward<Args>(args)...);
+		perr(std::forward<Args>(args)...);
 #ifdef __cpp_exceptions
 	}
 	catch(...){}

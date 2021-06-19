@@ -146,9 +146,10 @@ public:
 	{
 		if(this->rtld_handle)[[likely]]
 		{
-			if(noexcept_call(dlclose,this->rtld_handle))
-				throw_posix_rtld_error();
+			auto ret{noexcept_call(dlclose,this->rtld_handle)};
 			this->rtld_handle=nullptr;
+			if(ret)
+				throw_posix_rtld_error();
 		}
 	}
 	~posix_dll_file()

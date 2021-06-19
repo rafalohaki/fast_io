@@ -470,9 +470,10 @@ public:
 	{
 		if(this->handle)[[likely]]
 		{
-			if(!fast_io::win32::CloseHandle(this->handle))[[unlikely]]
+			auto error{fast_io::win32::CloseHandle(this->handle)};
+			this->handle=nullptr;//POSIX standard says we should never call close(2) again even close syscall fails
+			if(!error)[[unlikely]]
 				throw_win32_error();
-			this->handle=nullptr;
 		}
 	}
 };

@@ -841,9 +841,10 @@ public:
 	{
 		if(this->fp)[[likely]]
 		{
-			if(fclose(this->fp)==EOF)
-				throw_posix_error();
+			auto ret{fclose(this->fp)};
 			this->fp=nullptr;
+			if(ret==EOF)
+				throw_posix_error();
 		}
 	}
 	inline constexpr void reset(native_handle_type newfp=nullptr) noexcept

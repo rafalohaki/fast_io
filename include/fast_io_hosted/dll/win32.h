@@ -172,9 +172,10 @@ public:
 	{
 		if(this->hmodule)[[likely]]
 		{
-			if(!win32::FreeLibrary(this->hmodule))
-				throw_win32_error();
+			auto ret{win32::FreeLibrary(this->hmodule)};
 			this->hmodule=nullptr;
+			if(!ret)
+				throw_win32_error();
 		}
 	}
 	~win32_family_dll_file()

@@ -190,12 +190,21 @@ This function never fails. but what if fdopen fails?
 	{
 		if(this->fb)[[likely]]
 		{
-			this->fb->clear();
-			this->fb->close();
-			if(this->fb->bad())[[unlikely]]
+			struct delete_guard
+			{
+				native_handle_type& fbr;
+				delete_guard(native_handle_type& fb):fbr(fb){}
+				delete_guard(delete_guard const&)=delete;
+				delete_guard& operator=(delete_guard const&)=delete;
+				~delete_guard()
+				{
+					delete fbr;
+					fbr=nullptr;
+				}
+			};
+			delete_guard guard{this->fb};
+			if(this->fb->close()==nullptr)[[unlikely]]
 				throw_posix_error();
-			delete this->fb;
-			this->fb=nullptr;
 		}
 	}
 	void reset(native_handle_type fb=nullptr) noexcept

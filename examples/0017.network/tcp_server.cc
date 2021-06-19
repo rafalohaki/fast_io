@@ -9,8 +9,7 @@ int main()
 		try
 		{
 			file.reopen(tcp_accept(socket));
-			auto t{utc(fast_io::posix_clock_gettime(fast_io::posix_clock_id::realtime))};
-			println(file,t);
+			println(file,utc(fast_io::posix_clock_gettime(fast_io::posix_clock_id::realtime)));
 			file.close();
 		}
 		catch(...)

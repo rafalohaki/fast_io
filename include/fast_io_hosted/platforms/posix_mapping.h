@@ -240,8 +240,9 @@ public:
 	{
 		if(this->address_begin!=MAP_FAILED)[[likely]]
 		{
-			details::sys_munmap(this->address_begin,static_cast<std::size_t>(address_end-address_begin));
+			auto ret{details::sys_munmap(this->address_begin,static_cast<std::size_t>(address_end-address_begin))};
 			this->address_end=this->address_begin=reinterpret_cast<std::byte*>(MAP_FAILED);
+			system_call_throw_error(ret);
 		}
 	}
 	~posix_memory_map_file()

@@ -674,9 +674,9 @@ public:
 		if(this->handle)[[likely]]
 		{
 			auto status{win32::nt::nt_close<family==nt_family::zw>(this->handle)};
+			this->handle=nullptr;//POSIX standard says we should never call close(2) again even close syscall fails
 			if(status)[[unlikely]]
 				throw_nt_error(status);
-			this->handle=nullptr;
 		}
 	}
 	basic_nt_family_io_handle(basic_nt_family_io_handle const& other):basic_nt_family_io_observer<family,ch_type>(win32::nt::details::nt_dup_impl<family==nt_family::zw>(other.handle)){}

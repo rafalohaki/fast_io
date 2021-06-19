@@ -407,11 +407,8 @@ public:
 	}
 	void close()
 	{
-		if(*this)[[likely]]
-		{
+		if(this->fd!=-1)[[likely]]
 			details::sys_close_throw_error(this->fd);
-			this->fd=-1;
-		}
 	}
 };
 

@@ -217,18 +217,17 @@ public:
 	}
 	basic_win32_family_socket_io_handle& operator=(basic_win32_family_socket_io_handle&& b) noexcept
 	{
-		if(b.hsocket!=this->hsocket)
-		{
-			if(this->hsocket)[[likely]]
-				win32::closesocket(this->hsocket);
-			this->hsocket=b.hsocket;
-			b.hsocket = 0;
-		}
+		if(__builtin_addressof(b)==this)
+			return *this;
+		if(this->hsocket)[[likely]]
+			win32::closesocket(this->hsocket);
+		this->hsocket=b.hsocket;
+		b.hsocket = 0;
 		return *this;
 	}
 	constexpr void reset(native_handle_type newhsocket=0) noexcept
 	{
-		if(this->hsocket!=0)[[likely]]
+		if(this->hsocket)[[likely]]
 			win32::closesocket(this->hsocket);
 		this->hsocket=newhsocket;
 	}
@@ -236,9 +235,10 @@ public:
 	{
 		if(this->hsocket)[[likely]]
 		{
-			if(win32::closesocket(this->hsocket))
+			auto ret{win32::closesocket(this->hsocket)};
+			this->hsocket=0;//POSIX standard says we should never call close(2) again even close syscall fails
+			if(ret)
 				throw_win32_error(win32::WSAGetLastError());
-			this->hsocket=0;
 		}
 	}
 };

@@ -209,12 +209,14 @@ public:
 		other.address_end=other.address_begin=nullptr;
 		return *this;
 	}
-	void close() noexcept
+	void close()
 	{
 		if(this->address_begin)[[likely]]
 		{
-			win32::UnmapViewOfFile(this->address_begin);
+			auto ret{win32::UnmapViewOfFile(this->address_begin)};
 			this->address_end=this->address_begin=nullptr;
+			if(!ret)
+				throw_win32_error();
 		}
 	}
 	~win32_family_memory_map_file()

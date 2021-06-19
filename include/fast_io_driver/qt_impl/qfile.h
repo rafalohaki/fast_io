@@ -105,8 +105,19 @@ public:
 	{
 		if(this->qdevice)[[likely]]
 		{
+			struct delete_guard
+			{
+				native_handle_type& qdevicer;
+				delete_guard(native_handle_type& qdevice):qdevicer(qdevice){}
+				delete_guard(delete_guard const&)=delete;
+				delete_guard& operator=(delete_guard const&)=delete;
+				~delete_guard()
+				{
+					delete qdevicer;
+					qdevicer=nullptr;
+				}
+			}guard{this->qdevice};
 			this->qdevice->close();
-			delete this->qdevice;
 		}
 	}
 
@@ -126,7 +137,6 @@ private:
 			{
 			}
 #endif
-			delete this->qdevice;
 		}
 	}
 public:

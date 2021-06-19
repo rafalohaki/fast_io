@@ -71,9 +71,11 @@ inline int sys_close(int fd) noexcept
 	(fd);
 }
 
-inline void sys_close_throw_error(int fd)
+inline void sys_close_throw_error(int& fd)
 {
-	system_call_throw_error(sys_close(fd));
+	auto ret{sys_close(fd)};
+	fd=-1;//POSIX standard says we should never call close(2) again even close syscall fails
+	system_call_throw_error(ret);
 }
 
 }

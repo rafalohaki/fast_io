@@ -315,6 +315,16 @@ public:
 		bf.bio=nullptr;
 		return *this;
 	}
+	void close()
+	{
+		if(this->bio)[[likely]]
+		{
+			int ret{BIO_free(this->bio)};
+			this->bio=nullptr;
+			if(!ret)[[unlikely]]
+				throw_openssl_error();
+		}
+	}
 	~basic_bio_file()
 	{
 		if(this->bio)[[likely]]
