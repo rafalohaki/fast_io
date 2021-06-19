@@ -495,12 +495,12 @@ public:
 #endif
 	inline void lock() const noexcept requires(family==c_family::standard)
 	{
-#if !defined(__SINGLE_THREAD__)
 #if defined(_MSC_VER)||defined(_UCRT)
 	noexcept_call(_lock_file,fp);
 #elif defined(_WIN32) && !defined(__CYGWIN__)
 	win32::my_msvcrt_lock_file(fp);
-#elif defined(__NEWLIB__)
+#elif !defined(__SINGLE_THREAD__)
+#if defined(__NEWLIB__)
 #if defined(__CYGWIN__)
 	details::my_cygwin_flockfile(fp);
 #elif !defined(__SINGLE_THREAD__)
@@ -514,12 +514,12 @@ public:
 	}
 	inline void unlock() const noexcept requires(family==c_family::standard)
 	{
-#if !defined(__SINGLE_THREAD__)
 #if defined(_MSC_VER)||defined(_UCRT)
 	noexcept_call(_unlock_file,fp);
 #elif defined(_WIN32) && !defined(__CYGWIN__)
 	win32::my_msvcrt_unlock_file(fp);
-#elif defined(__NEWLIB__)
+#elif !defined(__SINGLE_THREAD__)
+#if defined(__NEWLIB__)
 #if defined(__CYGWIN__)
 	details::my_cygwin_funlockfile(fp);
 #elif !defined(__SINGLE_THREAD__)
