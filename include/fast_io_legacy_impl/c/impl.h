@@ -895,7 +895,7 @@ using c_file_factory_unlocked = c_family_file_factory<c_family::unlocked>;
 #include"glibc.h"
 #elif defined(__wasi__)
 #include"musl.h"
-#elif defined(__NEED___isoc_va_list)
+#elif defined(__NEED___isoc_va_list) || defined(__musl__)
 #include"musl.h"
 #elif defined(__BSD_VISIBLE) ||defined(__DARWIN_C_LEVEL) \
 	|| (defined(__NEWLIB__) &&!defined(__CUSTOM_FILE_IO__)) \
