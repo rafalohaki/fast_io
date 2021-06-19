@@ -232,9 +232,17 @@ inline void wincrt_fp_write_cold_impl(FILE* __restrict fp,char const* __restrict
 		wincrt_fp_write_cold_normal_case_impl(fp,first,diff);
 }
 
-template<std::integral char_type>
+template<c_family family,std::integral char_type>
 inline void wincrt_fp_write_impl(FILE* __restrict fpp,char_type const* first,char_type const* last)
 {
+	if constexpr(family==c_family::standard)
+	{
+		c_io_observer ciob{fpp};
+		lock_guard guard{ciob};
+		wincrt_fp_write_impl(fpp,first,last);
+	}
+	else
+	{
 #if defined(_MSC_VER) || defined(_UCRT)
 	ucrt_iobuf* fp{reinterpret_cast<ucrt_iobuf*>(fpp)};
 #else
@@ -254,6 +262,7 @@ inline void wincrt_fp_write_impl(FILE* __restrict fpp,char_type const* first,cha
 		return;
 	}
 	wincrt_fp_write_cold_impl(fpp,reinterpret_cast<char const*>(first),diff);
+	}
 }
 
 
@@ -343,9 +352,17 @@ inline std::size_t wincrt_fp_read_cold_impl(FILE* __restrict fpp,char* first,std
 	}
 }
 
-template<std::integral char_type>
+template<c_family family,std::integral char_type>
 inline char_type* wincrt_fp_read_impl(FILE* __restrict fpp,char_type* first,char_type* last)
 {
+	if constexpr(family==c_family::standard)
+	{
+		c_io_observer ciob{fpp};
+		lock_guard guard{ciob};
+		return wincrt_fp_read_impl(fpp,first,last);
+	}
+	else
+	{
 #if defined(_MSC_VER) || defined(_UCRT)
 	ucrt_iobuf* fp{reinterpret_cast<ucrt_iobuf*>(fpp)};
 #else
@@ -365,6 +382,7 @@ inline char_type* wincrt_fp_read_impl(FILE* __restrict fpp,char_type* first,char
 		return last;
 	}
 	return first+wincrt_fp_read_cold_impl(fpp,reinterpret_cast<char*>(first),diff)/sizeof(char_type);
+	}
 }
 
 template<std::integral char_type>
@@ -512,29 +530,28 @@ inline void obuffer_overflow(basic_c_io_observer_unlocked<char_type> ciob,char_t
 	details::wincrt_fp_overflow_impl(ciob.fp,ch);
 }
 
-template<std::integral char_type,::fast_io::freestanding::contiguous_iterator Iter>
+template<c_family family,std::integral char_type,::fast_io::freestanding::contiguous_iterator Iter>
 requires (std::same_as<char_type,char>||std::same_as<::fast_io::freestanding::iter_value_t<Iter>,char_type>)
-inline Iter read(basic_c_io_observer_unlocked<char_type> ciob,Iter bg,Iter ed)
+inline Iter read(basic_c_family_io_observer<family,char_type> ciob,Iter bg,Iter ed)
 {
 	if constexpr(!std::same_as<::fast_io::freestanding::iter_value_t<Iter>,char_type>||!std::is_pointer_v<Iter>)
 		return read(ciob,reinterpret_cast<char_type*>(::fast_io::freestanding::to_address(bg)),
 				reinterpret_cast<char_type*>(::fast_io::freestanding::to_address(ed)))-
 				reinterpret_cast<char_type*>(::fast_io::freestanding::to_address(bg))+bg;
 	else
-		return details::wincrt_fp_read_impl(ciob.fp,bg,ed);
+		return details::wincrt_fp_read_impl<family>(ciob.fp,bg,ed);
 }
 
 
-template<std::integral char_type,::fast_io::freestanding::contiguous_iterator Iter>
+template<c_family family,std::integral char_type,::fast_io::freestanding::contiguous_iterator Iter>
 requires (std::same_as<char_type,char>||std::same_as<::fast_io::freestanding::iter_value_t<Iter>,char_type>)
-inline void write(basic_c_io_observer_unlocked<char_type> ciob,Iter bg,Iter ed)
+inline void write(basic_c_family_io_observer<family,char_type> ciob,Iter bg,Iter ed)
 {
 	if constexpr(!std::same_as<::fast_io::freestanding::iter_value_t<Iter>,char_type>||!std::is_pointer_v<Iter>)
 		write(ciob,reinterpret_cast<char_type*>(::fast_io::freestanding::to_address(bg)),
 				reinterpret_cast<char_type*>(::fast_io::freestanding::to_address(ed)));
 	else
-		details::wincrt_fp_write_impl(ciob.fp,bg,ed);
+		details::wincrt_fp_write_impl<family>(ciob.fp,bg,ed);
 }
-static_assert(input_stream<c_io_observer_unlocked>);
 
 }

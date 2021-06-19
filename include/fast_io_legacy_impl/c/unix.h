@@ -193,9 +193,7 @@ T* ptr) noexcept
 #endif
 }
 
-#if defined(__NEWLIB__)
-extern int newlib_ssrefill_r(struct _reent * __restrict,FILE * __restrict) noexcept asm("__ssrefill_r");
-#elif defined(__BSD_VISIBLE) ||defined(__DARWIN_C_LEVEL)
+#if defined(__BSD_VISIBLE) ||defined(__DARWIN_C_LEVEL)
 extern int bsd_srget(FILE *) noexcept asm("__srget");
 #elif defined(__MSDOS__)
 extern int _filbuf(FILE *) noexcept asm("__filbuf");
@@ -207,11 +205,23 @@ extern int _flsbuf(int, FILE*) noexcept asm("__flsbuf");
 inline bool bsd_underflow_impl(FILE* __restrict fp)
 {
 #if defined(__NEWLIB__)
-	struct _reent rent;
-	bool eof(newlib_ssrefill_r(&rent,fp));
-	if(!eof&&__sferror(fp))[[unlikely]]
-		throw_posix_error(rent._errno);
+//untested
+#if defined(__CYGWIN__)
+	bool eof{fgetc(fp)==EOF};
+	if(eof&&((fp->_flags & __SERR)!=0))[[unlikely]]
+		throw_posix_error();
+	++fp->_r;
+	--fp->_p;
+	return !eof;
+#else
+	struct _reent rent{};
+	bool eof{__sgetc_r(__builtin_addressof(rent),fp)!=EOF};
+	if(!eof&&((fp->_flags & __SERR)!=0))[[unlikely]]
+		throw_posix_error();
+	++fp->_r;
+	--fp->_p;
 	return eof;
+#endif
 #elif defined(_MSC_VER) || defined(_UCRT)
 	if(_fgetc_nolock(fp)==EOF)[[unlikely]]
 		return false;
@@ -304,7 +314,7 @@ inline char* ibuffer_curr(c_io_observer_unlocked cio) noexcept
 
 inline char* ibuffer_end(c_io_observer_unlocked cio) noexcept
 {
-	return details::bsd_get_buffer_ptr_impl<char,2>(cio.fp);
+	return details::bsd_get_buffer_ptr_impl<char,3>(cio.fp);
 }
 
 inline void ibuffer_set_curr(c_io_observer_unlocked cio,char* __restrict ptr) noexcept

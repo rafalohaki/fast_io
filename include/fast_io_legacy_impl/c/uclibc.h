@@ -223,7 +223,4 @@ inline void obuffer_overflow(u8c_io_observer_unlocked ciob,char8_t ch)
 	details::uclibc_overflow_impl(ciob.fp,static_cast<char unsigned>(ch));
 }
 
-static_assert(buffer_io_stream<c_io_observer_unlocked>);
-static_assert(buffer_io_stream<u8c_io_observer_unlocked>);
-
 }

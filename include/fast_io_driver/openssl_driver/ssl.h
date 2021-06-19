@@ -9,23 +9,23 @@ class basic_ssl_io_observer
 public:
 	using char_type = ch_type;
 	using native_handle_type = SSL*;
-	native_handle_type s{};
-	constexpr auto& native_handle() const noexcept
+	native_handle_type ssl{};
+	constexpr native_handle_type const& native_handle() const noexcept
 	{
-		return s;
+		return ssl;
 	}
-	constexpr auto& native_handle() noexcept
+	constexpr native_handle_type& native_handle() noexcept
 	{
-		return s;
+		return ssl;
 	}
-	constexpr operator bool() noexcept
+	explicit constexpr operator bool() noexcept
 	{
-		return s;
+		return ssl;
 	}
 	constexpr native_handle_type release() noexcept
 	{
-		auto temp{s};
-		s={};
+		auto temp{ssl};
+		ssl={};
 		return temp;
 	}
 };
@@ -33,9 +33,9 @@ public:
 template<std::integral ch_type,std::integral ch_type1,std::integral ch_type2>
 inline void set_bio(basic_ssl_io_observer<ch_type> siob,basic_bio_file<ch_type1>&& rbio,basic_bio_file<ch_type2>&& wbio) noexcept
 {
-	SSL_set_bio(siob.s,rbio.bio,wbio.bio);
-	rbio.native_handle()=nullptr;
-	wbio.native_handle()=nullptr;
+	SSL_set_bio(siob.ssl,rbio.bio,wbio.bio);
+	rbio.bio=nullptr;
+	wbio.bio=nullptr;
 }
 
 template<std::integral ch_type>
@@ -47,7 +47,7 @@ inline std::size_t use_count(basic_ssl_io_observer<ch_type> siob)
 template<std::integral ch_type>
 inline void connect(basic_ssl_io_observer<ch_type> siob)
 {
-	if(SSL_connect(siob.native_handle())==-1)
+	if(SSL_connect(siob.ssl)==-1)
 		throw_openssl_error();
 }
 
@@ -101,6 +101,14 @@ public:
 			SSL_free(this->native_handle());
 		this->native_handle()=newhandle;
 	}
+	void close() noexcept
+	{
+		if(this->ssl)[[likely]]
+		{
+			SSL_free(this->ssl);
+			this->ssl=nullptr;
+		}
+	}
 	basic_ssl_io_handle& operator=(basic_ssl_io_handle&& h) noexcept
 	{
 		if(h.native_handle()==this->native_handle())
@@ -122,7 +130,7 @@ public:
 	using native_handle_type = SSL*;
 	constexpr basic_ssl_file()=default;
 	constexpr basic_ssl_file(native_handle_type s):basic_ssl_io_handle<ch_type>(s){}
-	basic_ssl_file(std::in_place_t,ssl_context_observer ssl_ctx_ob):basic_ssl_io_handle<ch_type>(SSL_new(ssl_ctx_ob.native_handle()))
+	basic_ssl_file(io_cookie_t,ssl_context_observer ssl_ctx_ob):basic_ssl_io_handle<ch_type>(SSL_new(ssl_ctx_ob.native_handle()))
 	{
 		if(this->native_handle()==nullptr)
 			throw_openssl_error();

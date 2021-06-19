@@ -81,39 +81,7 @@ inline constexpr auto operator<=>(basic_general_streambuf_io_observer<T> a,basic
 }
 
 #endif
-#if 0
-template<typename T>
-requires async_stream<basic_c_io_observer_unlocked<typename T::char_type>>
-inline constexpr io_async_scheduler_t<basic_c_io_observer_unlocked<typename T::char_type>>
-	async_scheduler_type(basic_general_streambuf_io_observer<T>)
-{
-	return {};
-}
 
-template<typename T>
-requires async_stream<basic_c_io_observer_unlocked<typename T::char_type>>
-inline constexpr io_async_overlapped_t<basic_c_io_observer_unlocked<typename T::char_type>>
-	async_overlapped_type(basic_general_streambuf_io_observer<T>)
-{
-	return {};
-}
-#if defined(_WIN32) || defined(__linux__)
-template<typename T,typename... Args>
-requires async_output_stream<basic_c_io_observer_unlocked<typename T::char_type>>
-inline void async_write_callback(io_async_observer ioa,basic_general_streambuf_io_observer<T> h,Args&& ...args)
-{
-	async_write_callback(ioa,static_cast<basic_c_io_observer_unlocked<typename T::char_type>>(h),std::forward<Args>(args)...);
-}
-
-template<typename T,typename... Args>
-requires async_input_stream<basic_c_io_observer_unlocked<typename T::char_type>>
-inline void async_read_callback(io_async_observer ioa,basic_general_streambuf_io_observer<T> h,Args&& ...args)
-{
-	async_read_callback(ioa,static_cast<basic_c_io_observer_unlocked<typename T::char_type>>(h),std::forward<Args>(args)...);
-}
-#endif
-
-#endif
 template<typename T>
 inline constexpr basic_general_streambuf_io_observer<T> io_value_handle(basic_general_streambuf_io_observer<T> other) noexcept
 {
@@ -158,50 +126,50 @@ using u32stringbuf_io_observer = basic_stringbuf_io_observer<char32_t>;
 #endif
 
 template<std::integral ch_type,typename Traits>
-requires zero_copy_input_stream<basic_c_io_observer_unlocked<ch_type>>
+requires zero_copy_input_stream<basic_c_io_observer<ch_type>>
 inline constexpr decltype(auto) zero_copy_in_handle(basic_filebuf_io_observer<ch_type,Traits> h)
 {
-	return zero_copy_in_handle(static_cast<basic_c_io_observer_unlocked<ch_type>>(h));
+	return zero_copy_in_handle(static_cast<basic_c_io_observer<ch_type>>(h));
 }
 template<std::integral ch_type,typename Traits>
-requires zero_copy_output_stream<basic_c_io_observer_unlocked<ch_type>>
+requires zero_copy_output_stream<basic_c_io_observer<ch_type>>
 inline constexpr decltype(auto) zero_copy_out_handle(basic_filebuf_io_observer<ch_type,Traits> h)
 {
-	return zero_copy_out_handle(static_cast<basic_c_io_observer_unlocked<ch_type>>(h));
+	return zero_copy_out_handle(static_cast<basic_c_io_observer<ch_type>>(h));
 }
 
 template<std::integral ch_type,typename Traits>
 inline auto seek(basic_filebuf_io_observer<ch_type,Traits> h,std::intmax_t offset=0,seekdir s=seekdir::cur)
 {
 	h.fb->pubsync();
-	return seek(static_cast<basic_c_io_observer_unlocked<ch_type>>(h),offset,s);
+	return seek(static_cast<basic_c_io_observer<ch_type>>(h),offset,s);
 }
 
 template<std::integral ch_type,typename traits_type,typename... Args>
-requires io_controllable<basic_c_io_observer_unlocked<ch_type>,Args...>
+requires io_controllable<basic_c_io_observer<ch_type>,Args...>
 inline decltype(auto) io_control(basic_filebuf_io_observer<ch_type,traits_type> h,Args&& ...args)
 {
-	return io_control(static_cast<basic_c_io_observer_unlocked<ch_type>>(h),std::forward<Args>(args)...);
+	return io_control(static_cast<basic_c_io_observer<ch_type>>(h),std::forward<Args>(args)...);
 }
 
 template<std::integral ch_type,typename traits_type>
-requires requires(basic_c_io_observer_unlocked<ch_type> piob)
+requires requires(basic_c_io_observer<ch_type> piob)
 {
 	status(piob);
 }
 inline constexpr auto status(basic_streambuf_io_observer<ch_type,traits_type> ciob)
 {
-	return status(static_cast<basic_c_io_observer_unlocked<ch_type>>(ciob));
+	return status(static_cast<basic_c_io_observer<ch_type>>(ciob));
 }
 
 template<std::integral ch_type,typename traits_type>
-requires requires(basic_c_io_observer_unlocked<ch_type> piob)
+requires requires(basic_c_io_observer<ch_type> piob)
 {
 	status(piob);
 }
 inline constexpr auto status(basic_filebuf_io_observer<ch_type,traits_type> ciob)
 {
-	return status(static_cast<basic_c_io_observer_unlocked<ch_type>>(ciob));
+	return status(static_cast<basic_c_io_observer<ch_type>>(ciob));
 }
 
 template<std::integral char_type,typename traits_type>

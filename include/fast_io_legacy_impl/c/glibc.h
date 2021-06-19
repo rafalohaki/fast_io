@@ -269,7 +269,4 @@ inline bool obuffer_is_line_buffering(basic_c_io_observer_unlocked<ch_type> ciou
 	return details::glibc_flbf(ciou.fp);
 }
 
-static_assert(buffer_output_stream<c_io_observer_unlocked>);
-static_assert(!noline_buffer_output_stream<c_io_observer_unlocked>);
-
 }
