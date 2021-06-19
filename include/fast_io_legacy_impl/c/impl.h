@@ -884,11 +884,8 @@ using c_file_factory_unlocked = c_family_file_factory<c_family::unlocked>;
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #include"wincrt.h"
-
 #else
-#if defined(FAST_IO_LIBC_CUSTOM_BUFFER_PTRS)
-#include"custom.h"
-#elif defined(__UCLIBC__)
+#if defined(__UCLIBC__)
 #if defined(__STDIO_BUFFERS)
 #include"uclibc.h"
 #endif
@@ -904,6 +901,8 @@ using c_file_factory_unlocked = c_family_file_factory<c_family::unlocked>;
 	|| (defined(__NEWLIB__) &&!defined(__CUSTOM_FILE_IO__)) \
 	|| defined(__BIONIC__) || defined(__MSDOS__)
 #include"unix.h"
+#elif defined(FAST_IO_LIBC_CUSTOM_BUFFER_PTRS)
+#include"custom.h"
 #endif
 
 #if !defined(__MSDOS__)
