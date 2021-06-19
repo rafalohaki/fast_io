@@ -888,6 +888,8 @@ using c_file_factory_unlocked = c_family_file_factory<c_family::unlocked>;
 #if defined(__UCLIBC__)
 #if defined(__STDIO_BUFFERS)
 #include"uclibc.h"
+#elif defined(FAST_IO_LIBC_CUSTOM_BUFFER_PTRS)
+#include"custom.h"
 #endif
 #elif defined(__mlibc__)
 #include"mlibc.h"
