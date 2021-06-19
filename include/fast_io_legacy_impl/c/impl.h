@@ -877,6 +877,9 @@ using u32c_io_handle = basic_c_io_handle<char32_t>;
 using u32c_file = basic_c_file<char32_t>;
 using u32c_file_unlocked = basic_c_file_unlocked<char32_t>;
 
+using c_file_factory = c_family_file_factory<c_family::standard>;
+using c_file_factory_unlocked = c_family_file_factory<c_family::unlocked>;
+
 }
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
