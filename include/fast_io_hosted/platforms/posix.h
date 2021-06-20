@@ -1570,7 +1570,7 @@ inline constexpr io_scatter_status_t scatter_size_to_status(std::size_t sz,io_sc
 #endif
 inline io_scatter_status_t wasmtime_bug_posix_scatter_write_cold(int fd,io_scatters_t sp)
 {
-	std::size_t total{};
+	std::size_t total{sp.base->len};
 	auto i{sp.base+1};
 	auto e{sp.base+sp.len};
 	for(;i!=e;++i)
