@@ -277,7 +277,7 @@ inline void* nt_create_file_common_impl(void* directory,win32::nt::unicode_strin
 
 inline std::uint16_t filename_bytes(std::size_t sz)
 {
-	if constexpr(sizeof(sz)<=sizeof(std::uint16_t))
+	if constexpr(sizeof(sz)<sizeof(std::uint16_t))//sizeof(std::size_t) can never be smaller than sizeof(std::uint16_t)
 		return static_cast<std::uint16_t>(sz)<<1;
 	if(static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max()>>1)<sz)
 		throw_nt_error(0xC0000106);
