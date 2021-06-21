@@ -277,12 +277,11 @@ inline void* nt_create_file_common_impl(void* directory,win32::nt::unicode_strin
 
 inline std::uint16_t filename_bytes(std::size_t sz)
 {
-	sz<<=1;
 	if constexpr(sizeof(sz)<=sizeof(std::uint16_t))
-		return static_cast<std::uint16_t>(sz);
-	if(static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max())<sz)
+		return static_cast<std::uint16_t>(sz)<<1;
+	if(static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max()>>1)<sz)
 		throw_nt_error(0xC0000106);
-	return static_cast<std::uint16_t>(sz);
+	return static_cast<std::uint16_t>(sz<<1);
 }
 
 template<bool zw,bool ok=true,std::integral char_type>
@@ -686,7 +685,10 @@ public:
 		return *this;
 	}
 	constexpr basic_nt_family_io_handle(basic_nt_family_io_handle&& b) noexcept:
-		basic_nt_family_io_observer<family,ch_type>{b.handle}{}
+		basic_nt_family_io_observer<family,ch_type>{b.handle}
+	{
+		b.handle=nullptr;
+	}
 	basic_nt_family_io_handle& operator=(basic_nt_family_io_handle&& b) noexcept
 	{
 		if(__builtin_addressof(b)!=this)
