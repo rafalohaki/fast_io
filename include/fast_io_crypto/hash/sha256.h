@@ -151,6 +151,13 @@ inline void sha256_do_function(std::uint32_t* __restrict state,std::byte const* 
 	simd_vector<int,4> state0=state0st;
 	simd_vector<int,4> state1=state1st;
 	simd_vector<int,4> msg,msg0,msg1,msg2,msg3;
+	constexpr int compiler_magic{
+#if defined(__clang__)
+4		//clang and gcc disagree with __builtin_ia32_palignr128
+#else
+32
+#endif
+	};
 	for(auto block(blocks_start),ed(blocks_start+blocks_bytes);block!=ed;block+=block_size)
 	{
 		/* Rounds 0-3 */
@@ -200,7 +207,7 @@ inline void sha256_do_function(std::uint32_t* __restrict state,std::byte const* 
 		state1 = __builtin_ia32_sha256rnds2(state1,state0,msg);
 		msg0+=static_cast<simd_vector<int,4>>(simd_vector<long long,2>{
 			__builtin_ia32_palignr128(static_cast<simd_vector<long long,2>>(msg3),
-					static_cast<simd_vector<long long,2>>(msg2),32)});
+					static_cast<simd_vector<long long,2>>(msg2),compiler_magic)});
 		msg0=__builtin_ia32_sha256msg2(msg0,msg3);
 		msg = __builtin_ia32_pshufd(msg, 0x0E);
 		state0 = __builtin_ia32_sha256rnds2(state0,state1,msg);	
@@ -212,9 +219,11 @@ inline void sha256_do_function(std::uint32_t* __restrict state,std::byte const* 
 		msg = msg0+constant;
 		}
 		state1 = __builtin_ia32_sha256rnds2(state1,state0,msg);
+
 		msg1+=static_cast<simd_vector<int,4>>(simd_vector<long long,2>{
 			__builtin_ia32_palignr128(static_cast<simd_vector<long long,2>>(msg0),
-					static_cast<simd_vector<long long,2>>(msg3),32)});
+					static_cast<simd_vector<long long,2>>(msg3),compiler_magic)});
+
 		msg1=__builtin_ia32_sha256msg2(msg1,msg0);
 		msg = __builtin_ia32_pshufd(msg, 0x0E);
 		state0 = __builtin_ia32_sha256rnds2(state0,state1,msg);		
@@ -228,12 +237,11 @@ inline void sha256_do_function(std::uint32_t* __restrict state,std::byte const* 
 		state1 = __builtin_ia32_sha256rnds2(state1,state0,msg);
 		msg2+=static_cast<simd_vector<int,4>>(simd_vector<long long,2>{
 			__builtin_ia32_palignr128(static_cast<simd_vector<long long,2>>(msg1),
-					static_cast<simd_vector<long long,2>>(msg0),32)});
+					static_cast<simd_vector<long long,2>>(msg0),compiler_magic)});
 		msg2=__builtin_ia32_sha256msg2(msg2,msg1);
 		msg = __builtin_ia32_pshufd(msg, 0x0E);
 		state0 = __builtin_ia32_sha256rnds2(state0,state1,msg);		
 		msg0 = __builtin_ia32_sha256msg1(msg0,msg1);
-
 
 		/* Rounds 24-27 */
 		{
@@ -243,7 +251,7 @@ inline void sha256_do_function(std::uint32_t* __restrict state,std::byte const* 
 		state1 = __builtin_ia32_sha256rnds2(state1,state0,msg);
 		msg3+=static_cast<simd_vector<int,4>>(simd_vector<long long,2>{
 			__builtin_ia32_palignr128(static_cast<simd_vector<long long,2>>(msg2),
-					static_cast<simd_vector<long long,2>>(msg1),32)});
+					static_cast<simd_vector<long long,2>>(msg1),compiler_magic)});
 		msg3=__builtin_ia32_sha256msg2(msg3,msg2);
 		msg = __builtin_ia32_pshufd(msg, 0x0E);
 		state0 = __builtin_ia32_sha256rnds2(state0,state1,msg);		
@@ -257,12 +265,11 @@ inline void sha256_do_function(std::uint32_t* __restrict state,std::byte const* 
 		state1 = __builtin_ia32_sha256rnds2(state1,state0,msg);
 		msg0+=static_cast<simd_vector<int,4>>(simd_vector<long long,2>{
 			__builtin_ia32_palignr128(static_cast<simd_vector<long long,2>>(msg3),
-					static_cast<simd_vector<long long,2>>(msg2),32)});
+					static_cast<simd_vector<long long,2>>(msg2),compiler_magic)});
 		msg0=__builtin_ia32_sha256msg2(msg0,msg3);
 		msg = __builtin_ia32_pshufd(msg, 0x0E);
 		state0 = __builtin_ia32_sha256rnds2(state0,state1,msg);		
 		msg2 = __builtin_ia32_sha256msg1(msg2,msg3);
-
 
 		/* Rounds 32-35 */
 		{
@@ -272,7 +279,7 @@ inline void sha256_do_function(std::uint32_t* __restrict state,std::byte const* 
 		state1 = __builtin_ia32_sha256rnds2(state1,state0,msg);
 		msg1+=static_cast<simd_vector<int,4>>(simd_vector<long long,2>{
 			__builtin_ia32_palignr128(static_cast<simd_vector<long long,2>>(msg0),
-					static_cast<simd_vector<long long,2>>(msg3),32)});
+					static_cast<simd_vector<long long,2>>(msg3),compiler_magic)});
 		msg1=__builtin_ia32_sha256msg2(msg1,msg0);
 		msg = __builtin_ia32_pshufd(msg, 0x0E);
 		state0 = __builtin_ia32_sha256rnds2(state0,state1,msg);		
@@ -286,7 +293,7 @@ inline void sha256_do_function(std::uint32_t* __restrict state,std::byte const* 
 		state1 = __builtin_ia32_sha256rnds2(state1,state0,msg);
 		msg2+=static_cast<simd_vector<int,4>>(simd_vector<long long,2>{
 			__builtin_ia32_palignr128(static_cast<simd_vector<long long,2>>(msg1),
-					static_cast<simd_vector<long long,2>>(msg0),32)});
+					static_cast<simd_vector<long long,2>>(msg0),compiler_magic)});
 		msg2 = __builtin_ia32_sha256msg2(msg2,msg1);
 		msg = __builtin_ia32_pshufd(msg,0x0E);
 		state0 = __builtin_ia32_sha256rnds2(state0,state1,msg);
@@ -300,7 +307,7 @@ inline void sha256_do_function(std::uint32_t* __restrict state,std::byte const* 
 		state1 = __builtin_ia32_sha256rnds2(state1,state0,msg);
 		msg3+=static_cast<simd_vector<int,4>>(simd_vector<long long,2>{
 			__builtin_ia32_palignr128(static_cast<simd_vector<long long,2>>(msg2),
-					static_cast<simd_vector<long long,2>>(msg1),32)});
+					static_cast<simd_vector<long long,2>>(msg1),compiler_magic)});
 		msg3 = __builtin_ia32_sha256msg2(msg3,msg2);
 		msg = __builtin_ia32_pshufd(msg,0x0E);
 		state0 = __builtin_ia32_sha256rnds2(state0,state1,msg);
@@ -314,7 +321,7 @@ inline void sha256_do_function(std::uint32_t* __restrict state,std::byte const* 
 		state1 = __builtin_ia32_sha256rnds2(state1,state0,msg);
 		msg0+=static_cast<simd_vector<int,4>>(simd_vector<long long,2>{
 			__builtin_ia32_palignr128(static_cast<simd_vector<long long,2>>(msg3),
-					static_cast<simd_vector<long long,2>>(msg2),32)});
+					static_cast<simd_vector<long long,2>>(msg2),compiler_magic)});
 		msg0 = __builtin_ia32_sha256msg2(msg0,msg3);
 		msg = __builtin_ia32_pshufd(msg,0x0E);
 		state0 = __builtin_ia32_sha256rnds2(state0,state1,msg);
@@ -328,7 +335,7 @@ inline void sha256_do_function(std::uint32_t* __restrict state,std::byte const* 
 		state1 = __builtin_ia32_sha256rnds2(state1,state0,msg);
 		msg1+=static_cast<simd_vector<int,4>>(simd_vector<long long,2>{
 			__builtin_ia32_palignr128(static_cast<simd_vector<long long,2>>(msg0),
-					static_cast<simd_vector<long long,2>>(msg3),32)});
+					static_cast<simd_vector<long long,2>>(msg3),compiler_magic)});
 		msg1 = __builtin_ia32_sha256msg2(msg1,msg0);
 		msg = __builtin_ia32_pshufd(msg,0x0E);
 		state0 = __builtin_ia32_sha256rnds2(state0,state1,msg);
@@ -342,7 +349,7 @@ inline void sha256_do_function(std::uint32_t* __restrict state,std::byte const* 
 		state1 = __builtin_ia32_sha256rnds2(state1,state0,msg);
 		msg2+=static_cast<simd_vector<int,4>>(simd_vector<long long,2>{
 			__builtin_ia32_palignr128(static_cast<simd_vector<long long,2>>(msg1),
-					static_cast<simd_vector<long long,2>>(msg0),32)});
+					static_cast<simd_vector<long long,2>>(msg0),compiler_magic)});
 		msg2 = __builtin_ia32_sha256msg2(msg2,msg1);
 		msg = __builtin_ia32_pshufd(msg,0x0E);
 		state0 = __builtin_ia32_sha256rnds2(state0,state1,msg);
@@ -355,7 +362,7 @@ inline void sha256_do_function(std::uint32_t* __restrict state,std::byte const* 
 		state1 = __builtin_ia32_sha256rnds2(state1,state0,msg);
 		msg3+=static_cast<simd_vector<int,4>>(simd_vector<long long,2>{
 			__builtin_ia32_palignr128(static_cast<simd_vector<long long,2>>(msg2),
-					static_cast<simd_vector<long long,2>>(msg1),32)});
+					static_cast<simd_vector<long long,2>>(msg1),compiler_magic)});
 		msg3 = __builtin_ia32_sha256msg2(msg3,msg2);
 		msg = __builtin_ia32_pshufd(msg,0x0E);
 		state0 = __builtin_ia32_sha256rnds2(state0,state1,msg);
@@ -560,7 +567,6 @@ inline void sha256_do_function(std::uint32_t* __restrict state,std::byte const* 
 		STATE0 = _mm_add_epi32(STATE0, ABEF_SAVE);
 		STATE1 = _mm_add_epi32(STATE1, CDGH_SAVE);
 	}
-
 	TMP = _mm_shuffle_epi32(STATE0, 0x1B);       /* FEBA */
 	STATE1 = _mm_shuffle_epi32(STATE1, 0xB1);    /* DCHG */
 	STATE0 = _mm_blend_epi16(TMP, STATE1, 0xF0); /* DCBA */
