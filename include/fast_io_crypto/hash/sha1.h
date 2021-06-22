@@ -180,6 +180,181 @@ inline void sha1_do_function(std::uint32_t* __restrict state,std::byte const* __
 {
 	constexpr std::size_t block_size{64};
 #if (defined(_MSC_VER)&&defined(_M_AMD64)&&!defined(__clang__)) || (defined(__SHA__) && defined(__SSE4_1__))
+#if defined(__GNUC__) || defined(__clang__)
+	using namespace ::fast_io::intrinsics;
+	constexpr simd_vector<char,16> mask{15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0};
+	simd_vector<int,4> abcdstate{static_cast<int>(state[3]),static_cast<int>(state[2]),
+				static_cast<int>(state[1]),static_cast<int>(*state)};
+	simd_vector<int,4> estate{0,0,0,static_cast<int>(state[4])};
+	simd_vector<int,4> abcd=abcdstate;
+	simd_vector<int,4> e0=estate;
+	simd_vector<int,4> msg0,msg1,msg2,msg3;
+	for(auto block(blocks_start),ed(blocks_start+blocks_bytes);block!=ed;block+=block_size)
+	{
+		// Rounds 0-3
+		msg0.load(block);
+		msg0.shuffle(mask);
+		e0 += msg0;
+		simd_vector<int,4> e1=abcd;
+		abcd = __builtin_ia32_sha1rnds4(abcd,e0,0);
+
+		// Rounds 4-7
+		msg1.load(block+16);
+		msg1.shuffle(mask);
+		e1 = __builtin_ia32_sha1nexte(e1,msg1);
+		e0 = abcd;
+		abcd = __builtin_ia32_sha1rnds4(abcd,e1,0);
+		msg0 = __builtin_ia32_sha1msg1(msg0,msg1);
+
+		// Rounds 8-11
+		msg2.load(block+32);
+		msg2.shuffle(mask);
+		e0 = __builtin_ia32_sha1nexte(e0,msg2);
+		e1 = abcd;
+		abcd = __builtin_ia32_sha1rnds4(abcd,e0,0);
+		msg1 = __builtin_ia32_sha1msg1(msg1,msg2);
+		msg0^=msg2;
+
+		// Rounds 12-15
+		msg3.load(block+48);
+		msg3.shuffle(mask);
+		e1 = __builtin_ia32_sha1nexte(e1,msg3);
+		e0 = abcd;
+		msg0 = __builtin_ia32_sha1msg2(msg0,msg3);
+		abcd = __builtin_ia32_sha1rnds4(abcd,e1,0);
+		msg2 = __builtin_ia32_sha1msg1(msg2,msg3);
+		msg1^=msg3;
+
+		// Rounds 16-19
+		e0 = __builtin_ia32_sha1nexte(e0,msg0);
+		e1 = abcd;
+		msg1 = __builtin_ia32_sha1msg2(msg1,msg0);
+		abcd = __builtin_ia32_sha1rnds4(abcd,e0,0);
+		msg3 = __builtin_ia32_sha1msg1(msg3,msg0);
+		msg2^=msg0;
+
+		// Rounds 20-23
+		e1 = __builtin_ia32_sha1nexte(e1,msg1);
+		e0 = abcd;
+		msg2 = __builtin_ia32_sha1msg2(msg2,msg1);
+		abcd = __builtin_ia32_sha1rnds4(abcd,e1,1);
+		msg0 = __builtin_ia32_sha1msg1(msg0,msg1);
+		msg3^=msg1;
+
+		// Rounds 24-27
+		e0 = __builtin_ia32_sha1nexte(e0,msg2);
+		e1 = abcd;
+		msg3 = __builtin_ia32_sha1msg2(msg3,msg2);
+		abcd = __builtin_ia32_sha1rnds4(abcd,e0,1);
+		msg1 = __builtin_ia32_sha1msg1(msg1,msg2);
+		msg0^=msg2;
+
+		// Rounds 28-31
+		e1 = __builtin_ia32_sha1nexte(e1,msg3);
+		e0 = abcd;
+		msg0 = __builtin_ia32_sha1msg2(msg0,msg3);
+		abcd = __builtin_ia32_sha1rnds4(abcd,e1,1);
+		msg2 = __builtin_ia32_sha1msg1(msg2,msg3);
+		msg1^=msg3;
+
+		// Rounds 32-35
+		e0 = __builtin_ia32_sha1nexte(e0,msg0);
+		e1 = abcd;
+		msg1 = __builtin_ia32_sha1msg2(msg1,msg0);
+		abcd = __builtin_ia32_sha1rnds4(abcd,e0,1);
+		msg3 = __builtin_ia32_sha1msg1(msg3,msg0);
+		msg2^=msg0;
+
+		// Rounds 36-39
+		e1 = __builtin_ia32_sha1nexte(e1,msg1);
+		e0 = abcd;
+		msg2 = __builtin_ia32_sha1msg2(msg2,msg1);
+		abcd = __builtin_ia32_sha1rnds4(abcd,e1,1);
+		msg0 = __builtin_ia32_sha1msg1(msg0,msg1);
+		msg3^=msg1;
+
+		// Rounds 40-43
+		e0 = __builtin_ia32_sha1nexte(e0,msg2);
+		e1 = abcd;
+		msg3 = __builtin_ia32_sha1msg2(msg3,msg2);
+		abcd = __builtin_ia32_sha1rnds4(abcd,e0,2);
+		msg1 = __builtin_ia32_sha1msg1(msg1,msg2);
+		msg0^=msg2;
+
+		// Rounds 44-47
+		e1 = __builtin_ia32_sha1nexte(e1,msg3);
+		e0 = abcd;
+		msg0 = __builtin_ia32_sha1msg2(msg0,msg3);
+		abcd = __builtin_ia32_sha1rnds4(abcd,e1,2);
+		msg2 = __builtin_ia32_sha1msg1(msg2,msg3);
+		msg1^=msg3;
+
+		// Rounds 48-51
+		e0 = __builtin_ia32_sha1nexte(e0,msg0);
+		e1 = abcd;
+		msg1 = __builtin_ia32_sha1msg2(msg1,msg0);
+		abcd = __builtin_ia32_sha1rnds4(abcd,e0,2);
+		msg3 = __builtin_ia32_sha1msg1(msg3,msg0);
+		msg2^=msg0;
+
+		// Rounds 52-55
+		e1 = __builtin_ia32_sha1nexte(e1,msg1);
+		e0 = abcd;
+		msg2 = __builtin_ia32_sha1msg2(msg2,msg1);
+		abcd = __builtin_ia32_sha1rnds4(abcd,e1,2);
+		msg0 = __builtin_ia32_sha1msg1(msg0,msg1);
+		msg3^=msg1;
+
+		// Rounds 56-59
+		e0 = __builtin_ia32_sha1nexte(e0,msg2);
+		e1 = abcd;
+		msg3 = __builtin_ia32_sha1msg2(msg3,msg2);
+		abcd = __builtin_ia32_sha1rnds4(abcd,e0,2);
+		msg1 = __builtin_ia32_sha1msg1(msg1,msg2);
+		msg0^=msg2; 
+
+		// Rounds 60-63
+		e1 = __builtin_ia32_sha1nexte(e1,msg3);
+		e0 = abcd;
+		msg0 = __builtin_ia32_sha1msg2(msg0,msg3);
+		abcd = __builtin_ia32_sha1rnds4(abcd,e1,3);
+		msg2 = __builtin_ia32_sha1msg1(msg2,msg3);
+		msg1^=msg3; 
+
+		// Rounds 64-67
+		e0 = __builtin_ia32_sha1nexte(e0,msg0);
+		e1 = abcd;
+		msg1 = __builtin_ia32_sha1msg2(msg1,msg0);
+		abcd = __builtin_ia32_sha1rnds4(abcd,e0,3);
+		msg3 = __builtin_ia32_sha1msg1(msg3,msg0);
+		msg2^=msg0; 
+
+		// Rounds 68-71
+		e1 = __builtin_ia32_sha1nexte(e1,msg1);
+		e0=abcd;
+		msg2 = __builtin_ia32_sha1msg2(msg2,msg1);
+		abcd = __builtin_ia32_sha1rnds4(abcd,e1,3);
+		msg3^=msg1; 
+
+
+		// Rounds 72-75
+		e0 = __builtin_ia32_sha1nexte(e0,msg2);
+		e1 = abcd;
+		msg3 = __builtin_ia32_sha1msg2(msg3,msg2);
+		abcd = __builtin_ia32_sha1rnds4(abcd,e0,3);
+
+		// Rounds 76-79
+		e1 = __builtin_ia32_sha1nexte(e1,msg3);
+		e0 = abcd;
+		abcd = __builtin_ia32_sha1rnds4(abcd,e1,3);
+
+		// Add values back to state
+		e0 = ( estate = __builtin_ia32_sha1nexte(e0, estate));
+		abcd = (abcdstate+=abcd);
+	}
+	simd_vector<int,4>{abcd[3],abcd[2],abcd[1],abcd[0]}.store(state);
+	state[4]=e0.back();
+#else
 //https://stackoverflow.com/questions/21107350/how-can-i-access-sha-intrinsic
 	__m128i ABCD, ABCD_SAVE, E0, E0_SAVE, E1;
 	__m128i MASK, MSG0, MSG1, MSG2, MSG3;
@@ -352,7 +527,6 @@ inline void sha1_do_function(std::uint32_t* __restrict state,std::byte const* __
 		E1 = _mm_sha1nexte_epu32(E1, MSG3);
 		E0 = ABCD;
 		ABCD = _mm_sha1rnds4_epu32(ABCD, E1, 3);
-
 		// Add values back to state
 		E0 = _mm_sha1nexte_epu32(E0, E0_SAVE);
 		ABCD = _mm_add_epi32(ABCD, ABCD_SAVE);
@@ -361,6 +535,7 @@ inline void sha1_do_function(std::uint32_t* __restrict state,std::byte const* __
 	ABCD = _mm_shuffle_epi32(ABCD, 0x1B);
 	_mm_storeu_si128((__m128i*) state, ABCD);
 	state[4] = _mm_extract_epi32(E0, 3);
+#endif
 #elif defined(FAST_IO_ARM_SHA) && ( defined(__arm__) || defined(__aarch32__) || defined(__arm64__) || defined(__aarch64__) || defined(_M_ARM) )
 
 

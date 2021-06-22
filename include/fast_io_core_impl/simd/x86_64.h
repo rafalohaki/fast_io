@@ -7,59 +7,6 @@
 namespace fast_io
 {
 
-namespace details
-{
-
-template<std::size_t size,::fast_io::freestanding::forward_iterator Iter>
-inline constexpr Iter print_reserve_df_mm_impl_internal(Iter iter,char unsigned* mm) noexcept
-{
-	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
-	using uhex_manip_type = ::fast_io::mnp::base_full_t<16,true,char unsigned>;
-	if constexpr(std::same_as<char_type,char>)
-		iter=copy_string_literal("(0x",iter);
-	else if constexpr(std::same_as<char_type,wchar_t>)
-		iter=copy_string_literal(L"(0x",iter);
-	else if constexpr(std::same_as<char_type,char16_t>)
-		iter=copy_string_literal(u"(0x",iter);
-	else if constexpr(std::same_as<char_type,char32_t>)
-		iter=copy_string_literal(U"(0x",iter);
-	else
-		iter=copy_string_literal(u8"(0x",iter);
-	iter=print_reserve_define(io_reserve_type<char_type,
-	uhex_manip_type>,iter,{*mm});
-	for(std::size_t i{1};i!=size;++i)
-	{
-		if constexpr(std::same_as<char_type,char>)
-			iter=copy_string_literal(",0x",iter);
-		else if constexpr(std::same_as<char_type,wchar_t>)
-			iter=copy_string_literal(L",0x",iter);
-		else if constexpr(std::same_as<char_type,char16_t>)
-			iter=copy_string_literal(u",0x",iter);
-		else if constexpr(std::same_as<char_type,char32_t>)
-			iter=copy_string_literal(U",0x",iter);
-		else
-			iter=copy_string_literal(u8",0x",iter);
-		iter=print_reserve_define(io_reserve_type<char_type,
-		uhex_manip_type>,iter,{mm[i]});
-	}
-	if constexpr(std::same_as<char_type,char>)
-		*iter=')';		
-	else if constexpr(std::same_as<char_type,wchar_t>)
-		*iter=L')';
-	else 
-		*iter=u8')';
-	++iter;
-	return iter;
-}
-
-template<::fast_io::freestanding::forward_iterator Iter,typename T>
-inline constexpr Iter print_reserve_df_mm_impl(Iter iter,T mm) noexcept
-{
-	return print_reserve_df_mm_impl_internal<sizeof(T)>(
-		iter,bit_cast<::fast_io::freestanding::array<char unsigned,sizeof(T)>>(mm).data());
-}
-
-}
 
 namespace intrinsics
 {
@@ -83,37 +30,287 @@ using x86_64_m2048 [[gnu::__vector_size__(256),gnu::may_alias]]  = float ;
 using x86_64_m2048i [[gnu::__vector_size__ (256),gnu::may_alias]] = long long;
 using x86_64_m4096 [[gnu::__vector_size__(512),gnu::may_alias]]  = float ;
 using x86_64_m4096i [[gnu::__vector_size__ (512),gnu::may_alias]] = long long;
+
+template<typename T,std::size_t N>
+struct simd_vector
+{
+	using value_type = T;
+	using vec_type [[gnu::__vector_size__ (N*sizeof(T))]] = T;
+	vec_type value;
+	constexpr T const* data() const noexcept
+	{
+		return __builtin_addressof(value[0]);
+	}
+	constexpr T* data() noexcept
+	{
+		return __builtin_addressof(value[0]);
+	}
+	inline static constexpr std::size_t size() noexcept
+	{
+		return N;
+	}
+#if __has_cpp_attribute(gnu::always_inline)
+	[[gnu::always_inline]]
+#endif
+	inline void load(void const* address) noexcept
+	{
+		__builtin_memcpy(__builtin_addressof(value),address,sizeof(value));
+	}
+#if __has_cpp_attribute(gnu::always_inline)
+	[[gnu::always_inline]]
+#endif
+	inline void store(void* address) noexcept
+	{
+		__builtin_memcpy(address,__builtin_addressof(value),sizeof(value));
+	}
+	inline constexpr value_type front() const noexcept
+	{
+		return value[0];
+	}
+	inline constexpr value_type back() const noexcept
+	{
+		return value[N-1];
+	}
+
+	inline static constexpr bool empty() noexcept
+	{
+		return !N;
+	}
+	inline static constexpr std::size_t max_size() noexcept
+	{
+		constexpr std::size_t v{static_cast<std::size_t>(-1)/sizeof(value_type)};
+		return v;
+	}
+	inline constexpr value_type operator[](std::size_t n) const noexcept
+	{
+		return value[n];
+	}
+	inline constexpr simd_vector<T,N>& operator+=(simd_vector<T,N> const& other) noexcept
+	{
+		value+=other.value;
+		return *this;
+	}
+	inline constexpr simd_vector<T,N>& operator-=(simd_vector<T,N> const& other) noexcept
+	{
+		value-=other.value;
+		return *this;
+	}
+	inline constexpr simd_vector<T,N>& operator*=(simd_vector<T,N> const& other) noexcept
+	{
+		value*=other.value;
+		return *this;
+	}
+	inline constexpr simd_vector<T,N>& operator/=(simd_vector<T,N> const& other) noexcept
+	{
+		value/=other.value;
+		return *this;
+	}
+	inline constexpr simd_vector<T,N> operator-() const noexcept
+	{
+		return {-value};
+	}
+
+	inline constexpr simd_vector<T,N>& operator&=(simd_vector<T,N> const& other) noexcept
+	{
+		value&=other.value;
+		return *this;
+	}
+	inline constexpr simd_vector<T,N>& operator^=(simd_vector<T,N> const& other) noexcept
+	{
+		value^=other.value;
+		return *this;
+	}
+	inline constexpr simd_vector<T,N>& operator|=(simd_vector<T,N> const& other) noexcept
+	{
+		value|=other.value;
+		return *this;
+	}
+	inline constexpr simd_vector<T,N>& operator<<=(simd_vector<T,N> const& other) noexcept
+	{
+		value<<=other.value;
+		return *this;
+	}
+	inline constexpr simd_vector<T,N>& operator>>=(simd_vector<T,N> const& other) noexcept
+	{
+		value<<=other.value;
+		return *this;
+	}
+	inline constexpr simd_vector<T,N> operator~() const noexcept
+	{
+		return {~value};
+	}
+	template<typename T1,std::size_t N1>
+	requires (sizeof(T1)*N1==sizeof(T)*N&&N!=N1)
+	explicit
+#if __has_builtin(__builtin_bit_cast)
+	constexpr
+#endif
+	operator simd_vector<T1,N1>() const noexcept
+	{
+#if __has_builtin(__builtin_bit_cast)
+        return __builtin_bit_cast(simd_vector<T1,N1>,*this);
+#else
+        simd_vector<T1,N1> v;
+        __builtin_memcpy(__builtin_addressof(v),this,sizeof(v));
+        return v;
+#endif
+	}
+	constexpr operator vec_type const&() const noexcept
+	{
+		return value;
+	}
+	inline constexpr simd_vector& operator=(vec_type const& b) noexcept
+	{
+		value=b;
+		return *this;
+	}
+#if __has_builtin(__builtin_ia32_pshufb128)
+	inline constexpr void shuffle(simd_vector<char,16> const& mask) noexcept requires(sizeof(vec_type)==16)
+	{
+		using value_type2 [[gnu::__vector_size__ (16)]] = char;
+#if __has_builtin(__builtin_bit_cast)
+		value=__builtin_bit_cast(vec_type,__builtin_ia32_pshufb128(__builtin_bit_cast(value_type2,value),mask.value));
+#else
+		value_type2 v;
+		__builtin_memcpy(__builtin_addressof(v),__builtin_addressof(mask),sizeof(value_type2));
+		v=__builtin_ia32_pshufb128(v,mask.value);
+		__builtin_memcpy(__builtin_addressof(value),__builtin_addressof(v),sizeof(value_type2));
+#endif
+	}
+#endif
+};
+
+template<typename T,std::size_t N>
+inline constexpr simd_vector<T,N> operator+(simd_vector<T,N> const& a,simd_vector<T,N> const& b) noexcept
+{
+	return {a.value+b.value};
 }
 
-template<std::integral char_type,typename T>
-requires
-(
-std::same_as<T,intrinsics::x86_64_m128>||std::same_as<T,intrinsics::x86_64_m128i>
-||std::same_as<T,intrinsics::x86_64_v16qu>||std::same_as<T,intrinsics::x86_64_v16qi>||std::same_as<T,intrinsics::x86_64_v16qs>
-||std::same_as<T,intrinsics::x86_64_m256>||std::same_as<T,intrinsics::x86_64_m256i>
-||std::same_as<T,intrinsics::x86_64_m512>||std::same_as<T,intrinsics::x86_64_m512i>
-||std::same_as<T,intrinsics::x86_64_m1024>||std::same_as<T,intrinsics::x86_64_m1024i>
-||std::same_as<T,intrinsics::x86_64_m2048>||std::same_as<T,intrinsics::x86_64_m2048i>
-||std::same_as<T,intrinsics::x86_64_m4096>||std::same_as<T,intrinsics::x86_64_m4096i>
-)
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,T>) noexcept
+template<typename T,std::size_t N>
+inline constexpr simd_vector<T,N> operator-(simd_vector<T,N> const& a,simd_vector<T,N> const& b) noexcept
 {
-	constexpr std::size_t sz{sizeof(T)*5+1};
+	return {a.value-b.value};
+}
+
+template<typename T,std::size_t N>
+inline constexpr simd_vector<T,N> operator*(simd_vector<T,N> const& a,simd_vector<T,N> const& b) noexcept
+{
+	return {a.value*b.value};
+}
+
+template<typename T,std::size_t N>
+inline constexpr simd_vector<T,N> operator/(simd_vector<T,N> const& a,simd_vector<T,N> const& b) noexcept
+{
+	return {a.value/b.value};
+}
+
+
+template<typename T,std::size_t N>
+inline constexpr simd_vector<T,N> operator^(simd_vector<T,N> const& a,simd_vector<T,N> const& b) noexcept
+{
+	return {a.value^b.value};
+}
+
+template<typename T,std::size_t N>
+inline constexpr simd_vector<T,N> operator<<(simd_vector<T,N> const& a,simd_vector<T,N> const& b) noexcept
+{
+	return {a.value<<b.value};
+}
+
+template<typename T,std::size_t N>
+inline constexpr simd_vector<T,N> operator>>(simd_vector<T,N> const& a,simd_vector<T,N> const& b) noexcept
+{
+	return {a.value>>b.value};
+}
+
+template<typename T,std::size_t N>
+inline constexpr simd_vector<T,N> operator<(simd_vector<T,N> const& a,simd_vector<T,N> const& b) noexcept
+{
+	return {a.value<b.value};
+}
+
+template<typename T,std::size_t N>
+inline constexpr simd_vector<T,N> operator>(simd_vector<T,N> const& a,simd_vector<T,N> const& b) noexcept
+{
+	return {a.value>b.value};
+}
+
+template<typename T,std::size_t N>
+inline constexpr simd_vector<T,N> operator<=(simd_vector<T,N> const& a,simd_vector<T,N> const& b) noexcept
+{
+	return {a.value<=b.value};
+}
+
+template<typename T,std::size_t N>
+inline constexpr simd_vector<T,N> operator>=(simd_vector<T,N> const& a,simd_vector<T,N> const& b) noexcept
+{
+	return {a.value>=b.value};
+}
+
+template<typename T,std::size_t N>
+inline constexpr simd_vector<T,N> operator==(simd_vector<T,N> const& a,simd_vector<T,N> const& b) noexcept
+{
+	return {a.value==b.value};
+}
+
+template<typename T,std::size_t N>
+inline constexpr simd_vector<T,N> operator!=(simd_vector<T,N> const& a,simd_vector<T,N> const& b) noexcept
+{
+	return {a.value!=b.value};
+}
+
+}
+
+namespace details
+{
+
+template<::fast_io::freestanding::forward_iterator Iter,typename T,std::size_t size>
+inline constexpr Iter print_reserve_df_mm_impl(Iter iter,::fast_io::intrinsics::simd_vector<T,size> const& mm) noexcept
+{
+	if constexpr(size==0)
+		return iter;
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	if constexpr(std::same_as<char_type,char>)
+		*iter='(';		
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		*iter=L'(';
+	else 
+		*iter=u8'(';
+	++iter;
+	iter=print_reserve_define(io_reserve_type<char_type,T>,iter,mm[0]);
+	for(std::size_t i{1};i!=size;++i)
+	{
+		if constexpr(std::same_as<char_type,char>)
+			*iter=',';		
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			*iter=L',';
+		else 
+			*iter=u8',';
+		++iter;
+		iter=print_reserve_define(io_reserve_type<char_type,T>,iter,mm[i]);
+	}
+	if constexpr(std::same_as<char_type,char>)
+		*iter=')';		
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		*iter=L')';
+	else 
+		*iter=u8')';
+	++iter;
+	return iter;
+}
+
+}
+
+
+template<std::integral char_type,typename T,std::size_t n>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,intrinsics::simd_vector<T,n>>) noexcept
+{
+	constexpr std::size_t p{print_reserve_size(io_reserve_type<char_type,T>)};
+	constexpr std::size_t sz{(1+p)*n+1};
 	return sz;
 }
-
-template<std::integral char_type,::fast_io::freestanding::forward_iterator Iter,typename T>
-requires
-(
-std::same_as<T,intrinsics::x86_64_m128>||std::same_as<T,intrinsics::x86_64_m128i>
-||std::same_as<T,intrinsics::x86_64_v16qu>||std::same_as<T,intrinsics::x86_64_v16qi>||std::same_as<T,intrinsics::x86_64_v16qs>
-||std::same_as<T,intrinsics::x86_64_m256>||std::same_as<T,intrinsics::x86_64_m256i>
-||std::same_as<T,intrinsics::x86_64_m512>||std::same_as<T,intrinsics::x86_64_m512i>
-||std::same_as<T,intrinsics::x86_64_m1024>||std::same_as<T,intrinsics::x86_64_m1024i>
-||std::same_as<T,intrinsics::x86_64_m2048>||std::same_as<T,intrinsics::x86_64_m2048i>
-||std::same_as<T,intrinsics::x86_64_m4096>||std::same_as<T,intrinsics::x86_64_m4096i>
-)
-inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,T>,Iter iter,T t) noexcept
+template<::fast_io::freestanding::forward_iterator Iter,typename T,std::size_t n>
+inline constexpr Iter print_reserve_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,intrinsics::simd_vector<T,n>>,Iter iter,intrinsics::simd_vector<T,n> const& t) noexcept
 {
 	return details::print_reserve_df_mm_impl(iter,t);
 }

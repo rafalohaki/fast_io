@@ -10,6 +10,3 @@
 # endif
 #endif
 
-#if defined(_M_AMD64) || defined(__x86_64__)
-#include <immintrin.h>
-#endif

@@ -1,7 +1,5 @@
 #pragma once
-#if defined(__SSE__) && (defined(__x86_64__)||defined(_M_X64)) && (!defined(__GNUC__)&&!defined(__clang__)||defined(__INTEL_COMPILER))
-#include<emmintrin.h>
-#endif
+
 namespace fast_io
 {
 

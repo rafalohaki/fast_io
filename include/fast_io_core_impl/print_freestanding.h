@@ -583,7 +583,8 @@ print_reserve_size(io_reserve_type<char_type,value_type>)
 	}
 	else
 	{
-		static_assert(printable<output,value_type>,"type not printable");
+		constexpr bool no{printable<output,value_type>};
+		static_assert(no,"type not printable");
 	}
 }
 
