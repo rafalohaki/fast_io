@@ -5,14 +5,14 @@ namespace fast_io
 
 struct posix_addrinfo
 {
-int              ai_flags;
-int              ai_family;
-int              ai_socktype;
-int              ai_protocol;
-posix_socklen_t  ai_addrlen;
-posix_sockaddr  *ai_addr;
-char            *ai_canonname;
-posix_addrinfo  *ai_next;
+int              ai_flags{};
+int              ai_family{};
+int              ai_socktype{};
+int              ai_protocol{};
+posix_socklen_t  ai_addrlen{};
+posix_sockaddr  *ai_addr{};
+char            *ai_canonname{};
+posix_addrinfo  *ai_next{};
 };
 
 namespace details
@@ -145,12 +145,12 @@ inline constexpr posix_dns_iterator cbegin(posix_dns_io_observer pdniob) noexcep
 	return {pdniob.res};
 }
 
-inline constexpr posix_dns_iterator end(posix_dns_io_observer pdniob) noexcept
+inline constexpr posix_dns_iterator end(posix_dns_io_observer) noexcept
 {
 	return {};
 }
 
-inline constexpr posix_dns_iterator cend(posix_dns_io_observer pdniob) noexcept
+inline constexpr posix_dns_iterator cend(posix_dns_io_observer) noexcept
 {
 	return {};
 }

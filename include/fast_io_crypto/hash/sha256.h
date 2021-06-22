@@ -82,7 +82,7 @@ void sha256_do_constexpr_function(std::uint32_t* __restrict state,std::byte cons
 #endif
 			{
 				std::uint32_t value;
-				::fast_io::details::my_memcpy(__builtin_addressof(value),data,8);
+				::fast_io::details::my_memcpy(__builtin_addressof(value),data,4);
 				X[i] = big_endian(value);
 			}
 			data += 4;

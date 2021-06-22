@@ -178,7 +178,7 @@ void sha1_do_constexpr_function(std::uint32_t* __restrict state,std::byte const*
 
 inline void sha1_do_function(std::uint32_t* __restrict state,std::byte const* __restrict blocks_start,std::size_t blocks_bytes) noexcept
 {
-	constexpr std::size_t block_size{64};
+	[[maybe_unused]] constexpr std::size_t block_size{64};
 #if (defined(_MSC_VER)&&defined(_M_AMD64)&&!defined(__clang__)) || (defined(__SHA__) && defined(__SSE4_1__))
 #if defined(__GNUC__) || defined(__clang__)
 	using namespace ::fast_io::intrinsics;
