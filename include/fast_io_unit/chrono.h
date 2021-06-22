@@ -233,15 +233,15 @@ inline constexpr Iter print_reserve_define_ymd_impl(Iter it,T ymd) noexcept
 	else
 	{
 		if constexpr(std::same_as<char_type,char>)
-			it=details::copy_string_literal("--",it);
+			it=copy_string_literal("--",it);
 		else if constexpr(std::same_as<char_type,wchar_t>)
-			it=details::copy_string_literal(L"--",it);
+			it=copy_string_literal(L"--",it);
 		else if constexpr(std::same_as<char_type,char16_t>)
-			it=details::copy_string_literal(u"--",it);
+			it=copy_string_literal(u"--",it);
 		else if constexpr(std::same_as<char_type,char32_t>)
-			it=details::copy_string_literal(U"--",it);
+			it=copy_string_literal(U"--",it);
 		else
-			it=details::copy_string_literal(u8"--",it);
+			it=copy_string_literal(u8"--",it);
 	}
 	it=chrono_two_digits_impl(it,static_cast<unsigned>(ymd.month()));
 	if constexpr(requires()
@@ -338,7 +338,7 @@ inline constexpr Iter print_hh_mm_ss_reserve_define_impl(Iter it,
 			*it=u8'-';
 		++it;
 	}
-	it=details::chrono_two_digits_impl(it,hms.hours().count());
+	it=chrono_two_digits_impl(it,hms.hours().count());
 	if constexpr(std::same_as<char_type,char>)
 		*it=':';
 	else if constexpr(std::same_as<char_type,wchar_t>)
@@ -346,7 +346,7 @@ inline constexpr Iter print_hh_mm_ss_reserve_define_impl(Iter it,
 	else
 		*it=u8':';
 	++it;
-	it=details::chrono_two_digits_impl(it,hms.minutes().count());
+	it=chrono_two_digits_impl(it,hms.minutes().count());
 	if constexpr(std::same_as<char_type,char>)
 		*it=':';
 	else if constexpr(std::same_as<char_type,wchar_t>)
@@ -354,7 +354,7 @@ inline constexpr Iter print_hh_mm_ss_reserve_define_impl(Iter it,
 	else
 		*it=u8':';
 	++it;
-	it=details::chrono_two_digits_impl(it,hms.seconds().count());
+	it=chrono_two_digits_impl(it,hms.seconds().count());
 	if constexpr(den==1)
 		return it;
 	else
@@ -406,7 +406,7 @@ inline constexpr Iter print_system_clock_reserve_impl(Iter it,std::chrono::time_
 		*it=u8'T';
 	++it;
 	std::chrono::hh_mm_ss hms(tp.time_since_epoch()-std::chrono::duration_cast<Duration>(sdy.time_since_epoch()));
-	it=details::chrono_two_digits_impl<true>(it,hms.hours().count());
+	it=chrono_two_digits_impl<true>(it,hms.hours().count());
 	if constexpr(std::same_as<char_type,char>)
 		*it=':';
 	else if constexpr(std::same_as<char_type,wchar_t>)
@@ -414,7 +414,7 @@ inline constexpr Iter print_system_clock_reserve_impl(Iter it,std::chrono::time_
 	else
 		*it=u8':';
 	++it;
-	it=details::chrono_two_digits_impl<true>(it,hms.minutes().count());
+	it=chrono_two_digits_impl<true>(it,hms.minutes().count());
 	if constexpr(std::same_as<char_type,char>)
 		*it=':';
 	else if constexpr(std::same_as<char_type,wchar_t>)
@@ -422,7 +422,7 @@ inline constexpr Iter print_system_clock_reserve_impl(Iter it,std::chrono::time_
 	else
 		*it=u8':';
 	++it;
-	it=details::chrono_two_digits_impl<true>(it,hms.seconds().count());
+	it=chrono_two_digits_impl<true>(it,hms.seconds().count());
 	if constexpr(Duration::period::num==1&&Duration::period::den!=1)
 		it=subseconds_part_print_sz_impl<static_cast<std::uintmax_t>(Duration::period::den),char_type>(	
 			it,static_cast<std::make_unsigned_t<std::common_type_t<std::intmax_t,
