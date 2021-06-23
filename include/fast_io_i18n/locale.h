@@ -403,11 +403,14 @@ inline void* deal_with_locale_name_local_encoding(lc_locale& loc,::fast_io::free
 
 #else
 
+#if defined(_GNU_SOURCE)
+extern char const* libc_secure_getenv(char const*) noexcept __asm__("secure_getenv");
+#endif
 inline char const* my_getenv(char8_t const* env) noexcept
 {
 	return
 #if defined(_GNU_SOURCE)
-	secure_getenv(reinterpret_cast<char const*>(env));
+	libc_secure_getenv(reinterpret_cast<char const*>(env));
 #else
 	std::getenv(reinterpret_cast<char const*>(env));
 #endif
@@ -454,7 +457,7 @@ inline ::fast_io::freestanding::string_view get_lc_all_or_lang_non_empty() noexc
 	return lang_env;
 }
 
-inline constexpr std::u8string_view exec_encoding_u8strvw() noexcept
+inline constexpr ::fast_io::freestanding::u8string_view exec_encoding_u8strvw() noexcept
 {
 	if constexpr('A'!=u8'A')
 		return u8"IBM12712";
