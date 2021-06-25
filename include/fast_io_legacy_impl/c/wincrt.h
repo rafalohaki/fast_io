@@ -129,7 +129,7 @@ CRT heap debugging does not exist on mingw-w64
 #if __has_builtin(__builtin_malloc)
 	__builtin_malloc(buffer_size)
 #else
-	malloc(buffer_size);
+	malloc(buffer_size)
 #endif
 #else
 	malloc(buffer_size)
