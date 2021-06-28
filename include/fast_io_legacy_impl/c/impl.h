@@ -11,17 +11,6 @@
 
 namespace fast_io
 {
-namespace win32
-{
-#if defined(__MINGW32__) && !defined(_UCRT)
-[[gnu::dllimport]] extern void __cdecl _lock_file(FILE*) noexcept asm("_lock_file");
-[[gnu::dllimport]] extern void __cdecl _unlock_file(FILE*) noexcept asm("_unlock_file");
-[[gnu::dllimport]] extern std::size_t __cdecl _fwrite_nolock(void const* __restrict buffer,std::size_t size,std::size_t count,FILE* __restrict) noexcept asm("_fwrite_nolock");
-[[gnu::dllimport]] extern std::size_t __cdecl _fread_nolock(void* __restrict buffer,std::size_t size,std::size_t count,FILE* __restrict) noexcept asm("_fread_nolock");
-[[gnu::dllimport]] extern std::size_t __cdecl fwrite(void const* __restrict buffer,std::size_t size,std::size_t count,FILE* __restrict) noexcept asm("fwrite");
-[[gnu::dllimport]] extern std::size_t __cdecl fread(void* __restrict buffer,std::size_t size,std::size_t count,FILE* __restrict) noexcept asm("fread");
-#endif
-}
 
 inline constexpr open_mode native_c_supported(open_mode m) noexcept
 {
@@ -39,7 +28,7 @@ return c_supported(m);
 }
 inline constexpr char const* to_native_c_mode(open_mode m) noexcept
 {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 /*
 https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/fdopen-wfdopen?view=vs-2019
 From microsoft's document. _fdopen only supports
@@ -615,7 +604,7 @@ inline void my_c_clear_screen_impl(FILE* fp)
 	}
 	else
 	{
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 		void* handle{my_fp_to_win32_handle_impl<c_family::unlocked>(fp)};
 		if(!::fast_io::win32::details::win32_is_character_device(handle))
 			return;

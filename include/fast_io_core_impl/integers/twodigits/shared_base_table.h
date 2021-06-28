@@ -25,7 +25,7 @@ inline constexpr auto cal_content()
 	}
 	if constexpr(!transparent)
 	{
-	if constexpr(exec_charset_is_ebcdic<char_type>())
+	if constexpr(is_ebcdic<char_type>)
 	{
 /*
 http://www.astrodigital.org/digital/ebcdic.html#:~:text=The%20EBCDIC%20Character%20Table%20Once%20upon%20a%20time,that%20is%20used%20in%20the%20IBM%20mainframe%20environment.
@@ -80,7 +80,7 @@ inline constexpr auto shared_inline_constexpr_base_table_tb{cal_content<char_typ
 template<std::integral char_type,std::size_t base,bool upper,bool transparent=false>
 inline constexpr auto& get_shared_inline_constexpr_base_table() noexcept
 {
-	if constexpr(exec_charset_is_ebcdic<char_type>())
+	if constexpr(is_ebcdic<char_type>)
 		return shared_inline_constexpr_base_table_tb<char_type,base,upper,transparent>;
 	else if constexpr(sizeof(char_type)==1)
 		return shared_inline_constexpr_base_table_tb<char8_t,base,upper,transparent>;

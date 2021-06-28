@@ -224,4 +224,9 @@ constexpr auto print_scatter_define(print_scatter_type_t<char_type>,parameter<va
 	return print_scatter_define(print_scatter_type<char_type>,para.reference);
 }
 
+namespace manipulators
+{}
+
+namespace mnp=manipulators;
+
 }

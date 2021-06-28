@@ -425,7 +425,6 @@ print_reserve_size(io_reserve_type<char_type,value_type>)
 };
 		constexpr std::size_t size{real_size+static_cast<std::size_t>(line)};
 		static_assert(real_size!=SIZE_MAX);
-
 		if constexpr(contiguous_output_stream<output>)
 		{
 			auto bcurr{obuffer_curr(out)};

@@ -53,11 +53,11 @@
 #include"fast_io_core_impl/secure_clear_guard.h"
 #include"fast_io_core_impl/local_new_array_ptr.h"
 #include"fast_io_core_impl/dynamic_io_buffer.h"
-#include"fast_io_core_impl/manip/impl.h"
+//#include"fast_io_core_impl/manip/impl.h"
 #include"fast_io_core_impl/mode.h"
 #include"fast_io_core_impl/perms.h"
 #include"fast_io_core_impl/seek.h"
-#include"fast_io_core_impl/drain.h"
+//#include"fast_io_core_impl/drain.h"
 
 #include"fast_io_core_impl/igenerator.h"
 #include"fast_io_core_impl/io_ref.h"
@@ -72,17 +72,16 @@
 #include"fast_io_core_impl/istring_view.h"
 
 
-#include"fast_io_core_impl/transmit.h"
-#include"fast_io_core_impl/random_access_transmit.h"
+//#include"fast_io_core_impl/transmit.h"
+//#include"fast_io_core_impl/random_access_transmit.h"
 #include"fast_io_core_impl/flush.h"
-
 
 #ifdef __cpp_lib_source_location
 #include<source_location>
 #include"fast_io_core_impl/source_location.h"
 #endif
-#include"fast_io_core_impl/iso/isos.h"
 
+#include"fast_io_core_impl/iso/isos.h"
 #include"fast_io_core_impl/enums/impl.h"
 
 #include"fast_io_core_impl/simd/impl.h"
@@ -94,7 +93,7 @@
 #endif
 #include"fast_io_core_impl/io_deco_ref.h"
 
-#include"fast_io_core_impl/unsafe_fprint.h"
+//#include"fast_io_core_impl/unsafe_fprint.h"
 #endif
 #include"fast_io_core_impl/timestamp_counter.h"
 #include"fast_io_core_impl/dll_mode.h"

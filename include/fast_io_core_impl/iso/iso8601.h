@@ -277,12 +277,6 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,basi
 	return print_reserve_size(io_reserve_type<char_type,intiso_t>)+std::numeric_limits<uintiso_t>::digits10;
 }
 
-template<std::integral char_type,intiso_t off_to_epoch>
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manipulators::comma_t<basic_timestamp<off_to_epoch>>>) noexcept
-{
-	return print_reserve_size(io_reserve_type<char_type,intiso_t>)+std::numeric_limits<uintiso_t>::digits10;
-}
-
 template<std::integral char_type>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,iso8601_timestamp>) noexcept
 {
@@ -617,82 +611,10 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,basic_tim
 		return details::print_reserve_bsc_timestamp_impl(iter,{timestamp.seconds,timestamp.subseconds});
 }
 
-template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter,intiso_t off_to_epoch>
-inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,manipulators::comma_t<basic_timestamp<off_to_epoch>>>,
-		Iter iter,manipulators::comma_t<basic_timestamp<off_to_epoch>> timestamp) noexcept
-{
-	if constexpr(off_to_epoch==0)
-		return details::print_reserve_bsc_timestamp_impl<true>(iter,timestamp.reference);
-	else
-		return details::print_reserve_bsc_timestamp_impl<true>(iter,{timestamp.reference.seconds,timestamp.reference.subseconds});
-}
-
 template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,iso8601_timestamp>,Iter iter,iso8601_timestamp const& timestamp) noexcept
 {
 	return details::print_reserve_iso8601_timestamp_impl(iter,timestamp);
-}
-
-namespace manipulators
-{
-
-template<manipulators::rounding_mode mode=manipulators::rounding_mode::nearest_to_even,std::size_t base=10,intiso_t off_to_epoch>
-requires (base==10)
-inline constexpr floating_format_precision_t<unix_timestamp,floating_representation::fixed,mode,base>
-	fixed(basic_timestamp<off_to_epoch> ts,std::size_t precision) noexcept
-{
-	if constexpr(off_to_epoch==0)
-		return {ts,precision};
-	else
-		return {{ts.seconds,ts.subseconds},precision};
-}
-
-template<intiso_t off_to_epoch>
-inline constexpr comma_t<unix_timestamp> comma(basic_timestamp<off_to_epoch> ts)
-{
-	if constexpr(off_to_epoch==0)
-		return {ts};
-	else
-		return {{ts.seconds,ts.subseconds}};
-}
-
-template<manipulators::rounding_mode mode=manipulators::rounding_mode::nearest_to_even,std::size_t base=10,intiso_t off_to_epoch>
-requires (base==10)
-inline constexpr comma_t<floating_format_precision_t<unix_timestamp,floating_representation::fixed,mode,base>>
-	comma_fixed(basic_timestamp<off_to_epoch> ts,std::size_t precision) noexcept
-{
-	if constexpr(off_to_epoch==0)
-		return {{ts,precision}};
-	else
-		return {{{ts.seconds,ts.subseconds},precision}};
-}
-
-}
-
-template<std::integral char_type,manipulators::rounding_mode mode>
-inline constexpr std::size_t print_reserve_size(
-	io_reserve_type_t<char_type,manipulators::floating_format_precision_t<unix_timestamp,
-	manipulators::floating_representation::fixed,mode>>,
-	manipulators::floating_format_precision_t<unix_timestamp,
-	manipulators::floating_representation::fixed,mode> ts)
-{
-	constexpr std::size_t value{print_reserve_size(io_reserve_type<char_type,intiso_t>)+3};
-	constexpr std::size_t val1{std::numeric_limits<uintiso_t>::digits10};
-	return details::intrinsics::add_or_overflow_die(value,::fast_io::freestanding::max(ts.precision,val1));
-}
-
-
-template<std::integral char_type,manipulators::rounding_mode mode>
-inline constexpr std::size_t print_reserve_size(
-	io_reserve_type_t<char_type,
-	manipulators::comma_t<manipulators::floating_format_precision_t<unix_timestamp,
-	manipulators::floating_representation::fixed,mode>>>,
-	manipulators::comma_t<manipulators::floating_format_precision_t<unix_timestamp,
-	manipulators::floating_representation::fixed,mode>> ts)
-{
-	constexpr std::size_t value{print_reserve_size(io_reserve_type<char_type,intiso_t>)+3};
-	constexpr std::size_t val1{std::numeric_limits<uintiso_t>::digits10};
-	return value+::fast_io::freestanding::max(ts.reference.precision,val1);
 }
 
 namespace details
@@ -746,9 +668,9 @@ inline constexpr Iter unix_timestamp_fixed_print_easy_case(Iter iter,unix_timest
 	else
 		return my_fill_n(iter,to_fill,u8'0');
 }
-
-template<bool comma,::fast_io::manipulators::rounding_mode mode,::fast_io::freestanding::random_access_iterator Iter>
-inline constexpr Iter unix_timestamp_fixed_complex_case(Iter iter,::fast_io::manipulators::floating_format_precision_t<unix_timestamp,::fast_io::manipulators::floating_representation::fixed,mode> ts)
+#if 0
+template<bool comma,::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter unix_timestamp_fixed_complex_case(Iter iter,unix_timestamp ts)
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	std::size_t const precision{ts.precision};
@@ -868,24 +790,6 @@ inline constexpr Iter unix_timestamp_fixed_print_impl(
 	}
 	return iter;
 }
-
+#endif
 }
-
-template<::fast_io::manipulators::rounding_mode mode,::fast_io::freestanding::random_access_iterator Iter>
-inline constexpr Iter print_reserve_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,::fast_io::manipulators::floating_format_precision_t<unix_timestamp,::fast_io::manipulators::floating_representation::fixed,mode>>,
-	Iter iter,
-	::fast_io::manipulators::floating_format_precision_t<unix_timestamp,::fast_io::manipulators::floating_representation::fixed,mode> ts) noexcept
-{
-	return details::unix_timestamp_fixed_print_impl<false>(iter,ts);
-}
-
-template<::fast_io::manipulators::rounding_mode mode,::fast_io::freestanding::random_access_iterator Iter>
-inline constexpr Iter print_reserve_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,
-	manipulators::comma_t<::fast_io::manipulators::floating_format_precision_t<unix_timestamp,::fast_io::manipulators::floating_representation::fixed,mode>>>,
-	Iter iter,
-	manipulators::comma_t<::fast_io::manipulators::floating_format_precision_t<unix_timestamp,::fast_io::manipulators::floating_representation::fixed,mode>> ts) noexcept
-{
-	return details::unix_timestamp_fixed_print_impl<true>(iter,ts.reference);
-}
-
 }

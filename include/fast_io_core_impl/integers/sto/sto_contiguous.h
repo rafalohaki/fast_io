@@ -38,6 +38,192 @@ constexpr char_type get_char_with_type() noexcept
 	}
 }
 
+template<char8_t base,std::integral char_type>
+requires (2<=base&&base<=36)
+inline constexpr bool char_digit_to_literal(my_make_unsigned_t<char_type>& ch) noexcept
+{
+	using unsigned_char_type = my_make_unsigned_t<char_type>;
+	constexpr bool ebcdic{exec_charset_is_ebcdic<char_type>()};
+	constexpr unsigned_char_type base_char_type(base);
+	if constexpr(base<=10)
+	{
+		if constexpr(ebcdic)
+			ch-=static_cast<unsigned_char_type>(240);
+		else
+			ch-=static_cast<unsigned_char_type>(u8'0');
+		return base_char_type<=ch;
+	}
+	else
+	{
+		if constexpr(ebcdic)
+		{
+
+			if constexpr(base<=19)
+			{
+				constexpr unsigned_char_type mns{base-10};
+				unsigned_char_type ch2(ch);
+				ch2-=0xC1;
+				unsigned_char_type ch3(ch);
+				ch3-=0x81;
+				ch-=0xF0;
+				if(ch2<mns)
+					ch=ch2+static_cast<unsigned_char_type>(10);
+				else if(ch3<mns)
+					ch=ch3+static_cast<unsigned_char_type>(10);
+				else if(10<=ch)
+					return true;
+				return false;
+			}
+			else if constexpr(base<=28)
+			{
+				constexpr unsigned_char_type mns{base-19};
+				unsigned_char_type ch2(ch);
+				ch2-=0xC1;
+				unsigned_char_type ch3(ch);
+				ch3-=0x81;
+				unsigned_char_type ch4(ch);
+				ch2-=0xD1;
+				unsigned_char_type ch5(ch);
+				ch3-=0x91;
+				ch-=0xF0;
+				if(ch4<mns)
+					ch=ch4+static_cast<unsigned_char_type>(19);
+				else if(ch5<mns)
+					ch=ch5+static_cast<unsigned_char_type>(19);
+				else if(ch2<9)
+					ch=ch2+static_cast<unsigned_char_type>(10);
+				else if(ch3<9)
+					ch=ch3+static_cast<unsigned_char_type>(10);
+				else if(10<=ch)
+					return true;
+				return false;
+			}
+			else
+			{
+				constexpr unsigned_char_type mns{base-27};
+				unsigned_char_type ch2(ch);
+				ch2-=0xC1;
+				unsigned_char_type ch3(ch);
+				ch3-=0x81;
+				unsigned_char_type ch4(ch);
+				ch4-=0xD1;
+				unsigned_char_type ch5(ch);
+				ch5-=0x91;
+				unsigned_char_type ch6(ch);
+				ch6-=0xE2;
+				unsigned_char_type ch7(ch);
+				ch7-=0xA2;
+				ch-=0xF0;
+				if(ch6<mns)
+					ch=ch6+static_cast<unsigned_char_type>(27);
+				else if(ch7<mns)
+					ch=ch7+static_cast<unsigned_char_type>(27);
+				else if(ch4<9)
+					ch=ch4+static_cast<unsigned_char_type>(19);
+				else if(ch5<9)
+					ch=ch5+static_cast<unsigned_char_type>(19);
+				else if(ch2<9)
+					ch=ch2+static_cast<unsigned_char_type>(10);
+				else if(ch3<9)
+					ch=ch3+static_cast<unsigned_char_type>(10);
+				else if(10<=ch)
+					return true;
+				return false;
+			}
+		}
+		else
+		{
+			constexpr unsigned_char_type mns{base-10};
+			unsigned_char_type ch2(ch);
+			ch2-=u8'A';
+			unsigned_char_type ch3(ch);
+			ch3-=u8'a';
+			ch-=u8'0';
+			if(ch2<mns)
+				ch=ch2+static_cast<unsigned_char_type>(10);
+			else if(ch3<mns)
+				ch=ch3+static_cast<unsigned_char_type>(10);
+			else if(10<=ch)
+				return true;
+			return false;
+		}
+	}
+}
+
+template<char8_t base,std::integral char_type>
+requires (2<=base&&base<=36)
+inline constexpr bool char_digit_probe_overflow(my_make_unsigned_t<char_type> ch) noexcept
+{
+	using unsigned_char_type = my_make_unsigned_t<char_type>;
+	constexpr bool ebcdic{exec_charset_is_ebcdic<char_type>()};
+	constexpr unsigned_char_type base_char_type(base);
+	if constexpr(base<=10)
+	{
+		if constexpr(ebcdic)
+			ch-=static_cast<unsigned_char_type>(240);
+		else
+			ch-=static_cast<unsigned_char_type>(u8'0');
+		return ch<base_char_type;
+	}
+	else
+	{
+		if constexpr(ebcdic)
+		{
+			if constexpr(base<=19)
+			{
+				constexpr unsigned_char_type mns{base-10};
+				unsigned_char_type ch2(ch);
+				ch2-=0xC1;
+				unsigned_char_type ch3(ch);
+				ch3-=0x81;
+				ch-=0xF0;
+				return (ch2<mns)|(ch3<mns)|(ch<10u);
+			}
+			else if constexpr(base<=28)
+			{
+				constexpr unsigned_char_type mns{base-19};
+				unsigned_char_type ch2(ch);
+				ch2-=0xC1;
+				unsigned_char_type ch3(ch);
+				ch3-=0x81;
+				unsigned_char_type ch4(ch);
+				ch2-=0xD1;
+				unsigned_char_type ch5(ch);
+				ch3-=0x91;
+				ch-=0xF0;
+				return (ch4<mns)|(ch5<mns)|(ch2<mns)|(ch3<9)|(ch<10u);
+			}
+			else
+			{
+				constexpr unsigned_char_type mns{base-27};
+				unsigned_char_type ch2(ch);
+				ch2-=0xC1;
+				unsigned_char_type ch3(ch);
+				ch3-=0x81;
+				unsigned_char_type ch4(ch);
+				ch4-=0xD1;
+				unsigned_char_type ch5(ch);
+				ch5-=0x91;
+				unsigned_char_type ch6(ch);
+				ch6-=0xE2;
+				unsigned_char_type ch7(ch);
+				ch7-=0xA2;
+				ch-=0xF0;
+				return (ch6<mns)|(ch7<mns)|(ch4<9u)|(ch5<9u)|(ch2<9u)|(ch3<9u)|(ch<10u);
+			}
+		}
+		else
+		{
+			constexpr unsigned_char_type mns{base-10};
+			unsigned_char_type ch2(ch);
+			ch2-=u8'A';
+			unsigned_char_type ch3(ch);
+			ch3-=u8'a';
+			ch-=u8'0';
+			return (ch2<mns)|(ch3<mns)|(ch<10u);
+		}
+	}
+}
 
 struct simd_parse_result
 {
@@ -396,7 +582,6 @@ inline constexpr auto scan_context_type(io_reserve_type_t<char_type,parameter<T&
 namespace details
 {
 
-
 template<char8_t base,::fast_io::freestanding::input_iterator Iter>
 inline constexpr Iter scan_skip_all_digits_impl(Iter first,Iter last)
 {
@@ -547,6 +732,24 @@ inline constexpr parse_result<Iter> ch_get_context_impl(Iter first,Iter last,::f
 	++first;
 	return {first,parse_code::ok};
 }
+}
+
+namespace manipulators
+{
+
+template<typename char_type>
+struct ch_get_t
+{
+	using manip_tag = manip_tag_t;
+	char_type& reference;
+};
+
+template<::fast_io::details::my_integral T>
+inline constexpr ch_get_t<T&> ch_get(T& reference) noexcept
+{
+	return {reference};
+}
+
 }
 
 template<std::integral char_type>

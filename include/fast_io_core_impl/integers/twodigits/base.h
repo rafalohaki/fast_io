@@ -6,7 +6,6 @@ namespace fast_io
 namespace details
 {
 
-
 template<char8_t base,bool uppercase,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
 inline constexpr auto output_base_number_full_impl(Iter iter,U a) noexcept
 {

@@ -51,7 +51,9 @@ inline constexpr Iter print_reserve_nt_error_impl(Iter iter,std::uint32_t ntstat
 		iter=copy_string_literal(U"[nt:0x",iter);
 	else
 		iter=copy_string_literal(u8"[nt:0x",iter);
-	iter=print_reserve_define(io_reserve_type<char_type,::fast_io::manipulators::base_full_t<16,true,std::uint32_t>>,iter,{ntstatus});
+	using namespace ::fast_io::manipulators;
+	constexpr scalar_flags flags{.base=16,.full=true,.floating=floating_format::fixed};
+	iter=print_reserve_define(io_reserve_type<char_type,scalar_manip_t<flags,std::uint32_t>>,iter,{ntstatus});
 
 	if constexpr(std::same_as<char_type,char>)
 		*iter=']';
@@ -68,7 +70,9 @@ inline constexpr Iter print_reserve_nt_error_impl(Iter iter,std::uint32_t ntstat
 template<std::integral char_type>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,nt_error>) noexcept
 {
-	constexpr std::size_t full_size(print_reserve_size(io_reserve_type<char_type,::fast_io::manipulators::base_full_t<16,true,std::uint32_t>>)+print_reserve_size(io_reserve_type<char_type,win32_error>));
+	using namespace ::fast_io::manipulators;
+	constexpr scalar_flags flags{.base=16,.full=true,.floating=floating_format::fixed};
+	constexpr std::size_t full_size(print_reserve_size(io_reserve_type<char_type,scalar_manip_t<flags,std::uint32_t>>)+print_reserve_size(io_reserve_type<char_type,win32_error>));
 	if constexpr(std::same_as<char_type,char>)
 	{
 		return full_size+details::string_literal_size("[nt:0x]");

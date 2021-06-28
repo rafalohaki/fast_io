@@ -28,7 +28,7 @@
 #include <wasi/api.h>
 #endif
 
-#if !defined(_WIN32) && __has_include(<sys/socket.h>) && __has_include(<netinet/in.h>) && !defined(__wasi__)
+#if (!defined(_WIN32) || defined(__CYGWIN__)) && __has_include(<sys/socket.h>) && __has_include(<netinet/in.h>) && !defined(__wasi__)
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "posix_netmode.h"
@@ -39,7 +39,7 @@ namespace fast_io
 
 namespace details
 {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 
 inline constexpr int calculate_posix_open_mode_for_win32_handle_impl(open_mode value,int mode) noexcept
 {
@@ -318,7 +318,7 @@ public:
 	{
 		return fd!=-1;
 	}
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 	template<win32_family family>
 	explicit operator basic_win32_family_io_observer<family,char_type>() const noexcept
 	{
@@ -425,7 +425,7 @@ namespace details
 
 inline std::size_t posix_read_impl(int fd,void* address,std::size_t bytes_to_read)
 {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 	if constexpr(4<sizeof(std::size_t))
 		if(static_cast<std::size_t>(INT32_MAX)<bytes_to_read)
 			bytes_to_read=static_cast<std::size_t>(INT32_MAX);
@@ -433,13 +433,13 @@ inline std::size_t posix_read_impl(int fd,void* address,std::size_t bytes_to_rea
 	auto read_bytes(
 #if defined(__linux__)
 		system_call<__NR_read,std::ptrdiff_t>
-#elif _WIN32 || __MSDOS__
+#elif (defined(_WIN32)&&!defined(__CYGWIN__)) || __MSDOS__
 		::_read
 #else
 		::read
 #endif
 	(fd,address,
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 	static_cast<std::uint32_t>(bytes_to_read)
 #else
 	bytes_to_read
@@ -449,7 +449,7 @@ inline std::size_t posix_read_impl(int fd,void* address,std::size_t bytes_to_rea
 	return read_bytes;
 }
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 
 inline io_scatter_status_t posix_scatter_read_impl(int fd,io_scatters_t sp)
 {
@@ -529,7 +529,7 @@ inline io_scatter_status_t posix_scatter_write_impl(int fd,io_scatters_t sp)
 
 inline std::size_t posix_write_impl(int fd,void const* address,std::size_t to_write)
 {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 	if constexpr(4<sizeof(std::size_t))
 		return posix_write_nolock_impl(fd,address,to_write);
 	else
@@ -561,7 +561,7 @@ inline std::uintmax_t posix_seek_impl(int fd,std::intmax_t offset,seekdir s)
 	auto ret(
 #if defined(__linux__)
 		system_call<__NR_lseek,std::ptrdiff_t>
-#elif defined(_WIN32)
+#elif defined(_WIN32) && !defined(__CYGWIN__)
 		::_lseeki64
 #else
 		::lseek
@@ -595,7 +595,7 @@ inline void posix_clear_screen_main([[maybe_unused]] int fd)
 
 inline void posix_clear_screen_impl(int fd)
 {
-#if defined(_WIN32) && !defined(__WINE__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
 	::fast_io::win32::details::win32_clear_screen_impl(my_get_osfile_handle(fd));
 #else
 	if(!posix_is_character_device(fd))
@@ -678,7 +678,7 @@ S_ISSOCK(m)
 
 socket? (Not in POSIX.1-1996.)
 */
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(__CYGWIN__)
 /*
 https://github.com/Alexpux/mingw-w64/blob/master/mingw-w64-headers/crt/sys/stat.h
 
@@ -737,7 +737,7 @@ inline constexpr posix_file_status struct_stat_to_posix_file_status(stat_model& 
 	static_cast<std::uintmax_t>(st.st_gid),
 	static_cast<std::uintmax_t>(st.st_rdev),
 	static_cast<std::uintmax_t>(st.st_size),
-#if defined(_WIN32)||defined(__MSDOS__)
+#if (defined(_WIN32) && !defined(__CYGWIN__))||defined(__MSDOS__)
 	131072,
 	static_cast<std::uintmax_t>(st.st_size/512),
 	{st.st_atime,{}},{st.st_mtime,{}},{st.st_ctime,{}},{0,0},
@@ -776,7 +776,7 @@ timespec_to_unix_timestamp(st.st_birthtim)
 
 inline posix_file_status fstat_impl(int fd)
 {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 	struct __stat64 st;
 #elif defined(__linux__) && !defined(__mlibc__)
 	struct stat64 st;
@@ -784,7 +784,7 @@ inline posix_file_status fstat_impl(int fd)
 	struct stat st;
 #endif
 	if(
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 _fstat64
 #elif defined(__linux__) && !defined(__mlibc__)
 fstat64
@@ -825,7 +825,7 @@ inline auto zero_copy_out_handle(basic_posix_io_observer<ch_type> h)
 #endif
 
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 template<std::integral ch_type>
 inline auto redirect_handle(basic_posix_io_observer<ch_type> h) noexcept
 {
@@ -846,7 +846,7 @@ inline constexpr posix_io_redirection redirect(basic_posix_io_observer<ch_type> 
 
 #endif
 
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(__CYGWIN__)
 template<std::integral ch_type,typename... Args>
 requires io_controllable<basic_win32_io_observer<ch_type>,Args...>
 inline decltype(auto) io_control(basic_posix_io_observer<ch_type> h,Args&& ...args)
@@ -880,7 +880,7 @@ inline void io_control(basic_posix_io_observer<ch_type> h,Args&& ...args)
 namespace details
 {
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 
 template<posix_open_mode_text_behavior behavior>
 inline int open_fd_from_handle_impl(void* handle,open_mode md)
@@ -1057,7 +1057,7 @@ posix_file_factory
 template<std::integral ch_type>
 class basic_posix_file:public basic_posix_io_handle<ch_type>
 {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 	using mode_t = int;
 #endif
 public:
@@ -1135,7 +1135,7 @@ public:
 	basic_posix_file(posix_at_entry pate,u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_openat_file_impl(pate.fd,file,om,pm)){}
 	basic_posix_file(u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_open_file_impl(file,om,pm)){}
 	basic_posix_file(posix_at_entry pate,u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_openat_file_impl(pate.fd,file,om,pm)){}
-#if !defined(_WIN32) && !defined(__wasi__) && __has_include(<sys/socket.h>) && __has_include(<netinet/in.h>)
+#if (!defined(_WIN32) || defined(__CYGWIN__)) && !defined(__wasi__) && __has_include(<sys/socket.h>) && __has_include(<netinet/in.h>)
 	basic_posix_file(sock_family d,sock_type t,open_mode m,sock_protocol p):basic_posix_io_handle<char_type>(details::open_socket_impl(d,t,m,p)){}
 #endif
 
@@ -1169,11 +1169,11 @@ To verify whether O_TMPFILE is a thing on FreeBSD. https://github.com/FreeRDP/Fr
 			details::sys_close(this->fd);
 	}
 };
-#if !defined(__NEWLIB__)
+#if !defined(__NEWLIB__) || defined(__CYGWIN__)
 template<std::integral ch_type>
 inline void truncate(basic_posix_io_observer<ch_type> h,std::uintmax_t size)
 {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 	auto err(_chsize_s(h.fd,size));
 	if(err)
 		throw_posix_error(err);
@@ -1197,7 +1197,7 @@ public:
 		throw_posix_error(ENOTSUP);
 #else
 		::fast_io::freestanding::array<int,2> a2{pipes.front().fd,pipes.back().fd};
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(__CYGWIN__)
 		if(noexcept_call(_pipe,a2.data(),1048576,_O_BINARY)==-1)
 #else
 		if(::pipe(a2.data())==-1)
@@ -1239,7 +1239,7 @@ inline void flush(basic_posix_pipe<ch_type>&)
 //		if(::fsync(fd)==-1)
 //			throw posix_error();
 }
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 template<std::integral ch_type>
 inline ::fast_io::freestanding::array<int*,2> redirect_handle(basic_posix_pipe<ch_type>& h)
 {
@@ -1459,31 +1459,6 @@ inline constexpr basic_posix_io_observer<char_type> posix_stderr()
 }
 
 
-#if 0
-template<std::integral char_type>
-inline constexpr io_type_t<win32_io_observer> async_scheduler_type(basic_posix_io_observer<char_type>)
-{
-	return {};
-}
-
-template<std::integral char_type>
-inline constexpr io_type_t<iocp_overlapped> async_overlapped_type(basic_posix_io_observer<char_type>)
-{
-	return {};
-}
-
-template<std::integral char_type,typename... Args>
-inline void async_write_callback(io_async_observer ioa,basic_posix_io_observer<char_type> h,Args&& ...args)
-{
-	async_write_callback(ioa,static_cast<basic_win32_io_observer<char_type>>(h),std::forward<Args>(args)...);
-}
-
-template<std::integral char_type,typename... Args>
-inline void async_read_callback(io_async_observer ioa,basic_posix_io_observer<char_type> h,Args&& ...args)
-{
-	async_read_callback(ioa,static_cast<basic_win32_io_observer<char_type>>(h),std::forward<Args>(args)...);
-}
-#endif
 #if !defined(_WIN32) || defined(__WINE__)
 template<std::integral char_type=char>
 inline constexpr basic_posix_io_observer<char_type> native_stdin() noexcept

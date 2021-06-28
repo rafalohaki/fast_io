@@ -16,6 +16,28 @@ We extend print pointers to print contiguous_iterator. No we can write things li
 std::vector<std::size_t> vec(100,2);
 println("vec.begin():",vec.begin()," vec.end()",vec.end());
 */
+namespace manipulators
+{
+template<typename T>
+struct chvw_t
+{
+	using manip_tag = manip_tag_t;
+	T reference;
+};
+
+template<std::integral T>
+inline constexpr chvw_t<T> chvw(T ch) noexcept
+{
+	return {ch};
+}
+
+template<std::integral T>
+inline constexpr chvw_t<T const*> chvw(T const* ch) noexcept
+{
+	return {ch};
+}
+
+}
 
 template<std::integral char_type>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,void const*>) noexcept

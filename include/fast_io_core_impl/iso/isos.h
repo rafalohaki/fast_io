@@ -18,8 +18,8 @@ inline constexpr Iter output_iso8601_subseconds_main(Iter iter,uintiso_t subseco
 	std::size_t sz(digitsm1);
 	for(;subseconds%10==0;--sz)
 		subseconds/=10;
-	with_length_output_unsigned(iter,subseconds,sz);
-	return iter+sz;
+	print_reserve_integral_main_impl<10,false>(iter+=sz,subseconds,sz);
+	return iter;
 }
 
 template<bool comma=false,::fast_io::freestanding::random_access_iterator Iter>

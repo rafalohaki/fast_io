@@ -125,7 +125,7 @@ _CLIENT_BLOCK An application can keep special track of a given group of allocati
 https://github.com/mirror/mingw-w64/blob/master/mingw-w64-headers/crt/crtdbg.h
 CRT heap debugging does not exist on mingw-w64
 */
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(__has_builtin)
 #if __has_builtin(__builtin_malloc)
 	__builtin_malloc(buffer_size)
 #else
