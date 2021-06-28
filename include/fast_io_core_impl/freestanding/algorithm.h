@@ -44,7 +44,8 @@ inline constexpr output_iter copy_n(input_iter first,std::size_t count,output_it
 {
 	for (std::size_t i{}; i != count; ++i)
 	{
-		*result = *++first;
+		*result = *first;
+		++first;
 		++result;
 	}
 	return result;

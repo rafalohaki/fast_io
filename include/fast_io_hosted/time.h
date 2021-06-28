@@ -10,7 +10,7 @@ namespace details
 #endif
 inline constexpr auto posix_clock_id_to_native_value(posix_clock_id pcid)
 {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 	switch(pcid)
 	{
 	case posix_clock_id::realtime:
@@ -144,12 +144,12 @@ inline unix_timestamp win32_query_performance_frequency_to_unix_timestamp()
 }
 
 inline
-#if defined(_WIN32) || defined(__MSDOS__)
+#if (defined(_WIN32) && !defined(__CYGWIN__)) || defined(__MSDOS__)
 constexpr
 #endif
 unix_timestamp posix_clock_getres([[maybe_unused]] posix_clock_id pclk_id)
 {
-#ifdef _WIN32
+#if (defined(_WIN32) && !defined(__CYGWIN__))
 	switch(pclk_id)
 	{
 	case posix_clock_id::realtime:
@@ -208,7 +208,7 @@ unix_timestamp posix_clock_getres([[maybe_unused]] posix_clock_id pclk_id)
 	throw_posix_error(EINVAL);
 #endif
 }
-#ifdef _WIN32
+#if (defined(_WIN32) && !defined(__CYGWIN__))
 namespace win32::details
 {
 
@@ -409,7 +409,7 @@ inline unix_timestamp dos_posix_clock_gettime([[maybe_unused]] posix_clock_id pc
 
 inline unix_timestamp posix_clock_gettime([[maybe_unused]] posix_clock_id pclk_id)
 {
-#ifdef _WIN32
+#if (defined(_WIN32) && !defined(__CYGWIN__))
 	switch(pclk_id)
 	{
 	case posix_clock_id::realtime:
@@ -516,7 +516,7 @@ inline basic_timestamp<off_to_epoch> zw_clock_settime(posix_clock_id pclk_id,bas
 
 namespace details
 {
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__CYGWIN__) 
 template<bool local_tm>
 inline struct tm unix_timestamp_to_tm_impl(intiso_t seconds)
 {
@@ -553,7 +553,7 @@ inline struct tm unix_timestamp_to_tm_impl(intiso_t seconds)
 #endif
 
 
-inline iso8601_timestamp to_iso8601_local_impl(intiso_t seconds,uintiso_t subseconds)
+inline iso8601_timestamp to_iso8601_local_impl(intiso_t seconds,uintiso_t subseconds,bool dstadj)
 {
 #ifdef __MSDOS__
 	return unix_timestamp_to_iso8601_tsp_impl_internal(seconds,subseconds,0);
@@ -571,6 +571,8 @@ inline iso8601_timestamp to_iso8601_local_impl(intiso_t seconds,uintiso_t subsec
 	tm_gmtoff=timezone;
 #endif
 	long bias{};
+	if(dstadj)
+	{
 #if defined(_MSC_VER) || defined(_UCRT)
 	{
 		auto errn{_get_dstbias(&bias)};
@@ -582,6 +584,7 @@ inline iso8601_timestamp to_iso8601_local_impl(intiso_t seconds,uintiso_t subsec
 #else
 	bias=daylight?-3600L:0;
 #endif
+	}
 	std::uint32_t dst_timezone{static_cast<std::uint32_t>(static_cast<unsigned long>(tm_gmtoff)+static_cast<unsigned long>(bias))};
 	return unix_timestamp_to_iso8601_tsp_impl_internal(sub_overflow(seconds,static_cast<intiso_t>(static_cast<uintiso_t>(dst_timezone))),
 		subseconds,static_cast<std::int32_t>(static_cast<std::uint32_t>(0)-dst_timezone));
@@ -650,7 +653,7 @@ extern void m_tzset() noexcept asm("tzset");
 
 inline void posix_tzset() noexcept
 {
-#if _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 	_tzset();
 #elif __NEWLIB__
 	details::m_tzset();
@@ -661,7 +664,7 @@ inline void posix_tzset() noexcept
 
 
 template<intiso_t off_to_epoch>
-inline iso8601_timestamp local(basic_timestamp<off_to_epoch> timestamp)
+inline iso8601_timestamp local(basic_timestamp<off_to_epoch> timestamp,bool dstadj=true)
 {
 #ifdef __MSDOS__
 	return utc(timestamp);
@@ -671,17 +674,17 @@ inline iso8601_timestamp local(basic_timestamp<off_to_epoch> timestamp)
 #else
 	if constexpr(off_to_epoch==0)
 	{
-		return details::to_iso8601_local_impl(timestamp.seconds,timestamp.subseconds);
+		return details::to_iso8601_local_impl(timestamp.seconds,timestamp.subseconds,dstadj);
 	}
 	else
 	{
 		unix_timestamp stmp(static_cast<unix_timestamp>(timestamp));
-		return details::to_iso8601_local_impl(stmp.seconds,stmp.subseconds);
+		return details::to_iso8601_local_impl(stmp.seconds,stmp.subseconds,dstadj);
 	}
 #endif
 }
 
-#if defined(_WIN32) && (defined(_UCRT) || defined(_MSC_VER))
+#if defined(_WIN32) && !defined(__CYGWIN__) && (defined(_UCRT) || defined(_MSC_VER))
 struct win32_timezone_t
 {
 	std::size_t tz_name_len{};
@@ -715,7 +718,7 @@ namespace details
 
 inline std::size_t print_reserve_define_impl(char* first,win32_timezone_t tzt)
 {
-	auto errn{_get_tzname(&tzt.tz_name_len,first,tzt.tz_name_len,tzt.is_dst)};
+	auto errn{_get_tzname(__builtin_addressof(tzt.tz_name_len),first,tzt.tz_name_len,tzt.is_dst)};
 	if(errn)
 		throw_posix_error(static_cast<int>(errn));
 	if(tzt.tz_name_len)
@@ -777,7 +780,7 @@ inline basic_io_scatter_t<char> timezone_name([[maybe_unused]] bool dst=posix_da
 
 inline void posix_clock_settime([[maybe_unused]] posix_clock_id pclk_id,[[maybe_unused]] unix_timestamp timestamp)
 {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__NEWLIB__)
 	nt_clock_settime(pclk_id,timestamp);
 #elif defined(__MSDOS__)
 	switch(pclk_id)

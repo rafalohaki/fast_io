@@ -86,7 +86,7 @@ general,fixed,scientific,hexafloat,precise
 struct scalar_flags
 {
 	std::size_t base{10};
-	bool boolalpha{};
+	bool alphabet{};
 	bool showbase{};
 	bool showpos{};
 	bool skipws{};
@@ -101,29 +101,67 @@ struct scalar_flags
 	floating_format floating{floating_format::general};
 };
 
+inline constexpr scalar_flags integral_default_scalar_flags{.floating=floating_format::fixed};
+inline constexpr scalar_flags floating_point_default_scalar_flags{};
+inline constexpr scalar_flags address_default_scalar_flags{.base=16,.showbase=true,.full=true,.floating=floating_format::fixed};
+
 template<scalar_flags flags,typename T>
 struct scalar_manip_t
 {
-	using reference_type = T;
-	reference_type reference;
+	using manip_tag = manip_tag_t;
+	T reference;
 };
 
-template<std::size_t bs,bool upper=false,bool shbase=false,bool full=false,::fast_io::details::my_integral int_type>
-requires (2<=bs&&bs<=36)
-inline constexpr scalar_manip_t<scalar_flags{.base=bs,.showbase=shbase,.uppercase=((bs<=10)?false:upper),.full=false,.floating=floating_format::fixed},int_type> base(int_type t) noexcept
+template<std::size_t bs,bool upper=false,bool shbase=false,bool full=false,typename scalar_type>
+requires ((2<=bs&&bs<=36)&&(::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||std::contiguous_iterator<scalar_type>))
+inline constexpr scalar_manip_t<scalar_flags{.base=bs,.showbase=shbase,.uppercase=((bs<=10)?false:upper),.full=false,.floating=floating_format::fixed},scalar_type> base(scalar_type t) noexcept
 {
-	return {t};
+	if constexpr(::fast_io::details::my_integral<scalar_type>)
+		return {t};
+	else if constexpr(std::is_pointer_v<std::remove_cvref_t<scalar_type>>)
+		return {
+#if __cpp_lib_bit_cast >= 201806L
+			__builtin_bit_cast(std::uintptr_t,t)
+#else
+			bit_cast<std::uintptr_t>(t)
+#endif
+		};
+	else
+		return {
+#if __cpp_lib_bit_cast >= 201806L
+			__builtin_bit_cast(std::uintptr_t,::fast_io::freestanding::to_address(t))
+#else
+			bit_cast<std::uintptr_t>(::fast_io::freestanding::to_address(t))
+#endif
+		};
 }
 
-template<scalar_flags flags,::fast_io::details::my_integral int_type>
-requires (2<=flags.base&&flags.base<=36)
-inline constexpr scalar_manip_t<flags,int_type> scalar(int_type t) noexcept
+template<scalar_flags flags,typename scalar_type>
+requires (((2<=flags.base&&flags.base<=36&&(::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||std::contiguous_iterator<scalar_type>))||(flags.base==10&&std::floating_point<scalar_type>)))
+inline constexpr scalar_manip_t<flags,std::conditional_t<(::fast_io::details::my_integral<scalar_type>||std::floating_point<scalar_type>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>),scalar_type,std::uintptr_t>> scalar(scalar_type t) noexcept
 {
-	return {t};
+	if constexpr(::fast_io::details::my_integral<scalar_type>||std::floating_point<scalar_type>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>)
+		return {t};
+	else if constexpr(std::is_pointer_v<std::remove_cvref_t<scalar_type>>)
+		return {
+#if __cpp_lib_bit_cast >= 201806L
+			__builtin_bit_cast(std::uintptr_t,t)
+#else
+			bit_cast<std::uintptr_t>(t)
+#endif
+		};
+	else
+		return {
+#if __cpp_lib_bit_cast >= 201806L
+			__builtin_bit_cast(std::uintptr_t,::fast_io::freestanding::to_address(t))
+#else
+			bit_cast<std::uintptr_t>(::fast_io::freestanding::to_address(t))
+#endif
+		};
 }
 
 template<bool upper=false>
-inline constexpr scalar_manip_t<scalar_flags{.boolalpha=true,.uppercase=upper},bool> blvw(bool b) noexcept
+inline constexpr scalar_manip_t<scalar_flags{.alphabet=true,.uppercase=upper},bool> boolalpha(bool b) noexcept
 {
 	return {b};
 }
@@ -132,6 +170,7 @@ inline constexpr scalar_manip_t<scalar_flags{.boolalpha=true,.uppercase=upper},b
 
 namespace details
 {
+
 template<std::integral char_type,std::size_t base>
 inline constexpr auto generate_base_prefix_array() noexcept
 {
@@ -219,7 +258,7 @@ inline constexpr Iter print_reserve_show_base_impl(Iter iter)
 				iter=copy_string_literal(u8"0b",iter);
 		}
 	}
-	if constexpr(base==3)
+	else if constexpr(base==3)
 	{
 		if constexpr(uppercase_showbase)
 		{
@@ -320,75 +359,91 @@ inline constexpr void print_reserve_integral_main_impl(Iter iter,T t,std::size_t
 	}
 }
 
-template<std::size_t base=10,
-	bool showbase=false,
-	bool uppercase_showbase=false,
-	bool showpos=false,
-	bool uppercase=false,
-	bool full=false,
+template<std::size_t base,
+	bool showbase,
+	bool uppercase_showbase,
+	bool showpos,
+	bool uppercase,
+	bool full,
 	typename int_type,std::random_access_iterator Iter>
 inline constexpr Iter print_reserve_integral_define(Iter first,int_type t)
 {
 	if constexpr(base<=10&&uppercase)
 	{
-		return print_reserve_integral_define<base,showbase,uppercase_showbase,showpos,false>(first,t);//prevent duplications
+		return print_reserve_integral_define<base,showbase,uppercase_showbase,showpos,false,full>(first,t);//prevent duplications
 	}
 	else
 	{
 		static_assert((2<=base)&&(base<=36));
 		using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
-		using unsigned_type = ::fast_io::details::my_make_unsigned_t<int_type>;
-		unsigned_type u{static_cast<unsigned_type>(t)};
-		if constexpr(showpos)
+		if constexpr(std::same_as<bool,std::remove_cvref_t<int_type>>)
 		{
-			if constexpr(::fast_io::details::my_unsigned_integral<int_type>)
+			if constexpr(showpos)
 			{
 				*first=sign_ch<u8'+',char_type>;
+				++first;
 			}
-			else
-			{
-				if(t<0)
-				{
-					*first=sign_ch<u8'-',char_type>;
-					constexpr unsigned_type zero{};
-					u=zero-u;
-				}
-				else
-				{
-					*first=sign_ch<u8'+',char_type>;
-				}
-			}
-			++first;
-		}
-		else
-		{
-			if constexpr(::fast_io::details::my_signed_integral<int_type>)
-			{
-				if(t<0)
-				{
-					*first=sign_ch<u8'-',char_type>;
-					++first;
-					constexpr unsigned_type zero{};
-					u=zero-u;
-				}
-			}
-		}
-		if constexpr(showbase)
-			first=print_reserve_show_base_impl<base,uppercase_showbase>(first);
-		if constexpr(std::same_as<int_type,bool>)
-		{
+			if constexpr(showbase&&(base!=10))
+				first=print_reserve_show_base_impl<base,uppercase_showbase>(first);
 			*first=t?sign_ch<u8'1',char_type>:sign_ch<u8'0',char_type>;
 			++first;
 		}
-		else if constexpr(full)
-		{
-			constexpr std::size_t sz{::fast_io::details::cal_max_int_size<::fast_io::details::my_make_unsigned_t<int_type>,base>()};
-			print_reserve_integral_main_impl<base,uppercase>(first+=sz,u,sz);
-		}
 		else
 		{
-			std::size_t sz{chars_len<base,false>(u)};
-			print_reserve_integral_main_impl<base,uppercase>(first+=sz,u,sz);
+			using unsigned_type = ::fast_io::details::my_make_unsigned_t<int_type>;
+			unsigned_type u{static_cast<unsigned_type>(t)};
+			if constexpr(showpos)
+			{
+				if constexpr(::fast_io::details::my_unsigned_integral<int_type>)
+				{
+					*first=sign_ch<u8'+',char_type>;
+				}
+				else
+				{
+					if(t<0)
+					{
+						*first=sign_ch<u8'-',char_type>;
+						constexpr unsigned_type zero{};
+						u=zero-u;
+					}
+					else
+					{
+						*first=sign_ch<u8'+',char_type>;
+					}
+				}
+				++first;
+			}
+			else
+			{
+				if constexpr(::fast_io::details::my_signed_integral<int_type>)
+				{
+					if(t<0)
+					{
+						*first=sign_ch<u8'-',char_type>;
+						++first;
+						constexpr unsigned_type zero{};
+						u=zero-u;
+					}
+				}
+			}
+			if constexpr(showbase&&(base!=10))
+				first=print_reserve_show_base_impl<base,uppercase_showbase>(first);
+			if constexpr(full)
+			{
+				constexpr std::size_t sz{::fast_io::details::cal_max_int_size<::fast_io::details::my_make_unsigned_t<int_type>,base>()};
+				if constexpr(sizeof(u)<=sizeof(unsigned))
+					print_reserve_integral_main_impl<base,uppercase>(first+=sz,static_cast<unsigned>(u),sz);
+				else
+					print_reserve_integral_main_impl<base,uppercase>(first+=sz,u,sz);
+			}
+			else
+			{
+				std::size_t sz{chars_len<base,false>(u)};
+				if constexpr(sizeof(u)<=sizeof(unsigned))
+					print_reserve_integral_main_impl<base,uppercase>(first+=sz,static_cast<unsigned>(u),sz);
+				else
+					print_reserve_integral_main_impl<base,uppercase>(first+=sz,u,sz);
+			}
 		}
 		return first;
 	}
@@ -431,8 +486,58 @@ inline constexpr std::size_t print_reserve_scalar_size_impl()
 template<std::size_t base,
 bool showbase,
 bool showpos,
-std::integral T>
+my_integral T>
 inline constexpr std::size_t print_integer_reserved_size_cache{print_reserve_scalar_size_impl<base,showbase,showpos,T>()};
+
+template<std::integral char_type,
+std::size_t base,
+bool showbase,
+bool uppercase_showbase,
+bool showpos,
+bool uppercase,
+bool full>
+inline constexpr std::size_t nullptr_print_optimization_call_size_impl() noexcept
+{
+	::fast_io::freestanding::array<char_type,print_integer_reserved_size_cache<base,showbase,showpos,std::uintptr_t>> arr;
+	auto res{print_reserve_integral_define<base,showbase,uppercase_showbase,showpos,uppercase,full>(arr.data(),std::uintptr_t{})};
+	return static_cast<std::size_t>(res-arr.data());
+}
+
+template<std::integral char_type,
+std::size_t base,
+bool showbase,
+bool uppercase_showbase,
+bool showpos,
+bool uppercase,
+bool full>
+inline constexpr std::size_t nullptr_print_optimization_call_size_cache{
+	nullptr_print_optimization_call_size_impl<char_type,base,showbase,uppercase_showbase,showpos,uppercase,full>()};
+
+template<std::integral char_type,
+std::size_t base,
+bool showbase,
+bool uppercase_showbase,
+bool showpos,
+bool uppercase,
+bool full>
+inline constexpr auto nullptr_print_optimization_call_impl() noexcept
+{
+	constexpr std::size_t sz{nullptr_print_optimization_call_size_cache<char_type,base,showbase,uppercase_showbase,showpos,uppercase,full>};
+	::fast_io::freestanding::array<char_type,sz> arr{};
+	auto res{print_reserve_integral_define<base,showbase,uppercase_showbase,showpos,uppercase,full>(arr.data(),std::uintptr_t{})};
+	return arr;
+}
+
+template<std::integral char_type,
+std::size_t base,
+bool showbase,
+bool uppercase_showbase,
+bool showpos,
+bool uppercase,
+bool full
+>
+inline constexpr auto nullptr_print_optimization_call_cache{nullptr_print_optimization_call_impl<char_type,base,showbase,uppercase_showbase,showpos,uppercase,full>()};
+
 
 template<bool uppercase,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter print_reserve_boolalpha_impl(Iter iter,bool b)
@@ -516,6 +621,82 @@ inline constexpr Iter print_reserve_boolalpha_impl(Iter iter,bool b)
 	}
 }
 
+template<bool uppercase,::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter print_reserve_nullptr_alphabet_impl(Iter iter)
+{
+	using char_type = std::remove_cvref_t<::fast_io::freestanding::iter_value_t<Iter>>;
+	if constexpr(std::same_as<char_type,char>)
+	{
+		if constexpr(uppercase)
+			return copy_string_literal("NULLPTR",iter);
+		else
+			return copy_string_literal("nullptr",iter);
+	}
+	else if constexpr(std::same_as<char_type,wchar_t>)
+	{
+		if constexpr(uppercase)
+			return copy_string_literal(L"NULLPTR",iter);
+		else
+			return copy_string_literal(L"nullptr",iter);
+	}
+	else if constexpr(std::same_as<char_type,char16_t>)
+	{
+		if constexpr(uppercase)
+			return copy_string_literal(u"NULLPTR",iter);
+		else
+			return copy_string_literal(u"nullptr",iter);
+	}
+	else if constexpr(std::same_as<char_type,char32_t>)
+	{
+		if constexpr(uppercase)
+			return copy_string_literal(U"NULLPTR",iter);
+		else
+			return copy_string_literal(U"nullptr",iter);
+	}
+	else
+	{
+		if constexpr(uppercase)
+			return copy_string_literal(u8"NULLPTR",iter);
+		else
+			return copy_string_literal(u8"nullptr",iter);
+	}
+}
+
+}
+
+template<typename scalar_type>
+requires (details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::contiguous_iterator<scalar_type>||std::floating_point<scalar_type>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>)
+#if __has_cpp_attribute(gnu::always_inline)
+[[gnu::always_inline]]
+#elif __has_cpp_attribute(msvc::forceinline)
+[[msvc::forceinline]]
+#endif
+inline constexpr auto print_alias_define(io_alias_t,scalar_type t) noexcept
+{
+	if constexpr(details::my_integral<scalar_type>)
+		return manipulators::scalar_manip_t<manipulators::integral_default_scalar_flags,scalar_type>{t};
+	else if constexpr(std::floating_point<scalar_type>)
+		return manipulators::scalar_manip_t<manipulators::floating_point_default_scalar_flags,scalar_type>{t};
+	else if constexpr(std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>)
+	{
+		return manipulators::scalar_manip_t<manipulators::scalar_flags{.alphabet=true},std::nullptr_t>{};
+	}
+	else if constexpr(std::is_pointer_v<std::remove_cvref_t<scalar_type>>)
+		return manipulators::scalar_manip_t<manipulators::address_default_scalar_flags,std::uintptr_t>{
+#if __cpp_lib_bit_cast >= 201806L
+			__builtin_bit_cast(std::uintptr_t,t)
+#else
+			details::bit_cast<std::uintptr_t>(t)
+#endif
+		};
+	else
+		return manipulators::scalar_manip_t<manipulators::address_default_scalar_flags,std::uintptr_t>{
+#if __cpp_lib_bit_cast >= 201806L
+			__builtin_bit_cast(std::uintptr_t,::fast_io::freestanding::to_address(t))
+#else
+			details::bit_cast<std::uintptr_t>(::fast_io::freestanding::to_address(t))
+#endif
+		};
 }
 
 template<std::integral char_type,typename T>
@@ -525,7 +706,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,T>) 
 	if constexpr(std::same_as<std::remove_cv_t<T>,std::byte>)
 		return details::print_integer_reserved_size_cache<10,false,false,char8_t>;
 	else
-		return details::print_integer_reserved_size_cache<10,false,false,T>;
+		return details::print_integer_reserved_size_cache<10,false,false,std::remove_cvref_t<T>>;
 }
 
 template<freestanding::random_access_iterator Iter,typename T>
@@ -541,13 +722,23 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<freestanding::iter_
 		return details::print_reserve_integral_define(iter,t);
 }
 
-
 template<std::integral char_type,manipulators::scalar_flags flags,typename T>
-requires (details::my_integral<T>||std::same_as<std::remove_cv_t<T>,std::byte>)
+requires (details::my_integral<T>||std::same_as<std::remove_cv_t<T>,std::byte>||std::same_as<std::remove_cvref_t<T>,std::nullptr_t>)
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manipulators::scalar_manip_t<flags,T>>) noexcept
 {
-	if constexpr(flags.boolalpha)
-		return 5;
+	if constexpr(flags.alphabet)
+	{
+		static_assert((std::same_as<std::remove_cvref_t<T>,bool>||std::same_as<std::remove_cvref_t<T>,std::nullptr_t>),"only bool and std::nullptr_t support alphabet output");
+		if constexpr(std::same_as<std::remove_cvref_t<T>,bool>)
+			return 5; // u8"false"
+		else
+			return 7; // u8"nullptr"
+	}
+	else if constexpr(std::same_as<std::remove_cvref_t<T>,std::nullptr_t>)
+	{
+		constexpr std::size_t sz{details::nullptr_print_optimization_call_size_impl<char_type,flags.base,flags.showbase,flags.uppercase_showbase,flags.showpos,flags.uppercase,flags.full>()};
+		return details::nullptr_print_optimization_call_size_cache<char_type,flags.base,flags.showbase,flags.uppercase_showbase,flags.showpos,flags.uppercase,flags.full>;
+	}
 	else if constexpr(std::same_as<std::remove_cv_t<T>,std::byte>)
 		return details::print_integer_reserved_size_cache<flags.base,flags.showbase,flags.showpos,char8_t>;
 	else
@@ -555,18 +746,30 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,mani
 }
 
 template<freestanding::random_access_iterator Iter,manipulators::scalar_flags flags,typename T>
-requires (details::my_integral<T>||std::same_as<std::remove_cv_t<T>,std::byte>)
+requires (details::my_integral<T>||std::same_as<std::remove_cv_t<T>,std::byte>||std::same_as<std::remove_cvref_t<T>,std::nullptr_t>)
 #if __has_cpp_attribute(gnu::always_inline)
 [[gnu::always_inline]]//always inline to reduce inline depth in GCC and LLVM clang
 #endif
 inline constexpr Iter print_reserve_define(io_reserve_type_t<freestanding::iter_value_t<Iter>,manipulators::scalar_manip_t<flags,T>>,Iter iter,manipulators::scalar_manip_t<flags,T> t) noexcept
 {
-	if constexpr(flags.boolalpha)
-		return details::print_reserve_boolalpha_impl<flags.uppercase>(iter,t.reference);
+	if constexpr(flags.alphabet)
+	{
+		static_assert((std::same_as<std::remove_cvref_t<T>,bool>||std::same_as<std::remove_cvref_t<T>,std::nullptr_t>),"only bool and std::nullptr_t support alphabet output");
+		if constexpr(std::same_as<std::remove_cvref_t<T>,bool>)
+			return details::print_reserve_boolalpha_impl<flags.uppercase>(iter,t.reference);
+		else
+			return details::print_reserve_nullptr_alphabet_impl<flags.uppercase>(iter);
+	}
+	else if constexpr(std::same_as<std::remove_cv_t<T>,std::nullptr_t>)
+	{
+		constexpr auto& cache{details::nullptr_print_optimization_call_cache<::fast_io::freestanding::iter_value_t<Iter>,flags.base,flags.showbase,flags.uppercase_showbase,flags.showpos,flags.uppercase,flags.full>};
+		constexpr std::size_t n{cache.size()};
+		return details::non_overlapped_copy_n(cache.element,n,iter);
+	}
 	else if constexpr(std::same_as<std::remove_cv_t<T>,std::byte>)
-		return details::print_reserve_integral_define<flags.base,flags.showbase,flags.uppercase_showbase,flags.showpos,flags.uppercase>(iter,static_cast<char8_t>(t.reference));
+		return details::print_reserve_integral_define<flags.base,flags.showbase,flags.uppercase_showbase,flags.showpos,flags.uppercase,flags.full>(iter,static_cast<char8_t>(t.reference));
 	else
-		return details::print_reserve_integral_define<flags.base,flags.showbase,flags.uppercase_showbase,flags.showpos,flags.uppercase>(iter,t.reference);
+		return details::print_reserve_integral_define<flags.base,flags.showbase,flags.uppercase_showbase,flags.showpos,flags.uppercase,flags.full>(iter,t.reference);
 }
 
 }
