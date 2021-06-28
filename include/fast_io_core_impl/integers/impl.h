@@ -340,6 +340,91 @@ inline constexpr void print_reserve_integral_main_impl(Iter iter,T t,std::size_t
 	else
 	{
 		using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+#ifdef __OPTIMIZE_SIZE__
+		constexpr bool ebcdic{is_ebcdic<char_type>};
+		constexpr T pw{static_cast<T>(base)};
+		for(std::size_t i{};i!=len;++i)
+		{
+			auto const rem{t%pw};
+			t/=pw;
+			--iter;
+			if constexpr(base<=10)
+			{
+				*iter=static_cast<char_type>(rem+sign_ch<u8'0',char_type>);
+			}
+			else
+			{
+				if constexpr(ebcdic)
+				{
+					if(rem<10)
+						*iter=0xF0+rem;
+					else
+					{
+						if constexpr(base<=19)
+						{
+							if constexpr(uppercase)
+								*iter=(0xC1-10)+rem;
+							else
+								*iter=(0x81-10)+rem;
+						}
+						else if constexpr(base<=28)
+						{
+							if(rem<19)
+							{
+								if constexpr(uppercase)
+									*iter=(0xC1-10)+rem;
+								else
+									*iter=(0x81-10)+rem;
+							}
+							else
+							{
+								if constexpr(uppercase)
+									*iter=(0xD1-19)+rem;
+								else
+									*iter=(0x91-19)+rem;
+							}
+						}
+						else
+						{
+							if(rem<19)
+							{
+								if constexpr(uppercase)
+									*iter=(0xC1-10)+rem;
+								else
+									*iter=(0x81-10)+rem;
+							}
+							else if(rem<28)
+							{
+								if constexpr(uppercase)
+									*iter=(0xD1-19)+rem;
+								else
+									*iter=(0x91-19)+rem;
+							}
+							else
+							{
+								if constexpr(uppercase)
+									*iter=(0xE2-28)+rem;
+								else
+									*iter=(0xA2-28)+rem;
+							}
+						}
+					}
+				}
+				else
+				{
+					if(rem<10)
+						*iter=u8'0'+rem;
+					else
+					{
+						if constexpr(uppercase)
+							*iter=(u8'A'-10)+rem;
+						else
+							*iter=(u8'a'-10)+rem;
+					}
+				}
+			}
+		}
+#else
 		constexpr auto tb{::fast_io::details::get_shared_inline_constexpr_base_table<char8_t,base,uppercase>().element};
 		constexpr T pw{static_cast<T>(base*base)};
 		std::size_t len2{len>>1};
@@ -356,6 +441,7 @@ inline constexpr void print_reserve_integral_main_impl(Iter iter,T t,std::size_t
 			else
 				*--iter=tb[t].element[1];
 		}
+#endif
 	}
 }
 
