@@ -1,0 +1,299 @@
+#pragma once
+
+namespace fast_io
+{
+
+namespace details
+{
+
+template<typename flt>
+struct iec559_traits;
+
+
+#if defined(__SIZEOF_FLOAT16__) || defined(__FLOAT16__)
+template<>
+struct iec559_traits<__float16>
+{
+	using mantissa_type = std::uint16_t;
+	inline static constexpr std::size_t mbits{10};
+	inline static constexpr std::size_t ebits{5};
+};
+#endif
+
+template<>	
+struct iec559_traits<float>
+{
+	using mantissa_type = std::uint32_t;
+	inline static constexpr std::size_t mbits{23};
+	inline static constexpr std::size_t ebits{8};
+};
+
+template<>
+struct iec559_traits<double>
+{
+	using mantissa_type = std::uint64_t;
+	inline static constexpr std::size_t mbits{52};
+	inline static constexpr std::size_t ebits{11};
+};
+
+#if defined(__SIZEOF_INT128__)
+#if defined(__SIZEOF_FLOAT80__) || defined(__FLOAT80__)
+template<>
+struct iec559_traits<__float80>
+{
+	using mantissa_type = __uint128_t;
+	inline static constexpr std::size_t mbits{63};
+	inline static constexpr std::size_t ebits{15};
+};
+#endif
+
+#if defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)
+template<>
+struct iec559_traits<__float128>
+{
+	using mantissa_type = __uint128_t;
+	inline static constexpr std::size_t mbits{112};
+	inline static constexpr std::size_t ebits{15};
+};
+#endif
+#endif
+
+template<my_unsigned_integral T>
+#if defined(_MSC_VER) && !defined(__clang__)
+#if __has_cpp_attribute(msvc::forceinline)
+[[msvc::forceinline]]
+#endif
+#endif
+inline constexpr int my_countr_zero_unchecked(T x) noexcept	//contract: t cannot be zero
+{
+//referenced from libstdc++
+#if defined(__GNUC__) || defined(__clang__)
+	constexpr auto Nd = std::numeric_limits<char>::digits*sizeof(T);
+	constexpr auto Nd_ull = std::numeric_limits<unsigned long long>::digits;
+	constexpr auto Nd_ul = std::numeric_limits<unsigned long>::digits;
+	constexpr auto Nd_u = std::numeric_limits<unsigned>::digits;
+	if constexpr (Nd <= Nd_u)
+		return __builtin_ctz(x);
+	else if constexpr (Nd <= Nd_ul)
+		return __builtin_ctzl(x);
+	else if constexpr (Nd <= Nd_ull)
+		return __builtin_ctzll(x);
+	else
+	{
+		static_assert(Nd <= (2 * Nd_ull),
+				"Maximum supported integer size is 128-bit");
+		constexpr auto max_ull = std::numeric_limits<unsigned long long>::max();
+		unsigned long long low = x & max_ull;
+		if (low != 0)
+			return __builtin_ctzll(low);
+		unsigned long long high = x >> Nd_ull;
+		return __builtin_ctzll(high) + Nd_ull;
+	}
+#else
+	return std::countr_zero(x);
+#endif
+}
+
+template<std::floating_point flt>
+struct iec559_rep
+{
+	using mantissa_type = typename iec559_traits<flt>::mantissa_type;
+	mantissa_type m;
+	std::int32_t e;
+};
+
+template<bool uppercase,::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter prsv_fp_nan_impl(Iter iter,bool nan) noexcept
+{
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	if(nan)
+	{
+		if constexpr(uppercase)
+		{
+			if constexpr(std::same_as<char_type,char>)
+				return copy_string_literal("NAN",iter);
+			else if constexpr(std::same_as<char_type,wchar_t>)
+				return copy_string_literal(L"NAN",iter);
+			else if constexpr(std::same_as<char_type,char16_t>)
+				return copy_string_literal(u"NAN",iter);
+			else if constexpr(std::same_as<char_type,char32_t>)
+				return copy_string_literal(U"NAN",iter);
+			else
+				return copy_string_literal(u8"NAN",iter);
+		}
+		else
+		{
+			if constexpr(std::same_as<char_type,char>)
+				return copy_string_literal("nan",iter);
+			else if constexpr(std::same_as<char_type,wchar_t>)
+				return copy_string_literal(L"nan",iter);
+			else if constexpr(std::same_as<char_type,char16_t>)
+				return copy_string_literal(u"nan",iter);
+			else if constexpr(std::same_as<char_type,char32_t>)
+				return copy_string_literal(U"nan",iter);
+			else
+				return copy_string_literal(u8"nan",iter);
+		}
+	}
+	else
+	{
+		if constexpr(uppercase)
+		{
+			if constexpr(std::same_as<char_type,char>)
+				return copy_string_literal("INF",iter);
+			else if constexpr(std::same_as<char_type,wchar_t>)
+				return copy_string_literal(L"INF",iter);
+			else if constexpr(std::same_as<char_type,char16_t>)
+				return copy_string_literal(u"INF",iter);
+			else if constexpr(std::same_as<char_type,char32_t>)
+				return copy_string_literal(U"INF",iter);
+			else
+				return copy_string_literal(u8"INF",iter);
+		}
+		else
+		{
+			if constexpr(std::same_as<char_type,char>)
+				return copy_string_literal("inf",iter);
+			else if constexpr(std::same_as<char_type,wchar_t>)
+				return copy_string_literal(L"inf",iter);
+			else if constexpr(std::same_as<char_type,char16_t>)
+				return copy_string_literal(u"inf",iter);
+			else if constexpr(std::same_as<char_type,char32_t>)
+				return copy_string_literal(U"inf",iter);
+			else
+				return copy_string_literal(u8"inf",iter);
+		}
+	}
+}
+
+template<bool uppercase,::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter prsv_fp_hex_0(Iter iter) noexcept
+{
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	if constexpr(uppercase)
+	{
+		if constexpr(std::same_as<char_type,char>)
+			return copy_string_literal("0P+0",iter);
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			return copy_string_literal(L"0P+0",iter);
+		else if constexpr(std::same_as<char_type,char16_t>)
+			return copy_string_literal(u"0P+0",iter);
+		else if constexpr(std::same_as<char_type,char32_t>)
+			return copy_string_literal(U"0P+0",iter);
+		else
+			return copy_string_literal(u8"0P+0",iter);
+	}
+	else
+	{
+		if constexpr(std::same_as<char_type,char>)
+			return copy_string_literal("0p+0",iter);
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			return copy_string_literal(L"0p+0",iter);
+		else if constexpr(std::same_as<char_type,char16_t>)
+			return copy_string_literal(u"0p+0",iter);
+		else if constexpr(std::same_as<char_type,char32_t>)
+			return copy_string_literal(U"0p+0",iter);
+		else
+			return copy_string_literal(u8"0p+0",iter);
+	}
+}
+
+template<bool comma=false,::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter prsv_fp_hex1d(Iter iter) noexcept
+{
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	if constexpr(comma)
+	{
+		if constexpr(std::same_as<char_type,char>)
+			return copy_string_literal("1,",iter);
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			return copy_string_literal(L"1,",iter);
+		else if constexpr(std::same_as<char_type,char16_t>)
+			return copy_string_literal(u"1,",iter);
+		else if constexpr(std::same_as<char_type,char32_t>)
+			return copy_string_literal(U"1,",iter);
+		else
+			return copy_string_literal(u8"1,",iter);
+	}
+	else
+	{
+		if constexpr(std::same_as<char_type,char>)
+			return copy_string_literal("1.",iter);
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			return copy_string_literal(L"1.",iter);
+		else if constexpr(std::same_as<char_type,char16_t>)
+			return copy_string_literal(u"1.",iter);
+		else if constexpr(std::same_as<char_type,char32_t>)
+			return copy_string_literal(U"1.",iter);
+		else
+			return copy_string_literal(u8"1.",iter);
+	}
+}
+
+template<bool comma=false,::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter prsv_fp_hex0d(Iter iter) noexcept
+{
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	if constexpr(comma)
+	{
+		if constexpr(std::same_as<char_type,char>)
+			return copy_string_literal("0,",iter);
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			return copy_string_literal(L"0,",iter);
+		else if constexpr(std::same_as<char_type,char16_t>)
+			return copy_string_literal(u"0,",iter);
+		else if constexpr(std::same_as<char_type,char32_t>)
+			return copy_string_literal(U"0,",iter);
+		else
+			return copy_string_literal(u8"0,",iter);
+	}
+	else
+	{
+		if constexpr(std::same_as<char_type,char>)
+			return copy_string_literal("0.",iter);
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			return copy_string_literal(L"0.",iter);
+		else if constexpr(std::same_as<char_type,char16_t>)
+			return copy_string_literal(u"0.",iter);
+		else if constexpr(std::same_as<char_type,char32_t>)
+			return copy_string_literal(U"0.",iter);
+		else
+			return copy_string_literal(u8"0.",iter);
+	}
+}
+
+template<bool uppercase,::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter prsv_fp_hex0p0(Iter iter) noexcept
+{
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	if constexpr(uppercase)
+	{
+		if constexpr(std::same_as<char_type,char>)
+			return copy_string_literal("0P+0",iter);
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			return copy_string_literal(L"0P+0",iter);
+		else if constexpr(std::same_as<char_type,char16_t>)
+			return copy_string_literal(u"0P+0",iter);
+		else if constexpr(std::same_as<char_type,char32_t>)
+			return copy_string_literal(U"0P+0",iter);
+		else
+			return copy_string_literal(u8"0P+0",iter);
+	}
+	else
+	{
+		if constexpr(std::same_as<char_type,char>)
+			return copy_string_literal("0p+0",iter);
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			return copy_string_literal(L"0p+0",iter);
+		else if constexpr(std::same_as<char_type,char16_t>)
+			return copy_string_literal(u"0p+0",iter);
+		else if constexpr(std::same_as<char_type,char32_t>)
+			return copy_string_literal(U"0p+0",iter);
+		else
+			return copy_string_literal(u8"0p+0",iter);
+	}
+}
+
+}
+
+}

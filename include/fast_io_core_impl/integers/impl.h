@@ -123,6 +123,24 @@ inline constexpr scalar_flags integral_default_scalar_flags{.floating=floating_f
 inline constexpr scalar_flags floating_point_default_scalar_flags{};
 inline constexpr scalar_flags address_default_scalar_flags{.base=16,.showbase=true,.full=true,.floating=floating_format::fixed};
 
+}
+
+namespace details
+{
+template<std::size_t bs,bool upper,bool shbase,bool full>
+inline constexpr ::fast_io::manipulators::scalar_flags base_mani_flags_cache{.base=bs,.showbase=shbase,.uppercase=((bs<=10)?false:upper),.full=false,.floating=::fast_io::manipulators::floating_format::fixed};
+
+template<bool upper>
+inline constexpr ::fast_io::manipulators::scalar_flags boolalpha_mani_flags_cache{.alphabet=true,.uppercase=upper};
+
+template<bool uppercase,bool comma>
+inline constexpr ::fast_io::manipulators::scalar_flags hexafloat_mani_flags_cache{.showbase=true,.uppercase_showbase=uppercase,.uppercase=uppercase,.uppercase_e=uppercase,.comma=comma,.floating=::fast_io::manipulators::floating_format::hexafloat};
+
+}
+
+namespace manipulators
+{
+
 template<scalar_flags flags,typename T>
 struct scalar_manip_t
 {
@@ -132,26 +150,14 @@ struct scalar_manip_t
 
 template<std::size_t bs,bool upper=false,bool shbase=false,bool full=false,typename scalar_type>
 requires ((2<=bs&&bs<=36)&&(::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||std::contiguous_iterator<scalar_type>))
-inline constexpr scalar_manip_t<scalar_flags{.base=bs,.showbase=shbase,.uppercase=((bs<=10)?false:upper),.full=false,.floating=floating_format::fixed},scalar_type> base(scalar_type t) noexcept
+inline constexpr scalar_manip_t<::fast_io::details::base_mani_flags_cache<bs,upper,shbase,full>,scalar_type> base(scalar_type t) noexcept
 {
 	if constexpr(::fast_io::details::my_integral<scalar_type>)
 		return {t};
 	else if constexpr(std::is_pointer_v<std::remove_cvref_t<scalar_type>>)
-		return {
-#if __cpp_lib_bit_cast >= 201806L
-			__builtin_bit_cast(std::uintptr_t,t)
-#else
-			bit_cast<std::uintptr_t>(t)
-#endif
-		};
+		return {bit_cast<std::uintptr_t>(t)};
 	else
-		return {
-#if __cpp_lib_bit_cast >= 201806L
-			__builtin_bit_cast(std::uintptr_t,::fast_io::freestanding::to_address(t))
-#else
-			bit_cast<std::uintptr_t>(::fast_io::freestanding::to_address(t))
-#endif
-		};
+		return {bit_cast<std::uintptr_t>(::fast_io::freestanding::to_address(t))};
 }
 
 template<scalar_flags flags,typename scalar_type>
@@ -161,39 +167,27 @@ inline constexpr scalar_manip_t<flags,std::conditional_t<(::fast_io::details::my
 	if constexpr(::fast_io::details::my_integral<scalar_type>||::fast_io::details::my_floating_point<scalar_type>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>)
 		return {t};
 	else if constexpr(std::is_pointer_v<std::remove_cvref_t<scalar_type>>)
-		return {
-#if __cpp_lib_bit_cast >= 201806L
-			__builtin_bit_cast(std::uintptr_t,t)
-#else
-			bit_cast<std::uintptr_t>(t)
-#endif
-		};
+		return {bit_cast<std::uintptr_t>(t)};
 	else
-		return {
-#if __cpp_lib_bit_cast >= 201806L
-			__builtin_bit_cast(std::uintptr_t,::fast_io::freestanding::to_address(t))
-#else
-			bit_cast<std::uintptr_t>(::fast_io::freestanding::to_address(t))
-#endif
-		};
+		return {bit_cast<std::uintptr_t>(::fast_io::freestanding::to_address(t))};
 }
 
 template<bool upper=false>
-inline constexpr scalar_manip_t<scalar_flags{.alphabet=true,.uppercase=upper},bool> boolalpha(bool b) noexcept
+inline constexpr scalar_manip_t<::fast_io::details::boolalpha_mani_flags_cache<upper>,bool> boolalpha(bool b) noexcept
 {
 	return {b};
 }
 
 template<bool uppercase=false,typename scalar_type>
 requires (::fast_io::details::my_floating_point<scalar_type>)
-inline constexpr scalar_manip_t<scalar_flags{.showbase=true,.uppercase_showbase=uppercase,.uppercase=uppercase,.uppercase_e=uppercase,.floating=floating_format::hexafloat},scalar_type> hexafloat(scalar_type t) noexcept
+inline constexpr scalar_manip_t<::fast_io::details::hexafloat_mani_flags_cache<uppercase,false>,scalar_type> hexafloat(scalar_type t) noexcept
 {
 	return {t};
 }
 
 template<bool uppercase=false,typename scalar_type>
 requires (::fast_io::details::my_floating_point<scalar_type>)
-inline constexpr scalar_manip_t<scalar_flags{.showbase=true,.uppercase_showbase=uppercase,.uppercase=uppercase,.uppercase_e=uppercase,.comma=true,.floating=floating_format::hexafloat},scalar_type> comma_hexafloat(scalar_type t) noexcept
+inline constexpr scalar_manip_t<::fast_io::details::hexafloat_mani_flags_cache<uppercase,true>,scalar_type> comma_hexafloat(scalar_type t) noexcept
 {
 	return {t};
 }
@@ -800,19 +794,11 @@ inline constexpr auto print_alias_define(io_alias_t,scalar_type t) noexcept
 	}
 	else if constexpr(std::is_pointer_v<std::remove_cvref_t<scalar_type>>)
 		return manipulators::scalar_manip_t<manipulators::address_default_scalar_flags,std::uintptr_t>{
-#if __cpp_lib_bit_cast >= 201806L
-			__builtin_bit_cast(std::uintptr_t,t)
-#else
-			details::bit_cast<std::uintptr_t>(t)
-#endif
+			bit_cast<std::uintptr_t>(t)
 		};
 	else
 		return manipulators::scalar_manip_t<manipulators::address_default_scalar_flags,std::uintptr_t>{
-#if __cpp_lib_bit_cast >= 201806L
-			__builtin_bit_cast(std::uintptr_t,::fast_io::freestanding::to_address(t))
-#else
-			details::bit_cast<std::uintptr_t>(::fast_io::freestanding::to_address(t))
-#endif
+			bit_cast<std::uintptr_t>(::fast_io::freestanding::to_address(t))
 		};
 }
 
