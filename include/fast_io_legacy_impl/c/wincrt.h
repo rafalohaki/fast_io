@@ -243,7 +243,7 @@ inline void wincrt_fp_write_impl(FILE* __restrict fpp,char_type const* first,cha
 	{
 		c_io_observer ciob{fpp};
 		lock_guard guard{ciob};
-		wincrt_fp_write_impl(fpp,first,last);
+		wincrt_fp_write_impl<c_family::unlocked,char_type>(fpp,first,last);
 	}
 	else
 	{
@@ -363,7 +363,7 @@ inline char_type* wincrt_fp_read_impl(FILE* __restrict fpp,char_type* first,char
 	{
 		c_io_observer ciob{fpp};
 		lock_guard guard{ciob};
-		return wincrt_fp_read_impl(fpp,first,last);
+		return wincrt_fp_read_impl<c_family::unlocked,char_type>(fpp,first,last);
 	}
 	else
 	{
