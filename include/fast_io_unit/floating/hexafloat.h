@@ -35,6 +35,7 @@ inline constexpr Iter print_rsvhexafloat_define_impl(Iter iter,flt f) noexcept
 	std::uint32_t exponent{static_cast<std::uint32_t>((unwrap>>mbits)&exponent_mask)};
 	constexpr std::uint32_t exponent_mask_u32{static_cast<std::uint32_t>(exponent_mask)};
 	constexpr std::int32_t minus_bias{-static_cast<std::int32_t>(bias)};
+	constexpr std::uint32_t makeup_bits{((mbits / 4 + 1) * 4 - mbits) % 4};
 	if constexpr(showpos)
 	{
 		*iter=sign?sign_ch<u8'-',char_type>:sign_ch<u8'+',char_type>;
@@ -57,11 +58,11 @@ inline constexpr Iter print_rsvhexafloat_define_impl(Iter iter,flt f) noexcept
 	std::int32_t e2{static_cast<std::int32_t>(exponent)+minus_bias};
 	if(mantissa)
 	{
-		std::uint32_t digits{static_cast<std::uint32_t>(my_countr_zero_unchecked(mantissa))};
-		constexpr std::uint32_t mdigits_d4{static_cast<std::uint32_t>(mbits>>2)};
+		std::uint32_t digits{static_cast<std::uint32_t>(my_countr_zero_unchecked(mantissa))+makeup_bits};
+		constexpr std::uint32_t mdigits_d4{static_cast<std::uint32_t>((mbits+makeup_bits)>>2)};
 		std::uint32_t digits_d4{digits>>2};
 		std::uint32_t digits_d4m4{digits_d4<<2};
-		mantissa>>=digits_d4m4;
+		mantissa>>=(digits_d4m4-makeup_bits);
 		std::uint32_t len{mdigits_d4-digits_d4};
 		if(exponent==0)
 		{
