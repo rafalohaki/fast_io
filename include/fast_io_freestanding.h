@@ -15,7 +15,7 @@
 //compile floating point is slow since it requires algorithms like ryu
 #ifndef FAST_IO_DISABLE_FLOATING_POINT
 #include"fast_io_unit/floating/punning.h"
-#include"fast_io_unit/floating/hexafloat.h"
+#include"fast_io_unit/floating/hexfloat.h"
 #endif
 //#include"fast_io_freestanding_impl/natural.h"
 #include"fast_io_freestanding_impl/io_buffer/impl.h"

@@ -15,7 +15,7 @@ bool uppercase,
 bool uppercase_e,
 bool comma,
 typename flt,::fast_io::freestanding::random_access_iterator Iter>
-inline constexpr Iter print_rsvhexafloat_define_impl(Iter iter,flt f) noexcept
+inline constexpr Iter print_rsvhexfloat_define_impl(Iter iter,flt f) noexcept
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	using trait = iec559_traits<flt>;
@@ -88,7 +88,7 @@ inline constexpr Iter print_rsvhexafloat_define_impl(Iter iter,flt f) noexcept
 template<
 bool showbase,
 typename mantissa_type>
-inline constexpr std::size_t print_rsvhexafloat_size_cache
+inline constexpr std::size_t print_rsvhexfloat_size_cache
 {
 print_integer_reserved_size_cache<16,showbase,true,mantissa_type>+
 6+
@@ -98,18 +98,18 @@ print_integer_reserved_size_cache<10,true,true,std::int32_t>
 }
 
 template<std::integral char_type,manipulators::scalar_flags flags,details::my_floating_point flt>
-requires (flags.base==10&&flags.floating==manipulators::floating_format::hexafloat)
+requires (flags.base==10&&flags.floating==manipulators::floating_format::hexfloat)
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manipulators::scalar_manip_t<flags,flt>>) noexcept
 {
 	using trait = details::iec559_traits<flt>;
-	return details::print_rsvhexafloat_size_cache<flags.showbase,typename trait::mantissa_type>;
+	return details::print_rsvhexfloat_size_cache<flags.showbase,typename trait::mantissa_type>;
 }
 
 template<freestanding::random_access_iterator Iter,manipulators::scalar_flags flags,details::my_floating_point flt>
-requires (flags.base==10&&flags.floating==manipulators::floating_format::hexafloat)
+requires (flags.base==10&&flags.floating==manipulators::floating_format::hexfloat)
 inline constexpr Iter print_reserve_define(io_reserve_type_t<freestanding::iter_value_t<Iter>,manipulators::scalar_manip_t<flags,flt>>,Iter iter,manipulators::scalar_manip_t<flags,flt> f) noexcept
 {
-	return details::print_rsvhexafloat_define_impl<flags.showbase,flags.uppercase_showbase,flags.showpos,flags.uppercase,flags.uppercase_e,flags.comma>(iter,f.reference);
+	return details::print_rsvhexfloat_define_impl<flags.showbase,flags.uppercase_showbase,flags.showpos,flags.uppercase,flags.uppercase_e,flags.comma>(iter,f.reference);
 }
 
 }

@@ -98,7 +98,7 @@ none,left,middle,right,internal
 
 enum class floating_format:char8_t
 {
-general,fixed,scientific,hexafloat
+general,fixed,scientific,hexfloat
 };
 
 struct scalar_flags
@@ -134,7 +134,7 @@ template<bool upper>
 inline constexpr ::fast_io::manipulators::scalar_flags boolalpha_mani_flags_cache{.alphabet=true,.uppercase=upper};
 
 template<bool uppercase,bool comma>
-inline constexpr ::fast_io::manipulators::scalar_flags hexafloat_mani_flags_cache{.showbase=true,.uppercase_showbase=uppercase,.uppercase=uppercase,.uppercase_e=uppercase,.comma=comma,.floating=::fast_io::manipulators::floating_format::hexafloat};
+inline constexpr ::fast_io::manipulators::scalar_flags hexafloat_mani_flags_cache{.showbase=true,.uppercase_showbase=uppercase,.uppercase=uppercase,.uppercase_e=uppercase,.comma=comma,.floating=::fast_io::manipulators::floating_format::hexfloat};
 
 }
 
@@ -180,14 +180,14 @@ inline constexpr scalar_manip_t<::fast_io::details::boolalpha_mani_flags_cache<u
 
 template<bool uppercase=false,typename scalar_type>
 requires (::fast_io::details::my_floating_point<scalar_type>)
-inline constexpr scalar_manip_t<::fast_io::details::hexafloat_mani_flags_cache<uppercase,false>,scalar_type> hexafloat(scalar_type t) noexcept
+inline constexpr scalar_manip_t<::fast_io::details::hexafloat_mani_flags_cache<uppercase,false>,scalar_type> hexfloat(scalar_type t) noexcept
 {
 	return {t};
 }
 
 template<bool uppercase=false,typename scalar_type>
 requires (::fast_io::details::my_floating_point<scalar_type>)
-inline constexpr scalar_manip_t<::fast_io::details::hexafloat_mani_flags_cache<uppercase,true>,scalar_type> comma_hexafloat(scalar_type t) noexcept
+inline constexpr scalar_manip_t<::fast_io::details::hexafloat_mani_flags_cache<uppercase,true>,scalar_type> comma_hexfloat(scalar_type t) noexcept
 {
 	return {t};
 }
