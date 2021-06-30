@@ -65,6 +65,10 @@ For hosted implementations the set of standard library headers required by the C
 #include"fast_io_unit/complex.h"
 #endif
 
+#if defined(_GLIBCXX_FILESYSTEM) || defined(_LIBCPP_FILESYSTEM) || defined(_FILESYSTEM_)
+#include"fast_io_unit/filesystem.h"
+#endif
+
 #endif
 
 #endif

@@ -472,11 +472,11 @@ inline constexpr void print_reserve_integral_main_impl(Iter iter,T t,std::size_t
 }
 
 template<std::size_t base,
-	bool showbase,
-	bool uppercase_showbase,
-	bool showpos,
-	bool uppercase,
-	bool full,
+	bool showbase=false,
+	bool uppercase_showbase=false,
+	bool showpos=false,
+	bool uppercase=false,
+	bool full=false,
 	typename int_type,std::random_access_iterator Iter>
 inline constexpr Iter print_reserve_integral_define(Iter first,int_type t)
 {
