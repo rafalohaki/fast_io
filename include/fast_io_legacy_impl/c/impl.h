@@ -359,7 +359,7 @@ inline FILE* my_fdopen(int fd,char const* mode) noexcept
 
 inline FILE* my_c_file_open_impl(int fd,open_mode mode) noexcept
 {
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(_WIN32_WINDOWS)
 
 /*
 Reference implementation from ReactOS shows that _fdopen will call MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED,str,len,wstr,len); which is not thread-safe
