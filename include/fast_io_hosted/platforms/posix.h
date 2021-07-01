@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(_WIN32) || defined(__MSDOS__)
+#if (defined(_WIN32)&&!defined(__CYGWIN__)) || defined(__MSDOS__)
 #include<io.h>
 #include<sys/stat.h>
 #include<sys/types.h>
@@ -895,7 +895,7 @@ inline int open_fd_from_handle_impl(void* handle,open_mode md)
 template<std::integral ch_type>
 inline int open_fd_from_handle(void* handle,open_mode md)
 {
-	if constexpr(exec_charset_is_ebcdic<ch_type>())
+	if constexpr(is_ebcdic<ch_type>)
 		return open_fd_from_handle_impl<posix_open_mode_text_behavior::always_binary>(handle,md);
 	else if constexpr(std::same_as<ch_type,char>)
 		return open_fd_from_handle_impl<posix_open_mode_text_behavior::text>(handle,md);
@@ -1170,17 +1170,51 @@ To verify whether O_TMPFILE is a thing on FreeBSD. https://github.com/FreeRDP/Fr
 	}
 };
 #if !defined(__NEWLIB__) || defined(__CYGWIN__)
-template<std::integral ch_type>
-inline void truncate(basic_posix_io_observer<ch_type> h,std::uintmax_t size)
+
+namespace details
+{
+
+#if defined(__CYGWIN__)
+[[gnu::dllimport,gnu::cdecl]] extern int ftruncate(int, off_t) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if !defined(__clang__)
+asm("ftruncate")
+#else
+asm("_ftruncate")
+#endif
+#else
+asm("ftruncate")
+#endif
+#endif
+;
+#endif
+
+inline void posix_truncate_impl(int fd,std::uintmax_t size)
 {
 #if defined(_WIN32) && !defined(__CYGWIN__)
-	auto err(_chsize_s(h.fd,size));
+	auto err(noexcept_call(_chsize_s,fd,size));
 	if(err)
 		throw_posix_error(err);
+#elif defined(__linux__) && defined(__NR_ftruncate64)
+	system_call_throw_error(system_call<__NR_ftruncate64,int>(fd,size));
+#elif defined(__linux__) && defined(__NR_ftruncate)
+	system_call_throw_error(system_call<__NR_ftruncate,int>(fd,size));
 #else
-	if(::ftruncate(h.fd,size)<0)
+	if(ftruncate(fd,size)<0)
 		throw_posix_error();
 #endif
+}
+
+}
+
+template<std::integral ch_type>
+#if __has_cpp_attribute(gnu::always_inline)
+[[gnu::always_inline]]
+#endif
+inline void truncate(basic_posix_io_observer<ch_type> h,std::uintmax_t size)
+{
+	details::posix_truncate_impl(h.fd,size);
 }
 #endif
 
@@ -1198,7 +1232,7 @@ public:
 #else
 		::fast_io::freestanding::array<int,2> a2{pipes.front().fd,pipes.back().fd};
 #if defined(_WIN32) && !defined(__CYGWIN__)
-		if(noexcept_call(_pipe,a2.data(),1048576,_O_BINARY)==-1)
+		if(noexcept_call(_pipe,a2.data(),131072,_O_BINARY)==-1)
 #else
 		if(::pipe(a2.data())==-1)
 #endif
@@ -1304,9 +1338,9 @@ using u32posix_io_handle=basic_posix_io_handle<char32_t>;
 using u32posix_file=basic_posix_file<char32_t>;
 using u32posix_pipe=basic_posix_pipe<char32_t>;
 
-inline int constexpr posix_stdin_number = 0;
-inline int constexpr posix_stdout_number = 1;
-inline int constexpr posix_stderr_number = 2;
+inline constexpr int posix_stdin_number{0};
+inline constexpr int posix_stdout_number{1};
+inline constexpr int posix_stderr_number{2};
 
 #if defined(__linux__)
 
