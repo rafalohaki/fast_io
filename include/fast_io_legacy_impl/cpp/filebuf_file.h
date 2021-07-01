@@ -101,7 +101,7 @@ Shows libstdc++ still calls fdopen even on nt kernel which is incorrect
 	}
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 //windows specific. open posix file from win32 io handle
 	template<win32_family family>
 	basic_filebuf_file(basic_win32_family_io_handle<family,char_type>&& win32_handle,open_mode mode):
