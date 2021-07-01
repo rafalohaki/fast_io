@@ -284,7 +284,7 @@ inline constexpr posix_io_redirection redirect(posix_dev_null_t) noexcept
 	return {.dev_null=true};
 }
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 namespace details
 {
 inline void* my_get_osfile_handle(int fd) noexcept
