@@ -14,7 +14,7 @@ namespace fast_io
 
 inline constexpr open_mode native_c_supported(open_mode m) noexcept
 {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 using utype = typename std::underlying_type<open_mode>::type;
 constexpr auto c_supported_values{static_cast<utype>(open_mode::text)|
 	static_cast<utype>(open_mode::out)|
