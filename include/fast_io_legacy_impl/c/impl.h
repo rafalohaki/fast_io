@@ -46,7 +46,7 @@ From microsoft's document. _fdopen only supports
 "w+"	Opens an empty file for both reading and writing. If the file exists, its contents are destroyed.
 "a+"	Opens for reading and appending. Creates the file if it does not exist.
 
-"x" will throw EINVAL which is does not satisfy POSIX, C11 and C++17 standard.
+"x" will throw EINVAL which does not satisfy POSIX, C11 and C++17 standard.
 */
 	using utype = typename std::underlying_type<open_mode>::type;
 #ifdef _WIN32_WINDOWS
