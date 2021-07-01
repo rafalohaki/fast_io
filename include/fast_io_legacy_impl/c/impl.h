@@ -360,6 +360,13 @@ inline FILE* my_fdopen(int fd,char const* mode) noexcept
 inline FILE* my_c_file_open_impl(int fd,open_mode mode) noexcept
 {
 #if defined(_WIN32) && !defined(__CYGWIN__)
+
+/*
+Reference implementation from ReactOS shows that _fdopen will call MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED,str,len,wstr,len); which is not thread-safe
+and we might get screwed by locale on NT kernel. Avoid it and call _wfdopen instead.
+https://doxygen.reactos.org/d2/d1b/sdk_2lib_2crt_2stdio_2file_8c_source.html
+*/
+
 	wchar_t const* cmode{to_native_c_mode(mode)};
 	auto fp{noexcept_call(_wfdopen,fd,cmode)};
 	if(fp==nullptr)

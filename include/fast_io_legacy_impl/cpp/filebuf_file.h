@@ -66,6 +66,10 @@ This function never fails. but what if fdopen fails?
 	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
 		basic_filebuf_file(basic_c_file_unlocked<char_type>(std::move(piohd),mode),mode)
 	{
+/*
+https://github.com/gcc-mirror/gcc/blob/16e2427f50c208dfe07d07f18009969502c25dc8/libstdc%2B%2B-v3/config/io/basic_file_stdio.cc
+Shows libstdc++ still calls fdopen even on nt kernel which is incorrect
+*/
 	}
 #elif defined(_LIBCPP_VERSION)
 	template<c_family family>
