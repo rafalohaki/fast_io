@@ -26,7 +26,13 @@ return static_cast<open_mode>(static_cast<utype>(m)&c_supported_values);
 return c_supported(m);
 #endif
 }
-inline constexpr char const* to_native_c_mode(open_mode m) noexcept
+inline constexpr
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(_WIN32_WINDOWS)
+wchar_t const*
+#else
+char const*
+#endif
+to_native_c_mode(open_mode m) noexcept
 {
 #if defined(_WIN32) && !defined(__CYGWIN__)
 /*
@@ -43,6 +49,7 @@ From microsoft's document. _fdopen only supports
 "x" will throw EINVAL which is does not satisfy POSIX, C11 and C++17 standard.
 */
 	using utype = typename std::underlying_type<open_mode>::type;
+#ifdef _WIN32_WINDOWS
 	switch(static_cast<utype>(native_c_supported(m)))
 	{
 //Action if file already exists;	Action if file does not exist;	c-style mode;	Explanation
@@ -99,6 +106,64 @@ From microsoft's document. _fdopen only supports
 	default:
 		return "";
 	}
+#else
+	switch(static_cast<utype>(native_c_supported(m)))
+	{
+//Action if file already exists;	Action if file does not exist;	c-style mode;	Explanation
+//Read from start;	Failure to open;	"r";	Open a file for reading
+	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::text):
+		return L"\x72";
+//Destroy contents;	Create new;	"w";	Create a file for writing
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::text):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::text):
+		return L"\x77";
+//Append to file;	Create new;	"a";	Append to a file
+	case static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::text):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::text):
+		return L"\x61";
+//Read from start;	Error;	"r+";		Open a file for read/write
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::text):
+		return L"\x72\x2b";
+//Destroy contents;	Create new;	"w+";	Create a file for read/write
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::trunc)|static_cast<utype>(open_mode::text):
+		return L"\x77\x2b";
+//Write to end;	Create new;	"a+";	Open a file for read/write
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::text):
+	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app)|static_cast<utype>(open_mode::text):
+		return L"\x77\x2b";
+
+//binary support
+
+//Action if file already exists;	Action if file does not exist;	c-style mode;	Explanation
+//Read from start;	Failure to open;	"rb";	Open a file for reading
+	case static_cast<utype>(open_mode::in):
+		return L"\x72\x62";
+//Destroy contents;	Create new;	"wb";	Create a file for writing
+	case static_cast<utype>(open_mode::out):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::trunc):
+		return L"\x77\x62";
+//Append to file;	Create new;	"ab";	Append to a file
+	case static_cast<utype>(open_mode::app):
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::app):
+		return L"\x61\x62";
+//Read from start;	Error;	"r+b";		Open a file for read/write
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in):
+		return L"\x72\x2b\x62";
+//Destroy contents;	Create new;	"w+b";	Create a file for read/write
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::trunc):
+		return L"\x77\x2b\x62";
+//Write to end;	Create new;	"a+b";	Open a file for read/write
+	case static_cast<utype>(open_mode::out)|static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app):
+	case static_cast<utype>(open_mode::in)|static_cast<utype>(open_mode::app):
+		return L"\x61\x2b\x62";
+	case 0:
+		if((m&open_mode::directory)!=open_mode::none)
+			return L"\x72";
+		[[fallthrough]];
+	default:
+		return L"";
+	}
+#endif
 #else
 	return to_c_mode(m);
 #endif
@@ -275,6 +340,7 @@ inline int my_fclose_impl(FILE* fp) noexcept
 }
 
 #if !defined(__NEWLIB__) || defined(__CYGWIN__)
+
 inline FILE* my_fdopen(int fd,char const* mode) noexcept
 {
 	auto fp{
@@ -288,10 +354,17 @@ inline FILE* my_fdopen(int fd,char const* mode) noexcept
 	};
 	return fp;
 }
+
 #endif
 
 inline FILE* my_c_file_open_impl(int fd,open_mode mode) noexcept
 {
+#if defined(_WIN32) && !defined(__CYGWIN__)
+	wchar_t const* cmode{to_native_c_mode(mode)};
+	auto fp{noexcept_call(_wfdopen,fd,cmode)};
+	if(fp==nullptr)
+		throw_posix_error();
+#else
 	char const* cmode{to_native_c_mode(mode)};
 #if defined(__NEWLIB__) && !defined(__CYGWIN__)
 	struct _reent ent{};
@@ -302,6 +375,7 @@ inline FILE* my_c_file_open_impl(int fd,open_mode mode) noexcept
 	auto fp{my_fdopen(fd,cmode)};
 	if(fp==nullptr)
 		throw_posix_error();
+#endif
 #endif
 	return fp;
 }
