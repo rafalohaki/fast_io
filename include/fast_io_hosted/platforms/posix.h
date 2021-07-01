@@ -607,7 +607,8 @@ inline void posix_clear_screen_impl(int fd)
 inline void posix_flush_impl(int fd)
 {
 #if defined(_WIN32) && !defined(__CYGWIN__)
-	::fast_io::win32::details::win32_flush_impl(my_get_osfile_handle(fd));
+	if(noexcept_call(_commit,fd)==-1)
+		throw_posix_error();
 #elif defined(__linux__) && defined(__NR_fsync)
 	system_call_throw_error(system_call<__NR_fsync,int>(fd));
 #else
