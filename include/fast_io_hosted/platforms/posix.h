@@ -649,7 +649,7 @@ inline void flush(basic_posix_io_observer<ch_type> piob)
 namespace details
 {
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 using mode_t = int;
 #endif
 
@@ -814,7 +814,7 @@ fstat
 template<std::integral ch_type>
 inline posix_file_status status(basic_posix_io_observer<ch_type> piob)
 {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 	return status(static_cast<basic_win32_io_observer<ch_type>>(piob));
 #else
 	return details::fstat_impl(piob.fd);
@@ -1088,7 +1088,7 @@ public:
 	{
 		factory.fd=-1;
 	}
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(__CYGWIN__)
 //windows specific. open posix file from win32 io handle
 	template<win32_family family>
 	basic_posix_file(basic_win32_family_io_handle<family,char_type>&& hd,open_mode m):
