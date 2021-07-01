@@ -604,6 +604,18 @@ inline void posix_clear_screen_impl(int fd)
 #endif
 }
 
+inline void posix_flush_impl(int fd)
+{
+#if defined(_WIN32) && !defined(__CYGWIN__)
+	::fast_io::win32::details::win32_flush_impl(my_get_osfile_handle(fd));
+#elif defined(__linux__) && defined(__NR_fsync)
+	system_call_throw_error(system_call<__NR_fsync,int>(fd));
+#else
+	if(fsync(fd)==-1)
+		throw_posix_error();
+#endif
+}
+
 }
 
 template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
@@ -622,15 +634,16 @@ inline std::uintmax_t seek(basic_posix_io_observer<ch_type> h,std::intmax_t i=0,
 {
 	return details::posix_seek_impl(h.fd,i,s);
 }
-/*
+
 template<std::integral ch_type>
-inline void flush(basic_posix_io_observer<ch_type>)
+#if __has_cpp_attribute(gnu::always_inline)
+[[gnu::always_inline]]
+#endif
+inline void flush(basic_posix_io_observer<ch_type> piob)
 {
-	// no need fsync. OS can deal with it
-//		if(::fsync(fd)==-1)
-//			throw posix_error();
+	details::posix_flush_impl(piob.fd);
 }
-*/
+
 
 #if !defined(__NEWLIB__) || defined(__CYGWIN__)
 namespace details
@@ -868,7 +881,7 @@ requires requires(basic_posix_io_observer<ch_type> h,Args&& ...args)
 }
 inline void io_control(basic_posix_io_observer<ch_type> h,Args&& ...args)
 {
-#if defined(__linux__)
+#if defined(__linux__) && defined(__NR_ioctl)
 	system_call_throw_error(system_call<__NR_ioctl,int>(h.fd,std::forward<Args>(args)...));
 #else
 	if(::fast_io::posix::ioctl(h.fd,std::forward<Args>(args)...)==-1)
@@ -1267,12 +1280,12 @@ inline Iter write(basic_posix_pipe<ch_type>& h,Iter begin,Iter end)
 }
 
 template<std::integral ch_type>
-inline void flush(basic_posix_pipe<ch_type>&)
+inline void flush(basic_posix_pipe<ch_type>& pp)
 {
-	// no need fsync. OS can deal with it
-//		if(::fsync(fd)==-1)
-//			throw posix_error();
+	details::posix_flush_impl(pp.out().fd);
+	details::posix_flush_impl(pp.in().fd);
 }
+
 #if defined(_WIN32) && !defined(__CYGWIN__)
 template<std::integral ch_type>
 inline ::fast_io::freestanding::array<int*,2> redirect_handle(basic_posix_pipe<ch_type>& h)

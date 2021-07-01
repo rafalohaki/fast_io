@@ -553,7 +553,7 @@ inline struct tm unix_timestamp_to_tm_impl(intiso_t seconds)
 #endif
 
 
-inline iso8601_timestamp to_iso8601_local_impl(intiso_t seconds,uintiso_t subseconds,bool dstadj)
+inline iso8601_timestamp to_iso8601_local_impl(intiso_t seconds,uintiso_t subseconds,[[maybe_unused]] bool dstadj)
 {
 #ifdef __MSDOS__
 	return unix_timestamp_to_iso8601_tsp_impl_internal(seconds,subseconds,0);

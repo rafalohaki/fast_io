@@ -274,6 +274,7 @@ inline int my_fclose_impl(FILE* fp) noexcept
 	}
 }
 
+#if !defined(__NEWLIB__) || defined(__CYGWIN__)
 inline FILE* my_fdopen(int fd,char const* mode) noexcept
 {
 	auto fp{
@@ -287,6 +288,7 @@ inline FILE* my_fdopen(int fd,char const* mode) noexcept
 	};
 	return fp;
 }
+#endif
 
 inline FILE* my_c_file_open_impl(int fd,open_mode mode) noexcept
 {

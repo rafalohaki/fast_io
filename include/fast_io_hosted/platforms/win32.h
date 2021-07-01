@@ -427,6 +427,21 @@ inline void* win32_dup2_impl(void* handle,void* newhandle)
 	return temp;
 }
 
+inline void win32_flush_impl(void* __restrict handle)
+{
+	if(!FlushFileBuffers(handle))
+		throw_win32_error();
+}
+
+}
+
+template<win32_family family,std::integral char_type>
+#if __has_cpp_attribute(gnu::always_inline)
+[[gnu::always_inline]]
+#endif
+inline void flush(basic_win32_family_io_observer<family,char_type> wiob)
+{
+	::fast_io::win32::details::win32_flush_impl(wiob.handle);
 }
 
 template<win32_family family,std::integral ch_type>
@@ -1143,6 +1158,13 @@ template<nt_family family,std::integral ch_type>
 inline bool is_character_device(basic_nt_family_io_observer<family,ch_type> niob) noexcept
 {
 	return win32::details::win32_is_character_device(niob.handle);
+}
+
+template<win32_family family,std::integral char_type>
+inline void flush(basic_win32_family_pipe<family,char_type>& pipe)
+{
+	::fast_io::win32::details::win32_flush_impl(pipe.out().handle);
+	::fast_io::win32::details::win32_flush_impl(pipe.in().handle);
 }
 
 template<std::integral char_type>
