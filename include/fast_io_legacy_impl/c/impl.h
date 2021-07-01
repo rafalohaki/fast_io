@@ -357,7 +357,7 @@ inline FILE* my_fdopen(int fd,char const* mode) noexcept
 
 #endif
 
-inline FILE* my_c_file_open_impl(int fd,open_mode mode) noexcept
+inline FILE* my_c_file_open_impl(int fd,open_mode mode)
 {
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(_WIN32_WINDOWS)
 
