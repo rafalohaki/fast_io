@@ -37,7 +37,7 @@ struct nt_api_encoding_converter
 	{
 		return buffer_data;
 	}
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
 #if __has_cpp_attribute(gnu::may_alias)
 	[[gnu::may_alias]]
 #endif

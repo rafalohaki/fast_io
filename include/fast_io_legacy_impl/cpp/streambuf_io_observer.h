@@ -41,7 +41,7 @@ public:
 	{
 		return static_cast<basic_posix_io_observer<char_type>>(static_cast<basic_c_io_observer<char_type>>(*this));
 	}
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
 	explicit operator basic_win32_io_observer<char_type>() const noexcept
 	{
 		return static_cast<basic_win32_io_observer<char_type>>

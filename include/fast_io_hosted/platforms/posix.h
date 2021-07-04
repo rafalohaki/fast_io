@@ -231,11 +231,6 @@ mode	openmode & ~ate	Action if file already exists	Action if file does not exist
 		return mode;
 	}
 }
-template<open_mode om>
-struct posix_file_openmode
-{
-	static int constexpr mode = calculate_posix_open_mode(om);
-};
 
 }
 
@@ -284,17 +279,45 @@ inline constexpr posix_io_redirection redirect(posix_dev_null_t) noexcept
 	return {.dev_null=true};
 }
 
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) || defined(__CYGWIN__)
 namespace details
 {
+
+/*
+Warning! cygwin's _get_osfhandle has the same name as msvcrt or ucrt's name, but they are completely different functions. Also, it returns long, not std::intptr_t
+*/
+#if defined(__CYGWIN__)
+#if __has_cpp_attribute(gnu::dllimport)
+[[gnu::dllimport]]
+#endif
+extern long cygwin_get_osfhandle(int fd) noexcept
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("_get_osfhandle")
+#else
+asm("__get_osfhandle")
+#endif
+#else
+asm("_get_osfhandle")
+#endif
+;
+#endif
+
 inline void* my_get_osfile_handle(int fd) noexcept
 {
 	if(fd==-1)
 		return nullptr;
+#if defined(__CYGWIN__)
+	long ret{cygwin_get_osfhandle(fd)};
+	if(ret==-1)
+		return nullptr;
+	return reinterpret_cast<void*>(static_cast<long>(ret));
+#else
 	std::intptr_t ret{noexcept_call(_get_osfhandle,fd)};
 	if(ret==-1)
 		return nullptr;
 	return reinterpret_cast<void*>(ret);
+#endif
 }
 }
 #endif
@@ -318,7 +341,7 @@ public:
 	{
 		return fd!=-1;
 	}
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) || defined(__CYGWIN__)
 	template<win32_family family>
 	explicit operator basic_win32_family_io_observer<family,char_type>() const noexcept
 	{
@@ -645,7 +668,6 @@ inline void flush(basic_posix_io_observer<ch_type> piob)
 	details::posix_flush_impl(piob.fd);
 }
 
-
 #if !defined(__NEWLIB__) || defined(__CYGWIN__)
 namespace details
 {
@@ -949,6 +971,44 @@ inline int my_posix_openat(int dirfd,char const* pathname,int flags,mode_t mode)
 	return fd;
 }
 #endif
+
+#if defined(__CYGWIN__)
+
+#if __has_cpp_attribute(gnu::dllimport)
+[[gnu::dllimport]]
+#endif
+extern int my_cygwin_attach_handle_to_fd(char const* name, int fd, void* handle, int bin, int access) noexcept
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if defined(__GNUC__)
+asm("cygwin_attach_handle_to_fd")
+#else
+asm("_cygwin_attach_handle_to_fd")
+#endif
+#else
+asm("cygwin_attach_handle_to_fd")
+#endif
+;
+
+inline constexpr unsigned calculate_win32_cygwin_open_mode(open_mode value)
+{
+	unsigned access{};
+	if((value&open_mode::out)==open_mode::out)
+		access|=0x80000000;
+	if((value&open_mode::in)==open_mode::in)
+		access|=0x40000000;
+	return access;
+}
+
+inline int cygwin_create_fd_with_win32_handle(void* handle,open_mode mode)
+{
+	int fd{my_cygwin_attach_handle_to_fd(nullptr,-1,handle,true,calculate_win32_cygwin_open_mode(mode))};
+	if(fd==-1)
+		throw_posix_error();
+	return fd;
+}
+
+#endif
+
 #ifdef __MSDOS__
 extern unsigned int my_dos_creat(char const*,short unsigned,int*) noexcept asm("__dos_creat");
 extern unsigned int my_dos_creatnew(char const*,short unsigned,int*) noexcept asm("__dos_creatnew");
@@ -1137,6 +1197,21 @@ public:
 	{}
 
 #else
+
+#if defined(__CYGWIN__)
+	template<win32_family family>
+	basic_posix_file(basic_win32_family_io_handle<family,char_type>&& hd,open_mode m):
+		basic_posix_io_handle<char_type>{details::cygwin_create_fd_with_win32_handle(hd.handle,m)}
+	{
+		hd.release();
+	}
+	template<nt_family family>
+	basic_posix_file(basic_nt_family_io_handle<family,char_type>&& hd,open_mode m):
+		basic_posix_io_handle<char_type>{details::cygwin_create_fd_with_win32_handle(hd.handle,m)}
+	{
+		hd.release();
+	}
+#endif
 	basic_posix_file(posix_fs_dirent fsdirent,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_posix_file(details::my_posix_openat_file_internal_impl(fsdirent.fd,fsdirent.filename,om,pm)){}
 	basic_posix_file(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_open_file_impl(file,om,pm)){}
@@ -1149,7 +1224,7 @@ public:
 	basic_posix_file(posix_at_entry pate,u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_openat_file_impl(pate.fd,file,om,pm)){}
 	basic_posix_file(u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_open_file_impl(file,om,pm)){}
 	basic_posix_file(posix_at_entry pate,u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_openat_file_impl(pate.fd,file,om,pm)){}
-#if (!defined(_WIN32) || defined(__CYGWIN__)) && !defined(__wasi__) && __has_include(<sys/socket.h>) && __has_include(<netinet/in.h>)
+#if !defined(__wasi__) && __has_include(<sys/socket.h>) && __has_include(<netinet/in.h>)
 	basic_posix_file(sock_family d,sock_type t,open_mode m,sock_protocol p):basic_posix_io_handle<char_type>(details::open_socket_impl(d,t,m,p)){}
 #endif
 

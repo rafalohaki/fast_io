@@ -298,7 +298,7 @@ inline int fp_unlocked_to_fd(FILE* fp) noexcept
 	return my_fileno_impl<c_family::unlocked>(fp);
 }
 
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) || defined(__CYGWIN__)
 template<c_family family>
 inline void* my_fp_to_win32_handle_impl(FILE* fp) noexcept
 {
@@ -553,7 +553,7 @@ public:
 	{
 		return basic_posix_io_observer<char_type>{details::my_fileno_impl<family>(fp)};
 	}
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) || defined(__CYGWIN__)
 	template<win32_family fam>
 	explicit operator basic_win32_family_io_observer<fam,char_type>() const noexcept
 	{
@@ -855,16 +855,16 @@ public:
 	{
 		phd.fd=-1;
 	}
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) || defined(__CYGWIN__)
 //windows specific. open posix file from win32 io handle
 	template<win32_family wfamily>
 	basic_c_family_file(basic_win32_family_io_handle<wfamily,char_type>&& win32_handle,open_mode om):
-		basic_c_family_file(basic_posix_file<char_type>(std::move(win32_handle),om),to_native_c_mode(om))
+		basic_c_family_file(basic_posix_file<char_type>(std::move(win32_handle),om),om)
 	{
 	}
 	template<nt_family nfamily>
 	basic_c_family_file(basic_nt_family_io_handle<nfamily,char_type>&& nt_handle,open_mode om):
-		basic_c_family_file(basic_posix_file<char_type>(std::move(nt_handle),om),to_native_c_mode(om))
+		basic_c_family_file(basic_posix_file<char_type>(std::move(nt_handle),om),om)
 	{
 	}
 #endif

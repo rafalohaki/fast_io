@@ -54,7 +54,7 @@ This is an example to explain how fast_io's files work with each other, and how 
 	"fstream.rdbuf():",fiob.fb,"\n"
 	"FILE*:",static_cast<fast_io::c_io_observer>(fiob).fp,"\n"
 	"fd:",static_cast<fast_io::posix_io_observer>(fiob).fd
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
 	,"\n"
 	"win32 HANDLE:",static_cast<fast_io::win32_io_observer>(fiob).handle
 #ifndef _WIN32_WINDOWS

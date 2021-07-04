@@ -53,7 +53,7 @@ This potentially contains format string vuln.
 #endif
 	"FILE*:",static_cast<fast_io::c_io_observer>(cf).fp,"\n"
 	"fd:",static_cast<fast_io::posix_io_observer>(cf).fd
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
 	,"\n"
 	"win32 HANDLE:",static_cast<fast_io::win32_io_observer>(cf).handle
 #ifndef _WIN32_WINDOWS
