@@ -5,7 +5,7 @@ int main()
 /*
 This is an example to explain how fast_io's files work with each other, and how you could use fast_io with existing FILE* or fstream apis
 */
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #ifdef _WIN32_WINDOWS
 //_WIN32_WINDOWS macro targets WIN9X kernel (windows 95, windows 98 and windows ME)
 //On 9x kernel, although ntdll.dll does exist, but it does not do anything
