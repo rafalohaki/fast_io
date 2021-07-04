@@ -415,12 +415,10 @@ inline std::size_t nt_write_impl(void* __restrict handle,void const* __restrict 
 
 }
 
-#ifndef __CYGWIN__
 namespace details
 {
 inline void* my_get_osfile_handle(int fd) noexcept;
 }
-#endif
 
 struct nt_at_entry
 {
@@ -428,9 +426,7 @@ struct nt_at_entry
 	void* handle{};
 	explicit constexpr nt_at_entry() noexcept=default;
 	explicit constexpr nt_at_entry(void* mhandle) noexcept:handle(mhandle){}
-#ifndef __CYGWIN__
 	nt_at_entry(posix_at_entry pate) noexcept:handle(details::my_get_osfile_handle(pate.fd)){}
-#endif
 };
 
 template<nt_family family>
