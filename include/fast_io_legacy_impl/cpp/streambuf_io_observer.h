@@ -14,7 +14,7 @@ public:
 	using traits_type = typename streambuf_type::traits_type;
 	using native_handle_type = streambuf_type*;
 	native_handle_type fb{};
-	inline constexpr native_handle_type& native_handle() const noexcept
+	inline constexpr native_handle_type const& native_handle() const noexcept
 	{
 		return fb;
 	}
