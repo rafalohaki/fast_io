@@ -164,7 +164,25 @@ template<scalar_flags flags,typename scalar_type>
 requires (((2<=flags.base&&flags.base<=36&&(::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||std::contiguous_iterator<scalar_type>))||(flags.base==10&&::fast_io::details::my_floating_point<scalar_type>)))
 inline constexpr scalar_manip_t<flags,std::conditional_t<(::fast_io::details::my_integral<scalar_type>||std::floating_point<scalar_type>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>),scalar_type,std::uintptr_t>> scalar(scalar_type t) noexcept
 {
-	if constexpr(::fast_io::details::my_integral<scalar_type>||::fast_io::details::my_floating_point<scalar_type>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>)
+	if constexpr(::fast_io::details::my_floating_point<scalar_type>)
+	{
+		if constexpr(std::same_as<std::remove_cvref_t<scalar_type>,long double>
+#if defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)
+		||std::same_as<std::remove_cvref_t<scalar_type>,__float128>
+#endif
+		)
+		{
+#if (defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)) && defined(__SIZEOF_INT128__)
+			if constexpr(sizeof(scalar_type)>sizeof(double))
+				return scalar_manip_t<floating_point_default_scalar_flags,__float128>{static_cast<__float128>(t)};
+			else
+#endif
+				return scalar_manip_t<floating_point_default_scalar_flags,double>{static_cast<double>(t)};
+		}
+		else
+			return scalar_manip_t<floating_point_default_scalar_flags,std::remove_cvref_t<scalar_type>>{t};
+	}
+	else if constexpr(::fast_io::details::my_integral<scalar_type>||::fast_io::details::my_floating_point<scalar_type>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>)
 		return {t};
 	else if constexpr(std::is_pointer_v<std::remove_cvref_t<scalar_type>>)
 		return {bit_cast<std::uintptr_t>(t)};
@@ -180,16 +198,44 @@ inline constexpr scalar_manip_t<::fast_io::details::boolalpha_mani_flags_cache<u
 
 template<bool uppercase=false,typename scalar_type>
 requires (::fast_io::details::my_floating_point<scalar_type>)
-inline constexpr scalar_manip_t<::fast_io::details::hexafloat_mani_flags_cache<uppercase,false>,scalar_type> hexfloat(scalar_type t) noexcept
+inline constexpr auto hexfloat(scalar_type t) noexcept
 {
-	return {t};
+	if constexpr(std::same_as<std::remove_cvref_t<scalar_type>,long double>
+#if defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)
+	||std::same_as<std::remove_cvref_t<scalar_type>,__float128>
+#endif
+	)
+	{
+#if (defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)) && defined(__SIZEOF_INT128__)
+		if constexpr(sizeof(scalar_type)>sizeof(double))
+			return scalar_manip_t<::fast_io::details::hexafloat_mani_flags_cache<uppercase,false>,__float128>{static_cast<__float128>(t)};
+		else
+#endif
+			return scalar_manip_t<::fast_io::details::hexafloat_mani_flags_cache<uppercase,false>,double>{static_cast<double>(t)};
+	}
+	else
+		return scalar_manip_t<::fast_io::details::hexafloat_mani_flags_cache<uppercase,false>,std::remove_cvref_t<scalar_type>>{t};
 }
 
 template<bool uppercase=false,typename scalar_type>
 requires (::fast_io::details::my_floating_point<scalar_type>)
-inline constexpr scalar_manip_t<::fast_io::details::hexafloat_mani_flags_cache<uppercase,true>,scalar_type> comma_hexfloat(scalar_type t) noexcept
+inline constexpr auto comma_hexfloat(scalar_type t) noexcept
 {
-	return {t};
+	if constexpr(std::same_as<std::remove_cvref_t<scalar_type>,long double>
+#if defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)
+	||std::same_as<std::remove_cvref_t<scalar_type>,__float128>
+#endif
+	)
+	{
+#if (defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)) && defined(__SIZEOF_INT128__)
+		if constexpr(sizeof(scalar_type)>sizeof(double))
+			return scalar_manip_t<::fast_io::details::hexafloat_mani_flags_cache<uppercase,true>,__float128>{static_cast<__float128>(t)};
+		else
+#endif
+			return scalar_manip_t<::fast_io::details::hexafloat_mani_flags_cache<uppercase,true>,double>{static_cast<double>(t)};
+	}
+	else
+		return scalar_manip_t<::fast_io::details::hexafloat_mani_flags_cache<uppercase,true>,std::remove_cvref_t<scalar_type>>{t};
 }
 
 }
@@ -776,7 +822,7 @@ inline constexpr Iter print_reserve_nullptr_alphabet_impl(Iter iter)
 }
 
 template<typename scalar_type>
-requires (details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::contiguous_iterator<scalar_type>||std::floating_point<scalar_type>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>)
+requires (details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::contiguous_iterator<scalar_type>||::fast_io::details::my_floating_point<scalar_type>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>)
 #if __has_cpp_attribute(gnu::always_inline)
 [[gnu::always_inline]]
 #elif __has_cpp_attribute(msvc::forceinline)
@@ -786,8 +832,24 @@ inline constexpr auto print_alias_define(io_alias_t,scalar_type t) noexcept
 {
 	if constexpr(details::my_integral<scalar_type>)
 		return manipulators::scalar_manip_t<manipulators::integral_default_scalar_flags,scalar_type>{t};
-	else if constexpr(std::floating_point<scalar_type>)
-		return manipulators::scalar_manip_t<manipulators::floating_point_default_scalar_flags,scalar_type>{t};
+	else if constexpr(details::my_floating_point<scalar_type>)
+	{
+		if constexpr(std::same_as<std::remove_cvref_t<scalar_type>,long double>
+#if defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)
+		||std::same_as<std::remove_cvref_t<scalar_type>,__float128>
+#endif
+		)
+		{
+#if (defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)) && defined(__SIZEOF_INT128__)
+			if constexpr(sizeof(scalar_type)>sizeof(double))
+				return manipulators::scalar_manip_t<manipulators::floating_point_default_scalar_flags,__float128>{static_cast<__float128>(t)};
+			else
+#endif
+				return manipulators::scalar_manip_t<manipulators::floating_point_default_scalar_flags,double>{static_cast<double>(t)};
+		}
+		else
+			return manipulators::scalar_manip_t<manipulators::floating_point_default_scalar_flags,std::remove_cvref_t<scalar_type>>{t};
+	}
 	else if constexpr(std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>)
 	{
 		return manipulators::scalar_manip_t<manipulators::scalar_flags{.alphabet=true},std::nullptr_t>{};

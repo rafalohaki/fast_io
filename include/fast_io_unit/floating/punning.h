@@ -1,9 +1,6 @@
 #pragma once
 
-namespace fast_io
-{
-
-namespace details
+namespace fast_io::details
 {
 
 template<typename flt>
@@ -20,7 +17,7 @@ struct iec559_traits<__float16>
 };
 #endif
 
-template<>	
+template<>
 struct iec559_traits<float>
 {
 	using mantissa_type = std::uint32_t;
@@ -37,15 +34,6 @@ struct iec559_traits<double>
 };
 
 #if defined(__SIZEOF_INT128__)
-#if defined(__SIZEOF_FLOAT80__) || defined(__FLOAT80__)
-template<>
-struct iec559_traits<__float80>
-{
-	using mantissa_type = __uint128_t;
-	inline static constexpr std::size_t mbits{63};
-	inline static constexpr std::size_t ebits{15};
-};
-#endif
 
 #if defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)
 template<>
@@ -56,6 +44,7 @@ struct iec559_traits<__float128>
 	inline static constexpr std::size_t ebits{15};
 };
 #endif
+
 #endif
 
 template<my_unsigned_integral T>
@@ -294,6 +283,86 @@ inline constexpr Iter prsv_fp_hex0p0(Iter iter) noexcept
 	}
 }
 
+template<bool uppercase,::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter prsv_fp_dece0(Iter iter) noexcept
+{
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	if constexpr(uppercase)
+	{
+		if constexpr(std::same_as<char_type,char>)
+			return copy_string_literal("0E+0",iter);
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			return copy_string_literal(L"0E+0",iter);
+		else if constexpr(std::same_as<char_type,char16_t>)
+			return copy_string_literal(u"0E+0",iter);
+		else if constexpr(std::same_as<char_type,char32_t>)
+			return copy_string_literal(U"0E+0",iter);
+		else
+			return copy_string_literal(u8"0E+0",iter);
+	}
+	else
+	{
+		if constexpr(std::same_as<char_type,char>)
+			return copy_string_literal("0e+0",iter);
+		else if constexpr(std::same_as<char_type,wchar_t>)
+			return copy_string_literal(L"0e+0",iter);
+		else if constexpr(std::same_as<char_type,char16_t>)
+			return copy_string_literal(u"0e+0",iter);
+		else if constexpr(std::same_as<char_type,char32_t>)
+			return copy_string_literal(U"0e+0",iter);
+		else
+			return copy_string_literal(u8"0e+0",iter);
+	}
+}
+
+template<typename flt>
+struct punning_result
+{
+	typename iec559_traits<flt>::mantissa_type mantissa;
+	std::uint32_t exponent;
+	bool sign;
+};
+
+struct
+#if __has_cpp_attribute(gnu::packed)
+[[gnu::packed]]
+#endif
+float80_result
+{
+	std::uint64_t mantissa;
+	std::uint16_t exponent;
+};
+
+template<typename flt>
+#if __has_cpp_attribute(gnu::always_inline)
+[[gnu::always_inline]]
+#elif __has_cpp_attribute(msvc::forceinline)
+[[msvc::forceinline]]
+#endif
+inline constexpr punning_result<flt> get_punned_result(flt f) noexcept
+{
+	using trait = iec559_traits<flt>;
+	using mantissa_type = typename trait::mantissa_type;
+	constexpr std::size_t mbits{trait::mbits};
+	constexpr std::size_t ebits{trait::ebits};
+	constexpr std::size_t total_bits{mbits+ebits};
+	constexpr mantissa_type mantissa_mask{(static_cast<mantissa_type>(1)<<mbits)-1};
+	constexpr mantissa_type exponent_mask{(static_cast<mantissa_type>(1)<<ebits)-1};
+
+	auto unwrap =
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_bit_cast)
+	__builtin_bit_cast(mantissa_type,f)
+#else
+	bit_cast<mantissa_type>(f)
+#endif
+#elif defined(_MSC_VER) && __cpp_lib_bit_cast >= 201806L
+	__builtin_bit_cast(mantissa_type,f)
+#else
+	bit_cast<mantissa_type>(f)
+#endif
+	;
+	return {unwrap&mantissa_mask,static_cast<std::uint32_t>((unwrap>>mbits)&exponent_mask),static_cast<bool>((unwrap>>total_bits)&1u)};
 }
 
 }
