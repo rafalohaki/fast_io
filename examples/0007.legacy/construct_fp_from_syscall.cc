@@ -19,7 +19,6 @@ This is an example to explain how fast_io's files work with each other, and how 
 	fast_io::posix_file pf("posix_file.txt",fast_io::open_mode::out);
 #endif
 	fast_io::c_file cf(std::move(pf),fast_io::open_mode::out);
-	fprintf(cf.fp,"%s","Hello World from fprintf\n");
 /*
 do not write
 	fprintf(cf.fp,"Hello World from fprintf\n");

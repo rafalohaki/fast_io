@@ -203,7 +203,4 @@ inline void ibuffer_set_curr(u8c_io_observer_unlocked ciob,char8_t* ptr) noexcep
 	details::mlibc_hack::hack_ibuffer_set_curr_impl(ciob.fp,reinterpret_cast<char*>(ptr));
 }
 
-static_assert(fast_io::buffer_io_stream<c_io_observer_unlocked>);
-static_assert(fast_io::buffer_io_stream<u8c_io_observer_unlocked>);
-
 }
