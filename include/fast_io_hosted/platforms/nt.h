@@ -726,6 +726,7 @@ class basic_nt_family_file:public basic_nt_family_io_handle<family,ch_type>
 public:
 	using char_type = ch_type;
 	using native_handle_type = void*;
+	using file_factory_type = nt_family_file_factory<family>;
 	constexpr basic_nt_family_file()=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>

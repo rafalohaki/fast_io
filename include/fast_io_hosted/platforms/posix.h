@@ -1137,6 +1137,7 @@ class basic_posix_file:public basic_posix_io_handle<ch_type>
 public:
 	using char_type = ch_type;
 	using native_handle_type = typename basic_posix_io_handle<char_type>::native_handle_type;
+	using file_factory_type = posix_file_factory;
 	using basic_posix_io_handle<ch_type>::native_handle;
 	constexpr basic_posix_file() noexcept = default;
 	template<typename native_hd>

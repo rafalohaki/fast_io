@@ -838,6 +838,7 @@ public:
 	using char_type=ch_type;
 	using native_handle_type = typename basic_win32_family_io_handle<family,ch_type>::native_handle_type;
 	using basic_win32_family_io_handle<family,ch_type>::native_handle;
+	using file_factory_type = win32_file_factory;
 	explicit constexpr basic_win32_family_file()=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
