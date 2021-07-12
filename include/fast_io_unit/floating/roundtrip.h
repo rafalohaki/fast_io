@@ -691,7 +691,7 @@ inline constexpr std::uint64_t mulshift_double(std::uint64_t x,std::uint64_t ylo
 	return p1high;
 }
 
-inline constexpr bool multiple_of_pow2(std::uint64_t value, std::int32_t e2) noexcept
+inline constexpr bool multiple_of_pow2(std::uint64_t value,std::int32_t e2) noexcept
 {
 	return e2 < 64 && (value & ((std::uint64_t{1} << e2) - 1)) == 0;
 }
@@ -702,25 +702,25 @@ inline constexpr bool multiple_of_pow5(std::uint64_t value,std::uint32_t e5) noe
 	return value*m5.hi <= m5.lo;
 }
 
-inline constexpr bool is_integral_end_point(std::uint64_t two_f, std::int32_t e2, std::int32_t minus_k) noexcept
+inline constexpr bool is_integral_end_point(std::uint64_t two_f,std::int32_t e2,std::int32_t minus_k) noexcept
 {
-	if (e2 < -2)
+	if(e2<-2)
 		return false;
-	if (e2 <= 9)
+	if(e2<=9)
 		return true;
-	if (e2 <= 86)
+	if(e2<=86)
 		return multiple_of_pow5(two_f, minus_k);
 	return false;
 }
 
-inline constexpr bool is_integral_mid_point(std::uint64_t two_f, std::int32_t e2, std::int32_t minus_k) noexcept
+inline constexpr bool is_integral_mid_point(std::uint64_t two_f,std::int32_t e2,std::int32_t minus_k) noexcept
 {
-	if (e2 < -4)
-		return multiple_of_pow2(two_f, minus_k - e2 + 1);
-	if (e2 <= 9)
+	if(e2<-4)
+		return multiple_of_pow2(two_f,minus_k-e2+1);
+	if(e2<=9)
 		return true;
-	if (e2 <= 86)
-		return multiple_of_pow5(two_f, static_cast<std::uint32_t>(minus_k));
+	if(e2<=86)
+		return multiple_of_pow5(two_f,static_cast<std::uint32_t>(minus_k));
 	return false;
 }
 
@@ -738,8 +738,8 @@ inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> prt_flt_
 	constexpr std::int32_t kappa{2};
 	constexpr std::uint32_t big_divisor{1000};
 	constexpr std::uint32_t small_divisor{100};
-	bool const is_even{static_cast<bool>(m2&1)};
-	bool const accept_lower{is_even},accept_upper{is_even};
+	bool const is_even{!static_cast<bool>(m2&1)};
+
 	e2-=bias;
 	std::int32_t e10{mul_ln2_div_ln10_floor(e2)};
 	m2|=mflags;
@@ -751,19 +751,19 @@ inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> prt_flt_
 	std::uint64_t const zi{mulshift_double(two_fr<<beta_minus_1,pow10.lo,pow10.hi)};
 	std::uint64_t q{zi/big_divisor};
 	std::uint64_t r{zi%big_divisor};
+	debug_println("m2:",m2," e2:",e2," minus_k:",minus_k," beta_minus_1:",beta_minus_1," e10:",e10);
 
 	if(r<delta)
 	{
-		if(r||accept_upper||!is_integral_end_point(two_fr,e2,minus_k))
+		if(r||is_even||!is_integral_end_point(two_fr,e2,minus_k))
 			return {q,minus_k+kappa+1};
 		--q;
 		r=big_divisor;
 	}
 	else if(r==delta)
 	{
-//		if(((accept_lower)&&is_integral_end_point(two_fl,e2,minus_k))||)
+//		if(((is_even)&&is_integral_end_point(two_fl,e2,minus_k))||)
 	}
-//	debug_println(pow10.lo," ",pow10.hi," ",delta," ",zi," ",q," ",r);
 	return {};
 }
 
