@@ -691,9 +691,25 @@ inline constexpr std::uint64_t mulshift_double(std::uint64_t x,std::uint64_t ylo
 	return p1high;
 }
 
+inline constexpr bool mul_parity(std::uint64_t two_f,std::uint64_t pow10_low,std::uint64_t pow10_high,std::int32_t beta_minus_1) noexcept
+{
+	std::uint64_t const p01{two_f * pow10_high};
+	std::uint64_t p10;
+	intrinsics::umul(two_f,pow10_low,p10);
+	std::uint64_t const mid{p01 + p10};
+	constexpr std::uint64_t one{1};
+	return (mid & (one << (64 - beta_minus_1)));
+}
+
+inline constexpr bool multiple_of_pow2_unchecked(std::uint64_t value,std::uint32_t e2) noexcept
+{
+	constexpr std::uint64_t one{1};
+	return (value & ((one << e2) - 1)) == 0;
+}
+
 inline constexpr bool multiple_of_pow2(std::uint64_t value,std::int32_t e2) noexcept
 {
-	return e2 < 64 && (value & ((std::uint64_t{1} << e2) - 1)) == 0;
+	return e2 < 64 && multiple_of_pow2_unchecked(value,static_cast<std::uint32_t>(e2));
 }
 
 inline constexpr bool multiple_of_pow5(std::uint64_t value,std::uint32_t e5) noexcept
@@ -725,7 +741,42 @@ inline constexpr bool is_integral_mid_point(std::uint64_t two_f,std::int32_t e2,
 }
 
 template<typename flt>
-inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> prt_flt_main_impl(typename iec559_traits<flt>::mantissa_type m2,std::int32_t e2) noexcept
+#if __has_cpp_attribute(gnu::cold)
+[[gnu::cold]]
+#endif
+inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> schubfach_asymmetric_interval(std::int32_t e2) noexcept
+{
+	using trait = iec559_traits<flt>;
+
+	constexpr std::int32_t mbits{trait::mbits};
+	std::int32_t const minus_k{(e2 * 1262611 - 524031)>>22};
+	std::int32_t const beta_minus_1{e2 + mul_ln10_div_ln2_floor(-minus_k)};
+	uint64x2 const pw{compute_pow10_double[-minus_k]};
+	std::uint64_t const pw_lo{pw.lo},pw_hi{pw.hi};
+	std::uint32_t const rshift(64-mbits-beta_minus_1);
+	std::uint64_t const lower_endpoint{(pw_hi-(pw_hi>>(mbits+1)))>>rshift};
+	std::uint64_t q{(pw_lo+(pw_hi>>mbits))>>rshift};
+	bool const lower_endpoint_is_not_integer((2!=e2)&(3!=e2));
+	std::uint64_t const xi{lower_endpoint+lower_endpoint_is_not_integer};
+	q/=10;
+	if(q*10>=xi)
+		return {q,minus_k+1};
+	q=((pw_hi>>(rshift-1))+1)>>1;
+	if(e2==-77)
+		q-=(q&1);
+	else
+		q+=(q<xi);
+	return {q,minus_k};
+}
+
+template<typename flt>
+#if __has_cpp_attribute(gnu::pure)
+[[gnu::pure]]
+#endif
+#if __has_cpp_attribute(gnu::hot)
+[[gnu::hot]]
+#endif
+inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> dragonbox_main(typename iec559_traits<flt>::mantissa_type m2,std::int32_t e2) noexcept
 {
 	using trait = iec559_traits<flt>;
 	using mantissa_type = typename trait::mantissa_type;
@@ -733,26 +784,41 @@ inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> prt_flt_
 	constexpr std::size_t mbits{trait::mbits};
 	constexpr std::size_t ebits{trait::ebits};
 	constexpr std::uint32_t bias{(static_cast<std::uint32_t>(1<<ebits)>>1)-1};
+
+	constexpr std::int32_t exponent_bias{bias+mbits};
 	constexpr mantissa_type mflags{static_cast<mantissa_type>(static_cast<mantissa_type>(1)<<mbits)};
 
 	constexpr std::int32_t kappa{2};
 	constexpr std::uint32_t big_divisor{1000};
 	constexpr std::uint32_t small_divisor{100};
-	bool const is_even{!static_cast<bool>(m2&1)};
-
-	e2-=bias;
-	std::int32_t e10{mul_ln2_div_ln10_floor(e2)};
-	m2|=mflags;
-	std::int32_t const minus_k{mul_ln10_div_ln2_floor(e2)-kappa};
-	std::int32_t const beta_minus_1{e2+mul_ln2_div_ln10_floor(-minus_k)};
+	constexpr std::uint32_t small_divisor_div2{small_divisor/2};
+	if(e2==0)[[unlikely]]
+	{
+		constexpr std::int32_t e2bias{1-static_cast<std::int32_t>(exponent_bias)};
+		e2=e2bias;
+	}
+	else
+	{
+		auto e2_temp{e2};
+		e2-=exponent_bias;
+		m2|=mflags;
+		std::uint32_t pos_e2{static_cast<std::uint32_t>(-e2)};
+		if(pos_e2<mbits && multiple_of_pow2_unchecked(m2,pos_e2))[[unlikely]]
+			return {m2>>pos_e2, 0};
+		if(m2==0&&e2_temp>1)[[unlikely]]
+			return schubfach_asymmetric_interval<flt>(e2);
+	}
+	bool const is_even(m2&1);
+	std::int32_t const minus_k{mul_ln2_div_ln10_floor(e2)-kappa};
+	std::int32_t const beta_minus_1{e2+mul_ln10_div_ln2_floor(-minus_k)};
 	uint64x2 const pow10{compute_pow10_double[-minus_k]};
-	std::uint32_t const delta{static_cast<std::uint32_t>(pow10.hi>>(63-beta_minus_1))};
+	std::uint64_t const pow10_lo{pow10.lo};
+	std::uint64_t const pow10_hi{pow10.hi};
+	std::uint32_t const delta{static_cast<std::uint32_t>(pow10_hi>>(63-beta_minus_1))};
 	std::uint64_t const two_fc{m2<<1},two_fl{two_fc-1},two_fr{two_fc+1};
-	std::uint64_t const zi{mulshift_double(two_fr<<beta_minus_1,pow10.lo,pow10.hi)};
+	std::uint64_t const zi{mulshift_double(two_fr<<beta_minus_1,pow10_lo,pow10_hi)};
 	std::uint64_t q{zi/big_divisor};
 	std::uint64_t r{zi%big_divisor};
-	debug_println("m2:",m2," e2:",e2," minus_k:",minus_k," beta_minus_1:",beta_minus_1," e10:",e10);
-
 	if(r<delta)
 	{
 		if(r||is_even||!is_integral_end_point(two_fr,e2,minus_k))
@@ -760,11 +826,80 @@ inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> prt_flt_
 		--q;
 		r=big_divisor;
 	}
-	else if(r==delta)
+	else if(r==delta)[[unlikely]]
 	{
-//		if(((is_even)&&is_integral_end_point(two_fl,e2,minus_k))||)
+		if((is_even&&is_integral_end_point(two_fl, e2, minus_k))||mul_parity(two_fl,pow10_lo,pow10_hi,beta_minus_1))
+			return {q,minus_k+kappa+1};
 	}
-	return {};
+	q *= 10;
+	std::uint32_t const dist{static_cast<std::uint32_t>(r-delta/2+small_divisor_div2)};
+	std::uint32_t const dist_q{dist / 100};
+	std::uint32_t const dist_q_mul100{dist * 100};
+	q+=dist_q;
+	if(dist==dist_q_mul100)
+	{
+		bool const approx_y_parity(dist & 1);
+		if((mul_parity(two_fc,pow10_lo,pow10_hi,beta_minus_1)!=approx_y_parity)||((q&1)&&is_integral_end_point(two_fc, e2, minus_k)))
+			--q;
+	}
+	return {q,minus_k+kappa};
+}
+
+template<typename flt>
+#if __has_cpp_attribute(gnu::pure)
+[[gnu::pure]]
+#endif
+#if __has_cpp_attribute(gnu::hot)
+[[gnu::hot]]
+#endif
+inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> dragonbox_impl(typename iec559_traits<flt>::mantissa_type m2,std::int32_t e2) noexcept
+{
+	auto [m10,e10]=dragonbox_main<flt>(m2,e2);
+//m10 should not ==0
+	for(;;)
+	{
+		auto tmp_div100(m10/100u);
+		auto tmp_mod100(m10%100u);
+		if(tmp_mod100)
+			break;
+		m10=tmp_div100;
+		e10+=2;
+	}
+	auto tmp_div10{m10/10u};
+	auto tmp_mod10{m10%10u};
+	if(!tmp_mod10)
+	{
+		m10=tmp_div10;
+		++e10;
+	}
+	return {m10,e10};
+}
+
+template<
+bool comma,
+::fast_io::manipulators::floating_format mt,
+::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
+inline constexpr Iter print_rsv_fp_decision_impl(Iter iter,U m10,std::int32_t e10) noexcept
+{
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	if constexpr(mt==::fast_io::manipulators::floating_format::scientific)
+	{
+		if(m10<10u)
+		{
+			*iter=static_cast<char_type>(m10)+sign_ch<u8'0',char_type>;
+			++iter;
+		}
+		else
+		{
+//			print_reserve_integral_define<10,false,false,true,false,false>(iter,e2)
+		}
+		return iter;
+	}
+	else
+	{
+		
+	}
+	return iter;
 }
 
 template<
@@ -780,7 +915,7 @@ inline constexpr Iter print_rsvflt_define_impl(Iter iter,flt f) noexcept
 	using trait = iec559_traits<flt>;
 	using mantissa_type = typename trait::mantissa_type;
 	constexpr std::size_t ebits{trait::ebits};
-	constexpr std::uint32_t bias{(static_cast<std::uint32_t>(1<<ebits)>>1)-1};
+//	constexpr std::uint32_t bias{(static_cast<std::uint32_t>(1<<ebits)>>1)-1};
 	constexpr mantissa_type exponent_mask{(static_cast<mantissa_type>(1)<<ebits)-1};
 	constexpr std::uint32_t exponent_mask_u32{static_cast<std::uint32_t>(exponent_mask)};
 	auto [mantissa,exponent,sign] = get_punned_result(f);
@@ -797,7 +932,18 @@ inline constexpr Iter print_rsvflt_define_impl(Iter iter,flt f) noexcept
 		else
 			return prsv_fp_dece0<uppercase>(iter);
 	}
-	prt_flt_main_impl<flt>(mantissa,exponent);
+	auto [m10,e10] = dragonbox_impl<flt>(mantissa,exponent);
+	if constexpr(mt==::fast_io::manipulators::floating_format::fixed)
+	{
+	}
+#if 0
+	else if constexpr(mt==::fast_io::manipulators::floating_format::fixed)
+	{
+	}
+#endif
+	else
+	{
+	}
 	return iter;
 }
 
