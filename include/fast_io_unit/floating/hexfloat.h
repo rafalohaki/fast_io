@@ -76,8 +76,16 @@ inline constexpr Iter print_rsvhexfloat_define_impl(Iter iter,flt f) noexcept
 	}
 	*iter=sign_ch<uppercase_e?u8'P':u8'p',char_type>;
 	++iter;
-	iter=print_reserve_integral_define<10,false,false,true,false,false>(iter,e2);
-	return iter;
+	std::uint32_t ue2{static_cast<std::uint32_t>(e2)};
+	if(e2<0)
+	{
+		ue2=0u-ue2;
+		*iter=sign_ch<u8'-',char_type>;
+	}
+	else
+		*iter=sign_ch<u8'+',char_type>;
+	++iter;
+	return prt_rsv_exponent_impl<trait::e2hexdigits,false>(iter,ue2);
 }
 
 
@@ -90,51 +98,6 @@ print_integer_reserved_size_cache<16,showbase,true,mantissa_type>+
 6+
 print_integer_reserved_size_cache<10,true,true,std::int32_t>
 };
-
-}
-
-template<std::integral char_type,manipulators::scalar_flags flags,details::my_floating_point flt>
-requires (flags.base==10&&flags.floating==manipulators::floating_format::hexfloat)
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manipulators::scalar_manip_t<flags,flt>>) noexcept
-{
-	using trait = details::iec559_traits<flt>;
-	if constexpr(std::same_as<std::remove_cvref_t<flt>,long double>
-#if defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)
-	||std::same_as<std::remove_cvref_t<flt>,__float128>
-#endif
-	)
-	{
-#if (defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)) && defined(__SIZEOF_INT128__)
-		if constexpr(sizeof(flt)>sizeof(double))
-			return details::print_rsvhexfloat_size_cache<flags.showbase,__uint128_t>;
-		else
-#endif
-			return details::print_rsvhexfloat_size_cache<flags.showbase,typename details::iec559_traits<double>::mantissa_type>;
-	}
-	else
-		return details::print_rsvhexfloat_size_cache<flags.showbase,typename trait::mantissa_type>;
-}
-
-template<freestanding::random_access_iterator Iter,manipulators::scalar_flags flags,details::my_floating_point flt>
-requires (flags.base==10&&flags.floating==manipulators::floating_format::hexfloat)
-inline constexpr Iter print_reserve_define(io_reserve_type_t<freestanding::iter_value_t<Iter>,manipulators::scalar_manip_t<flags,flt>>,Iter iter,manipulators::scalar_manip_t<flags,flt> f) noexcept
-{
-
-	if constexpr(std::same_as<std::remove_cvref_t<flt>,long double>
-#if defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)
-	||std::same_as<std::remove_cvref_t<flt>,__float128>
-#endif
-	)
-	{
-#if (defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)) && defined(__SIZEOF_INT128__)
-		if constexpr(sizeof(flt)>sizeof(double))
-			return details::print_rsvhexfloat_define_impl<flags.showbase,flags.uppercase_showbase,flags.showpos,flags.uppercase,flags.uppercase_e,flags.comma>(iter,static_cast<__float128>(f.reference));
-		else
-#endif
-			return details::print_rsvhexfloat_define_impl<flags.showbase,flags.uppercase_showbase,flags.showpos,flags.uppercase,flags.uppercase_e,flags.comma>(iter,static_cast<double>(f.reference));
-	}
-	else
-		return details::print_rsvhexfloat_define_impl<flags.showbase,flags.uppercase_showbase,flags.showpos,flags.uppercase,flags.uppercase_e,flags.comma>(iter,f.reference);
 
 }
 

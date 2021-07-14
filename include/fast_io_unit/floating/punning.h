@@ -18,6 +18,7 @@ struct iec559_traits<__float16>
 	inline static constexpr std::uint32_t m2hexdigits{3};
 	inline static constexpr std::uint32_t e10digits{2};
 	inline static constexpr std::uint32_t e2hexdigits{2};
+	inline static constexpr std::uint32_t e10max{7};
 };
 #endif
 
@@ -27,10 +28,11 @@ struct iec559_traits<float>
 	using mantissa_type = std::uint32_t;
 	inline static constexpr std::size_t mbits{23};
 	inline static constexpr std::size_t ebits{8};
-	inline static constexpr std::uint32_t m10digits{8};
+	inline static constexpr std::uint32_t m10digits{9};
 	inline static constexpr std::uint32_t m2hexdigits{6};
 	inline static constexpr std::uint32_t e10digits{2};
 	inline static constexpr std::uint32_t e2hexdigits{3};
+	inline static constexpr std::uint32_t e10max{38};
 };
 
 template<>
@@ -43,6 +45,7 @@ struct iec559_traits<double>
 	inline static constexpr std::uint32_t m2hexdigits{13};
 	inline static constexpr std::uint32_t e10digits{3};
 	inline static constexpr std::uint32_t e2hexdigits{4};
+	inline static constexpr std::uint32_t e10max{308};
 };
 
 #if defined(__SIZEOF_INT128__)
@@ -58,6 +61,7 @@ struct iec559_traits<__float128>
 	inline static constexpr std::uint32_t m2hexdigits{28};
 	inline static constexpr std::uint32_t e10digits{4};
 	inline static constexpr std::uint32_t e2hexdigits{5};
+	inline static constexpr std::uint32_t e10max{4966};
 };
 #endif
 

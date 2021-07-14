@@ -905,7 +905,7 @@ inline constexpr Iter print_rsv_fp_general_common_impl(Iter iter,U m10,std::uint
 		return print_rsv_fp_general_scientific_common_impl<comma>(iter,m10,m10len);
 }
 
-template<typename flt,bool uppercase_e,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
+template<typename flt,bool uppercase_e,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter print_rsv_fp_e_impl(Iter iter,std::int32_t e10) noexcept
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
@@ -920,7 +920,7 @@ inline constexpr Iter print_rsv_fp_e_impl(Iter iter,std::int32_t e10) noexcept
 	else
 		*iter=sign_ch<u8'+',char_type>;
 	++iter;
-	return prt_rsv_exponent_impl<flt::m10digits,true>(iter,ue10);
+	return prt_rsv_exponent_impl<iec559_traits<flt>::e10digits,true>(iter,ue10);
 }
 
 template<::fast_io::freestanding::random_access_iterator Iter>
@@ -1048,7 +1048,8 @@ inline constexpr Iter print_rsv_fp_decision_impl(Iter iter,typename iec559_trait
 		if(scientific_length<fixed_length)
 		{
 			//scientific decision
-			return print_rsv_fp_general_common_impl<comma>(iter,m10,static_cast<std::uint32_t>(olength));
+			iter=print_rsv_fp_general_common_impl<comma>(iter,m10,static_cast<std::uint32_t>(olength));
+			return print_rsv_fp_e_impl<flt,uppercase_e>(iter,real_exp);
 		}
 		//fixed decision
 		switch(this_case)
@@ -1120,5 +1121,35 @@ inline constexpr Iter print_rsvflt_define_impl(Iter iter,flt f) noexcept
 	else
 		return print_rsv_fp_decision_impl<flt,comma,uppercase_e,mt>(iter,m10,e10);
 }
+
+template<typename flt,::fast_io::manipulators::floating_format mf>
+inline constexpr std::size_t print_rsvflt_size_impl() noexcept
+{
+	using trait = iec559_traits<flt>;
+	if constexpr(mf==::fast_io::manipulators::floating_format::fixed)
+	{
+		//general's max length is equal to scientific's max length
+//(+/-)(significants+sep)
+		std::size_t sum{1};//sign(+/-)
+		sum+=2;//0./,
+		sum+=trait::e10max;
+		sum+=trait::m10digits;
+		return sum;
+	}
+	else
+	{
+		//general's max length is equal to scientific's max length
+//(+/-)(significants+sep)(E/e)(+/-)e
+		std::size_t sum{1};//sign(+/-)
+		sum+=trait::m10digits;
+		++sum;//./,
+		sum+=2;//(E/e)(+/-)
+		sum+=trait::e10digits;
+		return sum;
+	}
+}
+
+template<typename flt,::fast_io::manipulators::floating_format mt>
+inline constexpr std::size_t print_rsv_cache{print_rsvflt_size_impl<flt,mt>()};
 
 }
