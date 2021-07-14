@@ -390,8 +390,8 @@ public:
 	explicit constexpr posix_process() noexcept =default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	explicit constexpr posix_process(native_hd pid) noexcept:
-		posix_process_observer{pid}{}
+	explicit constexpr posix_process(native_hd pid1) noexcept:
+		posix_process_observer{pid1}{}
 	posix_process(posix_at_entry pate,cstring_view filename,posix_process_args const& args,posix_process_args const& envp,posix_process_io const& pio):
 		posix_process_observer{details::posix_fork_execveat_impl(pate.fd,filename,args.args,envp.args,pio)}{}
 	posix_process(cstring_view filename,posix_process_args const& args,posix_process_args const& envp,posix_process_io const& pio):

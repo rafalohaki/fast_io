@@ -1142,7 +1142,7 @@ public:
 	constexpr basic_posix_file() noexcept = default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	explicit constexpr basic_posix_file(native_hd fd) noexcept: basic_posix_io_handle<ch_type>(fd){}
+	explicit constexpr basic_posix_file(native_hd fd1) noexcept: basic_posix_io_handle<ch_type>(fd1){}
 
 	basic_posix_file(io_dup_t,basic_posix_io_observer<ch_type> piob):basic_posix_io_handle<ch_type>(details::sys_dup(piob.fd))
 	{}

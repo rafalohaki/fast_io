@@ -989,7 +989,6 @@ inline constexpr Iter print_rsv_fp_fixed_decision_impl(Iter iter,typename iec559
 			print_reserve_integral_main_impl<10,false>(iter+=olength+1,m10,olength);
 			my_copy_n(tmp+1,eposition,tmp);
 			tmp[eposition]=sign_ch<(comma?u8',':u8'.'),char_type>;
-			return iter;
 		}
 	}
 	else
@@ -998,6 +997,7 @@ inline constexpr Iter print_rsv_fp_fixed_decision_impl(Iter iter,typename iec559
 		iter=fill_zeros_impl(iter,static_cast<std::uint32_t>(-real_exp-1));
 		print_reserve_integral_main_impl<10,false>(iter+=olength,m10,olength);
 	}
+	return iter;
 }
 
 template<
@@ -1095,31 +1095,34 @@ inline constexpr Iter print_rsvflt_define_impl(Iter iter,flt f) noexcept
 	{
 		return print_rsvflt_define_impl<showpos,uppercase,false,false,mt>(iter,f);
 	}
-	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
-	using trait = iec559_traits<flt>;
-	using mantissa_type = typename trait::mantissa_type;
-	constexpr std::size_t ebits{trait::ebits};
-	constexpr mantissa_type exponent_mask{(static_cast<mantissa_type>(1)<<ebits)-1};
-	constexpr std::uint32_t exponent_mask_u32{static_cast<std::uint32_t>(exponent_mask)};
-	auto [mantissa,exponent,sign] = get_punned_result(f);
-	if(exponent==exponent_mask_u32)
-		return prsv_fp_nan_impl<uppercase>(iter,mantissa);
-	if(!mantissa&&!exponent)
-	{
-		if constexpr(mt!=::fast_io::manipulators::floating_format::scientific)
-		{
-			*iter=sign_ch<u8'0',char_type>;
-			++iter;
-			return iter;
-		}
-		else
-			return prsv_fp_dece0<uppercase>(iter);
-	}
-	auto [m10,e10] = dragonbox_impl<flt>(mantissa,exponent);
-	if constexpr(mt==::fast_io::manipulators::floating_format::fixed)
-		return print_rsv_fp_fixed_decision_impl<flt,comma>(iter,m10,e10);
 	else
-		return print_rsv_fp_decision_impl<flt,comma,uppercase_e,mt>(iter,m10,e10);
+	{
+		using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+		using trait = iec559_traits<flt>;
+		using mantissa_type = typename trait::mantissa_type;
+		constexpr std::size_t ebits{trait::ebits};
+		constexpr mantissa_type exponent_mask{(static_cast<mantissa_type>(1)<<ebits)-1};
+		constexpr std::uint32_t exponent_mask_u32{static_cast<std::uint32_t>(exponent_mask)};
+		auto [mantissa,exponent,sign] = get_punned_result(f);
+		if(exponent==exponent_mask_u32)
+			return prsv_fp_nan_impl<uppercase>(iter,mantissa);
+		if(!mantissa&&!exponent)
+		{
+			if constexpr(mt!=::fast_io::manipulators::floating_format::scientific)
+			{
+				*iter=sign_ch<u8'0',char_type>;
+				++iter;
+				return iter;
+			}
+			else
+				return prsv_fp_dece0<uppercase>(iter);
+		}
+		auto [m10,e10] = dragonbox_impl<flt>(mantissa,exponent);
+		if constexpr(mt==::fast_io::manipulators::floating_format::fixed)
+			return print_rsv_fp_fixed_decision_impl<flt,comma>(iter,m10,e10);
+		else
+			return print_rsv_fp_decision_impl<flt,comma,uppercase_e,mt>(iter,m10,e10);
+	}
 }
 
 template<typename flt,::fast_io::manipulators::floating_format mf>

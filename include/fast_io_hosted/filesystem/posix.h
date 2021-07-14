@@ -83,7 +83,7 @@ public:
 	constexpr posix_directory_io_handle()=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	constexpr posix_directory_io_handle(native_hd dirp):posix_directory_io_observer{dirp}{}
+	constexpr posix_directory_io_handle(native_hd dirp1):posix_directory_io_observer{dirp1}{}
 	posix_directory_io_handle(posix_directory_io_handle const& other):posix_directory_io_observer{details::sys_dup_dir(other.dirp)}{}
 	posix_directory_io_handle& operator=(posix_directory_io_handle const& other)
 	{
@@ -104,11 +104,11 @@ public:
 		this->native_handle()=other.release();
 		return *this;
 	}
-	inline void reset(native_handle_type dirp=nullptr) noexcept
+	inline void reset(native_handle_type dirp1=nullptr) noexcept
 	{
 		if(this->native_handle())[[likely]]
 			::closedir(this->native_handle());
-		this->native_handle()=dirp;
+		this->native_handle()=dirp1;
 	}
 	void close()
 	{
@@ -129,7 +129,7 @@ public:
 	constexpr posix_directory_file()=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	constexpr posix_directory_file(native_hd dirp):posix_directory_io_handle(dirp){}
+	constexpr posix_directory_file(native_hd dirp1):posix_directory_io_handle(dirp1){}
 	posix_directory_file(posix_io_handle&& pioh):posix_directory_io_handle(fdopendir(pioh.native_handle()))
 	{
 		if(this->native_handle()==nullptr)
