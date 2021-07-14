@@ -170,7 +170,7 @@ struct scalar_manip_t
 };
 
 template<std::size_t bs,bool upper=false,bool shbase=false,bool full=false,typename scalar_type>
-requires ((2<=bs&&bs<=36)&&(::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||std::contiguous_iterator<scalar_type>))
+requires ((2<=bs&&bs<=36)&&(::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||::fast_io::freestanding::contiguous_iterator<scalar_type>))
 inline constexpr scalar_manip_t<::fast_io::details::base_mani_flags_cache<bs,upper,shbase,full>,scalar_type> base(scalar_type t) noexcept
 {
 	if constexpr(::fast_io::details::my_integral<scalar_type>)
@@ -182,7 +182,7 @@ inline constexpr scalar_manip_t<::fast_io::details::base_mani_flags_cache<bs,upp
 }
 
 template<scalar_flags flags,typename scalar_type>
-requires (((2<=flags.base&&flags.base<=36&&(::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||std::contiguous_iterator<scalar_type>))||(flags.base==10&&::fast_io::details::my_floating_point<scalar_type>)))
+requires (((2<=flags.base&&flags.base<=36&&(::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||::fast_io::freestanding::contiguous_iterator<scalar_type>))||(flags.base==10&&::fast_io::details::my_floating_point<scalar_type>)))
 inline constexpr scalar_manip_t<flags,std::conditional_t<(::fast_io::details::my_integral<scalar_type>||std::floating_point<scalar_type>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>),scalar_type,std::uintptr_t>> scalar(scalar_type t) noexcept
 {
 	if constexpr(::fast_io::details::my_floating_point<scalar_type>)
@@ -673,7 +673,7 @@ template<std::size_t base,
 	bool showpos=false,
 	bool uppercase=false,
 	bool full=false,
-	typename int_type,std::random_access_iterator Iter>
+	typename int_type,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter print_reserve_integral_define(Iter first,int_type t)
 {
 	if constexpr(base<=10&&uppercase)
@@ -972,7 +972,7 @@ inline constexpr Iter print_reserve_nullptr_alphabet_impl(Iter iter)
 }
 
 template<typename scalar_type>
-requires (details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::contiguous_iterator<scalar_type>||::fast_io::details::my_floating_point<scalar_type>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>)
+requires (details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||::fast_io::freestanding::contiguous_iterator<scalar_type>||::fast_io::details::my_floating_point<scalar_type>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>)
 #if __has_cpp_attribute(gnu::always_inline)
 [[gnu::always_inline]]
 #elif __has_cpp_attribute(msvc::forceinline)

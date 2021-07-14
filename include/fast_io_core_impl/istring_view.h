@@ -14,7 +14,7 @@ public:
 	const_pointer current;
 	template<typename... Args>
 	requires std::constructible_from<string_view_type,Args...>
-	constexpr basic_istring_view(Args&& ...args):string_view(std::forward<Args>(args)...),current(string_view.data()){}
+	constexpr basic_istring_view(Args&& ...args):string_view(::fast_io::freestanding::forward<Args>(args)...),current(string_view.data()){}
 	constexpr auto data() const noexcept
 	{
 		return current;

@@ -593,7 +593,7 @@ public:
 		dll_handle=details::deal_with_locale_fullname(loc,fullname);
 	}
 	constexpr l10n(l10n const&)=delete;
-	constexpr l10n(l10n&& other) noexcept : loc(std::move(other.loc)),dll_handle(other.dll_handle)
+	constexpr l10n(l10n&& other) noexcept : loc(::fast_io::freestanding::move(other.loc)),dll_handle(other.dll_handle)
 	{
 		dll_handle=nullptr;
 	}
@@ -616,7 +616,7 @@ public:
 		if(__builtin_addressof(other)==this)
 			return *this;
 		close();
-		loc=std::move(other.loc);
+		loc=::fast_io::freestanding::move(other.loc);
 		dll_handle=other.dll_handle;
 		other.dll_handle=nullptr;
 		return *this;

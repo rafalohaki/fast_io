@@ -255,9 +255,9 @@ struct posix_io_redirection_std:posix_io_redirection
 	template<typename T>
 	requires requires(T&& t)
 	{
-		{redirect(std::forward<T>(t))}->std::same_as<posix_io_redirection>;
+		{redirect(::fast_io::freestanding::forward<T>(t))}->std::same_as<posix_io_redirection>;
 	}
-	constexpr posix_io_redirection_std(T&& t) noexcept:posix_io_redirection(redirect(std::forward<T>(t))){}
+	constexpr posix_io_redirection_std(T&& t) noexcept:posix_io_redirection(redirect(::fast_io::freestanding::forward<T>(t))){}
 };
 
 struct posix_process_io
@@ -887,7 +887,7 @@ template<std::integral ch_type,typename... Args>
 requires io_controllable<basic_win32_io_observer<ch_type>,Args...>
 inline decltype(auto) io_control(basic_posix_io_observer<ch_type> h,Args&& ...args)
 {
-	return io_control(static_cast<basic_win32_io_observer<ch_type>>(h),std::forward<Args>(args)...);
+	return io_control(static_cast<basic_win32_io_observer<ch_type>>(h),::fast_io::freestanding::forward<Args>(args)...);
 }
 #else
 
@@ -900,14 +900,14 @@ extern int ioctl(int fd, unsigned long request, ...) noexcept asm("ioctl");
 template<std::integral ch_type,typename... Args>
 requires requires(basic_posix_io_observer<ch_type> h,Args&& ...args)
 {
-	::fast_io::posix::ioctl(h.fd,std::forward<Args>(args)...);
+	::fast_io::posix::ioctl(h.fd,::fast_io::freestanding::forward<Args>(args)...);
 }
 inline void io_control(basic_posix_io_observer<ch_type> h,Args&& ...args)
 {
 #if defined(__linux__) && defined(__NR_ioctl)
-	system_call_throw_error(system_call<__NR_ioctl,int>(h.fd,std::forward<Args>(args)...));
+	system_call_throw_error(system_call<__NR_ioctl,int>(h.fd,::fast_io::freestanding::forward<Args>(args)...));
 #else
-	if(::fast_io::posix::ioctl(h.fd,std::forward<Args>(args)...)==-1)
+	if(::fast_io::posix::ioctl(h.fd,::fast_io::freestanding::forward<Args>(args)...)==-1)
 		throw_posix_error();
 #endif
 }

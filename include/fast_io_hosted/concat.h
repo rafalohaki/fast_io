@@ -269,9 +269,9 @@ inline constexpr decltype(auto) deal_with_first_is_string_rvalue_reference(U&& u
 	}
 	else
 	{
-		deal_with_first_is_string_rvalue_reference_decay<line,char_type>(std::forward<U>(u),io_print_forward<char_type>(io_print_alias(args))...);
+		deal_with_first_is_string_rvalue_reference_decay<line,char_type>(::fast_io::freestanding::forward<U>(u),io_print_forward<char_type>(io_print_alias(args))...);
 	}
-	return std::forward<U>(u);
+	return ::fast_io::freestanding::forward<U>(u);
 }
 
 }
@@ -286,7 +286,7 @@ inline constexpr T concat(Args&& ...args)
 	else
 	{
 		if constexpr(details::test_first_is_string_rvalue_reference<T,Args&&...>())
-			return details::deal_with_first_is_string_rvalue_reference<false,typename T::value_type>(std::forward<Args>(args)...);
+			return details::deal_with_first_is_string_rvalue_reference<false,typename T::value_type>(::fast_io::freestanding::forward<Args>(args)...);
 		else
 			return details::concat_fallback<false,typename T::value_type>(io_print_forward<typename T::value_type>(io_print_alias(args))...);
 	}
@@ -309,7 +309,7 @@ inline constexpr T concatln(Args&& ...args)
 	else
 	{
 		if constexpr(details::test_first_is_string_rvalue_reference<T,Args&&...>())
-			return details::deal_with_first_is_string_rvalue_reference<true,typename T::value_type>(std::forward<Args>(args)...);
+			return details::deal_with_first_is_string_rvalue_reference<true,typename T::value_type>(::fast_io::freestanding::forward<Args>(args)...);
 		else
 			return details::concat_fallback<true,typename T::value_type>(io_print_forward<typename T::value_type>(io_print_alias(args))...);
 	}
@@ -324,7 +324,7 @@ void in_place_to(T& t,Args&& ...args)
 {
 	std::string str;
 	ostring_ref ref{&str};
-	print_freestanding(ref,std::forward<Args>(args)...);
+	print_freestanding(ref,::fast_io::freestanding::forward<Args>(args)...);
 	basic_istring_view<char> is(str.data(),str.size());
 	if(!scan_freestanding(is,t))
 		throw_parse_code(parse_code::partial);
@@ -340,7 +340,7 @@ void in_place_to(std::string& t,Args&& ...args)
 {
 	t.clear();
 	ostring_ref ref{&t};
-	print_freestanding(ref,std::forward<Args>(args)...);
+	print_freestanding(ref,::fast_io::freestanding::forward<Args>(args)...);
 }
 
 template<typename T,typename... Args>
@@ -348,12 +348,12 @@ inline constexpr T to(Args&& ...args)
 {
 	if constexpr(details::is_std_string<T>::value)
 	{
-		return fast_io::concat<T>(std::forward<Args>(args)...);
+		return fast_io::concat<T>(::fast_io::freestanding::forward<Args>(args)...);
 	}
 	else
 	{
 		T t;
-		in_place_to(t,std::forward<Args>(args)...);
+		in_place_to(t,::fast_io::freestanding::forward<Args>(args)...);
 		return t;
 	}
 }

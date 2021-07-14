@@ -25,7 +25,7 @@ _Alloc_hider(pointer __dat, allocator_type const& __a)
 : allocator_type(__a), _M_p(__dat) { }
 
 _Alloc_hider(pointer __dat, allocator_type&& __a = allocator_type())
-: allocator_type(std::move(__a)), _M_p(__dat) { }
+: allocator_type(::fast_io::freestanding::move(__a)), _M_p(__dat) { }
 #endif
 
 pointer _M_p; // The actual data.

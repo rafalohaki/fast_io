@@ -369,7 +369,7 @@ template<typename... Args>
 	try
 	{
 #endif
-		perr(std::forward<Args>(args)...);
+		perr(::fast_io::freestanding::forward<Args>(args)...);
 #ifdef __cpp_exceptions
 	}
 	catch(...){}
@@ -386,7 +386,7 @@ requires (sizeof...(Args)!=0)
 	try
 	{
 #endif
-		perrln(std::forward<Args>(args)...);
+		perrln(::fast_io::freestanding::forward<Args>(args)...);
 #ifdef __cpp_exceptions
 	}
 	catch(...){}
@@ -431,14 +431,14 @@ template<typename... Args>
 requires (sizeof...(Args)!=0)
 inline constexpr void debug_perr(Args&&... args)
 {
-	::perr(std::forward<Args>(args)...);
+	::perr(::fast_io::freestanding::forward<Args>(args)...);
 }
 
 template<typename... Args>
 requires (sizeof...(Args)!=0)
 inline constexpr void debug_perrln(Args&&... args)
 {
-	::perrln(std::forward<Args>(args)...);
+	::perrln(::fast_io::freestanding::forward<Args>(args)...);
 }
 
 #endif

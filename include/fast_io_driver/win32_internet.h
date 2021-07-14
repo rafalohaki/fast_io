@@ -52,11 +52,11 @@ public:
 template<typename... Args>
 requires requires(Args&& ...args)
 {
-	InternetOpenA(std::forward<Args>(args)...);
+	InternetOpenA(::fast_io::freestanding::forward<Args>(args)...);
 }
 inline win32_internet_handle win32_internet_open(Args&& ...args)
 {
-	auto ptr(InternetOpenA(std::forward<Args>(args)...));
+	auto ptr(InternetOpenA(::fast_io::freestanding::forward<Args>(args)...));
 	if(ptr==nullptr)
 		throw fast_io::win32_error();
 	return win32_internet_handle(ptr);
@@ -66,11 +66,11 @@ inline win32_internet_handle win32_internet_open(Args&& ...args)
 template<typename... Args>
 requires requires(win32_internet_handle& handle,Args&& ...args)
 {
-	InternetConnectA(handle.handle,std::forward<Args>(args)...);
+	InternetConnectA(handle.handle,::fast_io::freestanding::forward<Args>(args)...);
 }
 inline win32_internet_handle win32_internet_connect(win32_internet_handle& handle,Args&& ...args)
 {
-	auto ptr(InternetConnectA(handle.handle,std::forward<Args>(args)...));
+	auto ptr(InternetConnectA(handle.handle,::fast_io::freestanding::forward<Args>(args)...));
 	if(ptr==nullptr)
 		throw fast_io::win32_error();
 	return win32_internet_handle(ptr);
@@ -79,11 +79,11 @@ inline win32_internet_handle win32_internet_connect(win32_internet_handle& handl
 template<typename... Args>
 requires requires(win32_internet_handle& handle,Args&& ...args)
 {
-	HttpOpenRequestA(handle.handle,std::forward<Args>(args)...);
+	HttpOpenRequestA(handle.handle,::fast_io::freestanding::forward<Args>(args)...);
 }
 inline win32_internet_handle win32_http_open_request(win32_internet_handle& handle,Args&& ...args)
 {
-	auto ptr(HttpOpenRequestA(handle.handle,std::forward<Args>(args)...));
+	auto ptr(HttpOpenRequestA(handle.handle,::fast_io::freestanding::forward<Args>(args)...));
 	if(ptr==nullptr)
 		throw fast_io::win32_error();
 	return win32_internet_handle(ptr);

@@ -64,7 +64,7 @@ This function never fails. but what if fdopen fails?
 		details::streambuf_hack::hack_set_close(this->fb);
 	}
 	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
-		basic_filebuf_file(basic_c_file_unlocked<char_type>(std::move(piohd),mode),mode)
+		basic_filebuf_file(basic_c_file_unlocked<char_type>(::fast_io::freestanding::move(piohd),mode),mode)
 	{
 /*
 https://github.com/gcc-mirror/gcc/blob/16e2427f50c208dfe07d07f18009969502c25dc8/libstdc%2B%2B-v3/config/io/basic_file_stdio.cc
@@ -80,7 +80,7 @@ Shows libstdc++ still calls fdopen even on nt kernel which is incorrect
 		chd.fp=nullptr;
 	}
 	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
-		basic_filebuf_file(basic_c_file_unlocked<char_type>(std::move(piohd),mode),mode)
+		basic_filebuf_file(basic_c_file_unlocked<char_type>(::fast_io::freestanding::move(piohd),mode),mode)
 	{
 	}
 #elif defined(_MSVC_STL_UPDATE)
@@ -96,7 +96,7 @@ Shows libstdc++ still calls fdopen even on nt kernel which is incorrect
 		details::streambuf_hack::msvc_hack_set_close(this->fb);
 	}
 	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
-		basic_filebuf_file(basic_c_file_unlocked<char_type>(std::move(piohd),mode),mode)
+		basic_filebuf_file(basic_c_file_unlocked<char_type>(::fast_io::freestanding::move(piohd),mode),mode)
 	{
 	}
 #endif
@@ -105,12 +105,12 @@ Shows libstdc++ still calls fdopen even on nt kernel which is incorrect
 //windows specific. open posix file from win32 io handle
 	template<win32_family family>
 	basic_filebuf_file(basic_win32_family_io_handle<family,char_type>&& win32_handle,open_mode mode):
-		basic_filebuf_file(basic_posix_file<char_type>(std::move(win32_handle),mode),mode)
+		basic_filebuf_file(basic_posix_file<char_type>(::fast_io::freestanding::move(win32_handle),mode),mode)
 	{
 	}
 	template<nt_family family>
 	basic_filebuf_file(basic_nt_family_io_handle<family,char_type>&& nt_handle,open_mode mode):
-		basic_filebuf_file(basic_posix_file<char_type>(std::move(nt_handle),mode),mode)
+		basic_filebuf_file(basic_posix_file<char_type>(::fast_io::freestanding::move(nt_handle),mode),mode)
 	{
 	}
 #endif

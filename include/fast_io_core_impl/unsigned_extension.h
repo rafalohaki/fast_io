@@ -14,10 +14,10 @@ struct basic_unsigned_extension
 	constexpr basic_unsigned_extension()=default;
 	template<typename U>
 	requires std::constructible_from<T,U>&&(!std::same_as<U,basic_unsigned_extension<T>>)
-	constexpr explicit basic_unsigned_extension(U && a):low(std::forward<U>(a)){}
+	constexpr explicit basic_unsigned_extension(U && a):low(::fast_io::freestanding::forward<U>(a)){}
 	template<typename U,typename U1>
 	requires std::constructible_from<T,U>&&std::constructible_from<T,U1>
-	constexpr basic_unsigned_extension(U && a,U1 && b):low(std::forward<U>(a)),high(std::forward<U1>(b)){}
+	constexpr basic_unsigned_extension(U && a,U1 && b):low(::fast_io::freestanding::forward<U>(a)),high(::fast_io::freestanding::forward<U1>(b)){}
 	inline explicit constexpr operator bool()
 	{
 		return low||high;
@@ -254,7 +254,7 @@ inline constexpr basic_unsigned_extension<T>& operator+=(basic_unsigned_extensio
 template<typename T,typename P>
 inline constexpr basic_unsigned_extension<T> operator+(basic_unsigned_extension<T> a,P&& b)
 {
-	return a+=std::forward<P>(b);
+	return a+=::fast_io::freestanding::forward<P>(b);
 }
 
 template<typename T>
@@ -283,7 +283,7 @@ template<typename T,typename P>
 requires std::constructible_from<basic_unsigned_extension<T>,P>
 inline constexpr basic_unsigned_extension<T> operator-(basic_unsigned_extension<T> a,P&& b)
 {
-	return a-=std::forward<P>(b);
+	return a-=::fast_io::freestanding::forward<P>(b);
 }
 
 template<typename T>
@@ -338,19 +338,19 @@ template<typename T,typename P>
 requires std::constructible_from<basic_unsigned_extension<T>,P>
 inline constexpr basic_unsigned_extension<T> operator|(basic_unsigned_extension<T> a,P&& b)
 {
-	return a|=std::forward<P>(b);
+	return a|=::fast_io::freestanding::forward<P>(b);
 }
 template<typename T,typename P>
 requires std::constructible_from<basic_unsigned_extension<T>,P>
 inline constexpr basic_unsigned_extension<T> operator^(basic_unsigned_extension<T> a,P&& b)
 {
-	return a^=std::forward<P>(b);
+	return a^=::fast_io::freestanding::forward<P>(b);
 }
 template<typename T,typename P>
 requires std::constructible_from<basic_unsigned_extension<T>,P>
 inline constexpr basic_unsigned_extension<T> operator&(basic_unsigned_extension<T> a,P&& b)
 {
-	return a&=std::forward<P>(b);
+	return a&=::fast_io::freestanding::forward<P>(b);
 }
 
 #if defined(_MSC_VER) && defined(_M_X64)
@@ -545,7 +545,7 @@ template<typename T,typename P>
 requires std::constructible_from<basic_unsigned_extension<T>,P>
 inline constexpr basic_unsigned_extension<T> operator*(basic_unsigned_extension<T> a,P&& b)
 {
-	return a*=std::forward<P>(b);
+	return a*=::fast_io::freestanding::forward<P>(b);
 }
 
 template<typename T>

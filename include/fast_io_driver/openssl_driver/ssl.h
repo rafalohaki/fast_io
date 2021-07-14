@@ -141,7 +141,7 @@ public:
 		if(this->native_handle()==nullptr)
 			throw_openssl_error();
 		basic_ssl_file<ch_type> self(this->native_handle());
-		attach(*this,std::forward<Args>(args)...);
+		attach(*this,::fast_io::freestanding::forward<Args>(args)...);
 		connect(*this);
 		self.release();
 	}

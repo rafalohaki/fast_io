@@ -265,13 +265,13 @@ inline constexpr auto transmit_impl(output& outp,input& inp,Args&& ...args)
 	{
 		details::lock_guard lg{inp};
 		decltype(auto) uh{inp.unlocked_handle()};
-		return transmit_impl(outp,uh,std::forward<Args>(args)...);
+		return transmit_impl(outp,uh,::fast_io::freestanding::forward<Args>(args)...);
 	}
 	else
 	{
 #ifdef __cpp_lib_is_constant_evaluated
 		if (std::is_constant_evaluated())
-			return bufferred_transmit_impl(outp,inp,std::forward<Args>(args)...);
+			return bufferred_transmit_impl(outp,inp,::fast_io::freestanding::forward<Args>(args)...);
 		else
 		{
 #endif
@@ -289,14 +289,14 @@ inline constexpr auto transmit_impl(output& outp,input& inp,Args&& ...args)
 			if constexpr(buffer_output_stream<output>)
 				flush(outp);
 
-			return zero_copy_transmit_impl(outp,inp,std::forward<Args>(args)...);
+			return zero_copy_transmit_impl(outp,inp,::fast_io::freestanding::forward<Args>(args)...);
 #else
-			return zero_copy_transmit<false>(outp,inp,0,std::forward<Args>(args)...);
+			return zero_copy_transmit<false>(outp,inp,0,::fast_io::freestanding::forward<Args>(args)...);
 		}
 		else
 #endif
 #endif
-			return bufferred_transmit_impl(outp,inp,std::forward<Args>(args)...);
+			return bufferred_transmit_impl(outp,inp,::fast_io::freestanding::forward<Args>(args)...);
 #ifdef __cpp_lib_is_constant_evaluated
 		}
 #endif
@@ -319,7 +319,7 @@ template<output_stream output,input_stream input,std::integral sz_type>
 inline constexpr sz_type transmit(output&& outp,input&& in,sz_type s)
 {
 	sz_type transmitted{};
-	print_freestanding(std::forward<output>(outp),manip::transmission_with_size<input,sz_type>{transmitted,in,s});
+	print_freestanding(::fast_io::freestanding::forward<output>(outp),manip::transmission_with_size<input,sz_type>{transmitted,in,s});
 	return transmitted;
 }
 
@@ -327,7 +327,7 @@ template<output_stream output,input_stream input>
 inline constexpr std::uintmax_t transmit(output&& outp,input&& in)
 {
 	std::uintmax_t transmitted{};
-	print_freestanding(std::forward<output>(outp),manip::transmission<input,std::uintmax_t>{transmitted,in});
+	print_freestanding(::fast_io::freestanding::forward<output>(outp),manip::transmission<input,std::uintmax_t>{transmitted,in});
 	return transmitted;
 }
 

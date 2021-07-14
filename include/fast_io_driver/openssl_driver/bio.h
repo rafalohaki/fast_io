@@ -158,7 +158,7 @@ template<stream stm,typename... Args>
 inline BIO* construct_bio_by_args(Args... args)
 {
 
-	std::unique_ptr<stm> p{new stm(std::forward<Args>(args)...)};
+	std::unique_ptr<stm> p{new stm(::fast_io::freestanding::forward<Args>(args)...)};
 	BIO* fp{construct_bio_by_t(p.get())};
 	p.release();
 	return fp;
@@ -231,7 +231,7 @@ public:
 	template<stream stm,typename ...Args>
 	requires std::constructible_from<stm,Args...>
 	basic_bio_file(std::in_place_type_t<stm>,Args&& ...args):
-		basic_bio_io_observer<char_type>(details::construct_bio_by_args<stm>(std::forward<Args>(args)...))
+		basic_bio_io_observer<char_type>(details::construct_bio_by_args<stm>(::fast_io::freestanding::forward<Args>(args)...))
 	{
 	}
 #endif
@@ -249,15 +249,15 @@ public:
 	}
 
 
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(__CYGWIN__)
 	template<win32_family family>
 	basic_bio_file(basic_win32_family_io_handle<family,char_type>&& bmv,fast_io::open_mode om):
-		basic_bio_file(basic_posix_file(std::move(bmv),om),om)
+		basic_bio_file(basic_posix_file(::fast_io::freestanding::move(bmv),om),om)
 	{
 	}
 	template<nt_family family>
 	basic_bio_file(basic_nt_family_io_handle<family,char_type>&& nt_handle,open_mode om):
-		basic_bio_file(basic_posix_file<char_type>(std::move(nt_handle),om),to_native_c_mode(om))
+		basic_bio_file(basic_posix_file<char_type>(::fast_io::freestanding::move(nt_handle),om),to_native_c_mode(om))
 	{
 	}
 #endif

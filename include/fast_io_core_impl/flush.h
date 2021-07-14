@@ -10,7 +10,7 @@ public:
 	using char_type = typename Ohandler::char_type;
 	template<typename... Args>
 	requires std::constructible_from<Ohandler,Args...>
-	constexpr char_flush(Args&&... args):Ohandler(std::forward<Args>(args)...){}
+	constexpr char_flush(Args&&... args):Ohandler(::fast_io::freestanding::forward<Args>(args)...){}
 };
 
 template<output_stream Ohandler,typename Ohandler::char_type flush_character,::fast_io::freestanding::contiguous_iterator Iter>

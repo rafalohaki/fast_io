@@ -13,21 +13,14 @@
 #include<version>
 #include"fast_io_core_impl/empty.h"
 #include<cstddef>
-#include<concepts>
 #include"fast_io_core_impl/freestanding/impl.h"
 #include<type_traits>
 
 #include<limits>
 #include<cstdint>
-//I know functions like memcpy would probably not be provided in freestanding environment. However, you can implement them on these platforms.
 #if __cpp_lib_three_way_comparison >= 201907L
 #include<compare>
 #endif
-
-//The C++20 standard does not require these headers to be freestanding.
-//However, they are clearly necessary and usable even in freestanding environment.
-//Leaving no room for a lower-level language: A C++ Subset
-//http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1105r0.html
 
 #include<bit>			//for std::endian, std::rotl and std::bit_cast etc
 

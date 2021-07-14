@@ -25,7 +25,7 @@ struct basic_iomutex
 	mutex_type mutex;
 	template<typename ...Args>
 	requires std::constructible_from<T,Args...>
-	constexpr basic_iomutex(Args&& ...args):handle(std::forward<Args>(args)...){}
+	constexpr basic_iomutex(Args&& ...args):handle(::fast_io::freestanding::forward<Args>(args)...){}
 	inline constexpr void lock() noexcept(noexcept(mutex.lock()))
 	{
 		mutex.lock();

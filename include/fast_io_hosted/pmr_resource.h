@@ -57,9 +57,9 @@ template<stream input>
 inline constexpr std::pair<void*,std::size_t> convert_to_pr_io(input&& inp)
 {
 	if constexpr(capacity_available_buffer_input_stream<input>)
-		return convert_to_pr_input(std::forward<input>(inp));
+		return convert_to_pr_input(::fast_io::freestanding::forward<input>(inp));
 	else if constexpr(buffer_output_stream<input>)
-		return convert_to_pr_output(std::forward<input>(inp));
+		return convert_to_pr_output(::fast_io::freestanding::forward<input>(inp));
 	else
 		return {};
 }
@@ -75,7 +75,7 @@ public:
 	template<buffer_output_stream output>
 	requires (std::is_lvalue_reference_v<output>||(std::is_rvalue_reference_v<output>&&std::is_trivially_copyable_v<std::remove_cvref_t<output>>))
 	explicit monotonic_output_buffer_resource(output&& outp,std::pmr::memory_resource* upst=std::pmr::get_default_resource()):
-		monotonic_output_buffer_resource(details::convert_to_pr_output(std::forward<output>(outp)),upst){}
+		monotonic_output_buffer_resource(details::convert_to_pr_output(::fast_io::freestanding::forward<output>(outp)),upst){}
 };
 
 class monotonic_input_buffer_resource:public std::pmr::monotonic_buffer_resource
@@ -87,7 +87,7 @@ public:
 	template<capacity_available_buffer_input_stream input>
 	requires (std::is_lvalue_reference_v<input>||(std::is_rvalue_reference_v<input>&&std::is_trivially_copyable_v<std::remove_cvref_t<input>>))
 	explicit monotonic_input_buffer_resource(input&& outp,std::pmr::memory_resource* upst=std::pmr::get_default_resource()):
-		monotonic_input_buffer_resource(details::convert_to_pr_input(std::forward<input>(outp)),upst){}
+		monotonic_input_buffer_resource(details::convert_to_pr_input(::fast_io::freestanding::forward<input>(outp)),upst){}
 };
 
 class monotonic_io_buffer_resource:public std::pmr::monotonic_buffer_resource
@@ -100,7 +100,7 @@ public:
 	requires (((capacity_available_buffer_input_stream<stm>||buffer_output_stream<stm>)&&!(capacity_available_buffer_input_stream<stm>&&buffer_output_stream<stm>))&&
 	(std::is_lvalue_reference_v<stm>||(std::is_rvalue_reference_v<stm>&&std::is_trivially_copyable_v<std::remove_cvref_t<stm>>)))
 	explicit monotonic_io_buffer_resource(stm&& outp,std::pmr::memory_resource* upst=std::pmr::get_default_resource()):
-		monotonic_io_buffer_resource(details::convert_to_pr_io(std::forward<stm>(outp)),upst){}
+		monotonic_io_buffer_resource(details::convert_to_pr_io(::fast_io::freestanding::forward<stm>(outp)),upst){}
 };
 
 }

@@ -48,7 +48,7 @@ template<typename... Args>
 requires (sizeof...(Args)==4)
 inline auto create_io_completion_port(Args&&... args)
 {
-	auto ptr{fast_io::win32::CreateIoCompletionPort(std::forward<Args>(args)...)};
+	auto ptr{fast_io::win32::CreateIoCompletionPort(::fast_io::freestanding::forward<Args>(args)...)};
 	if(ptr==nullptr)[[unlikely]]
 		throw_win32_error();
 	return ptr;
@@ -324,9 +324,9 @@ struct win32_io_redirection_std:win32_io_redirection
 	template<typename T>
 	requires requires(T&& t)
 	{
-		{redirect(std::forward<T>(t))}->std::same_as<win32_io_redirection>;
+		{redirect(::fast_io::freestanding::forward<T>(t))}->std::same_as<win32_io_redirection>;
 	}
-	constexpr win32_io_redirection_std(T&& t) noexcept:win32_io_redirection(redirect(std::forward<T>(t))){}
+	constexpr win32_io_redirection_std(T&& t) noexcept:win32_io_redirection(redirect(::fast_io::freestanding::forward<T>(t))){}
 };
 
 struct win32_process_io
@@ -804,11 +804,11 @@ inline void cancel(basic_win32_family_io_observer<family,ch_type> h)
 template<win32_family family,std::integral ch_type,typename... Args>
 requires requires(basic_win32_family_io_observer<family,ch_type> h,Args&& ...args)
 {
-	fast_io::win32::DeviceIoControl(h.handle,std::forward<Args>(args)...);
+	fast_io::win32::DeviceIoControl(h.handle,::fast_io::freestanding::forward<Args>(args)...);
 }
 inline void io_control(basic_win32_family_io_observer<family,ch_type> h,Args&& ...args)
 {
-	if(!fast_io::win32::DeviceIoControl(h.handle,std::forward<Args>(args)...))
+	if(!fast_io::win32::DeviceIoControl(h.handle,::fast_io::freestanding::forward<Args>(args)...))
 		throw_win32_error();
 }
 
@@ -905,7 +905,7 @@ public:
 		basic_win32_family_io_handle<family,char_type>(details::create_io_completion_port(nullptr,nullptr,0,0)){}
 
 	template<typename... Args>
-	basic_win32_family_file(io_async_t,basic_win32_family_io_observer<family,char> iob,nt_at_entry nate,basic_cstring_view<filename_char_type auto> filename,Args&& ...args):basic_win32_family_file(nate,filename,std::forward<Args>(args)...)
+	basic_win32_family_file(io_async_t,basic_win32_family_io_observer<family,char> iob,nt_at_entry nate,basic_cstring_view<filename_char_type auto> filename,Args&& ...args):basic_win32_family_file(nate,filename,::fast_io::freestanding::forward<Args>(args)...)
 	{
 		basic_win32_family_file<family,ch_type> guard(this->handle);
 		details::create_io_completion_port(this->handle,iob.handle,bit_cast<std::uintptr_t>(this->handle),0);

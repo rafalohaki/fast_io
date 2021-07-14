@@ -146,7 +146,7 @@ template<std::integral ch_type,typename traits_type,typename... Args>
 requires io_controllable<basic_c_io_observer<ch_type>,Args...>
 inline decltype(auto) io_control(basic_filebuf_io_observer<ch_type,traits_type> h,Args&& ...args)
 {
-	return io_control(static_cast<basic_c_io_observer<ch_type>>(h),std::forward<Args>(args)...);
+	return io_control(static_cast<basic_c_io_observer<ch_type>>(h),::fast_io::freestanding::forward<Args>(args)...);
 }
 
 template<std::integral ch_type,typename traits_type>

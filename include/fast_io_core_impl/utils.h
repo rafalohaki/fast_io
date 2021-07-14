@@ -59,7 +59,7 @@ template<typename F,typename... Args>
 requires std::is_function_v<F>
 inline constexpr decltype(auto) noexcept_call(F* f,Args&& ...args) noexcept
 {
-	return noexcept_cast(f)(std::forward<Args>(args)...);
+	return noexcept_cast(f)(::fast_io::freestanding::forward<Args>(args)...);
 }
 
 namespace details

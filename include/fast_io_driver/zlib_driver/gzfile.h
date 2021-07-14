@@ -140,7 +140,7 @@ public:
 #ifdef _WIN32
 //windows specific. open posix file from win32 io handle
 	basic_gz_file(basic_win32_io_handle<char_type>&& win32_handle,open_mode om):
-		basic_gz_file(basic_posix_file<char_type>(std::move(win32_handle),om),to_native_c_mode(om))
+		basic_gz_file(basic_posix_file<char_type>(::fast_io::freestanding::move(win32_handle),om),to_native_c_mode(om))
 	{
 	}
 #endif
