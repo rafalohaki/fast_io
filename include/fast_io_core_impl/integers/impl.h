@@ -81,6 +81,24 @@ inline constexpr char_type calculate_minus_sign_character() noexcept
 		else
 			return u8'P';
 	}
+	if constexpr(sign_ch==u8',')
+	{
+		if constexpr(std::same_as<char_type_nocvref,char>)
+			return ',';
+		else if constexpr(std::same_as<char_type_nocvref,wchar_t>)
+			return L',';
+		else
+			return u8',';
+	}
+	else if constexpr(sign_ch==u8'.')
+	{
+		if constexpr(std::same_as<char_type_nocvref,char>)
+			return '.';
+		else if constexpr(std::same_as<char_type_nocvref,wchar_t>)
+			return L'.';
+		else
+			return u8'.';
+	}
 }
 
 template<char8_t ch,std::integral char_type>
@@ -497,7 +515,7 @@ inline constexpr void print_reserve_integral_main_impl(Iter iter,T t,std::size_t
 			}
 		}
 #else
-		constexpr auto tb{::fast_io::details::get_shared_inline_constexpr_base_table<char8_t,base,uppercase>().element};
+		constexpr auto tb{::fast_io::details::get_shared_inline_constexpr_base_table<char_type,base,uppercase>().element};
 		constexpr T pw{static_cast<T>(base*base)};
 		std::size_t len2{len>>1};
 		for(std::size_t i{};i!=len2;++i)

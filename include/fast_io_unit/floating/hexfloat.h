@@ -1,5 +1,10 @@
 #pragma once
-
+/*
+Algorithm: fast_io
+Author: cqwrteur
+Reference: no reference
+Credit: Jk jeon
+*/
 namespace fast_io
 {
 
@@ -26,7 +31,7 @@ inline constexpr Iter print_rsvhexfloat_define_impl(Iter iter,flt f) noexcept
 	auto [mantissa,exponent,sign] = get_punned_result(f);
 	constexpr std::uint32_t exponent_mask_u32{static_cast<std::uint32_t>(exponent_mask)};
 	constexpr std::int32_t minus_bias{-static_cast<std::int32_t>(bias)};
-	constexpr std::uint32_t makeup_bits{((mbits / 4 + 1) * 4 - mbits) % 4};
+	constexpr std::uint32_t makeup_bits{((mbits / 4 + 1) * 4 - mbits) % 4};//Thanks jk-jeon for the formula
 	if constexpr(showpos)
 	{
 		*iter=sign?sign_ch<u8'-',char_type>:sign_ch<u8'+',char_type>;

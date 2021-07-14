@@ -1,17 +1,11 @@
 #pragma once
-
+/*
+Algorithm: Dragonbox
+Author: Jk Jeon
+Reference: Abolz
+*/
 namespace fast_io::details
 {
-
-inline constexpr std::int32_t mul_ln2_div_ln10_floor(std::int32_t e) noexcept
-{
-	return (e*1262611)>>22;
-}
-
-inline constexpr std::int32_t mul_ln10_div_ln2_floor(std::int32_t e) noexcept
-{
-	return (e*1741647)>>19;
-}
 
 struct uint64x2
 {
@@ -680,6 +674,16 @@ struct m10_result
 	std::int32_t e10;
 };
 
+inline constexpr std::int32_t mul_ln2_div_ln10_floor(std::int32_t e) noexcept
+{
+	return (e*1262611)>>22;
+}
+
+inline constexpr std::int32_t mul_ln10_div_ln2_floor(std::int32_t e) noexcept
+{
+	return (e*1741647)>>19;
+}
+
 inline constexpr std::uint64_t mulshift_double(std::uint64_t x,std::uint64_t ylow,std::uint64_t yhigh) noexcept
 {
 	std::uint64_t p0high;
@@ -826,7 +830,7 @@ inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> dragonbo
 		--q;
 		r=big_divisor;
 	}
-	else if(r==delta)[[unlikely]]
+	else if(r==delta)
 	{
 		if((is_even&&is_integral_end_point(two_fl, e2, minus_k))||mul_parity(two_fl,pow10_lo,pow10_hi,beta_minus_1))
 			return {q,minus_k+kappa+1};
@@ -875,31 +879,206 @@ inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> dragonbo
 	return {m10,e10};
 }
 
-template<
-bool comma,
-::fast_io::manipulators::floating_format mt,
-::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
-inline constexpr Iter print_rsv_fp_decision_impl(Iter iter,U m10,std::int32_t e10) noexcept
+template<bool comma,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
+inline constexpr Iter print_rsv_fp_general_scientific_common_impl(Iter iter,U m10,std::uint32_t m10len) noexcept
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	auto res{iter+m10len+1};
+	print_reserve_integral_main_impl<10,false>(res,m10,m10len);
+	*iter=iter[1];
+	iter[1]=sign_ch<comma?u8',':u8'.',char_type>;
+	return res;
+}
+
+template<bool comma,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
+inline constexpr Iter print_rsv_fp_general_common_impl(Iter iter,U m10,std::uint32_t m10len) noexcept
+{
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	using unsigned_char_type = std::make_unsigned_t<char_type>;
+	if(m10len==1)[[unlikely]]
+	{
+		*iter=static_cast<char_type>(static_cast<unsigned_char_type>(m10)+sign_ch<u8'0',char_type>);
+		++iter;
+		return iter;
+	}
+	else
+		return print_rsv_fp_general_scientific_common_impl<comma>(iter,m10,m10len);
+}
+
+template<typename flt,bool uppercase_e,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
+inline constexpr Iter print_rsv_fp_e_impl(Iter iter,std::int32_t e10) noexcept
+{
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	*iter=sign_ch<uppercase_e?u8'E':u8'e',char_type>;
+	++iter;
+	std::uint32_t ue10{static_cast<std::uint32_t>(e10)};
+	if(e10<0)
+	{
+		ue10=0u-ue10;
+		*iter=sign_ch<u8'-',char_type>;
+	}
+	else
+		*iter=sign_ch<u8'+',char_type>;
+	++iter;
+	return prt_rsv_exponent_impl<flt::m10digits,true>(iter,ue10);
+}
+
+template<::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter fill_zeros_impl(Iter iter,std::size_t n) noexcept
+{
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	for(std::size_t i{};i!=n;++i)
+	{
+		*iter=sign_ch<u8'0',char_type>;
+		++iter;
+	}
+	return iter;
+}
+
+template<bool comma,::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter fill_zero_point_impl(Iter iter) noexcept
+{
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	if constexpr(comma)
+	{
+	if constexpr(std::same_as<char_type,char>)
+		return copy_string_literal("0.",iter);
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		return copy_string_literal(L"0.",iter);
+	else if constexpr(std::same_as<char_type,char16_t>)
+		return copy_string_literal(u"0.",iter);
+	else if constexpr(std::same_as<char_type,char32_t>)
+		return copy_string_literal(U"0.",iter);
+	else
+		return copy_string_literal(u8"0.",iter);
+	}
+	else
+	{
+	if constexpr(std::same_as<char_type,char>)
+		return copy_string_literal("0,",iter);
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		return copy_string_literal(L"0,",iter);
+	else if constexpr(std::same_as<char_type,char16_t>)
+		return copy_string_literal(u"0,",iter);
+	else if constexpr(std::same_as<char_type,char32_t>)
+		return copy_string_literal(U"0,",iter);
+	else
+		return copy_string_literal(u8"0,",iter);
+	}
+}
+
+template<typename flt,bool comma,::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter print_rsv_fp_fixed_decision_impl(Iter iter,typename iec559_traits<flt>::mantissa_type m10,std::int32_t e10) noexcept
+{
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	std::int32_t olength(static_cast<std::int32_t>(chars_len<10,true>(m10)));	
+	std::int32_t const real_exp(static_cast<std::int32_t>(e10 + olength - 1));
+	if(olength<=real_exp)
+	{
+		print_reserve_integral_main_impl<10,false>(iter+=olength,m10,olength);
+		return fill_zeros_impl(iter,real_exp+1-olength);
+	}
+	else if(0<=real_exp&&real_exp<olength)
+	{
+		auto eposition(real_exp+1);
+		if(olength==eposition)
+			print_reserve_integral_main_impl<10,false>(iter+=olength,m10,olength);
+		else
+		{
+			auto tmp{iter};
+			print_reserve_integral_main_impl<10,false>(iter+=olength+1,m10,olength);
+			my_copy_n(tmp+1,eposition,tmp);
+			tmp[eposition]=sign_ch<(comma?u8',':u8'.'),char_type>;
+			return iter;
+		}
+	}
+	else
+	{
+		iter=fill_zero_point_impl<comma>(iter);
+		iter=fill_zeros_impl(iter,static_cast<std::uint32_t>(-real_exp-1));
+		print_reserve_integral_main_impl<10,false>(iter+=olength,m10,olength);
+	}
+}
+
+template<
+typename flt,
+bool comma,
+bool uppercase_e,
+::fast_io::manipulators::floating_format mt,
+::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter print_rsv_fp_decision_impl(Iter iter,typename iec559_traits<flt>::mantissa_type m10,std::int32_t e10) noexcept
+{
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	using unsigned_char_type = std::make_unsigned_t<char_type>;
 	if constexpr(mt==::fast_io::manipulators::floating_format::scientific)
 	{
-		if(m10<10u)
+		if(m10<10u)[[unlikely]]
 		{
-			*iter=static_cast<char_type>(m10)+sign_ch<u8'0',char_type>;
+			*iter=static_cast<char_type>(static_cast<unsigned_char_type>(m10)+sign_ch<u8'0',char_type>);
 			++iter;
 		}
 		else
 		{
-//			print_reserve_integral_define<10,false,false,true,false,false>(iter,e2)
+			std::uint32_t sz{chars_len<10,true>(m10)};
+			e10+=static_cast<std::int32_t>(sz)-1;
+			iter=print_rsv_fp_general_scientific_common_impl<comma>(iter,m10,sz);
 		}
-		return iter;
+		return print_rsv_fp_e_impl<flt,uppercase_e>(iter,e10);
 	}
-	else
+	else	//general
 	{
-		
+		std::int32_t olength(static_cast<std::int32_t>(chars_len<10,true>(m10)));	
+		std::int32_t const real_exp(static_cast<std::int32_t>(e10 + olength - 1));
+		std::uint32_t fixed_length{},this_case{};
+		if(olength<=real_exp)
+		{
+			fixed_length=real_exp+1;
+			this_case=1;
+		}
+		else if(0<=real_exp&&real_exp<olength)
+		{
+			fixed_length=olength+2;
+			if(olength==real_exp+1)
+				--fixed_length;
+			this_case=2;
+		}
+		else
+			fixed_length=static_cast<std::uint32_t>(-real_exp)+olength+1;
+		std::uint32_t scientific_length(olength==1?olength+3:olength+5);
+		if(scientific_length<fixed_length)
+		{
+			//scientific decision
+			return print_rsv_fp_general_common_impl<comma>(iter,m10,static_cast<std::uint32_t>(olength));
+		}
+		//fixed decision
+		switch(this_case)
+		{
+		case 1:
+			print_reserve_integral_main_impl<10,false>(iter+=olength,m10,olength);
+			return fill_zeros_impl(iter,real_exp+1-olength);
+		case 2:
+		{
+			auto eposition(real_exp+1);
+			if(olength==eposition)
+				print_reserve_integral_main_impl<10,false>(iter+=olength,m10,olength);
+			else
+			{
+				auto tmp{iter};
+				print_reserve_integral_main_impl<10,false>(iter+=olength+1,m10,olength);
+				my_copy_n(tmp+1,eposition,tmp);
+				tmp[eposition]=sign_ch<comma?u8',':u8'.',char_type>;
+				return iter;
+			}
+		}
+		default:
+		{
+			iter=fill_zero_point_impl<comma>(iter);
+			iter=fill_zeros_impl(iter,static_cast<std::uint32_t>(-real_exp-1));
+			print_reserve_integral_main_impl<10,false>(iter+=olength,m10,olength);
+			return iter;
+		}
+		}
 	}
-	return iter;
 }
 
 template<
@@ -911,11 +1090,14 @@ bool comma,
 typename flt,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter print_rsvflt_define_impl(Iter iter,flt f) noexcept
 {
+	if constexpr(::fast_io::manipulators::floating_format::fixed==mt&&(uppercase_e||comma))
+	{
+		return print_rsvflt_define_impl<showpos,uppercase,false,false,mt>(iter,f);
+	}
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	using trait = iec559_traits<flt>;
 	using mantissa_type = typename trait::mantissa_type;
 	constexpr std::size_t ebits{trait::ebits};
-//	constexpr std::uint32_t bias{(static_cast<std::uint32_t>(1<<ebits)>>1)-1};
 	constexpr mantissa_type exponent_mask{(static_cast<mantissa_type>(1)<<ebits)-1};
 	constexpr std::uint32_t exponent_mask_u32{static_cast<std::uint32_t>(exponent_mask)};
 	auto [mantissa,exponent,sign] = get_punned_result(f);
@@ -934,17 +1116,9 @@ inline constexpr Iter print_rsvflt_define_impl(Iter iter,flt f) noexcept
 	}
 	auto [m10,e10] = dragonbox_impl<flt>(mantissa,exponent);
 	if constexpr(mt==::fast_io::manipulators::floating_format::fixed)
-	{
-	}
-#if 0
-	else if constexpr(mt==::fast_io::manipulators::floating_format::fixed)
-	{
-	}
-#endif
+		return print_rsv_fp_fixed_decision_impl<flt,comma>(iter,m10,e10);
 	else
-	{
-	}
-	return iter;
+		return print_rsv_fp_decision_impl<flt,comma,uppercase_e,mt>(iter,m10,e10);
 }
 
 }

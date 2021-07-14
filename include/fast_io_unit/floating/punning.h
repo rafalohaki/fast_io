@@ -14,6 +14,10 @@ struct iec559_traits<__float16>
 	using mantissa_type = std::uint16_t;
 	inline static constexpr std::size_t mbits{10};
 	inline static constexpr std::size_t ebits{5};
+	inline static constexpr std::uint32_t m10digits{4};
+	inline static constexpr std::uint32_t m2hexdigits{3};
+	inline static constexpr std::uint32_t e10digits{2};
+	inline static constexpr std::uint32_t e2hexdigits{2};
 };
 #endif
 
@@ -23,6 +27,10 @@ struct iec559_traits<float>
 	using mantissa_type = std::uint32_t;
 	inline static constexpr std::size_t mbits{23};
 	inline static constexpr std::size_t ebits{8};
+	inline static constexpr std::uint32_t m10digits{8};
+	inline static constexpr std::uint32_t m2hexdigits{6};
+	inline static constexpr std::uint32_t e10digits{2};
+	inline static constexpr std::uint32_t e2hexdigits{3};
 };
 
 template<>
@@ -31,6 +39,10 @@ struct iec559_traits<double>
 	using mantissa_type = std::uint64_t;
 	inline static constexpr std::size_t mbits{52};
 	inline static constexpr std::size_t ebits{11};
+	inline static constexpr std::uint32_t m10digits{17};
+	inline static constexpr std::uint32_t m2hexdigits{13};
+	inline static constexpr std::uint32_t e10digits{3};
+	inline static constexpr std::uint32_t e2hexdigits{4};
 };
 
 #if defined(__SIZEOF_INT128__)
@@ -42,6 +54,10 @@ struct iec559_traits<__float128>
 	using mantissa_type = __uint128_t;
 	inline static constexpr std::size_t mbits{112};
 	inline static constexpr std::size_t ebits{15};
+	inline static constexpr std::uint32_t m10digits{37};
+	inline static constexpr std::uint32_t m2hexdigits{28};
+	inline static constexpr std::uint32_t e10digits{4};
+	inline static constexpr std::uint32_t e2hexdigits{5};
 };
 #endif
 
@@ -363,6 +379,166 @@ inline constexpr punning_result<flt> get_punned_result(flt f) noexcept
 #endif
 	;
 	return {unwrap&mantissa_mask,static_cast<std::uint32_t>((unwrap>>mbits)&exponent_mask),static_cast<bool>((unwrap>>total_bits)&1u)};
+}
+
+
+
+template<::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
+#if __has_cpp_attribute(gnu::hot)
+[[gnu::hot]]
+#endif
+inline constexpr Iter prt_rsv_hundred_flt_impl(Iter iter,U u) noexcept
+{
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+#ifdef __OPTIMIZE_SIZE__
+	using unsigned_char_type = std::make_unsigned_t<char_type>;
+	constexpr U ten{10u};
+	U div10{u/ten};
+	U mod10{u%ten};
+	*iter=static_cast<char_type>(sign_ch<u8'0',char_type>+static_cast<unsigned_char_type>(div10));
+	++iter;
+	*iter=static_cast<char_type>(sign_ch<u8'0',char_type>+static_cast<unsigned_char_type>(mod10));
+	++iter;
+	return iter;
+#else
+	constexpr auto tb{::fast_io::details::get_shared_inline_constexpr_base_table<char_type,10,false>().element};
+	return non_overlapped_copy_n(tb[u].element,2,iter);
+#endif
+}
+
+template<std::size_t mxdigits,bool indent,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
+inline constexpr Iter prt_rsv_exponent_impl(Iter iter,U u) noexcept
+{
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	using unsigned_char_type = std::make_unsigned_t<char_type>;
+	if constexpr(mxdigits==0)
+		return iter;
+	else if constexpr(mxdigits==1)
+	{
+		*iter=static_cast<char_type>(sign_ch<u8'0',char_type>+static_cast<unsigned_char_type>(u));
+		++iter;
+		return iter;
+	}
+	else
+	{
+		constexpr U ten{10u};
+		constexpr U hundred{100u};
+		constexpr U thousand{1000u};
+		if constexpr(mxdigits==2)
+		{
+			if constexpr(indent)
+			{
+				return prt_rsv_hundred_flt_impl(iter,u);
+			}
+			else
+			{
+				if(u>=ten)
+					return prt_rsv_hundred_flt_impl(iter,u);
+				else
+				{
+					*iter=static_cast<char_type>(sign_ch<u8'0',char_type>+static_cast<unsigned_char_type>(u));
+					++iter;
+					return iter;
+				}
+			}
+		}
+		else if constexpr(mxdigits==3)
+		{
+			if constexpr(indent)
+			{
+				if(u>=hundred)
+				{
+					U div100{u/hundred};
+					U mod100{u%hundred};
+					*iter=static_cast<char_type>(sign_ch<u8'0',char_type>+static_cast<unsigned_char_type>(div100));
+					++iter;
+					u=mod100;
+				}
+				return prt_rsv_hundred_flt_impl(iter,u);
+			}
+			else
+			{
+				if(u>=hundred)
+				{
+					U div100{u/hundred};
+					U mod100{u%hundred};
+					*iter=static_cast<char_type>(sign_ch<u8'0',char_type>+static_cast<unsigned_char_type>(div100));
+					++iter;
+					return prt_rsv_hundred_flt_impl(iter,u);
+				}
+				else if(u<ten)
+				{
+					*iter=static_cast<char_type>(sign_ch<u8'0',char_type>+static_cast<unsigned_char_type>(u));
+					++iter;
+					return iter;
+				}
+				return prt_rsv_hundred_flt_impl(iter,u);
+			}
+		}
+		else if constexpr(mxdigits==4)
+		{
+			if constexpr(indent)
+			{
+				if(u<hundred)
+					return prt_rsv_hundred_flt_impl(iter,u);
+				std::size_t sz(3);
+				if(u>=thousand)
+					sz=4;
+				return print_reserve_integral_main_impl<10,false>(iter,u,sz);
+			}
+			else
+			{
+				std::size_t sz(1);
+				if(u>=thousand)
+					sz=4;
+				else if(u>=hundred)
+					sz=3;
+				else if(u>=ten)
+					sz=2;
+				return print_reserve_integral_main_impl<10,false>(iter,u,sz);
+			}
+		}
+		else if constexpr(mxdigits==5)
+		{		
+			constexpr U tenthousand{10000u};
+			if constexpr(indent)
+			{
+				if(u<hundred)
+					return prt_rsv_hundred_flt_impl(iter,u);
+				std::size_t sz(3);
+				if(u>=tenthousand)
+					sz=5;
+				else if(u>=thousand)
+					sz=4;
+				return print_reserve_integral_main_impl<10,false>(iter,u,sz);
+			}
+			else
+			{
+				std::size_t sz(1);
+				if(u>=tenthousand)
+					sz=5;
+				else if(u>=thousand)
+					sz=4;
+				else if(u>=hundred)
+					sz=3;
+				else if(u>=ten)
+					sz=2;
+				return print_reserve_integral_main_impl<10,false>(iter,u,sz);
+			}
+		}
+		else
+		{
+			if constexpr(indent)
+			{
+				if(u<hundred)
+					return prt_rsv_hundred_flt_impl(iter,u);
+			}
+			std::size_t sz{chars_len<10,false>(u)};
+			auto temp{iter+sz};
+			print_reserve_integral_main_impl<10,false>(temp,u,sz);
+			return temp;
+		}
+	}
 }
 
 }
