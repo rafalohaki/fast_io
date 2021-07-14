@@ -488,7 +488,7 @@ inline constexpr Iter prt_rsv_exponent_impl(Iter iter,U u) noexcept
 				std::size_t sz(3);
 				if(u>=thousand)
 					sz=4;
-				return print_reserve_integral_main_impl<10,false>(iter,u,sz);
+				print_reserve_integral_main_impl<10,false>(iter+=sz,u,sz);
 			}
 			else
 			{
@@ -499,8 +499,9 @@ inline constexpr Iter prt_rsv_exponent_impl(Iter iter,U u) noexcept
 					sz=3;
 				else if(u>=ten)
 					sz=2;
-				return print_reserve_integral_main_impl<10,false>(iter,u,sz);
+				print_reserve_integral_main_impl<10,false>(iter+=sz,u,sz);
 			}
+			return iter;
 		}
 		else if constexpr(mxdigits==5)
 		{		
@@ -514,7 +515,7 @@ inline constexpr Iter prt_rsv_exponent_impl(Iter iter,U u) noexcept
 					sz=5;
 				else if(u>=thousand)
 					sz=4;
-				return print_reserve_integral_main_impl<10,false>(iter,u,sz);
+				print_reserve_integral_main_impl<10,false>(iter+=sz,u,sz);
 			}
 			else
 			{
@@ -527,8 +528,9 @@ inline constexpr Iter prt_rsv_exponent_impl(Iter iter,U u) noexcept
 					sz=3;
 				else if(u>=ten)
 					sz=2;
-				return print_reserve_integral_main_impl<10,false>(iter,u,sz);
+				print_reserve_integral_main_impl<10,false>(iter+=sz,u,sz);
 			}
+			return iter;
 		}
 		else
 		{

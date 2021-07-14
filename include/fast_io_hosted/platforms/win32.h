@@ -453,8 +453,8 @@ public:
 	constexpr basic_win32_family_io_handle() noexcept = default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	explicit constexpr basic_win32_family_io_handle(native_hd handle) noexcept:
-		basic_win32_family_io_observer<family,ch_type>{handle}{}
+	explicit constexpr basic_win32_family_io_handle(native_hd handle1) noexcept:
+		basic_win32_family_io_observer<family,ch_type>{handle1}{}
 	basic_win32_family_io_handle(basic_win32_family_io_handle const& other):basic_win32_family_io_observer<family,ch_type>{win32::details::win32_dup_impl(other.handle)}{}
 	basic_win32_family_io_handle& operator=(basic_win32_family_io_handle const& other)
 	{
@@ -842,7 +842,7 @@ public:
 	explicit constexpr basic_win32_family_file()=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	explicit constexpr basic_win32_family_file(native_hd handle) noexcept:basic_win32_family_io_handle<family,ch_type>(handle){}
+	explicit constexpr basic_win32_family_file(native_hd handle1) noexcept:basic_win32_family_io_handle<family,ch_type>(handle1){}
 
 	basic_win32_family_file(io_dup_t,basic_win32_family_io_observer<family,ch_type> wiob):basic_win32_family_io_handle<family,ch_type>(win32::details::win32_dup_impl(wiob.handle))
 	{}

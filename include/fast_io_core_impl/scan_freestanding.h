@@ -234,7 +234,6 @@ requires (context_scanable<typename input::char_type,T,false>||skipper<typename 
 		}
 		else if constexpr(context_scanable2<char_type,T>)
 		{
-			using char_type = typename input::char_type;
 			typename std::remove_cvref_t<decltype(scan_context_type(io_reserve_type<char_type,T>))>::type state;
 			auto curr{ibuffer_curr(in)};
 			auto end{ibuffer_end(in)};
@@ -307,7 +306,6 @@ requires (context_scanable<typename input::char_type,T,false>||skipper<typename 
 		}
 		else if constexpr(context_scanable2<char_type,T>)
 		{
-			using char_type = typename input::char_type;
 			for(typename std::remove_cvref_t<decltype(scan_context_type(io_reserve_type<char_type,T>))>::type state;;)
 			{
 				auto curr{ibuffer_curr(in)};

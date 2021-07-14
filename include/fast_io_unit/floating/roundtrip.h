@@ -1068,8 +1068,8 @@ inline constexpr Iter print_rsv_fp_decision_impl(Iter iter,typename iec559_trait
 				print_reserve_integral_main_impl<10,false>(iter+=olength+1,m10,olength);
 				my_copy_n(tmp+1,eposition,tmp);
 				tmp[eposition]=sign_ch<comma?u8',':u8'.',char_type>;
-				return iter;
 			}
+			return iter;
 		}
 		default:
 		{

@@ -201,7 +201,7 @@ public:
 	constexpr basic_win32_family_socket_io_handle() noexcept=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	explicit constexpr basic_win32_family_socket_io_handle(native_hd hsocket) noexcept: basic_win32_family_socket_io_observer<family,ch_type>{hsocket}
+	explicit constexpr basic_win32_family_socket_io_handle(native_hd hsocket1) noexcept: basic_win32_family_socket_io_observer<family,ch_type>{hsocket1}
 	{}
 	basic_win32_family_socket_io_handle(basic_win32_family_socket_io_handle const& dp):basic_win32_family_socket_io_observer<family,char_type>{win32::details::win32_duphsocket(dp.hsocket)}
 	{
@@ -517,7 +517,7 @@ public:
 	constexpr basic_win32_family_socket_file() noexcept=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	explicit constexpr basic_win32_family_socket_file(native_hd hsocket) noexcept: basic_win32_family_socket_io_handle<family,ch_type>{hsocket}
+	explicit constexpr basic_win32_family_socket_file(native_hd hsocket1) noexcept: basic_win32_family_socket_io_handle<family,ch_type>{hsocket1}
 	{}
 	basic_win32_family_socket_file(io_dup_t,basic_win32_family_socket_io_observer<family,ch_type> wsiob):basic_win32_family_socket_io_handle<family,ch_type>{win32::details::win32_duphsocket(wsiob.hsocket)}
 	{}
