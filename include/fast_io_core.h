@@ -50,7 +50,6 @@
 #include"fast_io_core_impl/mode.h"
 #include"fast_io_core_impl/perms.h"
 #include"fast_io_core_impl/seek.h"
-//#include"fast_io_core_impl/drain.h"
 
 #include"fast_io_core_impl/igenerator.h"
 #include"fast_io_core_impl/io_ref.h"
@@ -63,11 +62,7 @@
 
 #include"fast_io_core_impl/black_hole.h"
 #include"fast_io_core_impl/istring_view.h"
-
-
-//#include"fast_io_core_impl/transmit.h"
-//#include"fast_io_core_impl/random_access_transmit.h"
-#include"fast_io_core_impl/flush.h"
+#include"fast_io_core_impl/transmit/impl.h"
 
 #ifdef __cpp_lib_source_location
 #include<source_location>

@@ -467,7 +467,11 @@ inline constexpr parse_result<Iter> scan_int_contiguous_none_space_part_define_i
 #if defined(__SSE4_1__) && defined(__x86_64__)
 	if constexpr(base==10&&sizeof(char_type)==1&&sizeof(unsigned_type)<=sizeof(std::uint64_t))
 	{
-		if(!std::is_constant_evaluated()&&last-first>=32)[[likely]]
+		if(
+#if __cpp_lib_is_constant_evaluated >= 201811L
+		!std::is_constant_evaluated()&&
+#endif
+		last-first>=32)[[likely]]
 		{
 			constexpr bool smaller_than_uint64{sizeof(unsigned_type)<sizeof(std::uint64_t)};
 			std::uint64_t temp{};

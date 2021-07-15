@@ -1,27 +1,40 @@
 #pragma once
 
 #if (defined(_WIN32)&&!defined(__CYGWIN__)) || defined(__MSDOS__)
+#if __has_include(<io.h>)
 #include<io.h>
-#include<sys/stat.h>
-#include<sys/types.h>
 #endif
-#ifndef _MSC_VER
-#include<unistd.h>
 #endif
 #include"systemcall_details.h"
+
+#if __has_include(<fcntl.h>)
 #include<fcntl.h>
-#ifdef __linux__
-#include<features.h>
-#include<sys/uio.h>
+#endif
+
+#if __has_include(<sys/stat.h>)
 #include<sys/stat.h>
 #endif
-#if defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL) || defined(__wasi__)
-#if defined(__CYGWIN__) || !defined(__NEWLIB__)
-#include <sys/uio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
+
+#if (!defined(_WIN32) || defined(__CYGWIN__))
+
+#if __has_include(<features.h>)
+#include<features.h>
 #endif
+
+#if __has_include(<unistd.h>)
+#include<unistd.h>
+#endif
+
+#if __has_include(<sys/uio.h>)
+#include<sys/uio.h>
+#endif
+
+#if __has_include(<sys/types.h>)
+#include<sys/types.h>
+#endif
+
+#if __has_include(<sys/socket.h>)
+#include<sys/socket.h>
 #endif
 
 #if defined(__wasi__)
@@ -29,9 +42,9 @@
 #endif
 
 #if (!defined(_WIN32) || defined(__CYGWIN__)) && __has_include(<sys/socket.h>) && __has_include(<netinet/in.h>) && !defined(__wasi__)
-#include <sys/socket.h>
 #include <netinet/in.h>
 #include "posix_netmode.h"
+#endif
 #endif
 
 namespace fast_io
@@ -846,21 +859,6 @@ inline posix_file_status status(basic_posix_io_observer<ch_type> piob)
 
 #endif
 
-
-#if defined(__linux__)
-template<std::integral ch_type>
-inline auto zero_copy_in_handle(basic_posix_io_observer<ch_type> h)
-{
-	return h.fd;
-}
-template<std::integral ch_type>
-inline auto zero_copy_out_handle(basic_posix_io_observer<ch_type> h)
-{
-	return h.fd;
-}
-#endif
-
-
 #if defined(_WIN32) && !defined(__CYGWIN__)
 template<std::integral ch_type>
 inline auto redirect_handle(basic_posix_io_observer<ch_type> h) noexcept
@@ -1390,19 +1388,6 @@ inline void clear_screen(basic_posix_io_observer<ch_type> piob)
 	details::posix_clear_screen_impl(piob.fd);
 }
 
-#ifdef __linux__
-template<std::integral ch_type>
-inline auto zero_copy_in_handle(basic_posix_pipe<ch_type>& h)
-{
-	return h.in().fd;
-}
-template<std::integral ch_type>
-inline auto zero_copy_out_handle(basic_posix_pipe<ch_type>& h)
-{
-	return h.out().fd;
-}
-#endif
-
 using posix_io_observer=basic_posix_io_observer<char>;
 using posix_io_handle=basic_posix_io_handle<char>;
 using posix_file=basic_posix_file<char>;
@@ -1432,140 +1417,6 @@ inline constexpr int posix_stdin_number{0};
 inline constexpr int posix_stdout_number{1};
 inline constexpr int posix_stderr_number{2};
 
-#if defined(__linux__)
-
-//zero copy IO for linux
-
-//To verify whether other BSD platforms support sendfile
-namespace details
-{
-
-template<bool random_access=false,bool report_einval=false,zero_copy_output_stream output,zero_copy_input_stream input>
-inline std::conditional_t<report_einval,std::pair<std::size_t,bool>,std::size_t>
-	zero_copy_transmit_once(output& outp,input& inp,std::size_t bytes,std::intmax_t offset)
-{
-#ifdef __linux__
-	if constexpr(sizeof(std::intmax_t)>sizeof(std::int64_t))
-	{
-		if(offset<static_cast<std::intmax_t>(std::numeric_limits<std::int64_t>::min())&&
-			static_cast<std::intmax_t>(std::numeric_limits<std::int64_t>::max())<offset)
-			throw_posix_error(EINVAL);
-	}
-	std::intmax_t *np{};
-	if constexpr(random_access)
-		np=__builtin_addressof(offset);
-	std::ptrdiff_t transmitted_bytes{system_call<
-#if defined(__NR_sendfile64)
-__NR_sendfile64
-#else
-__NR_sendfile
-#endif
-,std::ptrdiff_t>(zero_copy_out_handle(outp),zero_copy_in_handle(inp),np,bytes)};
-	if(static_cast<std::size_t>(transmitted_bytes)+static_cast<std::size_t>(4096)<static_cast<std::size_t>(4096))
-	{
-		if constexpr(report_einval)
-		{
-			return {0,true};
-		}
-		else
-		{
-			throw_posix_error(static_cast<int>(-transmitted_bytes));
-		}
-	}
-	if constexpr(report_einval)
-		return {transmitted_bytes,false};
-	else
-		return transmitted_bytes;
-#else
-	off_t np{};
-	if constexpr(random_access)
-		np=static_cast<off_t>(offset);
-	auto transmitted_bytes(::sendfile(zero_copy_out_handle(outp),zero_copy_in_handle(inp),np,bytes,nullptr,nullptr,0));
-	//it looks like BSD platforms supports async I/O for sendfile. To do
-	if(transmitted_bytes==-1)
-	{
-		if constexpr(report_einval)
-		{
-			return {0,true};
-		}
-		else
-		{
-			throw_posix_error();
-		}
-	}
-	if constexpr(report_einval)
-		return {transmitted_bytes,false};
-	else
-		return transmitted_bytes;
-#endif
-}
-
-
-template<bool random_access=false,bool report_einval=false,zero_copy_output_stream output,zero_copy_input_stream input>
-inline std::conditional_t<report_einval,std::pair<std::uintmax_t,bool>,std::uintmax_t> zero_copy_transmit
-(output& outp,input& inp,std::uintmax_t bytes,std::intmax_t offset)
-{
-	constexpr std::size_t maximum_transmit_bytes(2147479552);
-	std::uintmax_t transmitted{};
-	for(;bytes;)
-	{
-		std::size_t should_transfer(maximum_transmit_bytes);
-		if(bytes<should_transfer)
-			should_transfer=bytes;
-		std::size_t transferred_this_round{};
-		auto ret(details::zero_copy_transmit_once<random_access,report_einval>(outp,inp,should_transfer,offset));
-		if constexpr(report_einval)
-		{
-			if(ret.second)
-				return {transmitted,true};
-			transferred_this_round=ret.first;
-		}
-		else
-			transferred_this_round=ret;
-		transmitted+=transferred_this_round;
-		if(transferred_this_round!=should_transfer)
-		{
-			if constexpr(report_einval)
-				return {transmitted,false};
-			else
-				return transmitted;
-		}
-		bytes-=transferred_this_round;
-	}
-	if constexpr(report_einval)
-		return {transmitted,false};
-	else
-		return transmitted;
-}
-template<bool random_access=false,bool report_einval=false,zero_copy_output_stream output,zero_copy_input_stream input>
-inline std::conditional_t<report_einval,std::pair<std::uintmax_t,bool>,std::uintmax_t> zero_copy_transmit(output& outp,input& inp,std::intmax_t offset)
-{
-	constexpr std::size_t maximum_transmit_bytes(2147479552);
-	for(std::uintmax_t transmitted{};;)
-	{
-		std::size_t transferred_this_round{};
-		auto ret(details::zero_copy_transmit_once<random_access,report_einval>(outp,inp,maximum_transmit_bytes,offset));
-		if constexpr(report_einval)
-		{
-			if(ret.second)
-				return {transmitted,true};
-			transferred_this_round=ret.first;
-		}
-		else
-			transferred_this_round=ret;
-		transmitted+=transferred_this_round;
-		if(transferred_this_round!=maximum_transmit_bytes)
-		{
-			if constexpr(report_einval)
-				return {transmitted,false};
-			else
-				return transmitted;
-		}
-	}
-}
-}
-
-#endif
 template<std::integral char_type=char>
 inline constexpr basic_posix_io_observer<char_type> posix_stdin()
 {
@@ -1922,4 +1773,7 @@ inline io_scatter_status_t scatter_pwrite(basic_posix_io_observer<ch_type> piob,
 }
 #if defined(__MSDOS__) || (defined(__NEWLIB__)&&!defined(FAST_IO_USE_NEWLIB_CUSTOM_WRITEV)&&!defined(__CYGWIN__))
 #include"msdos.h"
+#endif
+#if defined(__linux__) && (defined(__NR_sendfile) || defined(__NR_sendfile64))
+#include"linux_zerocopy.h"
 #endif

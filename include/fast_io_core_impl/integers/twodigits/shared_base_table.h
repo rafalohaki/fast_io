@@ -4,7 +4,7 @@ namespace fast_io::details
 {
 
 template<std::integral char_type,std::size_t base,bool upper,bool transparent>
-inline constexpr auto cal_content()
+inline constexpr auto cal_content() noexcept
 {
 	constexpr std::size_t chars{2};
 	constexpr std::size_t pw{base*base};
@@ -28,7 +28,7 @@ inline constexpr auto cal_content()
 	if constexpr(is_ebcdic<char_type>)
 	{
 /*
-http://www.astrodigital.org/digital/ebcdic.html#:~:text=The%20EBCDIC%20Character%20Table%20Once%20upon%20a%20time,that%20is%20used%20in%20the%20IBM%20mainframe%20environment.
+http://www.astrodigital.org/digital/ebcdic.html
 */
 		for(auto &e : vals)
 			for(auto &e1 : e)
