@@ -76,7 +76,7 @@ inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,digest_
 {
 	return ::fast_io::details::crypto_hash_print_reserve_define_common_impl<false,false>(i.digest_block.data(),i.digest_block.data()+i.digest_block.size(),iter);
 }
-
+#if 0
 template<std::integral char_type,std::size_t N>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,::fast_io::manipulators::base_full_t<16,true,digest_result<N> const&>>) noexcept
 {
@@ -88,7 +88,7 @@ inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,::fast_
 {
 	return ::fast_io::details::crypto_hash_print_reserve_define_common_impl<true,false>(i.reference.digest_block.data(),i.reference.digest_block.data()+i.reference.digest_block.size(),iter);
 }
-
+#endif
 template<typename T,std::size_t N>
 [[nodiscard]] inline digest_result<N> do_final_with_size(iterated_hash_ref<T>& ihb)
 {
@@ -113,7 +113,7 @@ template<typename T>
 iterated_hash_ref(T& func)->iterated_hash_ref<T>;
 
 }
-
+#if 0
 namespace fast_io::manipulators
 {
 template<std::size_t N>
@@ -128,3 +128,4 @@ inline constexpr parameter<::fast_io::cryptopp::digest_result<N> const&> lower(:
 	return {res};
 }
 }
+#endif

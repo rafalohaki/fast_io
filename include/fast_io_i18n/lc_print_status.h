@@ -412,7 +412,7 @@ inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type>
 	{
 		dynamic_io_buffer<typename output::char_type> buffer;
 		auto ref{io_ref(buffer)};
-		lc_print_controls_line<line>(lc,ref,args...);
+		lc_print_controls_line<ln>(lc,ref,args...);
 		write(out,buffer.beg_ptr,buffer.end_ptr);
 	}
 }

@@ -3,5 +3,5 @@
 int main()
 {
 	using namespace fast_io::mnp;
-	println(true," ",blvw(true));
+	println(true," ",boolalpha(true));
 }

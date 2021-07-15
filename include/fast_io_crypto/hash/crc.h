@@ -221,19 +221,29 @@ public:
 
 #endif
 
-template<std::integral char_type,typename T>
-requires (std::same_as<T,crc32c>||std::same_as<T,crc32>)
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,T>) noexcept
+namespace manipulators
 {
-	return 8;
+template<bool showbase=false,typename T>
+requires (std::same_as<crc32,std::remove_cvref_t<T>>||std::same_as<crc32c,std::remove_cvref_t<T>>)
+inline constexpr scalar_manip_t<::fast_io::details::cryptohash_mani_flags_cache<true,showbase>,std::uint32_t> upper(T t) noexcept
+{
+	return {t.crc};
 }
 
-template<std::integral char_type,typename T,::fast_io::freestanding::random_access_iterator caiter>
-requires (std::same_as<T,crc32c>||std::same_as<T,crc32>)
-inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,T>,caiter iter,auto i) noexcept
+template<bool showbase=false,typename T>
+requires (std::same_as<crc32,std::remove_cvref_t<T>>||std::same_as<crc32c,std::remove_cvref_t<T>>)
+inline constexpr scalar_manip_t<::fast_io::details::cryptohash_mani_flags_cache<false,showbase>,std::uint32_t> low(T t) noexcept
 {
-	fast_io::details::optimize_size::output_unsigned_dummy<8,16>(iter,i.crc);
-	return iter+8;
+	return {t.crc};
+}
+
+}
+
+template<typename scalar_type>
+requires (std::same_as<crc32,std::remove_cvref_t<scalar_type>>||std::same_as<crc32c,std::remove_cvref_t<scalar_type>>)
+inline constexpr manipulators::scalar_manip_t<::fast_io::details::cryptohash_mani_flags_cache<false,false>,std::uint32_t> print_alias_define(io_alias_t,scalar_type t) noexcept
+{
+	return {t.crc};
 }
 
 }

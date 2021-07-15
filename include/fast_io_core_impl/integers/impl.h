@@ -157,6 +157,9 @@ inline constexpr ::fast_io::manipulators::scalar_flags hexafloat_mani_flags_cach
 template<bool uppercase,bool comma,::fast_io::manipulators::floating_format fm>
 inline constexpr ::fast_io::manipulators::scalar_flags dcmfloat_mani_flags_cache{.uppercase=uppercase,.uppercase_e=uppercase,.comma=comma,.floating=fm};
 
+template<bool uppercase,bool shbase>
+inline constexpr ::fast_io::manipulators::scalar_flags cryptohash_mani_flags_cache{.base=16,.showbase=shbase,.uppercase_showbase=uppercase,.uppercase=uppercase,.floating=::fast_io::manipulators::floating_format::fixed};
+
 }
 
 namespace manipulators
@@ -169,9 +172,95 @@ struct scalar_manip_t
 	T reference;
 };
 
-template<std::size_t bs,bool upper=false,bool shbase=false,bool full=false,typename scalar_type>
+template<std::size_t bs,bool shbase=false,bool full=false,typename scalar_type>
 requires ((2<=bs&&bs<=36)&&(::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||::fast_io::freestanding::contiguous_iterator<scalar_type>))
-inline constexpr scalar_manip_t<::fast_io::details::base_mani_flags_cache<bs,upper,shbase,full>,scalar_type> base(scalar_type t) noexcept
+inline constexpr scalar_manip_t<::fast_io::details::base_mani_flags_cache<bs,false,shbase,full>,std::conditional_t<(::fast_io::details::my_integral<scalar_type>),std::remove_cvref_t<scalar_type>,std::uintptr_t>> base(scalar_type t) noexcept
+{
+	if constexpr(::fast_io::details::my_integral<scalar_type>)
+		return {t};
+	else if constexpr(std::is_pointer_v<std::remove_cvref_t<scalar_type>>)
+		return {bit_cast<std::uintptr_t>(t)};
+	else
+		return {bit_cast<std::uintptr_t>(::fast_io::freestanding::to_address(t))};
+}
+
+template<std::size_t bs,bool shbase=false,bool full=false,typename scalar_type>
+requires ((2<=bs&&bs<=36)&&(::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||::fast_io::freestanding::contiguous_iterator<scalar_type>))
+inline constexpr scalar_manip_t<::fast_io::details::base_mani_flags_cache<bs,true,shbase,full>,std::conditional_t<(::fast_io::details::my_integral<scalar_type>),std::remove_cvref_t<scalar_type>,std::uintptr_t>> baseupper(scalar_type t) noexcept
+{
+	if constexpr(::fast_io::details::my_integral<scalar_type>)
+		return {t};
+	else if constexpr(std::is_pointer_v<std::remove_cvref_t<scalar_type>>)
+		return {bit_cast<std::uintptr_t>(t)};
+	else
+		return {bit_cast<std::uintptr_t>(::fast_io::freestanding::to_address(t))};
+}
+
+
+template<bool shbase=false,bool full=false,typename scalar_type>
+requires (::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||::fast_io::freestanding::contiguous_iterator<scalar_type>)
+inline constexpr scalar_manip_t<::fast_io::details::base_mani_flags_cache<16,false,shbase,full>,std::conditional_t<(::fast_io::details::my_integral<scalar_type>),std::remove_cvref_t<scalar_type>,std::uintptr_t>> hex(scalar_type t) noexcept
+{
+	if constexpr(::fast_io::details::my_integral<scalar_type>)
+		return {t};
+	else if constexpr(std::is_pointer_v<std::remove_cvref_t<scalar_type>>)
+		return {bit_cast<std::uintptr_t>(t)};
+	else
+		return {bit_cast<std::uintptr_t>(::fast_io::freestanding::to_address(t))};
+}
+
+template<bool shbase=false,bool full=false,typename scalar_type>
+requires (::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||::fast_io::freestanding::contiguous_iterator<scalar_type>)
+inline constexpr scalar_manip_t<::fast_io::details::base_mani_flags_cache<16,true,shbase,full>,std::conditional_t<(::fast_io::details::my_integral<scalar_type>),std::remove_cvref_t<scalar_type>,std::uintptr_t>> hexupper(scalar_type t) noexcept
+{
+	if constexpr(::fast_io::details::my_integral<scalar_type>)
+		return {t};
+	else if constexpr(std::is_pointer_v<std::remove_cvref_t<scalar_type>>)
+		return {bit_cast<std::uintptr_t>(t)};
+	else
+		return {bit_cast<std::uintptr_t>(::fast_io::freestanding::to_address(t))};
+}
+
+
+template<bool shbase=false,typename scalar_type>
+requires (::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||::fast_io::freestanding::contiguous_iterator<scalar_type>)
+inline constexpr scalar_manip_t<::fast_io::details::base_mani_flags_cache<16,false,shbase,true>,std::conditional_t<(::fast_io::details::my_integral<scalar_type>),::fast_io::details::my_make_unsigned_t<std::remove_cvref_t<scalar_type>>,std::uintptr_t>> uhexfull(scalar_type t) noexcept
+{
+	if constexpr(::fast_io::details::my_integral<scalar_type>)
+		return {t};
+	else if constexpr(std::is_pointer_v<std::remove_cvref_t<scalar_type>>)
+		return {bit_cast<std::uintptr_t>(t)};
+	else
+		return {bit_cast<std::uintptr_t>(::fast_io::freestanding::to_address(t))};
+}
+
+template<bool shbase=false,typename scalar_type>
+requires (::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||::fast_io::freestanding::contiguous_iterator<scalar_type>)
+inline constexpr scalar_manip_t<::fast_io::details::base_mani_flags_cache<16,true,shbase,true>,std::conditional_t<(::fast_io::details::my_integral<scalar_type>),::fast_io::details::my_make_unsigned_t<std::remove_cvref_t<scalar_type>>,std::uintptr_t>> uhexupperfull(scalar_type t) noexcept
+{
+	if constexpr(::fast_io::details::my_integral<scalar_type>)
+		return {t};
+	else if constexpr(std::is_pointer_v<std::remove_cvref_t<scalar_type>>)
+		return {bit_cast<std::uintptr_t>(t)};
+	else
+		return {bit_cast<std::uintptr_t>(::fast_io::freestanding::to_address(t))};
+}
+
+template<bool shbase=false,bool full=false,typename scalar_type>
+requires (::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||::fast_io::freestanding::contiguous_iterator<scalar_type>)
+inline constexpr scalar_manip_t<::fast_io::details::base_mani_flags_cache<8,false,shbase,full>,std::conditional_t<(::fast_io::details::my_integral<scalar_type>),std::remove_cvref_t<scalar_type>,std::uintptr_t>> oct(scalar_type t) noexcept
+{
+	if constexpr(::fast_io::details::my_integral<scalar_type>)
+		return {t};
+	else if constexpr(std::is_pointer_v<std::remove_cvref_t<scalar_type>>)
+		return {bit_cast<std::uintptr_t>(t)};
+	else
+		return {bit_cast<std::uintptr_t>(::fast_io::freestanding::to_address(t))};
+}
+
+template<bool shbase=false,bool full=false,typename scalar_type>
+requires (::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||::fast_io::freestanding::contiguous_iterator<scalar_type>)
+inline constexpr scalar_manip_t<::fast_io::details::base_mani_flags_cache<2,false,shbase,full>,std::conditional_t<(::fast_io::details::my_integral<scalar_type>),std::remove_cvref_t<scalar_type>,std::uintptr_t>> bin(scalar_type t) noexcept
 {
 	if constexpr(::fast_io::details::my_integral<scalar_type>)
 		return {t};
@@ -183,7 +272,7 @@ inline constexpr scalar_manip_t<::fast_io::details::base_mani_flags_cache<bs,upp
 
 template<scalar_flags flags,typename scalar_type>
 requires (((2<=flags.base&&flags.base<=36&&(::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||::fast_io::freestanding::contiguous_iterator<scalar_type>))||(flags.base==10&&::fast_io::details::my_floating_point<scalar_type>)))
-inline constexpr scalar_manip_t<flags,std::conditional_t<(::fast_io::details::my_integral<scalar_type>||std::floating_point<scalar_type>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>),scalar_type,std::uintptr_t>> scalar(scalar_type t) noexcept
+inline constexpr scalar_manip_t<flags,std::conditional_t<(::fast_io::details::my_integral<scalar_type>||std::floating_point<scalar_type>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>),std::remove_cvref_t<scalar_type>,std::uintptr_t>> scalar(scalar_type t) noexcept
 {
 	if constexpr(::fast_io::details::my_floating_point<scalar_type>)
 	{
@@ -1057,12 +1146,12 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,mani
 		return details::print_integer_reserved_size_cache<flags.base,flags.showbase,flags.showpos,T>;
 }
 
-template<freestanding::random_access_iterator Iter,manipulators::scalar_flags flags,typename T>
+template<::fast_io::freestanding::random_access_iterator Iter,manipulators::scalar_flags flags,typename T>
 requires (details::my_integral<T>||std::same_as<std::remove_cv_t<T>,std::byte>||std::same_as<std::remove_cvref_t<T>,std::nullptr_t>)
 #if __has_cpp_attribute(gnu::always_inline)
 [[gnu::always_inline]]//always inline to reduce inline depth in GCC and LLVM clang
 #endif
-inline constexpr Iter print_reserve_define(io_reserve_type_t<freestanding::iter_value_t<Iter>,manipulators::scalar_manip_t<flags,T>>,Iter iter,manipulators::scalar_manip_t<flags,T> t) noexcept
+inline constexpr Iter print_reserve_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,::fast_io::manipulators::scalar_manip_t<flags,T>>,Iter iter,::fast_io::manipulators::scalar_manip_t<flags,T> t) noexcept
 {
 	if constexpr(flags.alphabet)
 	{
@@ -1083,5 +1172,6 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<freestanding::iter_
 	else
 		return details::print_reserve_integral_define<flags.base,flags.showbase,flags.uppercase_showbase,flags.showpos,flags.uppercase,flags.full>(iter,t.reference);
 }
+
 
 }

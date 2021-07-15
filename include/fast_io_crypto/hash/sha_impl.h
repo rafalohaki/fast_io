@@ -125,6 +125,8 @@ inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,sha<T,e
 {
 	return details::crypto_hash_main_reserve_define_common_impl<false,endian_reverse>(i.digest_block.data(),i.digest_block.data()+i.digest_block.size(),iter);
 }
+
+#if 0
 template<std::integral char_type,typename T,bool endian_reverse>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manipulators::base_full_t<16,true,sha<T,endian_reverse> const&>>) noexcept
 {
@@ -136,15 +138,15 @@ inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,manipul
 {
 	return details::crypto_hash_main_reserve_define_common_impl<true,endian_reverse>(i.reference.digest_block.data(),i.reference.digest_block.data()+i.reference.digest_block.size(),iter);
 }
-
+#endif
 using sha256 = sha<sha256_function>;
 
-
+#if 0
 namespace manipulators
 {
 
 template<typename T,bool endian_reverse,std::size_t transform_counter_bytes>
-inline constexpr base_full_t<16,true,::fast_io::sha<T,endian_reverse,transform_counter_bytes> const&> upper(::fast_io::sha<T,endian_reverse,transform_counter_bytes> const& res) noexcept
+inline constexpr scalar<16,true,::fast_io::sha<T,endian_reverse,transform_counter_bytes> const&> upper(::fast_io::sha<T,endian_reverse,transform_counter_bytes> const& res) noexcept
 {
 	return {res};
 }
@@ -156,5 +158,5 @@ inline constexpr parameter<::fast_io::sha<T,endian_reverse,transform_counter_byt
 }
 
 }
-
+#endif
 }

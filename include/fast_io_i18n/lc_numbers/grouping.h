@@ -169,18 +169,12 @@ requires (sizeof(T)>1)
 constexpr void output_unsigned_with_3_seperator_len(::fast_io::freestanding::iter_value_t<Iter> seperator_ch,Iter iter,T value) noexcept
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
-#ifdef FAST_IO_OPTIMIZE_TIME
-	constexpr auto table3(jiaendu::static_tables<char_type>::table3.data());
-#elif !defined(__OPTIMIZE_SIZE__)
-	constexpr auto table(get_shared_inline_constexpr_base_table<char_type,10,false>().data());
+#ifndef __OPTIMIZE_SIZE__
+	constexpr auto table(get_shared_inline_constexpr_base_table<char_type,10,false>().element);
 #endif
 	for(;value>=1000u;*--iter=seperator_ch)
 	{
-#ifdef FAST_IO_OPTIMIZE_TIME
-		auto low3digits{value%1000u};
-		value/=1000u;
-		non_overlapped_copy_n(table3[low3digits].data(),3,iter-=3);
-#elif defined(__OPTIMIZE_SIZE__)
+#if defined(__OPTIMIZE_SIZE__)
 		for(std::size_t i{};i!=3;++i)
 		{
 			auto remained{value%10u};
@@ -206,25 +200,7 @@ constexpr void output_unsigned_with_3_seperator_len(::fast_io::freestanding::ite
 			*--iter=static_cast<char_type>(highdigit+u8'0');
 #endif
 	}
-#ifdef FAST_IO_OPTIMIZE_TIME
-	if(value>=100u)
-	{
-		non_overlapped_copy_n(table3[value].data(),3,iter-3);
-	}
-	else if(value>=10u)
-	{
-		non_overlapped_copy_n(jiaendu::static_tables<char_type>::table2[value].data(),2,iter-2);
-	}
-	else
-	{
-		if constexpr(std::same_as<char_type,char>)
-			*--iter=static_cast<char_type>(value+'0');
-		else if constexpr(std::same_as<char_type,wchar_t>)
-			*--iter=static_cast<char_type>(value+L'0');
-		else
-			*--iter=static_cast<char_type>(value+u8'0');
-	}
-#elif defined(__OPTIMIZE_SIZE__)
+#if defined(__OPTIMIZE_SIZE__)
 	for(;value;)
 	{
 		auto remained{value%10u};

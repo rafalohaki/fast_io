@@ -750,7 +750,7 @@ public:
 	constexpr basic_c_family_io_handle() noexcept=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	explicit constexpr basic_c_family_io_handle(native_hd fp) noexcept:basic_c_family_io_observer<family,ch_type>{fp}{}
+	explicit constexpr basic_c_family_io_handle(native_hd ffp) noexcept:basic_c_family_io_observer<family,ch_type>{ffp}{}
 
 	basic_c_family_io_handle(basic_c_family_io_handle const&)=delete;
 	basic_c_family_io_handle& operator=(basic_c_family_io_handle const&)=delete;
@@ -829,7 +829,7 @@ public:
 	constexpr basic_c_family_file() noexcept=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	explicit constexpr basic_c_family_file(native_hd fp) noexcept:basic_c_family_io_handle<family,ch_type>{fp}{}
+	explicit constexpr basic_c_family_file(native_hd ffp) noexcept:basic_c_family_io_handle<family,ch_type>{ffp}{}
 	template<c_family family2>
 	explicit constexpr basic_c_family_file(c_family_file_factory<family2>&& other) noexcept:basic_c_family_io_handle<family,ch_type>{other.fp}
 	{
