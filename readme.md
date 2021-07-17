@@ -232,11 +232,11 @@ Please see examples in the examples folder.
 
 compile option:
     
-`g++ -o example example.cc -Ofast -std=c++20 -s`
+`g++ -o example example.cc -Ofast -std=c++20 -s -flto -march=native`
 
 ## Documentation
 
-See Wiki Page: https://github.com/expnkx/fast_io/wiki
+See Wiki Page: https://gitee.com/qabeowjbtkwb/fast_io/wikis
 
 ## Benchmarks
 
