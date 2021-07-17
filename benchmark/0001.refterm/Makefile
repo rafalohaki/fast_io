@@ -26,6 +26,7 @@ iostreampch.hpp.gch:iostreampch.hpp
 	$(CXX) -c iostreampch.hpp $(CXXFLAGS) $(FASTIOINCLUDEPATH) -include pch.hpp
 pch.hpp.gch:pch.hpp
 	$(CXX) -c pch.hpp $(CXXFLAGS) $(FASTIOINCLUDEPATH)
-
 clean:
+	rm *.gch *.tmp *.txt
+distclean:
 	rm *.exe *.gch *.tmp *.txt
