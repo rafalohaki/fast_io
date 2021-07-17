@@ -4,7 +4,7 @@ inline void test()
 	for(std::size_t i{};i!=1000000;++i)
 		println(obf,i);
 }
-
+//STDOUT_HANDLE 
 int main()
 {
 	fast_io::u8obuf_file timer_obf(u"out_buf.txt");
