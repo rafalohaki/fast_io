@@ -473,7 +473,7 @@ inline constexpr udiv_result<U> udivmod(U n_low, U n_high,U d_low,U d_high) noex
 		// K 0
 #if defined(__has_builtin)
 #if __has_builtin(__builtin_ctzll)
-		sr=__builtin_clzll(d_high) - __builtin_clzll(n_high);
+		sr=static_cast<std::uint32_t>(__builtin_clzll(d_high) - __builtin_clzll(n_high));
 #else
 		sr=static_cast<std::uint32_t>(std::countl_zero(d_high) - std::countl_zero(n_high));
 #endif
@@ -507,12 +507,12 @@ inline constexpr udiv_result<U> udivmod(U n_low, U n_high,U d_low,U d_high) noex
 					return {n_low,n_high,rem,0};
 #if defined(__has_builtin)
 #if __has_builtin(__builtin_ctzll)
-				sr = __builtin_ctzll(d_low);
+				sr = static_cast<std::uint32_t>(__builtin_ctzll(d_low));
 #else
-				sr = std::countl_zero(d_low);
+				sr = static_cast<std::uint32_t>(std::countl_zero(d_low));
 #endif
 #else
-				sr = std::countl_zero(d_low);
+				sr = static_cast<std::uint32_t>(std::countl_zero(d_low));
 #endif
 				q_high = n_high >> sr;
 				q_low = (n_high << (n_udword_bits - sr)) | (n_low >> sr);
@@ -523,7 +523,7 @@ inline constexpr udiv_result<U> udivmod(U n_low, U n_high,U d_low,U d_high) noex
 			// 0 K
 #if defined(__has_builtin)
 #if __has_builtin(__builtin_ctzll)
-			sr = 1 + n_udword_bits + __builtin_clzll(d_low) - __builtin_clzll(n_high);
+			sr = 1 + n_udword_bits + static_cast<std::uint32_t>(__builtin_clzll(d_low)) - static_cast<std::uint32_t>(__builtin_clzll(n_high));
 #else
 			sr = 1 + n_udword_bits + static_cast<std::uint32_t>(std::countl_zero(d_low)) - static_cast<std::uint32_t>(std::countl_zero(n_high));
 #endif
@@ -563,7 +563,7 @@ inline constexpr udiv_result<U> udivmod(U n_low, U n_high,U d_low,U d_high) noex
 			// K K
 #if defined(__has_builtin)
 #if __has_builtin(__builtin_ctzll)
-			sr = __builtin_clzll(d_high) - __builtin_clzll(n_high);
+			sr = static_cast<std::uint32_t>(__builtin_clzll(d_high)) - static_cast<std::uint32_t>(__builtin_clzll(n_high));
 #else
 			sr = static_cast<std::uint32_t>(std::countl_zero(d_high)) - static_cast<std::uint32_t>(std::countl_zero(n_high));
 #endif
