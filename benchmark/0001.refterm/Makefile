@@ -20,9 +20,9 @@ fstream.exe:filebufpch.hpp.gch fstream.cc
 	$(CXX) -o fstream.exe fstream.cc $(CXXFLAGS) $(LDFLAGS) $(CXXEXTRAFLAGS) -include filebufpch.hpp -lntdll
 filebuf_file.exe:filebufpch.hpp.gch filebuf_file.cc
 	$(CXX) -o filebuf_file.exe filebuf_file.cc $(CXXFLAGS) $(LDFLAGS) $(CXXEXTRAFLAGS) -include filebufpch.hpp -lntdll
-filebufpch.hpp.gch:pch.hpp.gch
+filebufpch.hpp.gch:filebufpch.hpp pch.hpp.gch
 	$(CXX) -c filebufpch.hpp $(CXXFLAGS) $(FASTIOINCLUDEPATH) -include pch.hpp
-iostreampch.hpp.gch:iostreampch.hpp
+iostreampch.hpp.gch:iostreampch.hpp pch.hpp.gch
 	$(CXX) -c iostreampch.hpp $(CXXFLAGS) $(FASTIOINCLUDEPATH) -include pch.hpp
 pch.hpp.gch:pch.hpp
 	$(CXX) -c pch.hpp $(CXXFLAGS) $(FASTIOINCLUDEPATH)
