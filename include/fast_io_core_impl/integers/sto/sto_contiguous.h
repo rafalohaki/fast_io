@@ -254,7 +254,7 @@ inline std::uint32_t detect_length(char unsigned const* buffer) noexcept
 	__m128i const mask = _mm_cmplt_epi8(t0, _mm_set1_epi8(-118));
 	std::uint16_t v{static_cast<std::uint16_t>(_mm_movemask_epi8(mask))};
 #endif
-	return std::countr_one(v);
+	return static_cast<std::uint32_t>(std::countr_one(v));
 }
 
 template<bool char_execharset>

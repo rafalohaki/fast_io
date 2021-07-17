@@ -668,31 +668,31 @@ inline constexpr void print_reserve_integral_main_impl(Iter iter,T t,std::size_t
 				if constexpr(ebcdic)
 				{
 					if(rem<10)
-						*iter=0xF0+rem;
+						*iter=static_cast<char_type>(0xF0+rem);
 					else
 					{
 						if constexpr(base<=19)
 						{
 							if constexpr(uppercase)
-								*iter=(0xC1-10)+rem;
+								*iter=static_cast<char_type>((0xC1-10)+rem);
 							else
-								*iter=(0x81-10)+rem;
+								*iter=static_cast<char_type>((0x81-10)+rem);
 						}
 						else if constexpr(base<=28)
 						{
-							if(rem<19)
+							if(rem<19u)
 							{
 								if constexpr(uppercase)
-									*iter=(0xC1-10)+rem;
+									*iter=static_cast<char_type>((0xC1-10)+rem);
 								else
-									*iter=(0x81-10)+rem;
+									*iter=static_cast<char_type>((0x81-10)+rem);
 							}
 							else
 							{
 								if constexpr(uppercase)
-									*iter=(0xD1-19)+rem;
+									*iter=static_cast<char_type>((0xD1-19)+rem);
 								else
-									*iter=(0x91-19)+rem;
+									*iter=static_cast<char_type>((0x91-19)+rem);
 							}
 						}
 						else
@@ -700,23 +700,23 @@ inline constexpr void print_reserve_integral_main_impl(Iter iter,T t,std::size_t
 							if(rem<19)
 							{
 								if constexpr(uppercase)
-									*iter=(0xC1-10)+rem;
+									*iter=static_cast<char_type>((0xC1-10)+rem);
 								else
-									*iter=(0x81-10)+rem;
+									*iter=static_cast<char_type>((0x81-10)+rem);
 							}
 							else if(rem<28)
 							{
 								if constexpr(uppercase)
-									*iter=(0xD1-19)+rem;
+									*iter=static_cast<char_type>((0xD1-19)+rem);
 								else
-									*iter=(0x91-19)+rem;
+									*iter=static_cast<char_type>((0x91-19)+rem);
 							}
 							else
 							{
 								if constexpr(uppercase)
-									*iter=(0xE2-28)+rem;
+									*iter=static_cast<char_type>((0xE2-28)+rem);
 								else
-									*iter=(0xA2-28)+rem;
+									*iter=static_cast<char_type>((0xA2-28)+rem);
 							}
 						}
 					}
@@ -724,13 +724,13 @@ inline constexpr void print_reserve_integral_main_impl(Iter iter,T t,std::size_t
 				else
 				{
 					if(rem<10)
-						*iter=u8'0'+rem;
+						*iter=static_cast<char_type>(u8'0'+rem);
 					else
 					{
 						if constexpr(uppercase)
-							*iter=(u8'A'-10)+rem;
+							*iter=static_cast<char_type>((u8'A'-10u)+rem);
 						else
-							*iter=(u8'a'-10)+rem;
+							*iter=static_cast<char_type>((u8'a'-10u)+rem);
 					}
 				}
 			}
@@ -750,7 +750,7 @@ inline constexpr void print_reserve_integral_main_impl(Iter iter,T t,std::size_t
 			if constexpr(base<=10)
 				*--iter=static_cast<char_type>(t+sign_ch<u8'0',char_type>);
 			else
-				*--iter=tb[t].element[1];
+				*--iter=static_cast<char_type>(tb[t].element[1]);
 		}
 #endif
 	}

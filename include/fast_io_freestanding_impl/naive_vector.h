@@ -163,7 +163,7 @@ public:
 			oldi->~T();
 			++newi;
 		}
-		deallocate_iobuf_space<false>(beg_ptr,cap_ptr-beg_ptr);
+		deallocate_iobuf_space<false>(beg_ptr,static_cast<std::size_t>(cap_ptr-beg_ptr));
 		beg_ptr=newptr;
 		end_ptr=newi;
 		cap_ptr=newptr+new_cap;

@@ -46,10 +46,15 @@ using make_noexcept_t = typename make_noexcept<R,Args...>::type;
 
 template<typename F>
 requires std::is_function_v<F>
+#if __has_cpp_attribute(gnu::always_inline)
+[[gnu::always_inline]]
+#elif __has_cpp_attribute(msvc::forceinline)
+[[gnu::forceinline]]
+#endif
 inline constexpr auto noexcept_cast(F* f) noexcept
 {
 #if __cpp_lib_bit_cast >= 201806L
-	return std::bit_cast<make_noexcept_t<F>*>(f);
+	return __builtin_bit_cast(make_noexcept_t<F>*,f);
 #else
 	return reinterpret_cast<make_noexcept_t<F>*>(f);
 #endif
@@ -57,6 +62,11 @@ inline constexpr auto noexcept_cast(F* f) noexcept
 
 template<typename F,typename... Args>
 requires std::is_function_v<F>
+#if __has_cpp_attribute(gnu::always_inline)
+[[gnu::always_inline]]
+#elif __has_cpp_attribute(msvc::forceinline)
+[[gnu::forceinline]]
+#endif
 inline constexpr decltype(auto) noexcept_call(F* f,Args&& ...args) noexcept
 {
 	return noexcept_cast(f)(::fast_io::freestanding::forward<Args>(args)...);

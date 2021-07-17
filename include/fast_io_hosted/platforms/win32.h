@@ -673,7 +673,7 @@ inline std::uintmax_t seek_impl(void* handle,std::intmax_t offset,seekdir s)
 	std::int64_t distance_to_move_high{};
 	if(!win32::SetFilePointerEx(handle,offset,__builtin_addressof(distance_to_move_high),static_cast<std::uint32_t>(s)))
 		throw_win32_error();
-	return distance_to_move_high;
+	return static_cast<std::uintmax_t>(static_cast<std::uint64_t>(distance_to_move_high));
 }
 
 inline io_scatter_status_t scatter_write_impl(void* __restrict handle,io_scatter_t const* scatters,std::size_t n)
@@ -707,13 +707,13 @@ inline std::uintmax_t seek(basic_win32_family_io_observer<family,ch_type> handle
 template<win32_family family,std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 [[nodiscard]] inline Iter read(basic_win32_family_io_observer<family,ch_type> handle,Iter begin,Iter end)
 {
-	return begin+win32::details::read_impl(handle.handle,::fast_io::freestanding::to_address(begin),(end-begin)*sizeof(*begin))/sizeof(*begin);
+	return begin+win32::details::read_impl(handle.handle,::fast_io::freestanding::to_address(begin),static_cast<std::size_t>(end-begin)*sizeof(*begin))/sizeof(*begin);
 }
 
 template<win32_family family,std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter write(basic_win32_family_io_observer<family,ch_type> handle,Iter cbegin,Iter cend)
 {
-	return cbegin+win32::details::write_impl(handle.handle,::fast_io::freestanding::to_address(cbegin),(cend-cbegin)*sizeof(*cbegin))/sizeof(*cbegin);
+	return cbegin+win32::details::write_impl(handle.handle,::fast_io::freestanding::to_address(cbegin),static_cast<std::size_t>(cend-cbegin)*sizeof(*cbegin))/sizeof(*cbegin);
 }
 
 template<win32_family family,std::integral ch_type>

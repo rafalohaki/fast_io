@@ -87,14 +87,14 @@ inline constexpr void wincrt_fp_set_flag_mybuf_impl(fileptr* __restrict fp) noex
 template<typename fileptr>
 inline constexpr bool wincrt_fp_is_dirty_impl(fileptr* __restrict fp) noexcept
 {
-	constexpr unsigned int mask{
+	constexpr unsigned mask{
 #if defined(_MSC_VER) || defined(_UCRT)
 	64
 #else
 	8
 #endif
 	};
-	return (fp->_flag&mask)==mask;
+	return (static_cast<unsigned>(fp->_flag)&mask)==mask;
 }
 
 inline void* my_malloc_crt(std::size_t buffer_size) noexcept
@@ -177,7 +177,7 @@ inline void wincrt_fp_write_cold_malloc_case_impl(FILE* __restrict fpp,char cons
 	std::size_t allocated_buffer_size{wincrt_internal_buffer_size};
 	if(fp->_bufsiz>=4)
 	{
-		allocated_buffer_size=fp->_bufsiz;
+		allocated_buffer_size=static_cast<std::size_t>(static_cast<unsigned>(fp->_bufsiz));
 		allocated_buffer_size>>=2;
 		allocated_buffer_size<<=2;
 	}
@@ -285,7 +285,7 @@ inline void wincrt_fp_overflow_impl(FILE* __restrict fpp,char_type ch)
 	if(fp->_base==nullptr)
 		wincrt_fp_allocate_buffer_impl(fpp);
 	else
-		posix_write_simple_impl(static_cast<int>(fp->_file),fp->_base,fp->_bufsiz);
+		posix_write_simple_impl(static_cast<int>(fp->_file),fp->_base,static_cast<std::size_t>(static_cast<unsigned>(fp->_bufsiz)));
 	fp->_ptr=fp->_base;
 	my_memcpy(fp->_ptr,&ch,sizeof(ch));
 	fp->_ptr+=sizeof(ch);
@@ -404,7 +404,7 @@ inline bool wincrt_fp_underflow_impl(FILE* __restrict fpp)
 #endif
 	if(fp->_base==nullptr)
 		wincrt_fp_allocate_buffer_impl(fpp);
-	std::size_t size{posix_read_impl(static_cast<int>(fp->_file),fp->_base,fp->_bufsiz)};
+	std::size_t size{posix_read_impl(static_cast<int>(fp->_file),fp->_base,static_cast<std::size_t>(static_cast<unsigned>(fp->_bufsiz)))};
 	fp->_ptr=fp->_base;
 	fp->_cnt=static_cast<int>(static_cast<unsigned int>(size));
 	if constexpr(sizeof(char_type)==1)

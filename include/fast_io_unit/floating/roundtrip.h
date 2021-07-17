@@ -729,7 +729,7 @@ inline constexpr bool is_integral_end_point(std::uint64_t two_f,std::int32_t e2,
 	if(e2<=9)
 		return true;
 	if(e2<=86)
-		return multiple_of_pow5(two_f, minus_k);
+		return multiple_of_pow5(two_f, static_cast<std::uint32_t>(minus_k));
 	return false;
 }
 
@@ -1027,24 +1027,24 @@ inline constexpr Iter print_rsv_fp_decision_impl(Iter iter,typename iec559_trait
 	}
 	else	//general
 	{
-		std::int32_t olength(static_cast<std::int32_t>(chars_len<10,true>(m10)));	
-		std::int32_t const real_exp(static_cast<std::int32_t>(e10 + olength - 1));
+		std::int32_t olength{static_cast<std::int32_t>(chars_len<10,true>(m10))};
+		std::int32_t const real_exp{static_cast<std::int32_t>(e10 + olength - 1)};
 		std::uint32_t fixed_length{},this_case{};
 		if(olength<=real_exp)
 		{
-			fixed_length=real_exp+1;
+			fixed_length=static_cast<std::uint32_t>(real_exp+1);
 			this_case=1;
 		}
 		else if(0<=real_exp&&real_exp<olength)
 		{
-			fixed_length=olength+2;
+			fixed_length=static_cast<std::uint32_t>(olength+2);
 			if(olength==real_exp+1)
 				--fixed_length;
 			this_case=2;
 		}
 		else
-			fixed_length=static_cast<std::uint32_t>(-real_exp)+olength+1;
-		std::uint32_t scientific_length(olength==1?olength+3:olength+5);
+			fixed_length=static_cast<std::uint32_t>(static_cast<std::uint32_t>(-real_exp)+static_cast<std::uint32_t>(olength)+1u);
+		std::uint32_t scientific_length{static_cast<std::uint32_t>(olength==1?olength+3:olength+5)};
 		if(scientific_length<fixed_length)
 		{
 			//scientific decision

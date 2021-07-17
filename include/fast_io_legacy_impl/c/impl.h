@@ -464,7 +464,7 @@ https://www.gnu.org/software/libc/manual/html_node/File-Positioning.html
 		auto val{noexcept_call(ftello64,fp)};
 		if(val<0)
 			throw_posix_error();
-		return val;
+		return static_cast<std::uintmax_t>(val);
 #endif
 #else
 		return my_c_io_seek_impl<c_family::standard>(fp,offset,s);
@@ -482,6 +482,18 @@ https://www.gnu.org/software/libc/manual/html_node/File-Positioning.html
 		if(val<0)
 			throw_posix_error(ent._errno);
 		return val;
+#elif defined(__MSDOS__) || defined(__CYGWIN__)
+		if constexpr(sizeof(long)<sizeof(std::intmax_t))
+		{
+			if(offset<static_cast<std::intmax_t>(std::numeric_limits<long>::min())||offset>static_cast<std::intmax_t>(std::numeric_limits<long>::max()))
+				throw_posix_error(EINVAL);
+		}
+		if(noexcept_call(::fseek,fp,static_cast<long>(offset),static_cast<int>(s)))
+			throw_posix_error();
+		auto val{noexcept_call(::ftell,fp)};
+		if(val<0)
+			throw_posix_error();
+		return static_cast<std::uintmax_t>(static_cast<long unsigned>(val));
 #else
 		if(
 #if defined(_WIN32) && !defined(__CYGWIN__)
@@ -489,13 +501,13 @@ https://www.gnu.org/software/libc/manual/html_node/File-Positioning.html
 #elif defined(__USE_LARGEFILE64)
 		noexcept_call(fseeko64,fp,offset,static_cast<int>(s))
 #elif defined(__has_builtin)
-#if __has_builtin(__builtin_fseek)
-		__builtin_fseek(fp,offset,static_cast<int>(s))
+#if __has_builtin(__builtin_fseeko)
+		__builtin_fseeko(fp,offset,static_cast<int>(s))
 #else
-		fseek(fp,offset,static_cast<int>(s))
+		fseeko(fp,offset,static_cast<int>(s))
 #endif
 #else
-		fseek(fp,offset,static_cast<int>(s))
+		fseeko(fp,offset,static_cast<int>(s))
 #endif
 		)
 			throw_posix_error();
@@ -505,18 +517,18 @@ https://www.gnu.org/software/libc/manual/html_node/File-Positioning.html
 #elif defined(__USE_LARGEFILE64)
 		noexcept_call(ftello64,fp)
 #elif defined(__has_builtin)
-#if __has_builtin(__builtin_ftell)
-		__builtin_ftell(fp)
+#if __has_builtin(__builtin_ftello)
+		__builtin_ftello(fp)
 #else
-		ftell(fp)
+		ftello(fp)
 #endif
 #else
-		ftell(fp)
+		ftello(fp)
 #endif
 		};
 		if(val<0)
 			throw_posix_error();
-		return val;
+		return static_cast<std::uintmax_t>(val);
 #endif
 	}
 }

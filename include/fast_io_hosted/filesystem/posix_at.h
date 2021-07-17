@@ -3,6 +3,22 @@
 namespace fast_io
 {
 
+namespace posix
+{
+extern int import_faccessat(int dirfd,char const* pathname,int mode, int flags) noexcept asm("faccessat");
+extern int import_renameat(int olddirfd,char const* oldpath,int newdirfd, char const* newpath) noexcept asm("renameat");
+extern int import_linkat(int olddirfd,char const* oldpath,int newdirfd, char const* newpath,int flags) noexcept asm("linkat");
+extern int import_symlinkat(char const* oldpath, int newdirfd, char const *newpath) noexcept asm("symlinkat");
+extern int import_fchmodat(int dirfd, char const *pathname, mode_t mode, int flags) noexcept asm("fchmodat");
+extern int import_utimensat(int dirfd, char const *pathname,struct timespec const* times, int flags) noexcept asm("utimensat");
+extern int import_fchownat(int dirfd, char const *pathname,uid_t owner, gid_t group, int flags) noexcept asm("fchownat");
+extern int import_fstatat(int dirfd, char const *pathname, struct stat *buf,int flags) noexcept asm("fstatat");
+extern int import_mkdirat(int dirfd, char const* pathname, mode_t mode) noexcept asm("mkdirat");
+extern int import_mknodat(int dirfd, char const* pathname, mode_t mode, dev_t dev) noexcept asm("mknodat");
+extern int import_unlinkat(int dirfd, char const*pathname, int flags) noexcept asm("unlinkat");
+extern int import_readlinkat(int dirfd, char const *pathname,char *buf, size_t bufsiz) noexcept asm("readlinkat");
+}
+
 namespace details
 {
 
@@ -50,23 +66,6 @@ mknodat,
 unlinkat
 };
 
-#if defined(__CYGWIN__)
-extern int faccessat(int dirfd,char const* pathname,int mode, int flags) noexcept asm("faccessat");
-extern int renameat(int olddirfd,char const* oldpath,int newdirfd, char const* newpath) noexcept asm("renameat");
-extern int linkat(int olddirfd,char const* oldpath,int newdirfd, char const* newpath,int flags) noexcept asm("linkat");
-extern int symlinkat(char const* oldpath, int newdirfd, char const *newpath) noexcept asm("symlinkat");
-extern int fchmodat(int dirfd, char const *pathname, mode_t mode, int flags) noexcept asm("fchmodat");
-extern int utimensat(int dirfd, char const *pathname,struct timespec const* times, int flags) noexcept asm("utimensat");
-extern int fchownat(int dirfd, char const *pathname,uid_t owner, gid_t group, int flags) noexcept asm("fchownat");
-extern int fstatat(int dirfd, char const *pathname, struct stat *buf,int flags) noexcept asm("fstatat");
-extern int mkdirat(int dirfd, char const* pathname, mode_t mode) noexcept asm("mkdirat");
-extern int mknodat(int dirfd, char const* pathname, mode_t mode, dev_t dev) noexcept asm("mknodat");
-extern int unlinkat(int dirfd, char const*pathname, int flags) noexcept asm("unlinkat");
-extern int readlinkat(int dirfd, char const *pathname,char *buf, size_t bufsiz) noexcept asm("readlinkat");
-#elif (defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)) && !defined(__NEWLIB__)
-extern int renameat(int olddirfd,char const* oldpath,int newdirfd, char const* newpath) noexcept asm("renameat");
-#endif
-
 inline void posix_renameat_impl(int olddirfd,char const* oldpath,
 	int newdirfd,char const* newpath)
 {
@@ -74,7 +73,7 @@ inline void posix_renameat_impl(int olddirfd,char const* oldpath,
 #if defined(__linux__) && defined(__NR_renameat)
 	system_call<__NR_renameat,int>
 #else
-	renameat
+	::fast_io::posix::import_renameat
 #endif
 	(olddirfd,oldpath,newdirfd,newpath));
 }
@@ -86,7 +85,7 @@ inline void posix_linkat_impl(int olddirfd,char const* oldpath,
 #if defined(__linux__)
 	system_call<__NR_linkat,int>
 #else
-	linkat
+	::fast_io::posix::import_linkat
 #endif
 	(olddirfd,oldpath,newdirfd,newpath,flags));
 }
@@ -115,7 +114,7 @@ inline auto posix12_api_dispatcher(char const* oldpath,
 #if defined(__linux__)
 		system_call<__NR_symlinkat,int>
 #else
-		symlinkat
+		::fast_io::posix::import_symlinkat
 #endif
 		(oldpath,newdirfd,newpath));
 	}
@@ -129,7 +128,7 @@ inline void posix_faccessat_impl(int dirfd, char const *pathname, int mode, int 
 #elif defined(__linux__) && defined(__NR_faccessat)
 	system_call<__NR_faccessat,int>
 #else
-	faccessat
+	::fast_io::posix::import_faccessat
 #endif
 	(dirfd,pathname,mode,flags));
 }
@@ -158,9 +157,9 @@ inline void posix_fchownat_impl(int dirfd, const char *pathname, uintmax_t owner
 #if defined(__linux__)
 	system_call<__NR_fchownat,int>
 #else
-	fchownat
+	::fast_io::posix::import_fchownat
 #endif
-	(dirfd,pathname,owner,group,flags));
+	(dirfd,pathname,static_cast<uid_t>(owner),static_cast<gid_t>(group),flags));
 }
 #endif
 
@@ -176,7 +175,7 @@ inline void posix_fchmodat_impl(int dirfd, const char *pathname, mode_t mode, in
 #if defined(__linux__)
 	system_call<__NR_fchmodat,int>
 #else
-	fchmodat
+	::fast_io::posix::import_fchmodat
 #endif
 	(dirfd,pathname,mode,flags));
 }
@@ -199,7 +198,7 @@ inline posix_file_status posix_fstatat_impl(int dirfd, const char *pathname, int
 #endif
 	,int>
 #else
-	fstatat
+	::fast_io::posix::import_fstatat
 #endif
 	(dirfd,pathname,__builtin_addressof(buf),flags));
 	return struct_stat_to_posix_file_status(buf);
@@ -241,9 +240,9 @@ inline void posix_mknodat_impl(int dirfd, const char *pathname, mode_t mode,std:
 #endif
 	,int>
 #else
-	mknodat
+	::fast_io::posix::import_mknodat
 #endif
-	(dirfd,pathname,mode,dev));
+	(dirfd,pathname,mode,static_cast<dev_t>(dev)));
 }
 
 #endif
@@ -254,7 +253,7 @@ inline void posix_unlinkat_impl(int dirfd,char const* path,int flags)
 #if defined(__linux__)
 	system_call<__NR_unlinkat,int>
 #else
-	unlinkat
+	::fast_io::posix::import_unlinkat
 #endif
 	(dirfd,path,flags));
 }
@@ -304,7 +303,7 @@ int flags)
 #endif
 
 #else
-	utimensat
+	::fast_io::posix::import_utimensat
 #endif
 	(dirfd,path,tsptr,flags));
 }
@@ -639,7 +638,7 @@ inline std::size_t posix_readlinkat_common_impl(int dirfd,char const* pathname,c
 #endif
 	,int>
 #else
-	readlinkat
+	::fast_io::posix::import_readlinkat
 #endif
 	(dirfd,pathname,buffer,buffer_size)
 	};

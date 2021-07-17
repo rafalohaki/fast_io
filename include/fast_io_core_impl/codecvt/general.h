@@ -89,7 +89,7 @@ inline constexpr code_cvt_result<src_char_type,dest_char_type> general_code_cvt(
 	{
 		static_assert(src_encoding==encoding_scheme::utf_be||src_encoding==encoding_scheme::utf_le);
 		for(;src_first!=src_last;++src_first)
-			dst+=get_utf_code_units<encoding>(*src_first,dst);
+			dst+=get_utf_code_units<encoding>(static_cast<char32_t>(*src_first),dst);
 		return {src_last,dst};
 	}
 	else if constexpr(sizeof(src_char_type)==2)

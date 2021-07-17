@@ -269,7 +269,7 @@ inline void* nt_create_file_common_impl(void* directory,win32::nt::unicode_strin
 	win32::nt::io_status_block block{};
 	auto const status{win32::nt::nt_create_file<zw>(
 	__builtin_addressof(handle),mode.DesiredAccess,__builtin_addressof(obj),__builtin_addressof(block),nullptr,mode.FileAttributes,
-	mode.ShareAccess,mode.CreateDisposition,mode.CreateOptions,nullptr,0)};
+	mode.ShareAccess,mode.CreateDisposition,mode.CreateOptions,nullptr,0u)};
 	if(status)
 		throw_nt_error(status);
 	return handle;
@@ -278,8 +278,8 @@ inline void* nt_create_file_common_impl(void* directory,win32::nt::unicode_strin
 inline std::uint16_t filename_bytes(std::size_t sz)
 {
 	if constexpr(sizeof(sz)<sizeof(std::uint16_t))//sizeof(std::size_t) can never be smaller than sizeof(std::uint16_t)
-		return static_cast<std::uint16_t>(sz)<<1;
-	if(static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max()>>1)<sz)
+		return static_cast<std::uint16_t>(static_cast<std::uint16_t>(sz)<<1u);
+	if(static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max()>>1u)<sz)
 		throw_nt_error(0xC0000106);
 	return static_cast<std::uint16_t>(sz<<1);
 }
@@ -823,19 +823,19 @@ using u32nt_file=basic_nt_file<char32_t>;
 template<std::integral char_type=char>
 inline basic_nt_io_observer<char_type> nt_stdin() noexcept
 {
-	return {fast_io::win32::GetStdHandle(-10)};
+	return {fast_io::win32::GetStdHandle(static_cast<std::uint32_t>(-10))};
 }
 
 template<std::integral char_type=char>
 inline basic_nt_io_observer<char_type> nt_stdout() noexcept
 {
-	return {fast_io::win32::GetStdHandle(-11)};
+	return {fast_io::win32::GetStdHandle(static_cast<std::uint32_t>(-11))};
 }
 
 template<std::integral char_type=char>
 inline basic_nt_io_observer<char_type> nt_stderr() noexcept
 {
-	return {fast_io::win32::GetStdHandle(-12)};
+	return {fast_io::win32::GetStdHandle(static_cast<std::uint32_t>(-12))};
 }
 
 
@@ -871,19 +871,19 @@ using u32zw_file=basic_zw_file<char32_t>;
 template<std::integral char_type=char>
 inline basic_zw_io_observer<char_type> zw_stdin() noexcept
 {
-	return {fast_io::win32::GetStdHandle(-10)};
+	return {fast_io::win32::GetStdHandle(static_cast<std::uint32_t>(-10))};
 }
 
 template<std::integral char_type=char>
 inline basic_zw_io_observer<char_type> zw_stdout() noexcept
 {
-	return {fast_io::win32::GetStdHandle(-11)};
+	return {fast_io::win32::GetStdHandle(static_cast<std::uint32_t>(-11))};
 }
 
 template<std::integral char_type=char>
 inline basic_zw_io_observer<char_type> zw_stderr() noexcept
 {
-	return {fast_io::win32::GetStdHandle(-12)};
+	return {fast_io::win32::GetStdHandle(static_cast<std::uint32_t>(-12))};
 }
 
 #if 0

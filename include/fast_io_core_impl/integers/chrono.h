@@ -46,7 +46,7 @@ template<bool unchecked=false,::fast_io::freestanding::random_access_iterator It
 inline constexpr Iter chrono_two_digits_impl(Iter it,I i) noexcept
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
-	my_make_unsigned_t<I> u(static_cast<my_make_unsigned_t<I>>(i));
+	my_make_unsigned_t<I> u{static_cast<my_make_unsigned_t<I>>(i)};
 	if(i<0)[[unlikely]]
 	{
 		u = 0u - u;
@@ -64,9 +64,9 @@ inline constexpr Iter chrono_two_digits_impl(Iter it,I i) noexcept
 template<::fast_io::freestanding::random_access_iterator Iter,std::signed_integral integ>
 inline constexpr Iter chrono_year_impl(Iter it,integ i) noexcept
 {
-	using unsigned_type = std::make_unsigned_t<std::remove_cvref_t<integ>>;
+	using unsigned_type = my_make_unsigned_t<std::remove_cvref_t<integ>>;
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
-	unsigned_type u(i);
+	unsigned_type u{static_cast<unsigned_type>(i)};
 	if(i<0)[[unlikely]]
 	{
 		u = 0u - u;

@@ -5,7 +5,6 @@
 #include<io.h>
 #endif
 #endif
-#include"systemcall_details.h"
 
 #if __has_include(<fcntl.h>)
 #include<fcntl.h>
@@ -41,10 +40,12 @@
 #include <wasi/api.h>
 #endif
 
+#endif
+#include"systemcall_details.h"
+
 #if (!defined(_WIN32) || defined(__CYGWIN__)) && __has_include(<sys/socket.h>) && __has_include(<netinet/in.h>) && !defined(__wasi__)
 #include <netinet/in.h>
 #include "posix_netmode.h"
-#endif
 #endif
 
 namespace fast_io
@@ -482,7 +483,7 @@ inline std::size_t posix_read_impl(int fd,void* address,std::size_t bytes_to_rea
 #endif
 	));
 	system_call_throw_error(read_bytes);
-	return read_bytes;
+	return static_cast<std::size_t>(read_bytes);
 }
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
@@ -502,10 +503,10 @@ inline io_scatter_status_t posix_scatter_read_impl(int fd,io_scatters_t sp)
 
 inline std::uint32_t posix_write_simple_impl(int fd,void const* address,std::size_t bytes_to_write)
 {
-	auto ret{_write(fd,address,static_cast<std::uint32_t>(bytes_to_write))};
+	auto ret{noexcept_call(_write,fd,address,static_cast<std::uint32_t>(bytes_to_write))};
 	if(ret==-1)
 		throw_posix_error();
-	return ret;
+	return static_cast<std::uint32_t>(ret);
 }
 
 inline std::size_t posix_write_nolock_impl(int fd,void const* address,std::size_t to_write)
@@ -572,8 +573,8 @@ inline std::size_t posix_write_impl(int fd,void const* address,std::size_t to_wr
 		return posix_write_simple_impl(fd,address,to_write);
 #elif defined(__wasi__)
 	__wasi_ciovec_t iov{.buf = reinterpret_cast<char unsigned const*>(address), .buf_len = to_write};
-	size_t bytes_written;
-	auto ern{noexcept_call(__wasi_fd_write,fd, __builtin_addressof(iov), 1, __builtin_addressof(bytes_written))};
+	std::size_t bytes_written;
+	auto ern{noexcept_call(__wasi_fd_write,fd, __builtin_addressof(iov), 1u, __builtin_addressof(bytes_written))};
 	if(ern)
 		throw_posix_error(ern);
 	return bytes_written;
@@ -588,23 +589,56 @@ inline std::size_t posix_write_impl(int fd,void const* address,std::size_t to_wr
 #endif
 	(fd,address,to_write));
 	system_call_throw_error(write_bytes);
-	return write_bytes;
+	return static_cast<std::size_t>(write_bytes);
 #endif
 }
 
 inline std::uintmax_t posix_seek_impl(int fd,std::intmax_t offset,seekdir s)
 {
+#if defined(__MSDOS__)
+	if constexpr(sizeof(off_t)<sizeof(std::intmax_t))
+	{
+		if(offset<static_cast<std::intmax_t>(std::numeric_limits<off_t>::min())||offset>static_cast<std::intmax_t>(std::numeric_limits<off_t>::max()))
+			throw_posix_error(EINVAL);
+	}
+	auto ret{noexcept_call(::lseek,fd,static_cast<off_t>(offset),static_cast<int>(s))};
+	if(ret==-1)
+		throw_posix_error();
+	return static_cast<std::uintmax_t>(static_cast<my_make_unsigned_t<off_t>>(ret));
+#elif defined(__linux__)
+#if defined(__NR_llseek)
+	if constexpr(sizeof(off_t)<=sizeof(std::int32_t))
+	{
+		std::uint64_t result{};
+		std::uint64_t offset64_val{static_cast<std::uint64_t>(static_cast<std::uintmax_t>(offset))};
+		auto ret{system_call<__NR_llseek,int>(fd,static_cast<std::uint32_t>(offset>>32u),static_cast<std::uint32_t>(offset),
+			__builtin_addressof(result),static_cast<int>(s))};
+		system_call_throw_error(ret);
+		return static_cast<std::uintmax_t>(static_cast<std::uint64_t>(result));
+	}
+	else
+#endif
+	{
+		if constexpr(sizeof(off_t)<=sizeof(std::int32_t))
+		{
+			if(offset<static_cast<std::intmax_t>(std::numeric_limits<off_t>::min())||offset>static_cast<std::intmax_t>(std::numeric_limits<off_t>::max()))
+				throw_posix_error(EOVERFLOW);
+		}
+		auto ret{system_call<__NR_lseek,std::ptrdiff_t>(fd,offset,static_cast<int>(s))};
+		system_call_throw_error(ret);
+		return static_cast<std::uintmax_t>(static_cast<std::uint64_t>(ret));
+	}
+#else
 	auto ret(
-#if defined(__linux__)
-		system_call<__NR_lseek,std::ptrdiff_t>
-#elif defined(_WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
 		::_lseeki64
 #else
 		::lseek
 #endif
 		(fd,offset,static_cast<int>(s)));
-	system_call_throw_error(ret);	
-	return ret;
+	system_call_throw_error(ret);
+	return static_cast<std::uintmax_t>(static_cast<std::uint64_t>(ret));
+#endif
 }
 
 inline bool posix_is_character_device(int fd) noexcept
@@ -658,12 +692,12 @@ inline void posix_flush_impl(int fd)
 template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 [[nodiscard]] inline Iter read(basic_posix_io_observer<ch_type> h,Iter begin,Iter end)
 {
-	return begin+details::posix_read_impl(h.fd,::fast_io::freestanding::to_address(begin),(end-begin)*sizeof(*begin))/sizeof(*begin);
+	return begin+details::posix_read_impl(h.fd,::fast_io::freestanding::to_address(begin),static_cast<std::size_t>(end-begin)*sizeof(*begin))/sizeof(*begin);
 }
 template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter write(basic_posix_io_observer<ch_type> h,Iter cbegin,Iter cend)
 {
-	return cbegin+details::posix_write_impl(h.fd,::fast_io::freestanding::to_address(cbegin),(cend-cbegin)*sizeof(*cbegin))/sizeof(*cbegin);
+	return cbegin+details::posix_write_impl(h.fd,::fast_io::freestanding::to_address(cbegin),static_cast<std::size_t>(cend-cbegin)*sizeof(*cbegin))/sizeof(*cbegin);
 }
 
 template<std::integral ch_type>
@@ -1035,7 +1069,7 @@ An Example of Multiple Inheritance in C++: A Model of the Iostream Library
 			ret=my_dos_creatnew(pathname,0,&fd);
 	}
 	else
-		ret=my_dos_open(pathname,flags,&fd);
+		ret=my_dos_open(pathname,static_cast<short unsigned>(static_cast<unsigned>(flags)),&fd);
 	if(ret)
 	{
 		if constexpr(always_terminate)
@@ -1281,7 +1315,7 @@ asm("ftruncate")
 inline void posix_truncate_impl(int fd,std::uintmax_t size)
 {
 #if defined(_WIN32) && !defined(__CYGWIN__)
-	auto err(noexcept_call(_chsize_s,fd,size));
+	auto err(noexcept_call(_chsize_s,fd,static_cast<std::int64_t>(size)));
 	if(err)
 		throw_posix_error(err);
 #elif defined(__linux__) && defined(__NR_ftruncate64)
@@ -1289,7 +1323,7 @@ inline void posix_truncate_impl(int fd,std::uintmax_t size)
 #elif defined(__linux__) && defined(__NR_ftruncate)
 	system_call_throw_error(system_call<__NR_ftruncate,int>(fd,size));
 #else
-	if(ftruncate(fd,size)<0)
+	if(noexcept_call(ftruncate,fd,static_cast<off_t>(size))<0)
 		throw_posix_error();
 #endif
 }
@@ -1320,7 +1354,7 @@ public:
 #else
 		::fast_io::freestanding::array<int,2> a2{pipes.front().fd,pipes.back().fd};
 #if defined(_WIN32) && !defined(__CYGWIN__)
-		if(noexcept_call(_pipe,a2.data(),131072,_O_BINARY)==-1)
+		if(noexcept_call(_pipe,a2.data(),131072u,_O_BINARY)==-1)
 #else
 		if(::pipe(a2.data())==-1)
 #endif
@@ -1466,7 +1500,7 @@ inline std::size_t posix_scatter_read_size_impl(int fd,io_scatters_t sp)
 	static_assert(sizeof(unsigned long)==sizeof(std::size_t));
 	auto val{system_call<__NR_readv,std::ptrdiff_t>(static_cast<unsigned int>(fd),sp.base,sp.len)};
 	system_call_throw_error(val);
-	return val;
+	return static_cast<std::size_t>(val);
 #elif defined(__wasi__)
 	using iovec_may_alias_const_ptr
 #if __has_cpp_attribute(gnu::may_alias)
@@ -1497,7 +1531,7 @@ inline std::size_t posix_scatter_read_size_impl(int fd,io_scatters_t sp)
 #endif
 	if(val<0)
 		throw_posix_error();
-	return val;
+	return static_cast<std::size_t>(val);
 #endif
 }
 
@@ -1527,7 +1561,7 @@ inline io_scatter_status_t wasmtime_bug_posix_scatter_write_cold(int fd,io_scatt
 	{
 		std::size_t val{};
 		__wasi_ciovec_t iovec{.buf = reinterpret_cast<char unsigned const*>(i->base), .buf_len = i->len};
-		auto err{noexcept_call(__wasi_fd_write,fd,__builtin_addressof(iovec),1,__builtin_addressof(val))};
+		auto err{noexcept_call(__wasi_fd_write,fd,__builtin_addressof(iovec),1u,__builtin_addressof(val))};
 		if(err)
 			throw_posix_error(err);
 		total+=val;
@@ -1573,7 +1607,7 @@ inline std::size_t posix_scatter_write_size_impl(int fd,io_scatters_t sp)
 	static_assert(sizeof(unsigned long)==sizeof(std::size_t));
 	auto val{system_call<__NR_writev,std::ptrdiff_t>(static_cast<unsigned int>(fd),sp.base,sp.len)};
 	system_call_throw_error(val);
-	return val;
+	return static_cast<std::size_t>(val);
 #else
 	std::size_t sz{sp.len};
 	if(static_cast<std::size_t>(std::numeric_limits<int>::max())<sz)
@@ -1591,7 +1625,7 @@ inline std::size_t posix_scatter_write_size_impl(int fd,io_scatters_t sp)
 #endif
 	if(val<0)
 		throw_posix_error();
-	return val;
+	return static_cast<std::size_t>(val);
 #endif
 }
 #endif
@@ -1664,7 +1698,7 @@ inline std::size_t posix_pread_impl(int fd,void* address,std::size_t bytes_to_re
 #endif
 	(fd,address,bytes_to_read,static_cast<off_t>(offset)));
 	system_call_throw_error(read_bytes);
-	return read_bytes;
+	return static_cast<std::size_t>(read_bytes);
 }
 
 inline std::size_t posix_pwrite_impl(int fd,void const* address,std::size_t bytes_to_write,std::intmax_t offset)
@@ -1682,7 +1716,7 @@ inline std::size_t posix_pwrite_impl(int fd,void const* address,std::size_t byte
 #endif
 	(fd,address,bytes_to_write,static_cast<off_t>(offset)));
 	system_call_throw_error(written_bytes);
-	return written_bytes;
+	return static_cast<std::size_t>(written_bytes);
 }
 
 inline std::size_t posix_scatter_pread_size_impl(int fd,io_scatters_t sp,std::intmax_t offset)
@@ -1696,16 +1730,16 @@ inline std::size_t posix_scatter_pread_size_impl(int fd,io_scatters_t sp,std::in
 //	static_assert(sizeof(unsigned long)==sizeof(std::size_t));
 	auto val{system_call<__NR_preadv,std::ptrdiff_t>(static_cast<unsigned int>(fd),sp.base,sp.len,static_cast<off_t>(offset))};
 	system_call_throw_error(val);
-	return val;
+	return static_cast<std::size_t>(val);
 #else
 	std::size_t sz{sp.len};
 	if(static_cast<std::size_t>(std::numeric_limits<int>::max())<len)
 		sz=static_cast<std::size_t>(std::numeric_limits<int>::max());
 	auto ptr{reinterpret_cast<iovec_may_alias const*>(sp.base)};
-	std::ptrdiff_t val{::preadv(fd,ptr,static_cast<int>(sz),static_cast<off_t>(offset))};
+	std::ptrdiff_t val{noexcept_call(::preadv,fd,ptr,static_cast<int>(sz),static_cast<off_t>(offset))};
 	if(val<0)
 		throw_posix_error();
-	return val;
+	return static_cast<std::size_t>(val);
 #endif
 }
 
@@ -1720,16 +1754,16 @@ inline std::size_t posix_scatter_pwrite_size_impl(int fd,io_scatters_t sp,std::i
 //	static_assert(sizeof(unsigned long)==sizeof(std::size_t));
 	auto val{system_call<__NR_pwritev,std::ptrdiff_t>(static_cast<unsigned int>(fd),sp.base,sp.len,static_cast<off_t>(offset))};
 	system_call_throw_error(val);
-	return val;
+	return static_cast<std::size_t>(val);
 #else
 	std::size_t sz{sp.len};
 	if(static_cast<std::size_t>(std::numeric_limits<int>::max())<sz)
 		sz=static_cast<std::size_t>(std::numeric_limits<int>::max());
 	auto ptr{reinterpret_cast<iovec_may_alias const*>(sp.base)};
-	std::ptrdiff_t val{::pwritev(fd,ptr,static_cast<int>(sz),static_cast<off_t>(offset))};
+	std::ptrdiff_t val{noexcept_call(::pwritev,fd,ptr,static_cast<int>(sz),static_cast<off_t>(offset))};
 	if(val<0)
 		throw_posix_error();
-	return val;
+	return static_cast<std::size_t>(val);
 #endif
 }
 

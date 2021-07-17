@@ -270,10 +270,10 @@ inline unix_timestamp win32_posix_clock_gettime_boottime_xp_impl()
 	std::int64_t counter{};
 	if(!::fast_io::win32::QueryPerformanceCounter(__builtin_addressof(counter)))
 		throw_win32_error();
-	std::int64_t val(uintiso_subseconds_per_second/freq);
+	std::int64_t val{static_cast<std::int64_t>(uintiso_subseconds_per_second)/freq};
 	std::int64_t dv{counter/freq};
 	std::uint64_t md{static_cast<std::uint64_t>(counter%freq)};
-	return unix_timestamp{dv,md*val};
+	return unix_timestamp{dv,static_cast<std::uintmax_t>(md*static_cast<std::uint64_t>(val))};
 }
 
 }
@@ -664,7 +664,7 @@ inline void posix_tzset() noexcept
 
 
 template<intiso_t off_to_epoch>
-inline iso8601_timestamp local(basic_timestamp<off_to_epoch> timestamp,bool dstadj=true)
+inline iso8601_timestamp local(basic_timestamp<off_to_epoch> timestamp,[[maybe_unused]] bool dstadj=true)
 {
 #ifdef __MSDOS__
 	return utc(timestamp);

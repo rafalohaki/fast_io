@@ -1,5 +1,9 @@
 #pragma once
 
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC system_header
+#endif
+
 #if 0
 //__STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
 namespace fast_io::freestanding
