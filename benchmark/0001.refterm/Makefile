@@ -29,4 +29,4 @@ pch.hpp.gch:pch.hpp
 clean:
 	rm *.gch *.tmp *.txt
 distclean:
-	rm *.exe *.gch *.tmp *.txt
+	rm filebuf_file.exe fpipe.exe fstream.exe iostream.exe out_buf.exe stdio.exe stdio_hack.exe *.gch *.tmp *.txt
