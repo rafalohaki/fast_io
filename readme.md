@@ -81,6 +81,8 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - Windows Runtime
 - Nintendo DS (devkitPro)
 - Webassembly
+- Managarm
+- Vinix
 - Any other platform (if you want me to support it, tell me, including your own OS)
 
 ## Legacy Windows Version Support (need define _WIN32_WINNT and _WIN32_WINDOWS version by yourself)
