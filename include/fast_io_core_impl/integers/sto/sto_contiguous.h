@@ -435,7 +435,7 @@ inline constexpr parse_result<Iter> scan_int_contiguous_none_simd_space_part_def
 				res*=base_char_type;
 				res+=ch;
 			}
-			for(++first;first!=last&&char_digit_probe_overflow<base,char_type>(*first);++first)
+			for(++first;first!=last&&char_digit_probe_overflow<base,char_type>(static_cast<unsigned_char_type>(*first));++first)
 				overflow=true;
 		}
 	}
@@ -590,7 +590,8 @@ template<char8_t base,::fast_io::freestanding::input_iterator Iter>
 inline constexpr Iter scan_skip_all_digits_impl(Iter first,Iter last)
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
-	for(;first!=last&&char_digit_probe_overflow<base,char_type>(*first);++first);
+	using unsigned_char_type = std::make_unsigned_t<char_type>;
+	for(;first!=last&&char_digit_probe_overflow<base,char_type>(static_cast<unsigned_char_type>(*first));++first);
 	return first;
 }
 
@@ -598,6 +599,7 @@ template<char8_t base,typename State,::fast_io::freestanding::input_iterator Ite
 inline constexpr parse_result<Iter> scan_context_define_parse_impl(State& st,Iter first_start,Iter last,T& t) noexcept
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	using unsigned_char_type = std::make_unsigned_t<char_type>;
 	auto first{first_start};
 	auto phase{st.integer_phase};
 	switch(phase)
@@ -639,7 +641,7 @@ inline constexpr parse_result<Iter> scan_context_define_parse_impl(State& st,Ite
 				st.integer_phase=scan_integral_context_phase::zero;
 				return {first,parse_code::partial};
 			}
-			else if(!char_digit_probe_overflow<base,char_type>(*first))
+			else if(!char_digit_probe_overflow<base,char_type>(static_cast<unsigned_char_type>(*first)))
 			{
 				return {first,parse_code::invalid};
 			}

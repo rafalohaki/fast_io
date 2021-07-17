@@ -381,7 +381,7 @@ inline constexpr output_iter non_overlapped_copy(input_iter first,input_iter las
 	(std::integral<input_value_type>&&std::integral<output_value_type>&&
 	sizeof(input_value_type)==sizeof(output_value_type))))
 	{
-		std::size_t count(last-first);
+		std::size_t count{static_cast<std::size_t>(last-first)};
 		if(count)	//to avoid nullptr UB
 			my_memcpy(::fast_io::freestanding::to_address(result),::fast_io::freestanding::to_address(first),sizeof(::fast_io::freestanding::iter_value_t<input_iter>)*count);
 		return result+=count;
