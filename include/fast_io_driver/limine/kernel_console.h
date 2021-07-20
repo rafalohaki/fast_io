@@ -12,6 +12,7 @@ struct basic_kernel_console
 	function_ptr_type func_ptr{};
 };
 
+template<std::integral ch_type>
 inline constexpr basic_kernel_console<ch_type> io_value_handle(basic_kernel_console<ch_type> con) noexcept
 {
 	return con;
