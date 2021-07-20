@@ -15,8 +15,8 @@ struct basic_kernel_console
 using kernel_console = basic_kernel_console<char>;
 using u8kernel_console = basic_kernel_console<char8_t>;
 
-template<::fast_io::freestanding::contiguous_iterator Iter>
-inline void write(kernel_console console,Iter first,Iter last) noexcept
+template<std::integral char_type,::fast_io::freestanding::contiguous_iterator Iter>
+inline void write(basic_kernel_console<char_type> console,Iter first,Iter last) noexcept
 {
 	(console.func_ptr)(::fast_io::freestanding::to_address(first),static_cast<std::size_t>(last-first)*sizeof(*first));
 }
@@ -35,7 +35,8 @@ inline void kconsole_scatter_write_impl(::fast_io::limine::kernel_console::funct
 
 }
 
-inline void scatter_write(kernel_console console,io_scatters_t scatters) noexcept
+template<std::integral char_type>
+inline void scatter_write(basic_kernel_console<char_type> console,io_scatters_t scatters) noexcept
 {
 	::fast_io::limine::details::kconsole_scatter_write_impl(console.func_ptr,scatters.base,scatters.len);
 }
