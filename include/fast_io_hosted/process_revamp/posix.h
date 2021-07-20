@@ -124,7 +124,7 @@ inline void posix_waitpid_noexcept(pid_t pid) noexcept
 	system_call<__NR_execveat,int>(dirfd,path,argv,envp,AT_SYMLINK_NOFOLLOW);
 	fast_terminate();
 #else
-	int fd{noexcept_call(::openat,dirfd,path,O_RDONLY|O_EXCL,0644)};
+	int fd{::openat(dirfd,path,O_RDONLY|O_EXCL,0644)};
 	if(fd==-1)
 		fast_terminate();
 	::fast_io::posix::libc_fexecve(fd,const_cast<char* const*>(argv),const_cast<char* const*>(envp));
