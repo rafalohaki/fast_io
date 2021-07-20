@@ -12,6 +12,11 @@ struct basic_kernel_console
 	function_ptr_type func_ptr{};
 };
 
+inline constexpr basic_kernel_console<ch_type> io_value_handle(basic_kernel_console<ch_type> con) noexcept
+{
+	return con;
+}
+
 using kernel_console = basic_kernel_console<char>;
 using u8kernel_console = basic_kernel_console<char8_t>;
 
