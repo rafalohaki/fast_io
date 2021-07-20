@@ -679,10 +679,12 @@ inline void posix_flush_impl(int fd)
 #if defined(_WIN32) && !defined(__CYGWIN__)
 	if(noexcept_call(_commit,fd)==-1)
 		throw_posix_error();
+#elif defined(__linux__) && defined(__NR_fdatasync)
+	system_call_throw_error(system_call<__NR_fdatasync,int>(fd));
 #elif defined(__linux__) && defined(__NR_fsync)
 	system_call_throw_error(system_call<__NR_fsync,int>(fd));
 #else
-	if(fsync(fd)==-1)
+	if(noexcept_call(fsync,fd)==-1)
 		throw_posix_error();
 #endif
 }

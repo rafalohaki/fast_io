@@ -99,6 +99,33 @@ inline constexpr char_type calculate_minus_sign_character() noexcept
 		else
 			return u8'.';
 	}
+	else if constexpr(sign_ch==u8'\r')
+	{
+		if constexpr(std::same_as<char_type_nocvref,char>)
+			return '\r';
+		else if constexpr(std::same_as<char_type_nocvref,wchar_t>)
+			return L'\r';
+		else
+			return u8'\r';
+	}
+	else if constexpr(sign_ch==u8'\n')
+	{
+		if constexpr(std::same_as<char_type_nocvref,char>)
+			return '\n';
+		else if constexpr(std::same_as<char_type_nocvref,wchar_t>)
+			return L'\n';
+		else
+			return u8'\n';
+	}
+	else if constexpr(sign_ch==u8':')
+	{
+		if constexpr(std::same_as<char_type_nocvref,char>)
+			return ':';
+		else if constexpr(std::same_as<char_type_nocvref,wchar_t>)
+			return L':';
+		else
+			return u8':';
+	}
 }
 
 template<char8_t ch,std::integral char_type>

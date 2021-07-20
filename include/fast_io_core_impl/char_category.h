@@ -299,11 +299,30 @@ inline constexpr bool is_html_whitespace(char_type ch) noexcept
 namespace fast_io
 {
 
+
+
+template<::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter find_non_c_space(Iter begin,Iter end)
+{
+	for(;begin!=end&&fast_io::char_category::is_c_space(*begin);++begin);
+	return begin;
+}
+
+template<::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter find_c_space(Iter begin,Iter end)
+{
+	for(;begin!=end&&!fast_io::char_category::is_c_space(*begin);++begin);
+	return begin;
+}
+
+/*
+deprecate this
+*/
+
 template<::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter scan_skip_space(Iter begin, Iter end)
 {
-	for (; begin != end && fast_io::char_category::is_c_space(*begin); ++begin);
-	return begin;
+	return find_non_c_space(begin,end);
 }
 
 }

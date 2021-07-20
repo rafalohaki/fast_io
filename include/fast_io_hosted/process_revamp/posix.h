@@ -6,6 +6,11 @@
 namespace fast_io
 {
 
+namespace posix
+{
+extern int libc_fexecve(int fd, char *const* argv, char *const* envp) noexcept __asm__("fexecve");
+}
+
 struct posix_wait_status
 {
 	int wait_loc{};
@@ -81,10 +86,10 @@ namespace details
 inline pid_t posix_fork()
 {
 	pid_t pid{	
-	#if defined(__linux__)
+	#if defined(__linux__) && defined(__NR_fork)
 		system_call<__NR_fork,pid_t>()
 	#else
-		::fork()
+		noexcept_call(::fork)
 	#endif
 	};
 	system_call_throw_error(pid);
@@ -95,10 +100,10 @@ inline posix_wait_status posix_waitpid(pid_t pid)
 {
 	posix_wait_status status;
 	system_call_throw_error(
-	#if defined(__linux__)
+	#if defined(__linux__) && defined(__NR_wait4)
 		system_call<__NR_wait4,int>(pid,__builtin_addressof(status.wait_loc),0,nullptr)
 	#else
-		waitpid(pid,__builtin_addressof(status.wait_loc),0)
+		noexcept_call(waitpid,pid,__builtin_addressof(status.wait_loc),0)
 	#endif
 	);
 	return status;
@@ -106,23 +111,23 @@ inline posix_wait_status posix_waitpid(pid_t pid)
 
 inline void posix_waitpid_noexcept(pid_t pid) noexcept
 {
-#if defined(__linux__)
+#if defined(__linux__) && defined(__NR_wait4)
 	system_call<__NR_wait4,int>(pid,nullptr,0,nullptr);
 #else
-	waitpid(pid,nullptr,0);
+	noexcept_call(waitpid,pid,nullptr,0);
 #endif
 }
 
 [[noreturn]] inline void posix_execveat(int dirfd,char const* path,char const* const* argv,char const* const* envp) noexcept
 {
-#ifdef __linux__
+#if defined(__linux__) && defined(__NR_execveat)
 	system_call<__NR_execveat,int>(dirfd,path,argv,envp,AT_SYMLINK_NOFOLLOW);
 	fast_terminate();
 #else
-	int fd{::openat(dirfd,path,O_RDONLY|O_EXCL,0644)};
+	int fd{noexcept_call(::openat,dirfd,path,O_RDONLY|O_EXCL,0644)};
 	if(fd==-1)
 		fast_terminate();
-	::fexecve(fd,const_cast<char* const*>(argv),const_cast<char* const*>(envp));
+	::fast_Io::posix::libc_fexecve(fd,const_cast<char* const*>(argv),const_cast<char* const*>(envp));
 	fast_terminate();
 #endif
 }
