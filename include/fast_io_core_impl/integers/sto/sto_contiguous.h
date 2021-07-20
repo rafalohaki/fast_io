@@ -702,6 +702,8 @@ inline constexpr parse_code scan_context_eof_define_parse_impl(State& st,T& t) n
 {
 	switch(st.integer_phase)
 	{
+	case scan_integral_context_phase::space:
+		return parse_code::end_of_file;
 	case scan_integral_context_phase::digit:
 		return scan_int_contiguous_none_space_part_define_impl<base>(st.buffer.data(),st.buffer.data()+st.size,t).code;
 	case scan_integral_context_phase::overflow:
