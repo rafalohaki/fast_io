@@ -573,7 +573,7 @@ struct lock_guard
 {
 mutex_type& device;
 
-explicit constexpr lock_guard(mutex_type& m) : device(m)
+explicit constexpr lock_guard(mutex_type& m) noexcept: device(m)
 { device.lock(); }
 
 #if __cpp_constexpr >= 201907L
