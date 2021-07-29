@@ -85,27 +85,27 @@ namespace details
 {
 inline pid_t posix_fork()
 {
-	pid_t pid{	
-	#if defined(__linux__) && defined(__NR_fork)
-		system_call<__NR_fork,pid_t>()
-	#else
-		noexcept_call(::fork)
-	#endif
-	};
+
+#if defined(__linux__) && defined(__NR_fork)
+	pid_t pid{system_call<__NR_fork,pid_t>()};
 	system_call_throw_error(pid);
+#else
+	pid_t pid{noexcept_call(::fork)};
+	if(pid==-1)
+		throw_posix_error();
+#endif
 	return pid;
 }
 
 inline posix_wait_status posix_waitpid(pid_t pid)
 {
 	posix_wait_status status;
-	system_call_throw_error(
-	#if defined(__linux__) && defined(__NR_wait4)
-		system_call<__NR_wait4,int>(pid,__builtin_addressof(status.wait_loc),0,nullptr)
-	#else
-		noexcept_call(waitpid,pid,__builtin_addressof(status.wait_loc),0)
-	#endif
-	);
+#if defined(__linux__) && defined(__NR_wait4)
+	system_call_throw_error(system_call<__NR_wait4,int>(pid,__builtin_addressof(status.wait_loc),0,nullptr));
+#else
+	if(noexcept_call(waitpid,pid,__builtin_addressof(status.wait_loc),0)==-1)
+		throw_posix_error();
+#endif
 	return status;
 }
 
