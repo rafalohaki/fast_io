@@ -6,6 +6,11 @@
 namespace fast_io
 {
 
+namespace posix
+{
+extern int libc_fexecve(int fd, char *const* argv, char *const* envp) noexcept __asm__("fexecve");
+}
+
 struct posix_wait_status
 {
 	int wait_loc{};
@@ -80,49 +85,49 @@ namespace details
 {
 inline pid_t posix_fork()
 {
-	pid_t pid{	
-	#if defined(__linux__)
-		system_call<__NR_fork,pid_t>()
-	#else
-		::fork()
-	#endif
-	};
+
+#if defined(__linux__) && defined(__NR_fork)
+	pid_t pid{system_call<__NR_fork,pid_t>()};
 	system_call_throw_error(pid);
+#else
+	pid_t pid{noexcept_call(::fork)};
+	if(pid==-1)
+		throw_posix_error();
+#endif
 	return pid;
 }
 
 inline posix_wait_status posix_waitpid(pid_t pid)
 {
 	posix_wait_status status;
-	system_call_throw_error(
-	#if defined(__linux__)
-		system_call<__NR_wait4,int>(pid,__builtin_addressof(status.wait_loc),0,nullptr)
-	#else
-		waitpid(pid,__builtin_addressof(status.wait_loc),0)
-	#endif
-	);
+#if defined(__linux__) && defined(__NR_wait4)
+	system_call_throw_error(system_call<__NR_wait4,int>(pid,__builtin_addressof(status.wait_loc),0,nullptr));
+#else
+	if(noexcept_call(waitpid,pid,__builtin_addressof(status.wait_loc),0)==-1)
+		throw_posix_error();
+#endif
 	return status;
 }
 
 inline void posix_waitpid_noexcept(pid_t pid) noexcept
 {
-#if defined(__linux__)
+#if defined(__linux__) && defined(__NR_wait4)
 	system_call<__NR_wait4,int>(pid,nullptr,0,nullptr);
 #else
-	waitpid(pid,nullptr,0);
+	noexcept_call(waitpid,pid,nullptr,0);
 #endif
 }
 
 [[noreturn]] inline void posix_execveat(int dirfd,char const* path,char const* const* argv,char const* const* envp) noexcept
 {
-#ifdef __linux__
+#if defined(__linux__) && defined(__NR_execveat)
 	system_call<__NR_execveat,int>(dirfd,path,argv,envp,AT_SYMLINK_NOFOLLOW);
 	fast_terminate();
 #else
 	int fd{::openat(dirfd,path,O_RDONLY|O_EXCL,0644)};
 	if(fd==-1)
 		fast_terminate();
-	::fexecve(fd,const_cast<char* const*>(argv),const_cast<char* const*>(envp));
+	::fast_io::posix::libc_fexecve(fd,const_cast<char* const*>(argv),const_cast<char* const*>(envp));
 	fast_terminate();
 #endif
 }
@@ -390,8 +395,8 @@ public:
 	explicit constexpr posix_process() noexcept =default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	explicit constexpr posix_process(native_hd pid) noexcept:
-		posix_process_observer{pid}{}
+	explicit constexpr posix_process(native_hd pid1) noexcept:
+		posix_process_observer{pid1}{}
 	posix_process(posix_at_entry pate,cstring_view filename,posix_process_args const& args,posix_process_args const& envp,posix_process_io const& pio):
 		posix_process_observer{details::posix_fork_execveat_impl(pate.fd,filename,args.args,envp.args,pio)}{}
 	posix_process(cstring_view filename,posix_process_args const& args,posix_process_args const& envp,posix_process_io const& pio):
