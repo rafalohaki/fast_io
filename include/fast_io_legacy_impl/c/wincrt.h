@@ -378,7 +378,7 @@ inline char_type* wincrt_fp_read_impl(FILE* __restrict fpp,char_type* first,char
 	{
 		if(diff)[[likely]]
 		{
-			my_memcpy(first,diff,fp->_ptr);
+			my_memcpy(first,fp->_ptr,diff);
 			auto intdiff{static_cast<int>(static_cast<unsigned int>(diff))};
 			fp->_cnt-=intdiff;
 			fp->_ptr+=intdiff;
