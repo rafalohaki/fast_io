@@ -62,6 +62,9 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - riscv64
 - powerpc64
 - wasm32-wasi
+- mips-abi32
+- mips-abin32
+- mips-abi64
 - All architectures should work. (Just i do not have time to build all cross-toolchains to test them one by one)
 
 ## Platform Support
