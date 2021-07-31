@@ -28,8 +28,6 @@ int main()
 ```
 
 ## Examples
-https://github.com/expnkx/fast_io_examples
-
 Deprecated examples are in
 https://bitbucket.org/ejsvifq_mabmip/fast_io_deprecated
 
