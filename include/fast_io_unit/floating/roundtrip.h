@@ -942,19 +942,6 @@ inline constexpr Iter fill_zero_point_impl(Iter iter) noexcept
 	if constexpr(comma)
 	{
 	if constexpr(std::same_as<char_type,char>)
-		return copy_string_literal("0.",iter);
-	else if constexpr(std::same_as<char_type,wchar_t>)
-		return copy_string_literal(L"0.",iter);
-	else if constexpr(std::same_as<char_type,char16_t>)
-		return copy_string_literal(u"0.",iter);
-	else if constexpr(std::same_as<char_type,char32_t>)
-		return copy_string_literal(U"0.",iter);
-	else
-		return copy_string_literal(u8"0.",iter);
-	}
-	else
-	{
-	if constexpr(std::same_as<char_type,char>)
 		return copy_string_literal("0,",iter);
 	else if constexpr(std::same_as<char_type,wchar_t>)
 		return copy_string_literal(L"0,",iter);
@@ -964,6 +951,19 @@ inline constexpr Iter fill_zero_point_impl(Iter iter) noexcept
 		return copy_string_literal(U"0,",iter);
 	else
 		return copy_string_literal(u8"0,",iter);
+	}
+	else
+	{
+	if constexpr(std::same_as<char_type,char>)
+		return copy_string_literal("0.",iter);
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		return copy_string_literal(L"0.",iter);
+	else if constexpr(std::same_as<char_type,char16_t>)
+		return copy_string_literal(u"0.",iter);
+	else if constexpr(std::same_as<char_type,char32_t>)
+		return copy_string_literal(U"0.",iter);
+	else
+		return copy_string_literal(u8"0.",iter);
 	}
 }
 
@@ -1091,9 +1091,9 @@ bool comma,
 typename flt,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter print_rsvflt_define_impl(Iter iter,flt f) noexcept
 {
-	if constexpr(::fast_io::manipulators::floating_format::fixed==mt&&(uppercase_e||comma))
+	if constexpr(::fast_io::manipulators::floating_format::fixed==mt&&uppercase_e)
 	{
-		return print_rsvflt_define_impl<showpos,uppercase,false,false,mt>(iter,f);
+		return print_rsvflt_define_impl<showpos,uppercase,false,comma,mt>(iter,f);
 	}
 	else
 	{
