@@ -119,12 +119,12 @@ inline std::FILE* fp_hack([[maybe_unused]] T* stdbuf) noexcept
 #endif
 		if(stdbuf)[[likely]]
 		{
-			freestanding::string_view stdin_type{typeid(std::__stdinbuf<char_type>).name()};
-			string_view my_type{typeid(*stdbuf).name()};
-			if(my_type==stdin_type)
+			char const* stdinbuf_type{typeid(std::__stdinbuf<char_type>).name()};
+			char const* my_type{typeid(*stdbuf).name()};
+			if(std::strcmp(stdinbuf_type,my_type)==0)
 				return stdinbuf_stdoutbuf_fp_hack(stdbuf);
-			freestanding::string_view stdout_type{typeid(std::__stdoutbuf<char_type>).name()};
-			if(my_type==stdout_type)
+			char const* stdoutbuf_type{typeid(std::__stdoutbuf<char_type>).name()};
+			if(std::strcmp(stdoutbuf_type,my_type)==0)
 				return stdinbuf_stdoutbuf_fp_hack(stdbuf);
 			auto fbf{dynamic_cast<std::basic_filebuf<char_type,traits_type>*>(stdbuf)};
 			if(fbf)
