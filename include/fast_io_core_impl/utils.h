@@ -49,7 +49,7 @@ requires std::is_function_v<F>
 #if __has_cpp_attribute(gnu::always_inline)
 [[gnu::always_inline]]
 #elif __has_cpp_attribute(msvc::forceinline)
-[[gnu::forceinline]]
+[[msvc::forceinline]]
 #endif
 inline constexpr auto noexcept_cast(F* f) noexcept
 {
@@ -65,7 +65,7 @@ requires std::is_function_v<F>
 #if __has_cpp_attribute(gnu::always_inline)
 [[gnu::always_inline]]
 #elif __has_cpp_attribute(msvc::forceinline)
-[[gnu::forceinline]]
+[[msvc::forceinline]]
 #endif
 inline constexpr decltype(auto) noexcept_call(F* f,Args&& ...args) noexcept
 {
