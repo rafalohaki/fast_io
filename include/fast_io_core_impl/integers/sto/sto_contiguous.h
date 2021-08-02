@@ -286,7 +286,7 @@ template<bool char_execharset,bool less_than_64_bits>
 inline simd_parse_result sse_parse(char unsigned const* buffer,char unsigned const* buffer_end,std::uint64_t &res,bool has_zero) noexcept
 {
 	constexpr char8_t zero_constant{char_execharset?static_cast<char8_t>('0'):u8'0'};
-	constexpr char8_t v176_constant{zero_constant+128};
+	constexpr char8_t v176_constant{static_cast<char8_t>((zero_constant+static_cast<char8_t>(128))&255u)};
 	using fast_io::parse_code;
 #if (defined(__GNUC__) || defined(__clang__)) && !defined(__INTEL_COMPILER)
 	using namespace fast_io::intrinsics;
