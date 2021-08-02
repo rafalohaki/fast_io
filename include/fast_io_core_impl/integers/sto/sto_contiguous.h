@@ -237,7 +237,7 @@ template<bool char_execharset>
 inline std::uint32_t detect_length(char unsigned const* buffer) noexcept
 {
 	constexpr char8_t zero_constant{char_execharset?static_cast<char8_t>('0'):u8'0'};
-	constexpr char8_t v176_constant{zero_constant+128};
+	constexpr char8_t v176_constant{static_cast<char8_t>((zero_constant+static_cast<char8_t>(128))&255u)};
 #if (defined(__GNUC__) || defined(__clang__)) && !defined(__INTEL_COMPILER)
 	using namespace fast_io::intrinsics;
 	x86_64_v16qu chunk;
