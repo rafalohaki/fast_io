@@ -1,5 +1,5 @@
 #pragma once
-#if defined(__GLIBCXX__)
+#if defined(__GLIBCXX__) && !defined(_LIBCPP_VERSION) && __has_include(<ext/stdio_filebuf.h>)
 #include<ext/stdio_filebuf.h>
 #endif
 #include"streambuf_io_observer.h"
@@ -45,7 +45,19 @@ public:
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	constexpr basic_filebuf_file(native_hd fb):basic_filebuf_io_observer<CharT,Traits>{fb}{}
-#if defined(__GLIBCXX__)
+#if defined(_LIBCPP_VERSION)
+	template<c_family family>
+	basic_filebuf_file(basic_c_family_io_handle<family,char_type>&& chd,open_mode mode):
+		basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>}
+	{
+		details::streambuf_hack::fp_hack_open(this->fb,chd.fp,details::calculate_fstream_open_value(mode));
+		chd.fp=nullptr;
+	}
+	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
+		basic_filebuf_file(basic_c_file_unlocked<char_type>(::fast_io::freestanding::move(piohd),mode),mode)
+	{
+	}
+#elif defined(__GLIBCXX__)
 	template<c_family family>
 	basic_filebuf_file(basic_c_family_io_handle<family,char_type>&& chd,open_mode mode):
 		basic_filebuf_io_observer<CharT,Traits>{new __gnu_cxx::stdio_filebuf<char_type,traits_type>(chd.fp,details::calculate_fstream_open_value(mode),fast_io::details::cal_buffer_size<CharT,true>())}
@@ -70,18 +82,6 @@ This function never fails. but what if fdopen fails?
 https://github.com/gcc-mirror/gcc/blob/16e2427f50c208dfe07d07f18009969502c25dc8/libstdc%2B%2B-v3/config/io/basic_file_stdio.cc
 Shows libstdc++ still calls fdopen even on nt kernel which is incorrect
 */
-	}
-#elif defined(_LIBCPP_VERSION)
-	template<c_family family>
-	basic_filebuf_file(basic_c_family_io_handle<family,char_type>&& chd,open_mode mode):
-		basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>}
-	{
-		details::streambuf_hack::fp_hack_open(this->fb,chd.fp,details::calculate_fstream_open_value(mode));
-		chd.fp=nullptr;
-	}
-	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
-		basic_filebuf_file(basic_c_file_unlocked<char_type>(::fast_io::freestanding::move(piohd),mode),mode)
-	{
 	}
 #elif defined(_MSVC_STL_UPDATE)
 	template<c_family family>
