@@ -560,8 +560,10 @@ inline void write(basic_c_family_io_observer<family,char_type> ciob,Iter bg,Iter
 
 namespace win32
 {
+#if defined(__GNUC__) || defined(__clang__)
 #if __has_cpp_attribute(gnu::const)
 [[gnu::const]]
+#endif
 #endif
 inline FILE* wincrt_acrt_iob_func(unsigned index) noexcept
 {
