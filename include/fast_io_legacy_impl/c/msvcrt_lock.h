@@ -38,9 +38,27 @@ asm("_unlock")
 #endif
 ;
 
+
+#if __has_cpp_attribute(gnu::const)
+[[gnu::const]]
+#endif
+#if __has_cpp_attribute(gnu::always_inline)
+[[gnu::always_inline]]
+#elif __has_cpp_attribute(msvc::forceinline)
+[[msvc::forceinline]]
+#endif
+inline FILE* wincrt_iob_func() noexcept
+{
+#if defined(__iob_func)
+	return __iob_func();
+#else
+	return noexcept_call(__iob_func);
+#endif
+}
+
 inline void my_msvcrt_lock_file(FILE* fp) noexcept
 {
-	auto iob{_iob};
+	auto iob{wincrt_iob_func()};
 	std::size_t entry{static_cast<std::size_t>(fp-iob)};
 	if(entry<_IOB_ENTRIES)
 	{
@@ -59,7 +77,7 @@ https://github.com/Alexpux/mingw-w64/blob/d0d7f784833bbb0b2d279310ddc6afb52fe47a
 
 inline void my_msvcrt_unlock_file(FILE* fp) noexcept
 {
-	auto iob{_iob};
+	auto iob{wincrt_iob_func()};
 	std::size_t entry{static_cast<std::size_t>(fp-iob)};
 	if(entry<_IOB_ENTRIES)
 	{

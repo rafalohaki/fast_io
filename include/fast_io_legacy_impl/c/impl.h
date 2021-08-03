@@ -995,5 +995,6 @@ using c_file_factory_unlocked = c_family_file_factory<c_family::unlocked>;
 #include"general.h"
 #endif
 #include"done.h"
+#include"macros_general.h"
 #endif
 

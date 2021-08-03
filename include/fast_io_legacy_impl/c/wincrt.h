@@ -558,4 +558,94 @@ inline void write(basic_c_family_io_observer<family,char_type> ciob,Iter bg,Iter
 		details::wincrt_fp_write_impl<family>(ciob.fp,bg,ed);
 }
 
+namespace win32
+{
+#if __has_cpp_attribute(gnu::const)
+[[gnu::const]]
+#endif
+inline FILE* wincrt_acrt_iob_func(unsigned index) noexcept
+{
+#if defined(_MSC_VER) || defined(_UCRT)
+	return noexcept_call(__acrt_iob_func,index);
+#else
+	return ::fast_io::win32::wincrt_iob_func()+index;
+#endif
+}
+}
+
+inline c_io_observer c_stdin() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(0)};
+}
+
+inline c_io_observer c_stdout() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(1)};
+}
+
+inline c_io_observer c_stderr() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(2)};
+}
+
+inline wc_io_observer wc_stdin() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(0)};
+}
+
+inline wc_io_observer wc_stdout() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(1)};
+}
+
+inline wc_io_observer wc_stderr() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(2)};
+}
+
+inline u8c_io_observer u8c_stdin() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(0)};
+}
+
+inline u8c_io_observer u8c_stdout() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(1)};
+}
+
+inline u8c_io_observer u8c_stderr() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(2)};
+}
+
+inline u16c_io_observer u16c_stdin() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(0)};
+}
+
+inline u16c_io_observer u16c_stdout() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(1)};
+}
+
+inline u16c_io_observer u16c_stderr() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(2)};
+}
+
+inline u32c_io_observer u32c_stdin() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(0)};
+}
+
+inline u32c_io_observer u32c_stdout() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(1)};
+}
+
+inline u32c_io_observer u32c_stderr() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(2)};
+}
+
 }
