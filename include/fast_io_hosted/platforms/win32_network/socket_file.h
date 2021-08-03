@@ -72,8 +72,9 @@ inline std::size_t win32_socket_read_impl(std::uintptr_t socket, void* data,std:
 {
 	if constexpr(sizeof(int)<sizeof(std::size_t)||(sizeof(int)==sizeof(std::size_t)))
 	{
-		if(std::numeric_limits<int>::max()<to_read)
-			to_read=std::numeric_limits<int>::max();
+		constexpr std::size_t intmax{static_cast<std::size_t>(static_cast<unsigned>(std::numeric_limits<int>::max()))};
+		if(intmax<to_read)
+			to_read=intmax;
 	}
 	int recved{::fast_io::win32::recv(socket,reinterpret_cast<char*>(data),static_cast<int>(static_cast<unsigned>(to_read)),0)};
 	if(recved==-1)
