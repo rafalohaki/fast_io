@@ -178,7 +178,7 @@ inline constexpr void scatter_print_with_reserve_recursive_unit(char_type*& star
 	using real_type = std::remove_cvref_t<T>;
 	if constexpr(reserve_printable<char_type,T>)
 	{
-#ifdef __SANITIZE_ADDRESS__
+#if defined(__SANITIZE_ADDRESS__) && !defined(__OPTIMIZE__)
 		constexpr std::size_t sz{print_reserve_size(io_reserve_type<char_type,real_type>)};
 		char_type sanitize_buffer[sz];
 		auto dt{print_reserve_define(io_reserve_type<char_type,real_type>,sanitize_buffer,t)};
@@ -444,7 +444,7 @@ print_reserve_size(io_reserve_type<char_type,value_type>)
 			}
 			obuffer_set_curr(out,it);
 		}
-#ifndef __SANITIZE_ADDRESS__
+#if !defined(__SANITIZE_ADDRESS__) || defined(__OPTIMIZE__)
 		else if constexpr(buffer_output_stream<output>)
 		{
 			auto bcurr{obuffer_curr(out)};
@@ -522,7 +522,7 @@ print_reserve_size(io_reserve_type<char_type,value_type>)
 			}
 			obuffer_set_curr(out,it);
 		}
-#ifndef __SANITIZE_ADDRESS__
+#if !defined(__SANITIZE_ADDRESS__) || defined(__OPTIMIZE__)
 		else if constexpr(buffer_output_stream<output>)
 		{
 			auto curr{obuffer_curr(out)};
