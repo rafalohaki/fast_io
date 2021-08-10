@@ -336,7 +336,7 @@ inline constexpr std::size_t mul_or_overflow_die(std::size_t a,std::size_t b) no
 		return a*b;
 #elif __has_builtin(__builtin_mul_overflow)&& __has_builtin(__builtin_trap)
 	std::size_t size;
-	if(__builtin_mul_overflow(a,b,&size))[[unlikely]]
+	if(__builtin_mul_overflow(a,b,__builtin_addressof(size)))[[unlikely]]
 		__builtin_trap();
 	return size;
 #else
@@ -366,7 +366,7 @@ inline constexpr std::size_t cal_allocation_size_or_die(std::size_t size) noexce
 		__debugbreak();
 	return size*sizeof(T);
 #elif __has_builtin(__builtin_mul_overflow) && __has_builtin(__builtin_trap)
-	if(__builtin_mul_overflow(size,sizeof(T),&size))[[unlikely]]
+	if(__builtin_mul_overflow(size,sizeof(T),__builtin_addressof(size)))[[unlikely]]
 		__builtin_trap();
 	return size;
 #else
