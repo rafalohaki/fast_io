@@ -319,7 +319,7 @@ inline constexpr T sub_overflow(T a,T b) noexcept
 #if defined(__has_builtin)
 #if __has_builtin(__builtin_sub_overflow)
 	T c;
-	if(__builtin_sub_overflow(a,b,&c))[[unlikely]]
+	if(__builtin_sub_overflow(a,b,__builtin_addressof(c)))[[unlikely]]
 		fast_terminate();
 	return c;
 #else
