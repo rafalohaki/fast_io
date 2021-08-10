@@ -360,7 +360,7 @@ inline constexpr std::size_t mul_or_overflow_die_chain(std::size_t size,Args... 
 template<typename T>
 inline constexpr std::size_t cal_allocation_size_or_die(std::size_t size) noexcept
 {
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__clang__)
 	constexpr std::size_t max_size{SIZE_MAX/sizeof(T)};
 	if(size>max_size)
 		__debugbreak();
@@ -405,7 +405,7 @@ inline constexpr U shiftright(U low_part,U high_part,std::uint8_t shift) noexcep
 	else
 #endif
 	{
-#if defined(_MSC_VER) && (defined(_M_X64) || defined(__i386__))
+#if defined(_MSC_VER) && (defined(_M_X64) || defined(__i386__)) && !defined(__clang__)
 		if constexpr(sizeof(U)==8&&sizeof(std::size_t)>=8)
 		{
 			return __shiftright128(low_part,high_part,shift);
