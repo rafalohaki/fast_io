@@ -111,7 +111,7 @@ inline constexpr basic_input_buffer_generator<input> igenerator(input& in)
 				return {};
 		}
 	}
-	return {__builtin_addresssof(in)};
+	return {__builtin_addressof(in)};
 }
 
 }

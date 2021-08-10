@@ -105,7 +105,7 @@ struct model
 };
 
 template<typename elem,typename traits,typename alloc>
-inline constexpr decltype(auto) hack_rep(std::basic_string<elem,traits,alloc>& str)
+inline constexpr decltype(auto) hack_rep(std::basic_string<elem,traits,alloc>& str) noexcept
 {
 	using model_t = model<elem,traits,alloc>;
 	using __rep = typename model_t::__rep;
@@ -129,7 +129,7 @@ inline constexpr bool is_local_and_null(std::basic_string<elem,traits,alloc>& st
 }
 
 template<typename elem,typename traits,typename alloc>
-inline void set_size(std::basic_string<elem,traits,alloc>& str,typename std::basic_string<elem,traits,alloc>::size_type s)
+inline void set_size(std::basic_string<elem,traits,alloc>& str,typename std::basic_string<elem,traits,alloc>::size_type s) noexcept
 {
 	decltype(auto) __r_{hack_rep(str)};
 	if (is_long(str))
@@ -145,7 +145,7 @@ inline void set_size(std::basic_string<elem,traits,alloc>& str,typename std::bas
 }
 
 template<typename elem,typename traits,typename alloc>
-inline void set_cap(std::basic_string<elem,traits,alloc>& str,typename std::basic_string<elem,traits,alloc>::size_type s)
+inline void set_cap(std::basic_string<elem,traits,alloc>& str,typename std::basic_string<elem,traits,alloc>::size_type s) noexcept
 {
 	using model_t = model<elem,traits,alloc>;
 	decltype(auto) __r_{hack_rep(str)};
@@ -154,20 +154,20 @@ inline void set_cap(std::basic_string<elem,traits,alloc>& str,typename std::basi
 
 
 template<typename T>
-inline constexpr void set_begin_ptr(T& str,typename T::value_type* ptr)
+inline constexpr void set_begin_ptr(T& str,typename T::value_type* ptr) noexcept
 {
 	decltype(auto) __r_{hack_rep(str)};
 	__r_.__s.__data_[0]=ptr;
 }
 
 template<typename T>
-inline constexpr void set_end_ptr(T& str,typename T::value_type* ptr)
+inline constexpr void set_end_ptr(T& str,typename T::value_type* ptr) noexcept
 {
 	set_size(str,ptr-str.data());
 }
 
 template<typename T>
-inline constexpr void set_cap_ptr(T& str,typename T::value_type* ptr)
+inline constexpr void set_cap_ptr(T& str,typename T::value_type* ptr) noexcept
 {
 	set_cap(str,ptr-str.data());
 }

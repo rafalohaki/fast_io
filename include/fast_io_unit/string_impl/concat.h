@@ -325,7 +325,7 @@ void in_place_to(T& t,Args&& ...args)
 	std::string str;
 	ostring_ref ref{&str};
 	print_freestanding(ref,::fast_io::freestanding::forward<Args>(args)...);
-	basic_istring_view<char> is(str);
+	ibuffer_view is(str);
 	if(!scan_freestanding(is,t))
 		throw_parse_code(parse_code::partial);
 	//No Decoration?

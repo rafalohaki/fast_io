@@ -46,7 +46,7 @@ size_type        _M_allocated_capacity;
 
 
 template<typename T>
-inline decltype(auto) hack_M_data(T& str)
+inline decltype(auto) hack_M_data(T& str) noexcept
 {
 	using model_t = model<T>;
 	using alloc_hider = typename model_t::_Alloc_hider;
@@ -55,7 +55,7 @@ inline decltype(auto) hack_M_data(T& str)
 }
 
 template<typename T>
-inline decltype(auto) hack_M_string_length(T& str)
+inline decltype(auto) hack_M_string_length(T& str) noexcept
 {
 	using model_t = model<T>;
 	using size_type = typename T::size_type;
@@ -63,7 +63,7 @@ inline decltype(auto) hack_M_string_length(T& str)
 }
 
 template<typename T>
-inline auto hack_M_local_buf(T& str)
+inline auto hack_M_local_buf(T& str) noexcept
 {
 	using model_t = model<T>;
 	using value_type = typename T::value_type;
@@ -71,7 +71,7 @@ inline auto hack_M_local_buf(T& str)
 }
 
 template<typename T>
-inline decltype(auto) hack_M_allocated_capacity(T& str)
+inline decltype(auto) hack_M_allocated_capacity(T& str) noexcept
 {
 	using model_t = model<T>;
 	using size_type = typename T::size_type;
@@ -79,39 +79,39 @@ inline decltype(auto) hack_M_allocated_capacity(T& str)
 }
 
 template<typename T>
-inline constexpr bool is_local(T& str)
+inline constexpr bool is_local(T& str) noexcept
 {
 	using const_pointer = typename T::const_pointer;
 	return std::pointer_traits<const_pointer>::pointer_to(*hack_M_local_buf(str))==hack_M_data(str);
 }
 
 template<typename T>
-inline constexpr bool is_local_and_null(T& str)
+inline constexpr bool is_local_and_null(T& str) noexcept
 {
 	using const_pointer = typename T::const_pointer;
 	return std::pointer_traits<const_pointer>::pointer_to(*hack_M_local_buf(str))==hack_M_data(str)+hack_M_string_length(str);
 }
 
 template<typename T>
-inline constexpr void set_begin_ptr(T& str,typename T::value_type* ptr)
+inline constexpr void set_begin_ptr(T& str,typename T::value_type* ptr) noexcept
 {
 	hack_M_data(str)=ptr;
 }
 
 template<typename T>
-inline constexpr void set_end_ptr(T& str,typename T::value_type* ptr)
+inline constexpr void set_end_ptr(T& str,typename T::value_type* ptr) noexcept
 {
 	hack_M_string_length(str)=ptr-::fast_io::freestanding::to_address(hack_M_data(str));
 }
 
 template<typename T>
-inline constexpr void set_cap_ptr(T& str,typename T::value_type* ptr)
+inline constexpr void set_cap_ptr(T& str,typename T::value_type* ptr) noexcept
 {
 	hack_M_allocated_capacity(str)=ptr-::fast_io::freestanding::to_address(hack_M_data(str));
 }
 
 template<typename T>
-inline constexpr std::size_t local_capacity()
+inline constexpr std::size_t local_capacity() noexcept
 {
 	using model_type = model<T>;
 	return model_type::_S_local_capacity;

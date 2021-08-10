@@ -61,7 +61,7 @@
 #include"fast_io_core_impl/integers/integer.h"
 
 #include"fast_io_core_impl/black_hole.h"
-#include"fast_io_core_impl/istring_view.h"
+#include"fast_io_core_impl/buffer_view.h"
 #include"fast_io_core_impl/transmit/impl.h"
 
 #ifdef __cpp_lib_source_location

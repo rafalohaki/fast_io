@@ -20,7 +20,7 @@ struct model
 };
 
 template<typename elem,typename traits,typename alloc>
-inline constexpr decltype(auto) hack_scary_val(std::basic_string<elem,traits,alloc>& str)
+inline constexpr decltype(auto) hack_scary_val(std::basic_string<elem,traits,alloc>& str) noexcept
 {
 	using model_t = model<elem,traits,alloc>;
 	using compress_pair_type = typename model_t::compress_pair_type;
@@ -29,21 +29,21 @@ inline constexpr decltype(auto) hack_scary_val(std::basic_string<elem,traits,all
 }
 
 template<typename T>
-inline constexpr bool is_local_and_null(T& str)
+inline constexpr bool is_local_and_null(T& str) noexcept
 {
 	decltype(auto) scv{hack_scary_val(str)};
 	return !scv._Large_string_engaged()&&!scv._Mysize;
 }
 
 template<typename T>
-inline constexpr void set_begin_ptr(T& str,typename T::value_type* ptr)
+inline constexpr void set_begin_ptr(T& str,typename T::value_type* ptr) noexcept
 {
 	decltype(auto) scv{hack_scary_val(str)};
 	scv._Bx._Ptr=ptr;
 }
 
 template<typename T>
-inline constexpr void set_end_ptr(T& str,typename T::value_type* ptr)
+inline constexpr void set_end_ptr(T& str,typename T::value_type* ptr) noexcept
 {
 	decltype(auto) scv{hack_scary_val(str)};
 	scv._Mysize=ptr-str.data();
@@ -51,14 +51,14 @@ inline constexpr void set_end_ptr(T& str,typename T::value_type* ptr)
 }
 
 template<typename T>
-inline constexpr void set_cap_ptr(T& str,typename T::value_type* ptr)
+inline constexpr void set_cap_ptr(T& str,typename T::value_type* ptr) noexcept
 {
 	decltype(auto) scv{hack_scary_val(str)};
 	scv._Myres=ptr-str.data();
 }
 
 template<typename T>
-inline constexpr void set_begin_end_cap_ptrs(T& str,typename T::value_type* beg,typename T::value_type* end,typename T::value_type* cap)
+inline constexpr void set_begin_end_cap_ptrs(T& str,typename T::value_type* beg,typename T::value_type* end,typename T::value_type* cap) noexcept
 {
 	decltype(auto) scv{hack_scary_val(str)};
 	scv._Bx._Ptr=beg;
@@ -67,7 +67,7 @@ inline constexpr void set_begin_end_cap_ptrs(T& str,typename T::value_type* beg,
 }
 
 template<typename T>
-inline constexpr std::size_t local_capacity()
+inline constexpr std::size_t local_capacity() noexcept
 {
 	using model_t = model<typename T::value_type,typename T::traits_type,typename T::allocator_type>;
 	using _Scary_val = typename model_t::_Scary_val;
