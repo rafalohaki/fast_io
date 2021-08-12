@@ -51,7 +51,6 @@ inline void avr_usart_console_writev(fast_io::io_scatter_t const* scatter,std::s
 	}
 }
 
-
 template<std::integral char_type>
 inline constexpr basic_avr_console<char_type> io_value_handle(basic_avr_console<char_type>) noexcept
 {

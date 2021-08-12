@@ -635,10 +635,8 @@ inline iso8601_timestamp to_iso8601_local_impl(intiso_t seconds,uintiso_t subsec
 	tm_gmtoff=static_cast<long>(ulong_tm_gmtoff);
 #elif defined(__TM_GMTOFF)
 	tm_gmtoff=res.__TM_GMTOFF;
-#elif defined(__NEWLIB__)
+#elif defined(__NEWLIB__) || defined(__AVR__)
 	tm_gmtoff=0;
-#elif defined(__AVR__)
-	
 #else
 	tm_gmtoff=res.tm_gmtoff;
 #endif
@@ -745,14 +743,7 @@ inline std::size_t print_reserve_define_impl(char* first,win32_timezone_t tzt)
 	else
 		return 0;
 }
-#ifdef __AVR__
-inline constexpr ::fast_io::intiso_t avr_libc_settime_mx() noexcept
-{
-//	std::common_type_t<::fast_io::intiso_t,time_t>
-	if constexpr()
-}
 
-#endif
 }
 
 template<::fast_io::freestanding::contiguous_iterator Iter>

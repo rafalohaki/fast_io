@@ -254,6 +254,8 @@ emulated_unlocked,
 native=
 #if defined(__AVR__)
 emulated_unlocked
+#elif defined(__MSDOS__)
+unlocked
 #else
 standard
 #endif
@@ -494,7 +496,7 @@ https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/fseek-nolock-fs
 https://www.gnu.org/software/libc/manual/html_node/File-Positioning.html
 
 */
-	if constexpr(family==c_family::unlocked)
+	if constexpr(family==c_family::native_unlocked)
 	{
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #if defined(_MSC_VER) || defined(_UCRT)  || __MSVCRT_VERSION__ >= 0x800
@@ -769,25 +771,32 @@ inline bool my_c_is_character_device_impl(FILE* fp) noexcept
 template<c_family family>
 inline void my_c_clear_screen_impl(FILE* fp)
 {
-	if constexpr(family==c_family::standard)
+	if constexpr(family==c_family::native)
 	{
-		basic_c_family_io_observer<c_family::standard,char> ciob{fp};
-		lock_guard guard{ciob};
-		my_c_clear_screen_impl<c_family::unlocked>(fp);
+		if constexpr(c_family::native==c_family::native_unlocked)
+		{
+			my_c_clear_screen_impl<c_family::native_unlocked>(fp);
+		}
+		else
+		{
+			basic_c_family_io_observer<c_family::native,char> ciob{fp};
+			lock_guard guard{ciob};
+			my_c_clear_screen_impl<c_family::native_unlocked>(fp);
+		}
 	}
 	else
 	{
 #if defined(_WIN32) && !defined(__CYGWIN__)
-		void* handle{my_fp_to_win32_handle_impl<c_family::unlocked>(fp)};
+		void* handle{my_fp_to_win32_handle_impl<c_family::native_unlocked>(fp)};
 		if(!::fast_io::win32::details::win32_is_character_device(handle))
 			return;
-		my_c_io_flush_impl<c_family::unlocked>(fp);
+		my_c_io_flush_impl<c_family::native_unlocked>(fp);
 		::fast_io::win32::details::win32_clear_screen_main(handle);
 #else
-		int fd{my_fileno_impl<c_family::unlocked>(fp)};
+		int fd{my_fileno_impl<c_family::native_unlocked>(fp)};
 		if(!posix_is_character_device(fd))
 			return;
-		my_c_io_flush_impl<c_family::unlocked>(fp);
+		my_c_io_flush_impl<c_family::native_unlocked>(fp);
 		posix_clear_screen_main(fd);
 #endif
 	}
