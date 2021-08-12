@@ -3,7 +3,7 @@
 namespace fast_io
 {
 //https://github.com/gcc-mirror/gcc/blob/master/libstdc++-v3/include/bits/fs_fwd.h
-enum class perms : unsigned
+enum class perms : std::uint_least32_t
 {
 none		=  0,
 owner_read	=  0400,

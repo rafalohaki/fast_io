@@ -3,7 +3,7 @@
 namespace fast_io
 {
 
-enum class parse_code:char8_t
+enum class parse_code
 {
 ok = 0,
 end_of_file = 1,

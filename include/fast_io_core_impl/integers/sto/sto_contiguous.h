@@ -551,7 +551,7 @@ inline constexpr parse_result<Iter> scan_contiguous_define(io_reserve_type_t<::f
 		return details::scan_int_contiguous_define_impl<10>(begin,end,t.reference);
 }
 
-enum class scan_integral_context_phase:char8_t
+enum class scan_integral_context_phase:std::uint_fast8_t
 {
 space,
 sign,
@@ -571,7 +571,7 @@ inline constexpr auto scan_context_type_impl_int(io_reserve_type_t<char_type,par
 	struct scan_integer_context
 	{
 		::fast_io::freestanding::array<char_type,max_size> buffer;
-		char8_t size{};
+		std::uint_fast8_t size{};
 		scan_integral_context_phase integer_phase{};
 		inline constexpr void reset() noexcept
 		{
@@ -669,7 +669,7 @@ inline constexpr parse_result<Iter> scan_context_define_parse_impl(State& st,Ite
 		{
 			auto start{st.buffer.data()+st.size};
 			auto e{non_overlapped_copy_n(first,first_it_diff,start)};
-			st.size+=static_cast<char8_t>(first_it_diff);
+			st.size+=static_cast<std::uint_fast8_t>(first_it_diff);
 			if(it==last)
 			{
 				st.integer_phase=scan_integral_context_phase::digit;

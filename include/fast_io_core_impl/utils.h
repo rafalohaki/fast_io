@@ -640,7 +640,7 @@ inline constexpr std::uint64_t fast_lup_switch(std::uint32_t value) noexcept
 #endif
 
 template<std::uint32_t base,bool ryu_mode=false,std::size_t mx_size=std::numeric_limits<std::size_t>::max(),my_unsigned_integral U>
-inline constexpr std::uint32_t chars_len(U value) noexcept
+inline constexpr std::size_t chars_len(U value) noexcept
 {
 #if 0
 	if constexpr(base==10&&2<=sizeof(U)&&sizeof(U)<=4&&sizeof(std::size_t)>=8&&!ryu_mode)
@@ -805,7 +805,7 @@ inline constexpr std::uint32_t chars_len(U value) noexcept
 		constexpr std::uint32_t base2(base  * base);
 		constexpr std::uint32_t base3(base2 * base);
 		constexpr std::uint32_t base4(base3 * base);
-		for (std::uint32_t n(1);;n+=4)
+		for (std::size_t n(1);;n+=4)
 		{
 			if (value < base)
 				return n;
@@ -821,7 +821,7 @@ inline constexpr std::uint32_t chars_len(U value) noexcept
 }
 
 template<std::uint32_t base,std::size_t mx_size=std::numeric_limits<std::size_t>::max(),my_unsigned_integral U>
-inline constexpr std::uint32_t chars_len_3_sep(U value) noexcept
+inline constexpr std::size_t chars_len_3_sep(U value) noexcept
 {
 	if constexpr(base==10&&sizeof(U)<=16)
 	{
@@ -1012,7 +1012,7 @@ inline constexpr std::size_t cal_buffer_size()
 #ifdef FAST_IO_BUFFER_SIZE
 		FAST_IO_BUFFER_SIZE
 #else
-	131072
+	131072u
 #endif
 		/sizeof(char_type);
 	}
@@ -1025,7 +1025,7 @@ inline constexpr std::size_t cal_buffer_size()
 #ifdef FAST_IO_TRANSMIT_ON_STACK
 	4096
 #else
-	131072
+	131072u
 #endif
 #endif
 	/sizeof(char_type);

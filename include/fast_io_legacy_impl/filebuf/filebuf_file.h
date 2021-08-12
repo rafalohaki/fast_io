@@ -53,10 +53,12 @@ public:
 		details::streambuf_hack::fp_hack_open(this->fb,chd.fp,details::calculate_fstream_open_value(mode));
 		chd.fp=nullptr;
 	}
+#if !defined(__AVR__)
 	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
 		basic_filebuf_file(basic_c_file_unlocked<char_type>(::fast_io::freestanding::move(piohd),mode),mode)
 	{
 	}
+#endif
 #elif defined(__GLIBCXX__)
 	template<c_family family>
 	basic_filebuf_file(basic_c_family_io_handle<family,char_type>&& chd,open_mode mode):
@@ -75,6 +77,7 @@ This function never fails. but what if fdopen fails?
 		chd.release();
 		details::streambuf_hack::hack_set_close(this->fb);
 	}
+#if !defined(__AVR__)
 	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
 		basic_filebuf_file(basic_c_file_unlocked<char_type>(::fast_io::freestanding::move(piohd),mode),mode)
 	{
@@ -83,6 +86,7 @@ https://github.com/gcc-mirror/gcc/blob/16e2427f50c208dfe07d07f18009969502c25dc8/
 Shows libstdc++ still calls fdopen even on nt kernel which is incorrect
 */
 	}
+#endif
 #elif defined(_MSVC_STL_UPDATE)
 	template<c_family family>
 	basic_filebuf_file(basic_c_family_io_handle<family,char_type>&& chd,open_mode):basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>(chd.fp)}
@@ -95,12 +99,14 @@ Shows libstdc++ still calls fdopen even on nt kernel which is incorrect
 		chd.fp=nullptr;
 		details::streambuf_hack::msvc_hack_set_close(this->fb);
 	}
+#if !defined(__AVR__)
 	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
 		basic_filebuf_file(basic_c_file_unlocked<char_type>(::fast_io::freestanding::move(piohd),mode),mode)
 	{
 	}
 #endif
-
+#endif
+#if !defined(__AVR__)
 #if defined(_WIN32) || defined(__CYGWIN__)
 //windows specific. open posix file from win32 io handle
 	template<win32_family family>
@@ -148,6 +154,7 @@ Shows libstdc++ still calls fdopen even on nt kernel which is incorrect
 	basic_filebuf_file(native_at_entry nate,u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_filebuf_file(basic_posix_file<char_type>(nate,file,om,pm),om)
 	{}
+#endif
 	basic_filebuf_file& operator=(basic_filebuf_file const&)=delete;
 	basic_filebuf_file(basic_filebuf_file const&)=delete;
 	basic_filebuf_file(basic_filebuf_file&& other) noexcept:basic_filebuf_io_observer<CharT,Traits>{other.release()}{}

@@ -245,11 +245,44 @@ inline void my_cygwin_funlockfile(FILE* fp) noexcept
 }
 
 
-enum class c_family:char8_t
+enum class c_family:std::uint_fast8_t
 {
 standard,
+unlocked,
+emulated,
+emulated_unlocked,
+native=
+#if defined(__AVR__)
+emulated_unlocked
+#else
+standard
+#endif
+,
+native_unlocked = 
+#if defined(__AVR__)
+emulated_unlocked
+#else
 unlocked
+#endif
 };
+
+enum class c_io_device_environment:std::uint_fast8_t
+{
+file,
+custom,
+native =
+#if defined(__AVR__)
+custom
+#else
+file
+#endif
+};
+
+struct c_io_device_open_t
+{
+explicit constexpr c_io_device_open_t() noexcept = default;
+};
+inline constexpr c_io_device_open_t c_io_device_open{};
 
 namespace details
 {
@@ -434,6 +467,19 @@ inline void c_flush_unlocked_impl(FILE* fp)
 	my_c_io_flush_impl<c_family::unlocked>(fp);
 }
 
+#if defined(__AVR__)
+
+[[noreturn]] inline void avr_libc_nosup_impl()
+{
+	throw_posix_error(EINVAL);
+}
+
+template<c_family family>
+inline std::uintmax_t my_c_io_seek_impl(FILE*,std::intmax_t,seekdir)
+{
+	avr_libc_nosup_impl();
+}
+#else
 template<c_family family>
 inline std::uintmax_t my_c_io_seek_impl(FILE* fp,std::intmax_t offset,seekdir s)
 {
@@ -532,11 +578,11 @@ https://www.gnu.org/software/libc/manual/html_node/File-Positioning.html
 #endif
 	}
 }
-
+#endif
 }
 
 template<c_family family,std::integral ch_type>
-requires (family==c_family::standard||family==c_family::unlocked)
+requires (family==c_family::native||family==c_family::native_unlocked)
 class basic_c_family_io_observer
 {
 public:
@@ -561,6 +607,7 @@ public:
 		fp=nullptr;
 		return temp;
 	}
+#if !defined(__AVR__)
 	explicit operator basic_posix_io_observer<char_type>() const noexcept
 	{
 		return basic_posix_io_observer<char_type>{details::my_fileno_impl<family>(fp)};
@@ -577,7 +624,8 @@ public:
 		return static_cast<basic_nt_family_io_observer<fam,char_type>>(details::my_fp_to_win32_handle_impl<family>(fp));
 	}
 #endif
-	inline void lock() const noexcept requires(family==c_family::standard)
+#endif
+	inline void lock() const noexcept requires(family==c_family::standard||family==c_family::emulated)
 	{
 #if (defined(_MSC_VER)||defined(_UCRT)) && !defined(__CYGWIN__)
 	noexcept_call(_lock_file,fp);
@@ -590,13 +638,13 @@ public:
 #elif !defined(__SINGLE_THREAD__)
 //	_flockfile(fp);	//TO FIX undefined reference to `__cygwin_lock_lock' why?
 #endif
-#elif defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream) && !defined(_REENTRANT)) || defined(__mlibc__)
+#elif defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream) && !defined(_REENTRANT)) || defined(__mlibc__) || defined(__AVR__)
 #else
 	noexcept_call(flockfile,fp);
 #endif
 #endif
 	}
-	inline void unlock() const noexcept requires(family==c_family::standard)
+	inline void unlock() const noexcept requires(family==c_family::standard||family==c_family::emulated)
 	{
 #if (defined(_MSC_VER)||defined(_UCRT)) && !defined(__CYGWIN__)
 	noexcept_call(_unlock_file,fp);
@@ -609,28 +657,46 @@ public:
 #elif !defined(__SINGLE_THREAD__)
 //	_funlockfile(fp); //TO FIX
 #endif
-#elif defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream) && !defined(_REENTRANT)) || defined(__mlibc__)
+#elif defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream) && !defined(_REENTRANT)) || defined(__mlibc__) || defined(__AVR__)
 #else
 	noexcept_call(funlockfile,fp);
 #endif
 #endif
 	}
-	inline constexpr basic_c_family_io_observer<c_family::unlocked,ch_type> unlocked_handle() const noexcept requires(family==c_family::standard)
+	inline constexpr basic_c_family_io_observer<c_family::native_unlocked,ch_type> unlocked_handle() const noexcept requires(family==c_family::standard)
+	{
+		return {fp};
+	}
+	inline constexpr basic_c_family_io_observer<c_family::native_unlocked,ch_type> unlocked_handle() const noexcept requires(family==c_family::emulated)
 	{
 		return {fp};
 	}
 };
 
 template<c_family family,std::integral ch_type>
-inline constexpr posix_at_entry at(basic_c_family_io_observer<family,ch_type> other) noexcept
-{
-	return posix_at_entry{details::my_fileno_impl<family>(other.fp)};
-}
-
-template<c_family family,std::integral ch_type>
 inline constexpr basic_c_family_io_observer<family,ch_type> io_value_handle(basic_c_family_io_observer<family,ch_type> other) noexcept
 {
 	return other;
+}
+#if defined(__AVR__)
+template<c_family family,std::integral ch_type>
+inline constexpr posix_file_status status(basic_c_family_io_observer<family,ch_type> ciob)
+{
+	details::avr_libc_nosup_impl();
+}
+
+template<c_family family,std::integral ch_type,typename... Args>
+inline void io_control(basic_c_family_io_observer<family,ch_type> h,Args&& ...args)
+{
+	details::avr_libc_nosup_impl();
+}
+
+#else
+
+template<c_family family,std::integral ch_type>
+inline constexpr posix_at_entry at(basic_c_family_io_observer<family,ch_type> other) noexcept
+{
+	return posix_at_entry{details::my_fileno_impl<family>(other.fp)};
 }
 
 template<c_family family,std::integral ch_type>
@@ -643,17 +709,18 @@ inline constexpr posix_file_status status(basic_c_family_io_observer<family,ch_t
 	return status(static_cast<basic_posix_io_observer<ch_type>>(ciob));
 }
 
-template<c_family family,std::integral ch_type>
-inline void flush(basic_c_family_io_observer<family,ch_type> cfhd)
-{
-	details::my_c_io_flush_impl<family>(cfhd.fp);
-}
-
 template<c_family family,std::integral ch_type,typename... Args>
 requires io_controllable<basic_posix_io_observer<ch_type>,Args...>
 inline decltype(auto) io_control(basic_c_family_io_observer<family,ch_type> h,Args&& ...args)
 {
 	return io_control(static_cast<basic_posix_io_observer<ch_type>>(h),::fast_io::freestanding::forward<Args>(args)...);
+}
+#endif
+
+template<c_family family,std::integral ch_type>
+inline void flush(basic_c_family_io_observer<family,ch_type> cfhd)
+{
+	details::my_c_io_flush_impl<family>(cfhd.fp);
 }
 
 template<c_family family,std::integral ch_type>
@@ -680,13 +747,24 @@ inline constexpr auto operator<=>(basic_c_family_io_observer<family,ch_type> a,b
 
 namespace details
 {
+#if defined(__AVR__)
+template<c_family family>
+inline constexpr bool my_c_is_character_device_impl(FILE*) noexcept
+{
+	return false;
+}
+template<c_family family>
+inline void my_c_clear_screen_impl(FILE*)
+{
+	avr_libc_nosup_impl();
+}
 
+#else
 template<c_family family>
 inline bool my_c_is_character_device_impl(FILE* fp) noexcept
 {
 	return posix_is_character_device(my_fileno_impl<family>(fp));
 }
-
 
 template<c_family family>
 inline void my_c_clear_screen_impl(FILE* fp)
@@ -714,7 +792,7 @@ inline void my_c_clear_screen_impl(FILE* fp)
 #endif
 	}
 }
-
+#endif
 }
 
 template<c_family family,std::integral ch_type>
@@ -728,7 +806,7 @@ inline void clear_screen(basic_c_family_io_observer<family,ch_type> ciob)
 {
 	details::my_c_clear_screen_impl<family>(ciob.fp);
 }
-
+#if !defined(__AVR__)
 template<c_family family,std::integral ch_type>
 requires requires(basic_c_family_io_observer<family,ch_type> h)
 {
@@ -752,6 +830,7 @@ inline decltype(auto) zero_copy_out_handle(basic_c_family_io_observer<family,ch_
 {
 	return zero_copy_out_handle(static_cast<basic_posix_io_observer<ch_type>>(h));
 }
+#endif
 
 template<c_family family,std::integral ch_type>
 class basic_c_family_io_handle:public basic_c_family_io_observer<family,ch_type>
@@ -863,6 +942,7 @@ public:
 #endif
 		}
 	}
+#if !defined(__AVR__)
 	basic_c_family_file(basic_posix_io_handle<char_type>&& phd,open_mode om):basic_c_family_io_handle<family,ch_type>{details::my_c_file_open_impl(phd.fd,om)}
 	{
 		phd.fd=-1;
@@ -913,22 +993,23 @@ public:
 	basic_c_family_file(native_at_entry nate,u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_c_family_file(basic_posix_file<char_type>(nate,file,om,pm),om)
 	{}
+#endif
 };
 
 template<std::integral char_type>
-using basic_c_io_observer_unlocked = basic_c_family_io_observer<c_family::unlocked,char_type>;
+using basic_c_io_observer_unlocked = basic_c_family_io_observer<c_family::native_unlocked,char_type>;
 template<std::integral char_type>
-using basic_c_io_observer = basic_c_family_io_observer<c_family::standard,char_type>;
+using basic_c_io_observer = basic_c_family_io_observer<c_family::native,char_type>;
 
 template<std::integral char_type>
-using basic_c_io_handle_unlocked = basic_c_family_io_handle<c_family::unlocked,char_type>;
+using basic_c_io_handle_unlocked = basic_c_family_io_handle<c_family::native_unlocked,char_type>;
 template<std::integral char_type>
-using basic_c_io_handle = basic_c_family_io_handle<c_family::standard,char_type>;
+using basic_c_io_handle = basic_c_family_io_handle<c_family::native,char_type>;
 
 template<std::integral char_type>
-using basic_c_file_unlocked = basic_c_family_file<c_family::unlocked,char_type>;
+using basic_c_file_unlocked = basic_c_family_file<c_family::native_unlocked,char_type>;
 template<std::integral char_type>
-using basic_c_file = basic_c_family_file<c_family::standard,char_type>;
+using basic_c_file = basic_c_family_file<c_family::native,char_type>;
 
 using c_io_observer_unlocked=basic_c_io_observer_unlocked<char>;
 using c_io_observer=basic_c_io_observer<char>;
@@ -961,13 +1042,16 @@ using u32c_io_handle = basic_c_io_handle<char32_t>;
 using u32c_file = basic_c_file<char32_t>;
 using u32c_file_unlocked = basic_c_file_unlocked<char32_t>;
 
-using c_file_factory = c_family_file_factory<c_family::standard>;
-using c_file_factory_unlocked = c_family_file_factory<c_family::unlocked>;
+using c_file_factory = c_family_file_factory<c_family::native>;
+using c_file_factory_unlocked = c_family_file_factory<c_family::native_unlocked>;
 
 }
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #include"wincrt.h"
+#elif defined(__AVR__)
+#include"avrlibc.h"
+#include"macros_general.h"
 #else
 #if defined(__UCLIBC__)
 #if defined(__STDIO_BUFFERS)

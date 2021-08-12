@@ -16,7 +16,7 @@ inline constexpr bool denom_is_natural_pow10(std::intmax_t denom) noexcept
 }
 
 }
-#ifndef __MSDOS__
+#if !defined(__MSDOS__) && !defined(__AVR__)
 
 template<std::integral char_type>
 constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,struct timespec>) noexcept

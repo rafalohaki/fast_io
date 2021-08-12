@@ -14,7 +14,7 @@
 
 namespace fast_io
 {
-
+#if !defined(__AVR__)
 inline
 #if defined(__WINE__) || !defined(_WIN32)
 constexpr
@@ -182,6 +182,7 @@ decltype(auto) u32box() noexcept
 }
 
 #endif
+#endif
 
 namespace details
 {
@@ -208,10 +209,17 @@ template<bool line,typename... Args>
 #endif
 inline constexpr void perr_after_io_print_forward(Args ...args)
 {
+#if defined(__AVR__)
+	if constexpr(line)
+		println_freestanding_decay(c_stderr(),args...);
+	else
+		print_freestanding_decay(c_stderr(),args...);
+#else
 	if constexpr(line)
 		println_freestanding_decay(err(),args...);
 	else
 		print_freestanding_decay(err(),args...);
+#endif
 }
 
 template<bool line,typename... Args>
@@ -220,10 +228,17 @@ template<bool line,typename... Args>
 #endif
 inline constexpr void debug_print_after_io_print_forward(Args ...args)
 {
+#if defined(__AVR__)
+	if constexpr(line)
+		println_freestanding_decay(c_stdout(),args...);
+	else
+		print_freestanding_decay(c_stdout(),args...);
+#else
 	if constexpr(line)
 		println_freestanding_decay(out(),args...);
 	else
 		print_freestanding_decay(out(),args...);
+#endif
 }
 
 

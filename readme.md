@@ -63,6 +63,7 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - mips-abi32
 - mips-abin32
 - mips-abi64
+- avr
 - All architectures should work. (Just i do not have time to build all cross-toolchains to test them one by one)
 
 ## Platform Support
@@ -85,6 +86,7 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - Managarm
 - Vinix
 - limine Bootloader
+- AVR
 - Any other platform (if you want me to support it, tell me, including your own OS)
 
 ## Legacy Windows Version Support (need define _WIN32_WINNT and _WIN32_WINDOWS version by yourself)
@@ -147,7 +149,7 @@ Also need to install msvcrt.dll
 - uclibc-ng
 - wasi libc
 - mlibc (this is a new libc which still contains a lot of bugs currently)
-- Todo list: avr-libc ??
+- avrlibc
 
 ## Supported C++ standard library std::streambuf/std::filebuf hacks platforms
 - GCC libstdc++

@@ -5,6 +5,7 @@ namespace fast_io
 
 namespace details
 {
+#if !defined(__AVR__)
 #if __has_cpp_attribute(gnu::pure)
 [[gnu::pure]]
 #endif
@@ -119,6 +120,8 @@ inline constexpr auto posix_clock_id_to_native_value(posix_clock_id pcid)
 	};
 #endif
 }
+
+#endif
 #ifdef _WIN32
 #if __has_cpp_attribute(gnu::pure)
 [[gnu::pure]]
@@ -196,6 +199,8 @@ unix_timestamp posix_clock_getres([[maybe_unused]] posix_clock_id pclk_id)
 	default:
 		throw_posix_error(EINVAL);
 	};
+#elif defined(__AVR__)
+	return {1,0};
 #elif !defined(__NEWLIB__) || defined(_POSIX_TIMERS)
 	auto clk{details::posix_clock_id_to_native_value(pclk_id)};
 	struct timespec res;
@@ -305,7 +310,7 @@ extern void my_dos_gettime(my_dos_time_t*) noexcept __asm__("__dos_gettime");
 extern unsigned int my_dos_settime(my_dos_time_t*) noexcept __asm__("__dos_settime");
 extern unsigned int my_dos_setdate(my_dos_date_t*) noexcept __asm__("__dos_setdate");
 
-inline iso8601_timestamp get_dos_iso8601_timestamp() noexcept
+inline iso8601_timestamp get_dos_iso8601_timestamp()
 {
 	my_dos_date_t dos_date;
 	my_dos_time_t dos_time;
@@ -326,10 +331,10 @@ inline iso8601_timestamp get_dos_iso8601_timestamp() noexcept
 				static_cast<uintiso_t>(dos_time.hsecond)*factor,0};
 		}
 	}
-	fast_terminate();
+	throw_posix_error(EINVAL);
 }
 
-inline unix_timestamp get_dos_unix_timestamp() noexcept
+inline unix_timestamp get_dos_unix_timestamp()
 {
 	return to_timestamp(get_dos_iso8601_timestamp());
 }
@@ -456,6 +461,10 @@ inline unix_timestamp posix_clock_gettime([[maybe_unused]] posix_clock_id pclk_i
 	default:
 		throw_posix_error(EINVAL);
 	}
+#elif defined(__AVR__)
+	time_t t{};
+	constexpr intiso_t y2k_offset{static_cast<intiso_t>(UNIX_OFFSET)};
+	return {static_cast<intiso_t>(static_cast<uintiso_t>(static_cast<std::make_unsigned_t<time_t>>(noexcept_call(::time,__builtin_addressof(t)))))+y2k_offset,0};
 #elif !defined(__NEWLIB__) || defined(_POSIX_TIMERS)
 	struct timespec res;
 	auto clk{details::posix_clock_id_to_native_value(pclk_id)};
@@ -537,6 +546,12 @@ inline struct tm unix_timestamp_to_tm_impl(intiso_t seconds)
 #else
 	time_t val{static_cast<time_t>(seconds)};
 	struct tm t;
+#if defined(__AVR__)
+	if constexpr(local_tm)
+		noexcept_call(localtime_r,__builtin_addressof(val),__builtin_addressof(t));
+	else
+		noexcept_call(gmtime_r,__builtin_addressof(val),__builtin_addressof(t));
+#else
 	if constexpr(local_tm)
 	{
 	if(localtime_r(&val,&t)==0)
@@ -547,7 +562,9 @@ inline struct tm unix_timestamp_to_tm_impl(intiso_t seconds)
 	if(gmtime_r(&val,&t)==0)
 		throw_posix_error();
 	}
+#endif
 	return t;
+
 #endif
 }
 #endif
@@ -620,6 +637,8 @@ inline iso8601_timestamp to_iso8601_local_impl(intiso_t seconds,uintiso_t subsec
 	tm_gmtoff=res.__TM_GMTOFF;
 #elif defined(__NEWLIB__)
 	tm_gmtoff=0;
+#elif defined(__AVR__)
+	
 #else
 	tm_gmtoff=res.tm_gmtoff;
 #endif
@@ -657,7 +676,7 @@ inline void posix_tzset() noexcept
 	_tzset();
 #elif __NEWLIB__
 	details::m_tzset();
-#elif !defined(__wasi__) || defined(__wasilibc_unmodified_upstream)
+#elif !defined(__AVR__)&&(!defined(__wasi__) || defined(__wasilibc_unmodified_upstream))
 	tzset();
 #endif
 }
@@ -726,7 +745,14 @@ inline std::size_t print_reserve_define_impl(char* first,win32_timezone_t tzt)
 	else
 		return 0;
 }
+#ifdef __AVR__
+inline constexpr ::fast_io::intiso_t avr_libc_settime_mx() noexcept
+{
+//	std::common_type_t<::fast_io::intiso_t,time_t>
+	if constexpr()
+}
 
+#endif
 }
 
 template<::fast_io::freestanding::contiguous_iterator Iter>
@@ -743,9 +769,9 @@ extern char *m_tzname[2] __asm__("_tzname");
 extern int m_daylight __asm__("_daylight");
 #endif
 
-inline int posix_daylight()
+inline std::int_least32_t posix_daylight()
 {
-#if defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream))
+#if defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream)) || defined(__AVR__)
 	return 0;
 #elif defined(_WIN32)
 	return _daylight;
@@ -764,7 +790,7 @@ inline int posix_daylight()
 
 inline basic_io_scatter_t<char> timezone_name([[maybe_unused]] bool dst=posix_daylight()) noexcept
 {
-#if defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream))
+#if defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream)) || defined(__AVR__)
 	return {reinterpret_cast<char const*>(u8"UTC"),3}; 
 #else
 #if defined(__NEWLIB__)
@@ -808,6 +834,27 @@ inline void posix_clock_settime([[maybe_unused]] posix_clock_id pclk_id,[[maybe_
 	default:
 		throw_posix_error(EINVAL);
 	}
+#elif defined(__AVR__)
+	constexpr intiso_t mn_unix_offset{UNIX_OFFSET};
+	auto tsp_seconds{timestamp.seconds};
+	if(tsp_seconds<mn_unix_offset)
+		throw_posix_error(EINVAL);
+	if constexpr(sizeof(time_t)>=sizeof(intiso_t))
+	{
+		time_t t{static_cast<time_t>(tsp_seconds)};
+		if(__builtin_add_overflow(t,UNIX_OFFSET,__builtin_addressof(t)))
+			throw_posix_error(EINVAL);
+		noexcept_call(::set_system_time,t);
+	}
+	else
+	{
+		constexpr intiso_t mx_unix_offset{static_cast<intiso_t>(std::numeric_limits<time_t>::max())-UNIX_OFFSET};
+		if(tsp_seconds>mx_unix_offset)
+			throw_posix_error(EINVAL);
+		time_t t{static_cast<time_t>(tsp_seconds)};
+		noexcept_call(::set_system_time,t);		
+	}
+//	__builtin_sub_overflow(__builtin_addressof())
 #elif (!defined(__NEWLIB__) || defined(_POSIX_TIMERS)) && (!defined(__wasi__) || defined(__wasilibc_unmodified_upstream))
 	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000000u};
 	struct timespec res{static_cast<std::time_t>(timestamp.seconds),

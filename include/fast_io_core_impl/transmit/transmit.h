@@ -24,9 +24,18 @@ inline constexpr std::size_t calculate_transmit_buffer_size() noexcept
 {
 #ifdef FAST_IO_BUFFER_SIZE
 	static_assert(sizeof(char_type)>=FAST_IO_BUFFER_SIZE);
+	static_assert(FAST_IO_BUFFER_SIZE<SIZE_MAX);
 	return FAST_IO_BUFFER_SIZE/sizeof(char_type);
+#else
+	if constexpr(sizeof(std::size_t)<=sizeof(std::uint_least16_t))
+	{
+		return 4096/sizeof(char_type);	
+	}
+	else
+	{
+		return 131072/sizeof(char_type);
+	}
 #endif
-	return 131072/sizeof(char_type);
 }
 
 template<std::integral char_type>

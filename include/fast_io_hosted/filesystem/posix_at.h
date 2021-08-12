@@ -212,7 +212,7 @@ inline void posix_mkdirat_impl(int dirfd, const char *pathname, mode_t mode)
 	__NR_mkdirat
 	,int>
 #else
-	mkdirat
+	::fast_io::posix::libc_mkdirat
 #endif
 	(dirfd,pathname,mode));
 }

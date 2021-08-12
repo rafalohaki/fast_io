@@ -37,6 +37,7 @@ public:
 	{
 		return basic_c_io_observer<char_type>{details::streambuf_hack::fp_hack(fb)};
 	}
+#if !defined(__AVR__)
 	explicit operator basic_posix_io_observer<char_type>() const noexcept
 	{
 		return static_cast<basic_posix_io_observer<char_type>>(static_cast<basic_c_io_observer<char_type>>(*this));
@@ -53,6 +54,7 @@ public:
 		return static_cast<basic_nt_family_io_observer<fam,char_type>>
 		(static_cast<basic_posix_io_observer<char_type>>(*this));
 	}
+#endif
 #endif
 };
 
@@ -211,6 +213,9 @@ inline void clear_screen(basic_general_streambuf_io_observer<T> other)
 			throw_posix_error(EINVAL);
 #endif
 	}
+#ifdef __AVR__
+	::fast_io::details::avr_libc_nosup_impl();
+#else
 	details::lock_guard guard{bciob};
 	std::FILE* fp{bciob.fp};
 	int fd{details::fp_unlocked_to_fd(fp)};
@@ -227,6 +232,7 @@ inline void clear_screen(basic_general_streambuf_io_observer<T> other)
 	other.fb->pubsync();
 	details::c_flush_unlocked_impl(fp);
 	details::posix_clear_screen_main(fd);
+#endif
 #endif
 }
 
