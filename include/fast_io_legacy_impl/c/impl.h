@@ -344,7 +344,7 @@ inline void* my_fp_to_win32_handle_impl(FILE* fp) noexcept
 template<c_family family>
 inline int my_fclose_impl(FILE* fp) noexcept
 {
-	if constexpr(family==c_family::standard)
+	if constexpr(family==c_family::standard||family==c_family::emulated)
 	{
 #ifdef __has_builtin
 #if __has_builtin(__builtin_fclose)
@@ -440,7 +440,7 @@ inline void my_c_io_flush_impl(FILE* fp)
 	{
 #if defined(__has_builtin)
 #if __has_builtin(__builtin_fflush)
-		if(__builtin_flush(fp))
+		if(__builtin_fflush(fp))
 #else
 		if(fflush(fp))
 #endif
@@ -496,7 +496,7 @@ https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/fseek-nolock-fs
 https://www.gnu.org/software/libc/manual/html_node/File-Positioning.html
 
 */
-	if constexpr(family==c_family::native_unlocked)
+	if constexpr(family==c_family::unlocked||family==c_family::emulated_unlocked)
 	{
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #if defined(_MSC_VER) || defined(_UCRT)  || __MSVCRT_VERSION__ >= 0x800
