@@ -61,7 +61,7 @@ inline auto system_call(auto p1,auto p2)
 	__asm__ __volatile__
 	("ecall"
 	: "+r" (a0)
-	: "r"(a7)
+	: "r"(a7), "r"(a1)
 	: "memory"
 	);
 	return static_cast<return_value_type>(a0);
