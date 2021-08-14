@@ -7,50 +7,42 @@ template<std::size_t syscall_number,std::signed_integral return_value_type>
 requires (1<sizeof(return_value_type))
 inline auto system_call()
 {
-	return_value_type ret;
+	register std::uint64_t x8 __asm__("x8") = syscall_number;
+	register std::uint64_t x0 __asm__("x0");
 	__asm__ __volatile__
-	(
-	"mov x8,%1\n\t"
-	"svc 0\n\t"
-	"mov %0,x0\n\t"
-	: "=r" (ret)
-	: "0"(syscall_number)
-	: "memory", "cc","x8","x0"
+	("svc 0"
+	: "=r" (x0)
+	: "r"(x8)
+	: "memory", "cc"
 	);
-	return static_cast<return_value_type>(ret);
+	return static_cast<return_value_type>(x0);
 }
 
 template<std::size_t syscall_number,std::signed_integral return_value_type>
 requires (1<sizeof(return_value_type))
 inline auto system_call(auto p1)
 {
-	return_value_type ret;
+	register std::uint64_t x8 __asm__("x8") = syscall_number;
+	register std::uint64_t x0 __asm__("x0") = (std::uint64_t)p1;
 	__asm__ __volatile__
-	(
-	"mov x8,%1\n\t"
-	"mov x0,%2\n\t"
-	"svc 0\n\t"
-	"mov %0,x0\n\t"
-	: "=r" (ret)
-	: "0"(syscall_number),"r"(p1)
-	: "memory", "cc","x8","x0"
+	("svc 0"
+	: "=r" (x0)
+	: "r"(x8), "0"(x0)
+	: "memory", "cc"
 	);
-	return static_cast<return_value_type>(ret);
+	return static_cast<return_value_type>(x0);
 }
 
 template<std::size_t syscall_number>
 inline void system_call_no_return(auto p1)
 {
-	std::size_t ret;
+	register std::uint64_t x8 __asm__("x8") = syscall_number;
+	register std::uint64_t x0 __asm__("x0") = (std::uint64_t)p1;
 	__asm__ __volatile__
-	(
-	"mov x8,%1\n\t"
-	"mov x0,%2\n\t"
-	"svc 0\n\t"
-	"mov %0,x0\n\t"
-	: "=r" (ret)
-	: "0"(syscall_number),"r"(p1)
-	: "memory", "cc","x8","x0"
+	("svc 0"
+	: "=r" (x0)
+	: "r"(x8), "0"(x0)
+	: "memory", "cc"
 	);
 }
 
@@ -58,105 +50,90 @@ template<std::size_t syscall_number,std::signed_integral return_value_type>
 requires (1<sizeof(return_value_type))
 inline auto system_call(auto p1,auto p2)
 {
-	return_value_type ret;
+	register std::uint64_t x8 __asm__("x8") = syscall_number;
+	register std::uint64_t x0 __asm__("x0") = (std::uint64_t)p1;
+	register std::uint64_t x1 __asm__("x1") = (std::uint64_t)p2;
 	__asm__ __volatile__
-	(
-	"mov x8,%1\n\t"
-	"mov x0,%2\n\t"
-	"mov x1,%3\n\t"
-	"svc 0\n\t"
-	"mov %0,x0\n\t"
-	: "=r" (ret)
-	: "0"(syscall_number),"r"(p1),"r"(p2)
-	: "memory", "cc","x8","x0","x1"
+	("svc 0"
+	: "=r" (x0)
+	: "r"(x8), "0"(x0), "r"(x1)
+	: "memory", "cc"
 	);
-	return static_cast<return_value_type>(ret);
+	return static_cast<return_value_type>(x0);
 }
 
 template<std::size_t syscall_number,std::signed_integral return_value_type>
 requires (1<sizeof(return_value_type))
 inline auto system_call(auto p1,auto p2,auto p3)
 {
-	return_value_type ret;
+	register std::uint64_t x8 __asm__("x8") = syscall_number;
+	register std::uint64_t x0 __asm__("x0") = (std::uint64_t)p1;
+	register std::uint64_t x1 __asm__("x1") = (std::uint64_t)p2;
+	register std::uint64_t x2 __asm__("x2") = (std::uint64_t)p3;
 	__asm__ __volatile__
-	(
-	"mov x8,%1\n\t"
-	"mov x0,%2\n\t"
-	"mov x1,%3\n\t"
-	"mov x2,%4\n\t"
-	"svc 0\n\t"
-	"mov %0,x0\n\t"
-	: "=r" (ret)
-	: "0"(syscall_number),"r"(p1),"r"(p2),"r"(p3)
-	: "memory", "cc","x8","x0","x1","x2"
+	("svc 0"
+	: "=r" (x0)
+	: "r"(x8), "0"(x0), "r"(x1), "r"(x2)
+	: "memory", "cc"
 	);
-	return static_cast<return_value_type>(ret);
+	return static_cast<return_value_type>(x0);
 }
 
 template<std::size_t syscall_number,std::signed_integral return_value_type>
 requires (1<sizeof(return_value_type))
 inline auto system_call(auto p1,auto p2,auto p3,auto p4)
 {
-	return_value_type ret;
+	register std::uint64_t x8 __asm__("x8") = syscall_number;
+	register std::uint64_t x0 __asm__("x0") = (std::uint64_t)p1;
+	register std::uint64_t x1 __asm__("x1") = (std::uint64_t)p2;
+	register std::uint64_t x2 __asm__("x2") = (std::uint64_t)p3;
+	register std::uint64_t x3 __asm__("x3") = (std::uint64_t)p4;
 	__asm__ __volatile__
-	(
-	"mov x8,%1\n\t"
-	"mov x0,%2\n\t"
-	"mov x1,%3\n\t"
-	"mov x2,%4\n\t"
-	"mov x3,%5\n\t"
-	"svc 0\n\t"
-	"mov %0,x0\n\t"
-	: "=r" (ret)
-	: "0"(syscall_number),"r"(p1),"r"(p2),"r"(p3),"r"(p4)
-	: "memory", "cc","x8","x0","x1","x2","x3"
+	("svc 0"
+	: "=r" (x0)
+	: "r"(x8), "0"(x0), "r"(x1), "r"(x2), "r"(x3)
+	: "memory", "cc"
 	);
-	return static_cast<return_value_type>(ret);
+	return static_cast<return_value_type>(x0);
 }
 
 template<std::size_t syscall_number,std::signed_integral return_value_type>
 requires (1<sizeof(return_value_type))
 inline auto system_call(auto p1,auto p2,auto p3,auto p4,auto p5)
 {
-	return_value_type ret;
+	register std::uint64_t x8 __asm__("x8") = syscall_number;
+	register std::uint64_t x0 __asm__("x0") = (std::uint64_t)p1;
+	register std::uint64_t x1 __asm__("x1") = (std::uint64_t)p2;
+	register std::uint64_t x2 __asm__("x2") = (std::uint64_t)p3;
+	register std::uint64_t x3 __asm__("x3") = (std::uint64_t)p4;
+	register std::uint64_t x4 __asm__("x4") = (std::uint64_t)p5;
 	__asm__ __volatile__
-	(
-	"mov x8,%1\n\t"
-	"mov x0,%2\n\t"
-	"mov x1,%3\n\t"
-	"mov x2,%4\n\t"
-	"mov x3,%5\n\t"
-	"mov x4,%6\n\t"
-	"svc 0\n\t"
-	"mov %0,x0\n\t"
-	: "=r" (ret)
-	: "0"(syscall_number),"r"(p1),"r"(p2),"r"(p3),"r"(p4),"r"(p5)
-	: "memory", "cc","x8","x0","x1","x2","x3","x4"
+	("svc 0"
+	: "=r" (x0)
+	: "r"(x8), "0"(x0), "r"(x1), "r"(x2), "r"(x3), "r"(x4)
+	: "memory", "cc"
 	);
-	return static_cast<return_value_type>(ret);
+	return static_cast<return_value_type>(x0);
 }
 
 template<std::size_t syscall_number,std::signed_integral return_value_type>
 requires (1<sizeof(return_value_type))
 inline auto system_call(auto p1,auto p2,auto p3,auto p4,auto p5,auto p6)
 {
-	return_value_type ret;
+	register std::uint64_t x8 __asm__("x8") = syscall_number;
+	register std::uint64_t x0 __asm__("x0") = (std::uint64_t)p1;
+	register std::uint64_t x1 __asm__("x1") = (std::uint64_t)p2;
+	register std::uint64_t x2 __asm__("x2") = (std::uint64_t)p3;
+	register std::uint64_t x3 __asm__("x3") = (std::uint64_t)p4;
+	register std::uint64_t x4 __asm__("x4") = (std::uint64_t)p5;
+	register std::uint64_t x5 __asm__("x5") = (std::uint64_t)p6;
 	__asm__ __volatile__
-	(
-	"mov x8,%1\n\t"
-	"mov x0,%2\n\t"
-	"mov x1,%3\n\t"
-	"mov x2,%4\n\t"
-	"mov x3,%5\n\t"
-	"mov x4,%6\n\t"
-	"mov x5,%7\n\t"
-	"svc 0\n\t"
-	"mov %0,x0\n\t"
-	: "=r" (ret)
-	: "0"(syscall_number),"r"(p1),"r"(p2),"r"(p3),"r"(p4),"r"(p5),"r"(p6)
-	: "memory", "cc","x8","x0","x1","x2","x3","x4","x5"
+	("svc 0"
+	: "=r" (x0)
+	: "r"(x8), "0"(x0), "r"(x1), "r"(x2), "r"(x3), "r"(x4), "r"(x5)
+	: "memory", "cc"
 	);
-	return static_cast<return_value_type>(ret);
+	return static_cast<return_value_type>(x0);
 }
 
 template<std::integral I>

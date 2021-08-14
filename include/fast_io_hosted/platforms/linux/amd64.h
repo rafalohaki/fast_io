@@ -1,5 +1,5 @@
 #pragma once
-//https://github.com/llvm-mirror/compiler-rt/blob/master/lib/sanitizer_common/sanitizer_syscall_linux_x86_64.inc
+//https://github.com/bminor/glibc/master/sysdeps/unix/sysv/linux/x86_64/sysdep.h
 
 namespace fast_io
 {
@@ -15,7 +15,7 @@ inline auto system_call() noexcept
 	: "=a" (ret)
 	//EDI      RSI       RDX
 	: "0"(syscall_number)
-	: "rcx", "r11", "memory", "cc"
+	: "memory", "cc", "r11", "cx"
 	);
 	return ret;
 }
@@ -31,12 +31,13 @@ inline auto system_call(auto p1) noexcept
 	: "=a" (ret)
 	//EDI      RSI       RDX
 	: "0"(syscall_number), "D"(p1)
-	: "rcx", "r11", "memory", "cc"
+	: "memory", "cc", "r11", "cx"
 	);
 	return ret;
 }
 
 template<std::size_t syscall_number>
+[[noreturn]]
 inline void system_call_no_return(auto p1) noexcept
 {
 	std::size_t ret;
@@ -46,7 +47,7 @@ inline void system_call_no_return(auto p1) noexcept
 	: "=a" (ret)
 	//EDI      RSI       RDX
 	: "0"(syscall_number), "D"(p1)
-	: "rcx", "r11", "memory", "cc"
+	: "memory", "cc", "r11", "cx"
 	);
 }
 
@@ -61,7 +62,7 @@ inline auto system_call(auto p1, auto p2) noexcept
 	: "=a" (ret)
 	//EDI      RSI       RDX
 	: "0"(syscall_number), "D"(p1), "S"(p2)
-	: "rcx", "r11", "memory", "cc"
+	: "memory", "cc", "r11", "cx"
 	);
 	return ret;
 }
@@ -77,7 +78,7 @@ inline auto system_call(auto p1, auto p2, auto p3) noexcept
 	: "=a" (ret)
 	//EDI      RSI       RDX
 	: "0"(syscall_number), "D"(p1), "S"(p2), "d"(p3)
-	: "rcx", "r11", "memory", "cc"
+	: "memory", "cc", "r11", "cx"
 	);
 	return ret;
 }
@@ -87,14 +88,13 @@ requires (1<sizeof(return_value_type))
 inline auto system_call(auto p1, auto p2, auto p3, auto p4) noexcept
 {
 	return_value_type ret;
+	register std::uint64_t r10 __asm__("r10") = (std::uint64_t)p4;
 	__asm__ __volatile__
-	(
-	"mov %5, %%r10;"
-	"syscall"
+	("syscall"
 	: "=a" (ret)
 	//EDI      RSI       RDX
-	: "0"(syscall_number), "D"(p1), "S"(p2), "d"(p3), "r"((std::uint64_t)p4)
-	: "rcx", "r11", "r10", "memory", "cc"
+	: "0"(syscall_number), "D"(p1), "S"(p2), "d"(p3), "r"(r10)
+	: "memory", "cc", "r11", "cx"
 	);
 	return ret;
 }
@@ -103,16 +103,16 @@ template<std::size_t syscall_number,std::signed_integral return_value_type>
 requires (1<sizeof(return_value_type))
 inline auto system_call(auto p1, auto p2, auto p3, auto p4,auto p5) noexcept
 {
+
 	return_value_type ret;
+	register std::uint64_t r10 __asm__("r10") = (std::uint64_t)p4;
+	register std::uint64_t r8 __asm__("r8") = (std::uint64_t)p5;
 	__asm__ __volatile__
-	(
-	"mov %5, %%r10;"
-	"mov %6, %%r8;"
-	"syscall"
+	("syscall"
 	: "=a" (ret)
 	//EDI      RSI       RDX
-	: "0"(syscall_number), "D"(p1), "S"(p2), "d"(p3), "r"((std::uint64_t)p4), "r"((std::uint64_t)p5)
-	: "rcx", "r11", "r10", "r8", "memory", "cc"
+	: "0"(syscall_number), "D"(p1), "S"(p2), "d"(p3), "r"(r10), "r"(r8)
+	: "memory", "cc", "r11", "cx"
 	);
 	return ret;
 }
@@ -121,16 +121,15 @@ requires (1<sizeof(return_value_type))
 inline auto system_call(auto p1, auto p2, auto p3, auto p4,auto p5,auto p6) noexcept
 {
 	return_value_type ret;
+	register std::uint64_t r10 __asm__("r10") = (std::uint64_t)p4;
+	register std::uint64_t r8 __asm__("r8") = (std::uint64_t)p5;
+	register std::uint64_t r9 __asm__("r9") = (std::uint64_t)p6;
 	__asm__ __volatile__
-	(
-	"mov %5, %%r10;"
-	"mov %6, %%r8;"
-	"mov %7, %%r9;"
-	"syscall"
+	("syscall"
 	: "=a" (ret)
 	//EDI      RSI       RDX
-	: "0"(syscall_number), "D"(p1), "S"(p2), "d"(p3), "r"((std::uint64_t)p4),"r"((std::uint64_t)p5),"r"((std::uint64_t)p6)
-	: "rcx", "r11", "r10", "r8", "r9", "memory", "cc"
+	: "0"(syscall_number), "D"(p1), "S"(p2), "d"(p3), "r"(r10), "r"(r8), "r"(r9)
+	: "memory", "cc", "r11", "cx"
 	);
 	return ret;
 }
