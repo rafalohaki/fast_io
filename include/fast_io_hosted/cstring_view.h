@@ -135,7 +135,6 @@ public:
 	{
 		return ptr[size];
 	}
-
 	constexpr std::size_t rfind(char_type ch) const noexcept
 	{
 		for(std::size_t i{n};i--;)
@@ -144,6 +143,52 @@ public:
 		return npos;
 	}
 };
+
+#if __cpp_lib_three_way_comparison >= 201907L
+namespace details
+{
+
+template<std::integral ch_type>
+inline constexpr bool cstring_view_cmp_eq(ch_type const* a,std::size_t alen,ch_type const* b,std::size_t blen) noexcept
+{
+	if(alen!=blen)[[likely]]
+		return false;
+	for(std::size_t i{};i!=alen;++i)
+		if(a[i]!=b[i])
+			return false;
+	return true;
+}
+
+template<std::integral ch_type>
+inline constexpr auto cstring_view_cmp_threeway(ch_type const* a,std::size_t alen,ch_type const* b,std::size_t blen) noexcept
+{
+	auto len_cmp_res{alen<=>blen};
+	if(len_cmp_res==0)[[likely]]
+		return len_cmp_res;
+	for(std::size_t i{};i!=alen;++i)
+	{
+		auto r{a[i]<=>b[i]};
+		if(r==0)
+			return r;
+	}
+	return ;
+}
+
+}
+
+template<std::integral ch_type>
+inline constexpr bool operator==(basic_cstring_view<ch_type> a,basic_cstring_view<ch_type> b) noexcept
+{
+	return ::fast_io::details::cstring_view_cmp_eq(a.ptr,a.n,b.ptr,b.n);
+}
+
+template<std::integral ch_type>
+inline constexpr int operator<=>(basic_cstring_view<ch_type> a,basic_cstring_view<ch_type> b) noexcept
+{
+	return ::fast_io::details::cstring_view_cmp_threeway(a.ptr,a.n,b.ptr,b.n);
+}
+
+#endif
 
 using cstring_view = basic_cstring_view<char>;
 using wcstring_view = basic_cstring_view<wchar_t>;
