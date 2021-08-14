@@ -27,7 +27,7 @@ template<std::uint64_t syscall_number,std::signed_integral return_value_type>
 requires (1<sizeof(return_value_type))
 inline auto system_call(auto p1)
 {
-	register std::uint64_t a7 __asm__("a8") = syscall_number;
+	register std::uint64_t a7 __asm__("a7") = syscall_number;
 	register std::uint64_t a0 __asm__("a0") = (std::uint64_t)p1;
 	__asm__ __volatile__
 	("ecall"
@@ -41,7 +41,7 @@ inline auto system_call(auto p1)
 template<std::uint64_t syscall_number>
 inline void system_call_no_return(auto p1)
 {
-	register std::uint64_t a7 __asm__("a8") = syscall_number;
+	register std::uint64_t a7 __asm__("a7") = syscall_number;
 	register std::uint64_t a0 __asm__("a0") = (std::uint64_t)p1;
 	__asm__ __volatile__
 	("ecall"
