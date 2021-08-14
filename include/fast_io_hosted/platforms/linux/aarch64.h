@@ -5,7 +5,7 @@ namespace fast_io
 
 template<std::size_t syscall_number,std::signed_integral return_value_type>
 requires (1<sizeof(return_value_type))
-inline auto system_call()
+inline return_value_type system_call() noexcept
 {
 	register std::uint64_t x8 __asm__("x8") = syscall_number;
 	register std::uint64_t x0 __asm__("x0");
@@ -20,7 +20,7 @@ inline auto system_call()
 
 template<std::size_t syscall_number,std::signed_integral return_value_type>
 requires (1<sizeof(return_value_type))
-inline auto system_call(auto p1)
+inline return_value_type system_call(auto p1) noexcept
 {
 	register std::uint64_t x8 __asm__("x8") = syscall_number;
 	register std::uint64_t x0 __asm__("x0") = (std::uint64_t)p1;
@@ -34,7 +34,7 @@ inline auto system_call(auto p1)
 }
 
 template<std::size_t syscall_number>
-inline void system_call_no_return(auto p1)
+inline void system_call_no_return(auto p1) noexcept
 {
 	register std::uint64_t x8 __asm__("x8") = syscall_number;
 	register std::uint64_t x0 __asm__("x0") = (std::uint64_t)p1;
@@ -48,7 +48,7 @@ inline void system_call_no_return(auto p1)
 
 template<std::size_t syscall_number,std::signed_integral return_value_type>
 requires (1<sizeof(return_value_type))
-inline auto system_call(auto p1,auto p2)
+inline return_value_type system_call(auto p1,auto p2) noexcept
 {
 	register std::uint64_t x8 __asm__("x8") = syscall_number;
 	register std::uint64_t x0 __asm__("x0") = (std::uint64_t)p1;
@@ -64,7 +64,7 @@ inline auto system_call(auto p1,auto p2)
 
 template<std::size_t syscall_number,std::signed_integral return_value_type>
 requires (1<sizeof(return_value_type))
-inline auto system_call(auto p1,auto p2,auto p3)
+inline return_value_type system_call(auto p1,auto p2,auto p3) noexcept
 {
 	register std::uint64_t x8 __asm__("x8") = syscall_number;
 	register std::uint64_t x0 __asm__("x0") = (std::uint64_t)p1;
@@ -81,7 +81,7 @@ inline auto system_call(auto p1,auto p2,auto p3)
 
 template<std::size_t syscall_number,std::signed_integral return_value_type>
 requires (1<sizeof(return_value_type))
-inline auto system_call(auto p1,auto p2,auto p3,auto p4)
+inline return_value_type system_call(auto p1,auto p2,auto p3,auto p4) noexcept
 {
 	register std::uint64_t x8 __asm__("x8") = syscall_number;
 	register std::uint64_t x0 __asm__("x0") = (std::uint64_t)p1;
@@ -91,7 +91,7 @@ inline auto system_call(auto p1,auto p2,auto p3,auto p4)
 	__asm__ __volatile__
 	("svc 0"
 	: "=r" (x0)
-	: "r"(x8), "0"(x0), "r"(x1), "r"(x2), "r"(x3)
+	: "r"(x8), "0"(x0), "r"(x1), "r"(x2), "r"(x3) noexcept
 	: "memory", "cc"
 	);
 	return static_cast<return_value_type>(x0);
@@ -99,7 +99,7 @@ inline auto system_call(auto p1,auto p2,auto p3,auto p4)
 
 template<std::size_t syscall_number,std::signed_integral return_value_type>
 requires (1<sizeof(return_value_type))
-inline auto system_call(auto p1,auto p2,auto p3,auto p4,auto p5)
+inline return_value_type system_call(auto p1,auto p2,auto p3,auto p4,auto p5) noexcept
 {
 	register std::uint64_t x8 __asm__("x8") = syscall_number;
 	register std::uint64_t x0 __asm__("x0") = (std::uint64_t)p1;
@@ -118,7 +118,7 @@ inline auto system_call(auto p1,auto p2,auto p3,auto p4,auto p5)
 
 template<std::size_t syscall_number,std::signed_integral return_value_type>
 requires (1<sizeof(return_value_type))
-inline auto system_call(auto p1,auto p2,auto p3,auto p4,auto p5,auto p6)
+inline return_value_type system_call(auto p1,auto p2,auto p3,auto p4,auto p5,auto p6) noexcept
 {
 	register std::uint64_t x8 __asm__("x8") = syscall_number;
 	register std::uint64_t x0 __asm__("x0") = (std::uint64_t)p1;
@@ -137,7 +137,7 @@ inline auto system_call(auto p1,auto p2,auto p3,auto p4,auto p5,auto p6)
 }
 
 template<std::integral I>
-inline void fast_exit(I ret)
+inline void fast_exit(I ret) noexcept
 {
 	system_call_no_return<__NR_exit>(ret);
 }
