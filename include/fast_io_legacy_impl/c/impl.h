@@ -640,7 +640,7 @@ public:
 #elif !defined(__SINGLE_THREAD__)
 //	_flockfile(fp);	//TO FIX undefined reference to `__cygwin_lock_lock' why?
 #endif
-#elif defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream) && !defined(_REENTRANT)) || defined(__mlibc__) || defined(__AVR__)
+#elif defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream) && !defined(_REENTRANT)) || defined(__MLIBC_O_CLOEXEC) || defined(__AVR__)
 #else
 	noexcept_call(flockfile,fp);
 #endif
@@ -659,7 +659,7 @@ public:
 #elif !defined(__SINGLE_THREAD__)
 //	_funlockfile(fp); //TO FIX
 #endif
-#elif defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream) && !defined(_REENTRANT)) || defined(__mlibc__) || defined(__AVR__)
+#elif defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream) && !defined(_REENTRANT)) || defined(__MLIBC_O_CLOEXEC) || defined(__AVR__)
 #else
 	noexcept_call(funlockfile,fp);
 #endif
@@ -1068,7 +1068,7 @@ using c_file_factory_unlocked = c_family_file_factory<c_family::native_unlocked>
 #elif defined(FAST_IO_LIBC_CUSTOM_BUFFER_PTRS)
 #include"custom.h"
 #endif
-#elif defined(__mlibc__)
+#elif defined(__MLIBC_O_CLOEXEC)
 #include"mlibc.h"
 #elif defined(__GLIBC__)
 #include"glibc.h"

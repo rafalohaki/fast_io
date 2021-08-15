@@ -183,7 +183,7 @@ inline void posix_fchmodat_impl(int dirfd, const char *pathname, mode_t mode, in
 
 inline posix_file_status posix_fstatat_impl(int dirfd, const char *pathname, int flags)
 {
-#if defined(__linux__) && !defined(__mlibc__)
+#if defined(__linux__) && !defined(__MLIBC_O_CLOEXEC)
 	struct stat64 buf;
 #else
 	struct stat buf;
