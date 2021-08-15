@@ -87,6 +87,8 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - Vinix
 - limine Bootloader
 - AVR
+- Banana
+- LemonOS
 - Any other platform (if you want me to support it, tell me, including your own OS)
 
 ## Legacy Windows Version Support (need define _WIN32_WINNT and _WIN32_WINDOWS version by yourself)
