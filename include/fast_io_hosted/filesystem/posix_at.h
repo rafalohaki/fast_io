@@ -270,7 +270,7 @@ inline
 #if defined(UTIME_NOW) && defined(UTIME_OMIT)
 constexpr
 #endif
-struct timespec unix_timestamp_to_struct_timespec64(unix_timestamp_option opt) noexcept
+struct timespec unix_timestamp_to_struct_timespec64(unix_timestamp_option opt [[maybe_unused]]) noexcept
 {
 #if defined(UTIME_NOW) && defined(UTIME_OMIT)
 	switch(opt.flags)
