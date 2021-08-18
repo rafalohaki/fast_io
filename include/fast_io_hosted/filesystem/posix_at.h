@@ -266,7 +266,11 @@ inline constexpr struct timespec unix_timestamp_to_struct_timespec64(unix_timest
 	return {static_cast<std::time_t>(stmp.seconds),static_cast<long>(static_cast<long unsigned>((stmp.subseconds)/mul_factor))};
 }
 
-inline constexpr struct timespec unix_timestamp_to_struct_timespec64(unix_timestamp_option opt) noexcept
+inline
+#if defined(UTIME_NOW) && defined(UTIME_OMIT)
+constexpr
+#endif
+struct timespec unix_timestamp_to_struct_timespec64(unix_timestamp_option opt) noexcept
 {
 #if defined(UTIME_NOW) && defined(UTIME_OMIT)
 	switch(opt.flags)

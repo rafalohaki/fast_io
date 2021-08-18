@@ -38,7 +38,7 @@ inline auto fgetc_unlocked_impl(FILE* fp) noexcept
 #elif _POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _POSIX_SOURCE || _BSD_SOURCE || _SVID_SOURCE
 		return fgetwc_unlocked(fp);
 #elif defined(__serenity__)
-		return EOF:
+		return EOF;
 #else
 		return fgetwc(fp);
 #endif
