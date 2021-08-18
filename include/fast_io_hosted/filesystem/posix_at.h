@@ -268,6 +268,7 @@ inline constexpr struct timespec unix_timestamp_to_struct_timespec64(unix_timest
 
 inline constexpr struct timespec unix_timestamp_to_struct_timespec64(unix_timestamp_option opt) noexcept
 {
+#if defined(UTIME_NOW) && defined(UTIME_OMIT)
 	switch(opt.flags)
 	{
 	case utime_flags::now:
@@ -277,6 +278,9 @@ inline constexpr struct timespec unix_timestamp_to_struct_timespec64(unix_timest
 	default:
 		return unix_timestamp_to_struct_timespec64(opt.timestamp);
 	}
+#else
+	throw_posix_error(EINVAL);
+#endif
 }
 
 }

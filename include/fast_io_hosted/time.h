@@ -643,7 +643,7 @@ inline iso8601_timestamp to_iso8601_local_impl(intiso_t seconds,uintiso_t subsec
 	tm_gmtoff=static_cast<long>(ulong_tm_gmtoff);
 #elif defined(__TM_GMTOFF)
 	tm_gmtoff=res.__TM_GMTOFF;
-#elif defined(__NEWLIB__) || defined(__AVR__) || defined(_PICOLIBC__)
+#elif defined(__NEWLIB__) || defined(__AVR__) || defined(_PICOLIBC__) || defined(__serenity__)
 	tm_gmtoff=0;
 #else
 	tm_gmtoff=res.tm_gmtoff;
