@@ -47,7 +47,7 @@ public:
 		if(__builtin_addressof(c)==this)[[unlikely]]
 			return *this;
 		if(this->csh)[[likely]]
-			noexcept_call(cs_close,this->csh);
+			noexcept_call(cs_close,__builtin_addressof(this->csh));
 		this->csh=c.csh;
 		c.csh=0;
 		return *this;
@@ -55,13 +55,13 @@ public:
 	cs_file(cs_arch arch, cs_mode mode)
 	{
 		auto ret{noexcept_call(cs_open,arch,mode,__builtin_addressof(this->csh))};
-		if(ret!=CS_ERROR_OK)
+		if(ret!=CS_ERR_OK)
 			throw_cs_error(ret);
 	}
 	~cs_file()
 	{
 		if(this->csh)[[likely]]
-			noexcept_call(cs_close,this->csh);
+			noexcept_call(cs_close,__builtin_addressof(this->csh));
 	}
 };
 
@@ -101,7 +101,7 @@ public:
 		if(__builtin_addressof(other)==this)[[unlikely]]
 			return *this;
 		if(this->ins)[[likely]]
-			noexcept_call(cs_free,this->csh,this->count);
+			noexcept_call(cs_free,this->ins,this->count);
 		this->ins=other.ins;
 		this->count=other.count;
 		other.ins=nullptr;
@@ -110,8 +110,8 @@ public:
 	}
 	~cs_insn_range()
 	{
-		if(ins)[[likely]]
-			noexcept_call(cs_free,ins,this->count);
+		if(this->ins)[[likely]]
+			noexcept_call(cs_free,this->ins,this->count);
 	}
 	constexpr pointer data() const noexcept
 	{
