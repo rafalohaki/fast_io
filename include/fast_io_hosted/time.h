@@ -2,7 +2,7 @@
 
 namespace fast_io
 {
-#if !(defined(_WIN32) && !defined(__AVR__))
+#if !defined(_WIN32) && !defined(__AVR__) && !defined(__MSDOS__)
 namespace posix
 {
 extern int libc_clock_getres(clockid_t clk_id, struct timespec *tp) noexcept __asm__("clock_getres");
