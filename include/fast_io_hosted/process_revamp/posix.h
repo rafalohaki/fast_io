@@ -401,8 +401,10 @@ public:
 		posix_process_observer{pid1}{}
 	posix_process(posix_at_entry pate,cstring_view filename,posix_process_args const& args,posix_process_args const& envp,posix_process_io const& pio):
 		posix_process_observer{details::posix_fork_execveat_impl(pate.fd,filename,args.args,envp.args,pio)}{}
+#ifdef AT_FDCWD
 	posix_process(cstring_view filename,posix_process_args const& args,posix_process_args const& envp,posix_process_io const& pio):
 		posix_process_observer{details::posix_fork_execveat_impl(AT_FDCWD,filename,args.args,envp.args,pio)}{}
+#endif
 	posix_process(posix_process const&)=delete;
 	posix_process& operator=(posix_process const&)=delete;
 	constexpr posix_process(posix_process&& other) noexcept:posix_process_observer{other.pid}

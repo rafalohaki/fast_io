@@ -826,7 +826,7 @@ inline constexpr posix_file_status struct_stat_to_posix_file_status(stat_model& 
 	131072,
 	static_cast<std::uintmax_t>(st.st_size/512),
 	{st.st_atime,{}},{st.st_mtime,{}},{st.st_ctime,{}},{0,0},
-#elif !defined(__CYGWIN__) && (defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL))
+#elif !defined(__CYGWIN__) && (defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)) && !defined(_PICOLIBC__)
 	static_cast<std::uintmax_t>(st.st_blksize),
 	static_cast<std::uintmax_t>(st.st_blocks),
 	timespec_to_unix_timestamp(st.st_atimespec),
@@ -851,7 +851,7 @@ timespec_to_unix_timestamp(st.st_birthtim)
 #endif
 ,
 #endif
-#if !defined(__CYGWIN__) && (defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL))
+#if !defined(__CYGWIN__) && (defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)) && !defined(_PICOLIBC__)
 	st.st_flags,st.st_gen
 #else
 	0,0
@@ -980,7 +980,7 @@ inline int open_fd_from_handle(void* handle,open_mode md)
 }
 
 #else
-#if defined(__NEWLIB__)||defined(__MSDOS__)
+#if defined(__NEWLIB__)||defined(__MSDOS__) || defined(_PICOLIBC__)
 
 template<bool always_terminate=false>
 inline int my_posix_openat(int,char const*,int,mode_t)
@@ -1080,7 +1080,7 @@ An Example of Multiple Inheritance in C++: A Model of the Iostream Library
 			throw_posix_error();
 	}
 	return fd;
-#elif defined(__NEWLIB__) && !defined(AT_FDCWD)
+#elif (defined(__NEWLIB__) && !defined(AT_FDCWD)) || defined(_PICOLIBC__)
 	int fd{::open(pathname,flags,mode)};
 	system_call_throw_error<always_terminate>(fd);
 	return fd;
@@ -1121,7 +1121,7 @@ inline int my_posix_open_file_internal_impl(char const* filepath,open_mode om,pe
 template<std::integral char_type>
 inline int my_posix_open_file_impl(basic_cstring_view<char_type> filepath,open_mode om,perms pm)
 {
-#if defined(__MSDOS__) || (defined(__NEWLIB__) && !defined(AT_FDCWD))
+#if defined(__MSDOS__) || (defined(__NEWLIB__) && !defined(AT_FDCWD)) || defined(_PICOLIBC__)
 	if constexpr(std::same_as<char_type,char>)
 	{
 		return my_posix_open_file_internal_impl(filepath.c_str(),om,pm);
@@ -1293,7 +1293,7 @@ To verify whether O_TMPFILE is a thing on FreeBSD. https://github.com/FreeRDP/Fr
 			details::sys_close(this->fd);
 	}
 };
-#if !defined(__NEWLIB__) || defined(__CYGWIN__)
+#if (!defined(__NEWLIB__) || defined(__CYGWIN__))&&!defined(_PICOLIBC__)
 
 namespace details
 {
@@ -1487,7 +1487,7 @@ inline constexpr basic_posix_io_observer<char_type> native_stderr() noexcept
 	return basic_posix_io_observer<char_type>{posix_stderr_number};
 }
 
-#if defined(__CYGWIN__) || (!defined(_WIN32) && !defined(__MSDOS__))
+#if defined(__CYGWIN__) || (!defined(_WIN32) && !defined(__MSDOS__) && !defined(_PICOLIBC__))
 namespace details
 {
 
@@ -1652,7 +1652,7 @@ inline io_scatter_status_t posix_scatter_write_impl(int fd,io_scatters_t sp)
 #endif
 #endif
 
-#if defined(__CYGWIN__) || ((!defined(__NEWLIB__)|| defined(FAST_IO_USE_NEWLIB_CUSTOM_WRITEV)) && !defined(__MSDOS__))
+#if defined(__CYGWIN__) || ((!defined(__NEWLIB__)|| defined(FAST_IO_USE_NEWLIB_CUSTOM_WRITEV)) && !defined(__MSDOS__) && !defined(_PICOLIBC__))
 
 template<std::integral ch_type>
 [[nodiscard]] inline io_scatter_status_t scatter_read(basic_posix_io_observer<ch_type> h,io_scatters_t sp)
@@ -1807,7 +1807,7 @@ inline io_scatter_status_t scatter_pwrite(basic_posix_io_observer<ch_type> piob,
 #endif
 
 }
-#if defined(__MSDOS__) || (defined(__NEWLIB__)&&!defined(FAST_IO_USE_NEWLIB_CUSTOM_WRITEV)&&!defined(__CYGWIN__))
+#if defined(__MSDOS__) || ((defined(__NEWLIB__)||defined(_PICOLIBC__))&&!defined(FAST_IO_USE_NEWLIB_CUSTOM_WRITEV)&&!defined(__CYGWIN__))
 #include"msdos.h"
 #endif
 #if defined(__linux__) && (defined(__NR_sendfile) || defined(__NR_sendfile64))

@@ -151,7 +151,7 @@ inline char* posix_load_address(int fd,std::size_t file_size)
 	}
 	else
 	{
-#if defined(_WIN32) || (defined(__NEWLIB__)&&!defined(__CYGWIN__)) || defined(__MSDOS__) || (defined(__wasi__)&&!defined(_WASI_EMULATED_MMAN))
+#if defined(_WIN32) || (defined(__NEWLIB__)&&!defined(__CYGWIN__)) || defined(__MSDOS__) || defined(_PICOLIBC__) || (defined(__wasi__)&&!defined(_WASI_EMULATED_MMAN))
 	static_assert(allocation);
 #else
 	if(file_size==0)
@@ -183,7 +183,7 @@ inline void posix_unload_address(void* address,[[maybe_unused]] std::size_t file
 	}
 	else
 	{
-#if defined(_WIN32) || (defined(__NEWLIB__)&&!defined(__CYGWIN__)) || defined(__MSDOS__) || defined(__wasi__)
+#if defined(_WIN32) || (defined(__NEWLIB__)&&!defined(__CYGWIN__)) || defined(_PICOLIBC__) || defined(__MSDOS__) || defined(__wasi__)
 		static_assert(allocation);
 #else
 		if(address!=(void*)-1)[[likely]]
@@ -443,7 +443,7 @@ inline constexpr basic_io_scatter_t<char> print_alias_define(io_alias_t,posix_fi
 
 }
 
-#if !defined(_WIN32) && (!defined(__NEWLIB__)||defined(__CYGWIN__)) && !defined(__MSDOS__) && !defined(__wasi__)
+#if !defined(_WIN32) && (!defined(__NEWLIB__)||defined(__CYGWIN__)) && !defined(__MSDOS__) && !defined(__wasi__) && !defined(_PICOLIBC__)
 using posix_file_loader = details::posix_file_loader_impl<false>;
 #endif
 

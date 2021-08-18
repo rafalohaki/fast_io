@@ -152,6 +152,7 @@ Also need to install msvcrt.dll
 - wasi libc
 - mlibc (this is a new libc which still contains a lot of bugs currently)
 - avrlibc
+- picolibc
 
 ## Supported C++ standard library std::streambuf/std::filebuf hacks platforms
 - GCC libstdc++

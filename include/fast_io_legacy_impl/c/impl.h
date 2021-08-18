@@ -252,7 +252,7 @@ unlocked,
 emulated,
 emulated_unlocked,
 native=
-#if defined(__AVR__)
+#if defined(__AVR__) || defined(_PICOLIBC__)
 emulated_unlocked
 #elif defined(__MSDOS__)
 unlocked
@@ -261,7 +261,7 @@ standard
 #endif
 ,
 native_unlocked = 
-#if defined(__AVR__)
+#if defined(__AVR__) || defined(_PICOLIBC__)
 emulated_unlocked
 #else
 unlocked
@@ -314,7 +314,7 @@ inline int my_fileno_impl(FILE* fp) noexcept
 		noexcept_call(_fileno,fp)
 #elif defined(__NEWLIB__) || defined(__DARWIN_C_LEVEL)
 		fp->_file
-#elif defined(__MISC_VISIBLE) || defined(__USE_MISC)
+#elif (defined(__MISC_VISIBLE) || defined(__USE_MISC))&&!defined(_PICOLIBC__)
 		noexcept_call(fileno_unlocked,fp)
 #else
 		noexcept_call(fileno,fp)
@@ -454,7 +454,7 @@ inline void my_c_io_flush_impl(FILE* fp)
 #if defined(_MSC_VER) || defined(_UCRT)
 		if(noexcept_call(_fflush_nolock,fp))
 			throw_posix_error();
-#elif defined(__MISC_VISIBLE) && !defined(__NEWLIB__)
+#elif defined(__MISC_VISIBLE) && !defined(__NEWLIB__)&&!defined(_PICOLIBC__)
 		if(noexcept_call(fflush_unlocked,fp))
 			throw_posix_error();
 #else
@@ -530,7 +530,7 @@ https://www.gnu.org/software/libc/manual/html_node/File-Positioning.html
 		if(val<0)
 			throw_posix_error(ent._errno);
 		return val;
-#elif defined(__MSDOS__) || defined(__CYGWIN__)
+#elif defined(__MSDOS__) || defined(__CYGWIN__) || defined(_PICOLIBC__)
 		if constexpr(sizeof(long)<sizeof(std::intmax_t))
 		{
 			if(offset<static_cast<std::intmax_t>(std::numeric_limits<long>::min())||offset>static_cast<std::intmax_t>(std::numeric_limits<long>::max()))
@@ -640,7 +640,7 @@ public:
 #elif !defined(__SINGLE_THREAD__)
 //	_flockfile(fp);	//TO FIX undefined reference to `__cygwin_lock_lock' why?
 #endif
-#elif defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream) && !defined(_REENTRANT)) || defined(__MLIBC_O_CLOEXEC) || defined(__AVR__)
+#elif defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream) && !defined(_REENTRANT)) || defined(__MLIBC_O_CLOEXEC) || defined(__AVR__) || defined(_PICOLIBC__)
 #else
 	noexcept_call(flockfile,fp);
 #endif
@@ -659,7 +659,7 @@ public:
 #elif !defined(__SINGLE_THREAD__)
 //	_funlockfile(fp); //TO FIX
 #endif
-#elif defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream) && !defined(_REENTRANT)) || defined(__MLIBC_O_CLOEXEC) || defined(__AVR__)
+#elif defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream) && !defined(_REENTRANT)) || defined(__MLIBC_O_CLOEXEC) || defined(__AVR__) || defined(_PICOLIBC__)
 #else
 	noexcept_call(funlockfile,fp);
 #endif
@@ -1058,7 +1058,7 @@ using c_file_factory_unlocked = c_family_file_factory<c_family::native_unlocked>
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #include"wincrt.h"
-#elif defined(__AVR__)
+#elif defined(__AVR__) || defined(_PICOLIBC__)
 #include"avrlibc.h"
 #include"macros_general.h"
 #else
