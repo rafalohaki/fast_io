@@ -170,6 +170,7 @@ A general purpose I/O library to replace stdio.h and iostream
 - As close to system call as possible.
 - No default locale. It is optional.
 - Correctly deal with EBCDIC exec-charset (where no libc correctly deals it).
+- OOP is not allowed. Yes to C with Concepts. No to C with Classes.
 
 ### Safe
 
