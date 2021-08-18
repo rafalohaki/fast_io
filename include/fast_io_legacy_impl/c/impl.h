@@ -1076,6 +1076,8 @@ using c_file_factory_unlocked = c_family_file_factory<c_family::native_unlocked>
 #include"musl.h"
 #elif defined(__NEED___isoc_va_list) || defined(__musl__)
 #include"musl.h"
+#elif defined(__serenity__)
+#include"serenity.h"
 #elif defined(__BSD_VISIBLE) ||defined(__DARWIN_C_LEVEL) \
 	|| (defined(__NEWLIB__) &&!defined(__CUSTOM_FILE_IO__)) \
 	|| defined(__BIONIC__) || defined(__MSDOS__)
