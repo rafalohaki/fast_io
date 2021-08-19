@@ -370,7 +370,7 @@ inline std::size_t nt_read_impl(void* __restrict handle,void* __restrict begin,s
 	if constexpr(4<sizeof(std::size_t))
 		if(static_cast<std::size_t>(UINT32_MAX)<size)
 			size=static_cast<std::size_t>(UINT32_MAX);
-	win32::nt::io_status_block block{};
+	win32::nt::io_status_block block;	//some poeple in zwclose7 forum said we do not need to initialize io_status_block
 	auto const status{win32::nt::nt_read_file<zw>(handle,nullptr,nullptr,nullptr,
 		__builtin_addressof(block), begin, static_cast<std::uint32_t>(size), nullptr, nullptr)};
 	if(status)
@@ -389,7 +389,7 @@ inline std::size_t nt_write_impl(void* __restrict handle,void const* __restrict 
 			std::uint32_t to_write_this_round{UINT32_MAX};
 			if(size<static_cast<std::size_t>(UINT32_MAX))
 				to_write_this_round=static_cast<std::uint32_t>(size);
-			win32::nt::io_status_block block{};
+			win32::nt::io_status_block block; //some poeple in zwclose7 forum said we do not need to initialize io_status_block
 			auto const status{win32::nt::nt_write_file<zw>(handle,nullptr,nullptr,nullptr,
 				__builtin_addressof(block), begin, to_write_this_round, nullptr, nullptr)};
 			if(status)
@@ -404,7 +404,7 @@ inline std::size_t nt_write_impl(void* __restrict handle,void const* __restrict 
 	}
 	else
 	{
-		win32::nt::io_status_block block{};
+		win32::nt::io_status_block block;	//some poeple in zwclose7 forum said we do not need to initialize io_status_block
 		auto const status{win32::nt::nt_write_file<zw>(handle,nullptr,nullptr,nullptr,
 			__builtin_addressof(block), begin, static_cast<std::uint32_t>(size), nullptr, nullptr)};
 		if(status)
@@ -412,6 +412,43 @@ inline std::size_t nt_write_impl(void* __restrict handle,void const* __restrict 
 		return block.Information;
 	}
 }
+
+template<bool zw>
+inline io_scatter_status_t nt_scatter_read_impl(void* __restrict handle,io_scatter_t const* scatters,std::size_t n)
+{
+	std::size_t total_size{};
+	for(std::size_t i{};i!=n;++i)
+	{
+		std::size_t pos_in_span{nt_read_impl<zw>(handle,const_cast<void*>(scatters[i].base),scatters[i].len)};
+		total_size+=pos_in_span;
+		if(pos_in_span<scatters[i].len)[[unlikely]]
+			return {total_size,i,pos_in_span};
+	}
+	return {total_size,n,0};
+}
+
+#if 0
+
+template<bool zw>
+inline io_scatter_status_t nt_scatter_write_impl(void* __restrict handle,io_scatter_t const* scatters,std::size_t n)
+{
+	win32::overlapped overlap{};
+	nt_file_lock_guard<zw> gd{
+		win32::LockFileEx(handle,0x00000002,0,UINT32_MAX,UINT32_MAX,__builtin_addressof(overlap))?
+		handle:
+		nullptr
+	};
+	std::size_t total_size{};
+	for(std::size_t i{};i!=n;++i)
+	{
+		std::size_t written{nt_write_nolock_impl<zw>(handle,scatters[i].base,scatters[i].len)};
+		total_size+=written;
+		if(scatters[i].len<written)[[unlikely]]
+			return {total_size,i,written};
+	}
+	return {total_size,n,0};
+}
+#endif
 
 }
 

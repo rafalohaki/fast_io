@@ -709,4 +709,80 @@ inline std::uint32_t nt_resume_thread(Args... args) noexcept
 		return NtResumeThread(args...);
 }
 
+__declspec(dllimport) extern std::uint32_t __stdcall NtLockFile(void*,void*,pio_apc_routine,void*,io_status_block*,std::int64_t*,std::int64_t*,std::uint32_t,char unsigned,char unsigned) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if !defined(__clang__)
+asm("NtLockFile@40")
+#else
+asm("_NtLockFile@40")
+#endif
+#else
+asm("NtLockFile")
+#endif
+#endif
+;
+
+__declspec(dllimport) extern std::uint32_t __stdcall ZwLockFile(void*,void*,pio_apc_routine,void*,io_status_block*,std::int64_t*,std::int64_t*,std::uint32_t,char unsigned,char unsigned) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if !defined(__clang__)
+asm("ZwLockFile@40")
+#else
+asm("_ZwLockFile@40")
+#endif
+#else
+asm("ZwLockFile")
+#endif
+#endif
+;
+
+template<bool zw,typename... Args>
+requires (sizeof...(Args)==10)
+inline std::uint32_t nt_lock_file(Args... args) noexcept
+{
+	if constexpr(zw)
+		return ZwLockFile(args...);
+	else
+		return NtLockFile(args...);
+}
+
+__declspec(dllimport) extern std::uint32_t __stdcall NtUnlockFile(void*,io_status_block*,std::int64_t*,std::int64_t*,std::uint32_t) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if !defined(__clang__)
+asm("NtUnlockFile@20")
+#else
+asm("_NtUnlockFile@20")
+#endif
+#else
+asm("NtUnlockFile")
+#endif
+#endif
+;
+
+__declspec(dllimport) extern std::uint32_t __stdcall ZwUnlockFile(void*,io_status_block*,std::int64_t*,std::int64_t*,std::uint32_t) noexcept
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if !defined(__clang__)
+asm("ZwUnlockFile@20")
+#else
+asm("_ZwUnlockFile@20")
+#endif
+#else
+asm("ZwUnlockFile")
+#endif
+#endif
+;
+
+template<bool zw,typename... Args>
+requires (sizeof...(Args)==5)
+inline std::uint32_t nt_unlock_file(Args... args) noexcept
+{
+	if constexpr(zw)
+		return ZwUnlockFile(args...);
+	else
+		return NtUnlockFile(args...);
+}
+
 }
