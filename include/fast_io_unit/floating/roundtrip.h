@@ -1019,7 +1019,7 @@ inline constexpr Iter print_rsv_fp_decision_impl(Iter iter,typename iec559_trait
 		}
 		else
 		{
-			std::uint32_t sz{chars_len<10,true>(m10)};
+			std::uint32_t sz{static_cast<std::uint32_t>(chars_len<10,true>(m10))};
 			e10+=static_cast<std::int32_t>(sz)-1;
 			iter=print_rsv_fp_general_scientific_common_impl<comma>(iter,m10,sz);
 		}
