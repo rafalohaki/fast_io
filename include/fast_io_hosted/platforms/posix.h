@@ -689,6 +689,12 @@ inline void posix_flush_impl(int fd)
 #endif
 }
 
+inline void posix_data_sync_flags_impl(int fd,data_sync_flags)
+{
+//todo
+	posix_flush_impl(fd);
+}
+
 }
 
 template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
@@ -715,6 +721,15 @@ template<std::integral ch_type>
 inline void flush(basic_posix_io_observer<ch_type> piob)
 {
 	details::posix_flush_impl(piob.fd);
+}
+
+template<std::integral ch_type>
+#if __has_cpp_attribute(gnu::always_inline)
+[[gnu::always_inline]]
+#endif
+inline void data_sync(basic_posix_io_observer<ch_type> piob,data_sync_flags flags)
+{
+	details::posix_data_sync_flags_impl(piob.fd,flags);
 }
 
 #if !defined(__NEWLIB__) || defined(__CYGWIN__)

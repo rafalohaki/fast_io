@@ -129,4 +129,12 @@ inline constexpr raiter print_reserve_define(io_reserve_type_t<char_type,perms>,
 	return details::print_status_impl<char_type>(iter,p);
 }
 
+enum class data_sync_flags:std::uint_least8_t
+{
+normal=0,
+file_data_only=0x00000001,
+no_sync=0x00000002,
+file_data_sync_only=0x00000004
+};
+
 }

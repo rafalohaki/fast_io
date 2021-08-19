@@ -414,8 +414,43 @@ inline std::size_t nt_write_impl(void* __restrict handle,void const* __restrict 
 }
 
 template<bool zw>
+struct nt_file_lock_guard
+{
+	void* handle;
+	constexpr nt_file_lock_guard(void* h):handle(h){}
+	nt_file_lock_guard(nt_file_lock_guard const&)=delete;
+	nt_file_lock_guard& operator=(nt_file_lock_guard const&)=delete;
+	~nt_file_lock_guard()
+	{
+		if(handle)
+		{
+			win32::nt::io_status_block block;
+			std::int64_t byte_offset{};
+			std::int64_t length{INT64_MAX};
+			win32::nt::nt_unlock_file<zw>(handle,__builtin_addressof(block),__builtin_addressof(byte_offset),__builtin_addressof(length),0);//ignore error
+		}
+	}
+};
+
+template<bool zw>
+inline bool nt_lock_entire_file(void* __restrict handle) noexcept
+{
+	win32::nt::io_status_block block;
+	std::int64_t byte_offset{};
+	std::int64_t length{INT64_MAX};
+	std::uint32_t status{win32::nt::nt_lock_file<zw>(handle,nullptr,nullptr,nullptr,__builtin_addressof(block),
+		__builtin_addressof(byte_offset),__builtin_addressof(length),0,0,1/*exclusive lock*/)};
+	return status;
+}
+
+template<bool zw>
 inline io_scatter_status_t nt_scatter_read_impl(void* __restrict handle,io_scatter_t const* scatters,std::size_t n)
 {
+	nt_file_lock_guard<zw> gd{
+		nt_lock_entire_file<zw>(handle)?
+		nullptr:
+		handle
+	};
 	std::size_t total_size{};
 	for(std::size_t i{};i!=n;++i)
 	{
@@ -427,28 +462,24 @@ inline io_scatter_status_t nt_scatter_read_impl(void* __restrict handle,io_scatt
 	return {total_size,n,0};
 }
 
-#if 0
-
 template<bool zw>
 inline io_scatter_status_t nt_scatter_write_impl(void* __restrict handle,io_scatter_t const* scatters,std::size_t n)
 {
-	win32::overlapped overlap{};
 	nt_file_lock_guard<zw> gd{
-		win32::LockFileEx(handle,0x00000002,0,UINT32_MAX,UINT32_MAX,__builtin_addressof(overlap))?
-		handle:
-		nullptr
+		nt_lock_entire_file<zw>(handle)?
+		nullptr:
+		handle
 	};
 	std::size_t total_size{};
 	for(std::size_t i{};i!=n;++i)
 	{
-		std::size_t written{nt_write_nolock_impl<zw>(handle,scatters[i].base,scatters[i].len)};
+		std::size_t written{nt_write_impl<zw>(handle,scatters[i].base,scatters[i].len)};
 		total_size+=written;
 		if(scatters[i].len<written)[[unlikely]]
 			return {total_size,i,written};
 	}
 	return {total_size,n,0};
 }
-#endif
 
 }
 
@@ -569,9 +600,57 @@ inline Iter write(basic_nt_family_io_observer<family,ch_type> obs,Iter cbegin,It
 }
 
 template<nt_family family,std::integral ch_type>
-inline constexpr void flush(basic_nt_family_io_observer<family,ch_type>) noexcept
+inline io_scatter_status_t scatter_read(basic_nt_family_io_observer<family,ch_type> obs,io_scatters_t sp)
+{
+	return win32::nt::details::nt_scatter_read_impl<family==nt_family::zw>(obs.handle,sp.base,sp.len);
+}
+
+template<nt_family family,std::integral ch_type>
+inline io_scatter_status_t scatter_write(basic_nt_family_io_observer<family,ch_type> obs,io_scatters_t sp)
+{
+	return win32::nt::details::nt_scatter_write_impl<family==nt_family::zw>(obs.handle,sp.base,sp.len);
+}
+
+namespace win32::nt::details
 {
 
+template<bool zw>
+inline void nt_flush_impl(void* handle)
+{
+	win32::nt::io_status_block block;
+	std::uint32_t status{win32::nt::nt_flush_buffers_file<zw>(handle,__builtin_addressof(block))};
+	if(status)
+		throw_nt_error(status);
+}
+
+template<bool zw>
+inline void nt_data_sync_impl(void* handle,data_sync_flags flags [[maybe_unused]])
+{
+#if _WIN32_WINNT >= 0x0602 || WINVER >= 0x0602
+/*
+NtFlushBuffersFileEx and ZwFlushBuffersFileEx are only provided since windows 8
+*/
+	win32::nt::io_status_block block;
+	std::uint32_t status{win32::nt::nt_flush_buffers_file_ex<zw>(handle,static_cast<std::uint32_t>(flags),nullptr,0,__builtin_addressof(block))};
+	if(status)
+		throw_nt_error(status);
+#else
+	nt_flush_impl<zw>(handle);
+#endif
+}
+
+}
+
+template<nt_family family,std::integral ch_type>
+inline void flush(basic_nt_family_io_observer<family,ch_type> ntiob)
+{
+	win32::nt::details::nt_flush_impl<family==nt_family::zw>(ntiob.handle);
+}
+
+template<nt_family family,std::integral ch_type>
+inline void data_sync(basic_nt_family_io_observer<family,ch_type> ntiob,data_sync_flags flags)
+{
+	win32::nt::details::nt_data_sync_impl<family==nt_family::zw>(ntiob.handle,flags);
 }
 
 /*

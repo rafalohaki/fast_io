@@ -433,6 +433,15 @@ inline void win32_flush_impl(void* __restrict handle)
 		throw_win32_error();
 }
 
+inline void win32_data_sync_impl(void* __restrict handle,data_sync_flags flags [[maybe_unused]])
+{
+#if defined(_WIN32_WINDOWS)
+	win32_flush_impl(handle);
+#else
+	::fast_io::win32::nt::details::nt_data_sync_impl<false>(handle,flags);
+#endif
+}
+
 }
 
 template<win32_family family,std::integral char_type>
@@ -442,6 +451,15 @@ template<win32_family family,std::integral char_type>
 inline void flush(basic_win32_family_io_observer<family,char_type> wiob)
 {
 	::fast_io::win32::details::win32_flush_impl(wiob.handle);
+}
+
+template<win32_family family,std::integral char_type>
+#if __has_cpp_attribute(gnu::always_inline)
+[[gnu::always_inline]]
+#endif
+inline void data_sync(basic_win32_family_io_observer<family,char_type> wiob,data_sync_flags flags)
+{
+	::fast_io::win32::details::win32_data_sync_impl(wiob.handle,flags);
 }
 
 template<win32_family family,std::integral ch_type>
