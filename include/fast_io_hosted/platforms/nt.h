@@ -416,8 +416,8 @@ inline std::size_t nt_write_impl(void* __restrict handle,void const* __restrict 
 template<bool zw>
 struct nt_file_lock_guard
 {
-	void* handle;
-	constexpr nt_file_lock_guard(void* h):handle(h){}
+	void* handle{};
+	explicit constexpr nt_file_lock_guard(void* h):handle(h){}
 	nt_file_lock_guard(nt_file_lock_guard const&)=delete;
 	nt_file_lock_guard& operator=(nt_file_lock_guard const&)=delete;
 	~nt_file_lock_guard()

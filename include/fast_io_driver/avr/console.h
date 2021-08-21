@@ -24,10 +24,16 @@ inline void avr_usart_initialize() noexcept
 	UCSR0C = (1<<UCSZ01) | (1<<UCSZ00);
 }
 
-inline void avr_usart_send_byte(char c) noexcept
+inline void avr_usart_send_byte(char unsigned c) noexcept
 {
 	loop_until_bit_is_set(UCSR0A,UDRE0);
 	UDR0 = c;
+}
+
+inline char unsigned avr_usart_recv_byte() noexcept
+{
+	loop_until_bit_is_set(UCSR0A,RXC0);
+	return UDR0;
 }
 
 template<std::integral ch_type>
@@ -39,7 +45,7 @@ struct basic_avr_console
 inline void avr_usart_console_write(char const* first,char const* last) noexcept
 {
 	for(;first!=last;++first)
-		avr_usart_send_byte(*first);
+		avr_usart_send_byte(static_cast<char unsigned>(*first));
 }
 
 inline void avr_usart_console_writev(fast_io::io_scatter_t const* scatter,std::size_t n) noexcept
