@@ -422,7 +422,7 @@ inline constexpr std::uint32_t to_win32_sock_open_mode_9xa(open_mode m) noexcept
 }
 
 
-#ifndef __CYGWIN__
+#if !defined(__CYGWIN__) && !defined(__WINE__)
 
 inline constexpr int to_native_sock_family(sock_family dom) noexcept
 {
@@ -765,7 +765,7 @@ using u8win32_socket_file=basic_win32_socket_file<char8_t>;
 using u16win32_socket_file=basic_win32_socket_file<char16_t>;
 using u32win32_socket_file=basic_win32_socket_file<char32_t>;
 
-#ifndef __CYGWIN__
+#if !defined(__CYGWIN__) && !defined(__WINE__)
 
 template<std::integral ch_type>
 using basic_native_socket_io_observer = basic_win32_socket_io_observer<ch_type>;

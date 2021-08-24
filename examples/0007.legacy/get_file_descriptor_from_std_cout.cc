@@ -18,7 +18,7 @@ int main()
 	println("std::cout.rdbuf():",siob.fb,"\n"
 	"FILE*:",static_cast<fast_io::c_io_observer>(siob).fp,"\n"
 	"fd:",static_cast<fast_io::posix_io_observer>(siob).fd
-#if defined(_WIN32) || defined(__CYGWIN__)
+#if (defined(_WIN32)&&!defined(__WINE__)) || defined(__CYGWIN__)
 //On Windows we can also get its HANDLE
 	,"\nwin32 HANDLE:",static_cast<fast_io::win32_io_observer>(siob).handle,"\n"
 //Nt HANDLE and win32 HANDLE are the same

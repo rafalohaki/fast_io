@@ -42,7 +42,7 @@ public:
 	{
 		return static_cast<basic_posix_io_observer<char_type>>(static_cast<basic_c_io_observer<char_type>>(*this));
 	}
-#if defined(_WIN32) || defined(__CYGWIN__)
+#if (defined(_WIN32)&&!defined(__WINE__)) || defined(__CYGWIN__)
 	explicit operator basic_win32_io_observer<char_type>() const noexcept
 	{
 		return static_cast<basic_win32_io_observer<char_type>>
@@ -219,7 +219,7 @@ inline void clear_screen(basic_general_streambuf_io_observer<T> other)
 	details::lock_guard guard{bciob};
 	std::FILE* fp{bciob.fp};
 	int fd{details::fp_unlocked_to_fd(fp)};
-#ifdef _WIN32
+#if defined(_WIN32)&&!defined(__WINE__)
 	void* handle{details::my_get_osfile_handle(fd)};
 	if(!win32::details::win32_is_character_device(handle))
 		return;

@@ -22,7 +22,7 @@ struct win32_wsa_service
 	}
 };
 
-#ifndef __CYGWIN__
+#if !defined(__CYGWIN__) && !defined(__WINE__)
 using net_service = win32_wsa_service;
 #endif
 }

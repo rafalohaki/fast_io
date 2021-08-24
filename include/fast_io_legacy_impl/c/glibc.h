@@ -124,8 +124,8 @@ inline std::byte* hack_wide_data(FILE* fp) noexcept
 	return value;
 }
 
-template<std::size_t position,std::integral char_type=wchar_t>
-requires (sizeof(char_type)==sizeof(wchar_t))
+template<std::size_t position,std::integral char_type>
+requires (sizeof(char_type)==sizeof(char32_t))
 inline char_type* hack_wp(FILE* fp) noexcept
 {
 	constexpr std::size_t off{position*sizeof(uintptr_t)};
@@ -134,66 +134,68 @@ inline char_type* hack_wp(FILE* fp) noexcept
 	return value;
 }
 template<std::size_t position,std::integral char_type>
-requires (sizeof(char_type)==sizeof(wchar_t))
+requires (sizeof(char_type)==sizeof(char32_t))
 inline void hack_wpset(FILE* fp,char_type* ptr) noexcept
 {
 	constexpr std::size_t off{position*sizeof(uintptr_t)};
 	::fast_io::details::my_memcpy(hack_wide_data(fp)+off,__builtin_addressof(ptr),sizeof(wchar_t*));
 }
 }
+#if WCHAR_MAX == UINT32_MAX
 //wchar_t supports
 
 inline wchar_t* ibuffer_begin(wc_io_observer_unlocked cio) noexcept
 {
-	return details::fp_wide_hack::hack_wp<2>(cio.fp);
+	return details::fp_wide_hack::hack_wp<2,wchar_t>(cio.fp);
 }
 
 inline wchar_t* ibuffer_curr(wc_io_observer_unlocked cio) noexcept
 {
-	return details::fp_wide_hack::hack_wp<0>(cio.fp);
+	return details::fp_wide_hack::hack_wp<0,wchar_t>(cio.fp);
 }
 
 inline wchar_t* ibuffer_end(wc_io_observer_unlocked cio) noexcept
 {
-	return details::fp_wide_hack::hack_wp<1>(cio.fp);
+	return details::fp_wide_hack::hack_wp<1,wchar_t>(cio.fp);
 }
 
 inline void ibuffer_set_curr(wc_io_observer_unlocked cio,wchar_t* ptr) noexcept
 {
-	details::fp_wide_hack::hack_wpset<0>(cio.fp,ptr);
+	details::fp_wide_hack::hack_wpset<0,wchar_t>(cio.fp,ptr);
 }
+#endif
 
 namespace details
 {
 extern std::uint32_t glibc_wunderflow (FILE *) noexcept asm("__wunderflow");
 }
+#if WCHAR_MAX == UINT32_MAX
 inline bool ibuffer_underflow(wc_io_observer_unlocked cio) noexcept
 {
 	ibuffer_set_curr(cio,ibuffer_end(cio));
 	return details::glibc_wunderflow(cio.fp)!=static_cast<std::uint32_t>(0xffffffffu);
 }
-
 inline wchar_t* obuffer_begin(wc_io_observer_unlocked cio) noexcept
 {
-	return details::fp_wide_hack::hack_wp<3>(cio.fp);
+	return details::fp_wide_hack::hack_wp<3,wchar_t>(cio.fp);
 }
 
 inline wchar_t* obuffer_curr(wc_io_observer_unlocked cio) noexcept
 {
-	return details::fp_wide_hack::hack_wp<4>(cio.fp);
+	return details::fp_wide_hack::hack_wp<4,wchar_t>(cio.fp);
 }
 
 inline wchar_t* obuffer_end(wc_io_observer_unlocked cio) noexcept
 {
-	return details::fp_wide_hack::hack_wp<5>(cio.fp);
+	return details::fp_wide_hack::hack_wp<5,wchar_t>(cio.fp);
 }
 
 inline void obuffer_set_curr(wc_io_observer_unlocked cio,wchar_t* ptr) noexcept
 {
 	ibuffer_set_curr(cio,ibuffer_end(cio));
-	details::fp_wide_hack::hack_wpset<4>(cio.fp,ptr);
+	details::fp_wide_hack::hack_wpset<4,wchar_t>(cio.fp,ptr);
 }
-
+#endif
 namespace details
 {
 extern std::uint32_t glibc_woverflow (FILE *,std::uint32_t) noexcept asm("__woverflow");

@@ -23,7 +23,7 @@ inline auto fgetc_unlocked_impl(FILE* fp) noexcept
 {
 	if constexpr(std::same_as<char_type,char>||std::same_as<char_type,char8_t>)
 	{
-#if defined(_WIN32)
+#if (defined(_WIN32)&&!defined(__WINE__))
 		return _fgetc_nolock(fp);
 #elif _POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _POSIX_SOURCE || _BSD_SOURCE || _SVID_SOURCE
 		return fgetc_unlocked(fp);

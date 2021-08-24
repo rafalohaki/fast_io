@@ -590,7 +590,7 @@ inline iso8601_timestamp to_iso8601_local_impl(intiso_t seconds,uintiso_t subsec
 		if(errn)
 			throw_posix_error(static_cast<int>(errn));
 	}
-#elif defined(_WIN32)
+#elif defined(_WIN32) && !defined(__WINE__) && !defined(__CYGWIN__)
 	tm_gmtoff=_timezone;
 #else
 	tm_gmtoff=timezone;
@@ -604,7 +604,7 @@ inline iso8601_timestamp to_iso8601_local_impl(intiso_t seconds,uintiso_t subsec
 		if(errn)
 			throw_posix_error(static_cast<int>(errn));
 	}
-#elif defined(_WIN32)
+#elif defined(_WIN32) && !defined(__WINE__) && !defined(__CYGWIN__)
 	bias=_dstbias;
 #else
 	bias=daylight?-3600L:0;
@@ -678,7 +678,7 @@ extern void m_tzset() noexcept asm("tzset");
 
 inline void posix_tzset() noexcept
 {
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__WINE__)
 	noexcept_call(_tzset);
 #elif defined(__NEWLIB__) || defined(_PICOLIBC__)
 	details::m_tzset();
@@ -772,7 +772,7 @@ inline std::int_least32_t posix_daylight()
 {
 #if defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream)) || defined(__AVR__)
 	return 0;
-#elif defined(_WIN32)
+#elif defined(_WIN32) && !defined(__WINE__)
 	return _daylight;
 #elif defined(__NEWLIB__)
 	return m_daylight;

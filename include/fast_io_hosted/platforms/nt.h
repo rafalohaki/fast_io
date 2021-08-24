@@ -482,11 +482,12 @@ inline io_scatter_status_t nt_scatter_write_impl(void* __restrict handle,io_scat
 }
 
 }
-
+#if !defined(__WINE__)
 namespace details
 {
 inline void* my_get_osfile_handle(int fd) noexcept;
 }
+#endif
 
 struct nt_at_entry
 {
@@ -494,7 +495,9 @@ struct nt_at_entry
 	void* handle{};
 	explicit constexpr nt_at_entry() noexcept=default;
 	explicit constexpr nt_at_entry(void* mhandle) noexcept:handle(mhandle){}
+#if !defined(__WINE__)
 	nt_at_entry(posix_at_entry pate) noexcept:handle(details::my_get_osfile_handle(pate.fd)){}
+#endif
 };
 
 template<nt_family family>

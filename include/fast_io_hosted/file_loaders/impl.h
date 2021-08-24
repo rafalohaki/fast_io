@@ -8,7 +8,7 @@
 namespace fast_io
 {
 
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(__WINE__)
 using native_file_loader = win32_file_loader;
 #elif (!defined(__NEWLIB__)||defined(__CYGWIN__)) && !defined(__MSDOS__) && !defined(__wasi__) && !defined(_PICOLIBC__)
 using native_file_loader = posix_file_loader;

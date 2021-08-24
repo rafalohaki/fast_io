@@ -45,7 +45,7 @@ namespace details
 
 inline std::size_t posix_loader_get_file_size(int fd)
 {
-#if defined(_WIN32)
+#if defined(_WIN32)&&!defined(__WINE__)
 //windows 95 and windows 98 msvcrt do not provide struct __stat64. Directly invoke win32 api
 	return ::fast_io::win32::details::win32_load_file_get_file_size(reinterpret_cast<void*>(noexcept_call(_get_osfhandle,fd)));
 #elif defined(__linux__) && defined(__NR_statx)
@@ -443,7 +443,7 @@ inline constexpr basic_io_scatter_t<char> print_alias_define(io_alias_t,posix_fi
 
 }
 
-#if !defined(_WIN32) && (!defined(__NEWLIB__)||defined(__CYGWIN__)) && !defined(__MSDOS__) && !defined(__wasi__) && !defined(_PICOLIBC__)
+#if (!defined(_WIN32) || defined(__WINE__)) && (!defined(__NEWLIB__)||defined(__CYGWIN__)) && !defined(__MSDOS__) && !defined(__wasi__) && !defined(_PICOLIBC__)
 using posix_file_loader = details::posix_file_loader_impl<false>;
 #endif
 

@@ -44,6 +44,7 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - VS 19.29.29917
 - Clang 14
 - Intel(R) oneAPI DPC++ Compiler 2021.2.0 (2021.2.0.20210317)
+- Winegcc
 
 ## C++ standard library support
 
@@ -79,6 +80,7 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - Cygwin/MSYS2
 - Android
 - Wine
+- Wine GCC
 - ReactOS
 - Windows Runtime
 - Nintendo DS (devkitPro)

@@ -218,7 +218,7 @@ using win32_dll_file_ntw = win32_family_dll_file<win32_family::wide_nt>;
 using win32_dll_io_observer = win32_family_dll_io_observer<win32_family::native>;
 using win32_dll_file = win32_family_dll_file<win32_family::native>;
 
-#ifndef __CYGWIN__
+#if !defined(__CYGWIN__) && !defined(__WINE__)
 using native_dll_io_observer = win32_dll_io_observer;
 using native_dll_file = win32_dll_file;
 #endif

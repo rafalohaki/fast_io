@@ -5,7 +5,7 @@ int main()
 /*
 This is an example to explain how fast_io's files work with each other, and how you could use fast_io with existing FILE* or fstream apis
 */
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#if (defined(_WIN32)&&!defined(__WINE__)) && !defined(__CYGWIN__)
 #ifdef _WIN32_WINDOWS
 //_WIN32_WINDOWS macro targets WIN9X kernel (windows 95, windows 98 and windows ME)
 //On 9x kernel, although ntdll.dll does exist, it does not do anything.
@@ -52,7 +52,7 @@ This potentially contains format string vuln.
 #endif
 	"FILE*:",static_cast<fast_io::c_io_observer>(cf).fp,"\n"
 	"fd:",static_cast<fast_io::posix_io_observer>(cf).fd
-#if defined(_WIN32) || defined(__CYGWIN__)
+#if (defined(_WIN32)&&!defined(__WINE__)) || defined(__CYGWIN__)
 	,"\n"
 	"win32 HANDLE:",static_cast<fast_io::win32_io_observer>(cf).handle
 #ifndef _WIN32_WINDOWS
