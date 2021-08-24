@@ -7,7 +7,7 @@
 namespace fast_io::win32::nt
 {
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -26,7 +26,7 @@ asm("RtlNtStatusToDosError")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -44,7 +44,7 @@ asm("NtClose")
 #endif
 #endif
 ;
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -72,7 +72,7 @@ inline std::uint32_t nt_close(void* handle) noexcept
 		return NtClose(handle);
 }
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -91,7 +91,7 @@ asm("NtCreateFile")
 #endif
 #endif
 ;
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -121,7 +121,7 @@ inline std::uint32_t nt_create_file(Args... args) noexcept
 		return NtCreateFile(args...);
 }
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -140,7 +140,7 @@ asm("NtCreateSection")
 #endif
 #endif
 ;
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -170,7 +170,7 @@ inline std::uint32_t nt_create_section(Args... args) noexcept
 		return NtCreateSection(args...);
 }
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -191,7 +191,7 @@ asm("NtQueryInformationProcess")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -222,7 +222,7 @@ inline std::uint32_t nt_query_information_process(Args... args) noexcept
 		return NtQueryInformationProcess(args...);
 }
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -241,7 +241,7 @@ asm("NtWriteFile")
 #endif
 #endif
 ;
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -271,7 +271,7 @@ inline std::uint32_t nt_write_file(Args... args) noexcept
 		return NtWriteFile(args...);
 }
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -290,7 +290,7 @@ asm("NtReadFile")
 #endif
 #endif
 ;
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -320,7 +320,7 @@ inline std::uint32_t nt_read_file(Args... args) noexcept
 		return NtReadFile(args...);
 }
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -339,7 +339,7 @@ asm("NtQueryDirectoryFile")
 #endif
 #endif
 ;
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -369,7 +369,7 @@ inline std::uint32_t nt_query_directory_file(Args... args) noexcept
 		return NtQueryDirectoryFile(args...);
 }
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -388,7 +388,7 @@ asm("NtQuerySection")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -418,7 +418,7 @@ inline std::uint32_t nt_query_section(Args... args) noexcept
 }
 
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -436,7 +436,7 @@ asm("NtQueryInformationFile")
 #endif
 #endif
 ;
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -466,7 +466,7 @@ inline std::uint32_t nt_query_information_file(Args... args) noexcept
 }
 
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -484,7 +484,7 @@ asm("NtSetInformationFile")
 #endif
 #endif
 ;
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -513,7 +513,7 @@ inline std::uint32_t nt_set_information_file(Args... args) noexcept
 		return NtSetInformationFile(args...);
 }
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -531,7 +531,7 @@ asm("NtDuplicateObject")
 #endif
 #endif
 ;
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -560,7 +560,7 @@ inline std::uint32_t nt_duplicate_object(Args... args) noexcept
 		return NtDuplicateObject(args...);
 }
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -579,7 +579,7 @@ asm("NtWaitForSingleObject")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -608,7 +608,7 @@ inline std::uint32_t nt_wait_for_single_object(Args... args) noexcept
 		return NtWaitForSingleObject(args...);
 }
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -626,7 +626,7 @@ asm("NtSetSystemTime")
 #endif
 #endif
 ;
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -655,7 +655,7 @@ inline std::uint32_t nt_set_system_time(Args... args) noexcept
 		return NtSetSystemTime(args...);
 }
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -674,7 +674,7 @@ asm("NtCreateProcess")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -703,7 +703,7 @@ inline std::uint32_t nt_create_process(Args... args) noexcept
 		return ZwCreateProcess(args...);
 }
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -722,7 +722,7 @@ asm("RtlDosPathNameToNtPathName_U")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -742,7 +742,7 @@ asm("RtlFreeUnicodeString")
 ;
 
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -761,7 +761,7 @@ asm("RtlInitializeCriticalSection")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -780,7 +780,7 @@ asm("RtlEnterCriticalSection")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -799,7 +799,7 @@ asm("RtlTryEnterCriticalSection")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -818,7 +818,7 @@ asm("RtlLeaveCriticalSection")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -837,7 +837,7 @@ asm("RtlDeleteCriticalSection")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -856,7 +856,7 @@ asm("RtlCreateUserThread")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -875,7 +875,7 @@ asm("NtResumeThread")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -904,7 +904,7 @@ inline std::uint32_t nt_resume_thread(Args... args) noexcept
 		return NtResumeThread(args...);
 }
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -923,7 +923,7 @@ asm("NtLockFile")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -952,7 +952,7 @@ inline std::uint32_t nt_lock_file(Args... args) noexcept
 		return NtLockFile(args...);
 }
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -971,7 +971,7 @@ asm("NtUnlockFile")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1006,7 +1006,7 @@ https://hfiref0x.github.io/syscalls.html
 Actually this shows that it is available since the start of NT
 */
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1025,7 +1025,7 @@ asm("NtFlushBuffersFile")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1054,7 +1054,7 @@ inline std::uint32_t nt_flush_buffers_file(Args... args) noexcept
 		return NtFlushBuffersFile(args...);
 }
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1073,7 +1073,7 @@ asm("NtFlushBuffersFileEx")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]

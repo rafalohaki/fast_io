@@ -3,7 +3,7 @@
 namespace fast_io::win32
 {
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -22,7 +22,7 @@ asm("GetLastError")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -41,7 +41,7 @@ asm("LoadLibraryA")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -60,7 +60,7 @@ asm("LoadLibraryW")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -79,7 +79,7 @@ asm("LoadLibraryExA")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -99,7 +99,7 @@ asm("LoadLibraryExW")
 ;
 
 // Used to retrieve a locale-specific message string for some error code
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -118,7 +118,7 @@ asm("FormatMessageA")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -137,7 +137,7 @@ asm("FormatMessageW")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -156,7 +156,7 @@ asm("CreateFileMappingA")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -175,7 +175,7 @@ asm("CreateFileMappingW")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -194,7 +194,7 @@ asm("MapViewOfFile")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -213,7 +213,7 @@ asm("SetEndOfFile")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -232,7 +232,7 @@ asm("UnmapViewOfFile")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -251,7 +251,7 @@ asm("WriteFile")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -270,7 +270,7 @@ asm("ReadFile")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -289,7 +289,7 @@ asm("SetFilePointerEx")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -308,7 +308,7 @@ asm("DuplicateHandle")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -327,7 +327,7 @@ asm("GetStdHandle")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -346,7 +346,7 @@ asm("CreatePipe")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -367,7 +367,7 @@ asm("FreeLibrary")
 
 using farproc = intptr_t(__stdcall*)() noexcept;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -386,7 +386,7 @@ asm("GetProcAddress")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -405,7 +405,7 @@ asm("GetModuleHandleA")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -424,7 +424,7 @@ asm("GetModuleHandleW")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -443,7 +443,7 @@ asm("WaitForSingleObject")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -462,7 +462,7 @@ asm("CancelIo")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -481,7 +481,7 @@ asm("GetFileInformationByHandle")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -500,7 +500,7 @@ asm("GetUserDefaultLocaleName")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -519,7 +519,7 @@ asm("GetSystemTimePreciseAsFileTime")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -538,7 +538,7 @@ asm("GetSystemTimeAsFileTime")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -557,7 +557,7 @@ asm("QueryUnbiasedInterruptTime")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -576,7 +576,7 @@ asm("QueryPerformanceCounter")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -596,7 +596,7 @@ asm("QueryPerformanceFrequency")
 ;
 
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -615,7 +615,7 @@ asm("GetProcessTimes")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -634,7 +634,7 @@ asm("GetThreadTimes")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -652,7 +652,7 @@ asm("GetHandleInformation")
 #endif
 #endif
 ;
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -671,7 +671,7 @@ asm("SetHandleInformation")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -690,7 +690,7 @@ asm("GetTempPathA")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -709,7 +709,7 @@ asm("GetTempPathW")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -728,7 +728,7 @@ asm("CreateFileA")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -747,7 +747,7 @@ asm("CreateFileW")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -765,7 +765,7 @@ asm("CreateIoCompletionPort")
 #endif
 #endif
 ;
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -783,7 +783,7 @@ asm("SystemFunction036")
 #endif
 #endif
 ;
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -801,7 +801,7 @@ asm("CloseHandle")
 #endif
 #endif
 ;
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -820,7 +820,7 @@ asm("LockFileEx")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -839,7 +839,7 @@ asm("UnlockFileEx")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -858,7 +858,7 @@ asm("DeviceIoControl")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -878,7 +878,7 @@ asm("GetFileType")
 ;
 
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -897,7 +897,7 @@ asm("GetACP")
 #endif
 ;
 #if !defined(__CYGWIN__) && !defined(__WINE__)
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -917,7 +917,7 @@ asm("getenv_s")
 ;
 #endif
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -936,7 +936,7 @@ asm("MessageBoxA")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -955,7 +955,7 @@ asm("MessageBoxW")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -974,7 +974,7 @@ asm("GetConsoleMode")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -993,7 +993,7 @@ asm("SetConsoleMode")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1012,7 +1012,7 @@ asm("ReadConsoleA")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1031,7 +1031,7 @@ asm("ReadConsoleW")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1050,7 +1050,7 @@ asm("WriteConsoleA")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1069,7 +1069,7 @@ asm("WriteConsoleW")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1088,7 +1088,7 @@ asm("GetConsoleScreenBufferInfo")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1107,7 +1107,7 @@ asm("ScrollConsoleScreenBufferA")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1126,7 +1126,7 @@ asm("ScrollConsoleScreenBufferW")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1146,7 +1146,7 @@ asm("SetConsoleCursorPosition")
 ;
 
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1165,7 +1165,7 @@ asm("InitializeCriticalSection")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1184,7 +1184,7 @@ asm("EnterCriticalSection")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1203,7 +1203,7 @@ asm("TryEnterCriticalSection")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1222,7 +1222,7 @@ asm("LeaveCriticalSection")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1241,7 +1241,7 @@ asm("DeleteCriticalSection")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1260,7 +1260,7 @@ asm("WSADuplicateSocketA")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1279,7 +1279,7 @@ asm("WSADuplicateSocketW")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1298,7 +1298,7 @@ asm("WSACleanup")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1317,7 +1317,7 @@ asm("WSAStartup")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1336,7 +1336,7 @@ asm("WSAGetLastError")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1355,7 +1355,7 @@ asm("closesocket")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1374,7 +1374,7 @@ asm("WSASocketW")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1393,7 +1393,7 @@ asm("WSASocketA")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1412,7 +1412,7 @@ asm("bind")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1431,7 +1431,7 @@ asm("listen")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1450,7 +1450,7 @@ asm("WSAAccept")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1470,7 +1470,7 @@ asm("ioctlsocket")
 ;
 
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1489,7 +1489,7 @@ asm("WSASend")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1509,7 +1509,7 @@ asm("WSASendMsg")
 ;
 
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1528,7 +1528,7 @@ asm("WSASendTo")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1547,7 +1547,7 @@ asm("recv")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1566,7 +1566,7 @@ asm("WSARecv")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1585,7 +1585,7 @@ asm("WSARecvFrom")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1604,7 +1604,7 @@ asm("connect")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1623,7 +1623,7 @@ asm("WSAConnect")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1642,7 +1642,7 @@ asm("shutdown")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
@@ -1661,7 +1661,7 @@ asm("GetCurrentProcessId")
 #endif
 ;
 
-#if defined(__MSC_VER) && !defined(__clang__)
+#if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
