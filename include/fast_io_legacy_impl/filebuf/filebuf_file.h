@@ -1,8 +1,10 @@
 #pragma once
+
 #if defined(__GLIBCXX__) && !defined(_LIBCPP_VERSION) && __has_include(<ext/stdio_filebuf.h>)
 #include<ext/stdio_filebuf.h>
 #endif
 #include"streambuf_io_observer.h"
+
 namespace fast_io
 {
 
@@ -201,15 +203,5 @@ Shows libstdc++ still calls fdopen even on nt kernel which is incorrect
 
 using filebuf_file=basic_filebuf_file<char>;
 using wfilebuf_file=basic_filebuf_file<wchar_t>;
-#if defined(_MSVC_STL_UPDATE)
-#pragma warning(push, _STL_WARNING_LEVEL)
-#pragma warning(disable : 4996)
-#endif
-using u8filebuf_file=basic_filebuf_file<char8_t>;
-using u16filebuf_file=basic_filebuf_file<char16_t>;
-using u32filebuf_file=basic_filebuf_file<char32_t>;
-#if defined(_MSVC_STL_UPDATE)
-#pragma warning(pop)
-#endif
 
 }
