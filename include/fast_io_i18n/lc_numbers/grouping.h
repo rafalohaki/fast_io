@@ -305,9 +305,9 @@ namespace details
 template<std::integral char_type>
 inline constexpr std::size_t print_reserve_size_grouping_timestamp_impl(basic_lc_all<char_type> const* __restrict all)
 {
-	constexpr std::size_t static_size{print_reserve_size(io_reserve_type<char_type,intiso_t>)};
+	constexpr std::size_t static_size{print_reserve_size(io_reserve_type<char_type,std::int_least64_t>)};
 	constexpr std::size_t static_sizem1{static_size-1};
-	return static_size+static_sizem1*all->numeric.thousands_sep.len+all->numeric.decimal_point.len+std::numeric_limits<uintiso_t>::digits10;
+	return static_size+static_sizem1*all->numeric.thousands_sep.len+all->numeric.decimal_point.len+std::numeric_limits<std::uint_least64_t>::digits10;
 }
 
 template<::fast_io::freestanding::random_access_iterator Iter>
@@ -329,13 +329,13 @@ inline constexpr Iter print_reserve_define_grouping_timestamp_impl(basic_lc_all<
 }
 }
 
-template<std::integral char_type,intiso_t off_to_epoch>
+template<std::integral char_type,std::int_least64_t off_to_epoch>
 inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* __restrict all,basic_timestamp<off_to_epoch>) noexcept
 {
 	return details::print_reserve_size_grouping_timestamp_impl(all);
 }
 
-template<::fast_io::freestanding::random_access_iterator Iter,intiso_t off_to_epoch>
+template<::fast_io::freestanding::random_access_iterator Iter,std::int_least64_t off_to_epoch>
 inline constexpr Iter print_reserve_define(basic_lc_all<::fast_io::freestanding::iter_value_t<Iter>> const* __restrict all,Iter iter,basic_timestamp<off_to_epoch> ts) noexcept
 {
 	if constexpr(off_to_epoch==0)

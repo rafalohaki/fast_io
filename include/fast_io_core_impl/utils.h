@@ -220,8 +220,8 @@ inline constexpr U byte_swap(U a) noexcept
 		return __builtin_bswap128(a);
 #else
 	{
-		std::uint64_t high(__builtin_bswap64(static_cast<std::uint64_t>(a>>64)));
-		std::uint64_t low(__builtin_bswap64(static_cast<std::uint64_t>(a)));
+		std::uint_least64_t high(__builtin_bswap64(static_cast<std::uint_least64_t>(a>>64)));
+		std::uint_least64_t low(__builtin_bswap64(static_cast<std::uint_least64_t>(a)));
 		return (static_cast<__uint128_t>(low)<<64)|static_cast<__uint128_t>(high);
 	}
 #endif
@@ -608,7 +608,7 @@ inline constexpr auto compile_pow5() noexcept
 }
 
 #if 0
-inline constexpr std::uint64_t fast_lup_table[]{
+inline constexpr std::uint_least64_t fast_lup_table[]{
       4294967296,  8589934582,  8589934582,  8589934582,  12884901788,
       12884901788, 12884901788, 17179868184, 17179868184, 17179868184,
       21474826480, 21474826480, 21474826480, 21474826480, 25769703776,
@@ -617,7 +617,7 @@ inline constexpr std::uint64_t fast_lup_table[]{
       38554705664, 38554705664, 41949672960, 41949672960, 41949672960,
       42949672960, 42949672960};
 
-inline constexpr std::uint64_t fast_lup_switch(std::uint32_t value) noexcept
+inline constexpr std::uint_least64_t fast_lup_switch(std::uint_least32_t value) noexcept
 {
 	switch(value)
 	{
@@ -639,21 +639,21 @@ inline constexpr std::uint64_t fast_lup_switch(std::uint32_t value) noexcept
 }
 #endif
 
-template<std::uint32_t base,bool ryu_mode=false,std::size_t mx_size=std::numeric_limits<std::size_t>::max(),my_unsigned_integral U>
+template<std::uint_least32_t base,bool ryu_mode=false,std::size_t mx_size=std::numeric_limits<std::size_t>::max(),my_unsigned_integral U>
 inline constexpr std::size_t chars_len(U value) noexcept
 {
 #if 0
 	if constexpr(base==10&&2<=sizeof(U)&&sizeof(U)<=4&&sizeof(std::size_t)>=8&&!ryu_mode)
 	{
-		return (static_cast<std::uint32_t>(value) + fast_lup_switch(
+		return (static_cast<std::uint_least32_t>(value) + fast_lup_switch(
 #if defined(_MSC_VER) && !defined(__clang__)
-		std::countl_zero(static_cast<std::uint32_t>(value))
+		std::countl_zero(static_cast<std::uint_least32_t>(value))
 #elif __has_builtin(__builtin_ia32_lzcnt_u32)
-		__builtin_ia32_lzcnt_u32(static_cast<std::uint32_t>(value))
+		__builtin_ia32_lzcnt_u32(static_cast<std::uint_least32_t>(value))
 #elif __has_builtin(__builtin_clz)
-		__builtin_clz(static_cast<std::uint32_t>(value) | 1)
+		__builtin_clz(static_cast<std::uint_least32_t>(value) | 1)
 #else
-		std::countl_zero(static_cast<std::uint32_t>(value))
+		std::countl_zero(static_cast<std::uint_least32_t>(value))
 #endif
 		)) >> 32;
 	}
@@ -802,9 +802,9 @@ inline constexpr std::size_t chars_len(U value) noexcept
 	}
 	else
 	{
-		constexpr std::uint32_t base2(base  * base);
-		constexpr std::uint32_t base3(base2 * base);
-		constexpr std::uint32_t base4(base3 * base);
+		constexpr std::uint_least32_t base2(base  * base);
+		constexpr std::uint_least32_t base3(base2 * base);
+		constexpr std::uint_least32_t base4(base3 * base);
 		for (std::size_t n(1);;n+=4)
 		{
 			if (value < base)
@@ -820,7 +820,7 @@ inline constexpr std::size_t chars_len(U value) noexcept
 	}
 }
 
-template<std::uint32_t base,std::size_t mx_size=std::numeric_limits<std::size_t>::max(),my_unsigned_integral U>
+template<std::uint_least32_t base,std::size_t mx_size=std::numeric_limits<std::size_t>::max(),my_unsigned_integral U>
 inline constexpr std::size_t chars_len_3_sep(U value) noexcept
 {
 	if constexpr(base==10&&sizeof(U)<=16)
@@ -993,8 +993,8 @@ inline constexpr std::size_t cal_max_int_size() noexcept
 	return i;
 }
 
-//static_assert(cal_max_int_size<std::uint64_t,10>()==20);
-//static_assert(cal_max_int_size<std::uint32_t,10>()==10);
+//static_assert(cal_max_int_size<std::uint_least64_t,10>()==20);
+//static_assert(cal_max_int_size<std::uint_least32_t,10>()==10);
 template<typename char_type,std::size_t N>
 inline constexpr basic_io_scatter_t<char_type> tsc(char_type const (&a)[N]) noexcept
 {

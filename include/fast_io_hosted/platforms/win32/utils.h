@@ -15,19 +15,19 @@ constexpr unix_timestamp to_unix_timestamp(filetime ft) noexcept
 */
 
 	constexpr std::uint64_t gap{11644473600000ULL * 10000ULL};
-	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/10000000u};
+	constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/10000000u};
 	std::uint64_t unix_time{date_time-gap};
 	if(date_time<gap)[[unlikely]]
 		unix_time=0;
-	return {static_cast<intiso_t>(unix_time/10000000ULL),static_cast<uintiso_t>(unix_time%10000000ULL)*mul_factor};
+	return {static_cast<std::int_least64_t>(unix_time/10000000ULL),static_cast<std::uint_least64_t>(unix_time%10000000ULL)*mul_factor};
 }
 
 inline constexpr win32_timestamp to_win32_timestamp_ftu64(std::uint64_t ftu64) noexcept
 {
 	std::uint64_t seconds{ftu64/10000000ULL};
 	std::uint64_t subseconds{ftu64%10000000ULL};
-	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/10000000u};
-	return {static_cast<intiso_t>(seconds),static_cast<uintiso_t>(subseconds*mul_factor)};
+	constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/10000000u};
+	return {static_cast<std::int_least64_t>(seconds),static_cast<std::uint_least64_t>(subseconds*mul_factor)};
 }
 
 inline constexpr std::uint64_t filetime_to_uint64_t(filetime ft) noexcept

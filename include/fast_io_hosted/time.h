@@ -149,7 +149,7 @@ inline std::int64_t win32_query_performance_frequency()
 #endif
 inline unix_timestamp win32_query_performance_frequency_to_unix_timestamp()
 {
-	return {0,uintiso_subseconds_per_second/static_cast<std::uint64_t>(win32_query_performance_frequency())};
+	return {0,uint_least64_subseconds_per_second/static_cast<std::uint64_t>(win32_query_performance_frequency())};
 }
 #endif
 }
@@ -170,7 +170,7 @@ unix_timestamp posix_clock_getres([[maybe_unused]] posix_clock_id pclk_id)
 	case posix_clock_id::process_cputime_id:
 	case posix_clock_id::thread_cputime_id:
 	{
-		constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/10000000u};
+		constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/10000000u};
 		constexpr unix_timestamp constexpr_stamp{0,mul_factor};
 		return constexpr_stamp;
 	}
@@ -195,13 +195,13 @@ unix_timestamp posix_clock_getres([[maybe_unused]] posix_clock_id pclk_id)
 	case posix_clock_id::monotonic_raw:
 	case posix_clock_id::boottime:
 	{
-		constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/100u};
+		constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/100u};
 		return {0,mul_factor};
 	}
 	case posix_clock_id::process_cputime_id:
 	case posix_clock_id::thread_cputime_id:
 	{
-		constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/UCLOCKS_PER_SEC};
+		constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/UCLOCKS_PER_SEC};
 		return {0,mul_factor};
 	}
 	default:
@@ -215,8 +215,8 @@ unix_timestamp posix_clock_getres([[maybe_unused]] posix_clock_id pclk_id)
 //vdso
 	if(::fast_io::posix::libc_clock_getres(clk,__builtin_addressof(res))<0)
 		throw_posix_error();
-	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000000u};
-	return {static_cast<intiso_t>(res.tv_sec),static_cast<uintiso_t>(res.tv_nsec)*mul_factor};
+	constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/1000000000u};
+	return {static_cast<std::int_least64_t>(res.tv_sec),static_cast<std::uint_least64_t>(res.tv_nsec)*mul_factor};
 #else
 	throw_posix_error(EINVAL);
 #endif
@@ -241,10 +241,10 @@ inline unix_timestamp win32_posix_clock_gettime_boottime_impl()
 	std::uint64_t ftm{};
 	if(!::fast_io::win32::QueryUnbiasedInterruptTime(__builtin_addressof(ftm)))
 		throw_win32_error();
-	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/10000000u};
+	constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/10000000u};
 	std::uint64_t seconds{ftm/10000000ULL};
 	std::uint64_t subseconds{ftm%10000000ULL};
-	return {static_cast<intiso_t>(seconds),static_cast<uintiso_t>(subseconds*mul_factor)};
+	return {static_cast<std::int_least64_t>(seconds),static_cast<std::uint_least64_t>(subseconds*mul_factor)};
 }
 
 template<bool is_thread>
@@ -273,8 +273,8 @@ inline unix_timestamp win32_posix_clock_gettime_process_or_thread_time_impl()
 		::fast_io::win32::filetime_to_uint64_t(user_time)};
 	std::uint64_t seconds{ftm/10000000ULL};
 	std::uint64_t subseconds{ftm%10000000ULL};
-	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/10000000u};
-	return {static_cast<intiso_t>(seconds),static_cast<uintiso_t>(subseconds*mul_factor)};
+	constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/10000000u};
+	return {static_cast<std::int_least64_t>(seconds),static_cast<std::uint_least64_t>(subseconds*mul_factor)};
 }
 
 inline unix_timestamp win32_posix_clock_gettime_boottime_xp_impl()
@@ -283,10 +283,10 @@ inline unix_timestamp win32_posix_clock_gettime_boottime_xp_impl()
 	std::int64_t counter{};
 	if(!::fast_io::win32::QueryPerformanceCounter(__builtin_addressof(counter)))
 		throw_win32_error();
-	std::int64_t val{static_cast<std::int64_t>(uintiso_subseconds_per_second)/freq};
+	std::int64_t val{static_cast<std::int64_t>(uint_least64_subseconds_per_second)/freq};
 	std::int64_t dv{counter/freq};
 	std::uint64_t md{static_cast<std::uint64_t>(counter%freq)};
-	return unix_timestamp{dv,static_cast<std::uintmax_t>(md*static_cast<std::uint64_t>(val))};
+	return unix_timestamp{dv,static_cast<std::uint_least64_t>(md*static_cast<std::uint64_t>(val))};
 }
 
 }
@@ -333,10 +333,10 @@ inline iso8601_timestamp get_dos_iso8601_timestamp()
 		dos_date.year==dos_date_temp.year&&
 		dos_date.dayofweek==dos_date_temp.dayofweek)
 		{
-			constexpr uintiso_t factor{uintiso_subseconds_per_second/100u};
-			return {static_cast<intiso_t>(dos_date.year),dos_date.month,dos_date.day,
+			constexpr std::uint_least64_t factor{uint_least64_subseconds_per_second/100u};
+			return {static_cast<std::int_least64_t>(dos_date.year),dos_date.month,dos_date.day,
 				dos_time.hour,dos_time.minute,dos_time.second,
-				static_cast<uintiso_t>(dos_time.hsecond)*factor,0};
+				static_cast<std::uint_least64_t>(dos_time.hsecond)*factor,0};
 		}
 	}
 	throw_posix_error(EINVAL);
@@ -350,11 +350,11 @@ inline unix_timestamp get_dos_unix_timestamp()
 inline void set_dos_unix_timestamp(unix_timestamp tsp)
 {
 	iso8601_timestamp iso8601{utc(tsp)};
-	if(iso8601.year>static_cast<intiso_t>(UINT16_MAX)||iso8601.year<0)
+	if(iso8601.year>static_cast<std::int_least64_t>(UINT16_MAX)||iso8601.year<0)
 		throw_posix_error(EINVAL);
 	std::uint16_t year{static_cast<std::uint16_t>(iso8601.year)};
 	my_dos_date_t dos_date{static_cast<std::uint8_t>(iso8601.day),static_cast<std::uint8_t>(iso8601.month),year,0};
-	constexpr uintiso_t precision{uintiso_subseconds_per_second/100ULL};
+	constexpr std::uint_least64_t precision{uint_least64_subseconds_per_second/100ULL};
 	my_dos_time_t dos_time{static_cast<std::uint8_t>(iso8601.hours),
 		static_cast<std::uint8_t>(iso8601.minutes),
 		static_cast<std::uint8_t>(iso8601.seconds),
@@ -399,19 +399,19 @@ inline unix_timestamp dos_posix_clock_gettime([[maybe_unused]] posix_clock_id pc
 	case posix_clock_id::boottime:
 	{
 		timeval tv;
-		constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000u};
+		constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/1000000u};
 		if(::gettimeofday(__builtin_addressof(tv), nullptr)<0)
 			throw_posix_error();
-		return {static_cast<intiso_t>(tv.tv_sec),static_cast<uintiso_t>(tv.tv_usec)*mul_factor};
+		return {static_cast<std::int_least64_t>(tv.tv_sec),static_cast<std::uint_least64_t>(tv.tv_usec)*mul_factor};
 	}
 	case posix_clock_id::process_cputime_id:
 	case posix_clock_id::thread_cputime_id:
 	{
 		std::make_unsigned_t<decltype(uclock())> u(uclock());
-		uintiso_t seconds(u/UCLOCKS_PER_SEC);
-		uintiso_t subseconds(u%UCLOCKS_PER_SEC);
-		constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/UCLOCKS_PER_SEC};
-		return {static_cast<intiso_t>(seconds),static_cast<uintiso_t>(subseconds)*mul_factor};
+		std::uint_least64_t seconds(u/UCLOCKS_PER_SEC);
+		std::uint_least64_t subseconds(u%UCLOCKS_PER_SEC);
+		constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/UCLOCKS_PER_SEC};
+		return {static_cast<std::int_least64_t>(seconds),static_cast<std::uint_least64_t>(subseconds)*mul_factor};
 	}
 	default:
 		throw_posix_error(EINVAL);
@@ -461,33 +461,33 @@ inline unix_timestamp posix_clock_gettime([[maybe_unused]] posix_clock_id pclk_i
 	case posix_clock_id::thread_cputime_id:
 	{
 		std::make_unsigned_t<decltype(uclock())> u(uclock());
-		uintiso_t seconds(u/UCLOCKS_PER_SEC);
-		uintiso_t subseconds(u%UCLOCKS_PER_SEC);
-		constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/UCLOCKS_PER_SEC};
-		return {static_cast<intiso_t>(seconds),static_cast<uintiso_t>(subseconds)*mul_factor};
+		std::uint_least64_t seconds(u/UCLOCKS_PER_SEC);
+		std::uint_least64_t subseconds(u%UCLOCKS_PER_SEC);
+		constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/UCLOCKS_PER_SEC};
+		return {static_cast<std::int_least64_t>(seconds),static_cast<std::uint_least64_t>(subseconds)*mul_factor};
 	}
 	default:
 		throw_posix_error(EINVAL);
 	}
 #elif defined(__AVR__)
 	time_t t{};
-	constexpr intiso_t y2k_offset{static_cast<intiso_t>(UNIX_OFFSET)};
-	return {static_cast<intiso_t>(static_cast<uintiso_t>(static_cast<std::make_unsigned_t<time_t>>(noexcept_call(::time,__builtin_addressof(t)))))+y2k_offset,0};
+	constexpr std::int_least64_t y2k_offset{static_cast<std::int_least64_t>(UNIX_OFFSET)};
+	return {static_cast<std::int_least64_t>(static_cast<std::uint_least64_t>(static_cast<std::make_unsigned_t<time_t>>(noexcept_call(::time,__builtin_addressof(t)))))+y2k_offset,0};
 #elif defined(_POSIX_TIMERS)
 	struct timespec res;
 	auto clk{details::posix_clock_id_to_native_value(pclk_id)};
 //vdso
 	if(::fast_io::posix::libc_clock_gettime(clk,__builtin_addressof(res))<0)
 		throw_posix_error();
-	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000000u};
-	return {static_cast<intiso_t>(res.tv_sec),static_cast<uintiso_t>(res.tv_nsec)*mul_factor};
+	constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/1000000000u};
+	return {static_cast<std::int_least64_t>(res.tv_sec),static_cast<std::uint_least64_t>(res.tv_nsec)*mul_factor};
 #else
 	throw_posix_error(EINVAL);
 #endif
 }
 
 #if defined(_WIN32) || defined(__CYGWIN__)
-template<nt_family family,intiso_t off_to_epoch>
+template<nt_family family,std::int_least64_t off_to_epoch>
 requires (family==nt_family::nt||family==nt_family::zw)
 inline basic_timestamp<off_to_epoch> nt_family_clock_settime(posix_clock_id pclk_id,basic_timestamp<off_to_epoch> timestamp)
 {
@@ -500,8 +500,8 @@ inline basic_timestamp<off_to_epoch> nt_family_clock_settime(posix_clock_id pclk
 			case posix_clock_id::realtime_coarse:
 			case posix_clock_id::tai:
 			{
-				constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/10000000u};
-				std::uint64_t tms(static_cast<uintiso_t>(timestamp.seconds)*10000000ULL+timestamp.subseconds/mul_factor);
+				constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/10000000u};
+				std::uint64_t tms(static_cast<std::uint_least64_t>(timestamp.seconds)*10000000ULL+timestamp.subseconds/mul_factor);
 				std::uint64_t old_tms{};
 				auto ntstatus{win32::nt::nt_set_system_time<family==nt_family::zw>(__builtin_addressof(tms),__builtin_addressof(old_tms))};
 				if(ntstatus)
@@ -517,13 +517,13 @@ inline basic_timestamp<off_to_epoch> nt_family_clock_settime(posix_clock_id pclk
 		return static_cast<basic_timestamp<off_to_epoch>>(nt_family_clock_settime<family>(pclk_id,static_cast<win32_timestamp>(timestamp)));
 	}
 }
-template<intiso_t off_to_epoch>
+template<std::int_least64_t off_to_epoch>
 inline basic_timestamp<off_to_epoch> nt_clock_settime(posix_clock_id pclk_id,basic_timestamp<off_to_epoch> timestamp)
 {
 	return nt_family_clock_settime<nt_family::nt>(pclk_id,timestamp);
 }
 
-template<intiso_t off_to_epoch>
+template<std::int_least64_t off_to_epoch>
 inline basic_timestamp<off_to_epoch> zw_clock_settime(posix_clock_id pclk_id,basic_timestamp<off_to_epoch> timestamp)
 {
 	return nt_family_clock_settime<nt_family::zw>(pclk_id,timestamp);
@@ -535,7 +535,7 @@ namespace details
 {
 #if !defined(_WIN32) || defined(__CYGWIN__) 
 template<bool local_tm>
-inline struct tm unix_timestamp_to_tm_impl(intiso_t seconds)
+inline struct tm unix_timestamp_to_tm_impl(std::int_least64_t seconds)
 {
 #if defined(_TIME64_T)
 	time64_t val{static_cast<time64_t>(seconds)};
@@ -578,7 +578,7 @@ inline struct tm unix_timestamp_to_tm_impl(intiso_t seconds)
 #endif
 
 
-inline iso8601_timestamp to_iso8601_local_impl(intiso_t seconds,uintiso_t subseconds,[[maybe_unused]] bool dstadj)
+inline iso8601_timestamp to_iso8601_local_impl(std::int_least64_t seconds,std::uint_least64_t subseconds,[[maybe_unused]] bool dstadj)
 {
 #ifdef __MSDOS__
 	return unix_timestamp_to_iso8601_tsp_impl_internal(seconds,subseconds,0);
@@ -611,7 +611,7 @@ inline iso8601_timestamp to_iso8601_local_impl(intiso_t seconds,uintiso_t subsec
 #endif
 	}
 	std::uint32_t dst_timezone{static_cast<std::uint32_t>(static_cast<unsigned long>(tm_gmtoff)+static_cast<unsigned long>(bias))};
-	return unix_timestamp_to_iso8601_tsp_impl_internal(sub_overflow(seconds,static_cast<intiso_t>(static_cast<uintiso_t>(dst_timezone))),
+	return unix_timestamp_to_iso8601_tsp_impl_internal(sub_overflow(seconds,static_cast<std::int_least64_t>(static_cast<std::uint_least64_t>(dst_timezone))),
 		subseconds,static_cast<std::int32_t>(static_cast<std::uint32_t>(0)-dst_timezone));
 #else
 	auto res{unix_timestamp_to_tm_impl<true>(seconds)};
@@ -688,7 +688,7 @@ inline void posix_tzset() noexcept
 }
 
 
-template<intiso_t off_to_epoch>
+template<std::int_least64_t off_to_epoch>
 inline iso8601_timestamp local(basic_timestamp<off_to_epoch> timestamp,[[maybe_unused]] bool dstadj=true)
 {
 #ifdef __MSDOS__
@@ -816,12 +816,12 @@ inline void posix_clock_settime([[maybe_unused]] posix_clock_id pclk_id,[[maybe_
 	case posix_clock_id::tai:
 	{
 #if 0
-		if constexpr(sizeof(std::time_t)<sizeof(intiso_t))
+		if constexpr(sizeof(std::time_t)<sizeof(std::int_least64_t))
 		{
-			if(static_cast<intiso_t>(std::numeric_limits<std::time_t>::max())<timestamp.seconds)
+			if(static_cast<std::int_least64_t>(std::numeric_limits<std::time_t>::max())<timestamp.seconds)
 				throw_posix_error(EOVERFLOW);
 		}
-		constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000u};
+		constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/1000000u};
 		timeval tv{static_cast<std::time_t>(timestamp.seconds),
 		static_cast<long>(timestamp.subseconds/mul_factor)};
 		if(::settimeofday(__builtin_addressof(tv), nullptr)<0)
@@ -834,11 +834,11 @@ inline void posix_clock_settime([[maybe_unused]] posix_clock_id pclk_id,[[maybe_
 		throw_posix_error(EINVAL);
 	}
 #elif defined(__AVR__)
-	constexpr intiso_t mn_unix_offset{UNIX_OFFSET};
+	constexpr std::int_least64_t mn_unix_offset{UNIX_OFFSET};
 	auto tsp_seconds{timestamp.seconds};
 	if(tsp_seconds<mn_unix_offset)
 		throw_posix_error(EINVAL);
-	if constexpr(sizeof(time_t)>=sizeof(intiso_t))
+	if constexpr(sizeof(time_t)>=sizeof(std::int_least64_t))
 	{
 		time_t t{static_cast<time_t>(tsp_seconds)};
 		if(__builtin_add_overflow(t,UNIX_OFFSET,__builtin_addressof(t)))
@@ -847,7 +847,7 @@ inline void posix_clock_settime([[maybe_unused]] posix_clock_id pclk_id,[[maybe_
 	}
 	else
 	{
-		constexpr intiso_t mx_unix_offset{static_cast<intiso_t>(std::numeric_limits<time_t>::max())-UNIX_OFFSET};
+		constexpr std::int_least64_t mx_unix_offset{static_cast<std::int_least64_t>(std::numeric_limits<time_t>::max())-UNIX_OFFSET};
 		if(tsp_seconds>mx_unix_offset)
 			throw_posix_error(EINVAL);
 		time_t t{static_cast<time_t>(tsp_seconds)};
@@ -855,7 +855,7 @@ inline void posix_clock_settime([[maybe_unused]] posix_clock_id pclk_id,[[maybe_
 	}
 //	__builtin_sub_overflow(__builtin_addressof())
 #elif (!defined(__NEWLIB__) || defined(_POSIX_TIMERS)) && (!defined(__wasi__) || defined(__wasilibc_unmodified_upstream))
-	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000000u};
+	constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/1000000000u};
 	struct timespec res{static_cast<std::time_t>(timestamp.seconds),
 	static_cast<long>(timestamp.subseconds/mul_factor)};
 	auto clk{details::posix_clock_id_to_native_value(pclk_id)};
@@ -916,7 +916,7 @@ inline [[nodiscard]] bool posix_clock_sleep_abstime(posix_clock_id pclk_id,unix_
 
 inline [[nodiscard]] bool posix_clock_sleep_abstime(posix_clock_id pclk_id,unix_timestamp timestamp)
 {
-	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000000u};
+	constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/1000000000u};
 	struct timespec timestamp_spec{static_cast<std::time_t>(timestamp.seconds),static_cast<long>(timestamp.subseconds/mul_factor)};
 	auto ret{::clock_nanosleep(pclk_id,TIMER_ABSTIME,__builtin_addressof(timestamp_spec),ptr,nullptr)};
 	if(ret<0)
@@ -931,7 +931,7 @@ inline [[nodiscard]] bool posix_clock_sleep_abstime(posix_clock_id pclk_id,unix_
 
 inline void posix_clock_sleep_abstime_complete(posix_clock_id pclk_id,unix_timestamp timestamp)
 {
-	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000000u};
+	constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/1000000000u};
 	struct timespec timestamp_spec{static_cast<std::time_t>(timestamp.seconds),static_cast<long>(timestamp.subseconds/mul_factor)}
 	for(;;)
 	{

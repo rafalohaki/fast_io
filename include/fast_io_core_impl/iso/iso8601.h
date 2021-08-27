@@ -3,27 +3,27 @@
 namespace fast_io
 {
 
-template<intiso_t off_to_epoch>
+template<std::int_least64_t off_to_epoch>
 struct basic_timestamp
 {
-	static constexpr intiso_t seconds_offset_to_epoch{off_to_epoch};
-	intiso_t seconds{};
-	uintiso_t subseconds{};
-	template<intiso_t new_off_to_epoch>
+	static inline constexpr std::int_least64_t seconds_offset_to_epoch{off_to_epoch};
+	std::int_least64_t seconds{};
+	std::uint_least64_t subseconds{};
+	template<std::int_least64_t new_off_to_epoch>
 	explicit constexpr operator basic_timestamp<new_off_to_epoch>() noexcept requires(off_to_epoch!=new_off_to_epoch)
 	{
-		constexpr intiso_t diff{off_to_epoch-new_off_to_epoch};
+		constexpr std::int_least64_t diff{off_to_epoch-new_off_to_epoch};
 		return {seconds+diff,subseconds};
 	}
 };
 
-template<intiso_t off_to_epoch>
+template<std::int_least64_t off_to_epoch>
 inline constexpr bool operator==(basic_timestamp<off_to_epoch> a,basic_timestamp<off_to_epoch> b) noexcept
 {
 	return (a.seconds==b.seconds)&(a.subseconds==b.subseconds);
 }
 
-template<intiso_t off_to_epoch>
+template<std::int_least64_t off_to_epoch>
 inline constexpr auto operator<=>(basic_timestamp<off_to_epoch> a,basic_timestamp<off_to_epoch> b) noexcept
 {
 	auto v{a.seconds<=>b.seconds};
@@ -40,56 +40,56 @@ namespace details
 {
 struct timestamp_u
 {
-	uintiso_t seconds;
-	uintiso_t subseconds;
+	std::uint_least64_t seconds;
+	std::uint_least64_t subseconds;
 };
 
 inline constexpr timestamp_u add_impl(timestamp_u a,timestamp_u b) noexcept
 {
-	constexpr uintiso_t max_digit{std::numeric_limits<uintiso_t>::max()/uintiso_subseconds_per_second};
-	uintiso_t res;
+	constexpr std::uint_least64_t max_digit{std::numeric_limits<std::uint_least64_t>::max()/uint_least64_subseconds_per_second};
+	std::uint_least64_t res;
 	bool cf;
 	if constexpr(max_digit==1)
 	{
 		cf=intrinsics::add_carry(false,a.subseconds,b.subseconds,res);
-		if(uintiso_subseconds_per_second<=res)
+		if(uint_least64_subseconds_per_second<=res)
 		{
-			res-=uintiso_subseconds_per_second;
+			res-=uint_least64_subseconds_per_second;
 			cf=true;
 		}
 	}
 	else
 	{
-		if((cf=(uintiso_subseconds_per_second<=res)))
-			res-=uintiso_subseconds_per_second;
+		if((cf=(uint_least64_subseconds_per_second<=res)))
+			res-=uint_least64_subseconds_per_second;
 	}
-	uintiso_t seconds;
+	std::uint_least64_t seconds;
 	intrinsics::add_carry(cf,a.seconds,b.seconds,seconds);
 	return {seconds,res};
 }
 
 inline constexpr timestamp_u sub_impl(timestamp_u a,timestamp_u b) noexcept
 {
-	uintiso_t res;
-	uintiso_t seconds;
+	std::uint_least64_t res;
+	std::uint_least64_t seconds;
 	bool borrow{intrinsics::sub_borrow(false,a.subseconds,b.subseconds,res)};
 	intrinsics::sub_borrow(borrow,a.seconds,b.seconds,seconds);
 	if(borrow)
-		res+=uintiso_subseconds_per_second;
+		res+=uint_least64_subseconds_per_second;
 	return {seconds,res};
 }
 
-inline constexpr basic_timestamp<0> div_uint(intiso_t rseconds,uintiso_t subseconds,uintiso_t d) noexcept
+inline constexpr basic_timestamp<0> div_uint(std::int_least64_t rseconds,std::uint_least64_t subseconds,std::uint_least64_t d) noexcept
 {
 	if(d==0)[[unlikely]]
 		fast_terminate();
 	bool minus{rseconds<0};
-	uintiso_t seconds{static_cast<uintiso_t>(rseconds)};
-	constexpr uintiso_t zero{};
+	std::uint_least64_t seconds{static_cast<std::uint_least64_t>(rseconds)};
+	constexpr std::uint_least64_t zero{};
 	if(minus)
 		seconds=zero-seconds;
 #ifdef __SIZEOF_INT128__
-	__uint128_t total_subseconds{static_cast<__uint128_t>(seconds)*uintiso_subseconds_per_second+subseconds};
+	__uint128_t total_subseconds{static_cast<__uint128_t>(seconds)*uint_least64_subseconds_per_second+subseconds};
 	std::uint64_t mid{d>>1};
 	__uint128_t rr{total_subseconds%d};
 	std::uint64_t r{static_cast<std::uint64_t>(rr)};
@@ -101,117 +101,117 @@ inline constexpr basic_timestamp<0> div_uint(intiso_t rseconds,uintiso_t subseco
 		if((q&1)==1)
 			++q;
 	}
-	std::uint64_t result_seconds{static_cast<std::uint64_t>(q/uintiso_subseconds_per_second)};
-	std::uint64_t result_subseconds{static_cast<std::uint64_t>(q%uintiso_subseconds_per_second)};
+	std::uint64_t result_seconds{static_cast<std::uint64_t>(q/uint_least64_subseconds_per_second)};
+	std::uint64_t result_subseconds{static_cast<std::uint64_t>(q%uint_least64_subseconds_per_second)};
 	if(minus)
 		result_seconds=zero-result_seconds;
-	return {static_cast<intiso_t>(result_seconds),result_subseconds};
+	return {static_cast<std::int_least64_t>(result_seconds),result_subseconds};
 #else
-	constexpr uintiso_t one{1};
+	constexpr std::uint_least64_t one{1};
 	std::uint64_t total_seconds_high;
-	std::uint64_t total_seconds_low{intrinsics::umul(seconds,uintiso_subseconds_per_second,total_seconds_high)};
+	std::uint64_t total_seconds_low{intrinsics::umul(seconds,uint_least64_subseconds_per_second,total_seconds_high)};
 	intrinsics::add_carry(intrinsics::add_carry(false,total_seconds_low,subseconds,total_seconds_low),total_seconds_high,zero,total_seconds_high);
 	std::uint64_t mid{d>>1};
 	auto [q_low,q_high,r,r_high]=intrinsics::udivmod(total_seconds_low,total_seconds_high,d,zero);
 	if(mid<r||(mid==r&&(q_low&1)==1))
 		intrinsics::add_carry(intrinsics::add_carry(false,q_low,one,q_low),q_high,zero,q_high);
 	auto [result_seconds_low,result_seconds_high,result_subseconds_low,result_subseconds_high]
-		=intrinsics::udivmod(q_low,q_high,uintiso_subseconds_per_second,zero);
+		=intrinsics::udivmod(q_low,q_high,uint_least64_subseconds_per_second,zero);
 	if(minus)
 		result_seconds_low=zero-result_seconds_low;
-	return {static_cast<intiso_t>(result_seconds_low),result_subseconds_low};
+	return {static_cast<std::int_least64_t>(result_seconds_low),result_subseconds_low};
 #endif	
 }
 
 }
 
-template<intiso_t off_to_epoch>
+template<std::int_least64_t off_to_epoch>
 inline constexpr basic_timestamp<off_to_epoch> operator-(basic_timestamp<off_to_epoch> a) noexcept
 {
-	uintiso_t high(a.seconds);
+	std::uint_least64_t high(a.seconds);
 	high=0u-high;
-	return {static_cast<intiso_t>(high),a.subseconds};
+	return {static_cast<std::int_least64_t>(high),a.subseconds};
 }
 
-template<intiso_t off_to_epoch>
+template<std::int_least64_t off_to_epoch>
 inline constexpr basic_timestamp<off_to_epoch> operator+(basic_timestamp<off_to_epoch> a,basic_timestamp<off_to_epoch> b) noexcept
 {
 	if(a.seconds<0)
 	{
-		uintiso_t a_abs(a.seconds);
+		std::uint_least64_t a_abs(a.seconds);
 		a_abs=0u-a_abs;
 		if(b.seconds<0)
 		{
-			uintiso_t b_abs(b.seconds);
+			std::uint_least64_t b_abs(b.seconds);
 			b_abs=0u-b_abs;
 			auto res{details::add_impl({a_abs,a.subseconds},
 				{b_abs,b.subseconds})};
 			res.seconds=0u-res.seconds;
-			return {static_cast<intiso_t>(res.seconds),res.subseconds};
+			return {static_cast<std::int_least64_t>(res.seconds),res.subseconds};
 		}
 		else
 		{
-			uintiso_t b_abs(b.seconds);
+			std::uint_least64_t b_abs(b.seconds);
 			if(a_abs<b_abs||(a_abs==b_abs&&a.subseconds<b.subseconds))
 			{
 				auto res{details::sub_impl({b_abs,b.subseconds},{a_abs,a.subseconds})};
-				return {static_cast<intiso_t>(res.seconds),res.subseconds};
+				return {static_cast<std::int_least64_t>(res.seconds),res.subseconds};
 			}
 			else
 			{
 				auto res{details::sub_impl({a_abs,a.subseconds},{b_abs,b.subseconds})};
 				res.seconds=0u-res.seconds;
-				return {static_cast<intiso_t>(res.seconds),res.subseconds};
+				return {static_cast<std::int_least64_t>(res.seconds),res.subseconds};
 			}
 		}
 	}
 	else
 	{
-		uintiso_t a_abs(a.seconds);
+		std::uint_least64_t a_abs(a.seconds);
 		if(b.seconds<0)
 		{
-			uintiso_t b_abs(b.seconds);
+			std::uint_least64_t b_abs(b.seconds);
 			b_abs=0u-b_abs;
 			if(a_abs<b_abs||(a_abs==b_abs&&a.subseconds<b.subseconds))
 			{
 				auto res{details::sub_impl({b_abs,b.subseconds},{a_abs,a.subseconds})};
 				res.seconds=0u-res.seconds;
-				return {static_cast<intiso_t>(res.seconds),res.subseconds};
+				return {static_cast<std::int_least64_t>(res.seconds),res.subseconds};
 			}
 			else
 			{
 				auto res{details::sub_impl({a_abs,a.subseconds},{b_abs,b.subseconds})};
-				return {static_cast<intiso_t>(res.seconds),res.subseconds};
+				return {static_cast<std::int_least64_t>(res.seconds),res.subseconds};
 			}
 		}
 		else
 		{
-			uintiso_t b_abs(b.seconds);
+			std::uint_least64_t b_abs(b.seconds);
 			auto res{details::add_impl({a_abs,a.subseconds},
 				{b_abs,b.subseconds})};
-			return {static_cast<intiso_t>(res.seconds),res.subseconds};
+			return {static_cast<std::int_least64_t>(res.seconds),res.subseconds};
 		}
 	}
 }
-template<intiso_t off_to_epoch>
+template<std::int_least64_t off_to_epoch>
 inline constexpr basic_timestamp<off_to_epoch>& operator+=(basic_timestamp<off_to_epoch>& a,basic_timestamp<off_to_epoch> b) noexcept
 {
 	return a=a+b;
 }
 
-template<intiso_t off_to_epoch>
+template<std::int_least64_t off_to_epoch>
 inline constexpr basic_timestamp<off_to_epoch> operator-(basic_timestamp<off_to_epoch> a,basic_timestamp<off_to_epoch> b) noexcept
 {
 	return a+(-b);
 }
 
-template<intiso_t off_to_epoch>
+template<std::int_least64_t off_to_epoch>
 inline constexpr basic_timestamp<off_to_epoch>& operator-=(basic_timestamp<off_to_epoch>& a,basic_timestamp<off_to_epoch> b) noexcept
 {
 	return a=a+(-b);
 }
-template<intiso_t off_to_epoch>
-inline constexpr basic_timestamp<off_to_epoch> operator/(basic_timestamp<off_to_epoch> a,uintiso_t b) noexcept
+template<std::int_least64_t off_to_epoch>
+inline constexpr basic_timestamp<off_to_epoch> operator/(basic_timestamp<off_to_epoch> a,std::uint_least64_t b) noexcept
 {
 	if constexpr(off_to_epoch==0)
 	{
@@ -224,8 +224,8 @@ inline constexpr basic_timestamp<off_to_epoch> operator/(basic_timestamp<off_to_
 	}
 }
 
-template<intiso_t off_to_epoch>
-inline constexpr basic_timestamp<off_to_epoch>& operator/=(basic_timestamp<off_to_epoch>& a,uintiso_t b) noexcept
+template<std::int_least64_t off_to_epoch>
+inline constexpr basic_timestamp<off_to_epoch>& operator/=(basic_timestamp<off_to_epoch>& a,std::uint_least64_t b) noexcept
 {
 	if constexpr(off_to_epoch==0)
 	{
@@ -261,20 +261,20 @@ Referenced from: https://81018.com/universeclock/
 
 struct iso8601_timestamp
 {
-	intiso_t year{};
-	std::uint8_t month{};
-	std::uint8_t day{};
-	std::uint8_t hours{};
-	std::uint8_t minutes{};
-	std::uint8_t seconds{};
-	uintiso_t subseconds{};
-	std::int32_t timezone{};
+	std::int_least64_t year{};
+	std::uint_least8_t month{};
+	std::uint_least8_t day{};
+	std::uint_least8_t hours{};
+	std::uint_least8_t minutes{};
+	std::uint_least8_t seconds{};
+	std::uint_least64_t subseconds{};
+	std::int_least32_t timezone{};
 };
 
-template<std::integral char_type,intiso_t off_to_epoch>
+template<std::integral char_type,std::int_least64_t off_to_epoch>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,basic_timestamp<off_to_epoch>>) noexcept
 {
-	return print_reserve_size(io_reserve_type<char_type,intiso_t>)+std::numeric_limits<uintiso_t>::digits10;
+	return print_reserve_size(io_reserve_type<char_type,std::int_least64_t>)+std::numeric_limits<std::uint_least64_t>::digits10;
 }
 
 template<std::integral char_type>
@@ -282,7 +282,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,iso8
 {
 //ISO 8601 timestamp example : 2021-01-03T10:29:56Z
 //ISO 8601 timestamp with timestamp : 2021-01-03T10:29:56.999999+99:99
-	return print_reserve_size(io_reserve_type<char_type,intiso_t>)+16+print_reserve_size(io_reserve_type<char_type,uintiso_t>)+print_reserve_size(io_reserve_type<char_type,long>)+3+4+2;
+	return print_reserve_size(io_reserve_type<char_type,std::int_least64_t>)+16+print_reserve_size(io_reserve_type<char_type,std::uint_least64_t>)+print_reserve_size(io_reserve_type<char_type,long>)+3+4+2;
 }
 
 
@@ -295,7 +295,7 @@ https://git.musl-libc.org/cgit/musl/tree/src/time/__secs_to_tm.c
 
 inline constexpr char8_t days_in_month[]{31,30,31,30,31,31,30,31,30,31,31,29};
 
-inline constexpr std::uint32_t secs_through_month[]{
+inline constexpr std::uint_least32_t secs_through_month[]{
 0, 31*86400, 59*86400, 90*86400,
 120*86400, 151*86400, 181*86400, 212*86400,
 243*86400, 273*86400, 304*86400, 334*86400 
@@ -303,15 +303,15 @@ inline constexpr std::uint32_t secs_through_month[]{
 /*
 y2k : 2000-01-01T00:00:00Z
 */
-inline constexpr intiso_t y2k{946684800LL};
+inline constexpr std::int_least64_t y2k{946684800LL};
 /*
 leapoch: 2000-03-01T00:00:00Z
 */
-inline constexpr intiso_t leapoch{y2k + 86400LL*(31LL+29LL)};
+inline constexpr std::int_least64_t leapoch{y2k + 86400LL*(31LL+29LL)};
 
-inline constexpr std::uint32_t days_per_400_year{365LL*400LL+97LL};
-inline constexpr std::uint32_t days_per_100_year{365LL*100LL+24LL};
-inline constexpr std::uint32_t days_per_4_year{365LL*4LL+1LL};
+inline constexpr std::uint_least32_t days_per_400_year{365LL*400LL+97LL};
+inline constexpr std::uint_least32_t days_per_100_year{365LL*100LL+24LL};
+inline constexpr std::uint_least32_t days_per_4_year{365LL*4LL+1LL};
 
 template<std::signed_integral T>
 inline constexpr T sub_overflow(T a,T b) noexcept
@@ -355,45 +355,45 @@ inline constexpr T sub_overflow(T a,T b) noexcept
 #if __has_cpp_attribute(gnu::pure)
 [[gnu::pure]]
 #endif
-inline constexpr iso8601_timestamp unix_timestamp_to_iso8601_tsp_impl_internal(intiso_t seconds,uintiso_t subseconds,std::int32_t timezone) noexcept
+inline constexpr iso8601_timestamp unix_timestamp_to_iso8601_tsp_impl_internal(std::int_least64_t seconds,std::uint_least64_t subseconds,std::int_least32_t timezone) noexcept
 {
-	intiso_t secs{sub_overflow(seconds,leapoch)};
-	intiso_t days{secs/86400};
-	intiso_t remsecs{secs%86400};
+	std::int_least64_t secs{sub_overflow(seconds,leapoch)};
+	std::int_least64_t days{secs/86400};
+	std::int_least64_t remsecs{secs%86400};
 	if(remsecs<0)
 	{
 		remsecs+=86400;
 		--days;
 	}
 
-	intiso_t qc_cycles{days / days_per_400_year};
-	intiso_t remdays{days % days_per_400_year};
+	std::int_least64_t qc_cycles{days / days_per_400_year};
+	std::int_least64_t remdays{days % days_per_400_year};
 	if (remdays < 0)
 	{
 		remdays += days_per_400_year;
 		--qc_cycles;
 	}
-	intiso_t c_cycles{remdays / days_per_100_year};
+	std::int_least64_t c_cycles{remdays / days_per_100_year};
 	if (c_cycles == 4)
 		--c_cycles;
 	remdays -= c_cycles * days_per_100_year;
 
-	intiso_t q_cycles{remdays / days_per_4_year};
+	std::int_least64_t q_cycles{remdays / days_per_4_year};
 	if (q_cycles == 25)
 		--q_cycles;
 	remdays -= q_cycles * days_per_4_year;
 
-	intiso_t remyears{remdays / 365};
+	std::int_least64_t remyears{remdays / 365};
 	if (remyears == 4)
 		--remyears;
 	remdays -= remyears * 365;
 
 	bool leap{!remyears && (q_cycles || !c_cycles)};
-	intiso_t yday{remdays + 31 + 28 + leap};
+	std::int_least64_t yday{remdays + 31 + 28 + leap};
 	if (yday >= 365+leap)
 		yday -= 365+leap;
-	intiso_t years{remyears + 4*q_cycles + 100*c_cycles + 400*qc_cycles};
-	std::uint8_t months{};
+	std::int_least64_t years{remyears + 4*q_cycles + 100*c_cycles + 400*qc_cycles};
+	std::uint_least8_t months{};
 	for (; days_in_month[months] <= remdays; ++months)
 		remdays -= days_in_month[months];
 	if(months>=10)
@@ -402,17 +402,17 @@ inline constexpr iso8601_timestamp unix_timestamp_to_iso8601_tsp_impl_internal(i
 		months-=12;
 	}
 	return {years+2000,
-		static_cast<std::uint8_t>(months+3),
-		static_cast<std::uint8_t>(remdays+1),
-		static_cast<std::uint8_t>(remsecs/3600),
-		static_cast<std::uint8_t>(remsecs/60%60),
-		static_cast<std::uint8_t>(remsecs%60),subseconds,timezone};
+		static_cast<std::uint_least8_t>(months+3),
+		static_cast<std::uint_least8_t>(remdays+1),
+		static_cast<std::uint_least8_t>(remsecs/3600),
+		static_cast<std::uint_least8_t>(remsecs/60%60),
+		static_cast<std::uint_least8_t>(remsecs%60),subseconds,timezone};
 }
 
 #if __has_cpp_attribute(gnu::pure)
 [[gnu::pure]]
 #endif
-inline constexpr iso8601_timestamp unix_timestamp_to_iso8601_tsp_impl(intiso_t t,uintiso_t subseconds) noexcept
+inline constexpr iso8601_timestamp unix_timestamp_to_iso8601_tsp_impl(std::int_least64_t t,std::uint_least64_t subseconds) noexcept
 {
 	return unix_timestamp_to_iso8601_tsp_impl_internal(t,subseconds,0);
 }
@@ -420,27 +420,27 @@ inline constexpr iso8601_timestamp unix_timestamp_to_iso8601_tsp_impl(intiso_t t
 #if __has_cpp_attribute(gnu::pure)
 [[gnu::pure]]
 #endif
-inline constexpr intiso_t year_month_to_seconds(intiso_t year,uint8_t month) noexcept
+inline constexpr std::int_least64_t year_month_to_seconds(std::int_least64_t year,std::uint_least8_t month) noexcept
 {
-	constexpr intiso_t year_min{std::numeric_limits<intiso_t>::min()/(365LL*86400LL)};
-	constexpr intiso_t year_max{std::numeric_limits<intiso_t>::max()/(365LL*86400LL)};
+	constexpr std::int_least64_t year_min{std::numeric_limits<std::int_least64_t>::min()/(365LL*86400LL)};
+	constexpr std::int_least64_t year_max{std::numeric_limits<std::int_least64_t>::max()/(365LL*86400LL)};
 	if(year<=year_min||year>=year_max)
 		fast_terminate();
-	intiso_t leaps{year/4};
-	intiso_t leaps_remainder{year%4};
-	intiso_t cycles_quotient{year / 400};
-	intiso_t cycles_reminder{year % 400};
-	intiso_t cycles100_quotient{year / 100};
-	intiso_t cycles100_reminder{year % 100};
+	std::int_least64_t leaps{year/4};
+	std::int_least64_t leaps_remainder{year%4};
+	std::int_least64_t cycles_quotient{year / 400};
+	std::int_least64_t cycles_reminder{year % 400};
+	std::int_least64_t cycles100_quotient{year / 100};
+	std::int_least64_t cycles100_reminder{year % 100};
 	bool year_is_leap_year{(!cycles_reminder)||((!leaps_remainder)&&cycles100_reminder)};
 	leaps+=cycles_quotient-cycles100_quotient;
 	--month;
 	if(11<month)
 		fast_terminate();
-	std::uint32_t t{secs_through_month[month]};
+	std::uint_least32_t t{secs_through_month[month]};
 	if((month)|(year>=0&&!year_is_leap_year))
 		t+=0x15180;
-	return (year*365LL+leaps)*86400LL-62167219200LL+static_cast<intiso_t>(t);
+	return (year*365LL+leaps)*86400LL-62167219200LL+static_cast<std::int_least64_t>(t);
 }
 
 #if __has_cpp_attribute(gnu::pure)
@@ -448,17 +448,17 @@ inline constexpr intiso_t year_month_to_seconds(intiso_t year,uint8_t month) noe
 #endif
 inline constexpr unix_timestamp iso8601_to_unix_timestamp_impl(iso8601_timestamp const& tsp) noexcept
 {
-	return {static_cast<intiso_t>(static_cast<std::uint32_t>(tsp.day-1)*static_cast<std::uint32_t>(86400LL)+
-		static_cast<std::uint32_t>(tsp.hours)*static_cast<std::uint32_t>(3600LL)+
-		static_cast<std::uint32_t>(tsp.minutes)*static_cast<std::uint32_t>(60LL)+
-		static_cast<std::uint32_t>(tsp.seconds)-static_cast<std::uint32_t>(tsp.timezone))+
+	return {static_cast<std::int_least64_t>(static_cast<std::uint_least32_t>(tsp.day-1)*static_cast<std::uint_least32_t>(86400LL)+
+		static_cast<std::uint_least32_t>(tsp.hours)*static_cast<std::uint_least32_t>(3600LL)+
+		static_cast<std::uint_least32_t>(tsp.minutes)*static_cast<std::uint_least32_t>(60LL)+
+		static_cast<std::uint_least32_t>(tsp.seconds)-static_cast<std::uint_least32_t>(tsp.timezone))+
 		year_month_to_seconds(tsp.year,tsp.month)
 		,tsp.subseconds};
 }
 
 }
 
-template<intiso_t off_to_epoch>
+template<std::int_least64_t off_to_epoch>
 inline constexpr iso8601_timestamp utc(basic_timestamp<off_to_epoch> timestamp) noexcept
 {
 	if constexpr(std::same_as<basic_timestamp<off_to_epoch>,unix_timestamp>)
@@ -472,7 +472,7 @@ inline constexpr iso8601_timestamp utc(basic_timestamp<off_to_epoch> timestamp) 
 	}
 }
 
-template<intiso_t off_to_epoch=0>
+template<std::int_least64_t off_to_epoch=0>
 inline constexpr basic_timestamp<off_to_epoch> to_timestamp(iso8601_timestamp const& timestamp) noexcept
 {
 	return details::iso8601_to_unix_timestamp_impl(timestamp);
@@ -540,7 +540,7 @@ inline constexpr Iter print_reserve_iso8601_timestamp_impl(Iter iter,iso8601_tim
 	}
 	else
 	{
-		unsigned long unsigned_tz{static_cast<unsigned long>(timestamp.timezone)};
+		std::uint_least64_t unsigned_tz{static_cast<std::uint_least64_t>(timestamp.timezone)};
 		if(timestamp.timezone<0)
 		{
 			if constexpr(std::same_as<char_type,char>)
@@ -561,9 +561,9 @@ inline constexpr Iter print_reserve_iso8601_timestamp_impl(Iter iter,iso8601_tim
 				*iter=u8'+';
 		}
 		++iter;
-		std::uint8_t tz_ss{static_cast<std::uint8_t>(unsigned_tz%60)};
+		std::uint_least8_t tz_ss{static_cast<std::uint_least8_t>(unsigned_tz%60)};
 		unsigned_tz/=60;
-		std::uint8_t tz_mm{static_cast<std::uint8_t>(unsigned_tz%60)};
+		std::uint_least8_t tz_mm{static_cast<std::uint_least8_t>(unsigned_tz%60)};
 		unsigned_tz/=60;
 		iter=chrono_two_digits_impl(iter,unsigned_tz);
 		if constexpr(std::same_as<char_type,char>)
@@ -593,7 +593,7 @@ template<bool comma=false,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter print_reserve_bsc_timestamp_impl(Iter iter,unix_timestamp timestamp) noexcept
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
-	iter=print_reserve_define(io_reserve_type<char_type,intiso_t>,iter,timestamp.seconds);
+	iter=print_reserve_define(io_reserve_type<char_type,std::int_least64_t>,iter,timestamp.seconds);
 	if(timestamp.subseconds)
 		iter=output_iso8601_subseconds<comma>(iter,timestamp.subseconds);
 	return iter;
@@ -601,7 +601,7 @@ inline constexpr Iter print_reserve_bsc_timestamp_impl(Iter iter,unix_timestamp 
 
 }
 
-template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter,intiso_t off_to_epoch>
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter,std::int_least64_t off_to_epoch>
 inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,basic_timestamp<off_to_epoch>>,
 		Iter iter,basic_timestamp<off_to_epoch> timestamp) noexcept
 {
@@ -624,8 +624,8 @@ template<bool comma,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter unix_timestamp_fixed_print_full_impl(Iter iter,unix_timestamp ts)
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
-	iter=print_reserve_define(io_reserve_type<char_type,intiso_t>,iter,ts.seconds);
-	constexpr std::size_t digits(std::numeric_limits<uintiso_t>::digits10);
+	iter=print_reserve_define(io_reserve_type<char_type,std::int_least64_t>,iter,ts.seconds);
+	constexpr std::size_t digits(std::numeric_limits<std::uint_least64_t>::digits10);
 	if constexpr(comma)
 	{
 	if constexpr(std::same_as<char_type,char>)
@@ -655,7 +655,7 @@ inline constexpr Iter unix_timestamp_fixed_print_easy_case(Iter iter,unix_timest
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	iter=unix_timestamp_fixed_print_full_impl<comma>(iter,ts);
-	constexpr std::size_t digits{static_cast<std::size_t>(std::numeric_limits<uintiso_t>::digits10)-1};
+	constexpr std::size_t digits{static_cast<std::size_t>(std::numeric_limits<std::uint_least64_t>::digits10)-1};
 	std::size_t const to_fill{precision-digits};
 	if constexpr(std::same_as<char_type,char>)
 		return my_fill_n(iter,to_fill,'0');
@@ -674,10 +674,10 @@ inline constexpr Iter unix_timestamp_fixed_complex_case(Iter iter,unix_timestamp
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	std::size_t const precision{ts.precision};
-	uintiso_t tbv{d10_reverse_table<uintiso_t>[precision]};
-	uintiso_t val{ts.reference.subseconds/tbv};
-	uintiso_t upper_frac{val/10u};
-	uintiso_t abs{static_cast<uintiso_t>(ts.reference.seconds)};
+	std::uint_least64_t tbv{d10_reverse_table<std::uint_least64_t>[precision]};
+	std::uint_least64_t val{ts.reference.subseconds/tbv};
+	std::uint_least64_t upper_frac{val/10u};
+	std::uint_least64_t abs{static_cast<std::uint_least64_t>(ts.reference.seconds)};
 	bool const negative{ts.reference.seconds<0};
 	if(negative)
 	{
@@ -692,8 +692,8 @@ inline constexpr Iter unix_timestamp_fixed_complex_case(Iter iter,unix_timestamp
 	}
 	if constexpr(mode!=::fast_io::manipulators::rounding_mode::toward_zero)
 	{
-		uintiso_t val_mod{ts.reference.subseconds%tbv};
-		uintiso_t frac{val%10u};
+		std::uint_least64_t val_mod{ts.reference.subseconds%tbv};
+		std::uint_least64_t frac{val%10u};
 		bool carry{};
 		if constexpr(mode==::fast_io::manipulators::rounding_mode::nearest_to_even)
 		{
@@ -730,14 +730,14 @@ inline constexpr Iter unix_timestamp_fixed_complex_case(Iter iter,unix_timestamp
 		if(carry)
 		{
 			++upper_frac;
-			if(upper_frac*tbv*100u==uintiso_subseconds_per_second)
+			if(upper_frac*tbv*100u==uint_least64_subseconds_per_second)
 			{
 				++abs;
 				upper_frac=0;
 			}
 		}
 	}
-	iter=print_reserve_define(io_reserve_type<char_type,uintiso_t>,iter,abs);
+	iter=print_reserve_define(io_reserve_type<char_type,std::uint_least64_t>,iter,abs);
 	if(precision!=0)
 	{
 		if constexpr(comma)
@@ -771,11 +771,11 @@ inline constexpr Iter unix_timestamp_fixed_print_impl(
 	::fast_io::manipulators::floating_format_precision_t<unix_timestamp,::fast_io::manipulators::floating_representation::fixed,mode> ts) noexcept
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
-	constexpr std::size_t digits10m2{static_cast<std::size_t>(std::numeric_limits<uintiso_t>::digits10)-2};
+	constexpr std::size_t digits10m2{static_cast<std::size_t>(std::numeric_limits<std::uint_least64_t>::digits10)-2};
 	if constexpr(mode==::fast_io::manipulators::rounding_mode::toward_zero)
 	{
 		if(ts.precision==0)
-			return print_reserve_define(io_reserve_type<char_type,intiso_t>,iter,ts.reference.seconds);
+			return print_reserve_define(io_reserve_type<char_type,std::int_least64_t>,iter,ts.reference.seconds);
 		else if(digits10m2<ts.precision)
 			return unix_timestamp_fixed_print_easy_case<comma>(iter,ts.reference,ts.precision);
 		else

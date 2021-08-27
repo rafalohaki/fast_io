@@ -5,9 +5,6 @@
 namespace fast_io_i18n
 {
 
-using uintiso_t = std::uintmax_t;
-using intiso_t = std::intmax_t;
-
 template<typename T>
 struct basic_io_scatter_t
 {
@@ -108,7 +105,7 @@ struct basic_lc_time
 	struct
 	{
 		std::size_t ndays{7};
-		intiso_t first_day{19971201};
+		std::int_least64 first_day{19971201};
 		std::size_t first_week{4};
 	}week{};
 	std::size_t first_weekday{};
@@ -141,8 +138,8 @@ using u32lc_messages=basic_lc_messages<char32_t>;
 template<typename char_type>
 struct basic_lc_paper
 {
-	uintiso_t width{};
-	uintiso_t height{};
+	std::uint_least64 width{};
+	std::uint_least64 height{};
 };
 
 using lc_paper=basic_lc_paper<char>;
@@ -191,7 +188,7 @@ struct basic_lc_address
 	basic_io_scatter_t<char_type> country_post{};
 	basic_io_scatter_t<char_type> country_ab2{};
 	basic_io_scatter_t<char_type> country_ab3{};
-	uintiso_t country_num{};
+	std::uint_least64 country_num{};
 	basic_io_scatter_t<char_type> country_car{};
 	basic_io_scatter_t<char_type> country_isbn{};
 	basic_io_scatter_t<char_type> lang_name{};
@@ -209,7 +206,7 @@ using u32lc_address=basic_lc_address<char32_t>;
 template<typename char_type>
 struct basic_lc_measurement
 {
-	uintiso_t measurement{};
+	std::uint_least64 measurement{};
 };
 
 using lc_measurement=basic_lc_measurement<char>;

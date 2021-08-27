@@ -7,7 +7,7 @@ namespace fast_io
 template<std::integral char_type>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,basic_lc_measurement<char_type>>) noexcept
 {
-	constexpr std::size_t measurement_size{print_reserve_size(io_reserve_type<char_type,uintiso_t>)};
+	constexpr std::size_t measurement_size{print_reserve_size(io_reserve_type<char_type,std::uint_least64_t>)};
 	if constexpr(std::same_as<char_type,char>)
 	{
 		constexpr std::size_t total_size{details::string_literal_size("LC_MEASUREMENT\n"
@@ -45,7 +45,7 @@ inline constexpr Iter print_reserve_define_lc_measurement_impl(Iter iter,basic_l
 	{
 		iter=copy_string_literal("LC_MEASUREMENT\n"
 			"measurement\t",iter);
-		iter=print_reserve_define(io_reserve_type<char_type,uintiso_t>,iter,measurement.measurement);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint_least64_t>,iter,measurement.measurement);
 		return copy_string_literal("\n"
 			"END LC_MEASUREMENT",iter);
 	}
@@ -53,7 +53,7 @@ inline constexpr Iter print_reserve_define_lc_measurement_impl(Iter iter,basic_l
 	{
 		iter=copy_string_literal(L"LC_MEASUREMENT\n"
 			L"measurement\t",iter);
-		iter=print_reserve_define(io_reserve_type<char_type,uintiso_t>,iter,measurement.measurement);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint_least64_t>,iter,measurement.measurement);
 		return copy_string_literal(L"\n"
 			L"END LC_MEASUREMENT",iter);
 	}
@@ -61,7 +61,7 @@ inline constexpr Iter print_reserve_define_lc_measurement_impl(Iter iter,basic_l
 	{
 		iter=copy_string_literal(u"LC_MEASUREMENT\n"
 			u"measurement\t",iter);
-		iter=print_reserve_define(io_reserve_type<char_type,uintiso_t>,iter,measurement.measurement);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint_least64_t>,iter,measurement.measurement);
 		return copy_string_literal(u"\n"
 			u"END LC_MEASUREMENT",iter);
 	}
@@ -69,7 +69,7 @@ inline constexpr Iter print_reserve_define_lc_measurement_impl(Iter iter,basic_l
 	{
 		iter=copy_string_literal(U"LC_MEASUREMENT\n"
 			U"measurement\t",iter);
-		iter=print_reserve_define(io_reserve_type<char_type,uintiso_t>,iter,measurement.measurement);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint_least64_t>,iter,measurement.measurement);
 		return copy_string_literal(U"\n"
 			U"END LC_MEASUREMENT",iter);
 	}
@@ -77,7 +77,7 @@ inline constexpr Iter print_reserve_define_lc_measurement_impl(Iter iter,basic_l
 	{
 		iter=copy_string_literal(u8"LC_MEASUREMENT\n"
 			u8"measurement\t",iter);
-		iter=print_reserve_define(io_reserve_type<char_type,uintiso_t>,iter,measurement.measurement);
+		iter=print_reserve_define(io_reserve_type<char_type,std::uint_least64_t>,iter,measurement.measurement);
 		return copy_string_literal(u8"\n"
 			u8"END LC_MEASUREMENT",iter);
 	}

@@ -262,7 +262,7 @@ namespace details
 {
 inline constexpr struct timespec unix_timestamp_to_struct_timespec64(unix_timestamp stmp) noexcept
 {
-	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000000u};
+	constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/1000000000u};
 	return {static_cast<std::time_t>(stmp.seconds),static_cast<long>(static_cast<long unsigned>((stmp.subseconds)/mul_factor))};
 }
 
