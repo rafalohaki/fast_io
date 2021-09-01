@@ -122,7 +122,6 @@ inline constexpr T basic_concat_decay_impl(Args ...args)
 			}
 			else
 			{
-				constexpr std::size_t sz_with_line{sz+static_cast<std::size_t>(line)};
 				std::size_t total_size{::fast_io::details::intrinsics::add_or_overflow_die(sz_with_line,calculate_scatter_dynamic_reserve_size_with_scatter<ch_type>(args...))};
 				T str;
 				str.reserve(total_size);

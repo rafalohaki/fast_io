@@ -163,13 +163,13 @@ inline constexpr void set_begin_ptr(T& str,typename T::value_type* ptr) noexcept
 template<typename T>
 inline constexpr void set_end_ptr(T& str,typename T::value_type* ptr) noexcept
 {
-	set_size(str,ptr-str.data());
+	set_size(str,static_cast<std::size_t>(ptr-str.data()));
 }
 
 template<typename T>
 inline constexpr void set_cap_ptr(T& str,typename T::value_type* ptr) noexcept
 {
-	set_cap(str,ptr-str.data());
+	set_cap(str,static_cast<std::size_t>(ptr-str.data()));
 }
 
 template<typename elem,typename traits,typename alloc>

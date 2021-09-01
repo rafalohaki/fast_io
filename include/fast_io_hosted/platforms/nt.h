@@ -634,7 +634,7 @@ inline void nt_data_sync_impl(void* handle,data_sync_flags flags [[maybe_unused]
 NtFlushBuffersFileEx and ZwFlushBuffersFileEx are only provided since windows 8
 */
 	win32::nt::io_status_block block;
-	std::uint32_t status{win32::nt::nt_flush_buffers_file_ex<zw>(handle,static_cast<std::uint32_t>(flags),nullptr,0,__builtin_addressof(block))};
+	std::uint32_t status{win32::nt::nt_flush_buffers_file_ex<zw>(handle,static_cast<std::uint32_t>(flags),nullptr,0u,__builtin_addressof(block))};
 	if(status)
 		throw_nt_error(status);
 #else

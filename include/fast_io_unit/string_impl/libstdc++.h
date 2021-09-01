@@ -101,13 +101,13 @@ inline constexpr void set_begin_ptr(T& str,typename T::value_type* ptr) noexcept
 template<typename T>
 inline constexpr void set_end_ptr(T& str,typename T::value_type* ptr) noexcept
 {
-	hack_M_string_length(str)=ptr-::fast_io::freestanding::to_address(hack_M_data(str));
+	hack_M_string_length(str)=static_cast<std::size_t>(ptr-::fast_io::freestanding::to_address(hack_M_data(str)));
 }
 
 template<typename T>
 inline constexpr void set_cap_ptr(T& str,typename T::value_type* ptr) noexcept
 {
-	hack_M_allocated_capacity(str)=ptr-::fast_io::freestanding::to_address(hack_M_data(str));
+	hack_M_allocated_capacity(str)=static_cast<std::size_t>(ptr-::fast_io::freestanding::to_address(hack_M_data(str)));
 }
 
 template<typename T>
