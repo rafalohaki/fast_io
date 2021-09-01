@@ -107,11 +107,8 @@ inline constexpr T basic_concat_decay_impl(Args ...args)
 		if constexpr((reserve_printable<ch_type,Args>&&...))
 		{
 			T str;
-#ifndef _LIBCPP_VERSION
-//libc++ uses big/small sso implementation, the local_cap might not make sense. avoid it
 			constexpr std::size_t local_cap{string_hack::local_capacity<T>()};
 			if constexpr(sz<=local_cap)
-#endif
 				str.reserve(sz_with_line);
 			set_basic_string_ptr(str,print_reserve_define_chain_impl<line>(str.data(),args...));
 			return str;
