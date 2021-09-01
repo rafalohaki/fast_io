@@ -181,7 +181,7 @@ inline typename std::basic_string<elem,traits,alloc>::size_type get_long_cap(std
 }
 
 template<typename T>
-inline constexpr std::size_t local_capacity()
+inline constexpr std::size_t local_capacity() noexcept
 {
 	using model_type = model<typename T::value_type,typename T::traits_type,typename T::allocator_type>;
     return model_type::__min_cap-1;
