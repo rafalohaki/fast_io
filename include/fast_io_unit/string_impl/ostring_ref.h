@@ -49,6 +49,16 @@ template<std::integral CharT,typename Traits,typename Allocator>
 	return ob.ptr->data()+ob.ptr->capacity();
 }
 
+namespace details
+{
+template<std::integral CharT,typename Traits,typename Allocator>
+inline constexpr void set_basic_string_ptr(std::basic_string<CharT,Traits,Allocator>& ob,CharT* ptr)
+{
+	Traits::assign(*ptr, CharT());
+	details::string_hack::set_end_ptr(ob,ptr);
+}
+}
+
 template<std::integral CharT,typename Traits,typename Allocator>
 inline constexpr void obuffer_set_curr(basic_ostring_ref<CharT,Traits,Allocator> ob,
 	CharT* ptr)

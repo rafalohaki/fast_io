@@ -12,6 +12,7 @@
 
 #include"ostring_ref.h"
 #include"string_context.h"
+#include"concat.h"
 
 namespace fast_io
 {
