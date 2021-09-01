@@ -287,9 +287,9 @@ inline void wincrt_fp_overflow_impl(FILE* __restrict fpp,char_type ch)
 	else
 		posix_write_simple_impl(static_cast<int>(fp->_file),fp->_base,static_cast<std::size_t>(static_cast<unsigned>(fp->_bufsiz)));
 	fp->_ptr=fp->_base;
-	my_memcpy(fp->_ptr,&ch,sizeof(ch));
+	my_memcpy(fp->_ptr,__builtin_addressof(ch),sizeof(ch));
 	fp->_ptr+=sizeof(ch);
-	fp->_cnt=static_cast<int>(static_cast<unsigned int>(fp->_bufsiz-sizeof(ch)));
+	fp->_cnt=static_cast<int>(static_cast<unsigned int>(fp->_bufsiz-static_cast<int>(sizeof(ch))));
 	wincrt_fp_set_flag_dirty_impl(fp);
 }
 
