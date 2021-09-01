@@ -55,7 +55,7 @@ template<std::integral CharT,typename Traits,typename Allocator>
 inline constexpr void set_basic_string_ptr(std::basic_string<CharT,Traits,Allocator>& ob,CharT* ptr)
 {
 	Traits::assign(*ptr, CharT());
-	details::string_hack::set_end_ptr(ob,ptr);
+	::fast_io::details::string_hack::set_end_ptr(ob,ptr);
 }
 }
 
