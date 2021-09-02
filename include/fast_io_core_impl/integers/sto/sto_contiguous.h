@@ -6,38 +6,6 @@ namespace fast_io
 namespace details
 {
 
-template<char8_t ch,std::integral char_type>
-constexpr char_type get_char_with_type() noexcept
-{
-	if constexpr(ch==u8'+')
-	{
-		if constexpr(std::same_as<std::remove_cvref_t<char_type>,char>)
-			return '+';
-		else if constexpr(std::same_as<std::remove_cvref_t<char_type>,wchar_t>)
-			return L'+';
-		else
-			return u8'+';
-	}
-	else if constexpr(ch==u8'-')
-	{
-		if constexpr(std::same_as<std::remove_cvref_t<char_type>,char>)
-			return '-';
-		else if constexpr(std::same_as<std::remove_cvref_t<char_type>,wchar_t>)
-			return L'-';
-		else
-			return u8'-';
-	}
-	else if constexpr(ch==u8'0')
-	{
-		if constexpr(std::same_as<std::remove_cvref_t<char_type>,char>)
-			return '0';
-		else if constexpr(std::same_as<std::remove_cvref_t<char_type>,wchar_t>)
-			return L'0';
-		else
-			return u8'0';
-	}
-}
-
 template<char8_t base,std::integral char_type>
 requires (2<=base&&base<=36)
 inline constexpr bool char_digit_to_literal(my_make_unsigned_t<char_type>& ch) noexcept
@@ -452,11 +420,11 @@ inline constexpr parse_result<Iter> scan_int_contiguous_none_space_part_define_i
 	{
 		if(first==last)
 			return {first,parse_code::invalid};
-		constexpr auto minus_sign{get_char_with_type<u8'-',char_type>()};
+		constexpr auto minus_sign{sign_ch<u8'-',char_type>};
 		if((sign=(minus_sign==*first)))
 			++first;
 	}
-	constexpr auto zero{get_char_with_type<u8'0',char_type>()};
+	constexpr auto zero{sign_ch<u8'0',char_type>};
 	if(first!=last&&*first==zero)
 	{
 		++first;
@@ -625,7 +593,7 @@ inline constexpr parse_result<Iter> scan_context_define_parse_impl(State& st,Ite
 				st.integer_phase=scan_integral_context_phase::sign;
 				return {first,parse_code::partial};
 			}
-			constexpr auto minus{get_char_with_type<u8'-',char_type>()};
+			constexpr auto minus{sign_ch<u8'-',char_type>};
 			if(*first==minus)
 			{
 				*st.buffer.data()=*first;
@@ -642,7 +610,7 @@ inline constexpr parse_result<Iter> scan_context_define_parse_impl(State& st,Ite
 			st.integer_phase=scan_integral_context_phase::zero;
 			return {first,parse_code::partial};
 		}
-		constexpr auto zero{get_char_with_type<u8'0',char_type>()};
+		constexpr auto zero{sign_ch<u8'0',char_type>};
 		if(*first==zero)
 		{
 			++first;
@@ -785,6 +753,13 @@ inline constexpr ch_get_t<T&> ch_get(T& reference) noexcept
 {
 	return {reference};
 }
+
+template<::fast_io::details::my_integral T>
+inline constexpr ch_get_t<T&> base_get(T& reference) noexcept
+{
+	return {reference};
+}
+
 
 }
 

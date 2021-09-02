@@ -232,7 +232,7 @@ struct nt_family_directory_generator
 template<nt_family family>
 inline nt_family_directory_iterator<family> begin(nt_family_directory_generator<family> const& pdg)
 {
-	return {win32::nt::details::set_nt_dirent_first<family>(pdg.entry.get())};
+	return {win32::nt::details::set_nt_dirent_first<family>(pdg.entry)};
 }
 
 template<nt_family family>

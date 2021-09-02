@@ -578,4 +578,11 @@ inline constexpr advance_with_big_table_result<T> advance_with_big_table(T const
 
 }
 
+template<std::integral T>
+requires (sizeof(T)<=4)
+inline constexpr std::size_t get_utf_code_units(char32_t ch,T* ptr) noexcept
+{
+	return details::codecvt::get_utf_code_units<encoding_scheme::utf>(ch,ptr);
+}
+
 }

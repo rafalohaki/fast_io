@@ -37,8 +37,8 @@ inline constexpr bool add_carry(bool carry,T a,T b,T& out) noexcept
 		return _addcarryx_u64(carry,a,b,reinterpret_cast<std::uint64_t*>(__builtin_addressof(out)));
 #else
 		return _addcarryx_u32(_addcarryx_u32(carry,
-		*reinterpret_cast<std::uint32_t>(__builtin_addressof(a1)),*reinterpret_cast<std::uint32_t>(__builtin_addressof(a1)),reinterpret_cast<std::uint32_t*>(__builtin_addressof(out))),
-		reinterpret_cast<std::uint32_t>(__builtin_addressof(a1))[1],reinterpret_cast<std::uint32_t>(__builtin_addressof(b1))[1],reinterpret_cast<std::uint32_t*>(__builtin_addressof(out))+1);
+		*reinterpret_cast<std::uint32_t*>(__builtin_addressof(a)),*reinterpret_cast<std::uint32_t*>(__builtin_addressof(b)),reinterpret_cast<std::uint32_t*>(__builtin_addressof(out))),
+		reinterpret_cast<std::uint32_t*>(__builtin_addressof(a))[1],reinterpret_cast<std::uint32_t*>(__builtin_addressof(b))[1],reinterpret_cast<std::uint32_t*>(__builtin_addressof(out))+1);
 #endif
 	}
 	else if constexpr(sizeof(T)==4)
@@ -129,8 +129,8 @@ inline constexpr bool sub_borrow(bool borrow,T a,T b,T& out) noexcept
 		return _subborrow_u64(borrow,a,b,reinterpret_cast<std::uint64_t*>(__builtin_addressof(out)));
 #else
 		return _subborrow_u32(_subborrow_u32(borrow,
-		*reinterpret_cast<std::uint32_t>(__builtin_addressof(a1)),*reinterpret_cast<std::uint32_t>(__builtin_addressof(a1)),reinterpret_cast<std::uint32_t*>(__builtin_addressof(out))),
-		reinterpret_cast<std::uint32_t>(__builtin_addressof(a1))[1],reinterpret_cast<std::uint32_t>(__builtin_addressof(b1))[1],reinterpret_cast<std::uint32_t*>(__builtin_addressof(out))+1);
+		*reinterpret_cast<std::uint32_t*>(__builtin_addressof(a)),*reinterpret_cast<std::uint32_t*>(__builtin_addressof(b)),reinterpret_cast<std::uint32_t*>(__builtin_addressof(out))),
+		reinterpret_cast<std::uint32_t*>(__builtin_addressof(a))[1],reinterpret_cast<std::uint32_t*>(__builtin_addressof(b))[1],reinterpret_cast<std::uint32_t*>(__builtin_addressof(out))+1);
 #endif
 	}
 	else if constexpr(sizeof(T)==4)

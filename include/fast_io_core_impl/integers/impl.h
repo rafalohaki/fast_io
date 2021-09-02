@@ -152,7 +152,7 @@ struct scalar_flags
 	bool alphabet{};
 	bool showbase{};
 	bool showpos{};
-	bool skipws{};
+	bool noskipws{};
 	bool uppercase_showbase{};
 	bool uppercase{};
 	bool uppercase_e{};
