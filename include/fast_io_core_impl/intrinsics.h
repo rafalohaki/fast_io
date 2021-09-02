@@ -277,7 +277,7 @@ std::uint64_t umul(std::uint64_t a,std::uint64_t b,std::uint64_t& high) noexcept
 		return umul_naive(a,b,high);
 	else
 #endif
-		return _umul128(a,b,&high);
+		return _umul128(a,b,__builtin_addressof(high));
 #else
 	return umul_naive(a,b,high);
 #endif
