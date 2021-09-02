@@ -1,5 +1,9 @@
 #pragma once
 
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC system_header
+#endif
+
 #if 0
 //__STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
 namespace fast_io::freestanding
@@ -44,7 +48,8 @@ inline constexpr output_iter copy_n(input_iter first,std::size_t count,output_it
 {
 	for (std::size_t i{}; i != count; ++i)
 	{
-		*result = *++first;
+		*result = *first;
+		++first;
 		++result;
 	}
 	return result;
