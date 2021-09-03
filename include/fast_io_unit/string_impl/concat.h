@@ -117,7 +117,7 @@ inline constexpr T basic_concat_decay_impl(Args ...args)
 		{
 			if constexpr((!line)&&sizeof...(args)==1&&(scatter_printable<ch_type,Args>&&...))
 			{
-				basic_io_scatter_t<ch_type> scatter{print_scatter_define_extract_one<ch_type>(scatter)};
+				basic_io_scatter_t<ch_type> scatter{print_scatter_define_extract_one<ch_type>(args...)};
 				return T(scatter.base,scatter.len);
 			}
 			else
