@@ -3,46 +3,18 @@
 #include"lc.h"
 #include"lc_print.h"
 
-#if !defined(_WIN32) || defined(__WINE__) || defined(__CYGWIN__)
-#include <dlfcn.h>
-#endif
-
 namespace fast_io
 {
 
-
-#if !defined(_WIN32) || defined(__WINE__) || defined(__CYGWIN__)
-
-class posix_dl_error:public std::exception
-{
-public:
-};
-
-inline basic_io_scatter_t<char> print_alias_define(io_alias_t,posix_dl_error const &)
-{
-	auto const c_str{dlerror()};
-	return {c_str,cstr_len(c_str)};
-}
-
-[[noreturn]] inline void throw_posix_dl_error()
-{
-#ifdef __cpp_exceptions
-	throw posix_dl_error();
-#else
-	fast_terminate();
-#endif
-}
-
-#endif
 namespace details
 {
 
 inline void load_lc_locale(void* dll_handle,lc_locale& loc)
 {
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__WINE__)
-	auto func(bit_cast<void (*)(lc_locale*) noexcept >(fast_io::win32::GetProcAddress(dll_handle,"export_locale_data")));
+	auto func(bit_cast<void (*)(lc_locale*) noexcept >(fast_io::win32::GetProcAddress(dll_handle,reinterpret_cast<char const*>(u8"export_locale_data"))));
 #else
-	auto func(bit_cast<void (*)(lc_locale*) noexcept >(dlsym(dll_handle,"export_locale_data")));
+	auto func(bit_cast<void (*)(lc_locale*) noexcept >(dlsym(dll_handle,reinterpret_cast<char const*>(u8"export_locale_data"))));
 #endif
 
 	if(func==nullptr)
@@ -148,7 +120,7 @@ inline constexpr auto cal_exec_encoding_dll_array() noexcept
 	{
 		if constexpr('A'!=u8'A')
 			return create_l10n_string_literal<char_type>(u8".UTF-EBCDIC.so");
-		else if constexpr(compile_time_compare(L"我",u8"我"))
+		else if constexpr(compile_time_compare("我",u8"我"))
 			return create_l10n_string_literal<char_type>(u8".UTF-8.so");
 		else
 			return create_l10n_string_literal<char_type>(u8".GB18030.so");
@@ -606,11 +578,14 @@ public:
 	void close() noexcept
 	{
 		if(dll_handle)[[likely]]
+		{
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__WINE__)
 			fast_io::win32::FreeLibrary(dll_handle);
 #else
-			dlclose(dll_handle);
+			noexcept_call(::dlclose,dll_handle);
 #endif
+			dll_handle=nullptr;
+		}
 	}
 	l10n& operator=(l10n const&)=delete;
 	l10n& operator=(l10n&& other) noexcept
