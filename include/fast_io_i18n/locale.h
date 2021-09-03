@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include"lc.h"
 #include"lc_print.h"
