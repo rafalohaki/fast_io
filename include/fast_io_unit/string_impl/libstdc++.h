@@ -8,7 +8,11 @@ https://github.com/gcc-mirror/gcc/blob/47fe96341d28ff9e68990038b1beb8a760ff26d0/
 */
 
 template<typename T>
-struct model
+struct
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+model
 {
 using value_type = typename T::value_type;
 using size_type = typename T::size_type;

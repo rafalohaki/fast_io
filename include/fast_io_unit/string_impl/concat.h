@@ -107,8 +107,10 @@ inline constexpr T basic_concat_decay_impl(Args ...args)
 		if constexpr((reserve_printable<ch_type,Args>&&...))
 		{
 			T str;
+#if !defined(_LIBCPP_VERSION)
 			constexpr std::size_t local_cap{string_hack::local_capacity<T>()};
 			if constexpr(local_cap<sz_with_line)
+#endif
 				str.reserve(sz_with_line);
 			set_basic_string_ptr(str,print_reserve_define_chain_impl<line>(str.data(),args...));
 			return str;

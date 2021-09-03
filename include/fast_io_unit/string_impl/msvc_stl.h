@@ -8,7 +8,11 @@ https://github.com/microsoft/STL/blob/master/stl/inc/xstring
 */
 
 template <class _Elem, class _Traits = std::char_traits<_Elem>, class _Alloc = std::allocator<_Elem>>
-struct model
+struct
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+model
 {
 	using _Alty        = std::_Rebind_alloc_t<_Alloc, _Elem>;
 	using _Alty_traits = std::allocator_traits<_Alty>;
@@ -47,7 +51,6 @@ inline constexpr void set_end_ptr(T& str,typename T::value_type* ptr) noexcept
 {
 	decltype(auto) scv{hack_scary_val(str)};
 	scv._Mysize=ptr-str.data();
-
 }
 
 template<typename T>
