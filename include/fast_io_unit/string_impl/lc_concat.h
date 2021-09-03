@@ -52,6 +52,38 @@ inline constexpr std::size_t lc_calculate_scatter_dynamic_reserve_size_with_scat
 	}
 }
 
+template<bool line,typename ptr_type,std::integral char_type,typename T,typename... Args>
+inline constexpr ptr_type lc_print_reserve_define_chain_scatter_impl(basic_lc_all<char_type> const* all,ptr_type p,T t,Args ...args)
+{
+	if constexpr((!(lc_dynamic_reserve_printable<char_type,T>||lc_scatter_type_printable<char_type,T>)&&((!(lc_dynamic_reserve_printable<char_type,Args>||lc_scatter_type_printable<char_type,Args>))&&...)))
+		return print_reserve_define_chain_scatter_impl<line>(p,t,args...);
+	else if constexpr(lc_dynamic_reserve_printable<char_type,T>)
+		p = print_reserve_define(all,p,t);
+	else if constexpr(lc_scatter_type_printable<char_type,T>)
+	{
+		basic_io_scatter_t<char_type> sc{print_scatter_define(all,t)};
+		p = non_overlapped_copy_n(sc.base,sc.len,p);
+	}
+	else if constexpr(dynamic_reserve_printable<char_type,T>||reserve_printable<char_type,T>)
+		p = print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,p,t);
+	else
+	{
+		basic_io_scatter_t<char_type> sc{print_scatter_define(print_scatter_type<char_type>,t)};
+		p = non_overlapped_copy_n(sc.base,sc.len,p);
+	}
+	if constexpr(sizeof...(Args)==0)
+	{
+		if constexpr(line)
+		{
+			*p=sign_ch<u8'\n',char_type>;
+			++p;
+		}
+		return p;
+	}
+	else
+		return lc_print_reserve_define_chain_scatter_impl<line>(all,p,args...);
+}
+
 template<std::integral ch_type,typename T>
 inline constexpr basic_io_scatter_t<ch_type> lc_print_scatter_define_extract_one(basic_lc_all<typename T::char_type> const* all,T t)
 {
