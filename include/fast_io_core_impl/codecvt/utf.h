@@ -230,7 +230,7 @@ template<std::integral char_type>
 inline constexpr encoding_scheme execution_charset_encoding_scheme() noexcept
 {
 	using char_type_no_cvref_t = std::remove_cvref_t<char_type>;
-	if constexpr(details::exec_charset_is_ebcdic<char_type_no_cvref_t>())
+	if constexpr(::fast_io::details::is_ebcdic<char_type_no_cvref_t>)
 		return encoding_scheme::utf_ebcdic;
 	else
 	{
@@ -246,7 +246,7 @@ inline constexpr encoding_scheme execution_charset_encoding_scheme() noexcept
 #endif
 			return encoding_scheme::utf;
 		}
-		else if constexpr(std::same_as<char_type_no_cvref_t,wchar_t>&&sizeof(wchar_t)==1)
+		else if constexpr(std::same_as<char_type_no_cvref_t,wchar_t>&&sizeof(wchar_t)==sizeof(char))
 		{
 #if U'A'==L'A'
 			constexpr wchar_t arr[]{L"我"};
