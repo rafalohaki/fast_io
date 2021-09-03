@@ -3,9 +3,37 @@
 #include"lc.h"
 #include"lc_print.h"
 
+#if !defined(_WIN32) || defined(__WINE__) || defined(__CYGWIN__)
+#include <dlfcn.h>
+#endif
+
 namespace fast_io
 {
 
+
+#if !defined(_WIN32) || defined(__WINE__) || defined(__CYGWIN__)
+
+class posix_dl_error:public std::exception
+{
+public:
+};
+
+inline basic_io_scatter_t<char> print_alias_define(io_alias_t,posix_dl_error const &)
+{
+	auto const c_str{dlerror()};
+	return {c_str,cstr_len(c_str)};
+}
+
+[[noreturn]] inline void throw_posix_dl_error()
+{
+#ifdef __cpp_exceptions
+	throw posix_dl_error();
+#else
+	fast_terminate();
+#endif
+}
+
+#endif
 namespace details
 {
 
