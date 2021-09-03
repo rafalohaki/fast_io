@@ -462,7 +462,7 @@ inline ::fast_io::freestanding::string_view get_lc_all_or_lang_non_empty() noexc
 inline constexpr ::fast_io::freestanding::u8string_view exec_encoding_u8strvw() noexcept
 {
 	if constexpr('A'!=u8'A')
-		return u8"IBM12712";
+		return u8"UTF-EBCDIC";
 	else if constexpr(compile_time_compare("我",u8"我"))
 		return u8"UTF-8";
 	else
