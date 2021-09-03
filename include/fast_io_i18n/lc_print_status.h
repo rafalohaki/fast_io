@@ -480,13 +480,13 @@ inline constexpr void lc_print_status_define_further_decay(basic_lc_all<typename
 template<output_stream output,typename... Args>
 inline constexpr void print_status_define(lc_imbuer<output> imb,Args... args)
 {
-	details::decay::lc_print_status_define_further_decay<false>(imb.all,imb.handle,args...);
+	::fast_io::details::decay::lc_print_status_define_further_decay<false>(imb.all,imb.handle,args...);
 }
 
 template<output_stream output,typename... Args>
 inline constexpr void println_status_define(lc_imbuer<output> imb,Args... args)
 {
-	details::decay::lc_print_status_define_further_decay<true>(imb.all,imb.handle,args...);
+	::fast_io::details::decay::lc_print_status_define_further_decay<true>(imb.all,imb.handle,args...);
 }
 
 }

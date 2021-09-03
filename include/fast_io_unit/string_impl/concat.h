@@ -108,7 +108,7 @@ inline constexpr T basic_concat_decay_impl(Args ...args)
 		{
 			T str;
 			constexpr std::size_t local_cap{string_hack::local_capacity<T>()};
-			if constexpr(sz<=local_cap)
+			if constexpr(local_cap<=sz)
 				str.reserve(sz_with_line);
 			set_basic_string_ptr(str,print_reserve_define_chain_impl<line>(str.data(),args...));
 			return str;
@@ -134,7 +134,7 @@ inline constexpr T basic_concat_decay_impl(Args ...args)
 	{
 		T str;
 		basic_ostring_ref<ch_type,typename T::traits_type,typename T::allocator_type> ref{__builtin_addressof(str)};
-		print_freestanding_decay_normal(str,args...);
+		print_freestanding_decay_normal(ref,args...);
 		return str;
 	}
 }

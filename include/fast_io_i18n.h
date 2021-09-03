@@ -17,4 +17,9 @@
 #include"fast_io_i18n/lc_numbers/impl.h"
 #endif
 
+#if defined(_GLIBCXX_STRING) || defined(_LIBCPP_STRING) || defined(_STRING_)
+#include"fast_io_unit/string.h"
+#include"fast_io_unit/string_impl/lc_concat.h"
+#endif
+
 #endif
