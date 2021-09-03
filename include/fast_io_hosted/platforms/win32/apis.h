@@ -898,9 +898,13 @@ asm("GetACP")
 ;
 #if !defined(__CYGWIN__) && !defined(__WINE__)
 #if defined(_MSC_VER) && !defined(__clang__)
+#if _DLL
 __declspec(dllimport)
+#endif
 #elif __has_cpp_attribute(gnu::dllimport)
+#if !defined(_MSC_VER) || defined(_DLL)
 [[gnu::dllimport]]
+#endif
 #endif
 extern errno_t __cdecl getenv_s(std::size_t *,char* buffer,std::size_t ,char const *) noexcept
 #if defined(__clang__) || defined(__GNUC__)
