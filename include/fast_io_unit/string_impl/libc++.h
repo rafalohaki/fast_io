@@ -1,9 +1,5 @@
 #pragma once
 
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC system_header
-#endif
-
 /*
 https://github.com/llvm-mirror/libcxx/blob/78d6a7767ed57b50122a161b91f59f19c9bd0d19/include/string#L703
 
@@ -13,7 +9,11 @@ namespace fast_io::details::string_hack
 {
 
 template<class _CharT, class _Traits, class _Allocator>
-struct model
+struct
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+model
 {
 
     typedef _Traits                                      traits_type;

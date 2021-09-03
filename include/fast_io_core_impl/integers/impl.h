@@ -1,10 +1,5 @@
 #pragma once
 
-
-#if defined(_LIBCPP_VERSION) && (defined(__GNUC__) || defined(__clang__))
-#pragma GCC system_header
-#endif
-
 namespace fast_io
 {
 
