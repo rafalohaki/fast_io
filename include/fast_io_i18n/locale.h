@@ -632,10 +632,10 @@ public:
 	}
 };
 
-template<buffer_output_stream output>
-inline constexpr void print_define(output bos,l10n const& loc)
+template<std::integral char_type>
+inline constexpr ::fast_io::parameter<basic_lc_all<char_type> const&> status_io_print_forward(io_alias_type_t<char_type>,l10n const& ln) noexcept
 {
-	print_freestanding(bos,loc.loc);
+	return status_io_print_forward(io_alias_type<char_type>,ln.loc);
 }
 
 }

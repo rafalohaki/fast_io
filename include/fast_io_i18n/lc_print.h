@@ -10,7 +10,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,basi
 	constexpr std::size_t measurement_size{print_reserve_size(io_reserve_type<char_type,std::uint_least64_t>)};
 	if constexpr(std::same_as<char_type,char>)
 	{
-		constexpr std::size_t total_size{details::string_literal_size("LC_MEASUREMENT\n"
+		constexpr std::size_t total_size{::fast_io::details::string_literal_size("LC_MEASUREMENT\n"
 		"measurement\t"
 		"\n"
 		"END LC_MEASUREMENT")+measurement_size};
@@ -18,7 +18,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,basi
 	}
 	else if constexpr(std::same_as<char_type,wchar_t>)
 	{
-		constexpr std::size_t total_size{details::string_literal_size(L"LC_MEASUREMENT\n"
+		constexpr std::size_t total_size{::fast_io::details::string_literal_size(L"LC_MEASUREMENT\n"
 		L"measurement\t"
 		L"\n"
 		L"END LC_MEASUREMENT")+measurement_size};
@@ -26,7 +26,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,basi
 	}
 	else
 	{
-		constexpr std::size_t total_size{details::string_literal_size(u8"LC_MEASUREMENT\n"
+		constexpr std::size_t total_size{::fast_io::details::string_literal_size(u8"LC_MEASUREMENT\n"
 		u8"measurement\t"
 		u8"\n"
 		u8"END LC_MEASUREMENT")+measurement_size};
@@ -92,7 +92,7 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<
 	Iter iter,
 	basic_lc_measurement<::fast_io::freestanding::iter_value_t<Iter>> measurement) noexcept
 {
-	return details::print_reserve_define_lc_measurement_impl(iter,measurement);
+	return ::fast_io::details::print_reserve_define_lc_measurement_impl(iter,measurement);
 }
 
 
@@ -254,7 +254,7 @@ inline constexpr void print_define(output bos,basic_lc_monetary<char_type> const
 			"mon_decimal_point\t\"",monetary.mon_decimal_point,"\"\n"
 			"mon_thousands_sep\t\"",monetary.mon_thousands_sep,"\"\n"
 			"mon_grouping\t");
-		details::print_grouping(bos,monetary.mon_grouping);
+		::fast_io::details::print_grouping(bos,monetary.mon_grouping);
 		print_freestanding(bos,"\n"
 			"positive_sign\t\"",monetary.positive_sign,"\"\n"
 			"negative_sign\t\"",monetary.negative_sign,"\"\n"
@@ -282,7 +282,7 @@ inline constexpr void print_define(output bos,basic_lc_monetary<char_type> const
 			L"mon_decimal_point\t\"",monetary.mon_decimal_point,L"\"\n"
 			L"mon_thousands_sep\t\"",monetary.mon_thousands_sep,L"\"\n"
 			L"mon_grouping\t");
-		details::print_grouping(bos,monetary.mon_grouping);
+		::fast_io::details::print_grouping(bos,monetary.mon_grouping);
 		print_freestanding(bos,L"\n"
 			L"positive_sign\t\"",monetary.positive_sign,L"\"\n"
 			L"negative_sign\t\"",monetary.negative_sign,L"\"\n"
@@ -310,7 +310,7 @@ inline constexpr void print_define(output bos,basic_lc_monetary<char_type> const
 			u"mon_decimal_point\t\"",monetary.mon_decimal_point,u"\"\n"
 			u"mon_thousands_sep\t\"",monetary.mon_thousands_sep,u"\"\n"
 			u"mon_grouping\t");
-		details::print_grouping(bos,monetary.mon_grouping);
+		::fast_io::details::print_grouping(bos,monetary.mon_grouping);
 		print_freestanding(bos,u"\n"
 			u"positive_sign\t\"",monetary.positive_sign,u"\"\n"
 			u"negative_sign\t\"",monetary.negative_sign,u"\"\n"
@@ -338,7 +338,7 @@ inline constexpr void print_define(output bos,basic_lc_monetary<char_type> const
 			U"mon_decimal_point\t\"",monetary.mon_decimal_point,U"\"\n"
 			U"mon_thousands_sep\t\"",monetary.mon_thousands_sep,U"\"\n"
 			U"mon_grouping\t");
-		details::print_grouping(bos,monetary.mon_grouping);
+		::fast_io::details::print_grouping(bos,monetary.mon_grouping);
 		print_freestanding(bos,U"\n"
 			U"positive_sign\t\"",monetary.positive_sign,U"\"\n"
 			U"negative_sign\t\"",monetary.negative_sign,U"\"\n"
@@ -366,7 +366,7 @@ inline constexpr void print_define(output bos,basic_lc_monetary<char_type> const
 			u8"mon_decimal_point\t\"",monetary.mon_decimal_point,u8"\"\n"
 			u8"mon_thousands_sep\t\"",monetary.mon_thousands_sep,u8"\"\n"
 			u8"mon_grouping\t");
-		details::print_grouping(bos,monetary.mon_grouping);
+		::fast_io::details::print_grouping(bos,monetary.mon_grouping);
 		print_freestanding(bos,u8"\n"
 			u8"positive_sign\t\"",monetary.positive_sign,u8"\"\n"
 			u8"negative_sign\t\"",monetary.negative_sign,u8"\"\n"
@@ -399,7 +399,7 @@ inline constexpr void print_define(output bos,basic_lc_numeric<char_type> const&
 			"decimal_point\t\"",numeric.decimal_point,"\"\n"
 			"thousands_sep\t\"",numeric.thousands_sep,"\"\n"
 			"grouping\t");
-		details::print_grouping(bos,numeric.grouping);
+		::fast_io::details::print_grouping(bos,numeric.grouping);
 		print_freestanding(bos,"\n"
 			"END LC_NUMERIC");
 	}
@@ -409,7 +409,7 @@ inline constexpr void print_define(output bos,basic_lc_numeric<char_type> const&
 			L"decimal_point\t\"",numeric.decimal_point,L"\"\n"
 			L"thousands_sep\t\"",numeric.thousands_sep,L"\"\n"
 			L"grouping\t");
-		details::print_grouping(bos,numeric.grouping);
+		::fast_io::details::print_grouping(bos,numeric.grouping);
 		print_freestanding(bos,L"\n"
 			L"END LC_NUMERIC");
 	}
@@ -419,7 +419,7 @@ inline constexpr void print_define(output bos,basic_lc_numeric<char_type> const&
 			u"decimal_point\t\"",numeric.decimal_point,u"\"\n"
 			u"thousands_sep\t\"",numeric.thousands_sep,u"\"\n"
 			u"grouping\t");
-		details::print_grouping(bos,numeric.grouping);
+		::fast_io::details::print_grouping(bos,numeric.grouping);
 		print_freestanding(bos,u"\n"
 			u"END LC_NUMERIC");
 	}
@@ -429,7 +429,7 @@ inline constexpr void print_define(output bos,basic_lc_numeric<char_type> const&
 			U"decimal_point\t\"",numeric.decimal_point,U"\"\n"
 			U"thousands_sep\t\"",numeric.thousands_sep,U"\"\n"
 			U"grouping\t");
-		details::print_grouping(bos,numeric.grouping);
+		::fast_io::details::print_grouping(bos,numeric.grouping);
 		print_freestanding(bos,U"\n"
 			U"END LC_NUMERIC");
 	}
@@ -439,7 +439,7 @@ inline constexpr void print_define(output bos,basic_lc_numeric<char_type> const&
 			u8"decimal_point\t\"",numeric.decimal_point,u8"\"\n"
 			u8"thousands_sep\t\"",numeric.thousands_sep,u8"\"\n"
 			u8"grouping\t");
-		details::print_grouping(bos,numeric.grouping);
+		::fast_io::details::print_grouping(bos,numeric.grouping);
 		print_freestanding(bos,u8"\n"
 			u8"END LC_NUMERIC");
 	}
@@ -498,10 +498,10 @@ inline constexpr void print_loc_days_impl(output bos,::fast_io::freestanding::ba
 	print_loc_days_real_impl(bos,category_name,day_strings.base,day_strings.len);
 }
 
-template<buffer_output_stream output,std::size_t n>
-inline constexpr void print_loc_days_impl(output bos,::fast_io::freestanding::basic_string_view<typename output::char_type> category_name,basic_io_scatter_t<typename output::char_type> const (&day_strings)[n])
+template<buffer_output_stream output,std::integral ch_type1,std::size_t n1,std::integral ch_type2,std::size_t n2>
+inline constexpr void print_loc_days_impl_const(output bos,ch_type1 const (&category_name)[n1],basic_io_scatter_t<ch_type2> const (&day_strings)[n2])
 {
-	print_loc_days_real_impl(bos,category_name,day_strings,n);
+	print_loc_days_real_impl(bos,category_name,day_strings,n2);
 }
 
 }
@@ -513,11 +513,11 @@ inline constexpr void print_define(output bos,basic_lc_time<char_type> const& ti
 	if constexpr(std::same_as<char,char_type>)
 	{
 		print_freestanding(bos,"LC_TIME\n");
-		details::print_loc_days_impl(bos,"abday",time.abday);
-		details::print_loc_days_impl(bos,"day",time.day);
-		details::print_loc_days_impl(bos,"abmon",time.abmon);
-		details::print_loc_days_impl(bos,"ab_alt_mon",time.ab_alt_mon);
-		details::print_loc_days_impl(bos,"mon",time.mon);
+		::fast_io::details::print_loc_days_impl_const(bos,"abday",time.abday);
+		::fast_io::details::print_loc_days_impl_const(bos,"day",time.day);
+		::fast_io::details::print_loc_days_impl_const(bos,"abmon",time.abmon);
+		::fast_io::details::print_loc_days_impl_const(bos,"ab_alt_mon",time.ab_alt_mon);
+		::fast_io::details::print_loc_days_impl_const(bos,"mon",time.mon);
 		print_freestanding(bos,
 		"d_t_fmt\t\"",time.d_t_fmt,"\"\n",
 		"d_fmt\t\"",time.d_fmt,"\"\n",
@@ -525,26 +525,26 @@ inline constexpr void print_define(output bos,basic_lc_time<char_type> const& ti
 		"t_fmt_ampm\t\"",time.t_fmt_ampm,"\"\n",
 		"date_fmt\t\"",time.date_fmt,"\"\n",
 		"am_pm\t\"",time.am_pm[0],"\";\"",time.am_pm[1],"\"\n");
-		details::print_loc_days_impl(bos,"era",time.era);
+		::fast_io::details::print_loc_days_impl(bos,"era",time.era);
 		print_freestanding(bos,"era_d_fmt\t\"",time.era_d_fmt,"\"\n",
 		"era_d_t_fmt\t\"",time.era_d_t_fmt,"\"\n",
 		"era_t_fmt\t\"",time.era_t_fmt,"\"\n");
-		details::print_loc_days_impl(bos,"alt_digits",time.alt_digits);
+		::fast_io::details::print_loc_days_impl(bos,"alt_digits",time.alt_digits);
 		print_freestanding(bos,"week\t",time.week.ndays,";",time.week.first_day,";",time.week.first_week,"\n",
 		"first_weekday\t",time.first_weekday,"\n"
 		"first_workday\t",time.first_workday,"\n"
 		"cal_direction\t",time.cal_direction,"\n");
-		details::print_loc_days_impl(bos,"timezone",time.timezone);
+		::fast_io::details::print_loc_days_impl(bos,"timezone",time.timezone);
 		print_freestanding(bos,"END LC_TIME");
 	}
 	else if constexpr(std::same_as<wchar_t,char_type>)
 	{
 		print_freestanding(bos,L"LC_TIME\n");
-		details::print_loc_days_impl(bos,L"abday",time.abday);
-		details::print_loc_days_impl(bos,L"day",time.day);
-		details::print_loc_days_impl(bos,L"abmon",time.abmon);
-		details::print_loc_days_impl(bos,L"ab_alt_mon",time.ab_alt_mon);
-		details::print_loc_days_impl(bos,L"mon",time.mon);
+		::fast_io::details::print_loc_days_impl_const(bos,L"abday",time.abday);
+		::fast_io::details::print_loc_days_impl_const(bos,L"day",time.day);
+		::fast_io::details::print_loc_days_impl_const(bos,L"abmon",time.abmon);
+		::fast_io::details::print_loc_days_impl_const(bos,L"ab_alt_mon",time.ab_alt_mon);
+		::fast_io::details::print_loc_days_impl_const(bos,L"mon",time.mon);
 		print_freestanding(bos,
 		L"d_t_fmt\t\"",time.d_t_fmt,L"\"\n",
 		L"d_fmt\t\"",time.d_fmt,L"\"\n",
@@ -552,26 +552,26 @@ inline constexpr void print_define(output bos,basic_lc_time<char_type> const& ti
 		L"t_fmt_ampm\t\"",time.t_fmt_ampm,L"\"\n",
 		L"date_fmt\t\"",time.date_fmt,L"\"\n",
 		L"am_pm\t\"",time.am_pm[0],L"\";\"",time.am_pm[1],L"\"\n");
-		details::print_loc_days_impl(bos,L"era",time.era);
+		::fast_io::details::print_loc_days_impl(bos,L"era",time.era);
 		print_freestanding(bos,L"era_d_fmt\t\"",time.era_d_fmt,L"\"\n",
 		L"era_d_t_fmt\t\"",time.era_d_t_fmt,L"\"\n",
 		L"era_t_fmt\t\"",time.era_t_fmt,L"\"\n");
-		details::print_loc_days_impl(bos,L"alt_digits",time.alt_digits);
+		::fast_io::details::print_loc_days_impl(bos,L"alt_digits",time.alt_digits);
 		print_freestanding(bos,L"week\t",time.week.ndays,L";",time.week.first_day,L";",time.week.first_week,L"\n",
 		L"first_weekday\t",time.first_weekday,L"\n"
 		L"first_workday\t",time.first_workday,L"\n"
 		L"cal_direction\t",time.cal_direction,L"\n");
-		details::print_loc_days_impl(bos,L"timezone",time.timezone);
+		::fast_io::details::print_loc_days_impl(bos,L"timezone",time.timezone);
 		print_freestanding(bos,L"END LC_TIME");
 	}
 	else if constexpr(std::same_as<char16_t,char_type>)
 	{
 		print_freestanding(bos,u"LC_TIME\n");
-		details::print_loc_days_impl(bos,u"abday",time.abday);
-		details::print_loc_days_impl(bos,u"day",time.day);
-		details::print_loc_days_impl(bos,u"abmon",time.abmon);
-		details::print_loc_days_impl(bos,u"ab_alt_mon",time.ab_alt_mon);
-		details::print_loc_days_impl(bos,u"mon",time.mon);
+		::fast_io::details::print_loc_days_impl_const(bos,u"abday",time.abday);
+		::fast_io::details::print_loc_days_impl_const(bos,u"day",time.day);
+		::fast_io::details::print_loc_days_impl_const(bos,u"abmon",time.abmon);
+		::fast_io::details::print_loc_days_impl_const(bos,u"ab_alt_mon",time.ab_alt_mon);
+		::fast_io::details::print_loc_days_impl_const(bos,u"mon",time.mon);
 		print_freestanding(bos,
 		u"d_t_fmt\t\"",time.d_t_fmt,u"\"\n",
 		u"d_fmt\t\"",time.d_fmt,u"\"\n",
@@ -579,26 +579,26 @@ inline constexpr void print_define(output bos,basic_lc_time<char_type> const& ti
 		u"t_fmt_ampm\t\"",time.t_fmt_ampm,u"\"\n",
 		u"date_fmt\t\"",time.date_fmt,u"\"\n",
 		u"am_pm\t\"",time.am_pm[0],u"\";\"",time.am_pm[1],u"\"\n");
-		details::print_loc_days_impl(bos,u"era",time.era);
+		::fast_io::details::print_loc_days_impl(bos,u"era",time.era);
 		print_freestanding(bos,u"era_d_fmt\t\"",time.era_d_fmt,u"\"\n",
 		u"era_d_t_fmt\t\"",time.era_d_t_fmt,u"\"\n",
 		u"era_t_fmt\t\"",time.era_t_fmt,u"\"\n");
-		details::print_loc_days_impl(bos,u"alt_digits",time.alt_digits);
+		::fast_io::details::print_loc_days_impl(bos,u"alt_digits",time.alt_digits);
 		print_freestanding(bos,u"week\t",time.week.ndays,u";",time.week.first_day,u";",time.week.first_week,u"\n",
 		u"first_weekday\t",time.first_weekday,u"\n"
 		u"first_workday\t",time.first_workday,u"\n"
 		u"cal_direction\t",time.cal_direction,u"\n");
-		details::print_loc_days_impl(bos,u"timezone",time.timezone);
+		::fast_io::details::print_loc_days_impl(bos,u"timezone",time.timezone);
 		print_freestanding(bos,u"END LC_TIME");
 	}
 	else if constexpr(std::same_as<char32_t,char_type>)
 	{
 		print_freestanding(bos,U"LC_TIME\n");
-		details::print_loc_days_impl(bos,U"abday",time.abday);
-		details::print_loc_days_impl(bos,U"day",time.day);
-		details::print_loc_days_impl(bos,U"abmon",time.abmon);
-		details::print_loc_days_impl(bos,U"ab_alt_mon",time.ab_alt_mon);
-		details::print_loc_days_impl(bos,U"mon",time.mon);
+		::fast_io::details::print_loc_days_impl_const(bos,U"abday",time.abday);
+		::fast_io::details::print_loc_days_impl_const(bos,U"day",time.day);
+		::fast_io::details::print_loc_days_impl_const(bos,U"abmon",time.abmon);
+		::fast_io::details::print_loc_days_impl_const(bos,U"ab_alt_mon",time.ab_alt_mon);
+		::fast_io::details::print_loc_days_impl_const(bos,U"mon",time.mon);
 		print_freestanding(bos,
 		U"d_t_fmt\t\"",time.d_t_fmt,U"\"\n",
 		U"d_fmt\t\"",time.d_fmt,U"\"\n",
@@ -606,26 +606,26 @@ inline constexpr void print_define(output bos,basic_lc_time<char_type> const& ti
 		U"t_fmt_ampm\t\"",time.t_fmt_ampm,U"\"\n",
 		U"date_fmt\t\"",time.date_fmt,U"\"\n",
 		U"am_pm\t\"",time.am_pm[0],U"\";\"",time.am_pm[1],U"\"\n");
-		details::print_loc_days_impl(bos,U"era",time.era);
+		::fast_io::details::print_loc_days_impl(bos,U"era",time.era);
 		print_freestanding(bos,U"era_d_fmt\t\"",time.era_d_fmt,U"\"\n",
 		U"era_d_t_fmt\t\"",time.era_d_t_fmt,U"\"\n",
 		U"era_t_fmt\t\"",time.era_t_fmt,U"\"\n");
-		details::print_loc_days_impl(bos,U"alt_digits",time.alt_digits);
+		::fast_io::details::print_loc_days_impl(bos,U"alt_digits",time.alt_digits);
 		print_freestanding(bos,U"week\t",time.week.ndays,U";",time.week.first_day,U";",time.week.first_week,U"\n",
 		U"first_weekday\t",time.first_weekday,U"\n"
 		U"first_workday\t",time.first_workday,U"\n"
 		U"cal_direction\t",time.cal_direction,U"\n");
-		details::print_loc_days_impl(bos,U"timezone",time.timezone);
+		::fast_io::details::print_loc_days_impl(bos,U"timezone",time.timezone);
 		print_freestanding(bos,U"END LC_TIME");
 	}
 	else if constexpr(std::same_as<char8_t,char_type>)
 	{
 		print_freestanding(bos,u8"LC_TIME\n");
-		details::print_loc_days_impl(bos,u8"abday",time.abday);
-		details::print_loc_days_impl(bos,u8"day",time.day);
-		details::print_loc_days_impl(bos,u8"abmon",time.abmon);
-		details::print_loc_days_impl(bos,u8"ab_alt_mon",time.ab_alt_mon);
-		details::print_loc_days_impl(bos,u8"mon",time.mon);
+		::fast_io::details::print_loc_days_impl_const(bos,u8"abday",time.abday);
+		::fast_io::details::print_loc_days_impl_const(bos,u8"day",time.day);
+		::fast_io::details::print_loc_days_impl_const(bos,u8"abmon",time.abmon);
+		::fast_io::details::print_loc_days_impl_const(bos,u8"ab_alt_mon",time.ab_alt_mon);
+		::fast_io::details::print_loc_days_impl_const(bos,u8"mon",time.mon);
 		print_freestanding(bos,
 		u8"d_t_fmt\t\"",time.d_t_fmt,u8"\"\n",
 		u8"d_fmt\t\"",time.d_fmt,u8"\"\n",
@@ -633,16 +633,16 @@ inline constexpr void print_define(output bos,basic_lc_time<char_type> const& ti
 		u8"t_fmt_ampm\t\"",time.t_fmt_ampm,u8"\"\n",
 		u8"date_fmt\t\"",time.date_fmt,u8"\"\n",
 		u8"am_pm\t\"",time.am_pm[0],u8"\";\"",time.am_pm[1],u8"\"\n");
-		details::print_loc_days_impl(bos,u8"era",time.era);
+		::fast_io::details::print_loc_days_impl(bos,u8"era",time.era);
 		print_freestanding(bos,u8"era_d_fmt\t\"",time.era_d_fmt,u8"\"\n",
 		u8"era_d_t_fmt\t\"",time.era_d_t_fmt,u8"\"\n",
 		u8"era_t_fmt\t\"",time.era_t_fmt,u8"\"\n");
-		details::print_loc_days_impl(bos,u8"alt_digits",time.alt_digits);
+		::fast_io::details::print_loc_days_impl(bos,u8"alt_digits",time.alt_digits);
 		print_freestanding(bos,u8"week\t",time.week.ndays,u8";",time.week.first_day,u8";",time.week.first_week,u8"\n",
 		u8"first_weekday\t",time.first_weekday,u8"\n"
 		u8"first_workday\t",time.first_workday,u8"\n"
 		u8"cal_direction\t",time.cal_direction,u8"\n");
-		details::print_loc_days_impl(bos,u8"timezone",time.timezone);
+		::fast_io::details::print_loc_days_impl(bos,u8"timezone",time.timezone);
 		print_freestanding(bos,u8"END LC_TIME");
 	}
 }
@@ -943,20 +943,10 @@ inline constexpr void print_define(output bos,basic_lc_all<char_type> const& all
 			all.measurement);
 }
 
-template<buffer_output_stream output>
-inline constexpr void print_define(output bos,lc_locale const& loc)
+template<std::integral char_type>
+inline constexpr ::fast_io::parameter<basic_lc_all<char_type> const&> status_io_print_forward(io_alias_type_t<char_type>,lc_locale const& ln) noexcept
 {
-	if constexpr(std::same_as<typename output::char_type,char>)
-		print_freestanding(bos,*loc.all);
-	else if constexpr(std::same_as<typename output::char_type,wchar_t>)
-		print_freestanding(bos,*loc.wall);
-	else if constexpr(std::same_as<typename output::char_type,char8_t>)
-		print_freestanding(bos,*loc.u8all);
-	else if constexpr(std::same_as<typename output::char_type,char16_t>)
-		print_freestanding(bos,*loc.u16all);
-	else if constexpr(std::same_as<typename output::char_type,char32_t>)
-		print_freestanding(bos,*loc.u32all);
+	return {*get_all<char_type>(ln)};
 }
-
 
 }

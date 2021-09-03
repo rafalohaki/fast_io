@@ -3,37 +3,6 @@
 namespace fast_io
 {
 
-#if 0
-template<std::integral char_type,typename T>
-struct lc_reserve_type_t
-{
-explicit constexpr lc_reserve_type_t() noexcept = default;
-};
-template<std::integral char_type,typename T>
-inline constexpr lc_reserve_type_t<char_type,T> lc_reserve_type{};
-
-template<typename char_type,typename T>
-concept lc_dynamic_reserve_printable = std::integral<char_type>&&
-	requires(T t,basic_lc_all<char_type> const* all,char_type* ptr)
-{
-	{print_reserve_size(lc_reserve_type<char_type,std::remove_cvref_t<T>>,all,t)}->std::convertible_to<std::size_t>;
-	{print_reserve_define(lc_reserve_type<char_type,std::remove_cvref_t<T>>,all,ptr,t)}->std::convertible_to<char_type*>;
-};
-
-template<std::integral char_type,typename value_type,typename Iter>
-requires lc_dynamic_reserve_printable<char_type,std::remove_cvref_t<value_type>>
-inline constexpr auto print_reserve_size(lc_reserve_type_t<char_type,parameter<value_type>>,basic_lc_all<char_type> const* __restrict all,parameter<value_type> para)
-{
-	return print_reserve_size(lc_reserve_type<char_type,std::remove_cvref_t<value_type>>,all,para.reference);
-}
-
-template<std::integral char_type,typename value_type,typename Iter>
-requires lc_dynamic_reserve_printable<char_type,std::remove_cvref_t<value_type>>
-inline constexpr auto print_reserve_define(lc_reserve_type_t<char_type,parameter<value_type>>,basic_lc_all<char_type> const* __restrict all,Iter begin,parameter<value_type> para)
-{
-	return print_reserve_define(lc_reserve_type<char_type,std::remove_cvref_t<value_type>>,all,begin,para.reference);
-}
-#else
 template<typename char_type,typename T>
 concept lc_dynamic_reserve_printable = std::integral<char_type>&&
 	requires(T t,basic_lc_all<char_type> const* all,char_type* ptr,std::size_t size)
@@ -66,7 +35,7 @@ concept lc_scatter_type_printable=lc_scatter_printable<char_type,T>&&requires(ba
 {
 	{print_scatter_define(all,t)}->std::convertible_to<basic_io_scatter_t<char_type>>;
 };
-#endif
+
 template<typename output,typename T>
 concept lc_printable = output_stream<output>&&requires(basic_lc_all<typename output::char_type> const* all,output out,T t)
 {
@@ -82,11 +51,7 @@ inline constexpr std::size_t calculate_lc_scatter_dynamic_reserve_size(
 {
 	if constexpr(lc_dynamic_reserve_printable<char_type,T>)
 	{
-#if 0
-		std::size_t res{print_reserve_size(lc_reserve_type<char_type,T>,all,t)};
-#else
 		std::size_t res{print_reserve_size(all,t)};
-#endif
 		if constexpr(sizeof...(Args)==0)
 			return res;
 		else
@@ -123,11 +88,7 @@ inline constexpr void lc_scatter_print_with_dynamic_reserve_recursive(
 	}
 	else if constexpr(lc_dynamic_reserve_printable<char_type,T>)
 	{
-#if 0
-		auto end_ptr = print_reserve_define(lc_reserve_type<char_type,T>,all,dynamic_buffer_ptr,t);
-#else
 		auto end_ptr = print_reserve_define(all,dynamic_buffer_ptr,t);
-#endif
 		*arr={dynamic_buffer_ptr,(end_ptr-dynamic_buffer_ptr)*sizeof(*dynamic_buffer_ptr)};
 		if constexpr(sizeof...(Args)!=0)
 			dynamic_buffer_ptr = end_ptr;
@@ -160,16 +121,9 @@ inline constexpr void lc_scatter_print_with_dynamic_reserve_recursive(
 template<bool line,output_stream output,typename T>
 inline constexpr void lc_print_control_reserve_bad_path(basic_lc_all<typename output::char_type> const* __restrict lc,output out,T t,std::size_t size)
 {
-#if 0
-	using value_type = std::remove_cvref_t<T>;
-#endif
 	using char_type = typename output::char_type;
 	local_operator_new_array_ptr<char_type> ptr(size);
-#if 0
-	auto it{print_reserve_define(lc_reserve_type<char_type,value_type>,lc,ptr.ptr,t)};
-#else
 	auto it{print_reserve_define(lc,ptr.ptr,t)};
-#endif
 	if constexpr(line)
 	{
 		if constexpr(std::same_as<char,char_type>)
@@ -241,11 +195,7 @@ inline constexpr void lc_print_control(basic_lc_all<typename output::char_type> 
 	}
 	else if constexpr(lc_dynamic_reserve_printable<char_type,value_type>)
 	{
-#if 0
-		std::size_t sz{print_reserve_size(lc_reserve_type<char_type,value_type>,lc,t)};
-#else
 		std::size_t sz{print_reserve_size(lc,t)};
-#endif
 		if constexpr(line)
 			++sz;
 		if constexpr(buffer_output_stream<output>)
@@ -256,11 +206,7 @@ inline constexpr void lc_print_control(basic_lc_all<typename output::char_type> 
 			if(static_cast<std::ptrdiff_t>(sz)<diff)[[likely]]
 			{
 				//To check whether this affects performance.
-#if 0
-				auto it{print_reserve_define(lc_reserve_type<char_type,value_type>,lc,bcurr,t)};
-#else
 				auto it{print_reserve_define(lc,bcurr,t)};
-#endif
 				if constexpr(line)
 				{
 					if constexpr(std::same_as<char,char_type>)
