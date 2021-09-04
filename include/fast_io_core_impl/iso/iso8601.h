@@ -3,21 +3,6 @@
 namespace fast_io
 {
 
-namespace details
-{
-template<std::int_least64_t diff>
-requires (diff!=0)
-inline constexpr std::int_least64_t tsp_add_overflow(std::int_least64_t seconds) noexcept
-{
-//Signed Integers are Two's Complement
-	std::uint_least64_t res;
-	if(::fast_io::details::intrinsics::add_carry(false,static_cast<std::uint_least64_t>(seconds),static_cast<std::uint_least64_t>(diff),res))
-		::fast_io::fast_terminate();
-	return static_cast<std::int_least64_t>(res);
-}
-
-}
-
 template<std::int_least64_t off_to_epoch>
 struct basic_timestamp
 {
@@ -28,16 +13,7 @@ struct basic_timestamp
 	explicit constexpr operator basic_timestamp<new_off_to_epoch>() noexcept requires(off_to_epoch!=new_off_to_epoch)
 	{
 		constexpr std::int_least64_t diff{off_to_epoch-new_off_to_epoch};
-		std::int_least64_t new_seconds;
-#if !defined(__has_builtin)
-		new_seconds=::fast_io::details::tsp_add_overflow<diff>(seconds);
-#elif __has_builtin(__builtin_add_overflow)
-		if(__builtin_add_overflow(seconds,diff,__builtin_addressof(new_seconds)))[[unlikely]]
-			::fast_io::fast_terminate();
-#else
-		new_seconds=::fast_io::details::tsp_add_overflow<diff>(seconds);
-#endif
-		return {new_seconds,subseconds};
+		return {seconds+diff,subseconds};
 	}
 };
 
