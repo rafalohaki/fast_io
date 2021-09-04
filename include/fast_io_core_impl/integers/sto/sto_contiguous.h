@@ -532,7 +532,7 @@ overflow
 namespace details
 {
 template<char8_t base,std::integral char_type,details::my_integral T>
-inline constexpr auto scan_context_type_impl_int(io_reserve_type_t<char_type,parameter<T&>>) noexcept
+inline constexpr auto scan_context_type_impl_int() noexcept
 {
 	using unsigned_type = details::my_make_unsigned_t<std::remove_cvref_t<T>>;
 	constexpr std::size_t max_size{details::cal_max_int_size<unsigned_type,base>()+2};
@@ -551,11 +551,6 @@ inline constexpr auto scan_context_type_impl_int(io_reserve_type_t<char_type,par
 }
 }
 
-template<std::integral char_type,details::my_integral T>
-inline constexpr auto scan_context_type(io_reserve_type_t<char_type,parameter<T&>>) noexcept
-{
-	return details::scan_context_type_impl_int<10>(io_reserve_type<char_type,parameter<T&>>);
-}
 
 namespace details
 {
@@ -711,32 +706,6 @@ inline constexpr parse_code scan_context_eof_define_parse_impl(State& st,T& t) n
 
 }
 
-template<::fast_io::freestanding::input_iterator Iter,typename State,details::my_integral T>
-inline constexpr parse_result<Iter> scan_context_define2(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,parameter<T&>>,State& state,Iter begin,Iter end,parameter<T&> t) noexcept
-{
-	return details::scan_context_define_parse_impl<10>(state,begin,end,t.reference);
-}
-
-template<std::integral char_type,typename State,details::my_integral T>
-inline constexpr parse_code scan_context_eof_define(io_reserve_type_t<char_type,parameter<T&>>,State& state,parameter<T&> t) noexcept
-{
-	return details::scan_context_eof_define_parse_impl<10>(state,t.reference);
-}
-
-
-namespace details
-{
-template<::fast_io::freestanding::input_iterator Iter>
-inline constexpr parse_result<Iter> ch_get_context_impl(Iter first,Iter last,::fast_io::freestanding::iter_value_t<Iter>& t) noexcept
-{
-	for(;first!=last&&::fast_io::char_category::is_c_space(*first);++first);
-	if(first==last)[[unlikely]]
-		return {first,parse_code::partial};
-	t=*first;
-	++first;
-	return {first,parse_code::ok};
-}
-}
 
 namespace manipulators
 {
@@ -754,13 +723,62 @@ inline constexpr ch_get_t<T&> ch_get(T& reference) noexcept
 	return {reference};
 }
 
-template<::fast_io::details::my_integral T>
-inline constexpr ch_get_t<T&> base_get(T& reference) noexcept
+template<std::size_t bs,bool noskipws=false,::fast_io::details::my_integral scalar_type>
+inline constexpr scalar_manip_t<::fast_io::details::base_scan_mani_flags_cache<bs,noskipws>,scalar_type&> base_get(scalar_type& t) noexcept
 {
-	return {reference};
+	return {t};
 }
 
+template<bool noskipws=false,::fast_io::details::my_integral scalar_type>
+inline constexpr scalar_manip_t<::fast_io::details::base_scan_mani_flags_cache<2,noskipws>,scalar_type&> bin_get(scalar_type& t) noexcept
+{
+	return {t};
+}
 
+template<bool noskipws=false,::fast_io::details::my_integral scalar_type>
+inline constexpr scalar_manip_t<::fast_io::details::base_scan_mani_flags_cache<16,noskipws>,scalar_type&> hex_get(scalar_type& t) noexcept
+{
+	return {t};
+}
+
+}
+
+template<details::my_integral T>
+inline constexpr ::fast_io::manipulators::scalar_manip_t<::fast_io::details::base_scan_mani_flags_cache<10,false>,T&> scan_alias_define(io_alias_t,T& t) noexcept
+{
+	return {t};
+}
+
+template<std::integral char_type,manipulators::scalar_flags flags,details::my_integral T>
+inline constexpr auto scan_context_type(io_reserve_type_t<char_type,::fast_io::manipulators::scalar_manip_t<flags,T&>>) noexcept
+{
+	return details::scan_context_type_impl_int<flags.base,char_type,T>();
+}
+
+template<::fast_io::freestanding::input_iterator Iter,manipulators::scalar_flags flags,typename State,details::my_integral T>
+inline constexpr parse_result<Iter> scan_context_define2(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,::fast_io::manipulators::scalar_manip_t<flags,T&>>,State& state,Iter begin,Iter end,::fast_io::manipulators::scalar_manip_t<flags,T&> t) noexcept
+{
+	return details::scan_context_define_parse_impl<flags.base>(state,begin,end,t.reference);
+}
+
+template<std::integral char_type,manipulators::scalar_flags flags,typename State,details::my_integral T>
+inline constexpr parse_code scan_context_eof_define(io_reserve_type_t<char_type,::fast_io::manipulators::scalar_manip_t<flags,T&>>,State& state,::fast_io::manipulators::scalar_manip_t<flags,T&> t) noexcept
+{
+	return details::scan_context_eof_define_parse_impl<flags.base>(state,t.reference);
+}
+
+namespace details
+{
+template<::fast_io::freestanding::input_iterator Iter>
+inline constexpr parse_result<Iter> ch_get_context_impl(Iter first,Iter last,::fast_io::freestanding::iter_value_t<Iter>& t) noexcept
+{
+	for(;first!=last&&::fast_io::char_category::is_c_space(*first);++first);
+	if(first==last)[[unlikely]]
+		return {first,parse_code::partial};
+	t=*first;
+	++first;
+	return {first,parse_code::ok};
+}
 }
 
 template<std::integral char_type>

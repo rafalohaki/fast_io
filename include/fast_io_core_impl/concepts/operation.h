@@ -147,7 +147,7 @@ concept general_printable=reserve_printable<typename output::char_type,T>||print
 template<typename T>
 concept alias_scanable=requires(T&& t)
 {
-	scan_alias_define(io_alias,::fast_io::freestanding::forward<T>(t));
+	scan_alias_define(io_alias,t);
 };
 
 template<typename T>
