@@ -532,56 +532,26 @@ inline constexpr Iter print_reserve_iso8601_timestamp_impl(Iter iter,iso8601_tim
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	iter=chrono_year_impl(iter,timestamp.year);
-	if constexpr(std::same_as<char_type,char>)
-		*iter='-';
-	else if constexpr(std::same_as<char_type,wchar_t>)
-		*iter=L'-';
-	else
-		*iter=u8'-';
+	*iter=char_literal_v<u8'-',char_type>;
 	++iter;
 	iter=chrono_two_digits_impl<true>(iter,timestamp.month);
-	if constexpr(std::same_as<char_type,char>)
-		*iter='-';
-	else if constexpr(std::same_as<char_type,wchar_t>)
-		*iter=L'-';
-	else
-		*iter=u8'-';
+	*iter=char_literal_v<u8'-',char_type>;
 	++iter;
 	iter=chrono_two_digits_impl<true>(iter,timestamp.day);
-	if constexpr(std::same_as<char_type,char>)
-		*iter='T';
-	else if constexpr(std::same_as<char_type,wchar_t>)
-		*iter=L'T';
-	else
-		*iter=u8'T';
+	*iter=char_literal_v<u8'T',char_type>;
 	++iter;
 	iter=chrono_two_digits_impl<true>(iter,timestamp.hours);
-	if constexpr(std::same_as<char_type,char>)
-		*iter=':';
-	else if constexpr(std::same_as<char_type,wchar_t>)
-		*iter=L':';
-	else
-		*iter=u8':';
+	*iter=char_literal_v<u8':',char_type>;
 	++iter;
 	iter=chrono_two_digits_impl<true>(iter,timestamp.minutes);
-	if constexpr(std::same_as<char_type,char>)
-		*iter=':';
-	else if constexpr(std::same_as<char_type,wchar_t>)
-		*iter=L':';
-	else
-		*iter=u8':';
+	*iter=char_literal_v<u8':',char_type>;
 	++iter;
 	iter=chrono_two_digits_impl<true>(iter,timestamp.seconds);
 	if(timestamp.subseconds)
 		iter=output_iso8601_subseconds(iter,timestamp.subseconds);
 	if(timestamp.timezone==0)
 	{
-		if constexpr(std::same_as<char_type,char>)
-			*iter='Z';
-		else if constexpr(std::same_as<char_type,wchar_t>)
-			*iter=L'Z';
-		else
-			*iter=u8'Z';
+		*iter=char_literal_v<u8'Z',char_type>;
 		++iter;
 	}
 	else
@@ -589,22 +559,12 @@ inline constexpr Iter print_reserve_iso8601_timestamp_impl(Iter iter,iso8601_tim
 		std::uint_least64_t unsigned_tz{static_cast<std::uint_least64_t>(timestamp.timezone)};
 		if(timestamp.timezone<0)
 		{
-			if constexpr(std::same_as<char_type,char>)
-				*iter='-';
-			else if constexpr(std::same_as<char_type,wchar_t>)
-				*iter=L'-';
-			else
-				*iter=u8'-';
+			*iter=char_literal_v<u8'-',char_type>;
 			unsigned_tz=0UL-unsigned_tz;
 		}
 		else
 		{
-			if constexpr(std::same_as<char_type,char>)
-				*iter='+';
-			else if constexpr(std::same_as<char_type,wchar_t>)
-				*iter=L'+';
-			else
-				*iter=u8'+';
+			*iter=char_literal_v<u8'+',char_type>;
 		}
 		++iter;
 		std::uint_least8_t tz_ss{static_cast<std::uint_least8_t>(unsigned_tz%60)};
@@ -612,22 +572,12 @@ inline constexpr Iter print_reserve_iso8601_timestamp_impl(Iter iter,iso8601_tim
 		std::uint_least8_t tz_mm{static_cast<std::uint_least8_t>(unsigned_tz%60)};
 		unsigned_tz/=60;
 		iter=chrono_two_digits_impl(iter,unsigned_tz);
-		if constexpr(std::same_as<char_type,char>)
-			*iter=':';
-		else if constexpr(std::same_as<char_type,wchar_t>)
-			*iter=L':';
-		else
-			*iter=u8':';
+		*iter=char_literal_v<u8':',char_type>;
 		++iter;
 		iter=chrono_two_digits_impl<true>(iter,tz_mm);
 		if(tz_ss)
 		{
-			if constexpr(std::same_as<char_type,char>)
-				*iter=':';
-			else if constexpr(std::same_as<char_type,wchar_t>)
-				*iter=L':';
-			else
-				*iter=u8':';
+			*iter=char_literal_v<u8':',char_type>;
 			++iter;
 			iter=chrono_two_digits_impl<true>(iter,tz_ss);
 		}

@@ -21,24 +21,7 @@ template<bool comma=false,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter output_iso8601_subseconds(Iter iter,std::uint_least64_t subseconds) noexcept
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
-	if constexpr(comma)
-	{
-	if constexpr(std::same_as<char_type,char>)
-		*iter=',';
-	else if constexpr(std::same_as<char_type,wchar_t>)
-		*iter=L',';
-	else
-		*iter=u8',';
-	}
-	else
-	{
-	if constexpr(std::same_as<char_type,char>)
-		*iter='.';
-	else if constexpr(std::same_as<char_type,wchar_t>)
-		*iter=L'.';
-	else
-		*iter=u8'.';
-	}
+	*iter=char_literal_v<(comma?u8',':u8'.'),char_type>;
 	++iter;
 	return output_iso8601_subseconds_main(iter,subseconds);
 }
