@@ -531,7 +531,7 @@ inline constexpr std::uint_least8_t weekday_impl(std::int_least64_t year,std::ui
 	return static_cast<std::uint_least8_t>(static_cast<std::uint_least64_t>(
 		static_cast<std::uint_least64_t>(year) + static_cast<std::uint_least64_t>(year/4) -
 		static_cast<std::uint_least64_t>(year/100) + static_cast<std::uint_least64_t>(year/400) +
-		c_weekday_tb[month_minus1]+day+6u)%7u);
+		c_weekday_tb[month_minus1]+day+6u)%7u+1u);
 }
 
 }
@@ -545,7 +545,7 @@ inline constexpr std::uint_least8_t weekday(iso8601_timestamp const& timestamp) 
 		year=static_cast<std::int_least64_t>(static_cast<std::uint_least64_t>(year)-1u);
 	else if(11u<month)
 		month%=12u;
-	return ::fast_io::details::weekday_impl(year,month,timestamp.day)+1;
+	return ::fast_io::details::weekday_impl(year,month,timestamp.day);
 }
 
 namespace details
