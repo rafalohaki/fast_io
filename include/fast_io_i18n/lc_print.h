@@ -914,31 +914,31 @@ inline constexpr void print_define(output bos,basic_lc_keyboard<char_type> keybo
 	{
 		print_freestanding(bos,"LC_KEYBOARD\nkeyboards\t");
 		::fast_io::details::print_loc_keyboards_impl(bos,keyboard.keyboards.base,keyboard.keyboards.len);
-		print_freestanding(bos,"END LC_KEYBOARD");
+		print_freestanding(bos,"\nEND LC_KEYBOARD");
 	}
 	else if constexpr(std::same_as<char_type,wchar_t>)
 	{
 		print_freestanding(bos,L"LC_KEYBOARD\nkeyboards\t");
 		::fast_io::details::print_loc_keyboards_impl(bos,keyboard.keyboards.base,keyboard.keyboards.len);
-		print_freestanding(bos,L"END LC_KEYBOARD");
+		print_freestanding(bos,L"\nEND LC_KEYBOARD");
 	}
 	else if constexpr(std::same_as<char_type,char16_t>)
 	{
 		print_freestanding(bos,u"LC_KEYBOARD\nkeyboards\t");
 		::fast_io::details::print_loc_keyboards_impl(bos,keyboard.keyboards.base,keyboard.keyboards.len);
-		print_freestanding(bos,u"END LC_KEYBOARD");
+		print_freestanding(bos,u"\nEND LC_KEYBOARD");
 	}
 	else if constexpr(std::same_as<char_type,char32_t>)
 	{
 		print_freestanding(bos,U"LC_KEYBOARD\nkeyboards\t");
 		::fast_io::details::print_loc_keyboards_impl(bos,keyboard.keyboards.base,keyboard.keyboards.len);
-		print_freestanding(bos,U"END LC_KEYBOARD");
+		print_freestanding(bos,U"\nEND LC_KEYBOARD");
 	}
 	else if constexpr(std::same_as<char_type,char8_t>)
 	{
 		print_freestanding(bos,u8"LC_KEYBOARD\nkeyboards\t");
 		::fast_io::details::print_loc_keyboards_impl(bos,keyboard.keyboards.base,keyboard.keyboards.len);
-		print_freestanding(bos,u8"END LC_KEYBOARD");
+		print_freestanding(bos,u8"\nEND LC_KEYBOARD");
 	}
 }
 
