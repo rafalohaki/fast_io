@@ -3,6 +3,21 @@
 namespace fast_io
 {
 
+namespace details
+{
+template<std::int_least64_t diff>
+requires (diff!=0)
+inline constexpr std::int_least64_t tsp_add_overflow(std::int_least64_t seconds) noexcept
+{
+//Signed Integers are Two's Complement
+	std::uint_least64_t res;
+	if(::fast_io::details::intrinsics::add_carry(false,static_cast<std::uint_least64_t>(seconds),static_cast<std::uint_least64_t>(diff),res))
+		::fast_io::fast_terminate();
+	return static_cast<std::int_least64_t>(res);
+}
+
+}
+
 template<std::int_least64_t off_to_epoch>
 struct basic_timestamp
 {
@@ -13,7 +28,16 @@ struct basic_timestamp
 	explicit constexpr operator basic_timestamp<new_off_to_epoch>() noexcept requires(off_to_epoch!=new_off_to_epoch)
 	{
 		constexpr std::int_least64_t diff{off_to_epoch-new_off_to_epoch};
-		return {seconds+diff,subseconds};
+		std::int_least64_t new_seconds;
+#if !defined(__has_builtin)
+		new_seconds=::fast_io::details::tsp_add_overflow<diff>(seconds);
+#elif __has_builtin(__builtin_add_overflow)
+		if(__builtin_add_overflow(seconds,diff,__builtin_addressof(new_seconds)))[[unlikely]]
+			::fast_io::fast_terminate();
+#else
+		new_seconds=::fast_io::details::tsp_add_overflow<diff>(seconds);
+#endif
+		return {new_seconds,subseconds};
 	}
 };
 
@@ -480,9 +504,55 @@ inline constexpr basic_timestamp<off_to_epoch> to_timestamp(iso8601_timestamp co
 
 namespace details
 {
+inline constexpr std::uint_least8_t c_weekday_tb[]{0,3,2,5,0,3,5,1,4,6,2,4};
+
+inline constexpr std::uint_least8_t c_weekday_impl(std::int_least64_t year,std::uint_least8_t month_minus1,std::uint_least8_t day) noexcept
+{
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_unreachable)
+	if(12u<=month_minus1)
+		__builtin_unreachable();
+#endif
+#endif
+	return static_cast<std::uint_least8_t>(static_cast<std::uint_least64_t>(
+		static_cast<std::uint_least64_t>(year) + static_cast<std::uint_least64_t>(year/4) -
+		static_cast<std::uint_least64_t>(year/100) + static_cast<std::uint_least64_t>(year/400) +
+		c_weekday_tb[month_minus1]+day)%7u);
+}
+
+inline constexpr std::uint_least8_t weekday_impl(std::int_least64_t year,std::uint_least8_t month_minus1,std::uint_least8_t day) noexcept
+{
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_unreachable)
+	if(12u<=month_minus1)
+		__builtin_unreachable();
+#endif
+#endif
+	return static_cast<std::uint_least8_t>(static_cast<std::uint_least64_t>(
+		static_cast<std::uint_least64_t>(year) + static_cast<std::uint_least64_t>(year/4) -
+		static_cast<std::uint_least64_t>(year/100) + static_cast<std::uint_least64_t>(year/400) +
+		c_weekday_tb[month_minus1]+day+6u)%7u);
+}
+
+}
+
+inline constexpr std::uint_least8_t weekday(iso8601_timestamp const& timestamp) noexcept
+{
+	std::int_least64_t year{timestamp.year};
+	std::uint_least8_t month{timestamp.month};
+	--month;
+	if(month<2u)
+		year=static_cast<std::int_least64_t>(static_cast<std::uint_least64_t>(year)-1u);
+	else if(11u<month)
+		month%=12u;
+	return ::fast_io::details::weekday_impl(year,month,timestamp.day)+1;
+}
+
+namespace details
+{
 
 template<::fast_io::freestanding::random_access_iterator Iter>
-inline constexpr Iter print_reserve_iso8601_timestamp_impl(Iter iter,iso8601_timestamp timestamp) noexcept
+inline constexpr Iter print_reserve_iso8601_timestamp_impl(Iter iter,iso8601_timestamp const& timestamp) noexcept
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	iter=chrono_year_impl(iter,timestamp.year);
@@ -617,179 +687,4 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<char_type,iso8601_t
 	return details::print_reserve_iso8601_timestamp_impl(iter,timestamp);
 }
 
-namespace details
-{
-
-template<bool comma,::fast_io::freestanding::random_access_iterator Iter>
-inline constexpr Iter unix_timestamp_fixed_print_full_impl(Iter iter,unix_timestamp ts)
-{
-	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
-	iter=print_reserve_define(io_reserve_type<char_type,std::int_least64_t>,iter,ts.seconds);
-	constexpr std::size_t digits(std::numeric_limits<std::uint_least64_t>::digits10);
-	if constexpr(comma)
-	{
-	if constexpr(std::same_as<char_type,char>)
-		*iter=',';
-	else if constexpr(std::same_as<char_type,wchar_t>)
-		*iter=L',';
-	else
-		*iter=u8',';
-	}
-	else
-	{
-	if constexpr(std::same_as<char_type,char>)
-		*iter='.';
-	else if constexpr(std::same_as<char_type,wchar_t>)
-		*iter=L'.';
-	else
-		*iter=u8'.';
-	}
-	++iter;
-	auto res{iter+digits};
-	with_length_output_unsigned(iter,ts.subseconds,digits);
-	return res;
-}
-
-template<bool comma,::fast_io::freestanding::random_access_iterator Iter>
-inline constexpr Iter unix_timestamp_fixed_print_easy_case(Iter iter,unix_timestamp ts,std::size_t precision)
-{
-	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
-	iter=unix_timestamp_fixed_print_full_impl<comma>(iter,ts);
-	constexpr std::size_t digits{static_cast<std::size_t>(std::numeric_limits<std::uint_least64_t>::digits10)-1};
-	std::size_t const to_fill{precision-digits};
-	if constexpr(std::same_as<char_type,char>)
-		return my_fill_n(iter,to_fill,'0');
-	else if constexpr(std::same_as<char_type,wchar_t>)
-		return my_fill_n(iter,to_fill,L'0');
-	else if constexpr(std::same_as<char_type,char16_t>)
-		return my_fill_n(iter,to_fill,u'0');
-	else if constexpr(std::same_as<char_type,char32_t>)
-		return my_fill_n(iter,to_fill,U'0');
-	else
-		return my_fill_n(iter,to_fill,u8'0');
-}
-#if 0
-template<bool comma,::fast_io::freestanding::random_access_iterator Iter>
-inline constexpr Iter unix_timestamp_fixed_complex_case(Iter iter,unix_timestamp ts)
-{
-	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
-	std::size_t const precision{ts.precision};
-	std::uint_least64_t tbv{d10_reverse_table<std::uint_least64_t>[precision]};
-	std::uint_least64_t val{ts.reference.subseconds/tbv};
-	std::uint_least64_t upper_frac{val/10u};
-	std::uint_least64_t abs{static_cast<std::uint_least64_t>(ts.reference.seconds)};
-	bool const negative{ts.reference.seconds<0};
-	if(negative)
-	{
-		if constexpr(std::same_as<char_type,char>)
-			*iter='-';
-		else if constexpr(std::same_as<char_type,wchar_t>)
-			*iter=L'-';
-		else
-			*iter=u8'-';
-		++iter;
-		abs=0u-abs;
-	}
-	if constexpr(mode!=::fast_io::manipulators::rounding_mode::toward_zero)
-	{
-		std::uint_least64_t val_mod{ts.reference.subseconds%tbv};
-		std::uint_least64_t frac{val%10u};
-		bool carry{};
-		if constexpr(mode==::fast_io::manipulators::rounding_mode::nearest_to_even)
-		{
-			if(5<frac)
-			{
-				carry=true;
-			}
-			else if(frac==5)
-			{
-				if(val_mod)
-					carry=true;
-				else
-				{
-					carry=upper_frac&1;
-				}
-			}
-		}
-		else if constexpr(mode==::fast_io::manipulators::rounding_mode::nearest_to_odd)
-		{
-			if(5<frac)
-			{
-				carry=true;
-			}
-			else if(frac==5)
-			{
-				if(val_mod)
-					carry=true;
-				else
-				{
-					carry=!(upper_frac&1);
-				}
-			}
-		}
-		if(carry)
-		{
-			++upper_frac;
-			if(upper_frac*tbv*100u==uint_least64_subseconds_per_second)
-			{
-				++abs;
-				upper_frac=0;
-			}
-		}
-	}
-	iter=print_reserve_define(io_reserve_type<char_type,std::uint_least64_t>,iter,abs);
-	if(precision!=0)
-	{
-		if constexpr(comma)
-		{
-		if constexpr(std::same_as<char_type,char>)
-			*iter=',';
-		else if constexpr(std::same_as<char_type,wchar_t>)
-			*iter=L',';
-		else
-			*iter=u8',';
-		}
-		else
-		{
-		if constexpr(std::same_as<char_type,char>)
-			*iter='.';
-		else if constexpr(std::same_as<char_type,wchar_t>)
-			*iter=L'.';
-		else
-			*iter=u8'.';
-		}
-		++iter;
-		with_length_output_unsigned(iter,upper_frac,ts.precision);
-		iter+=ts.precision;
-	}
-	return iter;
-}
-
-template<bool comma,::fast_io::manipulators::rounding_mode mode,::fast_io::freestanding::random_access_iterator Iter>
-inline constexpr Iter unix_timestamp_fixed_print_impl(
-	Iter iter,
-	::fast_io::manipulators::floating_format_precision_t<unix_timestamp,::fast_io::manipulators::floating_representation::fixed,mode> ts) noexcept
-{
-	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
-	constexpr std::size_t digits10m2{static_cast<std::size_t>(std::numeric_limits<std::uint_least64_t>::digits10)-2};
-	if constexpr(mode==::fast_io::manipulators::rounding_mode::toward_zero)
-	{
-		if(ts.precision==0)
-			return print_reserve_define(io_reserve_type<char_type,std::int_least64_t>,iter,ts.reference.seconds);
-		else if(digits10m2<ts.precision)
-			return unix_timestamp_fixed_print_easy_case<comma>(iter,ts.reference,ts.precision);
-		else
-			return unix_timestamp_fixed_complex_case<comma>(iter,ts);
-	}
-	else
-	{
-		if(digits10m2<ts.precision)
-			return unix_timestamp_fixed_print_easy_case<comma>(iter,ts.reference,ts.precision);
-		else
-			return unix_timestamp_fixed_complex_case<comma>(iter,ts);
-	}
-	return iter;
-}
-#endif
-}
 }
