@@ -498,6 +498,25 @@ inline constexpr void print_loc_days_impl(output bos,::fast_io::freestanding::ba
 	print_loc_days_real_impl(bos,category_name,day_strings.base,day_strings.len);
 }
 
+template<buffer_output_stream output>
+inline constexpr void print_loc_era_impl(output,::fast_io::freestanding::basic_string_view<typename output::char_type>,basic_io_scatter_t<basic_lc_time_era<typename output::char_type>> const&)
+{
+//	print_loc_days_real_impl(bos,category_name,day_strings.base,day_strings.len);
+}
+
+template<buffer_output_stream output>
+inline constexpr void print_loc_keyboards_impl(output bos,basic_io_scatter_t<typename output::char_type> const* keyboards_strings,std::size_t keyboards_strings_len)
+{
+	for(std::size_t i{};i!=keyboards_strings_len;++i)
+	{
+		if(i)
+			put(bos,char_literal_v<u8';',typename output::char_type>);
+		put(bos,char_literal_v<u8'\"',typename output::char_type>);
+		print(bos,keyboards_strings[i]);
+		put(bos,char_literal_v<u8'\"',typename output::char_type>);
+	}
+}
+
 template<buffer_output_stream output,std::integral ch_type1,std::size_t n1,std::integral ch_type2,std::size_t n2>
 inline constexpr void print_loc_days_impl_const(output bos,ch_type1 const (&category_name)[n1],basic_io_scatter_t<ch_type2> const (&day_strings)[n2])
 {
@@ -525,7 +544,7 @@ inline constexpr void print_define(output bos,basic_lc_time<char_type> const& ti
 		"t_fmt_ampm\t\"",time.t_fmt_ampm,"\"\n",
 		"date_fmt\t\"",time.date_fmt,"\"\n",
 		"am_pm\t\"",time.am_pm[0],"\";\"",time.am_pm[1],"\"\n");
-		::fast_io::details::print_loc_days_impl(bos,"era",time.era);
+		::fast_io::details::print_loc_era_impl(bos,"era",time.era);
 		print_freestanding(bos,"era_d_fmt\t\"",time.era_d_fmt,"\"\n",
 		"era_d_t_fmt\t\"",time.era_d_t_fmt,"\"\n",
 		"era_t_fmt\t\"",time.era_t_fmt,"\"\n");
@@ -552,7 +571,7 @@ inline constexpr void print_define(output bos,basic_lc_time<char_type> const& ti
 		L"t_fmt_ampm\t\"",time.t_fmt_ampm,L"\"\n",
 		L"date_fmt\t\"",time.date_fmt,L"\"\n",
 		L"am_pm\t\"",time.am_pm[0],L"\";\"",time.am_pm[1],L"\"\n");
-		::fast_io::details::print_loc_days_impl(bos,L"era",time.era);
+		::fast_io::details::print_loc_era_impl(bos,L"era",time.era);
 		print_freestanding(bos,L"era_d_fmt\t\"",time.era_d_fmt,L"\"\n",
 		L"era_d_t_fmt\t\"",time.era_d_t_fmt,L"\"\n",
 		L"era_t_fmt\t\"",time.era_t_fmt,L"\"\n");
@@ -606,7 +625,7 @@ inline constexpr void print_define(output bos,basic_lc_time<char_type> const& ti
 		U"t_fmt_ampm\t\"",time.t_fmt_ampm,U"\"\n",
 		U"date_fmt\t\"",time.date_fmt,U"\"\n",
 		U"am_pm\t\"",time.am_pm[0],U"\";\"",time.am_pm[1],U"\"\n");
-		::fast_io::details::print_loc_days_impl(bos,U"era",time.era);
+		::fast_io::details::print_loc_era_impl(bos,U"era",time.era);
 		print_freestanding(bos,U"era_d_fmt\t\"",time.era_d_fmt,U"\"\n",
 		U"era_d_t_fmt\t\"",time.era_d_t_fmt,U"\"\n",
 		U"era_t_fmt\t\"",time.era_t_fmt,U"\"\n");
@@ -633,7 +652,7 @@ inline constexpr void print_define(output bos,basic_lc_time<char_type> const& ti
 		u8"t_fmt_ampm\t\"",time.t_fmt_ampm,u8"\"\n",
 		u8"date_fmt\t\"",time.date_fmt,u8"\"\n",
 		u8"am_pm\t\"",time.am_pm[0],u8"\";\"",time.am_pm[1],u8"\"\n");
-		::fast_io::details::print_loc_days_impl(bos,u8"era",time.era);
+		::fast_io::details::print_loc_era_impl(bos,u8"era",time.era);
 		print_freestanding(bos,u8"era_d_fmt\t\"",time.era_d_fmt,u8"\"\n",
 		u8"era_d_t_fmt\t\"",time.era_d_t_fmt,u8"\"\n",
 		u8"era_t_fmt\t\"",time.era_t_fmt,u8"\"\n");
@@ -853,7 +872,7 @@ inline constexpr void print_define(output bos,basic_lc_name<char_type> const& na
 
 template<buffer_output_stream output,std::integral char_type>
 requires std::same_as<typename output::char_type,char_type>
-inline constexpr void print_define(output bos,basic_lc_measurement<char_type> const& measurement)
+inline constexpr void print_define(output bos,basic_lc_measurement<char_type> measurement)
 {
 	if constexpr(std::same_as<char_type,char>)
 	{
@@ -889,6 +908,42 @@ inline constexpr void print_define(output bos,basic_lc_measurement<char_type> co
 
 template<buffer_output_stream output,std::integral char_type>
 requires std::same_as<typename output::char_type,char_type>
+inline constexpr void print_define(output bos,basic_lc_keyboard<char_type> keyboard)
+{
+	if constexpr(std::same_as<char_type,char>)
+	{
+		print_freestanding(bos,"LC_KEYBOARD\nkeyboards\t");
+		::fast_io::details::print_loc_keyboards_impl(bos,keyboard.keyboards.base,keyboard.keyboards.len);
+		print_freestanding(bos,"END LC_KEYBOARD");
+	}
+	else if constexpr(std::same_as<char_type,wchar_t>)
+	{
+		print_freestanding(bos,L"LC_KEYBOARD\nkeyboards\t");
+		::fast_io::details::print_loc_keyboards_impl(bos,keyboard.keyboards.base,keyboard.keyboards.len);
+		print_freestanding(bos,L"END LC_KEYBOARD");
+	}
+	else if constexpr(std::same_as<char_type,char16_t>)
+	{
+		print_freestanding(bos,u"LC_KEYBOARD\nkeyboards\t");
+		::fast_io::details::print_loc_keyboards_impl(bos,keyboard.keyboards.base,keyboard.keyboards.len);
+		print_freestanding(bos,u"END LC_KEYBOARD");
+	}
+	else if constexpr(std::same_as<char_type,char32_t>)
+	{
+		print_freestanding(bos,U"LC_KEYBOARD\nkeyboards\t");
+		::fast_io::details::print_loc_keyboards_impl(bos,keyboard.keyboards.base,keyboard.keyboards.len);
+		print_freestanding(bos,U"END LC_KEYBOARD");
+	}
+	else if constexpr(std::same_as<char_type,char8_t>)
+	{
+		print_freestanding(bos,u8"LC_KEYBOARD\nkeyboards\t");
+		::fast_io::details::print_loc_keyboards_impl(bos,keyboard.keyboards.base,keyboard.keyboards.len);
+		print_freestanding(bos,u8"END LC_KEYBOARD");
+	}
+}
+
+template<buffer_output_stream output,std::integral char_type>
+requires std::same_as<typename output::char_type,char_type>
 inline constexpr void print_define(output bos,basic_lc_all<char_type> const& all)
 {
 	if constexpr(std::same_as<char_type,char>)
@@ -900,7 +955,8 @@ inline constexpr void print_define(output bos,basic_lc_all<char_type> const& all
 			all.paper,"\n\n",
 			all.telephone,"\n\n",
 			all.name,"\n\n",
-			all.measurement);
+			all.measurement,"\n\n",
+			all.keyboard);
 	else if constexpr(std::same_as<char_type,wchar_t>)
 		print_freestanding(bos,all.identification,L"\n\n",
 			all.monetary,L"\n\n",
@@ -910,7 +966,8 @@ inline constexpr void print_define(output bos,basic_lc_all<char_type> const& all
 			all.paper,L"\n\n",
 			all.telephone,L"\n\n",
 			all.name,L"\n\n",
-			all.measurement);
+			all.measurement,L"\n\n",
+			all.keyboard);
 	else if constexpr(std::same_as<char_type,char8_t>)
 		print_freestanding(bos,all.identification,u8"\n\n",
 			all.monetary,u8"\n\n",
@@ -920,7 +977,8 @@ inline constexpr void print_define(output bos,basic_lc_all<char_type> const& all
 			all.paper,u8"\n\n",
 			all.telephone,u8"\n\n",
 			all.name,u8"\n\n",
-			all.measurement);
+			all.measurement,u8"\n\n",
+			all.keyboard);
 	else if constexpr(std::same_as<char_type,char16_t>)
 		print_freestanding(bos,all.identification,u"\n\n",
 			all.monetary,u"\n\n",
@@ -930,7 +988,8 @@ inline constexpr void print_define(output bos,basic_lc_all<char_type> const& all
 			all.paper,u"\n\n",
 			all.telephone,u"\n\n",
 			all.name,u"\n\n",
-			all.measurement);
+			all.measurement,u"\n\n",
+			all.keyboard);
 	else if constexpr(std::same_as<char_type,char32_t>)
 		print_freestanding(bos,all.identification,U"\n\n",
 			all.monetary,U"\n\n",
@@ -940,7 +999,8 @@ inline constexpr void print_define(output bos,basic_lc_all<char_type> const& all
 			all.paper,U"\n\n",
 			all.telephone,U"\n\n",
 			all.name,U"\n\n",
-			all.measurement);
+			all.measurement,U"\n\n",
+			all.keyboard);
 }
 
 template<std::integral char_type>

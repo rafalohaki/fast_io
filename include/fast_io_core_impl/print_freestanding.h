@@ -82,11 +82,11 @@ inline constexpr void scatter_print_with_reserve_recursive_unit(char_type*& star
 		char_type sanitize_buffer[sz];
 		auto dt{print_reserve_define(io_reserve_type<char_type,real_type>,sanitize_buffer,t)};
 		auto end_ptr{non_overlapped_copy_n(sanitize_buffer,static_cast<std::size_t>(dt-sanitize_buffer),start_ptr)};
-		*arr={start_ptr,(end_ptr-start_ptr)*sizeof(*start_ptr)};
+		*arr={start_ptr,static_cast<std::size_t>(end_ptr-start_ptr)*sizeof(*start_ptr)};
 		start_ptr=end_ptr;
 #else
 		auto end_ptr = print_reserve_define(io_reserve_type<char_type,real_type>,start_ptr,t);
-		*arr={start_ptr,(end_ptr-start_ptr)*sizeof(*start_ptr)};
+		*arr={start_ptr,static_cast<std::size_t>(end_ptr-start_ptr)*sizeof(*start_ptr)};
 		start_ptr=end_ptr;
 #endif
 	}

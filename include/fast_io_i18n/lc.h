@@ -54,7 +54,6 @@ struct basic_lc_monetary
 	std::size_t int_n_sign_posn{};
 };
 
-
 using lc_monetary=basic_lc_monetary<char>;
 using wlc_monetary=basic_lc_monetary<wchar_t>;
 using u8lc_monetary=basic_lc_monetary<char8_t>;
@@ -76,6 +75,22 @@ using u16lc_numeric=basic_lc_numeric<char16_t>;
 using u32lc_numeric=basic_lc_numeric<char32_t>;
 
 template<typename char_type>
+struct basic_lc_time_era
+{
+	bool direction{};//+ is true, - is false
+	std::int_least64_t offset{};
+	std::int_least64_t start_date_year{};
+	std::uint_least8_t start_date_month{};
+	std::uint_least8_t start_date_day{};
+	std::int_least8_t  end_date_special{};//-1 is -*, 0 means end_date exist, 1 is +*
+	std::int_least64_t end_date_year{};
+	std::uint_least8_t end_date_month{};
+	std::uint_least8_t end_date_day{};
+	basic_io_scatter_t<char_type> era_name;
+	basic_io_scatter_t<char_type> era_format;
+};
+
+template<typename char_type>
 struct basic_lc_time
 {
 	basic_io_scatter_t<char_type> abday[7]{};
@@ -89,7 +104,7 @@ struct basic_lc_time
 	basic_io_scatter_t<char_type> t_fmt_ampm{};
 	basic_io_scatter_t<char_type> date_fmt{};
 	basic_io_scatter_t<char_type> am_pm[2]{};
-	basic_io_scatter_t<basic_io_scatter_t<char_type>> era{};
+	basic_io_scatter_t<basic_lc_time_era<char_type>> era{};
 	basic_io_scatter_t<char_type> era_d_fmt{};
 	basic_io_scatter_t<char_type> era_d_t_fmt{};
 	basic_io_scatter_t<char_type> era_t_fmt{};
@@ -208,6 +223,18 @@ using u16lc_measurement=basic_lc_measurement<char16_t>;
 using u32lc_measurement=basic_lc_measurement<char32_t>;
 
 template<typename char_type>
+struct basic_lc_keyboard
+{
+	basic_io_scatter_t<basic_io_scatter_t<char_type>> keyboards{};
+};
+
+using lc_keyboard=basic_lc_keyboard<char>;
+using wlc_keyboard=basic_lc_keyboard<wchar_t>;
+using u8lc_keyboard=basic_lc_keyboard<char8_t>;
+using u16lc_keyboard=basic_lc_keyboard<char16_t>;
+using u32lc_keyboard=basic_lc_keyboard<char32_t>;
+
+template<typename char_type>
 struct basic_lc_all
 {
 	basic_lc_identification<char_type> identification{};
@@ -220,6 +247,7 @@ struct basic_lc_all
 	basic_lc_name<char_type> name{};
 	basic_lc_address<char_type> address{};
 	basic_lc_measurement<char_type> measurement{};
+	basic_lc_keyboard<char_type> keyboard{};
 };
 
 using lc_all=basic_lc_all<char>;

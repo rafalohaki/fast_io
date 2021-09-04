@@ -40,9 +40,9 @@ namespace details
 inline void load_lc_locale(void* dll_handle,lc_locale& loc)
 {
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__WINE__)
-	auto func(bit_cast<void (*)(lc_locale*) noexcept >(fast_io::win32::GetProcAddress(dll_handle,reinterpret_cast<char const*>(u8"export_locale_data"))));
+	auto func(bit_cast<void (*)(lc_locale*) noexcept >(fast_io::win32::GetProcAddress(dll_handle,reinterpret_cast<char const*>(u8"export_v0"))));
 #else
-	auto func(bit_cast<void (*)(lc_locale*) noexcept >(dlsym(dll_handle,reinterpret_cast<char const*>(u8"export_locale_data"))));
+	auto func(bit_cast<void (*)(lc_locale*) noexcept >(dlsym(dll_handle,reinterpret_cast<char const*>(u8"export_v0"))));
 #endif
 
 	if(func==nullptr)
