@@ -420,11 +420,11 @@ inline constexpr parse_result<Iter> scan_int_contiguous_none_space_part_define_i
 	{
 		if(first==last)
 			return {first,parse_code::invalid};
-		constexpr auto minus_sign{sign_ch<u8'-',char_type>};
+		constexpr auto minus_sign{char_literal_v<u8'-',char_type>};
 		if((sign=(minus_sign==*first)))
 			++first;
 	}
-	constexpr auto zero{sign_ch<u8'0',char_type>};
+	constexpr auto zero{char_literal_v<u8'0',char_type>};
 	if(first!=last&&*first==zero)
 	{
 		++first;
@@ -576,7 +576,7 @@ inline constexpr parse_result<Iter> scan_context_define_parse_impl(State& st,Ite
 				st.integer_phase=scan_integral_context_phase::sign;
 				return {first,parse_code::partial};
 			}
-			constexpr auto minus{sign_ch<u8'-',char_type>};
+			constexpr auto minus{char_literal_v<u8'-',char_type>};
 			if(*first==minus)
 			{
 				*st.buffer.data()=*first;
@@ -593,7 +593,7 @@ inline constexpr parse_result<Iter> scan_context_define_parse_impl(State& st,Ite
 			st.integer_phase=scan_integral_context_phase::zero;
 			return {first,parse_code::partial};
 		}
-		constexpr auto zero{sign_ch<u8'0',char_type>};
+		constexpr auto zero{char_literal_v<u8'0',char_type>};
 		if(*first==zero)
 		{
 			++first;

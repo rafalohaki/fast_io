@@ -399,9 +399,9 @@ inline constexpr Iter prt_rsv_hundred_flt_impl(Iter iter,U u) noexcept
 	constexpr U ten{10u};
 	U div10{u/ten};
 	U mod10{u%ten};
-	*iter=static_cast<char_type>(sign_ch<u8'0',char_type>+static_cast<unsigned_char_type>(div10));
+	*iter=static_cast<char_type>(char_literal_v<u8'0',char_type>+static_cast<unsigned_char_type>(div10));
 	++iter;
-	*iter=static_cast<char_type>(sign_ch<u8'0',char_type>+static_cast<unsigned_char_type>(mod10));
+	*iter=static_cast<char_type>(char_literal_v<u8'0',char_type>+static_cast<unsigned_char_type>(mod10));
 	++iter;
 	return iter;
 #else
@@ -419,7 +419,7 @@ inline constexpr Iter prt_rsv_exponent_impl(Iter iter,U u) noexcept
 		return iter;
 	else if constexpr(mxdigits==1)
 	{
-		*iter=static_cast<char_type>(sign_ch<u8'0',char_type>+static_cast<unsigned_char_type>(u));
+		*iter=static_cast<char_type>(char_literal_v<u8'0',char_type>+static_cast<unsigned_char_type>(u));
 		++iter;
 		return iter;
 	}
@@ -440,7 +440,7 @@ inline constexpr Iter prt_rsv_exponent_impl(Iter iter,U u) noexcept
 					return prt_rsv_hundred_flt_impl(iter,u);
 				else
 				{
-					*iter=static_cast<char_type>(sign_ch<u8'0',char_type>+static_cast<unsigned_char_type>(u));
+					*iter=static_cast<char_type>(char_literal_v<u8'0',char_type>+static_cast<unsigned_char_type>(u));
 					++iter;
 					return iter;
 				}
@@ -454,7 +454,7 @@ inline constexpr Iter prt_rsv_exponent_impl(Iter iter,U u) noexcept
 				{
 					U div100{u/hundred};
 					U mod100{u%hundred};
-					*iter=static_cast<char_type>(sign_ch<u8'0',char_type>+static_cast<unsigned_char_type>(div100));
+					*iter=static_cast<char_type>(char_literal_v<u8'0',char_type>+static_cast<unsigned_char_type>(div100));
 					++iter;
 					u=mod100;
 				}
@@ -466,13 +466,13 @@ inline constexpr Iter prt_rsv_exponent_impl(Iter iter,U u) noexcept
 				{
 					U div100{u/hundred};
 					U mod100{u%hundred};
-					*iter=static_cast<char_type>(sign_ch<u8'0',char_type>+static_cast<unsigned_char_type>(div100));
+					*iter=static_cast<char_type>(char_literal_v<u8'0',char_type>+static_cast<unsigned_char_type>(div100));
 					++iter;
 					return prt_rsv_hundred_flt_impl(iter,u);
 				}
 				else if(u<ten)
 				{
-					*iter=static_cast<char_type>(sign_ch<u8'0',char_type>+static_cast<unsigned_char_type>(u));
+					*iter=static_cast<char_type>(char_literal_v<u8'0',char_type>+static_cast<unsigned_char_type>(u));
 					++iter;
 					return iter;
 				}

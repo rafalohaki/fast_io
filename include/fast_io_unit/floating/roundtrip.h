@@ -886,7 +886,7 @@ inline constexpr Iter print_rsv_fp_general_scientific_common_impl(Iter iter,U m1
 	auto res{iter+m10len+1};
 	print_reserve_integral_main_impl<10,false>(res,m10,m10len);
 	*iter=iter[1];
-	iter[1]=sign_ch<comma?u8',':u8'.',char_type>;
+	iter[1]=char_literal_v<comma?u8',':u8'.',char_type>;
 	return res;
 }
 
@@ -897,7 +897,7 @@ inline constexpr Iter print_rsv_fp_general_common_impl(Iter iter,U m10,std::uint
 	using unsigned_char_type = std::make_unsigned_t<char_type>;
 	if(m10len==1)[[unlikely]]
 	{
-		*iter=static_cast<char_type>(static_cast<unsigned_char_type>(m10)+sign_ch<u8'0',char_type>);
+		*iter=static_cast<char_type>(static_cast<unsigned_char_type>(m10)+char_literal_v<u8'0',char_type>);
 		++iter;
 		return iter;
 	}
@@ -909,16 +909,16 @@ template<typename flt,bool uppercase_e,::fast_io::freestanding::random_access_it
 inline constexpr Iter print_rsv_fp_e_impl(Iter iter,std::int32_t e10) noexcept
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
-	*iter=sign_ch<uppercase_e?u8'E':u8'e',char_type>;
+	*iter=char_literal_v<uppercase_e?u8'E':u8'e',char_type>;
 	++iter;
 	std::uint32_t ue10{static_cast<std::uint32_t>(e10)};
 	if(e10<0)
 	{
 		ue10=0u-ue10;
-		*iter=sign_ch<u8'-',char_type>;
+		*iter=char_literal_v<u8'-',char_type>;
 	}
 	else
-		*iter=sign_ch<u8'+',char_type>;
+		*iter=char_literal_v<u8'+',char_type>;
 	++iter;
 	return prt_rsv_exponent_impl<iec559_traits<flt>::e10digits,true>(iter,ue10);
 }
@@ -929,7 +929,7 @@ inline constexpr Iter fill_zeros_impl(Iter iter,std::size_t n) noexcept
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	for(std::size_t i{};i!=n;++i)
 	{
-		*iter=sign_ch<u8'0',char_type>;
+		*iter=char_literal_v<u8'0',char_type>;
 		++iter;
 	}
 	return iter;
@@ -988,7 +988,7 @@ inline constexpr Iter print_rsv_fp_fixed_decision_impl(Iter iter,typename iec559
 			auto tmp{iter};
 			print_reserve_integral_main_impl<10,false>(iter+=olength+1,m10,olength);
 			my_copy_n(tmp+1,eposition,tmp);
-			tmp[eposition]=sign_ch<(comma?u8',':u8'.'),char_type>;
+			tmp[eposition]=char_literal_v<(comma?u8',':u8'.'),char_type>;
 		}
 	}
 	else
@@ -1014,7 +1014,7 @@ inline constexpr Iter print_rsv_fp_decision_impl(Iter iter,typename iec559_trait
 	{
 		if(m10<10u)[[unlikely]]
 		{
-			*iter=static_cast<char_type>(static_cast<unsigned_char_type>(m10)+sign_ch<u8'0',char_type>);
+			*iter=static_cast<char_type>(static_cast<unsigned_char_type>(m10)+char_literal_v<u8'0',char_type>);
 			++iter;
 		}
 		else
@@ -1067,7 +1067,7 @@ inline constexpr Iter print_rsv_fp_decision_impl(Iter iter,typename iec559_trait
 				auto tmp{iter};
 				print_reserve_integral_main_impl<10,false>(iter+=olength+1,m10,olength);
 				my_copy_n(tmp+1,eposition,tmp);
-				tmp[eposition]=sign_ch<comma?u8',':u8'.',char_type>;
+				tmp[eposition]=char_literal_v<comma?u8',':u8'.',char_type>;
 			}
 			return iter;
 		}
@@ -1110,7 +1110,7 @@ inline constexpr Iter print_rsvflt_define_impl(Iter iter,flt f) noexcept
 		{
 			if constexpr(mt!=::fast_io::manipulators::floating_format::scientific)
 			{
-				*iter=sign_ch<u8'0',char_type>;
+				*iter=char_literal_v<u8'0',char_type>;
 				++iter;
 				return iter;
 			}

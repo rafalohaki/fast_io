@@ -34,14 +34,14 @@ inline constexpr Iter print_rsvhexfloat_define_impl(Iter iter,flt f) noexcept
 	constexpr std::uint32_t makeup_bits{((mbits / 4 + 1) * 4 - mbits) % 4};//Thanks jk-jeon for the formula
 	if constexpr(showpos)
 	{
-		*iter=sign?sign_ch<u8'-',char_type>:sign_ch<u8'+',char_type>;
+		*iter=sign?char_literal_v<u8'-',char_type>:char_literal_v<u8'+',char_type>;
 		++iter;
 	}
 	else
 	{
 		if(sign)
 		{
-			*iter=sign_ch<u8'-',char_type>;
+			*iter=char_literal_v<u8'-',char_type>;
 			++iter;
 		}
 	}
@@ -71,19 +71,19 @@ inline constexpr Iter print_rsvhexfloat_define_impl(Iter iter,flt f) noexcept
 	}
 	else
 	{
-		*iter=sign_ch<u8'1',char_type>;
+		*iter=char_literal_v<u8'1',char_type>;
 		++iter;
 	}
-	*iter=sign_ch<uppercase_e?u8'P':u8'p',char_type>;
+	*iter=char_literal_v<uppercase_e?u8'P':u8'p',char_type>;
 	++iter;
 	std::uint32_t ue2{static_cast<std::uint32_t>(e2)};
 	if(e2<0)
 	{
 		ue2=0u-ue2;
-		*iter=sign_ch<u8'-',char_type>;
+		*iter=char_literal_v<u8'-',char_type>;
 	}
 	else
-		*iter=sign_ch<u8'+',char_type>;
+		*iter=char_literal_v<u8'+',char_type>;
 	++iter;
 	return prt_rsv_exponent_impl<trait::e2hexdigits,false>(iter,ue2);
 }

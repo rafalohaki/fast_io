@@ -277,15 +277,6 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,basi
 	return print_reserve_size(io_reserve_type<char_type,std::int_least64_t>)+std::numeric_limits<std::uint_least64_t>::digits10;
 }
 
-template<std::integral char_type>
-inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,iso8601_timestamp>) noexcept
-{
-//ISO 8601 timestamp example : 2021-01-03T10:29:56Z
-//ISO 8601 timestamp with timestamp : 2021-01-03T10:29:56.999999+99:99
-	return print_reserve_size(io_reserve_type<char_type,std::int_least64_t>)+16+print_reserve_size(io_reserve_type<char_type,std::uint_least64_t>)+print_reserve_size(io_reserve_type<char_type,long>)+3+4+2;
-}
-
-
 namespace details
 {
 /*
@@ -512,6 +503,18 @@ inline constexpr std::uint_least8_t weekday_impl(std::int_least64_t year,std::ui
 
 }
 
+inline constexpr std::uint_least8_t c_weekday(iso8601_timestamp const& timestamp) noexcept
+{
+	std::int_least64_t year{timestamp.year};
+	std::uint_least8_t month{timestamp.month};
+	--month;
+	if(month<2u)
+		year=static_cast<std::int_least64_t>(static_cast<std::uint_least64_t>(year)-1u);
+	else if(11u<month)
+		month%=12u;
+	return ::fast_io::details::c_weekday_impl(year,month,timestamp.day);
+}
+
 inline constexpr std::uint_least8_t weekday(iso8601_timestamp const& timestamp) noexcept
 {
 	std::int_least64_t year{timestamp.year};
@@ -526,6 +529,41 @@ inline constexpr std::uint_least8_t weekday(iso8601_timestamp const& timestamp) 
 
 namespace details
 {
+
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size_timezone_impl_v{print_reserve_size(io_reserve_type<char_type,std::int_least32_t>)+static_cast<std::size_t>(4u)};
+
+template<::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter print_reserve_timezone_impl(Iter iter,std::int_least32_t timezone) noexcept
+{
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	std::uint_least64_t unsigned_tz{static_cast<std::uint_least64_t>(timezone)};
+	if(timezone<0)
+	{
+		*iter=char_literal_v<u8'-',char_type>;
+		unsigned_tz=0UL-unsigned_tz;
+	}
+	else
+	{
+		*iter=char_literal_v<u8'+',char_type>;
+	}
+	++iter;
+	std::uint_least8_t tz_ss{static_cast<std::uint_least8_t>(unsigned_tz%60)};
+	unsigned_tz/=60;
+	std::uint_least8_t tz_mm{static_cast<std::uint_least8_t>(unsigned_tz%60)};
+	unsigned_tz/=60;
+	iter=chrono_two_digits_impl(iter,unsigned_tz);
+	*iter=char_literal_v<u8':',char_type>;
+	++iter;
+	iter=chrono_two_digits_impl<true>(iter,tz_mm);
+	if(tz_ss)
+	{
+		*iter=char_literal_v<u8':',char_type>;
+		++iter;
+		iter=chrono_two_digits_impl<true>(iter,tz_ss);
+	}
+	return iter;
+}
 
 template<::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter print_reserve_iso8601_timestamp_impl(Iter iter,iso8601_timestamp const& timestamp) noexcept
@@ -549,39 +587,14 @@ inline constexpr Iter print_reserve_iso8601_timestamp_impl(Iter iter,iso8601_tim
 	iter=chrono_two_digits_impl<true>(iter,timestamp.seconds);
 	if(timestamp.subseconds)
 		iter=output_iso8601_subseconds(iter,timestamp.subseconds);
-	if(timestamp.timezone==0)
+	auto const timezone{timestamp.timezone};
+	if(timezone==0)
 	{
 		*iter=char_literal_v<u8'Z',char_type>;
 		++iter;
 	}
 	else
-	{
-		std::uint_least64_t unsigned_tz{static_cast<std::uint_least64_t>(timestamp.timezone)};
-		if(timestamp.timezone<0)
-		{
-			*iter=char_literal_v<u8'-',char_type>;
-			unsigned_tz=0UL-unsigned_tz;
-		}
-		else
-		{
-			*iter=char_literal_v<u8'+',char_type>;
-		}
-		++iter;
-		std::uint_least8_t tz_ss{static_cast<std::uint_least8_t>(unsigned_tz%60)};
-		unsigned_tz/=60;
-		std::uint_least8_t tz_mm{static_cast<std::uint_least8_t>(unsigned_tz%60)};
-		unsigned_tz/=60;
-		iter=chrono_two_digits_impl(iter,unsigned_tz);
-		*iter=char_literal_v<u8':',char_type>;
-		++iter;
-		iter=chrono_two_digits_impl<true>(iter,tz_mm);
-		if(tz_ss)
-		{
-			*iter=char_literal_v<u8':',char_type>;
-			++iter;
-			iter=chrono_two_digits_impl<true>(iter,tz_ss);
-		}
-	}
+		iter=print_reserve_timezone_impl(iter,timezone);
 	return iter;
 }
 
@@ -595,6 +608,14 @@ inline constexpr Iter print_reserve_bsc_timestamp_impl(Iter iter,unix_timestamp 
 	return iter;
 }
 
+}
+
+template<std::integral char_type>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,iso8601_timestamp>) noexcept
+{
+//ISO 8601 timestamp example : 2021-01-03T10:29:56Z
+//ISO 8601 timestamp with timestamp : 2021-01-03T10:29:56.999999+99:99
+	return print_reserve_size(io_reserve_type<char_type,std::int_least64_t>)+16+print_reserve_size(io_reserve_type<char_type,std::uint_least64_t>)+::fast_io::details::print_reserve_size_timezone_impl_v<char_type>+3+2;
 }
 
 template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter,std::int_least64_t off_to_epoch>

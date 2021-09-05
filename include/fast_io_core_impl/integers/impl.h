@@ -3,14 +3,6 @@
 namespace fast_io
 {
 
-namespace details
-{
-
-template<char8_t ch,std::integral char_type>
-inline constexpr char_type sign_ch{char_literal_v<ch,char_type>};
-
-}
-
 namespace manipulators
 {
 
@@ -22,6 +14,19 @@ none,left,middle,right,internal
 enum class floating_format:char8_t
 {
 general,fixed,scientific,hexfloat
+};
+
+enum class lc_time_flag:std::uint_least8_t
+{
+none,
+d_t_fmt,
+d_fmt,
+t_fmt,
+t_fmt_ampm,
+date_fmt,
+era_d_t_fmt,
+era_d_fmt,
+era_t_fmt
 };
 
 struct scalar_flags
@@ -40,6 +45,7 @@ struct scalar_flags
 	bool full{};
 	scalar_placement placement{scalar_placement::none};
 	floating_format floating{floating_format::general};
+	lc_time_flag time_flag{};
 };
 
 inline constexpr scalar_flags integral_default_scalar_flags{.floating=floating_format::fixed};
@@ -409,46 +415,19 @@ inline constexpr auto generate_base_prefix_array() noexcept
 	if constexpr(base<10)
 	{
 	//0[9]0000
-		if constexpr(std::same_as<char_type,char>&&('A'!=u8'A'))
-			return ::fast_io::freestanding::array<char_type,4>{'0','[',
-			static_cast<char>(static_cast<char8_t>('0')+static_cast<char8_t>(base)),']'};
-		else if constexpr(std::same_as<char_type,wchar_t>&&(L'A'!=u8'A'))
-		{
-			using wchar_t_unsigned = std::make_unsigned_t<wchar_t>;
-			return ::fast_io::freestanding::array<char_type,4>{L'0',L'[',
-			static_cast<wchar_t_unsigned>(static_cast<wchar_t_unsigned>(L'0')+static_cast<wchar_t_unsigned>(base)),L']'};
-		}
-		else
-		{
-			using char_type_unsigned = std::make_unsigned_t<char_type>;
-			return ::fast_io::freestanding::array<char_type,4>{u8'0',u8'[',
-			static_cast<char_type>(static_cast<char_type_unsigned>(u8'0'+static_cast<char8_t>(base))),u8']'};
-		}
+		using char_type_unsigned = std::make_unsigned_t<char_type>;
+		return ::fast_io::freestanding::array<char_type,4>{char_literal_v<u8'0',char_type>,char_literal_v<u8'[',char_type>,
+		static_cast<char_type>(static_cast<char_type_unsigned>(char_literal_v<u8'0',char_type>+static_cast<char8_t>(base))),char_literal_v<u8']',char_type>};
 	}
 	else
 	{
 		constexpr char8_t decade{static_cast<char8_t>(static_cast<char8_t>(base)/static_cast<char8_t>(10u))},
 			unit{static_cast<char8_t>(static_cast<char8_t>(base)%static_cast<char8_t>(10u))};
-		if constexpr(std::same_as<char_type,char>&&('A'!=u8'A'))
-			return ::fast_io::freestanding::array<char_type,5>{'0','[',
-			static_cast<char>(static_cast<char8_t>('0')+static_cast<char8_t>(decade)),
-			static_cast<char>(static_cast<char8_t>('0')+static_cast<char8_t>(unit)),']'};
-		else if constexpr(std::same_as<char_type,wchar_t>&&(L'A'!=u8'A'))
-		{
-			using wchar_t_unsigned = std::make_unsigned_t<wchar_t>;
-			return ::fast_io::freestanding::array<char_type,5>{L'0',L'[',
-			static_cast<wchar_t_unsigned>(static_cast<wchar_t_unsigned>(L'0')+static_cast<wchar_t_unsigned>(decade)),
-			static_cast<wchar_t_unsigned>(static_cast<wchar_t_unsigned>(L'0')+static_cast<wchar_t_unsigned>(unit)),
-			L']'};
-		}
-		else
-		{
-			using char_type_unsigned = std::make_unsigned_t<char_type>;
-			return ::fast_io::freestanding::array<char_type,5>{u8'0',u8'[',
-			static_cast<char_type>(static_cast<char_type_unsigned>(u8'0'+static_cast<char8_t>(decade))),
-			static_cast<char_type>(static_cast<char_type_unsigned>(u8'0'+static_cast<char8_t>(unit))),
-			u8']'};
-		}
+		using char_type_unsigned = std::make_unsigned_t<char_type>;
+		return ::fast_io::freestanding::array<char_type,5>{char_literal_v<u8'0',char_type>,char_literal_v<u8'[',char_type>,
+		static_cast<char_type>(static_cast<char_type_unsigned>(char_literal_v<u8'0',char_type>+static_cast<char8_t>(decade))),
+		static_cast<char_type>(static_cast<char_type_unsigned>(char_literal_v<u8'0',char_type>+static_cast<char8_t>(unit))),
+		char_literal_v<u8']',char_type>};
 	}
 }
 
@@ -520,7 +499,7 @@ inline constexpr Iter print_reserve_show_base_impl(Iter iter)
 	}
 	else if constexpr(base==8)
 	{
-		*iter=sign_ch<u8'0',char_type>;
+		*iter=char_literal_v<u8'0',char_type>;
 		++iter;
 	}
 	else if constexpr(base==16)
@@ -581,7 +560,7 @@ inline constexpr void print_reserve_integral_main_impl(Iter iter,T t,std::size_t
 			--iter;
 			if constexpr(base<=10)
 			{
-				*iter=static_cast<char_type>(rem+sign_ch<u8'0',char_type>);
+				*iter=static_cast<char_type>(rem+char_literal_v<u8'0',char_type>);
 			}
 			else
 			{
@@ -668,7 +647,7 @@ inline constexpr void print_reserve_integral_main_impl(Iter iter,T t,std::size_t
 		if((len&1))
 		{
 			if constexpr(base<=10)
-				*--iter=static_cast<char_type>(t+sign_ch<u8'0',char_type>);
+				*--iter=static_cast<char_type>(t+char_literal_v<u8'0',char_type>);
 			else
 				*--iter=static_cast<char_type>(tb[t].element[1]);
 		}
@@ -697,12 +676,12 @@ inline constexpr Iter print_reserve_integral_define(Iter first,int_type t)
 		{
 			if constexpr(showpos)
 			{
-				*first=sign_ch<u8'+',char_type>;
+				*first=char_literal_v<u8'+',char_type>;
 				++first;
 			}
 			if constexpr(showbase&&(base!=10))
 				first=print_reserve_show_base_impl<base,uppercase_showbase>(first);
-			*first=t?sign_ch<u8'1',char_type>:sign_ch<u8'0',char_type>;
+			*first=t?char_literal_v<u8'1',char_type>:char_literal_v<u8'0',char_type>;
 			++first;
 		}
 		else
@@ -713,19 +692,19 @@ inline constexpr Iter print_reserve_integral_define(Iter first,int_type t)
 			{
 				if constexpr(::fast_io::details::my_unsigned_integral<int_type>)
 				{
-					*first=sign_ch<u8'+',char_type>;
+					*first=char_literal_v<u8'+',char_type>;
 				}
 				else
 				{
 					if(t<0)
 					{
-						*first=sign_ch<u8'-',char_type>;
+						*first=char_literal_v<u8'-',char_type>;
 						constexpr unsigned_type zero{};
 						u=zero-u;
 					}
 					else
 					{
-						*first=sign_ch<u8'+',char_type>;
+						*first=char_literal_v<u8'+',char_type>;
 					}
 				}
 				++first;
@@ -736,7 +715,7 @@ inline constexpr Iter print_reserve_integral_define(Iter first,int_type t)
 				{
 					if(t<0)
 					{
-						*first=sign_ch<u8'-',char_type>;
+						*first=char_literal_v<u8'-',char_type>;
 						++first;
 						constexpr unsigned_type zero{};
 						u=zero-u;
