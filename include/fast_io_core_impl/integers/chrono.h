@@ -19,12 +19,7 @@ inline constexpr Iter chrono_one_digit_impl(Iter it,U uv) noexcept
 			return print_reserve_integral_define<10>(it,uv);
 	}
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
-	if constexpr(std::same_as<char,char_type>)
-		*it=static_cast<char_type>(uv+'0');
-	else if constexpr(std::same_as<wchar_t,char_type>)
-		*it=static_cast<char_type>(uv+L'0');
-	else
-		*it=static_cast<char_type>(uv+u8'0');
+	*it=static_cast<char_type>(uv+char_literal_v<u8'0',char_type>);
 	++it;
 	return it;
 }
@@ -50,12 +45,7 @@ inline constexpr Iter chrono_two_digits_impl(Iter it,I i) noexcept
 	if(i<0)[[unlikely]]
 	{
 		u = 0u - u;
-		if constexpr(std::same_as<char_type,char>)
-			*it='-';
-		else if constexpr(std::same_as<char_type,wchar_t>)
-			*it=L'-';
-		else
-			*it=u8'-';
+		*it=char_literal_v<u8'-',char_type>;
 		++it;
 	}
 	return chrono_two_digits_impl<unchecked>(it,u);
@@ -70,12 +60,7 @@ inline constexpr Iter chrono_year_impl(Iter it,integ i) noexcept
 	if(i<0)[[unlikely]]
 	{
 		u = 0u - u;
-		if constexpr(std::same_as<char_type,char>)
-			*it='-';
-		else if constexpr(std::same_as<char_type,wchar_t>)
-			*it=L'-';
-		else
-			*it=u8'-';
+		*it=char_literal_v<u8'-',char_type>;
 		++it;
 	}
 	if(10000u<=u)[[unlikely]]
