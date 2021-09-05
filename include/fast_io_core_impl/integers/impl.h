@@ -7,7 +7,7 @@ namespace details
 {
 
 template<char8_t ch,std::integral char_type>
-inline constexpr char_type sign_ch{char_literal_v<ch,char_type>()};
+inline constexpr char_type sign_ch{char_literal_v<ch,char_type>};
 
 }
 
