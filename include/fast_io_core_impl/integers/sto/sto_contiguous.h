@@ -507,18 +507,6 @@ inline constexpr parse_result<Iter> scan_int_contiguous_define_impl(Iter first,I
 }
 }
 
-template<::fast_io::freestanding::random_access_iterator Iter,details::my_integral T>
-inline constexpr parse_result<Iter> scan_contiguous_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,parameter<T&>>,Iter begin,Iter end,parameter<T&> t) noexcept
-{
-	if constexpr(::fast_io::freestanding::contiguous_iterator<Iter>&&!std::is_pointer_v<Iter>)
-	{
-		auto [it,ec] = details::scan_int_contiguous_define_impl<10>(::fast_io::freestanding::to_address(begin),::fast_io::freestanding::to_address(end),t.reference);
-		return {it-::fast_io::freestanding::to_address(begin)+begin,ec};
-	}
-	else
-		return details::scan_int_contiguous_define_impl<10>(begin,end,t.reference);
-}
-
 enum class scan_integral_context_phase:std::uint_fast8_t
 {
 space,
@@ -753,6 +741,18 @@ template<std::integral char_type,manipulators::scalar_flags flags,details::my_in
 inline constexpr auto scan_context_type(io_reserve_type_t<char_type,::fast_io::manipulators::scalar_manip_t<flags,T&>>) noexcept
 {
 	return details::scan_context_type_impl_int<flags.base,char_type,T>();
+}
+
+template<::fast_io::freestanding::random_access_iterator Iter,manipulators::scalar_flags flags,details::my_integral T>
+inline constexpr parse_result<Iter> scan_contiguous_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,::fast_io::manipulators::scalar_manip_t<flags,T&>>,Iter begin,Iter end,::fast_io::manipulators::scalar_manip_t<flags,T&> t) noexcept
+{
+	if constexpr(::fast_io::freestanding::contiguous_iterator<Iter>&&!std::is_pointer_v<Iter>)
+	{
+		auto [it,ec] = details::scan_int_contiguous_define_impl<10>(::fast_io::freestanding::to_address(begin),::fast_io::freestanding::to_address(end),t.reference);
+		return {it-::fast_io::freestanding::to_address(begin)+begin,ec};
+	}
+	else
+		return details::scan_int_contiguous_define_impl<10>(begin,end,t.reference);
 }
 
 template<::fast_io::freestanding::input_iterator Iter,manipulators::scalar_flags flags,typename State,details::my_integral T>
