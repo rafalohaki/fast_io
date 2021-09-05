@@ -48,7 +48,9 @@ For hosted implementations the set of standard library headers required by the C
 #include"fast_io_hosted/dll/dll.h"
 #include"fast_io_hosted/process_revamp/native.h"
 
-
+#if (defined(_MSC_VER) && !defined(__clang__))
+#include"fast_io_unit/gb18030.h"
+#endif
 //#include<memory_resource>
 //#include"fast_io_hosted/pmr_resource.h"
 
