@@ -257,9 +257,9 @@ inline constexpr void print_control(output out,T t)
 			}
 			obuffer_set_curr(out,it);
 		}
-#if !defined(__SANITIZE_ADDRESS__) || defined(__OPTIMIZE__)
 		else
 		{
+#if !defined(__SANITIZE_ADDRESS__) || defined(__OPTIMIZE__)
 			if constexpr(buffer_output_stream<output>)
 			{
 				auto bcurr{obuffer_curr(out)};
@@ -326,7 +326,7 @@ inline constexpr void print_control(output out,T t)
 				auto curr{obuffer_curr(out)};
 				auto ed{obuffer_end(out)};
 				std::ptrdiff_t diff(ed-curr);
-				if(static_cast<std::ptrdiff_t>(size)<diff)
+				if(static_cast<std::ptrdiff_t>(size)<diff)[[likely]]
 				{
 					auto it{print_reserve_define(io_reserve_type<char_type,value_type>,curr,t)};
 					if constexpr(line)
