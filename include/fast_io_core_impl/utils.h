@@ -980,7 +980,7 @@ inline constexpr T get_int_max() noexcept
 template<my_integral T>
 inline constexpr auto get_int_max_unsigned() noexcept
 {
-	constexpr my_make_unsigned_t<std::remove_cvref_t<T>> v{cal_int_max<std::remove_cvref_t<T>>()};
+	constexpr my_make_unsigned_t<std::remove_cvref_t<T>> v{static_cast<my_make_unsigned_t<std::remove_cvref_t<T>>>(cal_int_max<std::remove_cvref_t<T>>())};
 	return v;
 }
 template<my_integral T,char8_t base = 10>
