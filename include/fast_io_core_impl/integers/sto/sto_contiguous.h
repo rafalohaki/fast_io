@@ -748,11 +748,11 @@ inline constexpr parse_result<Iter> scan_contiguous_define(io_reserve_type_t<::f
 {
 	if constexpr(::fast_io::freestanding::contiguous_iterator<Iter>&&!std::is_pointer_v<Iter>)
 	{
-		auto [it,ec] = details::scan_int_contiguous_define_impl<10>(::fast_io::freestanding::to_address(begin),::fast_io::freestanding::to_address(end),t.reference);
+		auto [it,ec] = details::scan_int_contiguous_define_impl<flags.base>(::fast_io::freestanding::to_address(begin),::fast_io::freestanding::to_address(end),t.reference);
 		return {it-::fast_io::freestanding::to_address(begin)+begin,ec};
 	}
 	else
-		return details::scan_int_contiguous_define_impl<10>(begin,end,t.reference);
+		return details::scan_int_contiguous_define_impl<flags.base>(begin,end,t.reference);
 }
 
 template<::fast_io::freestanding::input_iterator Iter,manipulators::scalar_flags flags,typename State,details::my_integral T>
