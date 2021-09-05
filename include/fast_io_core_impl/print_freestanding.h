@@ -243,8 +243,8 @@ inline constexpr void print_control(output out,T t)
 			char_type buffer[size];
 			if constexpr(buffer_output_stream<output>)
 			{
-				auto bcurr{obuffer_curr(out)};
-				auto bend{obuffer_end(out)};
+				char_type* bcurr{obuffer_curr(out)};
+				char_type* bend{obuffer_end(out)};
 				std::ptrdiff_t const diff(bend-bcurr);
 				bool smaller{static_cast<std::ptrdiff_t>(size)<diff};
 				if(!smaller)[[unlikely]]
@@ -262,7 +262,7 @@ inline constexpr void print_control(output out,T t)
 			}
 			else
 			{
-				auto i{print_reserve_define(io_reserve_type<char_type,value_type>,buffer,t)};
+				char_type* i{print_reserve_define(io_reserve_type<char_type,value_type>,buffer,t)};
 				if constexpr(line)
 				{
 					*i=lfch;
@@ -320,6 +320,7 @@ inline constexpr void print_control(output out,T t)
 						++it;
 					}
 					obuffer_set_curr(out,it);
+					return;
 				}
 			}
 #endif
