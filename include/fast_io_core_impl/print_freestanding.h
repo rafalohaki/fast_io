@@ -145,32 +145,6 @@ inline constexpr auto extract_one_scatter(T t)
 	return print_scatter_define(print_scatter_type<char_type>,t);
 }
 
-template<std::integral char_type>
-inline constexpr char_type print_reserve_get_lf() noexcept
-{
-	if constexpr(std::same_as<char,char_type>)
-		return '\n';
-	else if constexpr(std::same_as<wchar_t,char_type>)
-		return L'\n';
-	else
-		return u8'\n';
-}
-
-template<std::integral char_type>
-inline constexpr auto lf_value{print_reserve_get_lf<char_type>()};
-
-template<typename output>
-inline constexpr void print_serialize_size_bad_path(output out,std::size_t sz)
-{
-	using char_type = typename output::char_type;
-	constexpr std::size_t size_t_reserve_length{print_reserve_size(io_reserve_type<char_type,std::size_t>)+1};
-	char_type array[size_t_reserve_length];
-	auto it{print_reserve_define(io_reserve_type<char_type,std::size_t>,array,sz)};
-	*it=lf_value<char_type>;
-	++it;
-	write(out,array,it);
-}
-
 template<bool line,typename output,typename value_type>
 #if __has_cpp_attribute(gnu::cold)
 [[gnu::cold]]
@@ -183,7 +157,7 @@ inline constexpr void print_control_reserve_bad_path(output out,value_type t)
 	if constexpr(line)
 	{
 		auto it{print_reserve_define(io_reserve_type<char_type,value_type>,array,t)};
-		*it=lf_value<char_type>;
+		*it=char_literal_v<u8'\n',char_type>;
 		++it;
 		write(out,array,it);
 	}
@@ -202,7 +176,7 @@ inline constexpr void print_control_dynamic_reserve_bad_path(output out,value_ty
 	auto it{print_reserve_define(io_reserve_type<char_type,value_type>,ptr.ptr,t)};
 	if constexpr(line)
 	{
-		*it=lf_value<char_type>;
+		*it=char_literal_v<u8'\n',char_type>;
 		++it;
 	}
 	write(out,ptr.ptr,it);
@@ -214,7 +188,7 @@ inline constexpr void print_control(output out,T t)
 {
 	using char_type = typename output::char_type;
 	using value_type = std::remove_cvref_t<T>;
-	constexpr auto lfch{lf_value<char_type>};
+	constexpr auto lfch{char_literal_v<u8'\n',char_type>};
 	if constexpr(scatter_type_printable<char_type,value_type>)
 	{
 		basic_io_scatter_t<char_type> scatter{print_scatter_define(print_scatter_type<char_type>,t)};
@@ -284,33 +258,32 @@ inline constexpr void print_control(output out,T t)
 			obuffer_set_curr(out,it);
 		}
 #if !defined(__SANITIZE_ADDRESS__) || defined(__OPTIMIZE__)
-		else if constexpr(buffer_output_stream<output>)
+		else
 		{
-			auto bcurr{obuffer_curr(out)};
-			auto bend{obuffer_end(out)};
-			std::ptrdiff_t const diff(bend-bcurr);
-			if(static_cast<std::ptrdiff_t>(size)<diff)[[likely]]
+			if constexpr(buffer_output_stream<output>)
 			{
-				//To check whether this affects performance.
-				if constexpr(line)
+				auto bcurr{obuffer_curr(out)};
+				auto bend{obuffer_end(out)};
+				std::ptrdiff_t const diff(bend-bcurr);
+				if(static_cast<std::ptrdiff_t>(size)<diff)[[likely]]
 				{
-					auto it{print_reserve_define(io_reserve_type<char_type,value_type>,bcurr,t)};
+					//To check whether this affects performance.
 					if constexpr(line)
 					{
-						*it=lfch;
-						++it;
-					}	
-					obuffer_set_curr(out,it);
+						auto it{print_reserve_define(io_reserve_type<char_type,value_type>,bcurr,t)};
+						if constexpr(line)
+						{
+							*it=lfch;
+							++it;
+						}	
+						obuffer_set_curr(out,it);
+					}
+					else
+						obuffer_set_curr(out,print_reserve_define(io_reserve_type<char_type,value_type>,bcurr,t));
+					return;
 				}
-				else
-					obuffer_set_curr(out,print_reserve_define(io_reserve_type<char_type,value_type>,bcurr,t));
 			}
-			else[[unlikely]]
-				print_control_reserve_bad_path<line>(out,t);
-		}
-		else
 #endif
-		{
 			print_control_reserve_bad_path<line>(out,t);
 		}
 	}
@@ -345,28 +318,26 @@ inline constexpr void print_control(output out,T t)
 			}
 			obuffer_set_curr(out,it);
 		}
-#if !defined(__SANITIZE_ADDRESS__) || defined(__OPTIMIZE__)
-		else if constexpr(buffer_output_stream<output>)
-		{
-			auto curr{obuffer_curr(out)};
-			auto ed{obuffer_end(out)};
-			std::ptrdiff_t diff(ed-curr);
-			if(static_cast<std::ptrdiff_t>(size)<diff)
-			{
-				auto it{print_reserve_define(io_reserve_type<char_type,value_type>,curr,t)};
-				if constexpr(line)
-				{
-					*it=lfch;
-					++it;
-				}
-				obuffer_set_curr(out,it);
-			}
-			else
-				print_control_dynamic_reserve_bad_path<line,value_type>(out,t,size);
-		}
-#endif
 		else
 		{
+#if !defined(__SANITIZE_ADDRESS__) || defined(__OPTIMIZE__)
+			if constexpr(buffer_output_stream<output>)
+			{
+				auto curr{obuffer_curr(out)};
+				auto ed{obuffer_end(out)};
+				std::ptrdiff_t diff(ed-curr);
+				if(static_cast<std::ptrdiff_t>(size)<diff)
+				{
+					auto it{print_reserve_define(io_reserve_type<char_type,value_type>,curr,t)};
+					if constexpr(line)
+					{
+						*it=lfch;
+						++it;
+					}
+					obuffer_set_curr(out,it);
+				}
+			}
+#endif
 			print_control_dynamic_reserve_bad_path<line,value_type>(out,t,size);
 		}
 	}
@@ -402,7 +373,7 @@ template<bool line,output_stream output,typename ...Args>
 inline constexpr void print_fallback(output out,Args ...args)
 {
 	using char_type = typename output::char_type;
-	constexpr auto lfch{lf_value<char_type>};
+	constexpr auto lfch{char_literal_v<u8'\n',char_type>};
 	if constexpr(line&&sizeof...(Args)==0)
 	{
 		char_type ch{lfch};
@@ -479,7 +450,7 @@ inline constexpr void print_freestanding_decay_normal(output out,Args ...args)
 	else if constexpr(buffer_output_stream<output>)
 	{
 		if constexpr(sizeof...(Args)==0&&line)
-			put(out,lf_value<char_type>);
+			put(out,char_literal_v<u8'\n',char_type>);
 		else
 		{
 			if constexpr(line)
