@@ -145,25 +145,6 @@ inline constexpr auto extract_one_scatter(T t)
 	return print_scatter_define(print_scatter_type<char_type>,t);
 }
 
-template<bool line,typename output,typename value_type>
-#if __has_cpp_attribute(gnu::cold)
-[[gnu::cold]]
-#endif
-inline constexpr void print_control_reserve_bad_path(output out,value_type t)
-{
-	using char_type = typename output::char_type;
-	constexpr std::size_t size{print_reserve_size(io_reserve_type<char_type,value_type>)+static_cast<std::size_t>(line)};
-	char_type array[size];
-	if constexpr(line)
-	{
-		auto it{print_reserve_define(io_reserve_type<char_type,value_type>,array,t)};
-		*it=char_literal_v<u8'\n',char_type>;
-		++it;
-		write(out,array,it);
-	}
-	else
-		write(out,array,print_reserve_define(io_reserve_type<char_type,value_type>,array,t));
-}
 
 template<bool line,typename value_type,output_stream output>
 #if __has_cpp_attribute(gnu::cold)
@@ -259,32 +240,36 @@ inline constexpr void print_control(output out,T t)
 		}
 		else
 		{
-#if !defined(__SANITIZE_ADDRESS__) || defined(__OPTIMIZE__)
+			char_type buffer[size];
 			if constexpr(buffer_output_stream<output>)
 			{
 				auto bcurr{obuffer_curr(out)};
 				auto bend{obuffer_end(out)};
 				std::ptrdiff_t const diff(bend-bcurr);
-				if(static_cast<std::ptrdiff_t>(size)<diff)[[likely]]
+				bool smaller{static_cast<std::ptrdiff_t>(size)<diff};
+				if(!smaller)[[unlikely]]
+					bcurr=buffer;
+				bcurr=print_reserve_define(io_reserve_type<char_type,value_type>,bcurr,t);
+				if constexpr(line)
 				{
-					//To check whether this affects performance.
-					if constexpr(line)
-					{
-						auto it{print_reserve_define(io_reserve_type<char_type,value_type>,bcurr,t)};
-						if constexpr(line)
-						{
-							*it=lfch;
-							++it;
-						}	
-						obuffer_set_curr(out,it);
-					}
-					else
-						obuffer_set_curr(out,print_reserve_define(io_reserve_type<char_type,value_type>,bcurr,t));
-					return;
+					*bcurr=lfch;
+					++bcurr;
 				}
+				if(smaller)[[likely]]
+					obuffer_set_curr(out,bcurr);
+				else[[unlikely]]
+					write(out,buffer,bcurr);
 			}
-#endif
-			print_control_reserve_bad_path<line>(out,t);
+			else
+			{
+				auto i{print_reserve_define(io_reserve_type<char_type,value_type>,buffer,t)};
+				if constexpr(line)
+				{
+					*i=lfch;
+					++i;
+				}
+				write(out,buffer,i);
+			}
 		}
 	}
 	else if constexpr(dynamic_reserve_printable<char_type,value_type>)
