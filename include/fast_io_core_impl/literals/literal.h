@@ -7,7 +7,7 @@ template<std::integral ch_type>
 #if __has_cpp_attribute(gnu::always_inline)
 [[gnu::always_inline]]
 #elif __has_cpp_attribute(msvc::forceinline)
-[[gnu::forceinline]]
+[[msvc::forceinline]]
 #endif
 inline constexpr ch_type char_literal(char8_t ch) noexcept
 {
