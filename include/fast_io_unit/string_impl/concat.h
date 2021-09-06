@@ -16,7 +16,7 @@ inline constexpr ptr_type print_reserve_define_chain_impl(ptr_type p,T t,Args ..
 		p=print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,p,t);
 		if constexpr(line)
 		{
-			*p=sign_ch<u8'\n',char_type>;
+			*p=char_literal_v<u8'\n',char_type>;
 			++p;
 		}
 		return p;
@@ -68,7 +68,7 @@ inline constexpr ptr_type print_reserve_define_chain_scatter_impl(ptr_type p,T t
 	{
 		if constexpr(line)
 		{
-			*p=sign_ch<u8'\n',char_type>;
+			*p=char_literal_v<u8'\n',char_type>;
 			++p;
 		}
 		return p;
@@ -91,7 +91,7 @@ inline constexpr T basic_concat_decay_impl(Args ...args)
 	{
 		if constexpr(line)
 		{
-			return T(1,sign_ch<u8'\n',ch_type>);
+			return T(1,char_literal_v<u8'\n',ch_type>);
 		}
 		else
 		{
