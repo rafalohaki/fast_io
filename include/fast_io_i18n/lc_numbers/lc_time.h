@@ -137,6 +137,13 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 			return value;
 		if((++p)==end_it)
 			return value+1;
+		bool omit{*p==char_literal_v<u8'-', char_type>};
+		if(omit)
+		{
+			++value;
+			if((++p)==end_it)
+				return value+1;
+		}
 		switch(*p)
 		{
 		case char_literal_v<u8'%', char_type>:
@@ -417,6 +424,16 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 			++iter;
 			return iter;
 		}
+		bool omit{*p==char_literal_v<u8'-', char_type>};
+		if(omit)
+		{
+			if((++p)==end_it)
+			{
+				*iter=char_literal_v<u8'-', char_type>;
+				++iter;
+				return iter;
+			}
+		}
 		char_type const first_format_ch{*p};
 		switch(first_format_ch)
 		{
@@ -461,7 +478,10 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 		}
 		case char_literal_v<u8'd', char_type>:
 		{
-			iter = chrono_two_digits_impl<false>(iter, tsp.day);
+			if(omit)
+				iter = print_reserve_integral_define<10>(iter, tsp.day);
+			else
+				iter = chrono_two_digits_impl<false>(iter, tsp.day);
 			break;
 		}
 		case char_literal_v<u8'D', char_type>:
@@ -483,7 +503,12 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 		case char_literal_v<u8'E', char_type>:
 		{
 			if((++p)==end_it)[[unlikely]]
-				return non_overlapped_copy_n(end_it-2,2,iter);
+			{
+				if(omit)
+					return non_overlapped_copy_n(end_it-3,3,iter);
+				else
+					return non_overlapped_copy_n(end_it-2,2,iter);
+			}
 			switch(*p)
 			{
 			case char_literal_v<u8'c', char_type>:
@@ -517,7 +542,12 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 							std::int_least64_t real_era_year_offset{era_result->start_date_year-era_result->offset};
 							std::int_least64_t era_year;
 							if(::fast_io::details::intrinsics::sub_underflow(tsp.year,real_era_year_offset,era_year))[[unlikely]]
-								iter=non_overlapped_copy_n(p-3,3,iter);
+							{
+								if(omit)
+									iter=non_overlapped_copy_n(p-4,4,iter);
+								else
+									iter=non_overlapped_copy_n(p-3,3,iter);
+							}
 							else
 								iter=print_reserve_integral_define<10>(iter,era_year);
 						}
@@ -543,7 +573,11 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 				break;
 			}
 			default:
+			{
+				if(omit)
+					--p;
 				return non_overlapped_copy(p-2,end_it,iter);
+			}
 			}
 			break;
 		}
@@ -590,7 +624,10 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 		}
 		case char_literal_v<u8'm', char_type>:
 		{
-			iter = chrono_two_digits_impl<false>(iter, tsp.month);
+			if(omit)
+				iter = print_reserve_integral_define<10>(iter, tsp.month);
+			else
+				iter = chrono_two_digits_impl<false>(iter, tsp.month);
 			break;
 		}
 		case char_literal_v<u8'M', char_type>:
@@ -607,7 +644,12 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 		case char_literal_v<u8'O', char_type>:
 		{
 			if((++p)==end_it)[[unlikely]]
-				return non_overlapped_copy_n(end_it-2,2,iter);
+			{
+				if(omit)
+					return non_overlapped_copy_n(end_it-3,3,iter);
+				else
+					return non_overlapped_copy_n(end_it-2,2,iter);
+			}
 			std::uint_least8_t altvalue{};
 
 			switch(*p)
@@ -670,7 +712,11 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 			}
 #endif
 			default:
+			{
+				if(omit)
+					--p;
 				return non_overlapped_copy(p-2,end_it,iter);
+			}
 			}
 			iter=lc_format_alt_digits_print(t.alt_digits,altvalue,iter);
 			break;
@@ -740,6 +786,8 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 		}
 		default:
 		{
+			if(omit)
+				--p;
 			return non_overlapped_copy(p-1,end_it,iter);
 		}
 		}
