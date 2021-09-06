@@ -339,11 +339,11 @@ inline constexpr std::size_t add_or_overflow_die_chain(std::size_t size,Args... 
 
 inline constexpr std::size_t mul_or_overflow_die(std::size_t a,std::size_t b) noexcept
 {
-#if defined(_MSC_VER)
-    std::size_t const max{SIZE_MAX/b};
-		if(max<a)[[unlikely]]
-			__debugbreak();
-		return a*b;
+#if defined(_MSC_VER) && !defined(__clang__)
+	std::size_t const max{SIZE_MAX/b};
+	if(max<a)[[unlikely]]
+		__debugbreak();
+	return a*b;
 #elif __has_builtin(__builtin_mul_overflow)&& __has_builtin(__builtin_trap)
 	std::size_t size;
 	if(__builtin_mul_overflow(a,b,__builtin_addressof(size)))[[unlikely]]
@@ -354,6 +354,39 @@ inline constexpr std::size_t mul_or_overflow_die(std::size_t a,std::size_t b) no
 	if(size<a)[[unlikely]]
 		fast_terminate();
 	return size;
+#endif
+}
+
+template<std::signed_integral int_type>
+#if __has_cpp_attribute(gnu::always_inline)
+[[gnu::always_inline]]
+#elif __has_cpp_attribute(msvc::forceinline)
+[[msvc::forceinline]]
+#endif
+inline constexpr bool sub_underflow_naive(int_type a,int_type b,int_type& c) noexcept
+{
+	int_type int_type_min{std::numeric_limits<int_type>::min()},
+			int_type_max{std::numeric_limits<int_type>::max()};
+	int_type zero{};
+	if(zero<b)
+		int_type_min+=b;
+	else
+		int_type_max+=b;
+	if(a<int_type_min || a>int_type_max)
+		return true;
+	c=a-b;
+	return false;
+}
+
+template<std::signed_integral int_type>
+inline constexpr bool sub_underflow(int_type a,int_type b,int_type& c) noexcept
+{
+#if defined(_MSC_VER) && !defined(__clang__)
+	return sub_underflow_naive(a,b,c);
+#elif __has_builtin(__builtin_sub_underflow)
+	return __builtin_sub_underflow(a,b,__builtin_addressof(c));
+#else
+	return sub_underflow_naive(a,b,c);
 #endif
 }
 

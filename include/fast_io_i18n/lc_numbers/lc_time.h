@@ -9,6 +9,19 @@ namespace details
 https://www.ibm.com/docs/en/aix/7.1?topic=ff-lc-time-category-locale-definition-source-file-format
 */
 
+inline constexpr std::uint_least16_t month_accum[]{ 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
+
+inline constexpr std::uint_least16_t day_of_the_year(iso8601_timestamp const& tsp) noexcept
+{
+	std::uint_least8_t month_minus_1 = static_cast<std::uint_least8_t>(tsp.month - 1u);
+	if (month_minus_1 >= 12u) return 0;
+	std::uint_least16_t value{ static_cast<uint_least16_t>(month_accum[month_minus_1] + static_cast<uint_least16_t>(tsp.day))};
+	std::int_least64_t year{tsp.year};
+	if (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0))
+		++value;
+	return value;
+}
+
 template<std::integral char_type>
 inline constexpr std::size_t lc_format_alt_digits_len(basic_io_scatter_t<basic_io_scatter_t<char_type>> const& alt_digits,std::uint_least8_t value) noexcept
 {
@@ -113,6 +126,7 @@ template<std::integral char_type>
 inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic_lc_time<char_type> const& t, iso8601_timestamp const& tsp, basic_io_scatter_t<char_type> const& format_str) noexcept
 {
 	constexpr std::size_t uint_least8_reserve_size{ print_reserve_size(io_reserve_type<char_type, std::uint_least8_t>) };
+	constexpr std::size_t uint_least16_reserve_size{ print_reserve_size(io_reserve_type<char_type, std::uint_least16_t>) };
 	constexpr std::size_t int_least64_reserve_size{ print_reserve_size(io_reserve_type<char_type, std::int_least64_t>) };
 	std::size_t value{};
 	for (char_type const* i{format_str.base},*end_it{i+format_str.len};i!=end_it;++i)
@@ -161,7 +175,7 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 			break;
 		}
 		case char_literal_v<u8'C', char_type>:
-		case char_literal_v<u8'o', char_type>:
+		case char_literal_v<u8'y', char_type>:
 		case char_literal_v<u8'Y', char_type>:
 		{
 			value += int_least64_reserve_size;
@@ -177,6 +191,11 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 		case char_literal_v<u8'W', char_type>:
 		{
 			value+=uint_least8_reserve_size;
+			break;
+		}
+		case char_literal_v<u8'j', char_type>:
+		{
+			value += uint_least16_reserve_size;
 			break;
 		}
 		case char_literal_v<u8'D', char_type>:
@@ -232,11 +251,6 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 				{
 					switch(*p)
 					{
-						case char_literal_v<u8'Y', char_type>:
-						{
-							value += int_least64_reserve_size;
-							[[fallthrough]];
-						}
 						case char_literal_v<u8'C', char_type>:
 						{
 							value += era_result->era_name.len;
@@ -247,15 +261,16 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 							value += int_least64_reserve_size;
 							break;
 						}
-						
+						default:
+						{
+							value += lc_print_reserve_size_time_format_common_impl(t,tsp,era_result->era_format);
+							break;
+						}
 					}
 				}
 				else
 				{
-					if(*p==char_literal_v<u8'y', char_type>)
-						value += 2;
-					else
-						value += int_least64_reserve_size;
+					value += int_least64_reserve_size;
 				}
 				break;
 			}
@@ -319,11 +334,6 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 			value += lc_format_alt_digits_len(t.alt_digits,altvalue);
 			break;
 		}
-		case char_literal_v<u8'j', char_type>:
-		{
-			value += uint_least8_reserve_size;
-			break;
-		}
 		case char_literal_v<u8'N', char_type>:
 		{
 			value += 20u;//20 Represents the alternate era name.??? to fix
@@ -344,10 +354,6 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 			constexpr std::size_t uint_least8_reserve_size_result{ 2 + 3 * uint_least8_reserve_size };
 			value += uint_least8_reserve_size_result;
 			break;
-		}
-		case char_literal_v<u8'y', char_type>:
-		{
-			value += 2;
 		}
 		case char_literal_v<u8'z',char_type>:
 		case char_literal_v<u8'Z',char_type>:
@@ -388,7 +394,7 @@ inline constexpr Iter lc_print_month_fmt_common(basic_io_scatter_t<char_type> co
 	std::uint_least8_t monthm1{month};
 	--monthm1;
 	if(monthm1 < constant) [[likely]]
-		return copy_scatter(month_array[month - 1], iter);
+		return copy_scatter(month_array[monthm1], iter);
 	else
 		return print_reserve_integral_define<10>(iter, month);
 }
@@ -397,7 +403,6 @@ template<::fast_io::freestanding::random_access_iterator Iter,std::integral char
 requires std::same_as<::fast_io::freestanding::iter_value_t<Iter>,char_type>
 inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time<char_type> const& t,Iter iter,iso8601_timestamp const& tsp,basic_io_scatter_t<char_type> const& format_str)
 {
-	std::size_t value{};
 	for (char_type const* i{format_str.base},*end_it{i+format_str.len};i!=end_it;++i)
 	{
 		char_type const* p{::fast_io::freestanding::find(i,end_it,char_literal_v<u8'%', char_type>)};
@@ -491,31 +496,38 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 				auto era_scatter_start{t.era.base};
 				auto era_scatter_end{era_scatter_start+t.era.len};
 				auto era_result{lc_time_find_era_impl(era_scatter_start,era_scatter_end,tsp.year,{tsp.month,tsp.day})};
-#if 0
 				if(era_result!=era_scatter_end)[[likely]]
 				{
 					switch(*p)
 					{
 						case char_literal_v<u8'Y', char_type>:
 						{
-							value += int_least64_reserve_size;
-							[[fallthrough]]
+							iter = lc_print_reserve_define_time_fmt_common_impl(t,iter,tsp,era_result->era_format);
+							break;
 						}
 						case char_literal_v<u8'C', char_type>:
 						{
-							value += era_result->era_name.len;
+							iter = copy_scatter(era_result->era_name,iter);
 							break;
 						}
-						case char_literal_v<u8'y', char_type>:
+						default:
 						{
-							value += int_least64_reserve_size;
-							break;
+							std::int_least64_t real_era_year_offset{era_result->start_date_year-era_result->offset};
+							std::int_least64_t era_year;
+							if(::fast_io::details::intrinsics::sub_underflow(tsp.year,real_era_year_offset,era_year))[[unlikely]]
+								iter=non_overlapped_copy_n(p-3,3,iter);
+							else
+								iter=print_reserve_integral_define<10>(iter,era_year);
 						}
-						
 					}
 				}
-//To fix
-#endif
+				else
+				{
+					if(*p==char_literal_v<u8'C', char_type>)
+						iter = print_reserve_integral_define<10>(iter, tsp.year / 100);
+					else
+						iter = chrono_year_impl(iter, tsp.year);
+				}
 				break;
 			}
 			case char_literal_v<u8'x', char_type>:
@@ -567,6 +579,11 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 			else
 				iter = chrono_two_digits_impl<false>(iter, hours);
 			break;	
+		}
+		case char_literal_v<u8'j', char_type>:
+		{
+			iter = chrono_two_digits_impl<false>(iter, day_of_the_year(tsp));
+			break;
 		}
 		case char_literal_v<u8'm', char_type>:
 		{

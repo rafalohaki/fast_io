@@ -965,11 +965,15 @@ inline constexpr std::size_t chars_len_3_sep(U value) noexcept
 template<my_integral T>
 inline constexpr my_make_unsigned_t<T> cal_int_max() noexcept
 {
+#if defined(_MSC_VER) && !defined(__clang__)
+	return static_cast<my_make_unsigned_t<T>>(std::numeric_limits<T>::max());
+#else
 	my_make_unsigned_t<T> n{};
 	--n;
 	if constexpr(my_signed_integral<T>)
 		n>>=1;
 	return n;
+#endif
 }
 template<my_integral T>
 inline constexpr T get_int_max() noexcept
