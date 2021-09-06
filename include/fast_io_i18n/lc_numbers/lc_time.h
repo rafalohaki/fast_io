@@ -189,6 +189,8 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 		case char_literal_v<u8'S', char_type>:
 		case char_literal_v<u8'U', char_type>:
 		case char_literal_v<u8'W', char_type>:
+		case char_literal_v<u8'l', char_type>:
+		case char_literal_v<u8'I', char_type>:
 		{
 			value+=uint_least8_reserve_size;
 			break;
@@ -569,15 +571,14 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 			iter = chrono_two_digits_impl<false>(iter, tsp.hours);
 			break;
 		}
+		case char_literal_v<u8'l', char_type>:
 		case char_literal_v<u8'I', char_type>:
 		{
 			std::uint_least8_t hours = tsp.hours;
 			if (hours == 0u)
 				iter = lc_copy_12_impl(iter);
-			else if (static_cast<std::uint_least8_t>(hours - static_cast<std::uint_least8_t>(12u)<=static_cast<std::uint_least8_t>(12u)))[[likely]]
-				iter = chrono_two_digits_impl<true>(iter, static_cast<std::uint_least8_t>(hours - static_cast<std::uint_least8_t>(12u)));
-			else
-				iter = chrono_two_digits_impl<false>(iter, hours);
+			else if (hours <= 12u)[[likely]]
+				iter = chrono_two_digits_impl<false>(iter, static_cast<std::uint_least8_t>(hours - static_cast<std::uint_least8_t>(12u)));
 			break;	
 		}
 		case char_literal_v<u8'j', char_type>:
