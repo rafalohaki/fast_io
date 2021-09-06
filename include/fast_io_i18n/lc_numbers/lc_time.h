@@ -578,7 +578,9 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 			if (hours == 0u)
 				iter = lc_copy_12_impl(iter);
 			else if (hours <= 12u)[[likely]]
-				iter = chrono_two_digits_impl<false>(iter, static_cast<std::uint_least8_t>(hours - static_cast<std::uint_least8_t>(12u)));
+				iter = chrono_two_digits_impl<false>(iter, hours);
+			else if (hours <= 24u)[[likely]]
+				iter = chrono_two_digits_impl<false>(iter, static_cast<std::uint_least8_t>(hours-12u));
 			break;	
 		}
 		case char_literal_v<u8'j', char_type>:
@@ -816,11 +818,26 @@ inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* a
 	else if constexpr(current_lc_time_flag==manipulators::lc_time_flag::date_fmt)
 		return details::lc_print_reserve_size_time_format_common_impl(all->time, tsp.reference, all->time.date_fmt);
 	else if constexpr(current_lc_time_flag==manipulators::lc_time_flag::era_d_t_fmt)
-		return details::lc_print_reserve_size_time_format_common_impl(all->time, tsp.reference, all->time.era_d_t_fmt);
+	{
+		auto* e{__builtin_addressof(all->time.era_d_t_fmt)};
+		if(e->len==0)
+			e=__builtin_addressof(all->time.d_t_fmt);
+		return details::lc_print_reserve_size_time_format_common_impl(all->time, tsp.reference, *e);
+	}
 	else if constexpr(current_lc_time_flag==manipulators::lc_time_flag::era_d_fmt)
-		return details::lc_print_reserve_size_time_format_common_impl(all->time, tsp.reference, all->time.era_d_fmt);
+	{
+		auto* e{__builtin_addressof(all->time.era_d_fmt)};
+		if(e->len==0)
+			e=__builtin_addressof(all->time.d_fmt);
+		return details::lc_print_reserve_size_time_format_common_impl(all->time, tsp.reference, *e);
+	}
 	else if constexpr(current_lc_time_flag==manipulators::lc_time_flag::era_t_fmt)
-		return details::lc_print_reserve_size_time_format_common_impl(all->time, tsp.reference, all->time.era_t_fmt);
+	{
+		auto* e{__builtin_addressof(all->time.era_t_fmt)};
+		if(e->len==0)
+			e=__builtin_addressof(all->time.t_fmt);
+		return details::lc_print_reserve_size_time_format_common_impl(all->time, tsp.reference, *e);
+	}
 }
 
 template<::fast_io::manipulators::scalar_flags flags,::fast_io::freestanding::random_access_iterator Iter>
@@ -841,11 +858,26 @@ inline constexpr Iter print_reserve_define(basic_lc_all<::fast_io::freestanding:
 	else if constexpr(current_lc_time_flag==manipulators::lc_time_flag::date_fmt)
 		return details::lc_print_reserve_define_time_fmt_common_impl(all->time,iter,tsp.reference,all->time.date_fmt);
 	else if constexpr(current_lc_time_flag==manipulators::lc_time_flag::era_d_t_fmt)
-		return details::lc_print_reserve_define_time_fmt_common_impl(all->time,iter,tsp.reference,all->time.era_d_t_fmt);
+	{
+		auto* e{__builtin_addressof(all->time.era_d_t_fmt)};
+		if(e->len==0)
+			e=__builtin_addressof(all->time.d_t_fmt);
+		return details::lc_print_reserve_define_time_fmt_common_impl(all->time,iter,tsp.reference,*e);
+	}
 	else if constexpr(current_lc_time_flag==manipulators::lc_time_flag::era_d_fmt)
-		return details::lc_print_reserve_define_time_fmt_common_impl(all->time,iter,tsp.reference,all->time.era_d_fmt);
+	{
+		auto* e{__builtin_addressof(all->time.era_d_fmt)};
+		if(e->len==0)
+			e=__builtin_addressof(all->time.d_fmt);
+		return details::lc_print_reserve_define_time_fmt_common_impl(all->time,iter,tsp.reference,*e);
+	}
 	else if constexpr(current_lc_time_flag==manipulators::lc_time_flag::era_t_fmt)
-		return details::lc_print_reserve_define_time_fmt_common_impl(all->time,iter,tsp.reference,all->time.era_t_fmt);
+	{
+		auto* e{__builtin_addressof(all->time.era_t_fmt)};
+		if(e->len==0)
+			e=__builtin_addressof(all->time.t_fmt);
+		return details::lc_print_reserve_define_time_fmt_common_impl(all->time,iter,tsp.reference,*e);
+	}	
 }
 
 }
