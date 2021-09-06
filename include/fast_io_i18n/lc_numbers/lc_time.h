@@ -198,6 +198,7 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 		case char_literal_v<u8'W', char_type>:
 		case char_literal_v<u8'l', char_type>:
 		case char_literal_v<u8'I', char_type>:
+		case char_literal_v<u8'k', char_type>:
 		{
 			value+=uint_least8_reserve_size;
 			break;
@@ -277,10 +278,6 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 						}
 					}
 				}
-				else
-				{
-					value += int_least64_reserve_size;
-				}
 				break;
 			}
 			default:
@@ -356,6 +353,16 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 			else if(hours<24u)
 				value += t.am_pm[1].len;
 			//if hours >=24, ignore am pm
+			break;
+		}
+		case char_literal_v<u8'x', char_type>:
+		{
+			value += lc_print_reserve_size_time_format_common_impl(t, tsp, t.d_fmt);
+			break;
+		}
+		case char_literal_v<u8'X', char_type>:
+		{
+			value += lc_print_reserve_size_time_format_common_impl(t, tsp, t.t_fmt);
 			break;
 		}
 		case char_literal_v<u8'T', char_type>:
@@ -553,13 +560,6 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 						}
 					}
 				}
-				else
-				{
-					if(*p==char_literal_v<u8'C', char_type>)
-						iter = print_reserve_integral_define<10>(iter, tsp.year / 100);
-					else
-						iter = chrono_year_impl(iter, tsp.year);
-				}
 				break;
 			}
 			case char_literal_v<u8'x', char_type>:
@@ -600,6 +600,21 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 			break;
 		}
 #endif
+		case char_literal_v<u8'k', char_type>:
+		{
+			auto hours{tsp.hours};
+			if(!omit)
+			{
+				constexpr std::uint_least8_t ten{10u};
+				if(hours<ten)
+				{
+					*iter=u8'0';
+					++iter;
+				}
+			}
+			iter = print_reserve_integral_define<10>(iter, hours);
+			break;
+		}
 		case char_literal_v<u8'H', char_type>:
 		{
 			iter = chrono_two_digits_impl<false>(iter, tsp.hours);
@@ -772,6 +787,16 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 		case char_literal_v<u8'w', char_type>:
 		{
 			iter = lc_format_alt_digits_print(t.alt_digits,c_weekday(tsp),iter);
+			break;
+		}
+		case char_literal_v<u8'x', char_type>:
+		{
+			iter = lc_print_reserve_define_time_fmt_common_impl(t, iter, tsp, t.d_fmt);
+			break;
+		}
+		case char_literal_v<u8'X', char_type>:
+		{
+			iter = lc_print_reserve_define_time_fmt_common_impl(t, iter, tsp, t.t_fmt);
 			break;
 		}
 		case char_literal_v<u8'y', char_type>:case char_literal_v<u8'Y', char_type>:
