@@ -1,5 +1,7 @@
 #pragma once
-
+/*
+Unfinished. Do not use it.
+*/
 namespace fast_io
 {
 
