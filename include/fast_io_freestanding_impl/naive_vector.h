@@ -142,7 +142,7 @@ public:
 	requires std::constructible_from<T,Args...>
 	constexpr void emplace_back_unchecked(Args&& ...args)
 	{
-		::new (end_ptr) T(std::forward<Args>(args)...);
+		::new (end_ptr) T(::fast_io::freestanding::forward<Args>(args)...);
 		++end_ptr;
 	}
 	void grow_twice() noexcept
@@ -159,11 +159,11 @@ public:
 		auto newi{newptr};
 		for(auto oldi{beg_ptr};oldi!=end_ptr;++oldi)
 		{
-			::new (newi) T(std::move(*oldi));
+			::new (newi) T(::fast_io::freestanding::move(*oldi));
 			oldi->~T();
 			++newi;
 		}
-		deallocate_iobuf_space<false>(beg_ptr,cap_ptr-beg_ptr);
+		deallocate_iobuf_space<false>(beg_ptr,static_cast<std::size_t>(cap_ptr-beg_ptr));
 		beg_ptr=newptr;
 		end_ptr=newi;
 		cap_ptr=newptr+new_cap;
@@ -174,7 +174,7 @@ public:
 	{
 		if(end_ptr==cap_ptr)[[unlikely]]
 			grow_twice();
-		::new (end_ptr) T(std::forward<Args>(args)...);
+		::new (end_ptr) T(::fast_io::freestanding::forward<Args>(args)...);
 		++end_ptr;
 	}
 #if __cpp_constexpr_dynamic_alloc >= 201907L

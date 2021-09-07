@@ -37,7 +37,7 @@ inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,hash_fi
 {
 	return ::fast_io::details::crypto_hash_print_reserve_define_common_impl<false,false>(i.digest_block.data(),i.digest_block.data()+i.digest_block.size(),iter);
 }
-
+#if 0
 template<std::integral char_type,std::size_t N>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,::fast_io::manipulators::base_full_t<16,true,hash_final_result<N> const&>>) noexcept
 {
@@ -49,7 +49,7 @@ inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,::fast_
 {
 	return ::fast_io::details::crypto_hash_print_reserve_define_common_impl<true,false>(i.reference.digest_block.data(),i.reference.digest_block.data()+i.reference.digest_block.size(),iter);
 }
-
+#endif
 namespace details
 {
 
@@ -329,7 +329,7 @@ using sha384=basic_hash_context<char,hash_flag::sha384>;
 using sha512=basic_hash_context<char,hash_flag::sha512>;
 
 }
-
+#if 0
 namespace fast_io::manipulators
 {
 
@@ -346,3 +346,4 @@ inline constexpr parameter<::fast_io::ossl::hash_final_result<N> const&> lower(:
 }
 
 }
+#endif

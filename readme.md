@@ -28,8 +28,6 @@ int main()
 ```
 
 ## Examples
-https://github.com/expnkx/fast_io_examples
-
 Deprecated examples are in
 https://bitbucket.org/ejsvifq_mabmip/fast_io_deprecated
 
@@ -44,8 +42,9 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 ## Compiler Support
 - GCC 11 or GCC 12
 - VS 19.29.29917
-- Clang 13
+- Clang 14
 - Intel(R) oneAPI DPC++ Compiler 2021.2.0 (2021.2.0.20210317)
+- Winegcc
 
 ## C++ standard library support
 
@@ -62,6 +61,10 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - riscv64
 - powerpc64
 - wasm32-wasi
+- mips-abi32
+- mips-abin32
+- mips-abi64
+- avr
 - All architectures should work. (Just i do not have time to build all cross-toolchains to test them one by one)
 
 ## Platform Support
@@ -77,10 +80,17 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - Cygwin/MSYS2
 - Android
 - Wine
+- Wine GCC
 - ReactOS
 - Windows Runtime
 - Nintendo DS (devkitPro)
 - Webassembly
+- Managarm
+- Vinix
+- limine Bootloader
+- AVR
+- Banana
+- LemonOS
 - Any other platform (if you want me to support it, tell me, including your own OS)
 
 ## Legacy Windows Version Support (need define _WIN32_WINNT and _WIN32_WINDOWS version by yourself)
@@ -143,7 +153,8 @@ Also need to install msvcrt.dll
 - uclibc-ng
 - wasi libc
 - mlibc (this is a new libc which still contains a lot of bugs currently)
-- Todo list: avr-libc ??
+- avrlibc
+- picolibc
 
 ## Supported C++ standard library std::streambuf/std::filebuf hacks platforms
 - GCC libstdc++
@@ -161,6 +172,7 @@ A general purpose I/O library to replace stdio.h and iostream
 - As close to system call as possible.
 - No default locale. It is optional.
 - Correctly deal with EBCDIC exec-charset (where no libc correctly deals it).
+- OOP is not allowed. Yes to C with Concepts. No to C with Classes.
 
 ### Safe
 
@@ -230,11 +242,11 @@ Please see examples in the examples folder.
 
 compile option:
     
-`g++ -o example example.cc -Ofast -std=c++20 -s`
+`g++ -o example example.cc -Ofast -std=c++20 -s -flto -march=native`
 
 ## Documentation
 
-See Wiki Page: https://github.com/expnkx/fast_io/wiki
+See Wiki Page: https://gitee.com/qabeowjbtkwb/fast_io/wikis
 
 ## Benchmarks
 

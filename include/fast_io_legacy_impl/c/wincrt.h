@@ -87,14 +87,14 @@ inline constexpr void wincrt_fp_set_flag_mybuf_impl(fileptr* __restrict fp) noex
 template<typename fileptr>
 inline constexpr bool wincrt_fp_is_dirty_impl(fileptr* __restrict fp) noexcept
 {
-	constexpr unsigned int mask{
+	constexpr unsigned mask{
 #if defined(_MSC_VER) || defined(_UCRT)
 	64
 #else
 	8
 #endif
 	};
-	return (fp->_flag&mask)==mask;
+	return (static_cast<unsigned>(fp->_flag)&mask)==mask;
 }
 
 inline void* my_malloc_crt(std::size_t buffer_size) noexcept
@@ -125,7 +125,7 @@ _CLIENT_BLOCK An application can keep special track of a given group of allocati
 https://github.com/mirror/mingw-w64/blob/master/mingw-w64-headers/crt/crtdbg.h
 CRT heap debugging does not exist on mingw-w64
 */
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(__has_builtin)
 #if __has_builtin(__builtin_malloc)
 	__builtin_malloc(buffer_size)
 #else
@@ -177,7 +177,7 @@ inline void wincrt_fp_write_cold_malloc_case_impl(FILE* __restrict fpp,char cons
 	std::size_t allocated_buffer_size{wincrt_internal_buffer_size};
 	if(fp->_bufsiz>=4)
 	{
-		allocated_buffer_size=fp->_bufsiz;
+		allocated_buffer_size=static_cast<std::size_t>(static_cast<unsigned>(fp->_bufsiz));
 		allocated_buffer_size>>=2;
 		allocated_buffer_size<<=2;
 	}
@@ -243,7 +243,7 @@ inline void wincrt_fp_write_impl(FILE* __restrict fpp,char_type const* first,cha
 	{
 		c_io_observer ciob{fpp};
 		lock_guard guard{ciob};
-		wincrt_fp_write_impl(fpp,first,last);
+		wincrt_fp_write_impl<c_family::unlocked,char_type>(fpp,first,last);
 	}
 	else
 	{
@@ -285,11 +285,11 @@ inline void wincrt_fp_overflow_impl(FILE* __restrict fpp,char_type ch)
 	if(fp->_base==nullptr)
 		wincrt_fp_allocate_buffer_impl(fpp);
 	else
-		posix_write_simple_impl(static_cast<int>(fp->_file),fp->_base,fp->_bufsiz);
+		posix_write_simple_impl(static_cast<int>(fp->_file),fp->_base,static_cast<std::size_t>(static_cast<unsigned>(fp->_bufsiz)));
 	fp->_ptr=fp->_base;
-	my_memcpy(fp->_ptr,&ch,sizeof(ch));
+	my_memcpy(fp->_ptr,__builtin_addressof(ch),sizeof(ch));
 	fp->_ptr+=sizeof(ch);
-	fp->_cnt=static_cast<int>(static_cast<unsigned int>(fp->_bufsiz-sizeof(ch)));
+	fp->_cnt=static_cast<int>(static_cast<unsigned int>(fp->_bufsiz-static_cast<int>(sizeof(ch))));
 	wincrt_fp_set_flag_dirty_impl(fp);
 }
 
@@ -363,7 +363,7 @@ inline char_type* wincrt_fp_read_impl(FILE* __restrict fpp,char_type* first,char
 	{
 		c_io_observer ciob{fpp};
 		lock_guard guard{ciob};
-		return wincrt_fp_read_impl(fpp,first,last);
+		return wincrt_fp_read_impl<c_family::unlocked,char_type>(fpp,first,last);
 	}
 	else
 	{
@@ -378,7 +378,7 @@ inline char_type* wincrt_fp_read_impl(FILE* __restrict fpp,char_type* first,char
 	{
 		if(diff)[[likely]]
 		{
-			my_memcpy(first,diff,fp->_ptr);
+			my_memcpy(first,fp->_ptr,diff);
 			auto intdiff{static_cast<int>(static_cast<unsigned int>(diff))};
 			fp->_cnt-=intdiff;
 			fp->_ptr+=intdiff;
@@ -404,7 +404,7 @@ inline bool wincrt_fp_underflow_impl(FILE* __restrict fpp)
 #endif
 	if(fp->_base==nullptr)
 		wincrt_fp_allocate_buffer_impl(fpp);
-	std::size_t size{posix_read_impl(static_cast<int>(fp->_file),fp->_base,fp->_bufsiz)};
+	std::size_t size{posix_read_impl(static_cast<int>(fp->_file),fp->_base,static_cast<std::size_t>(static_cast<unsigned>(fp->_bufsiz)))};
 	fp->_ptr=fp->_base;
 	fp->_cnt=static_cast<int>(static_cast<unsigned int>(size));
 	if constexpr(sizeof(char_type)==1)
@@ -556,6 +556,98 @@ inline void write(basic_c_family_io_observer<family,char_type> ciob,Iter bg,Iter
 				reinterpret_cast<char_type*>(::fast_io::freestanding::to_address(ed)));
 	else
 		details::wincrt_fp_write_impl<family>(ciob.fp,bg,ed);
+}
+
+namespace win32
+{
+#if defined(__GNUC__) || defined(__clang__)
+#if __has_cpp_attribute(gnu::const)
+[[gnu::const]]
+#endif
+#endif
+inline FILE* wincrt_acrt_iob_func(unsigned index) noexcept
+{
+#if defined(_MSC_VER) || defined(_UCRT)
+	return noexcept_call(__acrt_iob_func,index);
+#else
+	return ::fast_io::win32::wincrt_iob_func()+index;
+#endif
+}
+}
+
+inline c_io_observer c_stdin() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(0)};
+}
+
+inline c_io_observer c_stdout() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(1)};
+}
+
+inline c_io_observer c_stderr() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(2)};
+}
+
+inline wc_io_observer wc_stdin() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(0)};
+}
+
+inline wc_io_observer wc_stdout() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(1)};
+}
+
+inline wc_io_observer wc_stderr() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(2)};
+}
+
+inline u8c_io_observer u8c_stdin() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(0)};
+}
+
+inline u8c_io_observer u8c_stdout() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(1)};
+}
+
+inline u8c_io_observer u8c_stderr() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(2)};
+}
+
+inline u16c_io_observer u16c_stdin() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(0)};
+}
+
+inline u16c_io_observer u16c_stdout() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(1)};
+}
+
+inline u16c_io_observer u16c_stderr() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(2)};
+}
+
+inline u32c_io_observer u32c_stdin() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(0)};
+}
+
+inline u32c_io_observer u32c_stdout() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(1)};
+}
+
+inline u32c_io_observer u32c_stderr() noexcept
+{
+	return {::fast_io::win32::wincrt_acrt_iob_func(2)};
 }
 
 }

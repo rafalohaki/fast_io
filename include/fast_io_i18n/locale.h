@@ -1,9 +1,9 @@
-#pragma once
+﻿#pragma once
 
 #include"lc.h"
 #include"lc_print.h"
 
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__WINE__) || defined(__CYGWIN__)
 #include <dlfcn.h>
 #endif
 
@@ -11,7 +11,7 @@ namespace fast_io
 {
 
 
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__WINE__) || defined(__CYGWIN__)
 
 class posix_dl_error:public std::exception
 {
@@ -39,14 +39,14 @@ namespace details
 
 inline void load_lc_locale(void* dll_handle,lc_locale& loc)
 {
-#ifdef _WIN32
-	auto func(bit_cast<void (*)(lc_locale*) noexcept >(fast_io::win32::GetProcAddress(dll_handle,"export_locale_data")));
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__WINE__)
+	auto func(bit_cast<void (*)(lc_locale*) noexcept >(fast_io::win32::GetProcAddress(dll_handle,reinterpret_cast<char const*>(u8"export_v0"))));
 #else
-	auto func(bit_cast<void (*)(lc_locale*) noexcept >(dlsym(dll_handle,"export_locale_data")));
+	auto func(bit_cast<void (*)(lc_locale*) noexcept >(dlsym(dll_handle,reinterpret_cast<char const*>(u8"export_v0"))));
 #endif
 
 	if(func==nullptr)
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__WINE__)
 		throw_win32_error();
 #else
 		throw_posix_dl_error();
@@ -56,13 +56,13 @@ inline void load_lc_locale(void* dll_handle,lc_locale& loc)
 
 template<std::integral T>
 requires (std::same_as<T,char>
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__WINE__)
 ||std::same_as<T,wchar_t>
 #endif
 )
 inline void* load_library_general(T const* loc_file_path) noexcept
 {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__WINE__)
 	if constexpr(std::same_as<T,wchar_t>)
 		return fast_io::win32::LoadLibraryW(loc_file_path);
 	else
@@ -74,7 +74,7 @@ inline void* load_library_general(T const* loc_file_path) noexcept
 
 template<typename T>
 requires (std::same_as<T,char>
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__WINE__)
 ||std::same_as<T,wchar_t>
 #endif
 )
@@ -82,7 +82,7 @@ inline void* load_dll(T const* loc_file_path,lc_locale& loc)
 {
 	native_dll_file ptr{load_library_general(loc_file_path)};
 	if(!ptr)
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__WINE__)
 		throw_win32_error();
 #else
 		throw_posix_dl_error();
@@ -122,69 +122,71 @@ inline constexpr bool compile_time_compare(char_type1 const (&a)[n1],char_type2 
 	return true;
 }
 
-template<std::integral char_type>
-requires (std::same_as<char_type,char>||(std::same_as<char_type,wchar_t>&&(sizeof(wchar_t)==sizeof(char16_t))))
-inline constexpr auto exec_encoding_dll_array() noexcept
+template<std::integral char_type,std::size_t n>
+inline constexpr ::fast_io::freestanding::array<char_type,n> create_l10n_string_literal(char8_t const (&arr)[n]) noexcept
 {
-	if constexpr(std::same_as<wchar_t,char_type>)
-	{
-		if constexpr('A'!=u8'A')
-			return ::fast_io::freestanding::array<char16_t,13>{u".IBM12712.so"};
-		else if constexpr(compile_time_compare("我",u8"我"))
-			return ::fast_io::freestanding::array<char16_t,10>{u".UTF-8.so"};
-		else
-			return ::fast_io::freestanding::array<char16_t,12>{u".GB18030.so"};
-
-	}
-	else
-	{
-		if constexpr('A'!=u8'A')
-			return ::fast_io::freestanding::array<char8_t,13>{u8".IBM12712.so"};
-		else if constexpr(compile_time_compare("我",u8"我"))
-			return ::fast_io::freestanding::array<char8_t,10>{u8".UTF-8.so"};
-		else
-			return ::fast_io::freestanding::array<char8_t,12>{u8".GB18030.so"};
-	}
+	::fast_io::freestanding::array<char_type,n> v;
+	for(std::size_t i{};i!=n;++i)
+		v[i]=static_cast<char_type>(arr[i]);
+	return v;
 }
 
 template<std::integral char_type>
 requires (std::same_as<char_type,char>||(std::same_as<char_type,wchar_t>&&(sizeof(wchar_t)==sizeof(char16_t))))
-inline constexpr auto exec_dll_array() noexcept
+inline constexpr auto cal_exec_encoding_dll_array() noexcept
 {
 	if constexpr(std::same_as<wchar_t,char_type>)
-		return ::fast_io::freestanding::array<char16_t,4>{u".so"};
+	{
+		if constexpr(L'A'!=u8'A')
+			return create_l10n_string_literal<char_type>(u8".UTF-EBCDIC.so");
+		else if constexpr(compile_time_compare(L"我",u8"我"))
+			return create_l10n_string_literal<char_type>(u8".UTF-8.so");
+		else
+			return create_l10n_string_literal<char_type>(u8".GB18030.so");
+	}
 	else
-		return ::fast_io::freestanding::array<char8_t,4>{u8".so"};
+	{
+		if constexpr('A'!=u8'A')
+			return create_l10n_string_literal<char_type>(u8".UTF-EBCDIC.so");
+		else if constexpr(compile_time_compare("我",u8"我"))
+			return create_l10n_string_literal<char_type>(u8".UTF-8.so");
+		else
+			return create_l10n_string_literal<char_type>(u8".GB18030.so");
+	}
 }
 
 template<std::integral char_type>
+inline constexpr auto exec_encoding_dll_array{cal_exec_encoding_dll_array<char_type>()};
+
+template<std::integral char_type>
+inline constexpr auto exec_dll_array{create_l10n_string_literal<char_type>(u8".so")};
+
+template<std::integral char_type>
 requires (std::same_as<char_type,char>||(std::same_as<char_type,wchar_t>&&(sizeof(wchar_t)==sizeof(char16_t))))
-inline constexpr auto l10n_path_prefix_dll_array() noexcept
+inline constexpr auto cal_l10n_path_prefix_dll_array() noexcept
 {
-#ifdef _WIN32
-	if constexpr(std::same_as<wchar_t,char_type>)
-		return ::fast_io::freestanding::array<char16_t,26>{u"fast_io_i18n_data\\locale\\"};
-	else
-		return ::fast_io::freestanding::array<char8_t,26>{u8"fast_io_i18n_data\\locale\\"};
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__WINE__)
+	return create_l10n_string_literal<char_type>(u8"fast_io_i18n_data\\locale\\");
 #else
-	if constexpr(std::same_as<wchar_t,char_type>)
-		return ::fast_io::freestanding::array<char16_t,41>{u"/usr/local/lib/fast_io_i18n_data/locale/"};
-	else
-		return ::fast_io::freestanding::array<char8_t,41>{u8"/usr/local/lib/fast_io_i18n_data/locale/"};
+	return create_l10n_string_literal<char_type>(u8"/usr/local/lib/fast_io_i18n_data/locale/");
 #endif
 }
+
+template<std::integral char_type>
+inline constexpr auto l10n_path_prefix_dll_array{cal_l10n_path_prefix_dll_array<char_type>()};
+
 template<bool full=false,std::integral char_type>
 inline void sanitize_locale_name(::fast_io::freestanding::basic_string_view<char_type> locale_name)
 {
 	if(locale_name.empty())
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__WINE__)
 			throw_win32_error(0x00000057);
 #else
 			throw_posix_error(EINVAL);
 #endif
 	if((locale_name.front()==u8'.')|(locale_name.back()==u8'.'))
 	{
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__WINE__)
 			throw_win32_error(0x00000057);
 #else
 			throw_posix_error(EINVAL);
@@ -198,7 +200,7 @@ inline void sanitize_locale_name(::fast_io::freestanding::basic_string_view<char
 			if(e==u8'.')
 			{
 				if(happened)
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__WINE__)
 					throw_win32_error(0x00000057);
 #else
 					throw_posix_error(EINVAL);
@@ -206,7 +208,7 @@ inline void sanitize_locale_name(::fast_io::freestanding::basic_string_view<char
 				happened=true;
 			}
 			if((e==u8'\\')|(e==u8'/'))
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__WINE__)
 				throw_win32_error(0x00000057);
 #else
 				throw_posix_error(EINVAL);
@@ -218,7 +220,7 @@ inline void sanitize_locale_name(::fast_io::freestanding::basic_string_view<char
 		for(auto e : locale_name)
 		{
 			if((e==u8'\\')|(e==u8'/')|(e==u8'.'))
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__WINE__)
 			throw_win32_error(0x00000057);
 #else
 			throw_posix_error(EINVAL);
@@ -231,8 +233,8 @@ template<std::integral char_type>
 inline void* load_l10n_with_real_name_impl(lc_locale& loc,::fast_io::freestanding::basic_string_view<char_type> locale_name)
 {
 	sanitize_locale_name(locale_name);
-	constexpr auto prefix(l10n_path_prefix_dll_array<char_type>());
-	constexpr auto encoding{exec_encoding_dll_array<char_type>()};
+	constexpr auto& prefix(l10n_path_prefix_dll_array<char_type>);
+	constexpr auto& encoding{exec_encoding_dll_array<char_type>};
 	constexpr auto prefix_no_0_size{prefix.size()-1};
 	local_operator_new_array_ptr<char_type> arrptr(prefix_no_0_size+locale_name.size()+encoding.size());
 	::fast_io::details::my_memcpy(arrptr.get(),prefix.data(),prefix_no_0_size*sizeof(char_type));
@@ -246,9 +248,9 @@ inline void* load_l10n_with_real_name_impl(lc_locale& loc,::fast_io::freestandin
 {
 	sanitize_locale_name(locale_name);
 	sanitize_locale_name(encoding);
-	constexpr auto prefix(l10n_path_prefix_dll_array<char_type>());
+	constexpr auto& prefix(l10n_path_prefix_dll_array<char_type>);
 	constexpr auto prefix_no_0_size{prefix.size()-1};
-	constexpr auto dll_postfix{exec_dll_array<char_type>()};
+	constexpr auto& dll_postfix{exec_dll_array<char_type>};
 	local_operator_new_array_ptr<char_type> arrptr(prefix_no_0_size+locale_name.size()+1+encoding.size()+dll_postfix.size());
 	::fast_io::details::my_memcpy(arrptr.get(),prefix.data(),prefix_no_0_size*sizeof(char_type));
 	::fast_io::details::my_memcpy(arrptr.get()+prefix_no_0_size,locale_name.data(),locale_name.size()*sizeof(char_type));
@@ -263,9 +265,9 @@ template<std::integral char_type>
 inline void* load_l10n_with_full_name_impl(lc_locale& loc,::fast_io::freestanding::basic_string_view<char_type> locale_fullname)
 {
 	sanitize_locale_name<true>(locale_fullname);
-	constexpr auto prefix(l10n_path_prefix_dll_array<char_type>());
+	constexpr auto& prefix(l10n_path_prefix_dll_array<char_type>);
 	constexpr auto prefix_no_0_size{prefix.size()-1};
-	constexpr auto dll_postfix{exec_dll_array<char_type>()};
+	constexpr auto& dll_postfix{exec_dll_array<char_type>};
 	local_operator_new_array_ptr<char_type> arrptr(prefix_no_0_size+locale_fullname.size()+dll_postfix.size());
 	::fast_io::details::my_memcpy(arrptr.get(),prefix.data(),prefix_no_0_size*sizeof(char_type));
 	::fast_io::details::my_memcpy(arrptr.get()+prefix_no_0_size,locale_fullname.data(),locale_fullname.size()*sizeof(char_type));
@@ -273,12 +275,12 @@ inline void* load_l10n_with_full_name_impl(lc_locale& loc,::fast_io::freestandin
 	return load_dll(arrptr.get(),loc);
 }
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__WINE__)
 
 inline ::fast_io::freestanding::string_view get_win32_lang_env(::fast_io::freestanding::array<char,64>& buffer) noexcept
 {
 	::fast_io::freestanding::array<wchar_t,64> wbuffer;
-	std::size_t size(win32::GetUserDefaultLocaleName(wbuffer.data(),static_cast<int>(wbuffer.size())));
+	std::size_t size{static_cast<std::size_t>(static_cast<unsigned>(win32::GetUserDefaultLocaleName(wbuffer.data(),static_cast<int>(wbuffer.size()))))};
 	if(!size)
 		return reinterpret_cast<char const*>(u8"C");
 	--size;
@@ -460,7 +462,7 @@ inline ::fast_io::freestanding::string_view get_lc_all_or_lang_non_empty() noexc
 inline constexpr ::fast_io::freestanding::u8string_view exec_encoding_u8strvw() noexcept
 {
 	if constexpr('A'!=u8'A')
-		return u8"IBM12712";
+		return u8"UTF-EBCDIC";
 	else if constexpr(compile_time_compare("我",u8"我"))
 		return u8"UTF-8";
 	else
@@ -593,7 +595,7 @@ public:
 		dll_handle=details::deal_with_locale_fullname(loc,fullname);
 	}
 	constexpr l10n(l10n const&)=delete;
-	constexpr l10n(l10n&& other) noexcept : loc(std::move(other.loc)),dll_handle(other.dll_handle)
+	constexpr l10n(l10n&& other) noexcept : loc(::fast_io::freestanding::move(other.loc)),dll_handle(other.dll_handle)
 	{
 		dll_handle=nullptr;
 	}
@@ -604,11 +606,14 @@ public:
 	void close() noexcept
 	{
 		if(dll_handle)[[likely]]
-#ifdef _WIN32
+		{
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__WINE__)
 			fast_io::win32::FreeLibrary(dll_handle);
 #else
-			dlclose(dll_handle);
+			noexcept_call(::dlclose,dll_handle);
 #endif
+			dll_handle=nullptr;
+		}
 	}
 	l10n& operator=(l10n const&)=delete;
 	l10n& operator=(l10n&& other) noexcept
@@ -616,7 +621,7 @@ public:
 		if(__builtin_addressof(other)==this)
 			return *this;
 		close();
-		loc=std::move(other.loc);
+		loc=::fast_io::freestanding::move(other.loc);
 		dll_handle=other.dll_handle;
 		other.dll_handle=nullptr;
 		return *this;
@@ -627,10 +632,10 @@ public:
 	}
 };
 
-template<buffer_output_stream output>
-inline constexpr void print_define(output bos,l10n const& loc)
+template<std::integral char_type>
+inline constexpr ::fast_io::parameter<basic_lc_all<char_type> const&> status_io_print_forward(io_alias_type_t<char_type>,l10n const& ln) noexcept
 {
-	print_freestanding(bos,loc.loc);
+	return status_io_print_forward(io_alias_type<char_type>,ln.loc);
 }
 
 }

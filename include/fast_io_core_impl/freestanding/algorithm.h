@@ -132,7 +132,7 @@ inline constexpr ForwardIt remove(ForwardIt first, ForwardIt last, T value)
 		for(ForwardIt i = first; ++i != last; )
 			if (!(*i == value))
 			{
-				*first = std::move(*i);
+				*first = ::fast_io::freestanding::move(*i);
 				++first;
 			}
 	return first;

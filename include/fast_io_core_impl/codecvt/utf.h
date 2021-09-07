@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 namespace fast_io
 {
@@ -230,7 +230,7 @@ template<std::integral char_type>
 inline constexpr encoding_scheme execution_charset_encoding_scheme() noexcept
 {
 	using char_type_no_cvref_t = std::remove_cvref_t<char_type>;
-	if constexpr(details::exec_charset_is_ebcdic<char_type_no_cvref_t>())
+	if constexpr(::fast_io::details::is_ebcdic<char_type_no_cvref_t>)
 		return encoding_scheme::utf_ebcdic;
 	else
 	{
@@ -246,7 +246,7 @@ inline constexpr encoding_scheme execution_charset_encoding_scheme() noexcept
 #endif
 			return encoding_scheme::utf;
 		}
-		else if constexpr(std::same_as<char_type_no_cvref_t,wchar_t>&&sizeof(wchar_t)==1)
+		else if constexpr(std::same_as<char_type_no_cvref_t,wchar_t>&&sizeof(wchar_t)==sizeof(char))
 		{
 #if U'A'==L'A'
 			constexpr wchar_t arr[]{L"我"};
@@ -384,7 +384,7 @@ inline constexpr bool is_utf16_low_surrogate(char16_t uc) noexcept { return (uc 
 
 inline constexpr char32_t utf16_surrogate_to_utf32(char16_t high, char16_t low) noexcept
 { 
-	return (high << 10) + low - 0x35fdc00; 
+	return static_cast<char32_t>((static_cast<std::uint32_t>(high) << 10u) + low - 0x35fdc00u); 
 }
 
 #if (defined(_MSC_VER)&&defined(_M_AMD64)&&!defined(__clang__)) || (defined(__SSE__) && defined(__x86_64__))
@@ -400,7 +400,7 @@ inline code_cvt_result<T,U> convert_ascii_with_sse(T const* __restrict pSrc, U* 
 	{
 		x86_64_v16qi chunk;
 		__builtin_memcpy(__builtin_addressof(chunk),pSrc,m128i_size);
-		mask = __builtin_ia32_pmovmskb128(chunk);
+		mask = static_cast<std::uint32_t>(__builtin_ia32_pmovmskb128(chunk));
 		__builtin_memcpy(pDst,__builtin_addressof(chunk),m128i_size);
 	}
 	else if constexpr(sizeof(U)==2)
@@ -408,7 +408,7 @@ inline code_cvt_result<T,U> convert_ascii_with_sse(T const* __restrict pSrc, U* 
 		x86_64_v16qi const zero{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		x86_64_v16qi chunk;
 		__builtin_memcpy(__builtin_addressof(chunk),pSrc,m128i_size);
-		mask = __builtin_ia32_pmovmskb128(chunk);
+		mask = static_cast<std::uint32_t>(__builtin_ia32_pmovmskb128(chunk));
 #ifdef __clang__
 		x86_64_v16qi half{__builtin_shufflevector(chunk, zero, 0, 16+0, 1, 16+1, 2, 16+2, 3, 16+3, 4, 16+4, 5, 16+5, 6, 16+6, 7, 16+7)};
 #else
@@ -427,7 +427,7 @@ inline code_cvt_result<T,U> convert_ascii_with_sse(T const* __restrict pSrc, U* 
 		x86_64_v16qi const zero{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		x86_64_v16qi chunk;
 		__builtin_memcpy(__builtin_addressof(chunk),pSrc,m128i_size);
-		mask = __builtin_ia32_pmovmskb128(chunk);
+		mask = static_cast<std::uint32_t>(__builtin_ia32_pmovmskb128(chunk));
 #ifdef __clang__
 		x86_64_v16qi half_result{__builtin_shufflevector(chunk, zero, 0, 16+0, 1, 16+1, 2, 16+2, 3, 16+3, 4, 16+4, 5, 16+5, 6, 16+6, 7, 16+7)};
 #else
@@ -527,11 +527,11 @@ requires (sizeof(T)==1)
 inline constexpr advance_with_big_table_unchecked_result<T> advance_with_big_table_unchecked(T const* it) noexcept
 {
 	char8_t const* info{first_unit_info[static_cast<char8_t>(*it)]};
-	char32_t cdpt(*info);                                //- From it, get the initial code point value
+	char32_t cdpt{static_cast<char32_t>(*info)};                                //- From it, get the initial code point value
 	std::int32_t curr{info[1]};                                 //- From it, get the second state
 	for(++it;12<curr;)
 	{
-		char8_t const unit(*it);
+		char8_t const unit{static_cast<char8_t>(*it)};
 		++it;                                 //- Cache the current code unit
 		cdpt = (cdpt << 6) | (unit & 0x3F);             //- Adjust code point with continuation bits
 		curr = transitions[curr + octet_category[unit]];
@@ -555,14 +555,14 @@ requires (sizeof(T)==1)
 inline constexpr advance_with_big_table_result<T> advance_with_big_table(T const* first, T const* last) noexcept
 {
 	char8_t const* info{first_unit_info[static_cast<char8_t>(*first)]};
-	char32_t cdpt(*info);                                //- From it, get the initial code point value
+	char32_t cdpt{static_cast<char32_t>(*info)};                //- From it, get the initial code point value
 	std::int32_t curr{info[1]};                                 //- From it, get the second state
 	auto it{first};
 	for(++it;12<curr;)
 	{
 		if (it < last)[[likely]]
 		{
-			char8_t const unit(*it);
+			char8_t const unit{static_cast<char8_t>(*it)};
 			++it;                                 //- Cache the current code unit
 			cdpt = (cdpt << 6) | (unit & 0x3F);             //- Adjust code point with continuation bits
 			curr = transitions[curr + octet_category[unit]];
@@ -576,6 +576,13 @@ inline constexpr advance_with_big_table_result<T> advance_with_big_table(T const
 	return {false,it,cdpt};
 }
 
+}
+
+template<std::integral T>
+requires (sizeof(T)<=4)
+inline constexpr std::size_t get_utf_code_units(char32_t ch,T* ptr) noexcept
+{
+	return details::codecvt::get_utf_code_units<encoding_scheme::utf>(ch,ptr);
 }
 
 }

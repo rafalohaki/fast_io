@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include<type_traits>
 namespace fast_io_i18n
 {
@@ -18,10 +18,10 @@ inline constexpr bool compile_time_compare(char_type1 const (&a)[n1],char_type2 
 
 
 extern "C" void
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__WINE__)
 __declspec(dllexport) __stdcall
 #endif
-export_locale_data(lc_locale* lc_ptr) noexcept
+export_v0(lc_locale* lc_ptr) noexcept
 {
 	using lc_all_ptr
 #if __has_cpp_attribute(gnu::may_alias)

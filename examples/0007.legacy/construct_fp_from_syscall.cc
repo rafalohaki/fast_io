@@ -5,10 +5,10 @@ int main()
 /*
 This is an example to explain how fast_io's files work with each other, and how you could use fast_io with existing FILE* or fstream apis
 */
-#ifdef _WIN32
+#if (defined(_WIN32)&&!defined(__WINE__)) && !defined(__CYGWIN__)
 #ifdef _WIN32_WINDOWS
 //_WIN32_WINDOWS macro targets WIN9X kernel (windows 95, windows 98 and windows ME)
-//On 9x kernel, although ntdll.dll does exist, but it does not do anything
+//On 9x kernel, although ntdll.dll does exist, it does not do anything.
 	fast_io::win32_file nf("win32_file.txt",fast_io::open_mode::out);
 #else
 //NT kernel
@@ -19,7 +19,6 @@ This is an example to explain how fast_io's files work with each other, and how 
 	fast_io::posix_file pf("posix_file.txt",fast_io::open_mode::out);
 #endif
 	fast_io::c_file cf(std::move(pf),fast_io::open_mode::out);
-	fprintf(cf.fp,"%s","Hello World from fprintf\n");
 /*
 do not write
 	fprintf(cf.fp,"Hello World from fprintf\n");
@@ -53,7 +52,7 @@ This potentially contains format string vuln.
 #endif
 	"FILE*:",static_cast<fast_io::c_io_observer>(cf).fp,"\n"
 	"fd:",static_cast<fast_io::posix_io_observer>(cf).fd
-#ifdef _WIN32
+#if (defined(_WIN32)&&!defined(__WINE__)) || defined(__CYGWIN__)
 	,"\n"
 	"win32 HANDLE:",static_cast<fast_io::win32_io_observer>(cf).handle
 #ifndef _WIN32_WINDOWS

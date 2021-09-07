@@ -10,7 +10,7 @@ struct win32_wsa_service
 	explicit win32_wsa_service(std::uint16_t version)
 	{
 		if(win32::WSAStartup(version,__builtin_addressof(wsa_data)))
-			throw_win32_error(win32::WSAGetLastError());
+			throw_win32_error(static_cast<std::uint32_t>(win32::WSAGetLastError()));
 	}
 	win32_wsa_service():win32_wsa_service(514)
 	{}
@@ -22,7 +22,7 @@ struct win32_wsa_service
 	}
 };
 
-#ifndef __CYGWIN__
+#if !defined(__CYGWIN__) && !defined(__WINE__)
 using net_service = win32_wsa_service;
 #endif
 }

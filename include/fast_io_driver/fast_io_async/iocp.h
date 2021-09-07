@@ -13,7 +13,7 @@ template<typename... Args>
 requires (sizeof...(Args)==5)
 inline void get_queued_completion_status(Args&& ..args)
 {
-	if(!win32::GetQueuedCompletionStatus(std::forward<Args>(args)...))
+	if(!win32::GetQueuedCompletionStatus(::fast_io::freestanding::forward<Args>(args)...))
 		throw_win32_error();
 }
 

@@ -13,8 +13,8 @@
 #include<sstream>
 
 #include"fast_io.h"
-#include"fast_io_legacy_impl/cpp/streambuf_io_observer.h"
-#include"fast_io_legacy_impl/cpp/filebuf_file.h"
+#include"fast_io_legacy_impl/filebuf/streambuf_io_observer.h"
+#include"fast_io_legacy_impl/filebuf/filebuf_file.h"
 #endif
 
 #endif

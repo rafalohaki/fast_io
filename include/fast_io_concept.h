@@ -9,10 +9,6 @@
 #error "fast_io requires at least C++20 standard compiler."
 #else
 #include<concepts>
-#if defined(__GLIBCXX__)
-#include<bits/move.h>
-#else
-#include<utility>		//for std::move, std::forward, std::addressof
-#endif
+#include"fast_io_core_impl/freestanding/addressof.h"
 #include"fast_io_core_impl/concepts/impl.h"
 #endif

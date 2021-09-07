@@ -66,7 +66,8 @@ none=0,
 secure=1,
 normal=1<<1,
 serial=1<<2,
-scatter=1<<3
+scatter=1<<3,
+generator=1<<4,
 };
 
 constexpr io_reserve_flags operator&(io_reserve_flags x, io_reserve_flags y) noexcept
@@ -122,6 +123,11 @@ template<std::integral char_type,typename T>
 using io_secure_serial_type_t=io_reserve_type_t<char_type,T,io_reserve_flags::secure|io_reserve_flags::serial>;
 template<std::integral char_type,typename T>
 inline constexpr io_secure_serial_type_t<char_type,T> io_secure_serial_type{};
+
+template<std::integral char_type,typename T>
+using io_generator_type_t=io_reserve_type_t<char_type,T,io_reserve_flags::generator>;
+template<std::integral char_type,typename T>
+inline constexpr io_generator_type_t<char_type,T> io_generator_type{};
 
 template<typename T>
 struct print_scatter_type_t

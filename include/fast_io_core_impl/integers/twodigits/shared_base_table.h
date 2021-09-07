@@ -3,8 +3,8 @@
 namespace fast_io::details
 {
 
-template<std::integral char_type,std::size_t base,bool upper,bool transparent>
-inline constexpr auto cal_content()
+template<std::integral char_type,std::size_t base,bool upper>
+inline constexpr auto cal_content() noexcept
 {
 	constexpr std::size_t chars{2};
 	constexpr std::size_t pw{base*base};
@@ -23,12 +23,10 @@ inline constexpr auto cal_content()
 		}
 		++val[j];
 	}
-	if constexpr(!transparent)
-	{
-	if constexpr(exec_charset_is_ebcdic<char_type>())
+	if constexpr(is_ebcdic<char_type>)
 	{
 /*
-http://www.astrodigital.org/digital/ebcdic.html#:~:text=The%20EBCDIC%20Character%20Table%20Once%20upon%20a%20time,that%20is%20used%20in%20the%20IBM%20mainframe%20environment.
+http://www.astrodigital.org/digital/ebcdic.html
 */
 		for(auto &e : vals)
 			for(auto &e1 : e)
@@ -70,26 +68,25 @@ http://www.astrodigital.org/digital/ebcdic.html#:~:text=The%20EBCDIC%20Character
 						e1+=0x61-10;
 				}
 	}
-	}
 	return vals;
 }
 
-template<std::integral char_type,std::size_t base,bool upper,bool transparent=false>
-inline constexpr auto shared_inline_constexpr_base_table_tb{cal_content<char_type,base,upper,transparent>()};
+template<std::integral char_type,std::size_t base,bool upper>
+inline constexpr auto shared_inline_constexpr_base_table_tb{cal_content<char_type,base,upper>()};
 
-template<std::integral char_type,std::size_t base,bool upper,bool transparent=false>
+template<std::integral char_type,std::size_t base,bool upper>
 inline constexpr auto& get_shared_inline_constexpr_base_table() noexcept
 {
-	if constexpr(exec_charset_is_ebcdic<char_type>())
-		return shared_inline_constexpr_base_table_tb<char_type,base,upper,transparent>;
+	if constexpr(is_ebcdic<char_type>)
+		return shared_inline_constexpr_base_table_tb<char_type,base,upper>;
 	else if constexpr(sizeof(char_type)==1)
-		return shared_inline_constexpr_base_table_tb<char8_t,base,upper,transparent>;
+		return shared_inline_constexpr_base_table_tb<char8_t,base,upper>;
 	else if constexpr(sizeof(char_type)==2)
-		return shared_inline_constexpr_base_table_tb<char16_t,base,upper,transparent>;
+		return shared_inline_constexpr_base_table_tb<char16_t,base,upper>;
 	else if constexpr(sizeof(char_type)==4)
-		return shared_inline_constexpr_base_table_tb<char32_t,base,upper,transparent>;
+		return shared_inline_constexpr_base_table_tb<char32_t,base,upper>;
 	else
-		return shared_inline_constexpr_base_table_tb<char_type,base,upper,transparent>;
+		return shared_inline_constexpr_base_table_tb<char_type,base,upper>;
 }
 
 }

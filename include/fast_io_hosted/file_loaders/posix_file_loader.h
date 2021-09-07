@@ -45,7 +45,7 @@ namespace details
 
 inline std::size_t posix_loader_get_file_size(int fd)
 {
-#if defined(_WIN32)
+#if defined(_WIN32)&&!defined(__WINE__)
 //windows 95 and windows 98 msvcrt do not provide struct __stat64. Directly invoke win32 api
 	return ::fast_io::win32::details::win32_load_file_get_file_size(reinterpret_cast<void*>(noexcept_call(_get_osfhandle,fd)));
 #elif defined(__linux__) && defined(__NR_statx)
@@ -68,7 +68,7 @@ inline std::size_t posix_loader_get_file_size(int fd)
 #else
 #ifdef _WIN32
 	struct __stat64 st;
-#elif defined(__linux__) && !defined(__mlibc__)
+#elif defined(__linux__) && !defined(__MLIBC_O_CLOEXEC)
 	struct stat64 st;
 #else
 	struct stat st;
@@ -76,7 +76,7 @@ inline std::size_t posix_loader_get_file_size(int fd)
 	if(
 #ifdef _WIN32
 _fstat64
-#elif defined(__linux__) && !defined(__mlibc__)
+#elif defined(__linux__) && !defined(__MLIBC_O_CLOEXEC)
 fstat64
 #else
 fstat
@@ -151,7 +151,7 @@ inline char* posix_load_address(int fd,std::size_t file_size)
 	}
 	else
 	{
-#if defined(_WIN32) || (defined(__NEWLIB__)&&!defined(__CYGWIN__)) || defined(__MSDOS__) || (defined(__wasi__)&&!defined(_WASI_EMULATED_MMAN))
+#if defined(_WIN32) || (defined(__NEWLIB__)&&!defined(__CYGWIN__)) || defined(__MSDOS__) || defined(_PICOLIBC__) || (defined(__wasi__)&&!defined(_WASI_EMULATED_MMAN))
 	static_assert(allocation);
 #else
 	if(file_size==0)
@@ -183,7 +183,7 @@ inline void posix_unload_address(void* address,[[maybe_unused]] std::size_t file
 	}
 	else
 	{
-#if defined(_WIN32) || (defined(__NEWLIB__)&&!defined(__CYGWIN__)) || defined(__MSDOS__) || defined(__wasi__)
+#if defined(_WIN32) || (defined(__NEWLIB__)&&!defined(__CYGWIN__)) || defined(_PICOLIBC__) || defined(__MSDOS__) || defined(__wasi__)
 		static_assert(allocation);
 #else
 		if(address!=(void*)-1)[[likely]]
@@ -431,7 +431,7 @@ public:
 	}
 	~posix_file_loader_impl()
 	{
-		posix_unload_address<allocation>(address_begin,address_end-address_begin);
+		posix_unload_address<allocation>(address_begin,static_cast<std::size_t>(address_end-address_begin));
 	}
 };
 
@@ -443,7 +443,7 @@ inline constexpr basic_io_scatter_t<char> print_alias_define(io_alias_t,posix_fi
 
 }
 
-#if !defined(_WIN32) && (!defined(__NEWLIB__)||defined(__CYGWIN__)) && !defined(__MSDOS__) && !defined(__wasi__)
+#if (!defined(_WIN32) || defined(__WINE__)) && (!defined(__NEWLIB__)||defined(__CYGWIN__)) && !defined(__MSDOS__) && !defined(__wasi__) && !defined(_PICOLIBC__)
 using posix_file_loader = details::posix_file_loader_impl<false>;
 #endif
 

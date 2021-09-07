@@ -19,11 +19,11 @@ namespace fast_io
 namespace details
 {
 template<std::integral char_type>
-inline auto fgetc_unlocked_impl(FILE* fp)
+inline auto fgetc_unlocked_impl(FILE* fp) noexcept
 {
 	if constexpr(std::same_as<char_type,char>||std::same_as<char_type,char8_t>)
 	{
-#if defined(_WIN32)
+#if (defined(_WIN32)&&!defined(__WINE__))
 		return _fgetc_nolock(fp);
 #elif _POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _POSIX_SOURCE || _BSD_SOURCE || _SVID_SOURCE
 		return fgetc_unlocked(fp);
@@ -37,6 +37,8 @@ inline auto fgetc_unlocked_impl(FILE* fp)
 		return _fgetwc_nolock(fp);
 #elif _POSIX_C_SOURCE >= 1 || _XOPEN_SOURCE || _POSIX_SOURCE || _BSD_SOURCE || _SVID_SOURCE
 		return fgetwc_unlocked(fp);
+#elif defined(__serenity__)
+		return EOF;
 #else
 		return fgetwc(fp);
 #endif
@@ -54,7 +56,7 @@ inline constexpr bool equals_to_eof_macro(int_type inv) noexcept
 }
 
 template<std::integral char_type>
-inline auto ungetc_unlocked_impl(char_type ch,FILE* fp)
+inline auto ungetc_unlocked_impl(char_type ch,FILE* fp) noexcept
 {
 	if constexpr(std::same_as<char_type,char>||std::same_as<char_type,char8_t>)
 	{
@@ -91,7 +93,11 @@ inline void ferror_throw_ex_impl(FILE* fp)
 }
 
 template<std::integral char_type>
-requires (std::same_as<char_type,char>||std::same_as<char_type,wchar_t>||std::same_as<char_type,char8_t>)
+requires (std::same_as<char_type,char>
+#if !defined(__serenity__)
+||std::same_as<char_type,wchar_t>
+#endif
+||std::same_as<char_type,char8_t>)
 inline std::pair<char_type,bool> try_get(basic_c_io_observer_unlocked<char_type> ciob)
 {
 	auto ret{details::fgetc_unlocked_impl<char_type>(ciob.fp)};

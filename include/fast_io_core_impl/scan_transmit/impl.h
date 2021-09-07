@@ -114,7 +114,7 @@ inline constexpr bool scan_transmit(output&& out,input&& in,Args&& ...args)
 			if(!ibuffer_underflow(in))
 				return false;
 		}
-		((details::impl_svt(out,in,std::forward<Args>(args))),...);
+		((details::impl_svt(out,in,::fast_io::freestanding::forward<Args>(args))),...);
 		return true;
 	}
 	else
@@ -124,7 +124,7 @@ inline constexpr bool scan_transmit(output&& out,input&& in,Args&& ...args)
 		auto ed{end(igen)};
 		if(bg==ed)
 			return false;
-		((details::impl_svt_none_buffer(out,bg,ed,std::forward<Args>(args))),...);
+		((details::impl_svt_none_buffer(out,bg,ed,::fast_io::freestanding::forward<Args>(args))),...);
 		return true;
 	}
 }

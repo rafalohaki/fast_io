@@ -98,7 +98,7 @@ inline ::fast_io::manipulators::auto_indent_t<char_type,containe>
 	for(auto e : cont)
 		total_length=intrinsics::add_or_overflow_die_chain(total_length,e,static_cast<std::size_t>(1));
 	total_length=intrinsics::mul_or_overflow_die(total_length,lines);
-	return {total_length,first2,last,std::move(cont)};
+	return {total_length,first2,last,::fast_io::freestanding::move(cont)};
 }
 
 template<::fast_io::freestanding::random_access_iterator Iter,typename containe>

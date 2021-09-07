@@ -107,7 +107,7 @@ concept has_external_decorator_impl = requires(decorators_type&& decos)
 template<typename handle_type,typename... Args>
 concept iobuffer_reopenable_impl =  requires(handle_type handle,Args&& ...args)
 {
-	handle.reopen(std::forward<Args>(args)...);
+	handle.reopen(::fast_io::freestanding::forward<Args>(args)...);
 };
 
 }
@@ -269,12 +269,12 @@ public:
 	constexpr basic_io_buffer()=default;
 	template<typename... Args>
 	requires (((mode&buffer_mode::construct_decorator)!=buffer_mode::construct_decorator)&&std::constructible_from<handle_type,Args...>)
-	explicit constexpr basic_io_buffer(Args&& ...args):handle(std::forward<Args>(args)...){}
+	explicit constexpr basic_io_buffer(Args&& ...args):handle(::fast_io::freestanding::forward<Args>(args)...){}
 
 	template<typename... Args>
 	requires (((mode&buffer_mode::construct_decorator)==buffer_mode::construct_decorator)
 	&&std::constructible_from<handle_type,Args...>)
-	explicit constexpr basic_io_buffer(decorators_type&& decos,Args&& ...args):handle(std::forward<Args>(args)...),
+	explicit constexpr basic_io_buffer(decorators_type&& decos,Args&& ...args):handle(::fast_io::freestanding::forward<Args>(args)...),
 		decorators(std::move(decos)){}
 
 	constexpr basic_io_buffer(basic_io_buffer const& other) requires std::copyable<handle_type>:handle(other.handle),decorators(other.decorators){}
@@ -302,9 +302,9 @@ public:
 		if constexpr((mode&buffer_mode::out)==buffer_mode::out)
 			obuffer.buffer_curr=obuffer.buffer_begin;
 		if constexpr(details::iobuffer_reopenable_impl<handle_type,Args...>)
-			handle.reopen(std::forward<Args>(args)...);
+			handle.reopen(::fast_io::freestanding::forward<Args>(args)...);
 		else
-			handle=handle_type(std::forward<Args>(args)...);
+			handle=handle_type(::fast_io::freestanding::forward<Args>(args)...);
 	}
 	constexpr void close() requires requires()
 	{

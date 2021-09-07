@@ -26,6 +26,10 @@ struct io_reference_wrapper
 	{
 		return ptr;
 	}
+	inline explicit constexpr operator bool() const noexcept
+	{
+		return ptr;
+	}
 	inline constexpr stm* release() noexcept
 	{
 		auto temp{ptr};

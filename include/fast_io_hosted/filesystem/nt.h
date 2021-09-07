@@ -232,7 +232,7 @@ struct nt_family_directory_generator
 template<nt_family family>
 inline nt_family_directory_iterator<family> begin(nt_family_directory_generator<family> const& pdg)
 {
-	return {win32::nt::details::set_nt_dirent_first<family>(pdg.entry.get())};
+	return {win32::nt::details::set_nt_dirent_first<family>(pdg.entry)};
 }
 
 template<nt_family family>
@@ -354,7 +354,7 @@ inline void pop(nt_family_recursive_directory_iterator<family>& prdit)
 template<nt_family family>
 inline nt_family_recursive_directory_iterator<family> begin(nt_family_recursive_directory_generator<family> const& prg) noexcept
 {
-	nt_family_recursive_directory_iterator<family> prdit{prg.root_handle,prg.entry.get()};
+	nt_family_recursive_directory_iterator<family> prdit{prg.root_handle,prg.entry};
 	prdit.entry->d_handle=prg.root_handle;
 	prdit.entry=win32::nt::details::set_nt_dirent_first<family>(prdit.entry);
 	if(prdit.entry&&prdit.entry->d_type==file_type::directory)

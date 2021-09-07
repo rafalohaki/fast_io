@@ -9,7 +9,7 @@ public:
 	QString qstr;
 	template<typename... Args>
 	requires std::constructible_from<QString,Args...>
-	qt_error(Args&& ...args):qstr(std::forward<Args>(args)...){}
+	qt_error(Args&& ...args):qstr(::fast_io::freestanding::forward<Args>(args)...){}
 
 	QChar* data() noexcept
 	{
@@ -55,7 +55,7 @@ inline void throw_qt_error([[maybe_unused]] Args&& ...args)
 #if defined(_MSC_VER) && (!defined(_HAS_EXCEPTIONS) || _HAS_EXCEPTIONS == 0)
 	fast_terminate();
 #else
-	throw qt_error(std::forward<Args>(args)...);
+	throw qt_error(::fast_io::freestanding::forward<Args>(args)...);
 #endif
 #else
 	fast_terminate();

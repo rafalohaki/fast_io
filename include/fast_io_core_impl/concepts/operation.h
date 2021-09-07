@@ -132,13 +132,13 @@ concept printable=output_stream<output>&&requires(output out,T t)
 template<typename char_type,typename T>
 concept scatter_printable=requires(char_type ch,T&& t)
 {
-	{print_scatter_define(print_scatter_type<char_type>,std::forward<T>(t))}->std::convertible_to<io_scatter_t>;
+	{print_scatter_define(print_scatter_type<char_type>,::fast_io::freestanding::forward<T>(t))}->std::convertible_to<io_scatter_t>;
 };
 
 template<typename char_type,typename T>
 concept scatter_type_printable=scatter_printable<char_type,T>&&requires(char_type ch,T&& t)
 {
-	{print_scatter_define(print_scatter_type<char_type>,std::forward<T>(t))}->std::convertible_to<basic_io_scatter_t<char_type>>;
+	{print_scatter_define(print_scatter_type<char_type>,::fast_io::freestanding::forward<T>(t))}->std::convertible_to<basic_io_scatter_t<char_type>>;
 };
 
 template<typename output,typename T>
@@ -147,13 +147,13 @@ concept general_printable=reserve_printable<typename output::char_type,T>||print
 template<typename T>
 concept alias_scanable=requires(T&& t)
 {
-	scan_alias_define(io_alias,std::forward<T>(t));
+	scan_alias_define(io_alias,t);
 };
 
 template<typename T>
 concept alias_printable=requires(T&& t)
 {
-	print_alias_define(io_alias,std::forward<T>(t));
+	print_alias_define(io_alias,::fast_io::freestanding::forward<T>(t));
 };
 
 template<typename char_type,typename T>
@@ -165,13 +165,13 @@ concept status_io_scan_forwardable=std::integral<char_type>&&requires(T t)
 template<typename char_type,typename T>
 concept status_io_print_forwardable=std::integral<char_type>&&requires(T&& t)
 {
-	status_io_print_forward(io_alias_type<char_type>,std::forward<T>(t));
+	status_io_print_forward(io_alias_type<char_type>,::fast_io::freestanding::forward<T>(t));
 };
 
 template<typename io_device,typename... Args>
 concept io_controllable=requires(io_device device,Args&& ...args)
 {
-	io_control(device,std::forward<Args>(args)...);
+	io_control(device,::fast_io::freestanding::forward<Args>(args)...);
 };
 
 struct manip_tag_t{};
@@ -223,5 +223,10 @@ constexpr auto print_scatter_define(print_scatter_type_t<char_type>,parameter<va
 {
 	return print_scatter_define(print_scatter_type<char_type>,para.reference);
 }
+
+namespace manipulators
+{}
+
+namespace mnp=manipulators;
 
 }

@@ -18,7 +18,7 @@ For hosted implementations the set of standard library headers required by the C
 #if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
 #include<cerrno>
 
-#include"fast_io_hosted/posix_error_scatter.h"
+#include"fast_io_hosted/posix_error_scatter/impl.h"
 #include"fast_io_hosted/posix_error.h"
 #ifdef __MSDOS__
 #undef __STRICT_ANSI__
@@ -31,19 +31,26 @@ For hosted implementations the set of standard library headers required by the C
 
 #include"fast_io_hosted/mmap.h"
 #include"fast_io_hosted/posix_status.h"
+
+#if !defined(__AVR__)
 #include"fast_io_hosted/platforms/native.h"
 #include"fast_io_hosted/file_loaders/impl.h"
+#include"fast_io_hosted/wrapper.h"
+#include"fast_io_hosted/white_hole/white_hole.h"
+#endif
 
 #include"fast_io_hosted/time.h"
 
 #include"fast_io_hosted/threads/mutex/impl.h"
 #include"fast_io_hosted/iomutex.h"
-#include"fast_io_hosted/wrapper.h"
+
 #include"fast_io_hosted/filesystem/native.h"
 #include"fast_io_hosted/dll/dll.h"
 #include"fast_io_hosted/process_revamp/native.h"
 
-#include"fast_io_hosted/white_hole/white_hole.h"
+#if (defined(_MSC_VER) && !defined(__clang__))
+#include"fast_io_unit/gb18030.h"
+#endif
 //#include<memory_resource>
 //#include"fast_io_hosted/pmr_resource.h"
 
@@ -63,6 +70,10 @@ For hosted implementations the set of standard library headers required by the C
 
 #if defined(_GLIBCXX_COMPLEX) || defined(_LIBCPP_COMPLEX) || defined(_COMPLEX_)
 #include"fast_io_unit/complex.h"
+#endif
+
+#if defined(_GLIBCXX_FILESYSTEM) || defined(_LIBCPP_FILESYSTEM) || defined(_FILESYSTEM_)
+#include"fast_io_unit/filesystem.h"
 #endif
 
 #endif

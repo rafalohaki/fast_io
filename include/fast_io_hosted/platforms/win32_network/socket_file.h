@@ -41,7 +41,7 @@ inline std::uint32_t win32_socket_write_simple_impl(std::uintptr_t socket, void 
 	wsabuf buffer{len,const_cast<char*>(reinterpret_cast<char const*>(data))};
 	std::uint32_t sent{};
 	if(WSASend(socket,__builtin_addressof(buffer),1,__builtin_addressof(sent),0,nullptr,nullptr))
-		throw_win32_error(WSAGetLastError());
+		throw_win32_error(static_cast<std::uint32_t>(WSAGetLastError()));
 	return sent;
 }
 
@@ -72,12 +72,13 @@ inline std::size_t win32_socket_read_impl(std::uintptr_t socket, void* data,std:
 {
 	if constexpr(sizeof(int)<sizeof(std::size_t)||(sizeof(int)==sizeof(std::size_t)))
 	{
-		if(std::numeric_limits<int>::max()<to_read)
-			to_read=std::numeric_limits<int>::max();
+		constexpr std::size_t intmax{static_cast<std::size_t>(static_cast<unsigned>(std::numeric_limits<int>::max()))};
+		if(intmax<to_read)
+			to_read=intmax;
 	}
 	int recved{::fast_io::win32::recv(socket,reinterpret_cast<char*>(data),static_cast<int>(static_cast<unsigned>(to_read)),0)};
 	if(recved==-1)
-		throw_win32_error(WSAGetLastError());
+		throw_win32_error(static_cast<std::uint32_t>(WSAGetLastError()));
 	return static_cast<std::size_t>(static_cast<int>(recved));
 }
 
@@ -106,26 +107,26 @@ inline io_scatter_status_t win32_socket_scatter_write_impl(std::uintptr_t socket
 inline void posix_connect_win32_socket_impl(std::uintptr_t hsocket,void const* addr,int addrlen)
 {
 	if(::fast_io::win32::WSAConnect(hsocket,addr,addrlen,nullptr,nullptr,nullptr,nullptr))
-		throw_win32_error(WSAGetLastError());
+		throw_win32_error(static_cast<std::uint32_t>(WSAGetLastError()));
 }
 
 inline void posix_bind_win32_socket_impl(std::uintptr_t hsocket,void const* addr,int addrlen)
 {
 	if(::fast_io::win32::bind(hsocket,addr,addrlen)==-1)
-		throw_win32_error(WSAGetLastError());
+		throw_win32_error(static_cast<std::uint32_t>(WSAGetLastError()));
 }
 
 inline void posix_listen_win32_socket_impl(std::uintptr_t hsocket,int backlog)
 {
 	if(::fast_io::win32::listen(hsocket,backlog)==-1)
-		throw_win32_error(WSAGetLastError());
+		throw_win32_error(static_cast<std::uint32_t>(WSAGetLastError()));
 }
 
 inline std::uintptr_t posix_accept_win32_socket_impl(std::uintptr_t hsocket,void* addr,int* addrlen)
 {
 	std::uintptr_t accepted_socket{::fast_io::win32::WSAAccept(hsocket,addr,addrlen,nullptr,0)};
 	if(accepted_socket==static_cast<std::uintptr_t>(-1))
-		throw_win32_error(WSAGetLastError());
+		throw_win32_error(static_cast<std::uint32_t>(WSAGetLastError()));
 	return accepted_socket;
 }
 
@@ -201,7 +202,7 @@ public:
 	constexpr basic_win32_family_socket_io_handle() noexcept=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	explicit constexpr basic_win32_family_socket_io_handle(native_hd hsocket) noexcept: basic_win32_family_socket_io_observer<family,ch_type>{hsocket}
+	explicit constexpr basic_win32_family_socket_io_handle(native_hd hsocket1) noexcept: basic_win32_family_socket_io_observer<family,ch_type>{hsocket1}
 	{}
 	basic_win32_family_socket_io_handle(basic_win32_family_socket_io_handle const& dp):basic_win32_family_socket_io_observer<family,char_type>{win32::details::win32_duphsocket(dp.hsocket)}
 	{
@@ -238,7 +239,7 @@ public:
 			auto ret{win32::closesocket(this->hsocket)};
 			this->hsocket=0;//POSIX standard says we should never call close(2) again even close syscall fails
 			if(ret)
-				throw_win32_error(win32::WSAGetLastError());
+				throw_win32_error(static_cast<std::uint32_t>(win32::WSAGetLastError()));
 		}
 	}
 };
@@ -421,7 +422,7 @@ inline constexpr std::uint32_t to_win32_sock_open_mode_9xa(open_mode m) noexcept
 }
 
 
-#ifndef __CYGWIN__
+#if !defined(__CYGWIN__) && !defined(__WINE__)
 
 inline constexpr int to_native_sock_family(sock_family dom) noexcept
 {
@@ -459,14 +460,14 @@ inline std::uintptr_t open_win32_socket_impl(sock_family d,sock_type t,open_mode
 		std::uint32_t dwflags{to_win32_sock_open_mode(m)};
 		std::uintptr_t ret{WSASocketW(af,tp,prt,nullptr,0,dwflags)};
 		if(ret==UINTPTR_MAX)
-			throw_win32_error(WSAGetLastError());
+			throw_win32_error(static_cast<std::uint32_t>(WSAGetLastError()));
 		return ret;
 	}
 	else
 	{
 		std::uintptr_t ret{WSASocketA(af,tp,prt,nullptr,0,to_win32_sock_open_mode_9xa(m))};
 		if(ret==UINTPTR_MAX)
-			throw_win32_error(WSAGetLastError());
+			throw_win32_error(static_cast<std::uint32_t>(WSAGetLastError()));
 		return ret;
 	}
 }
@@ -481,7 +482,7 @@ win32_socket_factory
 {
 	using native_handle_type = std::uintptr_t;
 	std::uintptr_t hsocket{};
-	explicit constexpr win32_socket_factory(std::uintptr_t v) noexcept:hsocket(v){};
+	explicit constexpr win32_socket_factory(std::uintptr_t v) noexcept:hsocket(v){}
 	win32_socket_factory(win32_socket_factory const&)=delete;
 	win32_socket_factory& operator=(win32_socket_factory const&)=delete;
 	~win32_socket_factory()
@@ -517,7 +518,7 @@ public:
 	constexpr basic_win32_family_socket_file() noexcept=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	explicit constexpr basic_win32_family_socket_file(native_hd hsocket) noexcept: basic_win32_family_socket_io_handle<family,ch_type>{hsocket}
+	explicit constexpr basic_win32_family_socket_file(native_hd hsocket1) noexcept: basic_win32_family_socket_io_handle<family,ch_type>{hsocket1}
 	{}
 	basic_win32_family_socket_file(io_dup_t,basic_win32_family_socket_io_observer<family,ch_type> wsiob):basic_win32_family_socket_io_handle<family,ch_type>{win32::details::win32_duphsocket(wsiob.hsocket)}
 	{}
@@ -764,7 +765,7 @@ using u8win32_socket_file=basic_win32_socket_file<char8_t>;
 using u16win32_socket_file=basic_win32_socket_file<char16_t>;
 using u32win32_socket_file=basic_win32_socket_file<char32_t>;
 
-#ifndef __CYGWIN__
+#if !defined(__CYGWIN__) && !defined(__WINE__)
 
 template<std::integral ch_type>
 using basic_native_socket_io_observer = basic_win32_socket_io_observer<ch_type>;

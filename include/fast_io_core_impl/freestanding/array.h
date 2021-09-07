@@ -1,11 +1,5 @@
 #pragma once
 
-#if defined(_GLIBCXX_ARRAY) || defined(_LIBCPP_ARRAY) || defined(_ARRAY_)
-namespace fast_io::freestanding
-{
-using ::std::array;
-}
-#else
 namespace fast_io::freestanding
 {
 
@@ -88,4 +82,3 @@ struct array
 };
 
 }
-#endif

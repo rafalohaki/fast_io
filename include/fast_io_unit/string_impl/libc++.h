@@ -9,7 +9,11 @@ namespace fast_io::details::string_hack
 {
 
 template<class _CharT, class _Traits, class _Allocator>
-struct model
+struct
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+model
 {
 
     typedef _Traits                                      traits_type;
@@ -105,7 +109,7 @@ struct model
 };
 
 template<typename elem,typename traits,typename alloc>
-inline constexpr decltype(auto) hack_rep(std::basic_string<elem,traits,alloc>& str)
+inline constexpr decltype(auto) hack_rep(std::basic_string<elem,traits,alloc>& str) noexcept
 {
 	using model_t = model<elem,traits,alloc>;
 	using __rep = typename model_t::__rep;
@@ -129,7 +133,7 @@ inline constexpr bool is_local_and_null(std::basic_string<elem,traits,alloc>& st
 }
 
 template<typename elem,typename traits,typename alloc>
-inline void set_size(std::basic_string<elem,traits,alloc>& str,typename std::basic_string<elem,traits,alloc>::size_type s)
+inline void set_size(std::basic_string<elem,traits,alloc>& str,typename std::basic_string<elem,traits,alloc>::size_type s) noexcept
 {
 	decltype(auto) __r_{hack_rep(str)};
 	if (is_long(str))
@@ -145,7 +149,7 @@ inline void set_size(std::basic_string<elem,traits,alloc>& str,typename std::bas
 }
 
 template<typename elem,typename traits,typename alloc>
-inline void set_cap(std::basic_string<elem,traits,alloc>& str,typename std::basic_string<elem,traits,alloc>::size_type s)
+inline void set_cap(std::basic_string<elem,traits,alloc>& str,typename std::basic_string<elem,traits,alloc>::size_type s) noexcept
 {
 	using model_t = model<elem,traits,alloc>;
 	decltype(auto) __r_{hack_rep(str)};
@@ -154,22 +158,22 @@ inline void set_cap(std::basic_string<elem,traits,alloc>& str,typename std::basi
 
 
 template<typename T>
-inline constexpr void set_begin_ptr(T& str,typename T::value_type* ptr)
+inline constexpr void set_begin_ptr(T& str,typename T::value_type* ptr) noexcept
 {
 	decltype(auto) __r_{hack_rep(str)};
 	__r_.__s.__data_[0]=ptr;
 }
 
 template<typename T>
-inline constexpr void set_end_ptr(T& str,typename T::value_type* ptr)
+inline constexpr void set_end_ptr(T& str,typename T::value_type* ptr) noexcept
 {
-	set_size(str,ptr-str.data());
+	set_size(str,static_cast<std::size_t>(ptr-str.data()));
 }
 
 template<typename T>
-inline constexpr void set_cap_ptr(T& str,typename T::value_type* ptr)
+inline constexpr void set_cap_ptr(T& str,typename T::value_type* ptr) noexcept
 {
-	set_cap(str,ptr-str.data());
+	set_cap(str,static_cast<std::size_t>(ptr-str.data()));
 }
 
 template<typename elem,typename traits,typename alloc>
@@ -181,7 +185,7 @@ inline typename std::basic_string<elem,traits,alloc>::size_type get_long_cap(std
 }
 
 template<typename T>
-inline constexpr std::size_t local_capacity()
+inline constexpr std::size_t local_capacity() noexcept
 {
 	using model_type = model<typename T::value_type,typename T::traits_type,typename T::allocator_type>;
     return model_type::__min_cap-1;

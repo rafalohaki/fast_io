@@ -28,7 +28,7 @@ inline constexpr std::uint32_t win32_stderr_number(static_cast<std::uint32_t>(-1
 #endif
 #include"linux/system_call.h"
 #include"posix.h"
-#if !defined(_WIN32) && __has_include(<sys/socket.h>) && __has_include(<netinet/in.h>) && !defined(__wasi__)
+#if (!defined(_WIN32) || defined(__WINE__)) && __has_include(<sys/socket.h>) && __has_include(<netinet/in.h>) && !defined(__wasi__)
 #include"posix_netop.h"
 #if __has_include(<netdb.h>)
 #include "posix_dns.h"

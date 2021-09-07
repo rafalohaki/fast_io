@@ -33,11 +33,11 @@ private:
 		decltype(auto) ref{reference()};
 		while(ibuffer_underflow(ref))
 		{
-			auto bg{ibuffer_begin(ref)};
-			auto ed{ibuffer_end(ref)};
-			auto it{function.search(bg,ed)};
-			write(buffer,bg,it);
-			if(it!=ed)
+			auto bg1{ibuffer_begin(ref)};
+			auto ed1{ibuffer_end(ref)};
+			auto it{function.search(bg1,ed1)};
+			write(buffer,bg1,it);
+			if(it!=ed1)
 			{
 				ibuffer_set_curr(ref,it+1);
 				function.set_data(obuffer_begin(buffer),obuffer_curr(buffer));

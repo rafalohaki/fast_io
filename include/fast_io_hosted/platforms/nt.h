@@ -269,7 +269,7 @@ inline void* nt_create_file_common_impl(void* directory,win32::nt::unicode_strin
 	win32::nt::io_status_block block{};
 	auto const status{win32::nt::nt_create_file<zw>(
 	__builtin_addressof(handle),mode.DesiredAccess,__builtin_addressof(obj),__builtin_addressof(block),nullptr,mode.FileAttributes,
-	mode.ShareAccess,mode.CreateDisposition,mode.CreateOptions,nullptr,0)};
+	mode.ShareAccess,mode.CreateDisposition,mode.CreateOptions,nullptr,0u)};
 	if(status)
 		throw_nt_error(status);
 	return handle;
@@ -278,8 +278,8 @@ inline void* nt_create_file_common_impl(void* directory,win32::nt::unicode_strin
 inline std::uint16_t filename_bytes(std::size_t sz)
 {
 	if constexpr(sizeof(sz)<sizeof(std::uint16_t))//sizeof(std::size_t) can never be smaller than sizeof(std::uint16_t)
-		return static_cast<std::uint16_t>(sz)<<1;
-	if(static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max()>>1)<sz)
+		return static_cast<std::uint16_t>(static_cast<std::uint16_t>(sz)<<1u);
+	if(static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max()>>1u)<sz)
 		throw_nt_error(0xC0000106);
 	return static_cast<std::uint16_t>(sz<<1);
 }
@@ -370,7 +370,7 @@ inline std::size_t nt_read_impl(void* __restrict handle,void* __restrict begin,s
 	if constexpr(4<sizeof(std::size_t))
 		if(static_cast<std::size_t>(UINT32_MAX)<size)
 			size=static_cast<std::size_t>(UINT32_MAX);
-	win32::nt::io_status_block block{};
+	win32::nt::io_status_block block;	//some poeple in zwclose7 forum said we do not need to initialize io_status_block
 	auto const status{win32::nt::nt_read_file<zw>(handle,nullptr,nullptr,nullptr,
 		__builtin_addressof(block), begin, static_cast<std::uint32_t>(size), nullptr, nullptr)};
 	if(status)
@@ -389,7 +389,7 @@ inline std::size_t nt_write_impl(void* __restrict handle,void const* __restrict 
 			std::uint32_t to_write_this_round{UINT32_MAX};
 			if(size<static_cast<std::size_t>(UINT32_MAX))
 				to_write_this_round=static_cast<std::uint32_t>(size);
-			win32::nt::io_status_block block{};
+			win32::nt::io_status_block block; //some poeple in zwclose7 forum said we do not need to initialize io_status_block
 			auto const status{win32::nt::nt_write_file<zw>(handle,nullptr,nullptr,nullptr,
 				__builtin_addressof(block), begin, to_write_this_round, nullptr, nullptr)};
 			if(status)
@@ -404,7 +404,7 @@ inline std::size_t nt_write_impl(void* __restrict handle,void const* __restrict 
 	}
 	else
 	{
-		win32::nt::io_status_block block{};
+		win32::nt::io_status_block block;	//some poeple in zwclose7 forum said we do not need to initialize io_status_block
 		auto const status{win32::nt::nt_write_file<zw>(handle,nullptr,nullptr,nullptr,
 			__builtin_addressof(block), begin, static_cast<std::uint32_t>(size), nullptr, nullptr)};
 		if(status)
@@ -413,9 +413,76 @@ inline std::size_t nt_write_impl(void* __restrict handle,void const* __restrict 
 	}
 }
 
+template<bool zw>
+struct nt_file_lock_guard
+{
+	void* handle{};
+	explicit constexpr nt_file_lock_guard(void* h):handle(h){}
+	nt_file_lock_guard(nt_file_lock_guard const&)=delete;
+	nt_file_lock_guard& operator=(nt_file_lock_guard const&)=delete;
+	~nt_file_lock_guard()
+	{
+		if(handle)
+		{
+			win32::nt::io_status_block block;
+			std::int64_t byte_offset{};
+			std::int64_t length{INT64_MAX};
+			win32::nt::nt_unlock_file<zw>(handle,__builtin_addressof(block),__builtin_addressof(byte_offset),__builtin_addressof(length),0);//ignore error
+		}
+	}
+};
+
+template<bool zw>
+inline bool nt_lock_entire_file(void* __restrict handle) noexcept
+{
+	win32::nt::io_status_block block;
+	std::int64_t byte_offset{};
+	std::int64_t length{INT64_MAX};
+	std::uint32_t status{win32::nt::nt_lock_file<zw>(handle,nullptr,nullptr,nullptr,__builtin_addressof(block),
+		__builtin_addressof(byte_offset),__builtin_addressof(length),0,0,1/*exclusive lock*/)};
+	return status;
 }
 
-#ifndef __CYGWIN__
+template<bool zw>
+inline io_scatter_status_t nt_scatter_read_impl(void* __restrict handle,io_scatter_t const* scatters,std::size_t n)
+{
+	nt_file_lock_guard<zw> gd{
+		nt_lock_entire_file<zw>(handle)?
+		nullptr:
+		handle
+	};
+	std::size_t total_size{};
+	for(std::size_t i{};i!=n;++i)
+	{
+		std::size_t pos_in_span{nt_read_impl<zw>(handle,const_cast<void*>(scatters[i].base),scatters[i].len)};
+		total_size+=pos_in_span;
+		if(pos_in_span<scatters[i].len)[[unlikely]]
+			return {total_size,i,pos_in_span};
+	}
+	return {total_size,n,0};
+}
+
+template<bool zw>
+inline io_scatter_status_t nt_scatter_write_impl(void* __restrict handle,io_scatter_t const* scatters,std::size_t n)
+{
+	nt_file_lock_guard<zw> gd{
+		nt_lock_entire_file<zw>(handle)?
+		nullptr:
+		handle
+	};
+	std::size_t total_size{};
+	for(std::size_t i{};i!=n;++i)
+	{
+		std::size_t written{nt_write_impl<zw>(handle,scatters[i].base,scatters[i].len)};
+		total_size+=written;
+		if(scatters[i].len<written)[[unlikely]]
+			return {total_size,i,written};
+	}
+	return {total_size,n,0};
+}
+
+}
+#if !defined(__WINE__)
 namespace details
 {
 inline void* my_get_osfile_handle(int fd) noexcept;
@@ -428,7 +495,7 @@ struct nt_at_entry
 	void* handle{};
 	explicit constexpr nt_at_entry() noexcept=default;
 	explicit constexpr nt_at_entry(void* mhandle) noexcept:handle(mhandle){}
-#ifndef __CYGWIN__
+#if !defined(__WINE__)
 	nt_at_entry(posix_at_entry pate) noexcept:handle(details::my_get_osfile_handle(pate.fd)){}
 #endif
 };
@@ -536,9 +603,57 @@ inline Iter write(basic_nt_family_io_observer<family,ch_type> obs,Iter cbegin,It
 }
 
 template<nt_family family,std::integral ch_type>
-inline constexpr void flush(basic_nt_family_io_observer<family,ch_type>) noexcept
+inline io_scatter_status_t scatter_read(basic_nt_family_io_observer<family,ch_type> obs,io_scatters_t sp)
+{
+	return win32::nt::details::nt_scatter_read_impl<family==nt_family::zw>(obs.handle,sp.base,sp.len);
+}
+
+template<nt_family family,std::integral ch_type>
+inline io_scatter_status_t scatter_write(basic_nt_family_io_observer<family,ch_type> obs,io_scatters_t sp)
+{
+	return win32::nt::details::nt_scatter_write_impl<family==nt_family::zw>(obs.handle,sp.base,sp.len);
+}
+
+namespace win32::nt::details
 {
 
+template<bool zw>
+inline void nt_flush_impl(void* handle)
+{
+	win32::nt::io_status_block block;
+	std::uint32_t status{win32::nt::nt_flush_buffers_file<zw>(handle,__builtin_addressof(block))};
+	if(status)
+		throw_nt_error(status);
+}
+
+template<bool zw>
+inline void nt_data_sync_impl(void* handle,data_sync_flags flags [[maybe_unused]])
+{
+#if _WIN32_WINNT >= 0x0602 || WINVER >= 0x0602
+/*
+NtFlushBuffersFileEx and ZwFlushBuffersFileEx are only provided since windows 8
+*/
+	win32::nt::io_status_block block;
+	std::uint32_t status{win32::nt::nt_flush_buffers_file_ex<zw>(handle,static_cast<std::uint32_t>(flags),nullptr,0u,__builtin_addressof(block))};
+	if(status)
+		throw_nt_error(status);
+#else
+	nt_flush_impl<zw>(handle);
+#endif
+}
+
+}
+
+template<nt_family family,std::integral ch_type>
+inline void flush(basic_nt_family_io_observer<family,ch_type> ntiob)
+{
+	win32::nt::details::nt_flush_impl<family==nt_family::zw>(ntiob.handle);
+}
+
+template<nt_family family,std::integral ch_type>
+inline void data_sync(basic_nt_family_io_observer<family,ch_type> ntiob,data_sync_flags flags)
+{
+	win32::nt::details::nt_data_sync_impl<family==nt_family::zw>(ntiob.handle,flags);
 }
 
 /*
@@ -730,6 +845,7 @@ class basic_nt_family_file:public basic_nt_family_io_handle<family,ch_type>
 public:
 	using char_type = ch_type;
 	using native_handle_type = void*;
+	using file_factory_type = nt_family_file_factory<family>;
 	constexpr basic_nt_family_file()=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
@@ -826,19 +942,19 @@ using u32nt_file=basic_nt_file<char32_t>;
 template<std::integral char_type=char>
 inline basic_nt_io_observer<char_type> nt_stdin() noexcept
 {
-	return {fast_io::win32::GetStdHandle(-10)};
+	return {fast_io::win32::GetStdHandle(static_cast<std::uint32_t>(-10))};
 }
 
 template<std::integral char_type=char>
 inline basic_nt_io_observer<char_type> nt_stdout() noexcept
 {
-	return {fast_io::win32::GetStdHandle(-11)};
+	return {fast_io::win32::GetStdHandle(static_cast<std::uint32_t>(-11))};
 }
 
 template<std::integral char_type=char>
 inline basic_nt_io_observer<char_type> nt_stderr() noexcept
 {
-	return {fast_io::win32::GetStdHandle(-12)};
+	return {fast_io::win32::GetStdHandle(static_cast<std::uint32_t>(-12))};
 }
 
 
@@ -874,19 +990,19 @@ using u32zw_file=basic_zw_file<char32_t>;
 template<std::integral char_type=char>
 inline basic_zw_io_observer<char_type> zw_stdin() noexcept
 {
-	return {fast_io::win32::GetStdHandle(-10)};
+	return {fast_io::win32::GetStdHandle(static_cast<std::uint32_t>(-10))};
 }
 
 template<std::integral char_type=char>
 inline basic_zw_io_observer<char_type> zw_stdout() noexcept
 {
-	return {fast_io::win32::GetStdHandle(-11)};
+	return {fast_io::win32::GetStdHandle(static_cast<std::uint32_t>(-11))};
 }
 
 template<std::integral char_type=char>
 inline basic_zw_io_observer<char_type> zw_stderr() noexcept
 {
-	return {fast_io::win32::GetStdHandle(-12)};
+	return {fast_io::win32::GetStdHandle(static_cast<std::uint32_t>(-12))};
 }
 
 #if 0

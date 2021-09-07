@@ -50,8 +50,8 @@ inline constexpr void write(basic_io_buffer<handletype,mde,decorators,bfs>& bios
 			}
 			else
 			{
-				std::size_t diff(static_cast<std::size_t>(last-first));
-				std::size_t remain_space(bios.obuffer.buffer_end-bios.obuffer.buffer_curr);
+				std::size_t diff{static_cast<std::size_t>(last-first)};
+				std::size_t remain_space{static_cast<std::size_t>(bios.obuffer.buffer_end-bios.obuffer.buffer_curr)};
 				if(remain_space<diff)[[unlikely]]
 				{
 					details::iobuf_write_unhappy_impl(bios,first,last);

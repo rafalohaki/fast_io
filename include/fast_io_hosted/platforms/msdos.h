@@ -15,7 +15,7 @@ inline io_scatter_status_t posix_scatter_read_impl_with_normal_read(int fd,io_sc
 	for(std::size_t i{};i!=scatters.len;++i)
 	{
 		auto e{scatters.base[i]};
-		auto ret{::read(fd,const_cast<void*>(e.base),e.len)};
+		auto ret{noexcept_call(::read,fd,const_cast<void*>(e.base),e.len)};
 		if(ret==-1)
 			throw_posix_error();
 		std::size_t tsize{static_cast<std::size_t>(ret)};
@@ -32,7 +32,7 @@ inline io_scatter_status_t posix_scatter_write_impl_with_normal_write(int fd,io_
 	for(std::size_t i{};i!=scatters.len;++i)
 	{
 		auto e{scatters.base[i]};
-		auto ret{::write(fd,e.base,e.len)};
+		auto ret{noexcept_call(::write,fd,e.base,e.len)};
 		if(ret==-1)
 			throw_posix_error();
 		std::size_t tsize{static_cast<std::size_t>(ret)};

@@ -364,6 +364,7 @@ struct posix_process_args
 	constexpr posix_process_args(Iter begin,Iter end):
 		args(details::dup_enviro_entry(begin,end)),is_dynamic_allocated(true)
 	{}
+#if __cpp_lib_ranges >= 201911L
 	template<std::ranges::contiguous_range range>
 	requires (std::convertible_to<std::ranges::range_value_t<range>,char const*>||requires(std::ranges::range_value_t<range> v)
 	{
@@ -374,6 +375,7 @@ struct posix_process_args
 #if __has_include(<initializer_list>)
 	constexpr posix_process_args(std::initializer_list<char const*> ilist):
 		posix_process_args(ilist.begin(),ilist.end()){}
+#endif
 #endif
 	posix_process_args(posix_process_args const&)=delete;
 	posix_process_args& operator=(posix_process_args const&)=delete;
@@ -399,8 +401,10 @@ public:
 		posix_process_observer{pid1}{}
 	posix_process(posix_at_entry pate,cstring_view filename,posix_process_args const& args,posix_process_args const& envp,posix_process_io const& pio):
 		posix_process_observer{details::posix_fork_execveat_impl(pate.fd,filename,args.args,envp.args,pio)}{}
+#ifdef AT_FDCWD
 	posix_process(cstring_view filename,posix_process_args const& args,posix_process_args const& envp,posix_process_io const& pio):
 		posix_process_observer{details::posix_fork_execveat_impl(AT_FDCWD,filename,args.args,envp.args,pio)}{}
+#endif
 	posix_process(posix_process const&)=delete;
 	posix_process& operator=(posix_process const&)=delete;
 	constexpr posix_process(posix_process&& other) noexcept:posix_process_observer{other.pid}

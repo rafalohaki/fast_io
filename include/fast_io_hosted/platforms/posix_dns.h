@@ -102,7 +102,7 @@ public:
 	constexpr posix_dns_file() noexcept = default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	explicit constexpr posix_dns_file(native_hd res) noexcept: posix_dns_io_observer(res){}
+	explicit constexpr posix_dns_file(native_hd res1) noexcept: posix_dns_io_observer(res1){}
 	posix_dns_file(char const* node,char const* service,posix_addrinfo const* hints):posix_dns_io_observer{details::my_getaddrinfo_impl(node,service,hints)}{}
 	posix_dns_file(posix_dns_file const&)=delete;
 	posix_dns_file& operator=(posix_dns_file const&)=delete;

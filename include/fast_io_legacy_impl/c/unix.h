@@ -182,12 +182,12 @@ T* ptr) noexcept
 #endif
 	if constexpr(w)
 	{
-		fp->_w-=reinterpret_cast<char unsigned*>(ptr)-fp->_p;
+		fp->_w-=static_cast<int>(reinterpret_cast<char unsigned*>(ptr)-fp->_p);
 		fp->_p=reinterpret_cast<char unsigned*>(ptr);
 	}
 	else
 	{
-		fp->_r-=reinterpret_cast<char unsigned*>(ptr)-fp->_p;
+		fp->_r-=static_cast<int>(reinterpret_cast<char unsigned*>(ptr)-fp->_p);
 		fp->_p=reinterpret_cast<char unsigned*>(ptr);
 	}
 #endif

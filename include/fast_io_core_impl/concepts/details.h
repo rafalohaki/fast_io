@@ -160,6 +160,14 @@ concept scatter_output_stream_impl = requires(T&& out,io_scatters_t sp)
 {
 	scatter_write(out,sp);
 };
+#if 0
+//Do we actually need this??
+template<typename T>
+concept scatter_type_output_stream_impl = requires(T&& out,basic_io_scatters_t<typename T::char_type> sp)
+{
+	out.scatter_type_write(sp);
+};
+#endif
 
 #if 0
 //async stream concepts

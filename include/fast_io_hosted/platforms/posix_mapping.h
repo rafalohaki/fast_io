@@ -35,7 +35,7 @@ inline std::byte* sys_mmap(void *addr, size_t len, int prot, int flags, int fd, 
 		if(offset>static_cast<std::uintmax_t>(std::numeric_limits<off_t>::max()))
 			throw_posix_error(EINVAL);
 	}
-	auto ret{reinterpret_cast<std::byte*>(mmap(addr,len,prot,flags,fd,offset))};
+	auto ret{reinterpret_cast<std::byte*>(mmap(addr,len,prot,flags,fd,static_cast<off_t>(static_cast<my_make_unsigned_t<off_t>>(offset))))};
 	if(ret==MAP_FAILED)
 		throw_posix_error();
 	return ret;

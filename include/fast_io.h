@@ -14,52 +14,7 @@
 
 namespace fast_io
 {
-#if __has_include(<stdio.h>)
-inline c_io_observer c_stdin() noexcept
-{
-	return {stdin};
-}
-
-inline c_io_observer c_stdout() noexcept
-{
-	return {stdout};
-}
-
-inline c_io_observer c_stderr() noexcept
-{
-	return {stderr};
-}
-inline wc_io_observer wc_stdin() noexcept
-{
-	return {stdin};
-}
-
-inline wc_io_observer wc_stdout() noexcept
-{
-	return {stdout};
-}
-
-inline wc_io_observer wc_stderr() noexcept
-{
-	return {stderr};
-}
-
-inline u8c_io_observer u8c_stdin() noexcept
-{
-	return {stdin};
-}
-
-inline u8c_io_observer u8c_stdout() noexcept
-{
-	return {stdout};
-}
-
-inline u8c_io_observer u8c_stderr() noexcept
-{
-	return {stderr};
-}
-#endif
-
+#if !defined(__AVR__)
 inline
 #if defined(__WINE__) || !defined(_WIN32)
 constexpr
@@ -227,6 +182,7 @@ decltype(auto) u32box() noexcept
 }
 
 #endif
+#endif
 
 namespace details
 {
@@ -253,10 +209,17 @@ template<bool line,typename... Args>
 #endif
 inline constexpr void perr_after_io_print_forward(Args ...args)
 {
+#if defined(__AVR__)
+	if constexpr(line)
+		println_freestanding_decay(c_stderr(),args...);
+	else
+		print_freestanding_decay(c_stderr(),args...);
+#else
 	if constexpr(line)
 		println_freestanding_decay(err(),args...);
 	else
 		print_freestanding_decay(err(),args...);
+#endif
 }
 
 template<bool line,typename... Args>
@@ -265,10 +228,17 @@ template<bool line,typename... Args>
 #endif
 inline constexpr void debug_print_after_io_print_forward(Args ...args)
 {
+#if defined(__AVR__)
+	if constexpr(line)
+		println_freestanding_decay(c_stdout(),args...);
+	else
+		print_freestanding_decay(c_stdout(),args...);
+#else
 	if constexpr(line)
 		println_freestanding_decay(out(),args...);
 	else
 		print_freestanding_decay(out(),args...);
+#endif
 }
 
 
@@ -369,7 +339,7 @@ template<typename... Args>
 	try
 	{
 #endif
-		perr(std::forward<Args>(args)...);
+		perr(::fast_io::freestanding::forward<Args>(args)...);
 #ifdef __cpp_exceptions
 	}
 	catch(...){}
@@ -386,7 +356,7 @@ requires (sizeof...(Args)!=0)
 	try
 	{
 #endif
-		perrln(std::forward<Args>(args)...);
+		perrln(::fast_io::freestanding::forward<Args>(args)...);
 #ifdef __cpp_exceptions
 	}
 	catch(...){}
@@ -401,7 +371,7 @@ template<typename T,typename... Args>
 inline constexpr void debug_print(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>)
-		fast_io::details::print_freestanding_decay_cold_impl<false>(io_ref(t),fast_io::io_print_forward<typename std::remove_cvref_t<T>::char_type>(fast_io::io_print_alias(args))...);
+		fast_io::details::print_freestanding_decay_cold_impl<false>(::fast_io::io_ref(t),fast_io::io_print_forward<typename std::remove_cvref_t<T>::char_type>(fast_io::io_print_alias(args))...);
 	else
 	{
 #if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
@@ -416,7 +386,7 @@ template<typename T,typename... Args>
 inline constexpr void debug_println(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>)
-		fast_io::details::print_freestanding_decay_cold_impl<true>(io_ref(t),fast_io::io_print_forward<typename std::remove_cvref_t<T>::char_type>(fast_io::io_print_alias(args))...);
+		fast_io::details::print_freestanding_decay_cold_impl<true>(::fast_io::io_ref(t),fast_io::io_print_forward<typename std::remove_cvref_t<T>::char_type>(fast_io::io_print_alias(args))...);
 	else
 	{
 #if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
@@ -431,14 +401,14 @@ template<typename... Args>
 requires (sizeof...(Args)!=0)
 inline constexpr void debug_perr(Args&&... args)
 {
-	::perr(std::forward<Args>(args)...);
+	::perr(::fast_io::freestanding::forward<Args>(args)...);
 }
 
 template<typename... Args>
 requires (sizeof...(Args)!=0)
 inline constexpr void debug_perrln(Args&&... args)
 {
-	::perrln(std::forward<Args>(args)...);
+	::perrln(::fast_io::freestanding::forward<Args>(args)...);
 }
 
 #endif

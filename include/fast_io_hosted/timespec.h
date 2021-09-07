@@ -6,17 +6,17 @@ namespace fast_io
 namespace details
 {
 
-inline constexpr bool denom_is_natural_pow10(std::intmax_t denom) noexcept
+inline constexpr bool denom_is_natural_pow10(std::int_least64_t denom) noexcept
 {
 	if(denom<0)
 		return false;
-	std::uintmax_t den{static_cast<std::uintmax_t>(denom)};
+	std::uint_least64_t den{static_cast<std::uint_least64_t>(denom)};
 	for(;!(den%10u);den/=10u);
 	return den==1;
 }
 
 }
-#ifndef __MSDOS__
+#if !defined(__MSDOS__) && !defined(__AVR__)
 
 template<std::integral char_type>
 constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,struct timespec>) noexcept
@@ -27,7 +27,7 @@ constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,struct time
 namespace details
 {
 
-inline constexpr std::size_t denom_natural_log10(std::uintmax_t den) noexcept
+inline constexpr std::size_t denom_natural_log10(std::uint_least64_t den) noexcept
 {
 	std::size_t logarithm{};
 	for(;!(den%10u);den/=10u)
@@ -35,7 +35,7 @@ inline constexpr std::size_t denom_natural_log10(std::uintmax_t den) noexcept
 	return logarithm;
 }
 
-template<std::uintmax_t lim,std::integral char_type,::fast_io::freestanding::random_access_iterator Iter,details::my_unsigned_integral uint_type>
+template<std::uint_least64_t lim,std::integral char_type,::fast_io::freestanding::random_access_iterator Iter,details::my_unsigned_integral uint_type>
 inline constexpr Iter subseconds_part_print_sz_impl(Iter it,uint_type nsec) noexcept
 {
 	if constexpr(std::numeric_limits<uint_type>::max()>=lim)
@@ -85,8 +85,8 @@ constexpr Iter print_reserve_define(io_reserve_type_t<char_type,struct timespec>
 
 inline constexpr unix_timestamp timespec_to_unix_timestamp(struct timespec tsc) noexcept
 {
-	constexpr uintiso_t mul_factor{uintiso_subseconds_per_second/1000000000u};
-	return {static_cast<intiso_t>(tsc.tv_sec),static_cast<uintiso_t>(tsc.tv_nsec)*mul_factor};
+	constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/1000000000u};
+	return {static_cast<std::int_least64_t>(tsc.tv_sec),static_cast<std::uint_least64_t>(tsc.tv_nsec)*mul_factor};
 }
 
 #endif

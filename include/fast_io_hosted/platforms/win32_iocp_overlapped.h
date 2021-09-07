@@ -25,7 +25,7 @@ public:
 	T callback;
 	template<typename... Args>
 	requires std::constructible_from<T,Args...>
-	constexpr iocp_overlapped_derived(std::in_place_t,Args&& ...args):callback(std::forward<Args>(args)...){}
+	constexpr iocp_overlapped_derived(std::in_place_t,Args&& ...args):callback(::fast_io::freestanding::forward<Args>(args)...){}
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
@@ -76,12 +76,12 @@ public:
 	constexpr
 #endif
 	iocp_overlapped(std::in_place_type_t<T>,Args&& ...args):
-		iocp_overlapped_observer{new iocp_overlapped_derived<T>(std::in_place,std::forward<Args>(args)...)}{}
+		iocp_overlapped_observer{new iocp_overlapped_derived<T>(std::in_place,::fast_io::freestanding::forward<Args>(args)...)}{}
 	template<typename Func>
 #if __cpp_constexpr_dynamic_alloc >= 201907L
 	constexpr
 #endif
-	iocp_overlapped(std::in_place_t,Func&& func):iocp_overlapped(std::in_place_type<std::remove_cvref_t<Func>>,std::forward<Func>(func)){}
+	iocp_overlapped(std::in_place_t,Func&& func):iocp_overlapped(std::in_place_type<std::remove_cvref_t<Func>>,::fast_io::freestanding::forward<Func>(func)){}
 
 	iocp_overlapped(iocp_overlapped const&)=delete;
 	iocp_overlapped& operator=(iocp_overlapped const&)=delete;

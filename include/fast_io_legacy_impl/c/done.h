@@ -208,9 +208,9 @@ inline std::size_t c_io_write_impl(basic_c_family_io_observer<family,char_type> 
 			auto ed{obuffer_end(cfhd)};
 			if(count<ed-curr)[[likely]]
 			{
-				non_overlapped_copy_n(begin,count,curr);
+				non_overlapped_copy_n(begin,static_cast<std::size_t>(count),curr);
 				obuffer_set_curr(cfhd,curr+count);
-				return count;
+				return static_cast<std::size_t>(count);
 			}
 		}
 		return c_fwrite_unlocked_impl(begin,sizeof(char_type),static_cast<std::size_t>(count),cfhd.fp);
@@ -234,9 +234,9 @@ inline std::size_t c_io_read_impl(basic_c_family_io_observer<family,char_type> c
 		auto ed{ibuffer_end(cfhd)};
 		if(count<ed-curr)[[likely]]
 		{
-			non_overlapped_copy_n(curr,count,begin);
+			non_overlapped_copy_n(curr,static_cast<std::size_t>(count),begin);
 			ibuffer_set_curr(cfhd,curr+count);
-			return count;
+			return static_cast<std::size_t>(count);
 		}
 		return c_fread_unlocked_impl(begin,sizeof(char_type),static_cast<std::size_t>(count),cfhd.fp);
 	}

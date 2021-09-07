@@ -1,7 +1,7 @@
 #pragma once
 
 #if defined(_MSC_VER)
-#pragma comment(lib,"User32.lib")
+#pragma comment(lib,"user32.lib")
 #endif
 
 namespace fast_io
