@@ -91,7 +91,7 @@ inline return_value_type system_call(auto p1,auto p2,auto p3,auto p4) noexcept
 	__asm__ __volatile__
 	("svc 0"
 	: "=r" (x0)
-	: "r"(x8), "0"(x0), "r"(x1), "r"(x2), "r"(x3) noexcept
+	: "r"(x8), "0"(x0), "r"(x1), "r"(x2), "r"(x3)
 	: "memory", "cc"
 	);
 	return static_cast<return_value_type>(x0);
