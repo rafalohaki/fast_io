@@ -311,7 +311,7 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 				}
 				case char_literal_v<u8'I', char_type>:
 				{
-					altvalue = (tsp.hours > 12u) ? tsp.hours - 12u : tsp.hours;
+					altvalue = (tsp.hours > 12u) ? static_cast<std::uint_least8_t>(tsp.hours - 12u) : tsp.hours;
 					break;
 				}
 				case char_literal_v<u8'm', char_type>:
@@ -682,13 +682,14 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 			case char_literal_v<u8'I', char_type>:
 			{
 				std::uint_least8_t hours{tsp.hours};
+				constexpr std::uint_least8_t twlv{static_cast<std::uint_least8_t>(12u)};
 				if (hours == 0u)
 				{
-					hours=12u;
+					hours=twlv;
 				}
-				else if(12u<hours)
+				else if(twlv<hours)
 				{
-					hours-=12u;
+					hours-=twlv;
 				}
 				altvalue=hours;
 				break;
