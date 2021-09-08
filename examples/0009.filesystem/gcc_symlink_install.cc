@@ -30,8 +30,7 @@ int main(int argc,char const** argv)
 			if(name_view==u8"libgcc_s.so"sv)	//libgcc_s.so should not be a symlink. It is a linker script
 				continue;
 			if(name_view.ends_with(u8".so"sv)||name_view.contains(u8".so."sv))
-				continue;
-			names.emplace_back(name_view);
+				names.emplace_back(name_view);
 		}
 	}
 	if(names.empty())
@@ -50,7 +49,8 @@ int main(int argc,char const** argv)
 		}
 		if(j==i)
 			continue;
-		posix_unlinkat(at(df),names[i]);
-		posix_symlinkat(names[j],at(df),names[i]);
+		println(fast_io::u8c_stdout(),names[i],u8" -> ",names[j]);
+//		posix_unlinkat(at(df),names[i]);
+//		posix_symlinkat(names[j],at(df),names[i]);
 	}
 }
