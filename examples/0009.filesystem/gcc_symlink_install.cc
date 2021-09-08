@@ -27,7 +27,7 @@ int main(int argc,char const** argv)
 				continue;
 			auto name{filename(ent)};
 			std::u8string_view name_view(name.cbegin(),name.cend());
-			if(name_view==u8"libgcc_s.so"sv)	//libgcc.so should not be a symlink. It is a linker script
+			if(name_view==u8"libgcc_s.so"sv)	//libgcc_s.so should not be a symlink. It is a linker script
 				continue;
 			names.emplace_back(name_view);
 		}
