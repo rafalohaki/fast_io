@@ -49,8 +49,7 @@ int main(int argc,char const** argv)
 		}
 		if(j==i)
 			continue;
-		println(fast_io::u8c_stdout(),names[i],u8" -> ",names[j]);
-//		posix_unlinkat(at(df),names[i]);
-//		posix_symlinkat(names[j],at(df),names[i]);
+		posix_unlinkat(at(df),names[i]);
+		posix_symlinkat(names[j],at(df),names[i]);
 	}
 }
