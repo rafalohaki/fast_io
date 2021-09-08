@@ -26,7 +26,10 @@ int main(int argc,char const** argv)
 			if(view==u8".py"sv)	//excluse .py like libstdc++.so.6.0.29-gdb.py
 				continue;
 			auto name{filename(ent)};
-			names.emplace_back(name.cbegin(),name.cend());
+			std::u8string_view name_view(name.cbegin(),name.cend());
+			if(name_view==u8"libgcc_s.so"sv)	//libgcc.so should not be a symlink. It is a linker script
+				continue;
+			names.emplace_back(name_view);
 		}
 	}
 	if(names.empty())
@@ -35,12 +38,17 @@ int main(int argc,char const** argv)
 	std::size_t const sz{names.size()-1};
 	for(std::size_t i{};i!=sz;++i)
 	{
-		if(names[i+1].size()<=names[i].size())
+		std::size_t j{i};
+		for(;j!=sz;++j)
+		{
+			if(names[j+1].size()<=names[i].size())
+				break;
+			if(!std::equal(names[i].cbegin(),names[i].cend(),names[j+1].cbegin()))
+				break;
+		}
+		if(j==i)
 			continue;
-		if(!std::equal(names[i].cbegin(),names[i].cend(),names[i+1].cbegin()))
-			continue;
-		perrln(fast_io::u8out(),names[i],u8" -> ",names[i+1]);
 		posix_unlinkat(at(df),names[i]);
-		posix_symlinkat(names[i+1],at(df),names[i]);
+		posix_symlinkat(names[j],at(df),names[i]);
 	}
 }
