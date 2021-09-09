@@ -7,11 +7,6 @@ class nt_error
 {
 public:
 	std::uint32_t ntstatus{};
-	explicit constexpr nt_error(std::uint32_t status):ntstatus(status){}
-	inline constexpr std::uint32_t code() const noexcept
-	{
-		return ntstatus;
-	}
 };
 
 [[noreturn]] inline void throw_nt_error([[maybe_unused]] std::uint32_t err)
@@ -20,7 +15,7 @@ public:
 #if defined(_MSC_VER) && (!defined(_HAS_EXCEPTIONS) || _HAS_EXCEPTIONS == 0)
 	fast_terminate();
 #else
-	throw nt_error(err);
+	throw nt_error{err};
 #endif
 #else
 	fast_terminate();
