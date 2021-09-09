@@ -94,7 +94,7 @@ inline auto nt1x_api_dispatcher(void* dir_handle,wchar_t const* path_c_str,std::
 	else if constexpr(dsp==::fast_io::details::posix_api_1x::mkdirat)
 		nt_mkdirat_impl<zw>(dir_handle,path_c_str,path_size,args...);
 	else if constexpr(dsp==::fast_io::details::posix_api_1x::mknodat)
-		nt_mkdirat_impl<zw>(dir_handle,path_c_str,path_size,args...);
+		nt_mknodat_impl<zw>(dir_handle,path_c_str,path_size,args...);
 	else
 #endif
 	if constexpr(dsp==::fast_io::details::posix_api_1x::unlinkat)

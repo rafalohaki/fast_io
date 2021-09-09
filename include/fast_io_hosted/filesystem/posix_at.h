@@ -286,7 +286,7 @@ inline auto posix1x_api_dispatcher(int dirfd,char const* path,Args... args)
 	else if constexpr(dsp==posix_api_1x::mkdirat)
 		posix_mkdirat_impl(dirfd,path,args...);
 	else if constexpr(dsp==posix_api_1x::mknodat)
-		posix_mkdirat_impl(dirfd,path,args...);
+		posix_mknodat_impl(dirfd,path,args...);
 	else if constexpr(dsp==posix_api_1x::unlinkat)
 		posix_unlinkat_impl(dirfd,path,args...);
 	else if constexpr(dsp==posix_api_1x::utimensat)
