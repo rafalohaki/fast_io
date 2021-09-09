@@ -195,12 +195,18 @@ inline void native_mkdirat(nt_at_entry ent,path_type&& path, perms pm=static_cas
 	::fast_io::win32::nt::details::nt_deal_with1x<nt_family::nt,details::posix_api_1x::mkdirat>(ent.handle,vw.c_str(),vw.size(),pm);
 }
 
-using native_at_flags = nt_at_flags;
 template<constructible_to_path path_type>
 inline void native_unlinkat(nt_at_entry ent,path_type&& path,native_at_flags flags={})
 {
 	auto vw{::fast_io::details::to_its_cstring_view(path)};
 	::fast_io::win32::nt::details::nt_deal_with1x<nt_family::nt,::fast_io::details::posix_api_1x::unlinkat>(ent.handle,vw.c_str(),vw.size(),flags);
 }
+
+template<constructible_to_path path_type>
+inline void native_fchownat(nt_at_entry,path_type&&,std::uintptr_t,std::uintptr_t,[[maybe_unused]] nt_at_flags flags=nt_at_flags::symlink_nofollow)
+{
+//windows does not use POSIX user group system. stub it and it is perfectly fine. But nt_fchownat,zw_fchownat will not be provided since they do not exist.
+}
+
 #endif
 }
