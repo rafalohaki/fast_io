@@ -7,7 +7,7 @@ class nt_error
 {
 public:
 	std::uint32_t ntstatus{};
-	explicit nt_error(std::uint32_t status):ntstatus(status){}
+	explicit constexpr nt_error(std::uint32_t status):ntstatus(status){}
 	inline constexpr std::uint32_t code() const noexcept
 	{
 		return ntstatus;
@@ -73,9 +73,9 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,nt_e
 }
 
 template<::fast_io::freestanding::contiguous_iterator Iter>
-inline constexpr Iter print_reserve_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,nt_error>,Iter iter,nt_error const& e) noexcept
+inline constexpr Iter print_reserve_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,nt_error>,Iter iter,nt_error e) noexcept
 {
-	return details::print_reserve_nt_error_impl(iter,e.code());
+	return details::print_reserve_nt_error_impl(iter,e.ntstatus);
 }
 
 }
