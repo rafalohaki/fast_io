@@ -127,7 +127,7 @@ inline void nt_linkat_impl(
 	nt_at_flags flags)
 {
 	nt_open_mode const md{calculate_nt_link_flag(flags)};
-	nt_file file(nt_call_callback(olddirhd,oldpath_c_str,oldpath_size,nt_create_callback<zw>{md}));
+	basic_nt_family_file<(zw?(nt_family::zw):(nt_family::nt)),char> file(nt_call_callback(olddirhd,oldpath_c_str,oldpath_size,nt_create_callback<zw>{md}));
 	nt_call_callback(
 		newdirhd,newpath_c_str,newpath_size,
 		[&](void* directory_hd,win32::nt::unicode_string const* ustr)
