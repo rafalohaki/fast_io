@@ -141,7 +141,6 @@ FileLinkInformationExBypassAccessCheck,         // 73
 FileStorageReserveIdInformation,                // 74
 FileCaseSensitiveInformationForceAccessCheck,   // 75
 
-FileMaximumInformation
 };
 
 

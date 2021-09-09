@@ -228,7 +228,7 @@ does not exist
 		mode.CreateOptions|=0x00000800;
 	if((value&open_mode::no_recall)!=open_mode::none)
 		mode.CreateOptions|=0x00400000;	//FILE_OPEN_NO_RECALL 0x00400000
-	if((value&open_mode::case_insensitive)==open_mode::none)
+	if((value&open_mode::case_insensitive)!=open_mode::none)
 		mode.ObjAttributes|=0x00000040;	//OBJ_CASE_INSENSITIVE
 	if((value&open_mode::inherit)!=open_mode::none)
 		mode.ObjAttributes|=0x00000002;	//OBJ_INHERIT
@@ -238,7 +238,8 @@ does not exist
 	if((value&open_mode::temporary)!=open_mode::none)
 	{
 		mode.CreateOptions|=0x00001000;					//FILE_DELETE_ON_CLOSE
-		mode.FileAttributes|=0x100;				//FILE_ATTRIBUTE_TEMPORARY??
+		mode.FileAttributes|=0x100;						//FILE_ATTRIBUTE_TEMPORARY??
+		mode.DesiredAccess|=0x00010000;					//DELETE
 	}
 	if((pm&perms::owner_write)==perms::none)
 		mode.FileAttributes|=0x00000001;  //FILE_ATTRIBUTE_READONLY

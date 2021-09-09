@@ -49,7 +49,7 @@ int main(int argc,char const** argv)
 		}
 		if(j==i)
 			continue;
-		posix_unlinkat(at(df),names[i]);
-		posix_symlinkat(names[j],at(df),names[i]);
+		native_unlinkat(at(df),names[i]);
+		native_symlinkat(names[j],at(df),names[i]);
 	}
 }
