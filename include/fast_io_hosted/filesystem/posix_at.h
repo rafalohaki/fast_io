@@ -426,6 +426,42 @@ inline void posix_symlinkat(old_path_type&& oldpath,
 		newent.fd,details::to_its_cstring_view(newpath));
 }
 
+
+
+template<constructible_to_path old_path_type,
+	constructible_to_path new_path_type>
+inline void native_renameat(native_at_entry oldent,
+	old_path_type&& oldpath,
+	native_at_entry newent,
+	new_path_type&& newpath)
+{
+	details::posix_deal_with22<details::posix_api_22::renameat>(
+		oldent.fd,details::to_its_cstring_view(oldpath),
+		newent.fd,details::to_its_cstring_view(newpath));
+}
+
+template<constructible_to_path new_path_type>
+inline void native_renameat(posix_fs_dirent fs_dirent,
+	native_at_entry newent,
+	new_path_type&& newpath)
+{
+	details::posix_deal_with22<details::posix_api_22::renameat>(
+		fs_dirent.fd,fs_dirent.filename,
+		newent.fd,details::to_its_cstring_view(newpath));
+}
+
+template<constructible_to_path old_path_type,
+	constructible_to_path new_path_type>
+inline void native_symlinkat(old_path_type&& oldpath,
+	native_at_entry newent,
+	new_path_type&& newpath)
+{
+	details::posix_deal_with12<details::posix_api_12::symlinkat>(
+		details::to_its_cstring_view(oldpath),
+		newent.fd,details::to_its_cstring_view(newpath));
+}
+
+
 enum class posix_at_flags
 {
 eaccess=
