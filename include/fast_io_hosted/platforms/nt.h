@@ -443,7 +443,7 @@ inline nt_at_entry nt_at_fdcwd() noexcept
 	return nt_at_entry{bit_cast<void*>(value)};
 }
 
-#if !defined(__CYGWIN__)
+#if !defined(__CYGWIN__) && !defined(__WINE__)
 #if __has_cpp_attribute(gnu::always_inline)
 [[gnu::always_inline]]
 #elif __has_cpp_attribute(msvc::forceinline)
