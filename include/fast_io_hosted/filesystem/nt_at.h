@@ -80,9 +80,13 @@ inline void nt_unlinkat_impl(void* dirhd,wchar_t const* path_c_str,std::size_t p
 }
 
 template<bool zw>
-inline void nt_mknodat_impl(void* dirhd,wchar_t const* path_c_str,std::size_t path_size,nt_open_mode const& ompm)
+inline void nt_mkdirat_impl(void* dirhd,wchar_t const* path_c_str,std::size_t path_size,perms pm)
 {
-	auto status{nt_close<zw>(nt_call_callback(dirhd,path_c_str,path_size,nt_create_callback<zw>{calculate_nt_open_mode_flag(ompm)}))};
+	constexpr fast_io::win32::nt::details::nt_open_mode create_dir_mode{fast_io::win32::nt::details::calculate_nt_open_mode({fast_io::open_mode::creat|fast_io::open_mode::directory})};
+	auto m_dir_mode{create_dir_mode};
+	if((pm&perms::owner_write)==perms::none)
+		m_dir_mode.FileAttributes|=0x00000001;  //FILE_ATTRIBUTE_READONLY
+	auto status{nt_close<zw>(nt_call_callback(dirhd,path_c_str,path_size,nt_create_callback<zw>{m_dir_mode}))};
 	if(status)
 		throw_nt_error(status);
 }
@@ -99,12 +103,9 @@ inline auto nt1x_api_dispatcher(void* dir_handle,wchar_t const* path_c_str,std::
 		nt_fchmodat_impl<zw>(dir_handle,path_c_str,path_size,args...);
 	else if constexpr(dsp==::fast_io::details::posix_api_1x::fstatat)
 		nt_fstatat_impl<zw>(dir_handle,path_c_str,path_size,args...);
-	else if constexpr(dsp==::fast_io::details::posix_api_1x::mkdirat)
-		nt_mkdirat_impl<zw>(dir_handle,path_c_str,path_size,args...);	
-	else
 #endif
-	if constexpr(dsp==::fast_io::details::posix_api_1x::mknodat)
-		nt_mknodat_impl<zw>(dir_handle,path_c_str,path_size,args...);
+	if constexpr(dsp==::fast_io::details::posix_api_1x::mkdirat)
+		nt_mkdirat_impl<zw>(dir_handle,path_c_str,path_size,args...);	
 	else if constexpr(dsp==::fast_io::details::posix_api_1x::unlinkat)
 		nt_unlinkat_impl<zw>(dir_handle,path_c_str,path_size,args...);
 #if 0
@@ -138,6 +139,29 @@ inline auto nt_deal_with1x(
 
 }
 
+
+template<nt_family family,constructible_to_path path_type>
+requires (family==nt_family::nt||family==nt_family::zw)
+inline void nt_family_mkdirat(nt_at_entry ent,path_type&& path,perms pm=static_cast<perms>(436))
+{
+	auto vw{::fast_io::details::to_its_cstring_view(path)};
+	::fast_io::win32::nt::details::nt_deal_with1x<family,details::posix_api_1x::mkdirat>(ent.handle,vw.c_str(),vw.size(),pm);
+}
+
+template<constructible_to_path path_type>
+inline void nt_mkdirat(nt_at_entry ent,path_type&& path,perms pm=static_cast<perms>(436))
+{
+	auto vw{::fast_io::details::to_its_cstring_view(path)};
+	::fast_io::win32::nt::details::nt_deal_with1x<nt_family::nt,details::posix_api_1x::mkdirat>(ent.handle,vw.c_str(),vw.size(),pm);
+}
+
+template<constructible_to_path path_type>
+inline void zw_mkdirat(nt_at_entry ent,path_type&& path,perms pm=static_cast<perms>(436))
+{
+	auto vw{::fast_io::details::to_its_cstring_view(path)};
+	::fast_io::win32::nt::details::nt_deal_with1x<nt_family::zw,details::posix_api_1x::mkdirat>(ent.handle,vw.c_str(),vw.size(),pm);
+}
+
 template<nt_family family,constructible_to_path path_type>
 requires (family==nt_family::nt||family==nt_family::zw)
 inline void nt_family_unlinkat(nt_at_entry ent,path_type&& path,nt_at_flags flags={})
@@ -162,6 +186,15 @@ inline void zw_unlinkat(nt_at_entry ent,path_type&& path,nt_at_flags flags={})
 
 
 #if !defined(__CYGWIN__) && !defined(__WINE__)
+using native_at_flags = nt_at_flags;
+
+template<constructible_to_path path_type>
+inline void native_mkdirat(nt_at_entry ent,path_type&& path, perms pm=static_cast<perms>(436))
+{
+	auto vw{::fast_io::details::to_its_cstring_view(path)};
+	::fast_io::win32::nt::details::nt_deal_with1x<nt_family::nt,details::posix_api_1x::mkdirat>(ent.handle,vw.c_str(),vw.size(),pm);
+}
+
 using native_at_flags = nt_at_flags;
 template<constructible_to_path path_type>
 inline void native_unlinkat(nt_at_entry ent,path_type&& path,native_at_flags flags={})
