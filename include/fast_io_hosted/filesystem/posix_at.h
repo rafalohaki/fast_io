@@ -172,7 +172,7 @@ inline void posix_mkdirat_impl(int dirfd, const char *pathname, mode_t mode)
 #endif
 	(dirfd,pathname,mode));
 }
-
+#if 0
 #if (defined(__wasi__) && !defined(__wasilibc_unmodified_upstream)) || defined(__DARWIN_C_LEVEL)
 inline void posix_mknodat_impl(int, const char *, mode_t,std::uintmax_t)
 {
@@ -202,7 +202,7 @@ inline void posix_mknodat_impl(int dirfd, const char *pathname, mode_t mode,std:
 }
 
 #endif
-
+#endif
 inline void posix_unlinkat_impl(int dirfd,char const* path,int flags)
 {
 	system_call_throw_error(
@@ -285,8 +285,10 @@ inline auto posix1x_api_dispatcher(int dirfd,char const* path,Args... args)
 		posix_fstatat_impl(dirfd,path,args...);
 	else if constexpr(dsp==posix_api_1x::mkdirat)
 		posix_mkdirat_impl(dirfd,path,args...);
+#if 0
 	else if constexpr(dsp==posix_api_1x::mknodat)
 		posix_mknodat_impl(dirfd,path,args...);
+#endif
 	else if constexpr(dsp==posix_api_1x::unlinkat)
 		posix_unlinkat_impl(dirfd,path,args...);
 	else if constexpr(dsp==posix_api_1x::utimensat)
@@ -557,7 +559,7 @@ inline void native_mkdirat(native_at_entry ent,path_type&& path,perms perm=stati
 {
 	return details::posix_deal_with1x<details::posix_api_1x::mkdirat>(ent.fd,details::to_its_cstring_view(path),static_cast<mode_t>(perm));
 }
-
+#if 0
 template<constructible_to_path path_type>
 inline void posix_mknodat(native_at_entry ent,path_type&& path,perms perm,std::uintmax_t dev)
 {
@@ -569,7 +571,7 @@ inline void native_mknodat(native_at_entry ent,path_type&& path,perms perm,std::
 {
 	return details::posix_deal_with1x<details::posix_api_1x::mknodat>(ent.fd,details::to_its_cstring_view(path),static_cast<mode_t>(perm),dev);
 }
-
+#endif
 template<constructible_to_path path_type>
 inline void posix_unlinkat(native_at_entry ent,path_type&& path,posix_at_flags flags={})
 {
