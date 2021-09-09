@@ -430,12 +430,11 @@ struct nt_at_entry
 #if !defined(__WINE__)
 	nt_at_entry(posix_at_entry pate) noexcept:handle(details::my_get_osfile_handle(pate.fd)){}
 #endif
-	
 };
 
 #if __has_cpp_attribute(gnu::always_inline)
 [[gnu::always_inline]]
-#elif _has_cpp_attribute(msvc::forceinline)
+#elif __has_cpp_attribute(msvc::forceinline)
 [[msvc::forceinline]]
 #endif
 inline nt_at_entry nt_at_fdcwd() noexcept
@@ -447,7 +446,7 @@ inline nt_at_entry nt_at_fdcwd() noexcept
 #if !defined(__CYGWIN__)
 #if __has_cpp_attribute(gnu::always_inline)
 [[gnu::always_inline]]
-#elif _has_cpp_attribute(msvc::forceinline)
+#elif __has_cpp_attribute(msvc::forceinline)
 [[msvc::forceinline]]
 #endif
 inline nt_at_entry at_fdcwd() noexcept
