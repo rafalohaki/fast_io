@@ -2,10 +2,7 @@
 
 #if defined(_WIN32) || defined(__CYGWIN__)
 
-#if 0
-#include"../../fast_io_crypto/hash/hash_processor.h"
-#include"../../fast_io_crypto/hash/sha_impl.h"
-#endif
+
 #include"win32/impl.h"
 
 #if defined(_WIN32) || defined(__CYGWIN__)
@@ -20,7 +17,6 @@ inline constexpr std::uint32_t win32_stderr_number(static_cast<std::uint32_t>(-1
 #endif
 #include"win32_error.h"
 #include"nt/impl.h"
-#include"nt_error.h"
 #include"nt.h"
 //#include"win32_iocp_overlapped.h"
 #include"win32.h"

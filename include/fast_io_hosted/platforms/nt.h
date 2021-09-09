@@ -64,8 +64,10 @@ std::uint32_t ObjAttributes{};
 https://docs.microsoft.com/en-us/windows/win32/secauthz/access-mask-format
 */
 
-inline constexpr nt_open_mode calculate_nt_open_mode(open_mode value,perms pm) noexcept
+inline constexpr nt_open_mode calculate_nt_open_mode(open_mode_perms ompm) noexcept
 {
+	open_mode value{ompm.om};
+	perms pm{ompm.pm};
 	nt_open_mode mode;
 	bool generic_write{};
 	if((value&open_mode::app)!=open_mode::none)
@@ -242,20 +244,9 @@ does not exist
 		mode.FileAttributes|=0x00000001;  //FILE_ATTRIBUTE_READONLY
 	return mode;
 }
-template<open_mode om,perms pm=static_cast<perms>(436)>
-struct nt_file_openmode
-{
-	inline static constexpr nt_open_mode mode = calculate_nt_open_mode(om,pm);
-};
-
-inline void nt_file_rtl_path(wchar_t const* filename,win32::nt::unicode_string& nt_name,wchar_t const*& part_name,win32::nt::rtl_relative_name_u& relative_name)
-{
-	if(!win32::nt::rtl_dos_path_name_to_nt_path_name_u(filename,__builtin_addressof(nt_name),__builtin_addressof(part_name),__builtin_addressof(relative_name)))
-		throw_nt_error(0xC0000039);
-}
 
 template<bool zw>
-inline void* nt_create_file_common_impl(void* directory,win32::nt::unicode_string* relative_path,nt_open_mode const& mode)
+inline void* nt_create_file_common(void* directory, win32::nt::unicode_string* relative_path, nt_open_mode const& mode)
 {
 	win32::security_attributes sec_attr{sizeof(win32::security_attributes),nullptr,true};
 	win32::nt::object_attributes obj{.Length=sizeof(win32::nt::object_attributes),
@@ -265,8 +256,8 @@ inline void* nt_create_file_common_impl(void* directory,win32::nt::unicode_strin
 		.SecurityDescriptor=mode.ObjAttributes&0x00000002?__builtin_addressof(sec_attr):nullptr,
 		.SecurityQualityOfService=nullptr
 	};
-	void* handle{};
-	win32::nt::io_status_block block{};
+	void* handle;
+	win32::nt::io_status_block block;
 	auto const status{win32::nt::nt_create_file<zw>(
 	__builtin_addressof(handle),mode.DesiredAccess,__builtin_addressof(obj),__builtin_addressof(block),nullptr,mode.FileAttributes,
 	mode.ShareAccess,mode.CreateDisposition,mode.CreateOptions,nullptr,0u)};
@@ -275,94 +266,35 @@ inline void* nt_create_file_common_impl(void* directory,win32::nt::unicode_strin
 	return handle;
 }
 
-inline std::uint16_t filename_bytes(std::size_t sz)
+template<bool zw>
+struct nt_create_callback
 {
-	if constexpr(sizeof(sz)<sizeof(std::uint16_t))//sizeof(std::size_t) can never be smaller than sizeof(std::uint16_t)
-		return static_cast<std::uint16_t>(static_cast<std::uint16_t>(sz)<<1u);
-	if(static_cast<std::size_t>(std::numeric_limits<std::uint16_t>::max()>>1u)<sz)
-		throw_nt_error(0xC0000106);
-	return static_cast<std::uint16_t>(sz<<1);
-}
-
-template<bool zw,bool ok=true,std::integral char_type>
-requires (ok)
-inline void* nt_create_file_impl(basic_cstring_view<char_type> filename,nt_open_mode const& mode)
-{
-	wchar_t const* part_name{};
-	win32::nt::rtl_relative_name_u relative_name{};
-	win32::nt::unicode_string nt_name{};
-	using wchar_t_may_alias_ptr
-#if __has_cpp_attribute(gnu::may_alias)
-	[[gnu::may_alias]]
+	nt_open_mode const& mode;
+#if __has_cpp_attribute(gnu::always_inline)
+[[gnu::always_inline]]
+#elif __has_cpp_attribute(msvc::forceinline)
+[[msvc::forceinline]]
 #endif
-	= wchar_t const*;
-	if constexpr(std::same_as<char_type,wchar_t>)
+	void* operator()(void* directory_handle,win32::nt::unicode_string* relative_path) const
 	{
-		nt_file_rtl_path(filename.c_str(),nt_name,part_name,relative_name);
+		return nt_create_file_common<zw>(directory_handle,relative_path,mode);	//get rid of this pointer
 	}
-	else if constexpr(sizeof(char_type)==sizeof(wchar_t))
-	{
-		nt_file_rtl_path(reinterpret_cast<wchar_t_may_alias_ptr>(filename.c_str()),nt_name,part_name,relative_name);
-	}
-	else
-	{
-		nt_api_encoding_converter converter(filename.data(),filename.size());
-		nt_file_rtl_path(reinterpret_cast<wchar_t_may_alias_ptr>(converter.c_str()),nt_name,part_name,relative_name);
-	}
-	win32::nt::rtl_unicode_string_unique_ptr us_ptr{__builtin_addressof(nt_name)};
-	return nt_create_file_common_impl<zw>(nullptr,__builtin_addressof(nt_name),mode);
+};
+
+template<bool zw,std::integral char_type>
+inline void* nt_create_file_impl(char_type const* filename_cstr,std::size_t filename_len,open_mode_perms op)
+{
+	nt_open_mode const md{win32::nt::details::calculate_nt_open_mode(op)};
+	return nt_call_callback_without_directory_handle(filename_cstr,filename_len,nt_create_callback<zw>{md});
 }
 
 template<bool zw,std::integral char_type>
-inline void* nt_create_file_directory_impl(void* directory,basic_cstring_view<char_type> filename,nt_open_mode const& mode)
+//4 parameters calling convention all pass by value
+inline void* nt_create_file_at_impl(void* directory_handle,char_type const* filename_cstr,std::size_t filename_len,open_mode_perms op)
 {
-	if constexpr(std::same_as<char_type,wchar_t>)
-	{
-		std::uint16_t const bytes(filename_bytes(filename.size()));
-		win32::nt::unicode_string relative_path{
-			.Length=bytes,
-			.MaximumLength=bytes,
-			.Buffer=const_cast<wchar_t*>(filename.c_str())};
-		return nt_create_file_common_impl<zw>(directory,__builtin_addressof(relative_path),mode);
-	}
-	else if constexpr(std::same_as<char_type,char16_t>)
-	{
-		using wchar_t_may_alias_ptr
-#if __has_cpp_attribute(gnu::may_alias)
-		[[gnu::may_alias]]
-#endif
-		= wchar_t*;
-		using wchar_t_may_alias_const_ptr
-#if __has_cpp_attribute(gnu::may_alias)
-		[[gnu::may_alias]]
-#endif
-		= wchar_t const*;
-		std::uint16_t const bytes(filename_bytes(filename.size()));
-		win32::nt::unicode_string relative_path{
-			.Length=bytes,
-			.MaximumLength=bytes,
-			.Buffer=const_cast<wchar_t_may_alias_ptr>(
-				reinterpret_cast<wchar_t_may_alias_const_ptr>(filename.c_str()))};
-		return nt_create_file_common_impl<zw>(directory,__builtin_addressof(relative_path),mode);
-	}
-	else
-	{
-		nt_api_encoding_converter converter(filename.data(),filename.size());
-		std::uint16_t const bytes(filename_bytes(converter.size()));
-		using wchar_t_may_alias_ptr
-#if __has_cpp_attribute(gnu::may_alias)
-		[[gnu::may_alias]]
-#endif
-		= wchar_t*;
-		win32::nt::unicode_string relative_path{
-			.Length=bytes,
-			.MaximumLength=bytes,
-			.Buffer=reinterpret_cast<wchar_t_may_alias_ptr>(converter.buffer_data)};
-		return nt_create_file_common_impl<zw>(directory,__builtin_addressof(relative_path),mode);
-	}
-
+	nt_open_mode const md{win32::nt::details::calculate_nt_open_mode(op)};
+	return nt_call_callback(directory_handle,filename_cstr,filename_len,nt_create_callback<zw>{md});
 }
-
 
 template<bool zw>
 inline std::size_t nt_read_impl(void* __restrict handle,void* __restrict begin,std::size_t size)
@@ -482,12 +414,12 @@ inline io_scatter_status_t nt_scatter_write_impl(void* __restrict handle,io_scat
 }
 
 }
-#if !defined(__WINE__)
 namespace details
 {
+#if !defined(__WINE__)
 inline void* my_get_osfile_handle(int fd) noexcept;
-}
 #endif
+}
 
 struct nt_at_entry
 {
@@ -498,7 +430,32 @@ struct nt_at_entry
 #if !defined(__WINE__)
 	nt_at_entry(posix_at_entry pate) noexcept:handle(details::my_get_osfile_handle(pate.fd)){}
 #endif
+	
 };
+
+#if __has_cpp_attribute(gnu::always_inline)
+[[gnu::always_inline]]
+#elif _has_cpp_attribute(msvc::forceinline)
+[[msvc::forceinline]]
+#endif
+inline nt_at_entry nt_at_fdcwd() noexcept
+{
+	constexpr std::intptr_t value{-3};	//use -3 as at_fdwcd handle
+	return nt_at_entry{bit_cast<void*>(value)};
+}
+
+#if !defined(__CYGWIN__)
+#if __has_cpp_attribute(gnu::always_inline)
+[[gnu::always_inline]]
+#elif _has_cpp_attribute(msvc::forceinline)
+[[msvc::forceinline]]
+#endif
+inline nt_at_entry at_fdcwd() noexcept
+{
+	return nt_at_fdcwd();
+}
+#endif
+
 
 template<nt_family family>
 struct nt_family_at_entry:nt_at_entry
@@ -593,13 +550,13 @@ inline constexpr basic_nt_family_io_observer<family,ch_type> io_value_handle(bas
 template<nt_family family,std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 [[nodiscard]] inline Iter read(basic_nt_family_io_observer<family,ch_type> obs,Iter begin,Iter end)
 {
-	return begin+win32::nt::details::nt_read_impl<family==nt_family::zw>(obs.handle,::fast_io::freestanding::to_address(begin),(end-begin)*sizeof(*begin))/sizeof(*begin);
+	return begin+win32::nt::details::nt_read_impl<family==nt_family::zw>(obs.handle,::fast_io::freestanding::to_address(begin),static_cast<std::size_t>(end-begin)*sizeof(*begin))/sizeof(*begin);
 }
 
 template<nt_family family,std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter write(basic_nt_family_io_observer<family,ch_type> obs,Iter cbegin,Iter cend)
 {
-	return cbegin+win32::nt::details::nt_write_impl<family==nt_family::zw>(obs.handle,::fast_io::freestanding::to_address(cbegin),(cend-cbegin)*sizeof(*cbegin))/sizeof(*cbegin);
+	return cbegin+win32::nt::details::nt_write_impl<family==nt_family::zw>(obs.handle,::fast_io::freestanding::to_address(cbegin),static_cast<std::size_t>(cend-cbegin)*sizeof(*cbegin))/sizeof(*cbegin);
 }
 
 template<nt_family family,std::integral ch_type>
@@ -858,45 +815,45 @@ public:
 		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_dup_impl<family==nt_family::zw>(wiob.handle))
 	{}
 	explicit basic_nt_family_file(nt_fs_dirent fsdirent,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_directory_impl<family==nt_family::zw>(fsdirent.handle,fsdirent.filename,win32::nt::details::calculate_nt_open_mode(om,pm))){}
+		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_at_impl<family==nt_family::zw>(fsdirent.handle,fsdirent.filename.c_str(),fsdirent.filename.size(),{om,pm})){}
 	explicit basic_nt_family_file(cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_create_file_impl<family==nt_family::zw>(filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
+		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_create_file_impl<family==nt_family::zw>(filename.c_str(),filename.size(),{om,pm}))
 	{
 	}
 	explicit basic_nt_family_file(nt_at_entry nate,cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_directory_impl<family==nt_family::zw>(nate.handle,filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
+		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_at_impl<family==nt_family::zw>(nate.handle,filename.c_str(),filename.size(),{om,pm}))
 	{
 	}
 	explicit basic_nt_family_file(wcstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_create_file_impl<family==nt_family::zw>(filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
+		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_create_file_impl<family==nt_family::zw>(filename.c_str(),filename.size(),{om,pm}))
 	{
 	}
 	explicit basic_nt_family_file(nt_at_entry nate,wcstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_directory_impl<family==nt_family::zw>(nate.handle,filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
+		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_at_impl<family==nt_family::zw>(nate.handle,filename.c_str(),filename.size(),{om,pm}))
 	{
 	}
 	explicit basic_nt_family_file(u8cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_create_file_impl<family==nt_family::zw>(filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
+		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_create_file_impl<family==nt_family::zw>(filename.c_str(),filename.size(),{om,pm}))
 	{
 	}
 	explicit basic_nt_family_file(nt_at_entry nate,u8cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_directory_impl<family==nt_family::zw>(nate.handle,filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
+		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_at_impl<family==nt_family::zw>(nate.handle,filename.c_str(),filename.size(),{om,pm}))
 	{
 	}
 	explicit basic_nt_family_file(u16cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_create_file_impl<family==nt_family::zw>(filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
+		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_create_file_impl<family==nt_family::zw>(filename.c_str(),filename.size(),{om,pm}))
 	{
 	}
 	explicit basic_nt_family_file(nt_at_entry nate,u16cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_directory_impl<family==nt_family::zw>(nate.handle,filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
+		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_at_impl<family==nt_family::zw>(nate.handle,filename.c_str(),filename.size(),{om,pm}))
 	{
 	}
 	explicit basic_nt_family_file(u32cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_create_file_impl<family==nt_family::zw>(filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
+		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_create_file_impl<family==nt_family::zw>(filename.c_str(),filename.size(),{om,pm}))
 	{
 	}
 	explicit basic_nt_family_file(nt_at_entry nate,u32cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_directory_impl<family==nt_family::zw>(nate.handle,filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
+		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_at_impl<family==nt_family::zw>(nate.handle,filename.c_str(),filename.size(),{om,pm}))
 	{
 	}
  	basic_nt_family_file(basic_nt_family_file const&)=default;

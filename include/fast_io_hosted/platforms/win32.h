@@ -97,34 +97,29 @@ inline void* win32_create_file_impld(char const* lpFileName,win32_open_mode cons
 }
 
 template<win32_family family,std::integral char_type>
-#if __has_cpp_attribute(gnu::cold)
-[[gnu::cold]]
-#endif
-inline void* win32_create_file_impl(basic_cstring_view<char_type> path,win32_open_mode const& mode)
+inline void* win32_create_file_internal_impl(char_type const* filename_c_str,std::size_t filename_size,win32_open_mode const& mode)
 {
 	using family_char_type = std::conditional_t<family==win32_family::wide_nt,wchar_t,char>;
-	if constexpr(std::same_as<char_type,family_char_type>)
-		return win32_create_file_impld<family>(path.data(),mode);
-	else if constexpr(sizeof(char_type)==sizeof(family_char_type))
+	if constexpr(sizeof(char_type)==sizeof(family_char_type))
 	{
 		using family_char_type_may_alias_ptr
 #if __has_cpp_attribute(gnu::may_alias)
 		[[gnu::may_alias]]
 #endif
 		= family_char_type const*;
-		return win32_create_file_impld<family>(reinterpret_cast<family_char_type_may_alias_ptr>(path.data()),mode);
+		return win32_create_file_impld<family>(reinterpret_cast<family_char_type_may_alias_ptr>(filename_c_str),mode);
 	}
 	else
 	{
-		win32_family_api_encoding_converter<family> converter(path.data(),path.size());
+		win32_family_api_encoding_converter<family> converter(filename_c_str,filename_size);
 		return win32_create_file_impld<family>(converter.native_c_str(),mode);
 	}
 }
-#if __has_cpp_attribute(gnu::cold)
-[[gnu::cold]]
-#endif
-inline constexpr win32_open_mode calculate_win32_open_mode(open_mode value,perms pm)
+
+inline constexpr win32_open_mode calculate_win32_open_mode(open_mode_perms ompm)
 {
+	open_mode value{ompm.om};
+	perms pm{ompm.pm};
 	win32_open_mode mode;
 	if((value&open_mode::app)!=open_mode::none)
 		mode.dwDesiredAccess|=4;//FILE_APPEND_DATA
@@ -306,6 +301,13 @@ I tried this. Oh no. It cannot
 	if((pm&perms::owner_write)==perms::none)
 		mode.dwFlagsAndAttributes|=1;						//FILE_ATTRIBUTE_READONLY
 	return mode;
+}
+
+
+template<win32_family family,std::integral char_type>
+inline void* win32_create_file_impl(char_type const* filename_c_str,std::size_t filename_size,open_mode_perms ompm)
+{
+	return win32_create_file_internal_impl<family>(filename_c_str,filename_size,calculate_win32_open_mode(ompm));
 }
 
 }
@@ -874,62 +876,49 @@ public:
 	explicit basic_win32_family_file(io_temp_t):basic_win32_family_io_handle<family,char_type>(details::create_win32_temp_file()){}
 #endif
 	explicit basic_win32_family_file(nt_fs_dirent fsdirent,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_win32_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_directory_impl<false>(fsdirent.handle,fsdirent.filename,win32::nt::details::calculate_nt_open_mode(om,pm))){}
+		basic_win32_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_at_impl<false>(fsdirent.handle,fsdirent.filename.c_str(),fsdirent.filename.size(),{om,pm})){}
 	explicit basic_win32_family_file(nt_at_entry nate,cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-				basic_win32_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_directory_impl<false>(nate.handle,filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
+				basic_win32_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_at_impl<false>(nate.handle,filename.c_str(),filename.size(),{om,pm}))
 	{}
 
 	explicit basic_win32_family_file(cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-				basic_win32_family_io_handle<family,char_type>(details::win32_create_file_impl<family>(filename,details::calculate_win32_open_mode(om,pm)))
+				basic_win32_family_io_handle<family,char_type>(details::win32_create_file_impl<family>(filename.c_str(),filename.size(),{om,pm}))
 
 	{}
 	explicit basic_win32_family_file(nt_at_entry nate,wcstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-				basic_win32_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_directory_impl<false>(nate.handle,filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
+				basic_win32_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_at_impl<false>(nate.handle,filename.c_str(),filename.size(),{om,pm}))
 	{}
 
 	explicit basic_win32_family_file(wcstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-				basic_win32_family_io_handle<family,char_type>(details::win32_create_file_impl<family>(filename,details::calculate_win32_open_mode(om,pm)))
+				basic_win32_family_io_handle<family,char_type>(details::win32_create_file_impl<family>(filename.c_str(),filename.size(),{om,pm}))
 	{}
 
 
 	explicit basic_win32_family_file(nt_at_entry nate,u8cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-				basic_win32_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_directory_impl<false>(nate.handle,filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
+				basic_win32_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_at_impl<false>(nate.handle,filename.c_str(),filename.size(),{om,pm}))
 	{}
 
 	explicit basic_win32_family_file(u8cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-				basic_win32_family_io_handle<family,char_type>(details::win32_create_file_impl<family>(filename,details::calculate_win32_open_mode(om,pm)))
+				basic_win32_family_io_handle<family,char_type>(details::win32_create_file_impl<family>(filename.c_str(),filename.size(),{om,pm}))
 
 	{}
 	explicit basic_win32_family_file(nt_at_entry nate,u16cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-				basic_win32_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_directory_impl<false>(nate.handle,filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
+				basic_win32_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_at_impl<false>(nate.handle,filename.c_str(),filename.size(),{om,pm}))
 	{}
 
 	explicit basic_win32_family_file(u16cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-				basic_win32_family_io_handle<family,char_type>(details::win32_create_file_impl<family>(filename,details::calculate_win32_open_mode(om,pm)))
+				basic_win32_family_io_handle<family,char_type>(details::win32_create_file_impl<family>(filename.c_str(),filename.size(),{om,pm}))
 	{}
 
 
 	explicit basic_win32_family_file(nt_at_entry nate,u32cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-				basic_win32_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_directory_impl<false>(nate.handle,filename,win32::nt::details::calculate_nt_open_mode(om,pm)))
+			basic_win32_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_at_impl<false>(nate.handle,filename.c_str(),filename.size(),{om,pm}))
 	{}
 
 	explicit basic_win32_family_file(u32cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-				basic_win32_family_io_handle<family,char_type>(details::win32_create_file_impl<family>(filename,details::calculate_win32_open_mode(om,pm)))
+				basic_win32_family_io_handle<family,char_type>(details::win32_create_file_impl<family>(filename.c_str(),filename.size(),{om,pm}))
 	{}
 
-
-#if 0
-	explicit basic_win32_family_file(io_async_t) requires(std::same_as<char_type,char>):
-		basic_win32_family_io_handle<family,char_type>(details::create_io_completion_port(nullptr,nullptr,0,0)){}
-
-	template<typename... Args>
-	basic_win32_family_file(io_async_t,basic_win32_family_io_observer<family,char> iob,nt_at_entry nate,basic_cstring_view<filename_char_type auto> filename,Args&& ...args):basic_win32_family_file(nate,filename,::fast_io::freestanding::forward<Args>(args)...)
-	{
-		basic_win32_family_file<family,ch_type> guard(this->handle);
-		details::create_io_completion_port(this->handle,iob.handle,bit_cast<std::uintptr_t>(this->handle),0);
-		guard.release();
-	}
-#endif
 	~basic_win32_family_file()
 	{
 		if(this->handle)[[likely]]

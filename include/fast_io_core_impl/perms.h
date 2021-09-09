@@ -137,4 +137,10 @@ no_sync=0x00000002,
 file_data_sync_only=0x00000004
 };
 
+struct open_mode_perms
+{
+	open_mode om;
+	perms pm;
+};
+
 }

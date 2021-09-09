@@ -12,12 +12,6 @@ public:
 	{
 		return ntstatus;
 	}
-#if 0
-	void report(error_reporter& report) const override
-	{
-		details::report_win32_error(report,win32::nt::rtl_nt_status_to_dos_error(ntstatus));
-	}
-#endif
 };
 
 [[noreturn]] inline void throw_nt_error([[maybe_unused]] std::uint32_t err)
@@ -53,15 +47,8 @@ inline constexpr Iter print_reserve_nt_error_impl(Iter iter,std::uint32_t ntstat
 	else
 		iter=copy_string_literal(u8"[nt:0x",iter);
 	using namespace ::fast_io::manipulators;
-
 	iter=print_reserve_define(io_reserve_type<char_type,scalar_manip_t<nt_errorflags,std::uint32_t>>,iter,{ntstatus});
-
-	if constexpr(std::same_as<char_type,char>)
-		*iter=']';
-	else if constexpr(std::same_as<char_type,wchar_t>)
-		*iter=L']';
-	else
-		*iter=u8']';
+	*iter=char_literal_v<u8']',char_type>;
 	++iter;
 	return print_reserve_define_win32_error_impl<win32_family::wide_nt>(iter,win32::nt::rtl_nt_status_to_dos_error(ntstatus));
 }
