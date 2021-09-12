@@ -170,9 +170,9 @@ inline
 #if __cpp_lib_constexpr_string >= 201907L
 constexpr
 #endif
-std::wstring wconcat(Args&& ...args)
+std::basic_string<wchar_t> wconcat(Args&& ...args)
 {
-	return details::decay::basic_concat_decay_impl<false,std::wstring>(io_print_forward<wchar_t>(io_print_alias(args))...);
+	return details::decay::basic_concat_decay_impl<false,std::basic_string<wchar_t>>(io_print_forward<wchar_t>(io_print_alias(args))...);
 }
 
 template<typename ...Args>
@@ -227,9 +227,9 @@ inline
 #if __cpp_lib_constexpr_string >= 201907L
 constexpr
 #endif
-std::wstring wconcatln(Args&& ...args)
+std::basic_string<wchar_t> wconcatln(Args&& ...args)
 {
-	return details::decay::basic_concat_decay_impl<true,std::wstring>(io_print_forward<wchar_t>(io_print_alias(args))...);
+	return details::decay::basic_concat_decay_impl<true,std::basic_string<wchar_t>>(io_print_forward<wchar_t>(io_print_alias(args))...);
 }
 
 template<typename ...Args>

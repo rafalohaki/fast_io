@@ -298,18 +298,18 @@ namespace details
 
 struct my_dos_date_t
 {
-	std::uint8_t day;
-	std::uint8_t month;
+	std::uint_least8_t day;
+	std::uint_least8_t month;
 	std::uint16_t year;
-	std::uint8_t dayofweek;
+	std::uint_least8_t dayofweek;
 };
 
 struct my_dos_time_t
 {
-	std::uint8_t hour;     /* 0-23 */
-	std::uint8_t minute;   /* 0-59 */
-	std::uint8_t second;   /* 0-59 */
-	std::uint8_t hsecond;  /* 0-99 */
+	std::uint_least8_t hour;     /* 0-23 */
+	std::uint_least8_t minute;   /* 0-59 */
+	std::uint_least8_t second;   /* 0-59 */
+	std::uint_least8_t hsecond;  /* 0-99 */
 };
 
 extern void my_dos_getdate(my_dos_date_t*) noexcept __asm__("__dos_getdate");
@@ -353,12 +353,12 @@ inline void set_dos_unix_timestamp(unix_timestamp tsp)
 	if(iso8601.year>static_cast<std::int_least64_t>(UINT16_MAX)||iso8601.year<0)
 		throw_posix_error(EINVAL);
 	std::uint16_t year{static_cast<std::uint16_t>(iso8601.year)};
-	my_dos_date_t dos_date{static_cast<std::uint8_t>(iso8601.day),static_cast<std::uint8_t>(iso8601.month),year,0};
+	my_dos_date_t dos_date{static_cast<std::uint_least8_t>(iso8601.day),static_cast<std::uint_least8_t>(iso8601.month),year,0};
 	constexpr std::uint_least64_t precision{uint_least64_subseconds_per_second/100ULL};
-	my_dos_time_t dos_time{static_cast<std::uint8_t>(iso8601.hours),
-		static_cast<std::uint8_t>(iso8601.minutes),
-		static_cast<std::uint8_t>(iso8601.seconds),
-		static_cast<std::uint8_t>(iso8601.subseconds/precision)};
+	my_dos_time_t dos_time{static_cast<std::uint_least8_t>(iso8601.hours),
+		static_cast<std::uint_least8_t>(iso8601.minutes),
+		static_cast<std::uint_least8_t>(iso8601.seconds),
+		static_cast<std::uint_least8_t>(iso8601.subseconds/precision)};
 	if(!my_dos_setdate(&dos_date))
 		throw_posix_error();
 	if(!my_dos_settime(&dos_time))
@@ -542,12 +542,12 @@ inline struct tm unix_timestamp_to_tm_impl(std::int_least64_t seconds)
 	struct tm t;
 	if constexpr(local_tm)
 	{
-	if(localtime64_r(&val,&t)==0)
+	if(localtime64_r(__builtin_addressof(val),__builtin_addressof(t))==0)
 		throw_posix_error();
 	}
 	else
 	{
-	if(gmtime64_r(&val,&t)==0)
+	if(gmtime64_r(__builtin_addressof(val),__builtin_addressof(t))==0)
 		throw_posix_error();
 	}
 	return t;
@@ -562,12 +562,12 @@ inline struct tm unix_timestamp_to_tm_impl(std::int_least64_t seconds)
 #else
 	if constexpr(local_tm)
 	{
-	if(localtime_r(&val,&t)==0)
+	if(localtime_r(__builtin_addressof(val),__builtin_addressof(t))==0)
 		throw_posix_error();
 	}
 	else
 	{
-	if(gmtime_r(&val,&t)==0)
+	if(gmtime_r(__builtin_addressof(val),__builtin_addressof(t))==0)
 		throw_posix_error();
 	}
 #endif
@@ -580,53 +580,56 @@ inline struct tm unix_timestamp_to_tm_impl(std::int_least64_t seconds)
 
 inline iso8601_timestamp to_iso8601_local_impl(std::int_least64_t seconds,std::uint_least64_t subseconds,[[maybe_unused]] bool dstadj)
 {
-#ifdef __MSDOS__
+#if defined(__MSDOS__) || (defined(__NEWLIB__)&&!defined(__CYGWIN__)) || defined(__AVR__) || defined(_PICOLIBC__) || defined(__serenity__)
 	return unix_timestamp_to_iso8601_tsp_impl_internal(seconds,subseconds,0);
-#elif defined(_WIN32) || defined(__linux__)
+#elif (defined(_WIN32) && !defined(__WINE__) && !defined(__CYGWIN__)) || defined(__linux__)
 	long tm_gmtoff{};
-#if defined(_MSC_VER) || defined(_UCRT)
+	#if defined(_MSC_VER) || defined(_UCRT)
 	{
-		auto errn{_get_timezone(&tm_gmtoff)};
+		auto errn{noexcept_call(_get_timezone,__builtin_addressof(tm_gmtoff))};
 		if(errn)
 			throw_posix_error(static_cast<int>(errn));
 	}
-#elif defined(_WIN32) && !defined(__WINE__) && !defined(__CYGWIN__)
+	#elif defined(_WIN32) && !defined(__WINE__) && !defined(__CYGWIN__)
 	tm_gmtoff=_timezone;
-#else
+	#else
 	tm_gmtoff=timezone;
-#endif
+	#endif
 	long bias{};
 	if(dstadj)
 	{
-#if defined(_MSC_VER) || defined(_UCRT)
+	#if defined(_MSC_VER) || defined(_UCRT)
 	{
-		auto errn{_get_dstbias(&bias)};
+		auto errn{noexcept_call(_get_dstbias,__builtin_addressof(bias))};
 		if(errn)
 			throw_posix_error(static_cast<int>(errn));
 	}
-#elif defined(_WIN32) && !defined(__WINE__) && !defined(__CYGWIN__)
-	bias=_dstbias;
-#else
-	bias=daylight?-3600L:0;
-#endif
+	#elif defined(_WIN32) && !defined(__WINE__) && !defined(__CYGWIN__)
+		bias=_dstbias;
+	#else
+		bias=daylight?-3600L:0;
+	#endif
 	}
-	std::uint32_t dst_timezone{static_cast<std::uint32_t>(static_cast<unsigned long>(tm_gmtoff)+static_cast<unsigned long>(bias))};
-	return unix_timestamp_to_iso8601_tsp_impl_internal(sub_overflow(seconds,static_cast<std::int_least64_t>(static_cast<std::uint_least64_t>(dst_timezone))),
-		subseconds,static_cast<std::int32_t>(static_cast<std::uint32_t>(0)-dst_timezone));
+	std::uint_least32_t const ul32_tm_gmtoff{static_cast<std::uint_least32_t>(static_cast<long unsigned>(tm_gmtoff))};
+	std::uint_least32_t const ul32_bias{static_cast<std::uint_least32_t>(static_cast<long unsigned>(bias))};
+	std::uint_least32_t const dst_timezone{ul32_tm_gmtoff+ul32_bias};
+	constexpr std::uint_least32_t ul32_zero{};
+	return unix_timestamp_to_iso8601_tsp_impl_internal(sub_overflow(seconds,static_cast<std::int_least64_t>(static_cast<std::int_least32_t>(dst_timezone))),
+		subseconds,static_cast<std::int_least32_t>(ul32_zero-dst_timezone));
 #else
 	auto res{unix_timestamp_to_tm_impl<true>(seconds)};
 	long tm_gmtoff{};
 #if defined(_WIN32)
 	#if defined(_MSC_VER) || defined(_UCRT)
 	{
-		auto errn{_get_timezone(&tm_gmtoff)};
+		auto errn{noexcept_call(_get_timezone,__builtin_addressof(tm_gmtoff))};
 		if(errn)
 			throw_posix_error(static_cast<int>(errn));
 	}
 	#else
 		tm_gmtoff=_timezone;
 	#endif
-	unsigned long ulong_tm_gmtoff{static_cast<unsigned long>(tm_gmtoff)};
+	long unsigned ulong_tm_gmtoff{static_cast<long unsigned>(tm_gmtoff)};
 	long seconds{};
 #if defined(_MSC_VER) || defined(_UCRT)
 	{
@@ -637,7 +640,7 @@ inline iso8601_timestamp to_iso8601_local_impl(std::int_least64_t seconds,std::u
 #else
 	seconds=_dstbias;
 #endif
-	unsigned long ulong_seconds{static_cast<unsigned>(seconds)};
+	auto const ulong_seconds{static_cast<long unsigned>(static_cast<unsigned>(seconds))};
 	ulong_tm_gmtoff+=ulong_seconds;
 	ulong_tm_gmtoff=0ul-ulong_tm_gmtoff;
 	tm_gmtoff=static_cast<long>(ulong_tm_gmtoff);
@@ -648,7 +651,7 @@ inline iso8601_timestamp to_iso8601_local_impl(std::int_least64_t seconds,std::u
 #else
 	tm_gmtoff=res.tm_gmtoff;
 #endif
-	std::uint8_t month{static_cast<std::uint8_t>(res.tm_mon)};
+	std::uint_least8_t month{static_cast<std::uint_least8_t>(res.tm_mon)};
 	auto year{res.tm_year+1900};
 	if(month==0)
 	{
@@ -661,10 +664,10 @@ inline iso8601_timestamp to_iso8601_local_impl(std::int_least64_t seconds,std::u
 	}
 	return {year,
 		month,
-		static_cast<std::uint8_t>(res.tm_mday),
-		static_cast<std::uint8_t>(res.tm_hour),
-		static_cast<std::uint8_t>(res.tm_min),
-		static_cast<std::uint8_t>(res.tm_sec),subseconds,static_cast<std::int32_t>(tm_gmtoff)};
+		static_cast<std::uint_least8_t>(res.tm_mday),
+		static_cast<std::uint_least8_t>(res.tm_hour),
+		static_cast<std::uint_least8_t>(res.tm_min),
+		static_cast<std::uint_least8_t>(res.tm_sec),subseconds,static_cast<std::int_least32_t>(tm_gmtoff)};
 #endif
 }
 
@@ -716,10 +719,10 @@ struct win32_timezone_t
 	bool is_dst{};
 };
 
-inline int posix_daylight() noexcept
+inline bool posix_daylight() noexcept
 {
 	int hours;
-	if(_get_daylight(&hours))
+	if(::fast_io::details::noexcept_call(_get_daylight,__builtin_addressof(hours)))
 		return false;
 	return hours;
 }
@@ -727,7 +730,7 @@ inline int posix_daylight() noexcept
 inline win32_timezone_t timezone_name(bool is_dst=posix_daylight())
 {
 	win32_timezone_t tzt{.is_dst=is_dst};
-	auto errn{_get_tzname(__builtin_addressof(tzt.tz_name_len),nullptr,0,is_dst)};
+	auto errn{::fast_io::details::noexcept_call(_get_tzname,__builtin_addressof(tzt.tz_name_len),nullptr,0,is_dst)};
 	if(errn)
 		throw_posix_error(static_cast<int>(errn));
 	return tzt;
@@ -743,7 +746,7 @@ namespace details
 
 inline std::size_t print_reserve_define_impl(char* first,win32_timezone_t tzt)
 {
-	auto errn{_get_tzname(__builtin_addressof(tzt.tz_name_len),first,tzt.tz_name_len,tzt.is_dst)};
+	auto errn{::fast_io::details::noexcept_call(_get_tzname,__builtin_addressof(tzt.tz_name_len),first,tzt.tz_name_len,tzt.is_dst)};
 	if(errn)
 		throw_posix_error(static_cast<int>(errn));
 	if(tzt.tz_name_len)
@@ -768,22 +771,20 @@ extern char *m_tzname[2] __asm__("_tzname");
 extern int m_daylight __asm__("_daylight");
 #endif
 
-inline std::int_least32_t posix_daylight()
+inline bool posix_daylight()
 {
 #if defined(__MSDOS__) || (defined(__wasi__) &&!defined(__wasilibc_unmodified_upstream)) || defined(__AVR__)
 	return 0;
-#elif defined(_WIN32) && !defined(__WINE__)
+#elif defined(_WIN32) && !defined(__WINE__) && !defined(__CYGWIN__)
 	return _daylight;
-#elif defined(__NEWLIB__)
+#elif defined(__NEWLIB__) && !defined(__CYGWIN__)
 	return m_daylight;
-#elif defined(__BSD_VISIBLE) || defined(__DARWIN_C_LEVEL)
+#else
 	std::time_t t{};
 	struct tm stm{};
-	if(localtime_r(&t,&stm)==0)
+	if(noexcept_call(localtime_r,__builtin_addressof(t),__builtin_addressof(stm))==0)
 		throw_posix_error();
-	return stm.tm_isdst*3600;
-#else
-	return daylight;
+	return stm.tm_isdst;
 #endif
 }
 
@@ -824,7 +825,7 @@ inline void posix_clock_settime([[maybe_unused]] posix_clock_id pclk_id,[[maybe_
 		constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/1000000u};
 		timeval tv{static_cast<std::time_t>(timestamp.seconds),
 		static_cast<long>(timestamp.subseconds/mul_factor)};
-		if(::settimeofday(__builtin_addressof(tv), nullptr)<0)
+		if(::fast_io::details::noexcept_call(::settimeofday,__builtin_addressof(tv), nullptr)<0)
 			throw_posix_error();
 #else
 		details::set_dos_unix_timestamp(timestamp);
@@ -853,7 +854,6 @@ inline void posix_clock_settime([[maybe_unused]] posix_clock_id pclk_id,[[maybe_
 		time_t t{static_cast<time_t>(tsp_seconds)};
 		noexcept_call(::set_system_time,t);		
 	}
-//	__builtin_sub_overflow(__builtin_addressof())
 #elif (!defined(__NEWLIB__) || defined(_POSIX_TIMERS)) && (!defined(__wasi__) || defined(__wasilibc_unmodified_upstream))
 	constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/1000000000u};
 	struct timespec res{static_cast<std::time_t>(timestamp.seconds),
@@ -877,8 +877,6 @@ inline void posix_clock_settime([[maybe_unused]] posix_clock_id pclk_id,[[maybe_
 
 namespace details
 {
-
-inline void 
 
 }
 
@@ -918,7 +916,7 @@ inline [[nodiscard]] bool posix_clock_sleep_abstime(posix_clock_id pclk_id,unix_
 {
 	constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/1000000000u};
 	struct timespec timestamp_spec{static_cast<std::time_t>(timestamp.seconds),static_cast<long>(timestamp.subseconds/mul_factor)};
-	auto ret{::clock_nanosleep(pclk_id,TIMER_ABSTIME,__builtin_addressof(timestamp_spec),ptr,nullptr)};
+	auto ret{::fast_io::details::noexcept_call(::clock_nanosleep,pclk_id,TIMER_ABSTIME,__builtin_addressof(timestamp_spec),ptr,nullptr)};
 	if(ret<0)
 	{
 		auto ern{errno};
@@ -935,7 +933,7 @@ inline void posix_clock_sleep_abstime_complete(posix_clock_id pclk_id,unix_times
 	struct timespec timestamp_spec{static_cast<std::time_t>(timestamp.seconds),static_cast<long>(timestamp.subseconds/mul_factor)}
 	for(;;)
 	{
-		auto ret{::clock_nanosleep(pclk_id,TIMER_ABSTIME,__builtin_addressof(timestamp_spec),nullptr)};
+		auto ret{::fast_io::details::noexcept_call(::clock_nanosleep,pclk_id,TIMER_ABSTIME,__builtin_addressof(timestamp_spec),nullptr)};
 		if(ret==0)[[likely]]
 			return;
 		auto ern{errno};

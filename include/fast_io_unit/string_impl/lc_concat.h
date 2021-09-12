@@ -204,9 +204,9 @@ inline
 #if __cpp_lib_constexpr_string >= 201907L
 constexpr
 #endif
-std::wstring wlc_concat(fast_io::l10n& loc,Args&& ...args)
+std::basic_string<wchar_t> wlc_concat(fast_io::l10n& loc,Args&& ...args)
 {
-	return ::fast_io::details::decay::lc_concat_decay_impl<false,std::wstring>(loc.loc.wall,io_print_forward<wchar_t>(io_print_alias(args))...);
+	return ::fast_io::details::decay::lc_concat_decay_impl<false,std::basic_string<wchar_t>>(loc.loc.wall,io_print_forward<wchar_t>(io_print_alias(args))...);
 }
 
 template<typename ...Args>
@@ -214,9 +214,9 @@ inline
 #if __cpp_lib_constexpr_string >= 201907L
 constexpr
 #endif
-std::wstring wlc_concatln(fast_io::l10n& loc,Args&& ...args)
+std::basic_string<wchar_t> wlc_concatln(fast_io::l10n& loc,Args&& ...args)
 {
-	return ::fast_io::details::decay::lc_concat_decay_impl<true,std::wstring>(loc.loc.wall,io_print_forward<wchar_t>(io_print_alias(args))...);
+	return ::fast_io::details::decay::lc_concat_decay_impl<true,std::basic_string<wchar_t>>(loc.loc.wall,io_print_forward<wchar_t>(io_print_alias(args))...);
 }
 
 template<typename ...Args>
