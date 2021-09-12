@@ -722,7 +722,7 @@ struct win32_timezone_t
 inline bool posix_daylight() noexcept
 {
 	int hours;
-	if(::fast_io::details::noexcept_call(_get_daylight,__builtin_addressof(hours)))
+	if(::fast_io::noexcept_call(_get_daylight,__builtin_addressof(hours)))
 		return false;
 	return hours;
 }
@@ -730,7 +730,7 @@ inline bool posix_daylight() noexcept
 inline win32_timezone_t timezone_name(bool is_dst=posix_daylight())
 {
 	win32_timezone_t tzt{.is_dst=is_dst};
-	auto errn{::fast_io::details::noexcept_call(_get_tzname,__builtin_addressof(tzt.tz_name_len),nullptr,0,is_dst)};
+	auto errn{::fast_io::noexcept_call(_get_tzname,__builtin_addressof(tzt.tz_name_len),nullptr,0,is_dst)};
 	if(errn)
 		throw_posix_error(static_cast<int>(errn));
 	return tzt;
@@ -746,7 +746,7 @@ namespace details
 
 inline std::size_t print_reserve_define_impl(char* first,win32_timezone_t tzt)
 {
-	auto errn{::fast_io::details::noexcept_call(_get_tzname,__builtin_addressof(tzt.tz_name_len),first,tzt.tz_name_len,tzt.is_dst)};
+	auto errn{::fast_io::noexcept_call(_get_tzname,__builtin_addressof(tzt.tz_name_len),first,tzt.tz_name_len,tzt.is_dst)};
 	if(errn)
 		throw_posix_error(static_cast<int>(errn));
 	if(tzt.tz_name_len)
@@ -825,7 +825,7 @@ inline void posix_clock_settime([[maybe_unused]] posix_clock_id pclk_id,[[maybe_
 		constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/1000000u};
 		timeval tv{static_cast<std::time_t>(timestamp.seconds),
 		static_cast<long>(timestamp.subseconds/mul_factor)};
-		if(::fast_io::details::noexcept_call(::settimeofday,__builtin_addressof(tv), nullptr)<0)
+		if(::fast_io::noexcept_call(::settimeofday,__builtin_addressof(tv), nullptr)<0)
 			throw_posix_error();
 #else
 		details::set_dos_unix_timestamp(timestamp);
@@ -916,7 +916,7 @@ inline [[nodiscard]] bool posix_clock_sleep_abstime(posix_clock_id pclk_id,unix_
 {
 	constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/1000000000u};
 	struct timespec timestamp_spec{static_cast<std::time_t>(timestamp.seconds),static_cast<long>(timestamp.subseconds/mul_factor)};
-	auto ret{::fast_io::details::noexcept_call(::clock_nanosleep,pclk_id,TIMER_ABSTIME,__builtin_addressof(timestamp_spec),ptr,nullptr)};
+	auto ret{::fast_io::noexcept_call(::clock_nanosleep,pclk_id,TIMER_ABSTIME,__builtin_addressof(timestamp_spec),ptr,nullptr)};
 	if(ret<0)
 	{
 		auto ern{errno};
@@ -933,7 +933,7 @@ inline void posix_clock_sleep_abstime_complete(posix_clock_id pclk_id,unix_times
 	struct timespec timestamp_spec{static_cast<std::time_t>(timestamp.seconds),static_cast<long>(timestamp.subseconds/mul_factor)}
 	for(;;)
 	{
-		auto ret{::fast_io::details::noexcept_call(::clock_nanosleep,pclk_id,TIMER_ABSTIME,__builtin_addressof(timestamp_spec),nullptr)};
+		auto ret{::fast_io::noexcept_call(::clock_nanosleep,pclk_id,TIMER_ABSTIME,__builtin_addressof(timestamp_spec),nullptr)};
 		if(ret==0)[[likely]]
 			return;
 		auto ern{errno};
