@@ -690,28 +690,6 @@ inline void posix_tzset() noexcept
 #endif
 }
 
-
-template<std::int_least64_t off_to_epoch>
-inline iso8601_timestamp local(basic_timestamp<off_to_epoch> timestamp,[[maybe_unused]] bool dstadj=true)
-{
-#ifdef __MSDOS__
-	return utc(timestamp);
-#if 0
-	return details::to_iso8601_local_impl(static_cast<unix_timestamp>(timestamp));
-#endif
-#else
-	if constexpr(off_to_epoch==0)
-	{
-		return details::to_iso8601_local_impl(timestamp.seconds,timestamp.subseconds,dstadj);
-	}
-	else
-	{
-		unix_timestamp stmp(static_cast<unix_timestamp>(timestamp));
-		return details::to_iso8601_local_impl(stmp.seconds,stmp.subseconds,dstadj);
-	}
-#endif
-}
-
 #if defined(_WIN32) && !defined(__CYGWIN__) && (defined(_UCRT) || defined(_MSC_VER))
 struct win32_timezone_t
 {
@@ -803,6 +781,28 @@ inline basic_io_scatter_t<char> timezone_name([[maybe_unused]] bool dst=posix_da
 }
 
 #endif
+
+
+template<std::int_least64_t off_to_epoch>
+inline iso8601_timestamp local(basic_timestamp<off_to_epoch> timestamp,[[maybe_unused]] bool dstadj=posix_daylight())
+{
+#ifdef __MSDOS__
+	return utc(timestamp);
+#if 0
+	return details::to_iso8601_local_impl(static_cast<unix_timestamp>(timestamp));
+#endif
+#else
+	if constexpr(off_to_epoch==0)
+	{
+		return details::to_iso8601_local_impl(timestamp.seconds,timestamp.subseconds,dstadj);
+	}
+	else
+	{
+		unix_timestamp stmp(static_cast<unix_timestamp>(timestamp));
+		return details::to_iso8601_local_impl(stmp.seconds,stmp.subseconds,dstadj);
+	}
+#endif
+}
 
 inline void posix_clock_settime([[maybe_unused]] posix_clock_id pclk_id,[[maybe_unused]] unix_timestamp timestamp)
 {
