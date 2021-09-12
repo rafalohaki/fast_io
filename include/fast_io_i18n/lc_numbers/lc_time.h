@@ -388,6 +388,21 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 	return value;
 }
 
+template<::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter lc_copy_01_impl(Iter iter) noexcept
+{
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	if constexpr (std::same_as<char_type, char>)
+		return copy_string_literal("01", iter);
+	else if constexpr (std::same_as<char_type, wchar_t>)
+		return copy_string_literal(L"01", iter);
+	else if constexpr (std::same_as<char_type, char16_t>)
+		return copy_string_literal(u"01", iter);
+	else if constexpr (std::same_as<char_type, char32_t>)
+		return copy_string_literal(U"01", iter);
+	else
+		return copy_string_literal(u8"01", iter);
+}
 
 template<::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter lc_copy_12_impl(Iter iter) noexcept
@@ -403,6 +418,22 @@ inline constexpr Iter lc_copy_12_impl(Iter iter) noexcept
 		return copy_string_literal(U"12",iter);
 	else
 		return copy_string_literal(u8"12",iter);
+}
+
+template<::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter lc_copy_53_impl(Iter iter) noexcept
+{
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	if constexpr (std::same_as<char_type, char>)
+		return copy_string_literal("53", iter);
+	else if constexpr (std::same_as<char_type, wchar_t>)
+		return copy_string_literal(L"53", iter);
+	else if constexpr (std::same_as<char_type, char16_t>)
+		return copy_string_literal(u"53", iter);
+	else if constexpr (std::same_as<char_type, char32_t>)
+		return copy_string_literal(U"53", iter);
+	else
+		return copy_string_literal(u8"53", iter);
 }
 
 template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter>
@@ -446,7 +477,7 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 		char_type const first_format_ch{*p};
 		switch(first_format_ch)
 		{
-		case char_literal_v<u8'%', char_type>:
+		case char_literal_v<u8'%', char_type>: [[unlikely]]
 		{
 			*iter = char_literal_v<u8'%', char_type>;
 			++iter;
@@ -594,14 +625,39 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 			iter = chrono_two_digits_impl<false>(iter, tsp.day);
 			break;
 		}
-#if 0
-		case char_literal_v<u8'g', char_type>:case char_literal_v<u8'G', char_type>:
+		case char_literal_v<u8'g', char_type>:
+		case char_literal_v<u8'G', char_type>:
 		{
-			// refuse to print 2-digit year. Unfinished for week-base: need implication of week numbers
-			iter = chrono_year_impl(iter, tsp.year);
+			if (tsp.month == 1u && tsp.day < 4u && weekday(tsp.year, 1, 1) > 4u)
+				iter = chrono_year_impl(iter, tsp.year - 1);
+			else if (tsp.month == 12u && tsp.day > 28u && weekday(tsp.year, 12, 31) < 4u)
+				iter = chrono_year_impl(iter, tsp.year + 1);
+			else
+				iter = chrono_year_impl(iter, tsp.year);
 			break;
 		}
-#endif
+		case char_literal_v<u8'H', char_type>:
+		{
+			iter = chrono_two_digits_impl<false>(iter, tsp.hours);
+			break;
+		}
+		case char_literal_v<u8'I', char_type>:
+		case char_literal_v<u8'l', char_type>:
+		{
+			std::uint_least8_t hours = tsp.hours;
+			if (hours == 0u)
+				iter = lc_copy_12_impl(iter);
+			else if (hours <= 12u)[[likely]]
+				iter = chrono_two_digits_impl<false>(iter, hours);
+			else if (hours <= 24u)[[likely]]
+				iter = chrono_two_digits_impl<false>(iter, static_cast<std::uint_least8_t>(hours-12u));
+			break;	
+		}
+		case char_literal_v<u8'j', char_type>:
+		{
+			iter = print_reserve_integral_define<10>(iter, day_of_the_year(tsp));
+			break;
+		}
 		case char_literal_v<u8'k', char_type>:
 		{
 			auto hours{tsp.hours};
@@ -615,28 +671,6 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 				}
 			}
 			iter = print_reserve_integral_define<10>(iter, hours);
-			break;
-		}
-		case char_literal_v<u8'H', char_type>:
-		{
-			iter = chrono_two_digits_impl<false>(iter, tsp.hours);
-			break;
-		}
-		case char_literal_v<u8'l', char_type>:
-		case char_literal_v<u8'I', char_type>:
-		{
-			std::uint_least8_t hours = tsp.hours;
-			if (hours == 0u)
-				iter = lc_copy_12_impl(iter);
-			else if (hours <= 12u)[[likely]]
-				iter = chrono_two_digits_impl<false>(iter, hours);
-			else if (hours <= 24u)[[likely]]
-				iter = chrono_two_digits_impl<false>(iter, static_cast<std::uint_least8_t>(hours-12u));
-			break;	
-		}
-		case char_literal_v<u8'j', char_type>:
-		{
-			iter = chrono_two_digits_impl<false>(iter, day_of_the_year(tsp));
 			break;
 		}
 		case char_literal_v<u8'm', char_type>:
@@ -711,13 +745,16 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 				altvalue=tsp.seconds;
 				break;
 			}
-#if 0
 			case char_literal_v<u8'u', char_type>:
 			{
-				altvalue=tsp.seconds;
+				altvalue=weekday(tsp);
 				break;
 			}
-#endif
+			case char_literal_v<u8'U', char_type>:
+			{
+				altvalue= static_cast<std::uint_least8_t>(static_cast<std::uint_least16_t>(weekday(tsp.year, 1, 1)+day_of_the_year(tsp)-1u)/7u);
+				break;
+			}
 			case char_literal_v<u8'w', char_type>:
 			{
 				altvalue=c_weekday(tsp);
@@ -787,11 +824,43 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 			iter = chrono_one_digit_impl<true>(iter, weekday(tsp));
 			break;
 		}
+		case char_literal_v<u8'U', char_type>:
+		{
+			iter = print_reserve_integral_define<10>(iter, 
+				static_cast<std::uint_least16_t>(weekday(tsp.year, 1, 1) + day_of_the_year(tsp) - 1u) / 7u);
+			break;
+		}
+#if 0
+		case char_literal_v<u8'v', char_type>:
+#endif
+		case char_literal_v<u8'V', char_type>:
+		{
+			if (tsp.month == 1u && tsp.day < 4u && weekday(tsp.year, 1, 1) > 4u)
+				iter = lc_copy_53_impl(iter);
+			else if (tsp.month == 12u && tsp.day > 28u && weekday(tsp.year, 12, 31) < 4u)
+				iter = lc_copy_01_impl(iter);
+			else [[likely]]
+			{
+				auto weeknum{ static_cast<std::uint_least8_t>(static_cast<std::uint_least16_t>(day_of_the_year(tsp) - weekday(tsp) + weekday(tsp.year, 1, 1) - 1u) / 7u + 1u) };
+				if (weekday(tsp.year, 1, 1) > 4u)
+					--weeknum;
+				iter = chrono_two_digits_impl<false>(iter, weeknum);
+			}
+			break;
+		}
 		case char_literal_v<u8'w', char_type>:
 		{
 			iter = lc_format_alt_digits_print(t.alt_digits,c_weekday(tsp),iter);
 			break;
 		}
+#if 0
+		case char_literal_v<u8'W', char_type>:
+		{
+			iter = chrono_two_digits_impl<false>(iter,
+				static_cast<std::uint_least16_t>(day_of_the_year(tsp) - weekday(tsp) + weekday(tsp.year, 1, 1) - 1u) / 7u);
+			break;
+		}
+#endif
 		case char_literal_v<u8'x', char_type>:
 		{
 			iter = lc_print_reserve_define_time_fmt_common_impl(t, iter, tsp, t.d_fmt);
@@ -802,12 +871,14 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 			iter = lc_print_reserve_define_time_fmt_common_impl(t, iter, tsp, t.t_fmt);
 			break;
 		}
-		case char_literal_v<u8'y', char_type>:case char_literal_v<u8'Y', char_type>:
+		case char_literal_v<u8'y', char_type>:
+		case char_literal_v<u8'Y', char_type>:
 		{
 			iter = chrono_year_impl(iter, tsp.year);
 			break;
 		}
-		case char_literal_v<u8'z', char_type>:case char_literal_v<u8'Z', char_type>:
+		case char_literal_v<u8'z', char_type>:
+		case char_literal_v<u8'Z', char_type>:
 		{
 			iter = print_reserve_timezone_impl(iter,tsp.timezone);
 			break;

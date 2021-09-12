@@ -503,28 +503,34 @@ inline constexpr std::uint_least8_t weekday_impl(std::int_least64_t year,std::ui
 
 }
 
+inline constexpr std::uint_least8_t c_weekday(std::int_least64_t year, std::uint_least8_t month, std::uint_least8_t day) noexcept
+{
+	--month;
+	if (month < 2u)
+		year = static_cast<std::int_least64_t>(static_cast<std::uint_least64_t>(year) - 1u);
+	else if (11u < month)
+		month %= 12u;
+	return ::fast_io::details::c_weekday_impl(year, month, day);
+}
+
 inline constexpr std::uint_least8_t c_weekday(iso8601_timestamp const& timestamp) noexcept
 {
-	std::int_least64_t year{timestamp.year};
-	std::uint_least8_t month{timestamp.month};
+	return ::fast_io::c_weekday(timestamp.year, timestamp.month, timestamp.day);
+}
+
+inline constexpr std::uint_least8_t weekday(std::int_least64_t year, std::uint_least8_t month, std::uint_least8_t day) noexcept
+{
 	--month;
-	if(month<2u)
-		year=static_cast<std::int_least64_t>(static_cast<std::uint_least64_t>(year)-1u);
-	else if(11u<month)
-		month%=12u;
-	return ::fast_io::details::c_weekday_impl(year,month,timestamp.day);
+	if (month < 2u)
+		year = static_cast<std::int_least64_t>(static_cast<std::uint_least64_t>(year) - 1u);
+	else if (11u < month)
+		month %= 12u;
+	return ::fast_io::details::weekday_impl(year, month, day);
 }
 
 inline constexpr std::uint_least8_t weekday(iso8601_timestamp const& timestamp) noexcept
 {
-	std::int_least64_t year{timestamp.year};
-	std::uint_least8_t month{timestamp.month};
-	--month;
-	if(month<2u)
-		year=static_cast<std::int_least64_t>(static_cast<std::uint_least64_t>(year)-1u);
-	else if(11u<month)
-		month%=12u;
-	return ::fast_io::details::weekday_impl(year,month,timestamp.day);
+	return ::fast_io::weekday(timestamp.year, timestamp.month, timestamp.day);
 }
 
 namespace details
