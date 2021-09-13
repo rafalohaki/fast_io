@@ -15,13 +15,41 @@ inline constexpr std::uint_least16_t month_accum[]{ 0, 31, 59, 90, 120, 151, 181
 
 inline constexpr std::uint_least16_t day_of_the_year(iso8601_timestamp const& tsp) noexcept
 {
-	std::uint_least8_t month_minus_1 = static_cast<std::uint_least8_t>(tsp.month - 1u);
-	if (month_minus_1 >= 12u) return 0;
-	std::uint_least16_t value{ static_cast<uint_least16_t>(month_accum[month_minus_1] + static_cast<uint_least16_t>(tsp.day))};
+	std::uint_least8_t month_minus1{ tsp.month };
+	--month_minus1;
+	if (month_minus1 > 11u) [[unlikely]] return 0;
+	std::uint_least16_t value{ static_cast<uint_least16_t>(month_accum[month_minus1] + static_cast<uint_least16_t>(tsp.day))};
 	std::int_least64_t year{tsp.year};
-	if (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0))
+	if (month_minus1 > 1u && year % 4 == 0 && (year % 100 != 0 || year % 400 == 0))
 		++value;
 	return value;
+}
+
+inline constexpr std::int_least64_t day_diff(
+	std::int_least64_t year_after,
+	std::uint_least8_t month_after,
+	std::uint_least8_t day_after,
+	std::int_least64_t year_before,
+	std::uint_least8_t month_before,
+	std::uint_least8_t day_before)
+{
+	auto month_after_minus1{ month_after };
+	auto month_before_minus1{ month_before };
+	--month_after_minus1;
+	--month_before_minus1;
+	if (month_after_minus1 > 11u || month_before_minus1 > 11u) [[unlikely]]
+		return 0;
+	return year_after / 4 - year_before / 4
+		- year_after / 100 - year_before / 100
+		+ year_after / 400 - year_before / 400
+		+ month_accum[month_after_minus1] - month_accum[month_before_minus1]
+		+ day_after - day_before
+		- (month_after_minus1 < 2u) ? 1 : 0 + (month_before_minus1 < 2u) ? 1 : 0;
+}
+
+inline constexpr std::int_least64_t day_diff(iso8601_timestamp const& tsp_after, iso8601_timestamp const& tsp_before)
+{
+	return ::fast_io::details::day_diff(tsp_after.year, tsp_after.month, tsp_after.day, tsp_before.year, tsp_before.month, tsp_before.day);
 }
 
 template<std::integral char_type>
@@ -833,6 +861,43 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 		}
 #if 0
 		case char_literal_v<u8'v', char_type>:
+		{
+			auto const year{ tsp.year };
+			auto const month{ tsp.month };
+			auto const day{ tsp.day };
+			auto const ndays{ t.week.ndays };
+			auto const first_week{ t.week.first_week };
+			auto const benchmark_year{ static_cast<std::int_least64_t>(t.week.first_day / 10000) };
+			auto const benchmark_month{ static_cast<std::uint_least8_t>(t.week.first_day % 10000 / 100) };
+			auto const benchmark_day{ static_cast<std::uint_least8_t>(t.week.first_day % 100) };
+			std::int_least64_t weekday_of_1st_day_this_year{ day_diff(year, 1, 1, benchmark_year, benchmark_month, benchmark_day) % my_make_signed_t<std::size_t>(ndays) };
+			if (weekday_of_1st_day_this_year < 0)
+				weekday_of_1st_day_this_year += ndays + 1u;
+			else
+				++weekday_of_1st_day_this_year;
+			std::int_least64_t weekday_of_last_day_this_year{ day_diff(year, 12, 31, benchmark_year, benchmark_month, benchmark_day) % my_make_signed_t<std::size_t>(ndays) };
+			if (weekday_of_last_day_this_year < 0)
+				weekday_of_last_day_this_year += ndays + 1u;
+			else
+				++weekday_of_last_day_this_year;
+			if (month == 1u && day < first_week && weekday_of_1st_day_this_year > first_week)
+				iter = lc_copy_53_impl(iter);
+			else if (month == 12u && day > 32u - first_week && weekday_of_last_day_this_year < first_week)
+				iter = lc_copy_01_impl(iter);
+			else [[likely]]
+			{
+				std::int_least64_t weekday_of_today{ day_diff(year, month, day, benchmark_year, benchmark_month, benchmark_day) % my_make_signed_t<std::size_t>(ndays) };
+				if (weekday_of_today < 0)
+					weekday_of_today += ndays + 1u;
+				else
+					++weekday_of_today;
+				auto weeknum{ (day_of_the_year(tsp) - weekday_of_today + weekday_of_1st_day_this_year - 1u) % ndays + 1u };
+				if (weekday_of_1st_day_this_year > first_week)
+					--weeknum;
+				iter = chrono_two_digits_impl<false>(iter, weeknum);
+			}
+			break;
+		}
 #endif
 		case char_literal_v<u8'V', char_type>:
 		{
