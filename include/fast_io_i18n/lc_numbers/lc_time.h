@@ -486,7 +486,7 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 		case char_literal_v<u8'a', char_type>:
 		case char_literal_v<u8'A', char_type>:
 		{
-			basic_io_scatter_t<char> const* base_ptr;
+			basic_io_scatter_t<char_type> const* base_ptr;
 			if(*p==char_literal_v<u8'a', char_type>)
 				base_ptr=t.abday;
 			else
@@ -666,7 +666,7 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 				constexpr std::uint_least8_t ten{10u};
 				if(hours<ten)
 				{
-					*iter=u8'0';
+					*iter=char_literal_v<u8'0', char_type>;
 					++iter;
 				}
 			}
@@ -705,7 +705,8 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 
 			switch(*p)
 			{
-			case char_literal_v<u8'd', char_type>:case char_literal_v<u8'e', char_type>:
+			case char_literal_v<u8'd', char_type>:
+			case char_literal_v<u8'e', char_type>:
 			{
 				altvalue=tsp.day;
 				break;
