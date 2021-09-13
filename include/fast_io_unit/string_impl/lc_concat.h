@@ -75,7 +75,7 @@ inline constexpr ptr_type lc_print_reserve_define_chain_scatter_impl(basic_lc_al
 	{
 		if constexpr(line)
 		{
-			*p=sign_ch<u8'\n',char_type>;
+			*p=char_literal_v<u8'\n',char_type>;
 			++p;
 		}
 		return p;
@@ -101,7 +101,7 @@ inline constexpr T lc_concat_decay_impl(basic_lc_all<typename T::value_type> con
 	{
 		if constexpr(line)
 		{
-			return T(1,sign_ch<u8'\n',ch_type>);
+			return T(1,char_literal_v<u8'\n',ch_type>);
 		}
 		else
 		{
