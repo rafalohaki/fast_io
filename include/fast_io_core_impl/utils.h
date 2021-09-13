@@ -67,9 +67,29 @@ requires std::is_function_v<F>
 #elif __has_cpp_attribute(msvc::forceinline)
 [[msvc::forceinline]]
 #endif
-inline constexpr decltype(auto) noexcept_call(F* f,Args&& ...args) noexcept
+inline
+#if __cpp_if_consteval >= 202106L || __cpp_lib_is_constant_evaluated >= 201811
+constexpr
+#endif
+decltype(auto) noexcept_call(F* f,Args&& ...args) noexcept
 {
-	return noexcept_cast(f)(::fast_io::freestanding::forward<Args>(args)...);
+#if __cpp_if_consteval >= 202106L
+	if consteval
+	{
+		return f(std::forward<Args>(args)...);		//EH unwinding does not matter here
+	}
+	else
+	{
+		return noexcept_cast(f)(::fast_io::freestanding::forward<Args>(args)...);
+	}
+#else
+#if __cpp_lib_is_constant_evaluated >= 201811
+	if (std::is_constant_evaluated())
+		return f(std::forward<Args>(args)...);		//EH unwinding does not matter here
+	else
+#endif
+		return noexcept_cast(f)(::fast_io::freestanding::forward<Args>(args)...);
+#endif
 }
 
 namespace details
