@@ -39,12 +39,17 @@ inline constexpr std::int_least64_t day_diff(
 	--month_before_minus1;
 	if (month_after_minus1 > 11u || month_before_minus1 > 11u) [[unlikely]]
 		return 0;
-	return year_after / 4 - year_before / 4
-		- year_after / 100 - year_before / 100
+	std::int_least64_t value{ year_after / 4 - year_before / 4
+		- year_after / 100 + year_before / 100
 		+ year_after / 400 - year_before / 400
-		+ month_accum[month_after_minus1] - month_accum[month_before_minus1]
-		+ day_after - day_before
-		- (month_after_minus1 < 2u) ? 1 : 0 + (month_before_minus1 < 2u) ? 1 : 0;
+		+ 365 * (year_after - year_before)
+		+ month_accum[month_after_minus1] - month_accummonth_before_minus1]
+		+ day_after - day_before };
+	if (month_after_minus1 < 2u && year_after % 4 == 0 && (year_after % 100 != 0 || year_after % 400 == 0))
+		--value;
+	if (month_before_minus1 < 2u && year_before % 4 == 0 && year_before % 100 != 0 || year_before % 400 == 0))
+		++value;
+	return value;
 }
 
 inline constexpr std::int_least64_t day_diff(iso8601_timestamp const& tsp_after, iso8601_timestamp const& tsp_before)
@@ -653,6 +658,8 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 			iter = chrono_two_digits_impl<false>(iter, tsp.day);
 			break;
 		}
+		// fatal error in logic
+#if 0
 		case char_literal_v<u8'g', char_type>:
 		case char_literal_v<u8'G', char_type>:
 		{
@@ -664,6 +671,7 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 				iter = chrono_year_impl(iter, tsp.year);
 			break;
 		}
+#endif
 		case char_literal_v<u8'H', char_type>:
 		{
 			iter = chrono_two_digits_impl<false>(iter, tsp.hours);
@@ -853,13 +861,14 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 			iter = chrono_one_digit_impl<true>(iter, weekday(tsp));
 			break;
 		}
+		// fatal error in logic
+#if 0
 		case char_literal_v<u8'U', char_type>:
 		{
 			iter = print_reserve_integral_define<10>(iter, 
 				static_cast<std::uint_least16_t>(weekday(tsp.year, 1, 1) + day_of_the_year(tsp) - 1u) / 7u);
 			break;
 		}
-#if 0
 		case char_literal_v<u8'v', char_type>:
 		{
 			auto const year{ tsp.year };
@@ -898,7 +907,6 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 			}
 			break;
 		}
-#endif
 		case char_literal_v<u8'V', char_type>:
 		{
 			if (tsp.month == 1u && tsp.day < 4u && weekday(tsp.year, 1, 1) > 4u)
@@ -914,11 +922,13 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 			}
 			break;
 		}
+#endif
 		case char_literal_v<u8'w', char_type>:
 		{
 			iter = lc_format_alt_digits_print(t.alt_digits,c_weekday(tsp),iter);
 			break;
 		}
+		// fatal error in logic
 #if 0
 		case char_literal_v<u8'W', char_type>:
 		{
