@@ -28,8 +28,7 @@ inline constexpr std::uint_least16_t day_of_the_year(iso8601_timestamp const& ts
 	--month_minus1;
 	if (month_minus1 > 11u) [[unlikely]] return 0;
 	std::uint_least16_t value{ static_cast<uint_least16_t>(month_accum[month_minus1] + static_cast<uint_least16_t>(tsp.day))};
-	std::int_least64_t year{tsp.year};
-	if (month_minus1 > 1u && year % 4 == 0 && (year % 100 != 0 || year % 400 == 0))
+	if (month_minus1 > 1u && is_leap_year(tsp.year))
 		++value;
 	return value;
 }
@@ -464,6 +463,22 @@ inline constexpr Iter lc_copy_12_impl(Iter iter) noexcept
 }
 
 template<::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter lc_copy_52_impl(Iter iter) noexcept
+{
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	if constexpr (std::same_as<char_type, char>)
+		return copy_string_literal("52", iter);
+	else if constexpr (std::same_as<char_type, wchar_t>)
+		return copy_string_literal(L"52", iter);
+	else if constexpr (std::same_as<char_type, char16_t>)
+		return copy_string_literal(u"52", iter);
+	else if constexpr (std::same_as<char_type, char32_t>)
+		return copy_string_literal(U"52", iter);
+	else
+		return copy_string_literal(u8"52", iter);
+}
+
+template<::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter lc_copy_53_impl(Iter iter) noexcept
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
@@ -881,42 +896,48 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 				static_cast<std::uint_least16_t>(weekday(tsp.year, 1, 1) + day_of_the_year(tsp) - 1u) / 7u);
 			break;
 		}
-		// fatal error in logic
-#if 0
 		case char_literal_v<u8'v', char_type>:
 		{
-			auto const year{ tsp.year };
-			auto const month{ tsp.month };
-			auto const day{ tsp.day };
-			auto const ndays{ t.week.ndays };
-			auto const first_week{ t.week.first_week };
+			std::int_least64_t const year{ tsp.year };
+			std::uint_least8_t const month{ tsp.month };
+			std::uint_least8_t const day{ tsp.day };
+			std::size_t const ndays{ t.week.ndays };
+			std::size_t const first_week{ t.week.first_week };
 			auto const benchmark_year{ static_cast<std::int_least64_t>(t.week.first_day / 10000) };
 			auto const benchmark_month{ static_cast<std::uint_least8_t>(t.week.first_day % 10000 / 100) };
 			auto const benchmark_day{ static_cast<std::uint_least8_t>(t.week.first_day % 100) };
-			std::int_least64_t weekday_of_1st_day_this_year{ day_diff(year, 1, 1, benchmark_year, benchmark_month, benchmark_day) % my_make_signed_t<std::size_t>(ndays) };
-			if (weekday_of_1st_day_this_year < 0)
-				weekday_of_1st_day_this_year += ndays + 1u;
+			union {
+				std::int_least64_t s;
+				std::uint_least64_t u;
+			} weekday_of_1st_day_this_year{ day_diff(year, 1, 1, benchmark_year, benchmark_month, benchmark_day) % my_make_signed_t<std::size_t>(ndays) };
+			if (weekday_of_1st_day_this_year.s < 0)
+				weekday_of_1st_day_this_year.u += ndays + 1u;
+ 			else
+				++weekday_of_1st_day_this_year.u;
+			std::uint_least64_t weekday_of_last_day_this_year;
+			if (is_leap_year(year))
+				weekday_of_last_day_this_year = (weekday_of_1st_day_this_year.u + 364u) % ndays + 1u;
 			else
-				++weekday_of_1st_day_this_year;
-			std::int_least64_t weekday_of_last_day_this_year{ day_diff(year, 12, 31, benchmark_year, benchmark_month, benchmark_day) % my_make_signed_t<std::size_t>(ndays) };
-			if (weekday_of_last_day_this_year < 0)
-				weekday_of_last_day_this_year += ndays + 1u;
-			else
-				++weekday_of_last_day_this_year;
-			if (month == 1u && day < first_week && weekday_of_1st_day_this_year > first_week)
-				iter = lc_copy_53_impl(iter);
-			else if (month == 12u && day > 32u - first_week && weekday_of_last_day_this_year < first_week)
+				weekday_of_last_day_this_year = (weekday_of_1st_day_this_year.u + 363u) % ndays + 1u;
+			if (month == 1u && weekday_of_1st_day_this_year.u > ndays - first_week + 1u && weekday_of_1st_day_this_year.u + day < ndays + 2)
+			{
+				// calculate the week number of 12/31 of the last year
+				std::uint_least64_t weekday_of_12_31{ static_cast<std::uint_least64_t>(weekday_of_1st_day_this_year.u + day_of_the_year(tsp) - 2u) % ndays };
+				auto day_of_12_31{ static_cast<std::uint_least16_t>(is_leap_year(year - 1) ? 366u : 365u) };
+				auto weekday_of_1st_day_last_year{ static_cast<std::uint_least64_t>((weekday_of_1st_day_this_year.s - day_of_12_31 - 1) % my_make_signed_t<std::size_t>(ndays) + ndays + 1) };
+				std::uint_least64_t weeknum{ static_cast<std::uint_least64_t>(day_of_12_31 + weekday_of_1st_day_last_year - weekday_of_12_31 - 1u) / ndays };
+				if (weekday_of_1st_day_last_year < ndays - first_week + 2u)
+					++weeknum;
+				iter = chrono_two_digits_impl<false>(iter, weeknum);
+			}
+			else if (month == 12u && weekday_of_last_day_this_year <= ndays - first_week && weekday_of_last_day_this_year + day >= 32)
 				iter = lc_copy_01_impl(iter);
 			else [[likely]]
 			{
-				std::int_least64_t weekday_of_today{ day_diff(year, month, day, benchmark_year, benchmark_month, benchmark_day) % my_make_signed_t<std::size_t>(ndays) };
-				if (weekday_of_today < 0)
-					weekday_of_today += ndays + 1u;
-				else
-					++weekday_of_today;
-				auto weeknum{ (day_of_the_year(tsp) - weekday_of_today + weekday_of_1st_day_this_year - 1u) % ndays + 1u };
-				if (weekday_of_1st_day_this_year > first_week)
-					--weeknum;
+				std::uint_least64_t weekday_of_today{ static_cast<std::uint_least64_t>(weekday_of_1st_day_this_year.u + day_of_the_year(tsp) - 2u) % ndays + 1u };
+				std::uint_least64_t weeknum{ static_cast<std::uint_least64_t>(day_of_the_year(tsp) + weekday_of_1st_day_this_year.u - weekday_of_today - 1u) / ndays };
+				if (weekday_of_1st_day_this_year.u < ndays - first_week + 2u)
+					++weeknum;
 				iter = chrono_two_digits_impl<false>(iter, weeknum);
 			}
 			break;
@@ -932,36 +953,38 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 				++weekday_of_last_day_this_year;
 			if (month == 1u && weekday_of_1st_day_this_year > 4u && weekday_of_1st_day_this_year + day < 9u)
 			{
-				// judge the week number of 12/31 of the last year
+				// calculate the week number of the last year
+				auto year_minus1{ year - 1 };
+				if ((is_leap_year(year_minus1) && weekday_of_1st_day_this_year > 5u) ||
+					(is_leap_year(year_minus1) && weekday_of_1st_day_this_year > 6u))
+					iter = lc_copy_52_impl(iter);
+				else
+					iter = lc_copy_53_impl(iter);
 			}
 			else if (month == 12u && weekday_of_last_day_this_year < 4u && weekday_of_last_day_this_year + day > 31u)
 				iter = lc_copy_01_impl(iter);
 			else
 			{
 				// the number of today out of 1/1 this year
-				auto weeknum{ static_cast<std::uint_least8_t>(static_cast<std::uint_least16_t>(day_of_the_year(tsp) - weekday(tsp) + weekday_of_1st_day_this_year - 1u) / 7u + 1u) };
+				auto weeknum{ static_cast<std::uint_least8_t>(static_cast<std::uint_least16_t>(day_of_the_year(tsp) - weekday(tsp) + weekday_of_1st_day_this_year - 1u) / 7u) };
 				// the week number of 1/1 may be 0 or 1
-				if (weekday_of_1st_day_this_year > 4u)
-					--weeknum;
+				if (weekday_of_1st_day_this_year < 5u)
+					++weeknum;
 				iter = chrono_two_digits_impl<false>(iter, weeknum);
 			}
 			break;
 		}
-#endif
 		case char_literal_v<u8'w', char_type>:
 		{
 			iter = lc_format_alt_digits_print(t.alt_digits,c_weekday(tsp),iter);
 			break;
 		}
-		// fatal error in logic
-#if 0
 		case char_literal_v<u8'W', char_type>:
 		{
 			iter = chrono_two_digits_impl<false>(iter,
 				static_cast<std::uint_least16_t>(day_of_the_year(tsp) - weekday(tsp) + weekday(tsp.year, 1, 1) - 1u) / 7u);
 			break;
 		}
-#endif
 		case char_literal_v<u8'x', char_type>:
 		{
 			iter = lc_print_reserve_define_time_fmt_common_impl(t, iter, tsp, t.d_fmt);
