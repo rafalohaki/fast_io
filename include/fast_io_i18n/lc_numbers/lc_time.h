@@ -11,6 +11,15 @@ namespace details
 https://www.ibm.com/docs/en/aix/7.1?topic=ff-lc-time-category-locale-definition-source-file-format
 */
 
+template <std::integral year_type>
+inline constexpr bool is_leap_year(year_type year) noexcept
+{
+	if constexpr (my_signed_integral<year_type>)
+		return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+	else
+		return year % 4u == 0 && (year % 100u != 0 || year % 400u == 0);
+}
+
 inline constexpr std::uint_least16_t month_accum[]{ 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
 
 inline constexpr std::uint_least16_t day_of_the_year(iso8601_timestamp const& tsp) noexcept
@@ -31,7 +40,8 @@ inline constexpr std::int_least64_t day_diff(
 	std::uint_least8_t day_after,
 	std::int_least64_t year_before,
 	std::uint_least8_t month_before,
-	std::uint_least8_t day_before)
+	std::uint_least8_t day_before
+) noexcept
 {
 	auto month_after_minus1{ month_after };
 	auto month_before_minus1{ month_before };
@@ -43,16 +53,16 @@ inline constexpr std::int_least64_t day_diff(
 		- year_after / 100 + year_before / 100
 		+ year_after / 400 - year_before / 400
 		+ 365 * (year_after - year_before)
-		+ month_accum[month_after_minus1] - month_accummonth_before_minus1]
+		+ month_accum[month_after_minus1] - month_accum[month_before_minus1]
 		+ day_after - day_before };
-	if (month_after_minus1 < 2u && year_after % 4 == 0 && (year_after % 100 != 0 || year_after % 400 == 0))
+	if (month_after_minus1 < 2u && is_leap_year(year_after))
 		--value;
-	if (month_before_minus1 < 2u && year_before % 4 == 0 && year_before % 100 != 0 || year_before % 400 == 0))
+	if (month_before_minus1 < 2u && is_leap_year(year_before))
 		++value;
 	return value;
 }
 
-inline constexpr std::int_least64_t day_diff(iso8601_timestamp const& tsp_after, iso8601_timestamp const& tsp_before)
+inline constexpr std::int_least64_t day_diff(iso8601_timestamp const& tsp_after, iso8601_timestamp const& tsp_before) noexcept
 {
 	return ::fast_io::details::day_diff(tsp_after.year, tsp_after.month, tsp_after.day, tsp_before.year, tsp_before.month, tsp_before.day);
 }
@@ -658,20 +668,24 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 			iter = chrono_two_digits_impl<false>(iter, tsp.day);
 			break;
 		}
-		// fatal error in logic
-#if 0
 		case char_literal_v<u8'g', char_type>:
 		case char_literal_v<u8'G', char_type>:
 		{
-			if (tsp.month == 1u && tsp.day < 4u && weekday(tsp.year, 1, 1) > 4u)
-				iter = chrono_year_impl(iter, tsp.year - 1);
-			else if (tsp.month == 12u && tsp.day > 28u && weekday(tsp.year, 12, 31) < 4u)
-				iter = chrono_year_impl(iter, tsp.year + 1);
+			auto year{ tsp.year };
+			auto month{ tsp.month };
+			auto day{ tsp.day };
+			std::uint_least8_t weekday_of_1st_day_this_year{ weekday(tsp.year, 1, 1) };
+			auto weekday_of_last_day_this_year{ weekday_of_1st_day_this_year };
+			if (is_leap_year(year))
+				++weekday_of_last_day_this_year;
+			if (month == 1u && weekday_of_1st_day_this_year > 4u && weekday_of_1st_day_this_year + day < 9u)
+				iter = chrono_year_impl(iter, year - 1);
+			else if (month == 12u && weekday_of_last_day_this_year < 4u && weekday_of_last_day_this_year + day > 31u)
+				iter = chrono_year_impl(iter, year + 1);
 			else
-				iter = chrono_year_impl(iter, tsp.year);
+				iter = chrono_year_impl(iter, year);
 			break;
 		}
-#endif
 		case char_literal_v<u8'H', char_type>:
 		{
 			iter = chrono_two_digits_impl<false>(iter, tsp.hours);
@@ -861,14 +875,14 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 			iter = chrono_one_digit_impl<true>(iter, weekday(tsp));
 			break;
 		}
-		// fatal error in logic
-#if 0
 		case char_literal_v<u8'U', char_type>:
 		{
 			iter = print_reserve_integral_define<10>(iter, 
 				static_cast<std::uint_least16_t>(weekday(tsp.year, 1, 1) + day_of_the_year(tsp) - 1u) / 7u);
 			break;
 		}
+		// fatal error in logic
+#if 0
 		case char_literal_v<u8'v', char_type>:
 		{
 			auto const year{ tsp.year };
@@ -909,14 +923,25 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 		}
 		case char_literal_v<u8'V', char_type>:
 		{
-			if (tsp.month == 1u && tsp.day < 4u && weekday(tsp.year, 1, 1) > 4u)
-				iter = lc_copy_53_impl(iter);
-			else if (tsp.month == 12u && tsp.day > 28u && weekday(tsp.year, 12, 31) < 4u)
-				iter = lc_copy_01_impl(iter);
-			else [[likely]]
+			auto year{ tsp.year };
+			auto month{ tsp.month };
+			auto day{ tsp.day };
+			std::uint_least8_t weekday_of_1st_day_this_year{ weekday(tsp.year, 1, 1) };
+			auto weekday_of_last_day_this_year{ weekday_of_1st_day_this_year };
+			if (is_leap_year(year))
+				++weekday_of_last_day_this_year;
+			if (month == 1u && weekday_of_1st_day_this_year > 4u && weekday_of_1st_day_this_year + day < 9u)
 			{
-				auto weeknum{ static_cast<std::uint_least8_t>(static_cast<std::uint_least16_t>(day_of_the_year(tsp) - weekday(tsp) + weekday(tsp.year, 1, 1) - 1u) / 7u + 1u) };
-				if (weekday(tsp.year, 1, 1) > 4u)
+				// judge the week number of 12/31 of the last year
+			}
+			else if (month == 12u && weekday_of_last_day_this_year < 4u && weekday_of_last_day_this_year + day > 31u)
+				iter = lc_copy_01_impl(iter);
+			else
+			{
+				// the number of today out of 1/1 this year
+				auto weeknum{ static_cast<std::uint_least8_t>(static_cast<std::uint_least16_t>(day_of_the_year(tsp) - weekday(tsp) + weekday_of_1st_day_this_year - 1u) / 7u + 1u) };
+				// the week number of 1/1 may be 0 or 1
+				if (weekday_of_1st_day_this_year > 4u)
 					--weeknum;
 				iter = chrono_two_digits_impl<false>(iter, weeknum);
 			}
