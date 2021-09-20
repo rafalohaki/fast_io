@@ -12,7 +12,7 @@ inline constexpr std::size_t lc_print_reserve_size_int_cal(basic_lc_all<char_typ
 	constexpr std::size_t static_sizem1{static_size-1};
 	return static_size+static_sizem1*all->numeric.thousands_sep.len;
 }
-
+#if 0
 inline constexpr std::size_t grouping_char_lens(std::size_t const* __restrict grouping_base,std::size_t grouping_len,std::size_t digits) noexcept
 {
 	std::size_t sum{};
@@ -28,7 +28,7 @@ inline constexpr std::size_t grouping_char_lens(std::size_t const* __restrict gr
 		return i+digits+(digits-sum-1)/grouping_base[i-1];
 	return digits+i;
 }
-
+#endif
 template<std::integral char_type,std::size_t base,bool uppercase,my_unsigned_integral T>
 inline constexpr char_type to_char_single_digit(T t) noexcept
 {
@@ -103,19 +103,6 @@ inline constexpr char_type to_char_single_digit(T t) noexcept
 	}
 }
 
-template<std::size_t base,my_unsigned_integral U>
-inline constexpr std::size_t chars_len_full() noexcept
-{
-#if defined(_MSC_VER) && !defined(__clang__)
-	constexpr U max_value{std::numeric_limits<U>::max()};
-#else
-	constexpr U zero{};
-	constexpr U max_value{static_cast<U>(zero-static_cast<U>(1u))};
-#endif
-	constexpr std::size_t real_size{chars_len<base>(max_value)};
-	return real_size;
-}
-
 template<bool full,std::size_t base,bool uppercase,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral T>
 constexpr Iter lc_grouping_single_sep_impl(basic_io_scatter_t<std::size_t> const& grouping,Iter iter,T t) noexcept
 {
@@ -124,7 +111,7 @@ constexpr Iter lc_grouping_single_sep_impl(basic_io_scatter_t<std::size_t> const
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	std::size_t i{};
 	constexpr T c0{static_cast<T>(base)};
-	constexpr std::size_t full_len{chars_len_full<base,T>()};
+	constexpr std::size_t full_len{cal_max_int_size<T,base>()};
 	std::size_t full_i{};
 	for(;i!=grouping_len;++i)
 	{
@@ -251,7 +238,7 @@ constexpr Iter grouping_sep_impl(basic_lc_all<::fast_io::freestanding::iter_valu
 	if(all->numeric.thousands_sep.len==1)
 	{
 		auto sep{*all->numeric.thousands_sep.base};
-		std::size_t digits{chars_len<10>(t)};
+		std::size_t digits{chars_len<base>(t)};
 		auto grouping{all->numeric.grouping};
 		std::size_t const len{grouping_char_lens(grouping,digits)};
 		lc_grouping_single_sep_impl(grouping,sep,iter+len,t);
@@ -268,26 +255,28 @@ constexpr void lc_print_unsigned_with_3_seperator_len(::fast_io::freestanding::i
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 #ifndef __OPTIMIZE_SIZE__
-	constexpr auto table(get_shared_inline_constexpr_base_table<char_type,10,false>().element);
+	constexpr auto table(get_shared_inline_constexpr_base_table<char_type,base,false>().element);
 #endif
 	constexpr std::uint_least32_t cpow1{static_cast<std::uint_least32_t>(base)};
+#if !defined(__OPTIMIZE_SIZE__)
 	constexpr std::uint_least32_t cpow2{static_cast<std::uint_least32_t>(cpow1*cpow1)};
 	constexpr std::uint_least32_t cpow3{static_cast<std::uint_least32_t>(cpow2*cpow1)};
+#endif
 	for(;3u<size;*--iter=seperator_ch)
 	{
 #if defined(__OPTIMIZE_SIZE__)
 		for(std::size_t i{};i!=3u;++i)
 		{
-			auto remained{value%cpow1};
+			T remained{static_cast<T>(value%cpow1)};
 			value/=cpow1;
 			*--iter=to_char_single_digit<char_type,base,uppercase>(remained);
 		}
 #else
-		auto low3digits{value%cpow3};
+		T low3digits{static_cast<T>(value%cpow3)};
 		value/=cpow3;
-		auto low2digits{low3digits%cpow2};
-		auto highdigit{low3digits/cpow2};
-		non_overlapped_copy_n(table[low2digits].element,2,iter-=2);
+		T low2digits{static_cast<T>(low3digits%cpow2)};
+		T highdigit{static_cast<T>(low3digits/cpow2)};
+		non_overlapped_copy_n(table[low2digits].element,2u,iter-=2u);
 		*--iter=to_char_single_digit<char_type,base,uppercase>(highdigit);
 #endif
 		size-=3u;
@@ -295,20 +284,20 @@ constexpr void lc_print_unsigned_with_3_seperator_len(::fast_io::freestanding::i
 #if defined(__OPTIMIZE_SIZE__)
 	for(;size;--size)
 	{
-		auto remained{value%cpow1};
+		T remained{static_cast<T>(value%cpow1)};
 		value/=cpow1;
 		*--iter=to_char_single_digit<char_type,base,uppercase>(remained);
 	}
 #else
 	if(size==3)
 	{
-		auto low2digits{value%cpow2};
-		auto highdigit{value/cpow2};
-		non_overlapped_copy_n(table[low2digits].element,2,iter-=2);
+		T low2digits{static_cast<T>(value%cpow2)};
+		T highdigit{static_cast<T>(value/cpow2)};
+		non_overlapped_copy_n(table[low2digits].element,2u,iter-=2u);
 		*--iter=to_char_single_digit<char_type,base,uppercase>(highdigit);
 	}
 	else if(size==2)
-		non_overlapped_copy_n(table[value].element,2,iter-=2);
+		non_overlapped_copy_n(table[value].element,2u,iter-=2u);
 	else
 	{
 		*--iter=to_char_single_digit<char_type,base,uppercase>(value);
@@ -321,7 +310,7 @@ inline constexpr Iter print_lc_grouping_3_path_impl(::fast_io::freestanding::ite
 {
 	if constexpr(full)
 	{
-		constexpr std::size_t size{chars_len_full<base,int_type>()};
+		constexpr std::size_t size{cal_max_int_size<int_type,base>()};
 		constexpr std::size_t offset_size{size+(size-1)/3};
 		if constexpr(sizeof(int_type)<=sizeof(unsigned))
 			lc_print_unsigned_with_3_seperator_len<base,uppercase>(seperator,iter+=offset_size,static_cast<unsigned>(t),size);
