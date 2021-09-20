@@ -55,14 +55,7 @@ public:
 		details::streambuf_hack::fp_hack_open(this->fb,chd.fp,details::calculate_fstream_open_value(mode));
 		chd.fp=nullptr;
 	}
-#if !defined(__AVR__)
-	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
-		basic_filebuf_file(basic_c_file_unlocked<char_type>(::fast_io::freestanding::move(piohd),mode),mode)
-	{
-	}
-#endif
 #elif defined(__GLIBCXX__)
-
 	template<c_family family>
 	requires std::same_as<::std::__c_file*,typename basic_c_family_io_handle<family,char_type>::native_handle_type>
 	basic_filebuf_file(basic_c_family_io_handle<family,char_type>&& chd,open_mode mode):
@@ -70,17 +63,6 @@ public:
 	{
 		chd.fp=nullptr;
 	}
-
-#if !defined(__AVR__)
-	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
-		basic_filebuf_file(basic_c_file_unlocked<char_type>(::fast_io::freestanding::move(piohd),mode),mode)
-	{
-/*
-https://github.com/gcc-mirror/gcc/blob/16e2427f50c208dfe07d07f18009969502c25dc8/libstdc%2B%2B-v3/config/io/basic_file_stdio.cc
-Shows libstdc++ still calls fdopen even on nt kernel which is incorrect
-*/
-	}
-#endif
 #elif defined(_MSVC_STL_UPDATE)
 	template<c_family family>
 	basic_filebuf_file(basic_c_family_io_handle<family,char_type>&& chd,open_mode):basic_filebuf_io_observer<CharT,Traits>{new std::basic_filebuf<char_type,traits_type>(chd.fp)}
@@ -93,14 +75,12 @@ Shows libstdc++ still calls fdopen even on nt kernel which is incorrect
 		chd.fp=nullptr;
 		details::streambuf_hack::msvc_hack_set_close(this->fb);
 	}
+#endif
 #if !defined(__AVR__)
 	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
 		basic_filebuf_file(basic_c_file_unlocked<char_type>(::fast_io::freestanding::move(piohd),mode),mode)
 	{
 	}
-#endif
-#endif
-#if !defined(__AVR__)
 #if (defined(_WIN32)&&!defined(__WINE__)) || defined(__CYGWIN__)
 //windows specific. open posix file from win32 io handle
 	template<win32_family family>
