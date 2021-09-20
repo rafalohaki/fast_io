@@ -102,7 +102,7 @@ inline std::basic_filebuf<CharT, Traits>* open_libstdcxx_basic_filebuf_ios_base_
 	auto& fbf_ref{*ptr_fbf};
 	auto pfbf{reinterpret_cast<char unsigned*>(ptr_fbf)};
 
-	auto& libstdcxx_filebuf_m_file{*reinterpret_cast<::std::__basic_file<char>*>(pfbf+__builtin_offsetof(hack_filebuf_type,_M_file))};
+	auto& libstdcxx_filebuf_m_file{*reinterpret_cast<decltype(hack_filebuf_type::_M_file)*>(pfbf+__builtin_offsetof(hack_filebuf_type,_M_file))};
 	libstdcxx_filebuf_m_file.sys_open(fp,mode);
 	auto& libstdcxx_filebuf_c_file_m_cfile_created{*reinterpret_cast<bool*>(pfbf+__builtin_offsetof(hack_filebuf_type,_M_file)+sizeof(::std::__c_file*))};
 	libstdcxx_filebuf_c_file_m_cfile_created=true;
