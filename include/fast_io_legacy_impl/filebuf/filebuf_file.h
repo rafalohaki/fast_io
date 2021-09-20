@@ -62,23 +62,15 @@ public:
 	}
 #endif
 #elif defined(__GLIBCXX__)
+
 	template<c_family family>
+	requires std::same_as<::std::__c_file*,typename basic_c_family_io_handle<family,char_type>::native_handle_type>
 	basic_filebuf_file(basic_c_family_io_handle<family,char_type>&& chd,open_mode mode):
-		basic_filebuf_io_observer<CharT,Traits>{new __gnu_cxx::stdio_filebuf<char_type,traits_type>(chd.fp,details::calculate_fstream_open_value(mode),fast_io::details::cal_buffer_size<CharT,true>())}
+		basic_filebuf_io_observer<CharT,Traits>{::fast_io::details::streambuf_hack::open_libstdcxx_basic_filebuf<CharT,Traits>(chd.fp,mode)}
 	{
-/*
-https://github.com/gcc-mirror/gcc/blob/41d6b10e96a1de98e90a7c0378437c3255814b16/libstdc%2B%2B-v3/config/io/basic_file_stdio.cc#L216
-__basic_file<char>::sys_open(int __fd, ios_base::openmode __mode) throw ()
-This function never fails. but what if fdopen fails?
-*/
-		if(!this->fb->is_open())
-		{
-			delete this->fb;
-			throw_posix_error();
-		}
 		chd.release();
-		details::streambuf_hack::hack_set_close(this->fb);
 	}
+
 #if !defined(__AVR__)
 	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
 		basic_filebuf_file(basic_c_file_unlocked<char_type>(::fast_io::freestanding::move(piohd),mode),mode)
