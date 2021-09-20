@@ -93,7 +93,9 @@ template<std::size_t bs,bool shbase=false,bool full=false,typename scalar_type>
 requires ((2<=bs&&bs<=36)&&(::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||::fast_io::freestanding::contiguous_iterator<scalar_type>))
 inline constexpr scalar_manip_t<::fast_io::details::base_mani_flags_cache<bs,false,shbase,full>,std::conditional_t<(::fast_io::details::my_integral<scalar_type>),std::remove_cvref_t<scalar_type>,std::uintptr_t>> base(scalar_type t) noexcept
 {
-	if constexpr(::fast_io::details::my_integral<scalar_type>)
+	if constexpr(std::same_as<scalar_type,std::nullptr_t>)
+		return {};
+	else if constexpr(::fast_io::details::my_integral<scalar_type>)
 		return {t};
 	else if constexpr(std::is_pointer_v<std::remove_cvref_t<scalar_type>>)
 		return {bit_cast<std::uintptr_t>(t)};
@@ -105,7 +107,9 @@ template<std::size_t bs,bool shbase=false,bool full=false,typename scalar_type>
 requires ((2<=bs&&bs<=36)&&(::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||::fast_io::freestanding::contiguous_iterator<scalar_type>))
 inline constexpr scalar_manip_t<::fast_io::details::base_mani_flags_cache<bs,true,shbase,full>,std::conditional_t<(::fast_io::details::my_integral<scalar_type>),std::remove_cvref_t<scalar_type>,std::uintptr_t>> baseupper(scalar_type t) noexcept
 {
-	if constexpr(::fast_io::details::my_integral<scalar_type>)
+	if constexpr(std::same_as<scalar_type,std::nullptr_t>)
+		return {};
+	else if constexpr(::fast_io::details::my_integral<scalar_type>)
 		return {t};
 	else if constexpr(std::is_pointer_v<std::remove_cvref_t<scalar_type>>)
 		return {bit_cast<std::uintptr_t>(t)};
@@ -118,7 +122,9 @@ template<bool shbase=false,bool full=false,typename scalar_type>
 requires (::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||::fast_io::freestanding::contiguous_iterator<scalar_type>)
 inline constexpr scalar_manip_t<::fast_io::details::base_mani_flags_cache<16,false,shbase,full>,std::conditional_t<(::fast_io::details::my_integral<scalar_type>),std::remove_cvref_t<scalar_type>,std::uintptr_t>> hex(scalar_type t) noexcept
 {
-	if constexpr(::fast_io::details::my_integral<scalar_type>)
+	if constexpr(std::same_as<scalar_type,std::nullptr_t>)
+		return {};
+	else if constexpr(::fast_io::details::my_integral<scalar_type>)
 		return {t};
 	else if constexpr(std::is_pointer_v<std::remove_cvref_t<scalar_type>>)
 		return {bit_cast<std::uintptr_t>(t)};
@@ -130,7 +136,9 @@ template<bool shbase=false,bool full=false,typename scalar_type>
 requires (::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||::fast_io::freestanding::contiguous_iterator<scalar_type>)
 inline constexpr scalar_manip_t<::fast_io::details::base_mani_flags_cache<16,true,shbase,full>,std::conditional_t<(::fast_io::details::my_integral<scalar_type>),std::remove_cvref_t<scalar_type>,std::uintptr_t>> hexupper(scalar_type t) noexcept
 {
-	if constexpr(::fast_io::details::my_integral<scalar_type>)
+	if constexpr(std::same_as<scalar_type,std::nullptr_t>)
+		return {};
+	else if constexpr(::fast_io::details::my_integral<scalar_type>)
 		return {t};
 	else if constexpr(std::is_pointer_v<std::remove_cvref_t<scalar_type>>)
 		return {bit_cast<std::uintptr_t>(t)};
@@ -143,7 +151,9 @@ template<bool shbase=false,typename scalar_type>
 requires (::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||::fast_io::freestanding::contiguous_iterator<scalar_type>)
 inline constexpr scalar_manip_t<::fast_io::details::base_mani_flags_cache<16,false,shbase,true>,std::conditional_t<(::fast_io::details::my_integral<scalar_type>),::fast_io::details::my_make_unsigned_t<std::remove_cvref_t<scalar_type>>,std::uintptr_t>> uhexfull(scalar_type t) noexcept
 {
-	if constexpr(::fast_io::details::my_integral<scalar_type>)
+	if constexpr(std::same_as<scalar_type,std::nullptr_t>)
+		return {};
+	else if constexpr(::fast_io::details::my_integral<scalar_type>)
 		return {t};
 	else if constexpr(std::is_pointer_v<std::remove_cvref_t<scalar_type>>)
 		return {bit_cast<std::uintptr_t>(t)};
@@ -155,7 +165,9 @@ template<typename scalar_type>
 requires (::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||::fast_io::freestanding::contiguous_iterator<scalar_type>)
 inline constexpr scalar_manip_t<::fast_io::details::base_mani_flags_cache<16,false,true,true>,std::conditional_t<(::fast_io::details::my_integral<scalar_type>),::fast_io::details::my_make_unsigned_t<std::remove_cvref_t<scalar_type>>,std::uintptr_t>> addrvw(scalar_type t) noexcept
 {
-	if constexpr(::fast_io::details::my_integral<scalar_type>)
+	if constexpr(std::same_as<scalar_type,std::nullptr_t>)
+		return {};
+	else if constexpr(::fast_io::details::my_integral<scalar_type>)
 		return {t};
 	else if constexpr(std::is_pointer_v<std::remove_cvref_t<scalar_type>>)
 		return {bit_cast<std::uintptr_t>(t)};
@@ -167,7 +179,9 @@ template<bool shbase=false,typename scalar_type>
 requires (::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||::fast_io::freestanding::contiguous_iterator<scalar_type>)
 inline constexpr scalar_manip_t<::fast_io::details::base_mani_flags_cache<16,true,shbase,true>,std::conditional_t<(::fast_io::details::my_integral<scalar_type>),::fast_io::details::my_make_unsigned_t<std::remove_cvref_t<scalar_type>>,std::uintptr_t>> uhexupperfull(scalar_type t) noexcept
 {
-	if constexpr(::fast_io::details::my_integral<scalar_type>)
+	if constexpr(std::same_as<scalar_type,std::nullptr_t>)
+		return {};
+	else if constexpr(::fast_io::details::my_integral<scalar_type>)
 		return {t};
 	else if constexpr(std::is_pointer_v<std::remove_cvref_t<scalar_type>>)
 		return {bit_cast<std::uintptr_t>(t)};
@@ -179,7 +193,9 @@ template<bool shbase=false,bool full=false,typename scalar_type>
 requires (::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||::fast_io::freestanding::contiguous_iterator<scalar_type>)
 inline constexpr scalar_manip_t<::fast_io::details::base_mani_flags_cache<8,false,shbase,full>,std::conditional_t<(::fast_io::details::my_integral<scalar_type>),std::remove_cvref_t<scalar_type>,std::uintptr_t>> oct(scalar_type t) noexcept
 {
-	if constexpr(::fast_io::details::my_integral<scalar_type>)
+	if constexpr(std::same_as<scalar_type,std::nullptr_t>)
+		return {};
+	else if constexpr(::fast_io::details::my_integral<scalar_type>)
 		return {t};
 	else if constexpr(std::is_pointer_v<std::remove_cvref_t<scalar_type>>)
 		return {bit_cast<std::uintptr_t>(t)};
@@ -191,7 +207,9 @@ template<bool shbase=false,bool full=false,typename scalar_type>
 requires (::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||::fast_io::freestanding::contiguous_iterator<scalar_type>)
 inline constexpr scalar_manip_t<::fast_io::details::base_mani_flags_cache<2,false,shbase,full>,std::conditional_t<(::fast_io::details::my_integral<scalar_type>),std::remove_cvref_t<scalar_type>,std::uintptr_t>> bin(scalar_type t) noexcept
 {
-	if constexpr(::fast_io::details::my_integral<scalar_type>)
+	if constexpr(std::same_as<scalar_type,std::nullptr_t>)
+		return {};
+	else if constexpr(::fast_io::details::my_integral<scalar_type>)
 		return {t};
 	else if constexpr(std::is_pointer_v<std::remove_cvref_t<scalar_type>>)
 		return {bit_cast<std::uintptr_t>(t)};
@@ -203,7 +221,9 @@ template<scalar_flags flags,typename scalar_type>
 requires (((2<=flags.base&&flags.base<=36&&(::fast_io::details::my_integral<scalar_type>||std::is_pointer_v<std::remove_cvref_t<scalar_type>>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>||::fast_io::freestanding::contiguous_iterator<scalar_type>))||(flags.base==10&&::fast_io::details::my_floating_point<scalar_type>)))
 inline constexpr scalar_manip_t<flags,std::conditional_t<(::fast_io::details::my_integral<scalar_type>||std::floating_point<scalar_type>||std::same_as<std::nullptr_t,std::remove_cvref_t<scalar_type>>),std::remove_cvref_t<scalar_type>,std::uintptr_t>> scalar(scalar_type t) noexcept
 {
-	if constexpr(::fast_io::details::my_floating_point<scalar_type>)
+	if constexpr(std::same_as<scalar_type,std::nullptr_t>)
+		return {};
+	else if constexpr(::fast_io::details::my_floating_point<scalar_type>)
 	{
 		if constexpr(std::same_as<std::remove_cvref_t<scalar_type>,long double>
 #if defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)

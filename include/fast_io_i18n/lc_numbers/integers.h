@@ -255,7 +255,7 @@ constexpr void lc_print_unsigned_with_3_seperator_len(::fast_io::freestanding::i
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 #ifndef __OPTIMIZE_SIZE__
-	constexpr auto table(get_shared_inline_constexpr_base_table<char_type,base,false>().element);
+	constexpr auto table(get_shared_inline_constexpr_base_table<char_type,base,uppercase>().element);
 #endif
 	constexpr std::uint_least32_t cpow1{static_cast<std::uint_least32_t>(base)};
 #if !defined(__OPTIMIZE_SIZE__)
