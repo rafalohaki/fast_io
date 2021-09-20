@@ -222,7 +222,7 @@ template<bool full,std::size_t base,bool uppercase,::fast_io::freestanding::rand
 constexpr Iter grouping_mul_sep_impl(basic_lc_all<::fast_io::freestanding::iter_value_t<Iter>> const* __restrict all,Iter iter,T t) noexcept
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
-	constexpr std::size_t array_len{print_reserve_size(io_reserve_type<char_type,T>)*2u-1u};
+	constexpr std::size_t array_len{cal_max_int_size<T,base>()*2u-1u};
 	char_type array[array_len];
 
 	auto const ed{array+array_len};
