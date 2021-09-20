@@ -68,7 +68,7 @@ public:
 	basic_filebuf_file(basic_c_family_io_handle<family,char_type>&& chd,open_mode mode):
 		basic_filebuf_io_observer<CharT,Traits>{::fast_io::details::streambuf_hack::open_libstdcxx_basic_filebuf<CharT,Traits>(chd.fp,mode)}
 	{
-		chd.release();
+		chd.fp=nullptr;
 	}
 
 #if !defined(__AVR__)
