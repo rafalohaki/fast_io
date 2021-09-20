@@ -1,4 +1,7 @@
 #pragma once
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC system_header
+#endif
 
 namespace fast_io
 {
@@ -637,7 +640,7 @@ inline constexpr void print_reserve_integral_main_impl(Iter iter,T t,std::size_t
 #else
 		constexpr auto tb{::fast_io::details::get_shared_inline_constexpr_base_table<char_type,base,uppercase>().element};
 		constexpr T pw{static_cast<T>(base*base)};
-		std::size_t len2{len>>1};
+		std::size_t const len2{len>>static_cast<std::size_t>(1u)};
 		for(std::size_t i{};i!=len2;++i)
 		{
 			auto const rem{t%pw};
@@ -653,6 +656,35 @@ inline constexpr void print_reserve_integral_main_impl(Iter iter,T t,std::size_t
 		}
 #endif
 	}
+}
+
+template<bool full,std::size_t base,bool uppercase,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral T>
+inline constexpr Iter print_reserve_integral_withfull_main_impl(Iter first,T u)
+{
+	if constexpr(base<=10&&uppercase)
+	{
+		return print_reserve_integral_withfull_main_impl<full,base,false>(first,u);//prevent duplications
+	}
+	else
+	{
+		if constexpr(full)
+		{
+			constexpr std::size_t sz{::fast_io::details::cal_max_int_size<T,base>()};
+			if constexpr(sizeof(u)<=sizeof(unsigned))
+				print_reserve_integral_main_impl<base,uppercase>(first+=sz,static_cast<unsigned>(u),sz);
+			else
+				print_reserve_integral_main_impl<base,uppercase>(first+=sz,u,sz);
+		}
+		else
+		{
+			std::size_t const sz{chars_len<base,false>(u)};
+			if constexpr(sizeof(u)<=sizeof(unsigned))
+				print_reserve_integral_main_impl<base,uppercase>(first+=sz,static_cast<unsigned>(u),sz);
+			else
+				print_reserve_integral_main_impl<base,uppercase>(first+=sz,u,sz);
+		}
+	}
+	return first;
 }
 
 template<std::size_t base,
@@ -683,6 +715,7 @@ inline constexpr Iter print_reserve_integral_define(Iter first,int_type t)
 				first=print_reserve_show_base_impl<base,uppercase_showbase>(first);
 			*first=t?char_literal_v<u8'1',char_type>:char_literal_v<u8'0',char_type>;
 			++first;
+			return first;
 		}
 		else
 		{
@@ -724,24 +757,8 @@ inline constexpr Iter print_reserve_integral_define(Iter first,int_type t)
 			}
 			if constexpr(showbase&&(base!=10))
 				first=print_reserve_show_base_impl<base,uppercase_showbase>(first);
-			if constexpr(full)
-			{
-				constexpr std::size_t sz{::fast_io::details::cal_max_int_size<::fast_io::details::my_make_unsigned_t<int_type>,base>()};
-				if constexpr(sizeof(u)<=sizeof(unsigned))
-					print_reserve_integral_main_impl<base,uppercase>(first+=sz,static_cast<unsigned>(u),sz);
-				else
-					print_reserve_integral_main_impl<base,uppercase>(first+=sz,u,sz);
-			}
-			else
-			{
-				std::size_t sz{chars_len<base,false>(u)};
-				if constexpr(sizeof(u)<=sizeof(unsigned))
-					print_reserve_integral_main_impl<base,uppercase>(first+=sz,static_cast<unsigned>(u),sz);
-				else
-					print_reserve_integral_main_impl<base,uppercase>(first+=sz,u,sz);
-			}
+			return print_reserve_integral_withfull_main_impl<full,base,uppercase>(first,u);
 		}
-		return first;
 	}
 }
 

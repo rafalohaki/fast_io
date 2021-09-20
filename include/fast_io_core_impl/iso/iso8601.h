@@ -128,7 +128,7 @@ inline constexpr basic_timestamp<0> div_uint(std::int_least64_t rseconds,std::ui
 template<std::int_least64_t off_to_epoch>
 inline constexpr basic_timestamp<off_to_epoch> operator-(basic_timestamp<off_to_epoch> a) noexcept
 {
-	std::uint_least64_t high(a.seconds);
+	std::uint_least64_t high{static_cast<std::uint_least64_t>(a.seconds)};
 	high=0u-high;
 	return {static_cast<std::int_least64_t>(high),a.subseconds};
 }
@@ -138,11 +138,11 @@ inline constexpr basic_timestamp<off_to_epoch> operator+(basic_timestamp<off_to_
 {
 	if(a.seconds<0)
 	{
-		std::uint_least64_t a_abs(a.seconds);
+		std::uint_least64_t a_abs{static_cast<std::uint_least64_t>(a.seconds)};
 		a_abs=0u-a_abs;
 		if(b.seconds<0)
 		{
-			std::uint_least64_t b_abs(b.seconds);
+			std::uint_least64_t b_abs{static_cast<std::uint_least64_t>(b.seconds)};
 			b_abs=0u-b_abs;
 			auto res{details::add_impl({a_abs,a.subseconds},
 				{b_abs,b.subseconds})};
@@ -151,7 +151,7 @@ inline constexpr basic_timestamp<off_to_epoch> operator+(basic_timestamp<off_to_
 		}
 		else
 		{
-			std::uint_least64_t b_abs(b.seconds);
+			std::uint_least64_t b_abs{static_cast<std::uint_least64_t>(b.seconds)};
 			if(a_abs<b_abs||(a_abs==b_abs&&a.subseconds<b.subseconds))
 			{
 				auto res{details::sub_impl({b_abs,b.subseconds},{a_abs,a.subseconds})};
@@ -167,10 +167,10 @@ inline constexpr basic_timestamp<off_to_epoch> operator+(basic_timestamp<off_to_
 	}
 	else
 	{
-		std::uint_least64_t a_abs(a.seconds);
+		std::uint_least64_t a_abs{static_cast<std::uint_least64_t>(a.seconds)};
 		if(b.seconds<0)
 		{
-			std::uint_least64_t b_abs(b.seconds);
+			std::uint_least64_t b_abs{static_cast<std::uint_least64_t>(b.seconds)};
 			b_abs=0u-b_abs;
 			if(a_abs<b_abs||(a_abs==b_abs&&a.subseconds<b.subseconds))
 			{
@@ -186,7 +186,7 @@ inline constexpr basic_timestamp<off_to_epoch> operator+(basic_timestamp<off_to_
 		}
 		else
 		{
-			std::uint_least64_t b_abs(b.seconds);
+			std::uint_least64_t b_abs{static_cast<std::uint_least64_t>(b.seconds)};
 			auto res{details::add_impl({a_abs,a.subseconds},
 				{b_abs,b.subseconds})};
 			return {static_cast<std::int_least64_t>(res.seconds),res.subseconds};

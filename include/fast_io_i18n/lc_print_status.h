@@ -122,16 +122,17 @@ template<bool line,output_stream output,typename T>
 inline constexpr void lc_print_control_reserve_bad_path(basic_lc_all<typename output::char_type> const* __restrict lc,output out,T t,std::size_t size)
 {
 	using char_type = typename output::char_type;
+	if constexpr(line)
+	{
+		if(SIZE_MAX==size)
+			fast_terminate();
+		++size;
+	}
 	local_operator_new_array_ptr<char_type> ptr(size);
 	auto it{print_reserve_define(lc,ptr.ptr,t)};
 	if constexpr(line)
 	{
-		if constexpr(std::same_as<char,char_type>)
-			*it='\n';
-		else if constexpr(std::same_as<wchar_t,char_type>)
-			*it=L'\n';
-		else
-			*it=u8'\n';
+		*it=char_literal_v<u8'\n',char_type>;
 		++it;
 	}
 	write(out,ptr.ptr,it);
@@ -157,35 +158,20 @@ inline constexpr void lc_print_control(basic_lc_all<typename output::char_type> 
 				if(static_cast<std::ptrdiff_t>(len)<diff)[[likely]]
 				{
 					curr=non_overlapped_copy_n(scatter.base,len,curr);
-					if constexpr(std::same_as<char,char_type>)
-						*curr='\n';
-					else if constexpr(std::same_as<wchar_t,char_type>)
-						*curr=L'\n';
-					else
-						*curr=u8'\n';
+					*curr=char_literal_v<u8'\n',char_type>;
 					++curr;
 					obuffer_set_curr(out,curr);
 				}
 				else
 				{
 					write(out,scatter.base,scatter.base+scatter.len);
-					if constexpr(std::same_as<char,char_type>)
-						put(out,'\n');
-					else if constexpr(std::same_as<wchar_t,char_type>)
-						put(out,L'\n');
-					else
-						put(out,u8'\n');
+					put(out,char_literal_v<u8'\n',char_type>);
 				}
 			}
 			else
 			{
 				write(out,scatter.base,scatter.base+scatter.len);
-				if constexpr(std::same_as<char,char_type>)
-					put(out,'\n');
-				else if constexpr(std::same_as<wchar_t,char_type>)
-					put(out,L'\n');
-				else
-					put(out,u8'\n');
+				put(out,char_literal_v<u8'\n',char_type>);
 			}
 		}
 		else
@@ -196,25 +182,22 @@ inline constexpr void lc_print_control(basic_lc_all<typename output::char_type> 
 	else if constexpr(lc_dynamic_reserve_printable<char_type,value_type>)
 	{
 		std::size_t sz{print_reserve_size(lc,t)};
-		if constexpr(line)
-			++sz;
 		if constexpr(buffer_output_stream<output>)
 		{
 			auto bcurr{obuffer_curr(out)};
 			auto bend{obuffer_end(out)};
-			std::ptrdiff_t const diff(bend-bcurr);
+			std::ptrdiff_t diff(bend-bcurr);
+			if constexpr(line)
+			{
+				--diff;
+			}
 			if(static_cast<std::ptrdiff_t>(sz)<diff)[[likely]]
 			{
 				//To check whether this affects performance.
 				auto it{print_reserve_define(lc,bcurr,t)};
 				if constexpr(line)
 				{
-					if constexpr(std::same_as<char,char_type>)
-						*it='\n';
-					else if constexpr(std::same_as<wchar_t,char_type>)
-						*it=L'\n';
-					else
-						*it=u8'\n';
+					*it=char_literal_v<u8'\n',char_type>;
 					++it;
 				}	
 				obuffer_set_curr(out,it);
@@ -230,12 +213,7 @@ inline constexpr void lc_print_control(basic_lc_all<typename output::char_type> 
 		print_define(lc,out,t);
 		if constexpr(line)
 		{
-			if constexpr(std::same_as<char_type,char>)
-				put(out,'\n');
-			else if constexpr(std::same_as<char_type,wchar_t>)
-				put(out,L'\n');
-			else
-				put(out,u8'\n');
+			put(out,char_literal_v<u8'\n',char_type>);
 		}
 	}
 	else
@@ -302,24 +280,9 @@ inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type>
 			lc_scatter_print_recursive(lc,scatters.data(),args...);
 			if constexpr(ln)
 			{
-				if constexpr(std::same_as<char_type,char>)
-				{
-					char_type ch('\n');
-					scatters.back()={__builtin_addressof(ch),sizeof(ch)};
-					scatter_write(out,{scatters.data(),scatters.size()});
-				}
-				else if constexpr(std::same_as<char_type,wchar_t>)
-				{
-					char_type ch(L'\n');
-					scatters.back()={__builtin_addressof(ch),sizeof(ch)};
-					scatter_write(out,{scatters.data(),scatters.size()});
-				}
-				else
-				{
-					char_type ch(u8'\n');
-					scatters.back()={__builtin_addressof(ch),sizeof(ch)};
-					scatter_write(out,{scatters.data(),scatters.size()});
-				}
+				constexpr char_type ch(char_literal_v<u8'\n',char_type>);
+				scatters.back()={__builtin_addressof(ch),sizeof(ch)};
+				scatter_write(out,{scatters.data(),scatters.size()});
 			}
 			else
 				scatter_write(out,{scatters.data(),scatters.size()});
@@ -331,24 +294,9 @@ inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type>
 			lc_scatter_print_with_dynamic_reserve_recursive(lc,scatters.data(),array.data(),new_ptr.ptr,args...);
 			if constexpr(ln)
 			{
-				if constexpr(std::same_as<char_type,char>)
-				{
-					char_type ch('\n');
-					scatters.back()={__builtin_addressof(ch),sizeof(ch)};
-					scatter_write(out,{scatters.data(),scatters.size()});
-				}
-				else if constexpr(std::same_as<char_type,wchar_t>)
-				{
-					char_type ch(L'\n');
-					scatters.back()={__builtin_addressof(ch),sizeof(ch)};
-					scatter_write(out,{scatters.data(),scatters.size()});
-				}
-				else
-				{
-					char_type ch(u8'\n');
-					scatters.back()={__builtin_addressof(ch),sizeof(ch)};
-					scatter_write(out,{scatters.data(),scatters.size()});
-				}
+				constexpr char_type ch(char_literal_v<u8'\n',char_type>);
+				scatters.back()={__builtin_addressof(ch),sizeof(ch)};
+				scatter_write(out,{scatters.data(),scatters.size()});
 			}
 			else
 				scatter_write(out,{scatters.data(),scatters.size()});
@@ -379,21 +327,7 @@ inline constexpr void lc_print_status_define_further_decay(basic_lc_all<typename
 	{
 		if constexpr(sizeof...(Args)==0&&ln)
 		{
-			if constexpr(std::same_as<char_type,char>)
-			{
-				char_type ch('\n');
-				put(out,ch);
-			}
-			else if constexpr(std::same_as<char_type,wchar_t>)
-			{
-				char_type ch(L'\n');
-				put(out,ch);
-			}
-			else
-			{
-				char_type ch(u8'\n');
-				put(out,ch);
-			}
+			put(out,char_literal_v<u8'\n',char_type>);
 		}
 		else
 		{
