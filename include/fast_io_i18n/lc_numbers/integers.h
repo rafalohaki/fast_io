@@ -106,8 +106,12 @@ inline constexpr char_type to_char_single_digit(T t) noexcept
 template<std::size_t base,my_unsigned_integral U>
 inline constexpr std::size_t chars_len_full() noexcept
 {
+#if defined(_MSC_VER) && !defined(__clang__)
+	constexpr U max_value{std::numeric_limits<U>::max()};
+#else
 	constexpr U zero{};
-	constexpr U max_value{~zero};
+	constexpr U max_value{static_cast<U>(zero-static_cast<U>(1u))};
+#endif
 	constexpr std::size_t real_size{chars_len<base>(max_value)};
 	return real_size;
 }
@@ -129,7 +133,7 @@ constexpr Iter lc_grouping_single_sep_impl(basic_io_scatter_t<std::size_t> const
 			break;
 		for(std::size_t j{};j!=e;++j)
 		{
-			*--iter=to_char_single_digit<char_type,base,uppercase>(t%c0);
+			*--iter=to_char_single_digit<char_type,base,uppercase>(static_cast<T>(t%c0));
 			t/=c0;
 			if constexpr(full)
 			{
@@ -148,7 +152,7 @@ constexpr Iter lc_grouping_single_sep_impl(basic_io_scatter_t<std::size_t> const
 	{
 		for(;;)
 		{
-			*--iter=to_char_single_digit<char_type,base,uppercase>(t%c0);
+			*--iter=to_char_single_digit<char_type,base,uppercase>(static_cast<T>(t%c0));
 			t/=c0;
 			if constexpr(full)
 			{
@@ -168,7 +172,7 @@ constexpr Iter lc_grouping_single_sep_impl(basic_io_scatter_t<std::size_t> const
 		{
 			for(std::size_t j{};j!=e;++j)
 			{
-				*--iter=to_char_single_digit<char_type,base,uppercase>(t%c0);
+				*--iter=to_char_single_digit<char_type,base,uppercase>(static_cast<T>(t%c0));
 				t/=c0;
 				if constexpr(full)
 				{
