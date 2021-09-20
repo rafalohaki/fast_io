@@ -2,7 +2,6 @@
 
 #if 0
 #include"width.h"
-#include"grouping.h"
 #endif
 
 #include"boolalpha.h"
