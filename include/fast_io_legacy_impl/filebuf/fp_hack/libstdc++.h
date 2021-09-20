@@ -52,7 +52,7 @@ inline std::FILE* fp_hack([[maybe_unused]] T* cio) noexcept
 }
 
 template<typename CharT, typename Traits>
-class hack_libstdcxx_basic_filebuf:private ::std::basic_filebuf<CharT,Traits>
+class hack_libstdcxx_basic_filebuf : private ::std::basic_filebuf<CharT,Traits>
 {
 public:
 	using ::std::basic_filebuf<CharT,Traits>::_M_lock;
