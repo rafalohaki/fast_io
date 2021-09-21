@@ -210,7 +210,9 @@ inline constexpr void print_control(output out,T t)
 			else
 			{
 				write(out,scatter.base,scatter.base+scatter.len);
-				put(out,lfch);
+				constexpr auto lfch{char_literal_v<u8'\n',char_type>};
+				write(out,__builtin_addressof(lfch),
+				__builtin_addressof(lfch)+1);
 			}
 		}
 		else
@@ -332,7 +334,12 @@ inline constexpr void print_control(output out,T t)
 			print_define(out,t);
 		if constexpr(line)
 		{
-			put(out,lfch);
+			constexpr auto lfch{char_literal_v<u8'\n',char_type>};
+			if constexpr(buffer_output_stream<output>)
+				put(out,lfch);
+			else
+				write(out,__builtin_addressof(lfch),
+				__builtin_addressof(lfch)+1);
 		}
 	}
 	else
@@ -355,6 +362,81 @@ inline constexpr void print_controls_line(output out,T t,Args... args)
 		print_controls_line<ln>(out,args...);
 	}
 }
+
+
+template<std::integral char_type,bool ln,typename T,typename... Args>
+inline constexpr std::size_t calculate_print_normal_maxium_size_main(std::size_t mx_value) noexcept
+{
+	std::size_t val{};
+	if constexpr(ln&&(sizeof...(Args)==0))
+		++val;
+	if constexpr(reserve_printable<char_type,T>)
+	{
+		constexpr std::size_t size{print_reserve_size(io_reserve_type<char_type,T>)};
+		static_assert(size!=SIZE_MAX,"overflow");
+		val+=size;
+	}
+	if(mx_value<val)
+		mx_value=val;
+	if constexpr((sizeof...(Args)==0))
+		return mx_value;
+	else
+		return calculate_print_normal_maxium_size_main<char_type,ln,Args...>(mx_value);
+}
+
+template<std::integral char_type,bool ln,typename... Args>
+inline constexpr std::size_t calculate_print_normal_maxium_size() noexcept
+{
+	return calculate_print_normal_maxium_size_main<char_type,ln,Args...>(0);
+}
+
+template<std::integral char_type,bool ln,typename T,typename... Args>
+inline constexpr std::size_t calculate_print_normal_dynamic_maxium_main(std::size_t mx_value,T t,Args... args) noexcept
+{
+	if constexpr(dynamic_reserve_printable<char_type,T>)
+	{
+		std::size_t size{print_reserve_size(io_reserve_type<char_type,T>,t)};
+		if constexpr(ln&&(sizeof...(Args)==0))
+		{
+			if(size==SIZE_MAX)
+				fast_terminate();
+			++size;
+		}
+		if(mx_value<size)
+			mx_value=size;
+	}
+	if constexpr((sizeof...(Args)==0))
+		return mx_value;
+	else
+		return calculate_print_normal_dynamic_maxium_main(mx_value,args...);
+}
+
+template<bool line,typename output,std::integral char_type,typename T,typename... Args>
+inline constexpr void normal_print_with_dynamic_reserve_recursive(output out,char_type* __restrict ptr,T t, Args ...args)
+{
+	if constexpr((scatter_type_printable<char_type,T>&&(scatter_type_printable<char_type,Args>&&...)))
+	{
+		print_controls_line<line>(out,t,args...);
+	}
+	else if constexpr(scatter_type_printable<char_type,T>)
+	{
+		static_assert(sizeof...(Args)!=0);
+		print_control<false>(out,t);
+	}
+	else if constexpr(reserve_printable<char_type,T>||dynamic_reserve_printable<char_type,T>)
+	{
+		auto end_ptr = print_reserve_define(io_reserve_type<char_type,T>,ptr,t);
+		if constexpr(line&&(sizeof...(Args)==0))
+		{
+			*end_ptr=char_literal_v<u8'\n',char_type>;
+			++end_ptr;
+		}
+		write(out,ptr,end_ptr);
+	}
+	if constexpr(sizeof...(Args)!=0)
+		normal_print_with_dynamic_reserve_recursive<line>(out,ptr,args...);
+}
+
 template<bool line,output_stream output,typename ...Args>
 inline constexpr void print_fallback(output out,Args ...args)
 {
@@ -363,53 +445,77 @@ inline constexpr void print_fallback(output out,Args ...args)
 	if constexpr(line&&sizeof...(Args)==0)
 	{
 		char_type ch{lfch};
-		write(out,__builtin_addressof(ch),__builtin_addressof(ch)+1);
+		write(out,__builtin_addressof(lfch),__builtin_addressof(lfch)+1);
 	}
-	else if constexpr((scatter_output_stream<output>&&((scatter_printable<typename output::char_type,Args>||reserve_printable<typename output::char_type,Args>||dynamic_reserve_printable<typename output::char_type,Args>)&&...)))
+	else if constexpr(((scatter_printable<typename output::char_type,Args>||reserve_printable<typename output::char_type,Args>||dynamic_reserve_printable<typename output::char_type,Args>)&&...))
 	{
-		constexpr std::size_t n{(sizeof...(Args))+static_cast<std::size_t>(line)};
-		io_scatter_t scatters[n];
-		if constexpr((scatter_printable<typename output::char_type,Args>&&...))
+		if constexpr(scatter_output_stream<output>)
 		{
-			scatter_print_recursive<typename output::char_type>(scatters,args...);
-			if constexpr(line)
+			constexpr std::size_t n{(sizeof...(Args))+static_cast<std::size_t>(line)};
+			io_scatter_t scatters[n];
+			if constexpr((scatter_printable<typename output::char_type,Args>&&...))
 			{
-				char_type ch{lfch};
-				scatters[n-1]={__builtin_addressof(ch),sizeof(ch)};
-				scatter_write(out,{scatters,n});
+				scatter_print_recursive<typename output::char_type>(scatters,args...);
+				if constexpr(line)
+				{
+					char_type ch{lfch};
+					scatters[n-1]={__builtin_addressof(ch),sizeof(ch)};
+					scatter_write(out,{scatters,n});
+				}
+				else
+					scatter_write(out,{scatters,n});
+			}
+			else if constexpr(((scatter_printable<char_type,Args>||
+				reserve_printable<char_type,Args>)&&...))
+			{
+				constexpr std::size_t total_size{calculate_scatter_reserve_size<char_type,Args...>()};
+				char_type buffer[total_size];
+				scatter_print_with_reserve_recursive(buffer,scatters,args...);
+				if constexpr(line)
+				{
+					char_type ch{lfch};
+					scatters[n-1]={__builtin_addressof(ch),sizeof(ch)};
+					scatter_write(out,{scatters,n});
+				}
+				else
+					scatter_write(out,{scatters,n});
 			}
 			else
-				scatter_write(out,{scatters,n});
-		}
-		else if constexpr(((scatter_printable<char_type,Args>||
-			reserve_printable<char_type,Args>)&&...))
-		{
-			constexpr std::size_t total_size{calculate_scatter_reserve_size<char_type,Args...>()};
-			char_type buffer[total_size];
-			scatter_print_with_reserve_recursive(buffer,scatters,args...);
-			if constexpr(line)
 			{
-				char_type ch{lfch};
-				scatters[n-1]={__builtin_addressof(ch),sizeof(ch)};
-				scatter_write(out,{scatters,n});
+				constexpr std::size_t total_size{calculate_scatter_reserve_size<char_type,Args...>()};
+				char_type buffer[total_size];
+				local_operator_new_array_ptr<char_type> new_ptr(calculate_scatter_dynamic_reserve_size<char_type>(args...));
+				scatter_print_with_dynamic_reserve_recursive(scatters,buffer,new_ptr.ptr,args...);
+				if constexpr(line)
+				{
+					char_type ch{lfch};
+					scatters[n-1]={__builtin_addressof(ch),sizeof(ch)};
+					scatter_write(out,{scatters,n});
+				}
+				else
+					scatter_write(out,{scatters,n});
 			}
-			else
-				scatter_write(out,{scatters,n});
 		}
 		else
 		{
-			constexpr std::size_t total_size{calculate_scatter_reserve_size<char_type,Args...>()};
-			char_type buffer[total_size];
-			local_operator_new_array_ptr<char_type> new_ptr(calculate_scatter_dynamic_reserve_size<char_type>(args...));
-			scatter_print_with_dynamic_reserve_recursive(scatters,buffer,new_ptr.ptr,args...);
-			if constexpr(line)
+			if constexpr((scatter_printable<typename output::char_type,Args>&&...))
 			{
-				char_type ch{lfch};
-				scatters[n-1]={__builtin_addressof(ch),sizeof(ch)};
-				scatter_write(out,{scatters,n});
+				print_controls_line<line>(out,args...);
+			}
+			else if constexpr(((scatter_printable<char_type,Args>||
+				reserve_printable<char_type,Args>)&&...))
+			{
+				constexpr std::size_t array_size{calculate_print_normal_maxium_size<char_type,line,Args...>()};
+				char_type buffer[array_size];
+				normal_print_with_dynamic_reserve_recursive<line>(out,buffer,args...);
 			}
 			else
-				scatter_write(out,{scatters,n});
+			{
+				constexpr std::size_t array_size{calculate_print_normal_maxium_size<char_type,line,Args...>()};
+				std::size_t dynamic_array_size{calculate_print_normal_dynamic_maxium_main<char_type,line,Args...>(array_size,args...)};
+				local_operator_new_array_ptr<char_type> buffer(dynamic_array_size);
+				normal_print_with_dynamic_reserve_recursive<line>(out,buffer.ptr,args...);
+			}
 		}
 	}
 	else
