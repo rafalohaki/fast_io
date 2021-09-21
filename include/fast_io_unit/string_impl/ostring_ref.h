@@ -66,26 +66,6 @@ inline constexpr void obuffer_set_curr(basic_ostring_ref<CharT,Traits,Allocator>
 	Traits::assign(*ptr, CharT());
 	details::string_hack::set_end_ptr(*ob.ptr,ptr);
 }
-#if 0
-template<typename T>
-inline constexpr void otakeover(basic_ostring_ref<CharT,Traits,Allocator> ob,char_type* beg_ptr,char_type* end_ptr,char_type* cap_ptr)
-{
-	*end_ptr={};
-#if defined(_MSVC_STL_UPDATE)
-	details::string_hack::set_begin_end_cap_ptrs(*ob.ptr,beg_ptr,end_ptr,cap_ptr-1);
-#else
-	details::string_hack::set_begin_ptr(*ob.ptr,beg_ptr);
-	details::string_hack::set_end_ptr(*ob.ptr,end_ptr);
-	details::string_hack::set_cap_ptr(*ob.ptr,cap_ptr-1);
-#endif
-}
-
-template<std::integral char_type,typename traits_type,typename allocator_type>
-inline constexpr bool ocan_takeover(ostring_ref<char_type,traits_type,allocator_type> ob)
-{
-	return details::string_hack::is_local_and_null(ob.reference);
-}
-#endif
 
 template<std::integral CharT,typename Traits,typename Allocator>
 inline constexpr void obuffer_overflow(basic_ostring_ref<CharT,Traits,Allocator> ob,CharT ch)

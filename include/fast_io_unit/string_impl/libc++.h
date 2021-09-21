@@ -4,7 +4,11 @@
 https://github.com/llvm-mirror/libcxx/blob/78d6a7767ed57b50122a161b91f59f19c9bd0d19/include/string#L703
 
 */
-
+/*
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC system_header
+#endif
+*/
 namespace fast_io::details::string_hack
 {
 
@@ -105,15 +109,20 @@ model
             __raw   __r;
         };
     };
-    __rep __r_;	//ignore allocator since it is compressed
+    ::std::__compressed_pair<__rep, allocator_type> __r_;
 };
 
 template<typename elem,typename traits,typename alloc>
-inline constexpr decltype(auto) hack_rep(std::basic_string<elem,traits,alloc>& str) noexcept
+inline decltype(auto) hack_rep(std::basic_string<elem,traits,alloc>& str) noexcept
 {
 	using model_t = model<elem,traits,alloc>;
 	using __rep = typename model_t::__rep;
-	return *reinterpret_cast<__rep*>(reinterpret_cast<std::byte*>(__builtin_addressof(str))+offsetof(model_t,__r_));
+    using alias_pointer
+#if __has_cpp_attribute(gnu::may_alias)
+[[gnu::may_alias]]
+#endif
+    = typename ::std::__compressed_pair<__rep, alloc>*;
+	return reinterpret_cast<alias_pointer>(reinterpret_cast<std::byte*>(__builtin_addressof(str))+__builtin_offsetof(model_t,__r_))->first();
 }
 
 template<typename elem,typename traits,typename alloc>
@@ -125,14 +134,6 @@ inline bool is_long(std::basic_string<elem,traits,alloc>& str) noexcept
 }
 
 template<typename elem,typename traits,typename alloc>
-inline constexpr bool is_local_and_null(std::basic_string<elem,traits,alloc>& str) noexcept
-{
-	using model_t = model<elem,traits,alloc>;
-	decltype(auto) __r_{hack_rep(str)};
-	return !(bool(__r_.__s.__size_ & model_t::__short_mask))&&!__r_.__s.__size;
-}
-
-template<typename elem,typename traits,typename alloc>
 inline void set_size(std::basic_string<elem,traits,alloc>& str,typename std::basic_string<elem,traits,alloc>::size_type s) noexcept
 {
 	decltype(auto) __r_{hack_rep(str)};
@@ -140,28 +141,20 @@ inline void set_size(std::basic_string<elem,traits,alloc>& str,typename std::bas
 		__r_.__l.__size_=s;
 	else
 	{
+#ifdef _LIBCPP_ABI_ALTERNATE_STRING_LAYOUT
+#ifdef _LIBCPP_BIG_ENDIAN
+        	__r_.__s.__size_ = (unsigned char)(s << 1);
+#else
+	        __r_.__s.__size_ = (unsigned char)(s);
+#endif
+#else
 #ifdef _LIBCPP_BIG_ENDIAN
         	__r_.__s.__size_ = (unsigned char)(s);
 #else
 	        __r_.__s.__size_ = (unsigned char)(s << 1);
 #endif
+#endif
 	}
-}
-
-template<typename elem,typename traits,typename alloc>
-inline void set_cap(std::basic_string<elem,traits,alloc>& str,typename std::basic_string<elem,traits,alloc>::size_type s) noexcept
-{
-	using model_t = model<elem,traits,alloc>;
-	decltype(auto) __r_{hack_rep(str)};
-	__r_.__l.__cap_=model_t::__long_mask|s;// THIS IS FUCKING DUMB SHIT!!! LIBC++ SUCKS
-}
-
-
-template<typename T>
-inline constexpr void set_begin_ptr(T& str,typename T::value_type* ptr) noexcept
-{
-	decltype(auto) __r_{hack_rep(str)};
-	__r_.__s.__data_[0]=ptr;
 }
 
 template<typename T>
@@ -171,24 +164,11 @@ inline constexpr void set_end_ptr(T& str,typename T::value_type* ptr) noexcept
 }
 
 template<typename T>
-inline constexpr void set_cap_ptr(T& str,typename T::value_type* ptr) noexcept
-{
-	set_cap(str,static_cast<std::size_t>(ptr-str.data()));
-}
-
-template<typename elem,typename traits,typename alloc>
-inline typename std::basic_string<elem,traits,alloc>::size_type get_long_cap(std::basic_string<elem,traits,alloc>& str) noexcept
-{
-	using model_t = model<elem,traits,alloc>;
-	decltype(auto) __r_{hack_rep(str)};
-	return __r_.__l.__cap_ & typename std::basic_string<elem,traits,alloc>::size_type(~model_t::__long_mask);
-}
-
-template<typename T>
 inline constexpr std::size_t local_capacity() noexcept
 {
 	using model_type = model<typename T::value_type,typename T::traits_type,typename T::allocator_type>;
-    return model_type::__min_cap-1;
+    constexpr std::size_t mcapminus1{static_cast<std::size_t>(model_type::__min_cap-static_cast<std::size_t>(1u))};
+    return mcapminus1;
 }
 
 

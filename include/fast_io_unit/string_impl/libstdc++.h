@@ -67,51 +67,9 @@ inline decltype(auto) hack_M_string_length(T& str) noexcept
 }
 
 template<typename T>
-inline auto hack_M_local_buf(T& str) noexcept
-{
-	using model_t = model<T>;
-	using value_type = typename T::value_type;
-	return reinterpret_cast<value_type*>(reinterpret_cast<std::byte*>(__builtin_addressof(str))+__builtin_offsetof(model_t,_M_local_buf));
-}
-
-template<typename T>
-inline decltype(auto) hack_M_allocated_capacity(T& str) noexcept
-{
-	using model_t = model<T>;
-	using size_type = typename T::size_type;
-	return *reinterpret_cast<size_type*>(reinterpret_cast<std::byte*>(__builtin_addressof(str))+__builtin_offsetof(model_t,_M_allocated_capacity));
-}
-
-template<typename T>
-inline constexpr bool is_local(T& str) noexcept
-{
-	using const_pointer = typename T::const_pointer;
-	return std::pointer_traits<const_pointer>::pointer_to(*hack_M_local_buf(str))==hack_M_data(str);
-}
-
-template<typename T>
-inline constexpr bool is_local_and_null(T& str) noexcept
-{
-	using const_pointer = typename T::const_pointer;
-	return std::pointer_traits<const_pointer>::pointer_to(*hack_M_local_buf(str))==hack_M_data(str)+hack_M_string_length(str);
-}
-
-template<typename T>
-inline constexpr void set_begin_ptr(T& str,typename T::value_type* ptr) noexcept
-{
-	hack_M_data(str)=ptr;
-}
-
-template<typename T>
 inline constexpr void set_end_ptr(T& str,typename T::value_type* ptr) noexcept
 {
 	hack_M_string_length(str)=static_cast<std::size_t>(ptr-::fast_io::freestanding::to_address(hack_M_data(str)));
-}
-
-template<typename T>
-inline constexpr void set_cap_ptr(T& str,typename T::value_type* ptr) noexcept
-{
-	hack_M_allocated_capacity(str)=static_cast<std::size_t>(ptr-::fast_io::freestanding::to_address(hack_M_data(str)));
 }
 
 template<typename T>

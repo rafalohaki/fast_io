@@ -28,22 +28,12 @@ inline constexpr decltype(auto) hack_scary_val(std::basic_string<elem,traits,all
 {
 	using model_t = model<elem,traits,alloc>;
 	using compress_pair_type = typename model_t::compress_pair_type;
-	using _Scary_val = typename model_t::_Scary_val;
-	return *reinterpret_cast<_Scary_val*>(reinterpret_cast<std::byte*>(__builtin_addressof(str))+offsetof(model_t,_Mypair)+offsetof(compress_pair_type,_Myval2));
-}
-
-template<typename T>
-inline constexpr bool is_local_and_null(T& str) noexcept
-{
-	decltype(auto) scv{hack_scary_val(str)};
-	return !scv._Large_string_engaged()&&!scv._Mysize;
-}
-
-template<typename T>
-inline constexpr void set_begin_ptr(T& str,typename T::value_type* ptr) noexcept
-{
-	decltype(auto) scv{hack_scary_val(str)};
-	scv._Bx._Ptr=ptr;
+	using scary_ptr
+#if __has_cpp_attribute(gnu::may_alias)
+	[[gnu::may_alias]]
+#endif
+	= typename model_t::_Scary_val*;
+	return *reinterpret_cast<scary_ptr>(reinterpret_cast<std::byte*>(__builtin_addressof(str))+offsetof(model_t,_Mypair)+offsetof(compress_pair_type,_Myval2));
 }
 
 template<typename T>
@@ -51,22 +41,6 @@ inline constexpr void set_end_ptr(T& str,typename T::value_type* ptr) noexcept
 {
 	decltype(auto) scv{hack_scary_val(str)};
 	scv._Mysize=ptr-str.data();
-}
-
-template<typename T>
-inline constexpr void set_cap_ptr(T& str,typename T::value_type* ptr) noexcept
-{
-	decltype(auto) scv{hack_scary_val(str)};
-	scv._Myres=ptr-str.data();
-}
-
-template<typename T>
-inline constexpr void set_begin_end_cap_ptrs(T& str,typename T::value_type* beg,typename T::value_type* end,typename T::value_type* cap) noexcept
-{
-	decltype(auto) scv{hack_scary_val(str)};
-	scv._Bx._Ptr=beg;
-	scv._Mysize=end-beg;
-	scv._Myres=cap-beg;
 }
 
 template<typename T>

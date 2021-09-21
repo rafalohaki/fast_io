@@ -350,8 +350,8 @@ inline language_encoding_views win32_get_language_encoding_based_on_lc_all_or_la
 		language=buffer_strvw.substr(0,dot_pos);
 		encoding=buffer_strvw.substr(dot_pos+1);
 #else
-		language=::fast_io::freestanding::string_view(buffer_strvw.data(),buffer_strvw.data()+dot_pos);
-		encoding=::fast_io::freestanding::string_view(buffer_strvw.data()+dot_pos+1,buffer_strvw.data()+buffer_strvw.size());
+		language=::fast_io::freestanding::string_view(buffer_strvw.data(),dot_pos);
+		encoding=::fast_io::freestanding::string_view(buffer_strvw.data()+(dot_pos+1),buffer_strvw.size()-(dot_pos+1));
 #endif
 	}
 	return {language,encoding};
@@ -553,7 +553,7 @@ inline void* deal_with_locale_fullname(lc_locale& loc,::fast_io::freestanding::s
 	{
 		auto pos{fullname.find(u8'.')};
 		if(pos==0)
-			return deal_with_local_locale_name_init_encoding(loc,::fast_io::freestanding::string_view(fullname.data()+1,fullname.data()+fullname.size()));
+			return deal_with_local_locale_name_init_encoding(loc,::fast_io::freestanding::string_view(fullname.data()+1u,fullname.size()-1u));
 		else if(pos==::fast_io::freestanding::string_view::npos)
 			return load_l10n_with_real_name_impl(loc,fullname);
 		else
