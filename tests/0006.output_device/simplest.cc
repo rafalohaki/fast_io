@@ -10,13 +10,13 @@ inline constexpr foo io_value_handle(foo f) noexcept
 	return f;
 }
 
-inline constexpr void write(foo,char8_t const* first,char8_t const* last)
+inline void write(foo,char8_t const* first,char8_t const* last)
 {
 	char8_t val{};
 	auto diff{last-first};
 	for(;first!=last;++first)
 		val^=*first;
-	println(diff," ",val);
+	println(fast_io::out(),diff," ",val);
 }
 
 struct new_type

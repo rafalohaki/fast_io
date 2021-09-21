@@ -210,7 +210,6 @@ inline constexpr void print_control(output out,T t)
 			else
 			{
 				write(out,scatter.base,scatter.base+scatter.len);
-				constexpr auto lfch{char_literal_v<u8'\n',char_type>};
 				write(out,__builtin_addressof(lfch),
 				__builtin_addressof(lfch)+1);
 			}
@@ -334,7 +333,6 @@ inline constexpr void print_control(output out,T t)
 			print_define(out,t);
 		if constexpr(line)
 		{
-			constexpr auto lfch{char_literal_v<u8'\n',char_type>};
 			if constexpr(buffer_output_stream<output>)
 				put(out,lfch);
 			else
