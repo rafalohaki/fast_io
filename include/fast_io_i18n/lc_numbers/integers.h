@@ -422,13 +422,9 @@ template<::fast_io::freestanding::random_access_iterator Iter,std::int_least64_t
 inline constexpr Iter print_reserve_define(basic_lc_all<::fast_io::freestanding::iter_value_t<Iter>> const* __restrict all,Iter iter,basic_timestamp<off_to_epoch> ts) noexcept
 {
 	if constexpr(off_to_epoch==0)
-	{
 		return details::print_reserve_define_grouping_timestamp_impl(all,iter,ts);
-	}
 	else
-	{
 		return details::print_reserve_define_grouping_timestamp_impl(all,iter,{ts.seconds,ts.subseconds});
-	}
 }
 
 

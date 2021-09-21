@@ -113,15 +113,10 @@ concept dynamic_reserve_serializable=dynamic_reserve_printable<char_type,T>&&req
 };
 
 template<typename char_type,typename T>
-concept reverse_reserve_printable=std::integral<char_type>&&reserve_printable<char_type,T>&&requires(T t,char_type* ptr)
+concept precise_reserve_printable=std::integral<char_type>&&(reserve_printable<char_type,T>||dynamic_reserve_printable<char_type,T>)&&requires(T t,char_type* ptr,std::size_t n)
 {
-	{print_reverse_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,ptr,t)}->std::convertible_to<char_type*>;
-};
-
-template<typename char_type,typename T>
-concept reverse_dynamic_reserve_printable=std::integral<char_type>&&dynamic_reserve_printable<char_type,T>&&requires(T t,char_type* ptr)
-{
-	{print_reverse_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,ptr,t)}->std::convertible_to<char_type*>;
+	{print_reserve_precise_size(io_reserve_type<char_type,std::remove_cvref_t<T>>,t)}->std::convertible_to<std::size_t>;
+	print_reserve_precise_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,ptr,n,t);
 };
 
 template<typename output,typename T>
@@ -215,6 +210,21 @@ requires (reserve_printable<char_type,std::remove_cvref_t<value_type>>||dynamic_
 constexpr auto print_reserve_define(io_reserve_type_t<char_type,parameter<value_type>>,Iter begin,parameter<value_type> para)
 {
 	return print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<value_type>>,begin,para.reference);
+}
+
+
+template<std::integral char_type,typename value_type>
+requires precise_reserve_printable<char_type,std::remove_cvref_t<value_type>>
+constexpr std::size_t print_reserve_precise_size(io_reserve_type_t<char_type,parameter<value_type>>,parameter<value_type> para)
+{
+	return print_reserve_precise_size(io_reserve_type<char_type,std::remove_cvref_t<value_type>>,para.reference);
+}
+
+template<std::integral char_type,typename value_type,typename Iter>
+requires precise_reserve_printable<char_type,std::remove_cvref_t<value_type>>
+constexpr void print_reserve_precise_define(io_reserve_type_t<char_type,parameter<value_type>>,Iter begin,std::size_t n,parameter<value_type> para)
+{
+	print_reserve_precise_define(io_reserve_type<char_type,std::remove_cvref_t<value_type>>,begin,n,para.reference);
 }
 
 template<std::integral char_type,typename value_type>

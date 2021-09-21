@@ -83,6 +83,33 @@ inline constexpr basic_io_scatter_t<ch_type> print_scatter_define_extract_one(T 
 	return print_scatter_define<ch_type>(print_scatter_type<ch_type>,t);
 }
 
+template<bool line,typename T,typename Arg>
+inline constexpr T basic_concat_decay_impl_precise(Arg arg)
+{
+	using ch_type = typename T::value_type;
+	std::size_t precise_size{print_reserve_precise_size(io_reserve_type<ch_type,Arg>,arg)};
+	std::size_t precise_size_with_line{precise_size};
+	if constexpr(line)
+		++precise_size_with_line;
+	T str;
+
+#if !defined(_LIBCPP_VERSION)
+	constexpr std::size_t local_cap{string_hack::local_capacity<T>()};
+	if(local_cap<precise_size_with_line)
+#endif
+		str.reserve(precise_size_with_line);
+
+	print_reserve_precise_define(io_reserve_type<ch_type,Arg>,str.data(),precise_size,arg);
+	auto ptr{str.data()+precise_size};
+	if constexpr(line)
+	{
+		*ptr=char_literal_v<u8'\n',ch_type>;
+		++ptr;
+	}
+	set_basic_string_ptr(str,ptr);
+	return str;
+}
+
 template<bool line,typename T,typename... Args>
 inline constexpr T basic_concat_decay_impl(Args ...args)
 {
@@ -106,14 +133,23 @@ inline constexpr T basic_concat_decay_impl(Args ...args)
 		constexpr std::size_t sz_with_line{sz+static_cast<std::size_t>(line)};
 		if constexpr((reserve_printable<ch_type,Args>&&...))
 		{
-			T str;
-#if !defined(_LIBCPP_VERSION)
+#if defined(_LIBCPP_VERSION)
+			if constexpr(((sizeof...(Args)==1)&&(precise_reserve_printable<ch_type,Args>&&...)))
+#else
 			constexpr std::size_t local_cap{string_hack::local_capacity<T>()};
-			if constexpr(local_cap<sz_with_line)
+			if constexpr((local_cap<sz_with_line && ((sizeof...(Args)==1)&&(precise_reserve_printable<ch_type,Args>&&...))))
 #endif
-				str.reserve(sz_with_line);
-			set_basic_string_ptr(str,print_reserve_define_chain_impl<line>(str.data(),args...));
-			return str;
+				return basic_concat_decay_impl_precise<line,T>(args...);
+			else
+			{
+				T str;
+#if !defined(_LIBCPP_VERSION)
+				if constexpr(local_cap<sz_with_line)
+#endif
+					str.reserve(sz_with_line);
+				set_basic_string_ptr(str,print_reserve_define_chain_impl<line>(str.data(),args...));
+				return str;
+			}
 		}
 		else
 		{

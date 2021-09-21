@@ -721,6 +721,15 @@ inline constexpr Iter print_reserve_integral_withfull_main_impl(Iter first,T u)
 	return first;
 }
 
+template<std::size_t base,bool uppercase,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral T>
+inline constexpr void print_reserve_integral_withfull_precise_main_impl(Iter last,T u,std::size_t n)
+{
+	if constexpr(sizeof(u)<=sizeof(unsigned))
+		print_reserve_integral_main_impl<base,uppercase>(last,static_cast<unsigned>(u),n);
+	else
+		print_reserve_integral_main_impl<base,uppercase>(last,u,n);
+}
+
 template<std::size_t base,
 	bool showbase=false,
 	bool uppercase_showbase=false,
@@ -796,6 +805,84 @@ inline constexpr Iter print_reserve_integral_define(Iter first,int_type t)
 	}
 }
 
+template<std::size_t base,
+	bool showbase=false,
+	bool uppercase_showbase=false,
+	bool showpos=false,
+	bool uppercase=false,
+	typename int_type,::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr void print_reserve_integral_define_precise(Iter start,std::size_t n,int_type t)
+{	
+	if constexpr(base<=10&&uppercase)
+	{
+		return print_reserve_integral_define_precise<base,showbase,uppercase_showbase,showpos,false>(start,n,t);//prevent duplications
+	}
+	else
+	{
+		auto first{start};
+		static_assert((2<=base)&&(base<=36));
+		using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+		if constexpr(std::same_as<bool,std::remove_cvref_t<int_type>>)
+		{
+			if constexpr(showpos)
+			{
+				*first=char_literal_v<u8'+',char_type>;
+				++first;
+			}
+			if constexpr(showbase&&(base!=10))
+				first=print_reserve_show_base_impl<base,uppercase_showbase>(first);
+			*first=t?char_literal_v<u8'1',char_type>:char_literal_v<u8'0',char_type>;
+			++first;
+			return first;
+		}
+		else
+		{
+			using unsigned_type = ::fast_io::details::my_make_unsigned_t<int_type>;
+			unsigned_type u{static_cast<unsigned_type>(t)};
+			if constexpr(showpos)
+			{
+				if constexpr(::fast_io::details::my_unsigned_integral<int_type>)
+				{
+					*first=char_literal_v<u8'+',char_type>;
+				}
+				else
+				{
+					if(t<0)
+					{
+						*first=char_literal_v<u8'-',char_type>;
+						constexpr unsigned_type zero{};
+						u=zero-u;
+					}
+					else
+					{
+						*first=char_literal_v<u8'+',char_type>;
+					}
+				}
+				++first;
+			}
+			else
+			{
+				if constexpr(::fast_io::details::my_signed_integral<int_type>)
+				{
+					if(t<0)
+					{
+						*first=char_literal_v<u8'-',char_type>;
+						++first;
+						constexpr unsigned_type zero{};
+						u=zero-u;
+					}
+				}
+			}
+			if constexpr(showbase&&(base!=10))
+				first=print_reserve_show_base_impl<base,uppercase_showbase>(first);
+			auto ed{start+n};
+			if constexpr(my_unsigned_integral<int_type>&&!showbase&&!showpos)
+				print_reserve_integral_withfull_precise_main_impl<base,uppercase>(ed,u,n);
+			else
+				print_reserve_integral_withfull_precise_main_impl<base,uppercase>(ed,u,static_cast<std::size_t>(ed-first));
+		}
+	}
+}
 
 template<
 std::size_t base=10,
@@ -823,9 +910,60 @@ inline constexpr std::size_t print_reserve_scalar_size_impl()
 		++total_sum;
 	else
 	{
-		if constexpr(my_signed_integral<T>)
-			++total_sum;
-		total_sum+=::fast_io::details::cal_max_int_size<::fast_io::details::my_make_unsigned_t<T>,base>();
+		if constexpr(!showpos)
+		{
+			if constexpr(my_signed_integral<T>)
+				++total_sum;
+		}
+		total_sum+=::fast_io::details::cal_max_int_size<T,base>();
+	}
+	return total_sum;
+}
+
+
+template<std::size_t base,
+bool showbase,
+bool showpos,
+my_integral T>
+inline constexpr std::size_t print_integer_reserved_size_cache{print_reserve_scalar_size_impl<base,showbase,showpos,T>()};
+
+
+template<
+std::size_t base,
+bool showbase,
+bool showpos,
+bool full,
+my_integral T>
+inline constexpr std::size_t print_reserve_scalar_cal_precise_cache_size_impl()
+{
+	std::size_t total_sum{};
+	if constexpr(showpos)
+		++total_sum;
+	if constexpr(showbase)
+	{
+		if constexpr(base==2||base==3||base==16)
+			total_sum+=2;	//0b 0t 0x
+		else if constexpr(base==8)
+			++total_sum;	//0
+		else if constexpr(base<10)
+			total_sum+=4;	//0[9]
+		else if constexpr(10<base)
+			total_sum+=5;	//0[36]
+		//base==10 does not have showbase
+		if constexpr(full)
+		{
+			if constexpr(std::same_as<std::remove_cvref_t<T>,bool>)
+				++total_sum;
+			else
+			{
+				if constexpr(!showpos)
+				{
+					if constexpr(my_signed_integral<T>)
+						++total_sum;
+				}
+				total_sum+=::fast_io::details::cal_max_int_size<T,base>();
+			}
+		}
 	}
 	return total_sum;
 }
@@ -833,8 +971,54 @@ inline constexpr std::size_t print_reserve_scalar_size_impl()
 template<std::size_t base,
 bool showbase,
 bool showpos,
+bool full,
 my_integral T>
-inline constexpr std::size_t print_integer_reserved_size_cache{print_reserve_scalar_size_impl<base,showbase,showpos,T>()};
+inline constexpr std::size_t print_integer_reserved_precise_size_cache{print_reserve_scalar_cal_precise_cache_size_impl<base,showbase,showpos,full,T>()};
+
+
+template<
+std::size_t base,
+bool showbase,
+bool showpos,
+bool full,
+my_integral T>
+inline constexpr std::size_t print_integer_reserved_precise_size(T t)
+{
+	if constexpr(std::same_as<std::remove_cvref_t<T>,bool>)
+		return print_integer_reserved_size_cache<base,showbase,showpos,T>;
+	else if constexpr(full)
+	{
+		if constexpr(!showpos&&my_signed_integral<T>)
+		{
+			std::size_t total_sum{print_integer_reserved_precise_size_cache<base,showbase,showpos,full,T>};
+			if(t<0)
+				++total_sum;
+			return total_sum;
+		}
+		else
+			return print_integer_reserved_precise_size_cache<base,showbase,showpos,full,T>;
+	}
+	else
+	{
+		std::size_t total_sum{print_integer_reserved_precise_size_cache<base,showbase,showpos,false,T>};
+		if constexpr(my_signed_integral<T>)
+		{
+			using unsigned_type = my_make_unsigned_t<T>;
+			unsigned_type u{static_cast<unsigned_type>(t)};
+			if(t<0)
+			{
+				++total_sum;
+				constexpr unsigned_type zero{};
+				u=static_cast<unsigned_type>(zero-u);
+			}
+			return total_sum+chars_len<base,false>(u);
+		}
+		else
+		{
+			return total_sum+chars_len<base,false>(t);
+		}
+	}
+}
 
 template<std::integral char_type,
 std::size_t base,
@@ -1123,5 +1307,25 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<::fast_io::freestan
 		return details::print_reserve_integral_define<flags.base,flags.showbase,flags.uppercase_showbase,flags.showpos,flags.uppercase,flags.full>(iter,t.reference);
 }
 
+
+template<std::integral char_type,manipulators::scalar_flags flags,typename T>
+requires ((details::my_integral<T>||std::same_as<std::remove_cv_t<T>,std::byte>) && !flags.alphabet)
+inline constexpr std::size_t print_reserve_precise_size(io_reserve_type_t<char_type,manipulators::scalar_manip_t<flags,T>>,manipulators::scalar_manip_t<flags,T> t) noexcept
+{
+	if constexpr(std::same_as<T,std::byte>)
+		return details::print_integer_reserved_precise_size<flags.base,flags.showbase,flags.showpos,flags.full>(static_cast<char8_t>(t.reference));
+	else
+		return details::print_integer_reserved_precise_size<flags.base,flags.showbase,flags.showpos,flags.full>(t.reference);
+}
+
+template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter,manipulators::scalar_flags flags,typename T>
+requires ((details::my_integral<T>||std::same_as<std::remove_cv_t<T>,std::byte>) && !flags.alphabet)
+inline constexpr void print_reserve_precise_define(io_reserve_type_t<char_type,manipulators::scalar_manip_t<flags,T>>,Iter iter,std::size_t n,manipulators::scalar_manip_t<flags,T> t) noexcept
+{
+	if constexpr(std::same_as<T,std::byte>)
+		details::print_reserve_integral_define_precise<flags.base,flags.showbase,flags.uppercase_showbase,flags.showpos,flags.uppercase>(iter,n,static_cast<char8_t>(t.reference));
+	else
+		details::print_reserve_integral_define_precise<flags.base,flags.showbase,flags.uppercase_showbase,flags.showpos,flags.uppercase>(iter,n,t.reference);
+}
 
 }
