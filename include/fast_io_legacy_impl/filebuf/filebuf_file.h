@@ -1,8 +1,5 @@
 #pragma once
 
-#if defined(__GLIBCXX__) && !defined(_LIBCPP_VERSION) && __has_include(<ext/stdio_filebuf.h>)
-#include<ext/stdio_filebuf.h>
-#endif
 #include"streambuf_io_observer.h"
 
 namespace fast_io
