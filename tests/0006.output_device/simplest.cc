@@ -19,8 +19,27 @@ inline constexpr void write(foo,char8_t const* first,char8_t const* last)
 	println(diff," ",val);
 }
 
+struct new_type
+{
+};
+
+inline constexpr std::size_t print_reserve_size(fast_io::io_reserve_type_t<char8_t,new_type>,new_type) noexcept
+{
+	return 30;
+}
+
+template<std::random_access_iterator Iter>
+inline constexpr Iter print_reserve_define(fast_io::io_reserve_type_t<char8_t,new_type>,Iter iter,new_type) noexcept
+{
+	*iter=u8'o';
+	++iter;
+	return iter;
+}
+
+static_assert(fast_io::dynamic_reserve_printable<char8_t,new_type>);
+
 int main()
 {
 	foo f;
-	println(f,u8"Hello World\n",4,u8" ",20);
+	println(f,u8"Hello World\n",4,u8" ",20,u8" ",new_type{});
 }

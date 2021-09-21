@@ -408,7 +408,7 @@ inline constexpr std::size_t calculate_print_normal_dynamic_maxium_main(std::siz
 	if constexpr((sizeof...(Args)==0))
 		return mx_value;
 	else
-		return calculate_print_normal_dynamic_maxium_main(mx_value,args...);
+		return calculate_print_normal_dynamic_maxium_main<char_type,ln>(mx_value,args...);
 }
 
 template<bool line,typename output,std::integral char_type,typename T,typename... Args>
