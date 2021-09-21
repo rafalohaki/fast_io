@@ -10,7 +10,6 @@
 #if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1)
 #include<streambuf>
 #include<fstream>
-#include<sstream>
 
 #include"fast_io.h"
 #include"fast_io_legacy_impl/filebuf/streambuf_io_observer.h"

@@ -94,17 +94,11 @@ using basic_streambuf_io_observer = basic_general_streambuf_io_observer<std::bas
 template<std::integral CharT,typename Traits = std::char_traits<CharT>>
 using basic_filebuf_io_observer = basic_general_streambuf_io_observer<std::basic_filebuf<CharT,Traits>>;
 
-template<std::integral CharT,typename Traits = std::char_traits<CharT>>
-using basic_stringbuf_io_observer = basic_general_streambuf_io_observer<std::basic_stringbuf<CharT,Traits>>;
-
-
 using streambuf_io_observer = basic_streambuf_io_observer<char>;
 using filebuf_io_observer = basic_filebuf_io_observer<char>;
-using stringbuf_io_observer = basic_stringbuf_io_observer<char>;
 
 using wstreambuf_io_observer = basic_streambuf_io_observer<wchar_t>;
 using wfilebuf_io_observer = basic_filebuf_io_observer<wchar_t>;
-using wstringbuf_io_observer = basic_stringbuf_io_observer<wchar_t>;
 
 template<std::integral ch_type,typename Traits>
 requires zero_copy_input_stream<basic_c_io_observer<ch_type>>
