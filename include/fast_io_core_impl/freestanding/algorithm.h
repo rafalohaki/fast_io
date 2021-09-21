@@ -9,8 +9,6 @@
 namespace fast_io::freestanding
 {
 using ::std::find_if;
-using ::std::min;
-using ::std::max;
 using ::std::copy_n;
 using ::std::copy;
 using ::std::copy_backward;
@@ -29,18 +27,6 @@ inline constexpr Iter find_if(Iter first,Iter last,predicate q)
 		if(q(*first))
 			return first;
 	return last;
-}
-
-template<typename T>
-constexpr T const& min(T const& a,T const& b)
-{
-	return (a<b)?a:b;
-}
-
-template<typename T>
-constexpr T const& max(T const& a,T const& b)
-{
-	return (a<b)?b:a;
 }
 
 template<input_iterator input_iter,input_or_output_iterator output_iter>

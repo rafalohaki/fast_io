@@ -22,7 +22,10 @@ inline void rtl_gen_random_read(void* ptr,std::size_t sz)
 	{
 		for(;sz;)
 		{
-			std::size_t mn = ::fast_io::freestanding::min(sz,static_cast<std::size_t>(std::numeric_limits<std::uint32_t>::max()));
+			constexpr std::size_t uint32_max{static_cast<std::size_t>(UINT32_MAX)};
+			std::size_t mn{sz};
+			if(uint32_max<sz)
+				mn=uint32_max;
 			if(!SystemFunction036(ptr,static_cast<std::uint32_t>(mn)))
 				throw_win32_error();
 			sz-=mn;
