@@ -255,14 +255,21 @@ inline constexpr void lc_scatter_print_recursive(basic_lc_all<char_type> const* 
 			lc_scatter_print_recursive(lc,arr+1,args...);
 	}
 }
+template<bool line,std::integral char_type,typename ...Args>
+inline void lc_print_with_virtual_device(basic_lc_all<char_type> const* __restrict lc,basic_virtual_output_device<char_type> device,Args... args)
+{
+	basic_virtual_temporary_buffer<char_type> buffer{.out=device};
+	auto ref{io_ref(buffer)};
+	lc_print_controls_line<line>(lc,ref,args...);
+	flush(buffer);
+}
 
 template<bool ln,output_stream output,typename... Args>
 inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type> const* __restrict lc,output out,Args... args)
 {
 	using char_type = typename output::char_type;
 	if constexpr((((!lc_dynamic_reserve_printable<char_type,Args>&&
-	!lc_printable<io_reference_wrapper<
-		dynamic_io_buffer<char_type>>,Args>&&!lc_scatter_printable<char_type,Args>))&&...))
+	!lc_printable<io_reference_wrapper<basic_virtual_temporary_buffer<char_type>>,Args>&&!lc_scatter_printable<char_type,Args>))&&...))
 	{
 		print_freestanding_decay_normal<ln>(out,args...);
 	}
@@ -304,10 +311,19 @@ inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type>
 	}
 	else
 	{
-		dynamic_io_buffer<typename output::char_type> buffer;
-		auto ref{io_ref(buffer)};
-		lc_print_controls_line<ln>(lc,ref,args...);
-		write(out,buffer.beg_ptr,buffer.end_ptr);
+#if __cpp_lib_is_constant_evaluated >= 201811L
+		if(std::is_constant_evaluated())
+		{
+			temporary_buffer<output> buffer;
+			auto ref{io_ref(buffer)};
+			print_controls_line<ln>(ref,args...);
+			flush(buffer);
+		}
+		else
+#endif
+		{
+			lc_print_with_virtual_device<ln>(lc,construct_virtual_device_from_output_stream(out),args...);
+		}
 	}
 }
 

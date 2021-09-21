@@ -42,4 +42,7 @@ int main()
 {
 	foo f;
 	println(f,u8"Hello World\n",4,u8" ",20,u8" ",new_type{});
+	println(f,u8"Hello World\n",4,u8" ",20,new_type{},u8" ",new_type{});
+	println(f,u8"Hello World\n",4,u8" ",20,new_type{},u8" ",new_type{});
+	println(f,u8"Hello World\n",4,u8" ",20,new_type{},u8" ",new_type{});
 }
