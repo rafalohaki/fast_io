@@ -74,6 +74,7 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - Linux
 - BSD platforms (Including FreeBSD, NetBSD, OpenBSD)
 - Apple Darwin (MacOS)
+- Apple IOS
 - Microsoft DOS
 - FreeDOS
 - Barebone (No any operating system.)
