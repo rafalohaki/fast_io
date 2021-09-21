@@ -42,7 +42,8 @@ template<typename output>
 inline constexpr void flush(temporary_buffer<output>& out)
 {
 	auto start{out.buffer};
-	write(out.out,start,start+temporary_buffer<output>::buffer_size);
+	write(out.out,start,start+out.pos);
+	out.pos=0;
 }
 
 template<typename output>
