@@ -4,6 +4,6 @@
 
 extern "C" std::uint32_t DriverEntry(::fast_io::win32::nt::driver_object* driverobject,::fast_io::win32::nt::utf16_string* registrypath) noexcept
 {
-	print(fast_io::u16nt_dbg(),u"Hello World from fast_io:\ndriverobject:",driverobject,u"\nregistrypath:",*registrypath,u"(",registrypath,u")\n");
+	print(fast_io::u8nt_dbg(),u8"Hello World from fast_io:\ndriverobject:",driverobject,u8" registrypath:",registrypath,u8"\n");
 	return 0;
 }
