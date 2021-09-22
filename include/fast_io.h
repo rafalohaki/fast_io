@@ -257,14 +257,14 @@ inline constexpr void print(T&& t,Args&& ...args)
 {
 	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>)
 	{
-		constexpr bool no{::fast_io::print_freestanding_okay<T,Args...>};
-		if constexpr(no)
+		constexpr bool type_error{::fast_io::print_freestanding_okay<T,Args...>};
+		if constexpr(type_error)
 		{
 			::fast_io::print_freestanding_decay<false>(fast_io::io_ref(t),::fast_io::io_print_forward<typename ::std::remove_cvref_t<T>::char_type>(::fast_io::io_print_alias(args))...);
 		}
 		else
 		{
-			static_assert(no,"some types are not printable for print");
+			static_assert(type_error,"some types are not printable for print");
 		}
 	}
 	else
