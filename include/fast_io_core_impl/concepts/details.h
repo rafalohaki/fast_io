@@ -160,19 +160,96 @@ concept scatter_output_stream_impl = requires(T&& out,io_scatters_t sp)
 {
 	scatter_write(out,sp);
 };
-#if 0
-//Do we actually need this??
-template<typename T>
-concept scatter_type_output_stream_impl = requires(T&& out,basic_io_scatters_t<typename T::char_type> sp)
+
+
+template<std::integral ch_type>
+struct dummy_buffer_output_stream
 {
-	out.scatter_type_write(sp);
+	using char_type = ch_type;
 };
-#endif
+
+template<std::integral char_type>
+inline constexpr dummy_buffer_output_stream<char_type> io_value_handle(dummy_buffer_output_stream<char_type>) noexcept
+{
+	return {};
+}
+
+template<std::integral char_type>
+inline constexpr char_type* obuffer_begin(dummy_buffer_output_stream<char_type>) noexcept
+{
+	return nullptr;
+}
+
+template<std::integral char_type>
+inline constexpr char_type* obuffer_curr(dummy_buffer_output_stream<char_type>) noexcept
+{
+	return nullptr;
+}
+
+template<std::integral char_type>
+inline constexpr char_type* obuffer_end(dummy_buffer_output_stream<char_type>) noexcept
+{
+	return nullptr;
+}
+
+template<std::integral char_type>
+inline constexpr void obuffer_set_curr(dummy_buffer_output_stream<char_type>,char_type*) noexcept{}
+
+template<std::integral char_type>
+inline constexpr void obuffer_overflow(dummy_buffer_output_stream<char_type>,char_type) noexcept{}
+
+template<std::integral char_type>
+inline constexpr void write(dummy_buffer_output_stream<char_type>,char_type const*,char_type const*) noexcept{}
+
+
+
+template<std::integral ch_type>
+struct dummy_buffer_input_stream
+{
+	using char_type = ch_type;
+};
+
+template<std::integral char_type>
+inline constexpr dummy_buffer_input_stream<char_type> io_value_handle(dummy_buffer_input_stream<char_type>) noexcept
+{
+	return {};
+}
+
+template<std::integral char_type>
+inline constexpr char_type* ibuffer_begin(dummy_buffer_input_stream<char_type>) noexcept
+{
+	return nullptr;
+}
+
+template<std::integral char_type>
+inline constexpr char_type* ibuffer_curr(dummy_buffer_input_stream<char_type>) noexcept
+{
+	return nullptr;
+}
+
+template<std::integral char_type>
+inline constexpr char_type* ibuffer_end(dummy_buffer_input_stream<char_type>) noexcept
+{
+	return nullptr;
+}
+
+template<std::integral char_type>
+inline constexpr void ibuffer_set_curr(dummy_buffer_input_stream<char_type>,char_type*) noexcept{}
+
+template<std::integral char_type>
+inline constexpr bool ibuffer_underflow(dummy_buffer_input_stream<char_type>) noexcept
+{
+	return true;
+}
+
+template<std::integral char_type>
+inline constexpr char_type* read(dummy_buffer_input_stream<char_type>,char_type* first,char_type*) noexcept
+{
+	return first;
+}
 
 #if 0
 //async stream concepts
-
-
 
 template<typename T>
 concept async_input_stream_impl = stream_char_type_requirement<T>&&

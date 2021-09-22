@@ -93,37 +93,18 @@ concept dynamic_reserve_printable=std::integral<char_type>&&requires(T t,char_ty
 };
 
 template<typename char_type,typename T>
-concept secure_reserve_printable=std::integral<char_type>&&requires(T t,char_type* ptr)
-{
-	{print_reserve_size(io_secure_reserve_type<char_type,std::remove_cvref_t<T>>)}->std::convertible_to<std::size_t>;
-	{print_reserve_define(io_secure_reserve_type<char_type,std::remove_cvref_t<T>>,ptr,t)}->std::convertible_to<char_type*>;
-};
-
-template<typename char_type,typename T>
-concept dynamic_secure_reserve_printable=std::integral<char_type>&&requires(T t,char_type* ptr)
-{
-	{print_reserve_size(io_secure_reserve_type<char_type,std::remove_cvref_t<T>>,t)}->std::convertible_to<std::size_t>;
-	{print_reserve_define(io_secure_reserve_type<char_type,std::remove_cvref_t<T>>,ptr,t)}->std::convertible_to<char_type*>;
-};
-
-template<typename char_type,typename T>
-concept dynamic_reserve_serializable=dynamic_reserve_printable<char_type,T>&&requires(T t,char_type* ptr)
-{
-	{print_reserve_define(io_serial_type<char_type,std::remove_cvref_t<T>>,ptr,t)}->std::convertible_to<char_type*>;
-};
-
-template<typename char_type,typename T>
 concept precise_reserve_printable=std::integral<char_type>&&(reserve_printable<char_type,T>||dynamic_reserve_printable<char_type,T>)&&requires(T t,char_type* ptr,std::size_t n)
 {
 	{print_reserve_precise_size(io_reserve_type<char_type,std::remove_cvref_t<T>>,t)}->std::convertible_to<std::size_t>;
 	print_reserve_precise_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,ptr,n,t);
 };
 
-template<typename output,typename T>
-concept printable=output_stream<output>&&requires(output out,T t)
+template<typename char_type,typename T>
+concept printable=requires(::fast_io::details::dummy_buffer_output_stream<char_type> out,T t)
 {
 	print_define(out,t);
 };
+
 template<typename char_type,typename T>
 concept scatter_printable=requires(char_type ch,T&& t)
 {
@@ -135,9 +116,6 @@ concept scatter_type_printable=scatter_printable<char_type,T>&&requires(char_typ
 {
 	{print_scatter_define(print_scatter_type<char_type>,::fast_io::freestanding::forward<T>(t))}->std::convertible_to<basic_io_scatter_t<char_type>>;
 };
-
-template<typename output,typename T>
-concept general_printable=reserve_printable<typename output::char_type,T>||printable<output,T>;
 
 template<typename T>
 concept alias_scanable=requires(T&& t)
@@ -185,7 +163,7 @@ struct parameter
 };
 
 template<typename output,typename value_type>
-requires printable<output,std::remove_cvref_t<value_type>>
+requires printable<typename output::char_type,std::remove_cvref_t<value_type>>
 constexpr void print_define(output out, parameter<value_type> wrapper)
 {
 	print_define(out,wrapper.reference);

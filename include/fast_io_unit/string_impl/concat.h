@@ -163,7 +163,7 @@ inline constexpr T basic_concat_decay_impl(Args ...args)
 	{
 		T str;
 		basic_ostring_ref<ch_type,typename T::traits_type,typename T::allocator_type> ref{__builtin_addressof(str)};
-		print_freestanding_decay_normal<line>(ref,args...);
+		::fast_io::print_freestanding_decay_no_status<line>(ref,args...);
 		return str;
 	}
 }

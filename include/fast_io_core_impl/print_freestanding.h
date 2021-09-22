@@ -328,21 +328,14 @@ inline constexpr void print_control(output out,T t)
 			print_control_dynamic_reserve_bad_path<line,value_type>(out,t,size);
 		}
 	}
-	else if constexpr(printable<output,value_type>)
+	else if constexpr(printable<char_type,value_type>)
 	{
-			print_define(out,t);
-		if constexpr(line)
-		{
-			if constexpr(buffer_output_stream<output>)
-				put(out,lfch);
-			else
-				write(out,__builtin_addressof(lfch),
-				__builtin_addressof(lfch)+1);
-		}
+		print_define(out,t);
+		put(out,lfch);
 	}
 	else
 	{
-		constexpr bool no{printable<output,value_type>};
+		constexpr bool no{printable<char_type,value_type>};
 		static_assert(no,"type not printable");
 	}
 }
@@ -448,17 +441,19 @@ inline constexpr void print_fallback(output out,Args ...args)
 	}
 }
 
+}
+
 template<bool line,output_stream output,typename ...Args>
-inline constexpr void print_freestanding_decay_normal(output out,Args ...args)
+inline constexpr void print_freestanding_decay_no_status(output out,Args ...args)
 {
 	using char_type = typename output::char_type;
 	if constexpr(sizeof...(Args)==0&&!line)
 		return;
 	else if constexpr(mutex_stream<output>)
 	{
-		lock_guard lg{out};
+		details::lock_guard lg{out};
 		decltype(auto) dout{out.unlocked_handle()};
-		print_freestanding_decay_normal<line>(io_ref(dout),args...);
+		print_freestanding_decay_no_status<line>(io_ref(dout),args...);
 	}
 	else if constexpr(buffer_output_stream<output>)
 	{
@@ -467,33 +462,45 @@ inline constexpr void print_freestanding_decay_normal(output out,Args ...args)
 		else
 		{
 			if constexpr(line)
-				print_controls_line<line>(out,args...);
+				details::decay::print_controls_line<line>(out,args...);
 			else
-				(print_control<line>(out,args),...);
+				(details::decay::print_control<line>(out,args),...);
 		}
 	}
 	else if constexpr(sizeof...(Args)==1&&
-		(((!line&&((printable<output,Args>||scatter_type_printable<char_type,Args>)&&...))||
+		(((!line&&((printable<char_type,Args>||scatter_type_printable<char_type,Args>)&&...))||
 		((reserve_printable<char_type,Args>||dynamic_reserve_printable<char_type,Args>)&&...))))
 	{
-		(print_control<line>(out,args),...);
+		(details::decay::print_control<line>(out,args),...);
 	}
 	else
 	{
-		print_fallback<line>(out,args...);
+		details::decay::print_fallback<line>(out,args...);
 	}
 }
 
-}
-
-template<typename output,typename ...Args>
+template<bool line,typename output,typename ...Args>
 requires (output_stream<output>||status_output_stream<output>)&&(std::is_trivially_copyable_v<output>&&(std::is_trivially_copyable_v<Args>&&...))
 inline constexpr void print_freestanding_decay(output out,Args ...args)
 {
 	if constexpr(status_output_stream<output>)
-		print_status_define(out,args...);
-	else if constexpr(output_stream<output>)
-		details::decay::print_freestanding_decay_normal<false>(out,args...);
+		print_status_define<line>(out,args...);
+	else
+		print_freestanding_decay_no_status<line>(out,args...);
+}
+
+
+template<bool line,typename output,typename ...Args>
+requires (output_stream<output>||status_output_stream<output>)&&(std::is_trivially_copyable_v<output>&&(std::is_trivially_copyable_v<Args>&&...))
+#if __has_cpp_attribute(gnu::cold)
+[[gnu::cold]]
+#endif
+inline constexpr void print_freestanding_decay_cold(output out,Args ...args)
+{
+	if constexpr(status_output_stream<output>)
+		print_status_define<line>(out,args...);
+	else
+		print_freestanding_decay_no_status<line>(out,args...);
 }
 
 template<typename output,typename ...Args>
@@ -501,39 +508,6 @@ requires (output_stream<output>||status_output_stream<output>)
 inline constexpr void print_freestanding(output&& out,Args&& ...args)
 {
 	print_freestanding_decay(io_ref(out),io_print_forward<typename std::remove_cvref_t<output>::char_type>(io_print_alias(args))...);
-}
-
-namespace details
-{
-
-template<bool line,typename output,typename ...Args>
-requires (output_stream<output>||status_output_stream<output>)
-inline constexpr void print_freestanding_decay_cold_impl(output out,Args ...args)
-{
-	if constexpr(status_output_stream<output>)
-	{
-		if constexpr(line)
-			println_status_define(out,args...);
-		else
-			print_status_define(out,args...);
-	}
-	else
-		details::decay::print_freestanding_decay_normal<line>(out,args...);
-}
-
-}
-
-
-template<typename output,typename ...Args>
-requires (output_stream<output>||status_output_stream<output>)
-inline constexpr void println_freestanding_decay(output out,Args ...args)
-{
-	if constexpr(status_output_stream<output>)
-	{
-		println_status_define(out,args...);
-	}
-	else
-		details::decay::print_freestanding_decay_normal<true>(out,args...);
 }
 
 template<output_stream output,typename ...Args>

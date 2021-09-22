@@ -163,8 +163,8 @@ You can define your own behavior with it
 template<typename T>
 concept status_output_stream = requires(T out)
 {
-	print_status_define(out);
-	println_status_define(out);
+	print_status_define<false>(out);
+	print_status_define<true>(out);
 };
 
 /*
@@ -176,6 +176,5 @@ concept status_input_stream = requires(T in)
 {
 	{scan_status_define(in)}->std::convertible_to<bool>;
 };
-
 
 }

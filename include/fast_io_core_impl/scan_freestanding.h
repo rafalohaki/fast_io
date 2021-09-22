@@ -279,11 +279,11 @@ requires (context_scanable<typename input::char_type,T,false>||skipper<typename 
 			}
 			return true;
 		}
-		else if constexpr(scanable<input,T>)
+		else if constexpr(scanable<char_type,T>)
 			return scan_define(in,arg);
 		else
 		{
-			static_assert(type_not_scannable<scanable<input,T>>,"type not scannable. need context_scanable");
+			static_assert(type_not_scannable<scanable<char_type,T>>,"type not scannable. need context_scanable");
 			return false;
 		}
 	}
@@ -366,11 +366,11 @@ requires (context_scanable<typename input::char_type,T,false>||skipper<typename 
 					return scan_single_status_impl(in,state_machine,arg);
 				return true;
 			}
-			else if constexpr(scanable<input,T>)
+			else if constexpr(scanable<char_type,T>)
 				return scan_define(in,arg);
 			else
 			{
-				static_assert(type_not_scannable<scanable<input,T>>,"type not scannable. need context_scanable");
+				static_assert(type_not_scannable<scanable<char_type,T>>,"type not scannable. need context_scanable");
 				return false;
 			}
 		}

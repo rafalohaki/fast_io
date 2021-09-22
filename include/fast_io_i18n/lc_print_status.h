@@ -36,8 +36,8 @@ concept lc_scatter_type_printable=lc_scatter_printable<char_type,T>&&requires(ba
 	{print_scatter_define(all,t)}->std::convertible_to<basic_io_scatter_t<char_type>>;
 };
 
-template<typename output,typename T>
-concept lc_printable = output_stream<output>&&requires(basic_lc_all<typename output::char_type> const* all,output out,T t)
+template<typename char_type,typename T>
+concept lc_printable = requires(basic_lc_all<char_type> const* all,::fast_io::details::dummy_buffer_output_stream<char_type> out,T t)
 {
 	print_define(all,out,t);
 };
@@ -208,7 +208,7 @@ inline constexpr void lc_print_control(basic_lc_all<typename output::char_type> 
 		else
 			lc_print_control_reserve_bad_path<line>(lc,out,t,sz);
 	}
-	else if constexpr(lc_printable<output,value_type>)
+	else if constexpr(lc_printable<char_type,value_type>)
 	{
 		print_define(lc,out,t);
 		if constexpr(line)
@@ -233,7 +233,7 @@ inline constexpr void lc_print_controls_line(basic_lc_all<typename output::char_
 		lc_print_control<false>(lc,out,t);
 		if constexpr(((lc_scatter_printable<char_type,Args>||
 		lc_dynamic_reserve_printable<char_type,Args>||
-		lc_printable<output,Args>)||...))
+		lc_printable<char_type,Args>)||...))
 			lc_print_controls_line<line>(lc,out,args...);
 		else
 			print_controls_line<line>(out,args...);
@@ -270,7 +270,7 @@ inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type>
 {
 	using char_type = typename output::char_type;
 	if constexpr((((!lc_dynamic_reserve_printable<char_type,Args>&&
-	!lc_printable<io_reference_wrapper<basic_virtual_temporary_buffer<char_type>>,Args>&&!lc_scatter_printable<char_type,Args>))&&...))
+	!lc_printable<char_type,Args>&&!lc_scatter_printable<char_type,Args>))&&...))
 	{
 		print_freestanding_decay_normal<ln>(out,args...);
 	}
@@ -374,16 +374,10 @@ inline constexpr void lc_print_status_define_further_decay(basic_lc_all<typename
 
 }
 
-template<output_stream output,typename... Args>
+template<bool line,output_stream output,typename... Args>
 inline constexpr void print_status_define(lc_imbuer<output> imb,Args... args)
 {
-	::fast_io::details::decay::lc_print_status_define_further_decay<false>(imb.all,imb.handle,args...);
-}
-
-template<output_stream output,typename... Args>
-inline constexpr void println_status_define(lc_imbuer<output> imb,Args... args)
-{
-	::fast_io::details::decay::lc_print_status_define_further_decay<true>(imb.all,imb.handle,args...);
+	::fast_io::details::decay::lc_print_status_define_further_decay<line>(imb.all,imb.handle,args...);
 }
 
 }
