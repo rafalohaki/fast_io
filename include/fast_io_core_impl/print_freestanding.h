@@ -512,7 +512,7 @@ inline constexpr void print_freestanding_decay_no_status(output out,Args ...args
 }
 
 template<bool line,typename output,typename ...Args>
-requires print_freestanding_decay_okay_no_status<output,Args...>
+requires print_freestanding_decay_okay<output,Args...>
 inline constexpr void print_freestanding_decay(output out,Args ...args)
 {
 	if constexpr(status_output_stream<output>)
@@ -522,7 +522,7 @@ inline constexpr void print_freestanding_decay(output out,Args ...args)
 }
 
 template<bool line,typename output,typename ...Args>
-requires print_freestanding_decay_okay_no_status<output,Args...>
+requires print_freestanding_decay_okay<output,Args...>
 #if __has_cpp_attribute(gnu::cold)
 [[gnu::cold]]
 #endif
