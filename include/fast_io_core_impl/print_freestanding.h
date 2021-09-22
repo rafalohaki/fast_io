@@ -364,7 +364,8 @@ inline constexpr void print_controls_line(output out,T t,Args... args)
 template<bool line,std::integral char_type,typename ...Args>
 inline void print_with_virtual_device(basic_virtual_output_device<char_type> device,Args... args)
 {
-	basic_virtual_temporary_buffer<char_type> buffer{.out=device};
+	basic_virtual_temporary_buffer<char_type> buffer;
+	buffer.out=device;
 	auto ref{io_ref(buffer)};
 	print_controls_line<line>(ref,args...);
 	flush(buffer);
