@@ -55,7 +55,7 @@ namespace details
 #if __has_cpp_attribute(gnu::cold)
 [[gnu::cold]]
 #endif
-inline void linux_kpr_raw_write(::fast_io::linux::kern k,void const* start,void const* last)
+inline void linux_kpr_raw_write(::fast_io::linux::kern k,void const* start,void const* last) noexcept
 {
 	char const* start_char_ptr{reinterpret_cast<char const*>(start)};
 	char const* last_char_ptr{reinterpret_cast<char const*>(last)};
