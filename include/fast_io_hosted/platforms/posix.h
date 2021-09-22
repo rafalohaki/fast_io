@@ -1828,9 +1828,7 @@ inline io_scatter_status_t scatter_pwrite(basic_posix_io_observer<ch_type> piob,
 #endif
 
 }
-#if defined(__MSDOS__) || ((defined(__NEWLIB__)||defined(_PICOLIBC__))&&!defined(FAST_IO_USE_NEWLIB_CUSTOM_WRITEV)&&!defined(__CYGWIN__))
-#include"msdos.h"
-#endif
+
 #if defined(__linux__) && (defined(__NR_sendfile) || defined(__NR_sendfile64))
 #include"linux_zerocopy.h"
 #endif
