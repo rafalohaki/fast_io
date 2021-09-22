@@ -741,12 +741,13 @@ inline io_scatter_status_t scatter_read(basic_win32_family_io_observer<family,ch
 {
 	return win32::details::scatter_read_impl(handle.handle,sp.base,sp.len);
 }
-
+#if 0
 template<win32_family family,std::integral ch_type>
 inline io_scatter_status_t scatter_write(basic_win32_family_io_observer<family,ch_type> handle,io_scatters_t sp)
 {
 	return win32::details::scatter_write_impl(handle.handle,sp.base,sp.len);
 }
+#endif
 #if 0
 template<win32_family family,std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline void async_read_callback(basic_win32_family_io_observer<char>,basic_win32_family_io_observer<ch_type> h,Iter cbegin,Iter cend,

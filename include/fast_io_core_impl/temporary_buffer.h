@@ -99,7 +99,7 @@ inline constexpr void write(temporary_buffer<output>& out,
 #endif
 		return temporary_buffer_write_cold_path(out,first,last);
 	auto start{out.buffer};
-	non_overlapped_copy_n(start,ptr_diff,start+pos);
+	non_overlapped_copy_n(first,ptr_diff,start+pos);
 	out.pos+=ptr_diff;
 }
 
