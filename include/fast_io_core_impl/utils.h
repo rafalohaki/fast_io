@@ -80,7 +80,7 @@ decltype(auto) noexcept_call(F* f,Args&& ...args) noexcept
 #if __cpp_if_consteval >= 202106L
 	if consteval
 	{
-		return f(std::forward<Args>(args)...);		//EH unwinding does not matter here
+		return f(::fast_io::freestanding::forward<Args>(args)...);		//EH unwinding does not matter here
 	}
 	else
 	{
@@ -89,7 +89,7 @@ decltype(auto) noexcept_call(F* f,Args&& ...args) noexcept
 #else
 #if __cpp_lib_is_constant_evaluated >= 201811
 	if (std::is_constant_evaluated())
-		return f(std::forward<Args>(args)...);		//EH unwinding does not matter here
+		return f(::fast_io::freestanding::forward<Args>(args)...);		//EH unwinding does not matter here
 	else
 #endif
 		return noexcept_cast(f)(::fast_io::freestanding::forward<Args>(args)...);

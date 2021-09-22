@@ -255,7 +255,8 @@ inline constexpr std::conditional_t<report,bool,void> scan_after_io_scan_forward
 template<typename T,typename... Args>
 inline constexpr void print(T&& t,Args&& ...args)
 {
-	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>)
+	constexpr bool device_error{fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>};
+	if constexpr(device_error)
 	{
 		constexpr bool type_error{::fast_io::print_freestanding_okay<T,Args...>};
 		if constexpr(type_error)
@@ -286,7 +287,6 @@ static_assert(type_error,"some types are not printable for print");
 static_assert(type_error,"some types are not printable for print on default C's stdout");
 		}
 #else
-		constexpr bool device_error{fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>};
 static_assert(device_error,"freestanding environment must provide IO device for print");
 #endif
 	}
@@ -295,7 +295,8 @@ static_assert(device_error,"freestanding environment must provide IO device for 
 template<typename T,typename... Args>
 inline constexpr void println(T&& t,Args&& ...args)
 {
-	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>)
+	constexpr bool device_error{fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>};
+	if constexpr(device_error)
 	{
 		constexpr bool type_error{::fast_io::print_freestanding_okay<T,Args...>};
 		if constexpr(type_error)
@@ -326,7 +327,6 @@ static_assert(type_error,"some types are not printable for println");
 static_assert(type_error,"some types are not printable for println on default C's stdout");
 		}
 #else
-		constexpr bool device_error{fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>};
 static_assert(device_error,"freestanding environment must provide IO device for println");
 #endif
 	}
@@ -335,7 +335,8 @@ static_assert(device_error,"freestanding environment must provide IO device for 
 template<typename T,typename... Args>
 inline constexpr void perr(T&& t,Args&&... args)
 {
-	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>)
+	constexpr bool device_error{fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>};
+	if constexpr(device_error)
 	{
 		constexpr bool type_error{::fast_io::print_freestanding_okay<T,Args...>};
 		if constexpr(type_error)
@@ -366,7 +367,7 @@ static_assert(type_error,"some types are not printable for perr");
 static_assert(type_error,"some types are not printable for perr on native err");
 		}
 #else
-static_assert(::fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>,"freestanding environment must provide IO device");
+static_assert(device_error,"freestanding environment must provide IO device");
 #endif
 	}
 }
@@ -374,7 +375,8 @@ static_assert(::fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_
 template<typename T,typename... Args>
 inline constexpr void perrln(T&& t,Args&&... args)
 {
-	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>)
+	constexpr bool device_error{fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>};
+	if constexpr(device_error)
 	{
 		constexpr bool type_error{::fast_io::print_freestanding_okay<T,Args...>};
 		if constexpr(type_error)
@@ -405,7 +407,7 @@ static_assert(type_error,"some types are not printable for perrln");
 static_assert(type_error,"some types are not printable for perrln on native err");
 		}
 #else
-static_assert(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>,"freestanding environment must provide IO device");
+static_assert(device_error,"freestanding environment must provide IO device");
 #endif
 	}
 }
@@ -450,7 +452,8 @@ requires (sizeof...(Args)!=0)
 template<typename T,typename... Args>
 inline constexpr void debug_print(T&& t,Args&& ...args)
 {
-	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>)
+	constexpr bool device_error{fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>};
+	if constexpr(device_error)
 	{
 		constexpr bool type_error{::fast_io::print_freestanding_okay<T,Args...>};
 		if constexpr(type_error)
@@ -481,7 +484,7 @@ static_assert(type_error,"some types are not printable for debug_print");
 static_assert(type_error,"some types are not printable for debug_print on native out");
 		}
 #else
-static_assert(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>,"freestanding environment must provide IO device");
+static_assert(device_error,"freestanding environment must provide IO device");
 #endif
 	}
 }
@@ -489,7 +492,8 @@ static_assert(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_ou
 template<typename T,typename... Args>
 inline constexpr void debug_println(T&& t,Args&& ...args)
 {
-	if constexpr(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>)
+	constexpr bool device_error{fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>};
+	if constexpr(device_error)
 	{
 		constexpr bool type_error{::fast_io::print_freestanding_okay<T,Args...>};
 		if constexpr(type_error)
@@ -520,7 +524,7 @@ static_assert(type_error,"some types are not printable for debug_println");
 static_assert(type_error,"some types are not printable for debug_println on native out");
 		}
 #else
-static_assert(fast_io::output_stream<std::remove_cvref_t<T>>||fast_io::status_output_stream<std::remove_cvref_t<T>>,"freestanding environment must provide IO device");
+static_assert(device_error,"freestanding environment must provide IO device");
 #endif
 	}
 }
