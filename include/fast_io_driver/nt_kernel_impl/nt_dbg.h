@@ -19,6 +19,15 @@ std::uint16_t MaximumLength;
 char*  Buffer;
 };
 
+#if !(__STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1))
+struct unicode_string
+{
+std::uint16_t Length;
+std::uint16_t MaximumLength;
+wchar_t*  Buffer;
+};
+#endif
+
 inline constexpr basic_io_scatter_t<wchar_t> print_alias_define(io_alias_t,unicode_string ustr) noexcept
 {
 	return {ustr.Buffer,static_cast<std::size_t>(ustr.Length>>1)};
