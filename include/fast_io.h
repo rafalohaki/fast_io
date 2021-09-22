@@ -270,7 +270,6 @@ inline constexpr void print(T&& t,Args&& ...args)
 	else
 	{
 #if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __has_include(<stdio.h>)
-
 		constexpr bool type_error{::fast_io::print_freestanding_okay<
 #if __has_include(<stdio.h>)		
 		::fast_io::c_io_observer
