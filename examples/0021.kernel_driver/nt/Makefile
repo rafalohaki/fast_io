@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-O3 -s -D_WIN32_WINNT=0x0500
+CXXFLAGS=-O3 -s -D_WIN32_WINNT=0x0502
 FAST_IO_PATH=-I../../../include
 
 mydriver.sys:kernel_entry.cc

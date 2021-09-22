@@ -19,6 +19,21 @@ std::uint16_t MaximumLength;
 char*  Buffer;
 };
 
+inline constexpr basic_io_scatter_t<wchar_t> print_alias_define(io_alias_t,unicode_string ustr) noexcept
+{
+	return {ustr.Buffer,static_cast<std::size_t>(ustr.Length>>1)};
+}
+
+inline constexpr basic_io_scatter_t<char16_t> print_alias_define(io_alias_t,utf16_string u16str) noexcept
+{
+	return {u16str.Buffer,static_cast<std::size_t>(u16str.Length>>1)};
+}
+
+inline constexpr basic_io_scatter_t<char> print_alias_define(io_alias_t,ansi_string astr) noexcept
+{
+	return {astr.Buffer,static_cast<std::size_t>(astr.Length)};
+}
+
 #if defined(_MSC_VER) && !defined(__clang__)
 __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
@@ -63,8 +78,8 @@ template<std::integral ch_type>
 struct basic_nt_dbg
 {
 	using char_type = ch_type;
-	std::uint32_t comment_id{101};
-	std::uint32_t level{3};
+	std::uint32_t comment_id{UINT32_MAX};
+	std::uint32_t level{};
 	static inline constexpr std::size_t output_buffer_alignment_size{512u};
 };
 
@@ -78,8 +93,8 @@ namespace details
 {
 struct nt_dbg_carrier
 {
-	std::uint32_t comment_id{};
-	std::uint32_t level{};
+	std::uint32_t comment_id;
+	std::uint32_t level;
 };
 
 template<std::integral char_type>
