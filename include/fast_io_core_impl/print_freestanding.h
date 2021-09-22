@@ -443,7 +443,39 @@ inline constexpr void print_fallback(output out,Args ...args)
 
 }
 
+template<typename char_type,typename ...Args>
+concept print_freestanding_decay_okay_character_type_no_status = std::integral<char_type>&&((std::is_trivially_copyable_v<Args>&&(printable<char_type,Args>||scatter_printable<char_type,Args>||reserve_printable<char_type,Args>||dynamic_reserve_printable<char_type,Args>))&&...);
+
+template<typename output,typename ...Args>
+concept print_freestanding_decay_okay_no_status = std::is_trivially_copyable_v<output>&&print_freestanding_decay_okay_character_type_no_status<typename output::char_type,Args...>;
+
+template<typename output,typename ...Args>
+concept print_freestanding_decay_okay = std::is_trivially_copyable_v<output>&&((status_output_stream<output>&&requires(output out,Args ...args)
+{
+	print_status_define<false>(out,args...);
+	print_status_define<true>(out,args...);
+})||(!status_output_stream<output>&&output_stream<output>&&print_freestanding_decay_okay_no_status<output,Args...>));
+
+namespace details
+{
+
+template<typename output,typename... Args>
+requires print_freestanding_decay_okay<output,Args...>
+inline constexpr void print_freestanding_deacy_okay_dummy(output,Args...)
+{
+
+}
+
+}
+
+template<typename output,typename ...Args>
+concept print_freestanding_okay = requires(output&& out,Args&& ...args)
+{
+	::fast_io::details::print_freestanding_deacy_okay_dummy(io_ref(out),io_print_forward<typename std::remove_cvref_t<output>::char_type>(io_print_alias(args))...);
+};
+
 template<bool line,output_stream output,typename ...Args>
+requires print_freestanding_decay_okay_no_status<output,Args...>
 inline constexpr void print_freestanding_decay_no_status(output out,Args ...args)
 {
 	using char_type = typename output::char_type;
@@ -480,7 +512,7 @@ inline constexpr void print_freestanding_decay_no_status(output out,Args ...args
 }
 
 template<bool line,typename output,typename ...Args>
-requires (output_stream<output>||status_output_stream<output>)&&(std::is_trivially_copyable_v<output>&&(std::is_trivially_copyable_v<Args>&&...))
+requires print_freestanding_decay_okay_no_status<output,Args...>
 inline constexpr void print_freestanding_decay(output out,Args ...args)
 {
 	if constexpr(status_output_stream<output>)
@@ -489,9 +521,8 @@ inline constexpr void print_freestanding_decay(output out,Args ...args)
 		print_freestanding_decay_no_status<line>(out,args...);
 }
 
-
 template<bool line,typename output,typename ...Args>
-requires (output_stream<output>||status_output_stream<output>)&&(std::is_trivially_copyable_v<output>&&(std::is_trivially_copyable_v<Args>&&...))
+requires print_freestanding_decay_okay_no_status<output,Args...>
 #if __has_cpp_attribute(gnu::cold)
 [[gnu::cold]]
 #endif
@@ -504,16 +535,17 @@ inline constexpr void print_freestanding_decay_cold(output out,Args ...args)
 }
 
 template<typename output,typename ...Args>
-requires (output_stream<output>||status_output_stream<output>)
+requires print_freestanding_okay<output,Args...>
 inline constexpr void print_freestanding(output&& out,Args&& ...args)
 {
-	print_freestanding_decay(io_ref(out),io_print_forward<typename std::remove_cvref_t<output>::char_type>(io_print_alias(args))...);
+	print_freestanding_decay<false>(io_ref(out),io_print_forward<typename std::remove_cvref_t<output>::char_type>(io_print_alias(args))...);
 }
 
 template<output_stream output,typename ...Args>
+requires print_freestanding_okay<output,Args...>
 inline constexpr void println_freestanding(output&& out,Args&& ...args)
 {
-	println_freestanding_decay(io_ref(out),io_print_forward<typename std::remove_cvref_t<output>::char_type>(io_print_alias(args))...);
+	print_freestanding_decay<true>(io_ref(out),io_print_forward<typename std::remove_cvref_t<output>::char_type>(io_print_alias(args))...);
 }
 
 
