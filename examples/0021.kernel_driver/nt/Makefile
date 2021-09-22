@@ -1,4 +1,4 @@
-CXX=clang++
+CXX=g++
 CXXFLAGS=-O3 -s -D_WIN32_WINNT=0x0502
 FAST_IO_PATH=-I../../../include
 
