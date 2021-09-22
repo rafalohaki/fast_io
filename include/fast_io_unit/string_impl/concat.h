@@ -172,14 +172,32 @@ inline constexpr T basic_concat_decay_impl(Args ...args)
 template<typename T,typename ...Args>
 inline constexpr T basic_concat_decay(Args ...args)
 {
-	return details::decay::basic_concat_decay_impl<false,T>(args...);
+	constexpr bool type_error{print_freestanding_decay_okay_character_type_no_status<typename T::value_type,Args...>};
+	if constexpr(type_error)
+	{
+		return details::decay::basic_concat_decay_impl<false,T>(args...);
+	}
+	else
+	{
+static_assert(type_error,"some types are not printable, so we cannot concat_decay std::basic_string");
+		return {};
+	}
 }
 
 template<typename T,typename ...Args>
 inline constexpr T basic_concat(Args&& ...args)
 {
 	using char_type = typename T::value_type;
-	return details::decay::basic_concat_decay_impl<false,T>(io_print_forward<char_type>(io_print_alias(args))...);
+	constexpr bool type_error{print_freestanding_okay<::fast_io::details::dummy_buffer_output_stream<char_type>,Args...>};
+	if constexpr(type_error)
+	{
+		return details::decay::basic_concat_decay_impl<false,T>(io_print_forward<char_type>(io_print_alias(args))...);
+	}
+	else
+	{
+static_assert(type_error,"some types are not printable, so we cannot concat std::basic_string");
+		return {};
+	}
 }
 
 template<typename ...Args>
@@ -189,7 +207,16 @@ constexpr
 #endif
 std::string concat(Args&& ...args)
 {
-	return details::decay::basic_concat_decay_impl<false,std::string>(io_print_forward<char>(io_print_alias(args))...);
+	constexpr bool type_error{print_freestanding_okay<::fast_io::details::dummy_buffer_output_stream<char>,Args...>};
+	if constexpr(type_error)
+	{
+		return details::decay::basic_concat_decay_impl<false,std::string>(io_print_forward<char>(io_print_alias(args))...);
+	}
+	else
+	{
+static_assert(type_error,"some types are not printable, so we cannot concat std::string");
+		return {};
+	}
 }
 
 template<typename ...Args>
@@ -199,7 +226,16 @@ constexpr
 #endif
 std::basic_string<wchar_t> wconcat(Args&& ...args)
 {
-	return details::decay::basic_concat_decay_impl<false,std::basic_string<wchar_t>>(io_print_forward<wchar_t>(io_print_alias(args))...);
+	constexpr bool type_error{print_freestanding_okay<::fast_io::details::dummy_buffer_output_stream<wchar_t>,Args...>};
+	if constexpr(type_error)
+	{
+		return details::decay::basic_concat_decay_impl<false,std::basic_string<wchar_t>>(io_print_forward<wchar_t>(io_print_alias(args))...);
+	}
+	else
+	{
+static_assert(type_error,"some types are not printable, so we cannot concat std::wstring");
+		return {};
+	}
 }
 
 template<typename ...Args>
@@ -209,7 +245,16 @@ constexpr
 #endif
 std::u8string u8concat(Args&& ...args)
 {
-	return details::decay::basic_concat_decay_impl<false,std::u8string>(io_print_forward<char8_t>(io_print_alias(args))...);
+	constexpr bool type_error{print_freestanding_okay<::fast_io::details::dummy_buffer_output_stream<char8_t>,Args...>};
+	if constexpr(type_error)
+	{
+		return details::decay::basic_concat_decay_impl<false,std::u8string>(io_print_forward<char8_t>(io_print_alias(args))...);
+	}
+	else
+	{
+static_assert(type_error,"some types are not printable, so we cannot concat std::u8string");
+		return {};
+	}
 }
 
 template<typename ...Args>
@@ -219,7 +264,16 @@ constexpr
 #endif
 std::u16string u16concat(Args&& ...args)
 {
-	return details::decay::basic_concat_decay_impl<false,std::u16string>(io_print_forward<char16_t>(io_print_alias(args))...);
+	constexpr bool type_error{print_freestanding_okay<::fast_io::details::dummy_buffer_output_stream<char16_t>,Args...>};
+	if constexpr(type_error)
+	{
+		return details::decay::basic_concat_decay_impl<false,std::u16string>(io_print_forward<char16_t>(io_print_alias(args))...);
+	}
+	else
+	{
+static_assert(type_error,"some types are not printable, so we cannot concat std::u16string");
+		return {};
+	}
 }
 
 template<typename ...Args>
@@ -229,14 +283,32 @@ constexpr
 #endif
 std::u32string u32concat(Args&& ...args)
 {
-	return details::decay::basic_concat_decay_impl<false,std::u32string>(io_print_forward<char32_t>(io_print_alias(args))...);
+	constexpr bool type_error{print_freestanding_okay<::fast_io::details::dummy_buffer_output_stream<char32_t>,Args...>};
+	if constexpr(type_error)
+	{
+		return details::decay::basic_concat_decay_impl<false,std::u32string>(io_print_forward<char32_t>(io_print_alias(args))...);
+	}
+	else
+	{
+static_assert(type_error,"some types are not printable, so we cannot concat std::u32string");
+		return {};
+	}
 }
 
 template<typename T,typename ...Args>
 inline constexpr T basic_concatln(Args&& ...args)
 {
 	using char_type = typename T::value_type;
-	return details::decay::basic_concat_decay_impl<true,T>(io_print_forward<char_type>(io_print_alias(args))...);
+	constexpr bool type_error{print_freestanding_okay<::fast_io::details::dummy_buffer_output_stream<char_type>,Args...>};
+	if constexpr(type_error)
+	{
+		return details::decay::basic_concat_decay_impl<true,T>(io_print_forward<char_type>(io_print_alias(args))...);
+	}
+	else
+	{
+static_assert(type_error,"some types are not printable, so we cannot concatln std::basic_string");
+		return {};
+	}
 }
 
 template<typename ...Args>
@@ -246,7 +318,16 @@ constexpr
 #endif
 std::string concatln(Args&& ...args)
 {
-	return details::decay::basic_concat_decay_impl<true,std::string>(io_print_forward<char>(io_print_alias(args))...);
+	constexpr bool type_error{print_freestanding_okay<::fast_io::details::dummy_buffer_output_stream<char>,Args...>};
+	if constexpr(type_error)
+	{
+		return details::decay::basic_concat_decay_impl<true,std::string>(io_print_forward<char>(io_print_alias(args))...);
+	}
+	else
+	{
+static_assert(type_error,"some types are not printable, so we cannot concatln std::string");
+		return {};
+	}
 }
 
 template<typename ...Args>
@@ -256,7 +337,16 @@ constexpr
 #endif
 std::basic_string<wchar_t> wconcatln(Args&& ...args)
 {
-	return details::decay::basic_concat_decay_impl<true,std::basic_string<wchar_t>>(io_print_forward<wchar_t>(io_print_alias(args))...);
+	constexpr bool type_error{print_freestanding_okay<::fast_io::details::dummy_buffer_output_stream<wchar_t>,Args...>};
+	if constexpr(type_error)
+	{
+		return details::decay::basic_concat_decay_impl<true,std::basic_string<wchar_t>>(io_print_forward<wchar_t>(io_print_alias(args))...);
+	}
+	else
+	{
+static_assert(type_error,"some types are not printable, so we cannot concatln std::wstring");
+		return {};
+	}
 }
 
 template<typename ...Args>
@@ -266,7 +356,16 @@ constexpr
 #endif
 std::u8string u8concatln(Args&& ...args)
 {
-	return details::decay::basic_concat_decay_impl<true,std::u8string>(io_print_forward<char8_t>(io_print_alias(args))...);
+	constexpr bool type_error{print_freestanding_okay<::fast_io::details::dummy_buffer_output_stream<char8_t>,Args...>};
+	if constexpr(type_error)
+	{
+		return details::decay::basic_concat_decay_impl<true,std::u8string>(io_print_forward<char8_t>(io_print_alias(args))...);
+	}
+	else
+	{
+static_assert(type_error,"some types are not printable, so we cannot concatln std::u8string");
+		return {};
+	}
 }
 
 template<typename ...Args>
@@ -276,7 +375,16 @@ constexpr
 #endif
 std::u16string u16concatln(Args&& ...args)
 {
-	return details::decay::basic_concat_decay_impl<true,std::u16string>(io_print_forward<char16_t>(io_print_alias(args))...);
+	constexpr bool type_error{print_freestanding_okay<::fast_io::details::dummy_buffer_output_stream<char16_t>,Args...>};
+	if constexpr(type_error)
+	{
+		return details::decay::basic_concat_decay_impl<true,std::u16string>(io_print_forward<char16_t>(io_print_alias(args))...);
+	}
+	else
+	{
+static_assert(type_error,"some types are not printable, so we cannot concatln std::u16string");
+		return {};
+	}
 }
 
 template<typename ...Args>
@@ -286,7 +394,16 @@ constexpr
 #endif
 std::u32string u32concatln(Args&& ...args)
 {
-	return details::decay::basic_concat_decay_impl<true,std::u32string>(io_print_forward<char32_t>(io_print_alias(args))...);
+	constexpr bool type_error{print_freestanding_okay<::fast_io::details::dummy_buffer_output_stream<char32_t>,Args...>};
+	if constexpr(type_error)
+	{
+		return details::decay::basic_concat_decay_impl<true,std::u32string>(io_print_forward<char32_t>(io_print_alias(args))...);
+	}
+	else
+	{
+static_assert(type_error,"some types are not printable, so we cannot concatln std::u32string");
+		return {};
+	}
 }
 
 }
