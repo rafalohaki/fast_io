@@ -130,7 +130,6 @@ BREAKPOINT_PRINT
 	std::uint16_t const u16remain_size{static_cast<std::uint16_t>(remain_size)};
 	nstr.MaximumLength=nstr.Length=u16remain_size;
 	nstr.Buffer=first_char_ptr+i;
-	::fast_io::win32::nt::DbgPrint("u16remain_size:%u\n",static_cast<std::uint16_t>(u16remain_size));
 #if _WIN32_WINNT >= 0x0501
 	::fast_io::win32::nt::DbgPrintEx(comment_id,level,fmt,__builtin_addressof(nstr));
 #else
