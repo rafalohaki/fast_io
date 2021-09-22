@@ -88,7 +88,7 @@ inline void linux_kpr_raw_write(::fast_io::linux::kern k,void const* start,void 
 template<std::integral char_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline void write(basic_kpr<char_type> kpr,Iter first,Iter last) noexcept
 {
-	details::linux_kpr_raw_write(kpr.k,::fast_io::freestanding::to_address(first),::fast_io::freestanding::to_address(last));
+	details::linux_kpr_raw_write(kpr.level,::fast_io::freestanding::to_address(first),::fast_io::freestanding::to_address(last));
 }
 
 
