@@ -97,6 +97,7 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 
 ## Kernel Driver Support
 - Windows NT kernel Driver
+- Linux kernel Module
 
 ## Legacy Windows Version Support (need define _WIN32_WINNT and _WIN32_WINDOWS version by yourself)
 - Windows 95
