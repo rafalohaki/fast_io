@@ -92,7 +92,11 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - AVR
 - Banana
 - LemonOS
+- Windows Kernel Driver
 - Any other platform (if you want me to support it, tell me, including your own OS)
+
+## Kernel Driver Support
+- Windows NT kernel Driver
 
 ## Legacy Windows Version Support (need define _WIN32_WINNT and _WIN32_WINDOWS version by yourself)
 - Windows 95
