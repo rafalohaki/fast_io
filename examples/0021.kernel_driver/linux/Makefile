@@ -22,7 +22,7 @@ cxxflags = $(FLAGS) \
             -fno-exceptions \
             -std=c++20 \
 	    -O2 \
-	    -mcmodel=kernel -s -Wall -Wextra -Wpedantic -Wmisleading-indentation -Wunused -Wuninitialized -Wshadow -Wconversion
+	    -mcmodel=kernel -ffreestanding -s -Wall -Wextra -Wpedantic -Wmisleading-indentation -Wunused -Wuninitialized -Wshadow -Wconversion
 
 obj-m += $(MOD_NAME).o
 
