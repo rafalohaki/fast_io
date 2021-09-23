@@ -364,16 +364,9 @@ constexpr void print_loc_days_real_impl(output bos,::fast_io::freestanding::basi
 	{
 		if(i)
 			put(bos,char_literal_v<u8';',char_type>);
-		if constexpr(std::same_as<char,char_type>)
-			print_freestanding(bos,"\"",day_strings[i],u8"\"");
-		else if constexpr(std::same_as<wchar_t,char_type>)
-			print_freestanding(bos,L"\"",day_strings[i],u8"\"");
-		else if constexpr(std::same_as<char16_t,char_type>)
-			print_freestanding(bos,u"\"",day_strings[i],u8"\"");
-		else if constexpr(std::same_as<char32_t,char_type>)
-			print_freestanding(bos,U"\"",day_strings[i],u8"\"");
-		else if constexpr(std::same_as<char8_t,char_type>)
-			print_freestanding(bos,u8"\"",day_strings[i],u8"\"");
+		put(bos,char_literal_v<u8'\"',char_type>);
+		print_freestanding(bos,day_strings[i]);
+		put(bos,char_literal_v<u8'\"',char_type>);
 	}
 	put(bos,char_literal_v<u8'\n',char_type>);
 }
@@ -835,6 +828,20 @@ constexpr void print_define_impl_lc_keyboard(output bos,basic_lc_keyboard<char_t
 	}
 }
 
+template<std::integral char_type>
+inline constexpr char_type const* lc_all_create_nn() noexcept
+{
+	if constexpr(std::same_as<char_type,char>)
+		return "\n\n";
+	else if constexpr(std::same_as<char_type,wchar_t>)
+		return L"\n\n";
+	else if constexpr(std::same_as<char_type,char16_t>)
+		return u"\n\n";
+	else if constexpr(std::same_as<char_type,char32_t>)
+		return U"\n\n";
+	else
+		return u8"\n\n";
+}
 
 template<typename output,std::integral char_type>
 #if __has_cpp_attribute(gnu::cold)
@@ -842,61 +849,25 @@ template<typename output,std::integral char_type>
 #endif
 constexpr void print_define_impl_lc_all(output bos,basic_lc_all<char_type> const& all)
 {
-	if constexpr(std::same_as<char_type,char>)
-		print_freestanding(bos,all.identification,"\n\n",
-			all.monetary,"\n\n",
-			all.numeric,"\n\n",
-			all.time,"\n\n",
-			all.messages,"\n\n",
-			all.paper,"\n\n",
-			all.telephone,"\n\n",
-			all.name,"\n\n",
-			all.measurement,"\n\n",
-			all.keyboard);
-	else if constexpr(std::same_as<char_type,wchar_t>)
-		print_freestanding(bos,all.identification,L"\n\n",
-			all.monetary,L"\n\n",
-			all.numeric,L"\n\n",
-			all.time,L"\n\n",
-			all.messages,L"\n\n",
-			all.paper,L"\n\n",
-			all.telephone,L"\n\n",
-			all.name,L"\n\n",
-			all.measurement,L"\n\n",
-			all.keyboard);
-	else if constexpr(std::same_as<char_type,char8_t>)
-		print_freestanding(bos,all.identification,u8"\n\n",
-			all.monetary,u8"\n\n",
-			all.numeric,u8"\n\n",
-			all.time,u8"\n\n",
-			all.messages,u8"\n\n",
-			all.paper,u8"\n\n",
-			all.telephone,u8"\n\n",
-			all.name,u8"\n\n",
-			all.measurement,u8"\n\n",
-			all.keyboard);
-	else if constexpr(std::same_as<char_type,char16_t>)
-		print_freestanding(bos,all.identification,u"\n\n",
-			all.monetary,u"\n\n",
-			all.numeric,u"\n\n",
-			all.time,u"\n\n",
-			all.messages,u"\n\n",
-			all.paper,u"\n\n",
-			all.telephone,u"\n\n",
-			all.name,u"\n\n",
-			all.measurement,u"\n\n",
-			all.keyboard);
-	else if constexpr(std::same_as<char_type,char32_t>)
-		print_freestanding(bos,all.identification,U"\n\n",
-			all.monetary,U"\n\n",
-			all.numeric,U"\n\n",
-			all.time,U"\n\n",
-			all.messages,U"\n\n",
-			all.paper,U"\n\n",
-			all.telephone,U"\n\n",
-			all.name,U"\n\n",
-			all.measurement,U"\n\n",
-			all.keyboard);
+	constexpr char_type const* first{lc_all_create_nn<char_type>()};
+	constexpr char_type const* last{first+2};
+	print_define_impl_lc_identification(bos,all.identification);
+	write(bos,first,last);
+	print_define_impl_lc_monetary(bos,all.monetary);
+	write(bos,first,last);
+	print_define_impl_lc_time(bos,all.time);
+	write(bos,first,last);
+	print_define_impl_lc_messages(bos,all.messages);
+	write(bos,first,last);
+	print_define_impl_lc_paper(bos,all.paper);
+	write(bos,first,last);
+	print_define_impl_lc_telephone(bos,all.telephone);
+	write(bos,first,last);
+	print_define_impl_lc_name(bos,all.name);
+	write(bos,first,last);
+	print_define_impl_lc_measurement(bos,all.measurement);
+	write(bos,first,last);
+	print_define_impl_lc_keyboard(bos,all.keyboard);
 }
 
 }
