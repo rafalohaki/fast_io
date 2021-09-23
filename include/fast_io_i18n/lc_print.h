@@ -463,7 +463,7 @@ constexpr void print_define_impl_lc_time(output bos,basic_lc_time<char_type> con
 		u"t_fmt_ampm\t\"",time.t_fmt_ampm,u"\"\n",
 		u"date_fmt\t\"",time.date_fmt,u"\"\n",
 		u"am_pm\t\"",time.am_pm[0],u"\";\"",time.am_pm[1],u"\"\n");
-		::fast_io::details::print_loc_days_impl(bos,u"era",time.era);
+		::fast_io::details::print_loc_era_impl(bos,u"era",time.era);
 		print_freestanding(bos,u"era_d_fmt\t\"",time.era_d_fmt,u"\"\n",
 		u"era_d_t_fmt\t\"",time.era_d_t_fmt,u"\"\n",
 		u"era_t_fmt\t\"",time.era_t_fmt,u"\"\n");
