@@ -216,6 +216,11 @@ inline constexpr void lc_print_control(basic_lc_all<typename output::char_type> 
 }
 
 template<bool line,output_stream output,typename T,typename... Args>
+#if __has_cpp_attribute(gnu::always_inline)
+[[gnu::always_inline]]
+#elif __has_cpp_attribute(msvc::forceinline)
+[[msvc::forceinline]]
+#endif
 inline constexpr void lc_print_controls_line(basic_lc_all<typename output::char_type> const* __restrict lc,output out,T t,Args... args)
 {
 	if constexpr(sizeof...(Args)==0)
