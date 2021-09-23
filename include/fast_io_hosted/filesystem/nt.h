@@ -461,7 +461,7 @@ inline ::fast_io::freestanding::u8string_view stem(nt_directory_entry ent) noexc
 
 template<std::integral char_type>
 requires ((std::same_as<char_type,char8_t>)||(std::same_as<char_type,nt_directory_entry::native_char_type>))
-inline basic_io_scatter_t<char_type> print_scatter_define(print_scatter_type_t<char_type>,nt_directory_entry pth)
+inline basic_io_scatter_t<char_type> print_scatter_define(io_reserve_type_t<char_type,char_type>,nt_directory_entry pth)
 {
 	if constexpr(std::same_as<char_type,char8_t>)
 	{

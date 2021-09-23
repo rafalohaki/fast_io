@@ -9,13 +9,13 @@ namespace details::decay
 template<std::integral char_type,typename T>
 inline constexpr void scatter_print_recursive(io_scatter_t* arr,T t)
 {
-	*arr=print_scatter_define(print_scatter_type<char_type>,t);
+	*arr=print_scatter_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,t);
 }
 
 template<std::integral char_type,typename T,typename... Args>
 inline constexpr void scatter_print_recursive(io_scatter_t* arr,T t, Args ...args)
 {
-	*arr=print_scatter_define(print_scatter_type<char_type>,t);
+	*arr=print_scatter_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,t);
 	scatter_print_recursive<char_type>(arr+1,args...);
 }
 
@@ -90,7 +90,7 @@ inline constexpr void scatter_print_with_reserve_recursive_unit(char_type*& star
 	}
 	else
 	{
-		*arr=print_scatter_define(print_scatter_type<char_type>,t);
+		*arr=print_scatter_define(io_reserve_type<char_type,real_type>,t);
 	}
 }
 
@@ -115,8 +115,8 @@ inline constexpr void scatter_print_with_dynamic_reserve_recursive(io_scatter_t*
 	[[maybe_unused]] char_type* __restrict dynamic_buffer_ptr,[[maybe_unused]] T t, Args ...args)
 {
 	
-	if constexpr(scatter_type_printable<char_type,T>)
-		*arr=print_scatter_define(print_scatter_type<char_type>,t);
+	if constexpr(scatter_printable<char_type,T>)
+		*arr=print_scatter_define(io_reserve_type<char_type,T>,t);
 	else if constexpr(reserve_printable<char_type,T>)
 	{
 		auto end_ptr = print_reserve_define(io_reserve_type<char_type,T>,ptr,t);
@@ -137,10 +137,10 @@ inline constexpr void scatter_print_with_dynamic_reserve_recursive(io_scatter_t*
 
 
 template<std::integral char_type,typename T>
-requires scatter_type_printable<char_type,T>
+requires scatter_printable<char_type,T>
 inline constexpr auto extract_one_scatter(T t)
 {
-	return print_scatter_define(print_scatter_type<char_type>,t);
+	return print_scatter_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,t);
 }
 
 
@@ -168,9 +168,9 @@ inline constexpr void print_control(output out,T t)
 	using char_type = typename output::char_type;
 	using value_type = std::remove_cvref_t<T>;
 	constexpr auto lfch{char_literal_v<u8'\n',char_type>};
-	if constexpr(scatter_type_printable<char_type,value_type>)
+	if constexpr(scatter_printable<char_type,value_type>)
 	{
-		basic_io_scatter_t<char_type> scatter{print_scatter_define(print_scatter_type<char_type>,t)};
+		basic_io_scatter_t<char_type> scatter{print_scatter_define(io_reserve_type<char_type,value_type>,t)};
 		if constexpr(line)
 		{
 			if constexpr(contiguous_output_stream<output>)
@@ -328,7 +328,7 @@ inline constexpr void print_control(output out,T t)
 	}
 	else if constexpr(printable<char_type,value_type>)
 	{
-		print_define(out,t);
+		print_define(io_reserve_type<char_type,value_type>,out,t);
 		put(out,lfch);
 	}
 	else
@@ -498,7 +498,7 @@ inline constexpr void print_freestanding_decay_no_status(output out,Args ...args
 		}
 	}
 	else if constexpr(sizeof...(Args)==1&&
-		(((!line&&((printable<char_type,Args>||scatter_type_printable<char_type,Args>)&&...))||
+		(((!line&&((printable<char_type,Args>||scatter_printable<char_type,Args>)&&...))||
 		((reserve_printable<char_type,Args>||dynamic_reserve_printable<char_type,Args>)&&...))))
 	{
 		(details::decay::print_control<line>(out,args),...);

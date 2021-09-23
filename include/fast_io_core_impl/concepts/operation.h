@@ -102,19 +102,13 @@ concept precise_reserve_printable=std::integral<char_type>&&(reserve_printable<c
 template<typename char_type,typename T>
 concept printable=requires(::fast_io::details::dummy_buffer_output_stream<char_type> out,T t)
 {
-	print_define(out,t);
+	print_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,out,t);
 };
 
 template<typename char_type,typename T>
 concept scatter_printable=requires(char_type ch,T&& t)
 {
-	{print_scatter_define(print_scatter_type<char_type>,::fast_io::freestanding::forward<T>(t))}->std::convertible_to<io_scatter_t>;
-};
-
-template<typename char_type,typename T>
-concept scatter_type_printable=scatter_printable<char_type,T>&&requires(char_type ch,T&& t)
-{
-	{print_scatter_define(print_scatter_type<char_type>,::fast_io::freestanding::forward<T>(t))}->std::convertible_to<basic_io_scatter_t<char_type>>;
+	{print_scatter_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,::fast_io::freestanding::forward<T>(t))}->std::same_as<basic_io_scatter_t<char_type>>;
 };
 
 template<typename T>
@@ -162,11 +156,11 @@ struct parameter
 	T reference;
 };
 
-template<typename output,typename value_type>
-requires printable<typename output::char_type,std::remove_cvref_t<value_type>>
-constexpr void print_define(output out, parameter<value_type> wrapper)
+template<std::integral char_type,typename output,typename value_type>
+requires (printable<char_type,std::remove_cvref_t<value_type>>&&std::is_trivially_copyable_v<output>)
+constexpr void print_define(io_reserve_type_t<char_type,parameter<value_type>>,output out, parameter<value_type> wrapper)
 {
-	print_define(out,wrapper.reference);
+	print_define(io_reserve_type<char_type,std::remove_cvref_t<value_type>>,out,wrapper.reference);
 }
 
 template<std::integral char_type,typename value_type>
@@ -207,9 +201,9 @@ constexpr void print_reserve_precise_define(io_reserve_type_t<char_type,paramete
 
 template<std::integral char_type,typename value_type>
 requires scatter_printable<char_type,std::remove_cvref_t<value_type>>
-constexpr auto print_scatter_define(print_scatter_type_t<char_type>,parameter<value_type> para)
+constexpr auto print_scatter_define(io_reserve_type_t<char_type,parameter<value_type>>,parameter<value_type> para)
 {
-	return print_scatter_define(print_scatter_type<char_type>,para.reference);
+	return print_scatter_define(io_reserve_type<char_type,std::remove_cvref_t<value_type>>,para.reference);
 }
 
 namespace manipulators

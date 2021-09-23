@@ -110,7 +110,7 @@ inline void linux_kpr_raw_write(::fast_io::linux::kern k,void const* start,void 
 template<bool line,std::integral ch_type,typename T>
 inline constexpr void print_status_define_single_line_impl(basic_kpr<ch_type> kpr,T t)
 {
-	basic_io_scatter_t<ch_type> scatter{print_scatter_define(print_scatter_type<ch_type>,t)};
+	basic_io_scatter_t<ch_type> scatter{print_scatter_define(io_reserve_type<ch_type,T>,t)};
 	auto base{scatter.base};
 	linux_kpr_raw_write<line>(kpr.level,base,base+scatter.len);
 }
@@ -188,7 +188,7 @@ struct kpr_scatter_struct
 template<std::integral char_type,typename T,typename... Args>
 inline void kpr_scatter_print_recursive(kpr_scatter_struct* p,T t,Args ...args)
 {
-	auto scatter{print_scatter_define(print_scatter_type<char_type>,t)};
+	auto scatter{print_scatter_define(io_reserve_type<char_type,T>,t)};
 	std::size_t len{scatter.len*sizeof(char_type)};
 	constexpr int int_max{std::numeric_limits<int>::max()};
 	if(len>int_max)
@@ -201,9 +201,9 @@ inline void kpr_scatter_print_recursive(kpr_scatter_struct* p,T t,Args ...args)
 template<std::integral char_type,typename T,typename... Args>
 inline void kpr_scatter_reserve_print_recursive(kpr_scatter_struct* p,char_type* buffer,T t,Args ...args)
 {
-	if constexpr(scatter_type_printable<char_type,T>)
+	if constexpr(scatter_printable<char_type,T>)
 	{
-		auto scatter{print_scatter_define(print_scatter_type<char_type>,t)};
+		auto scatter{print_scatter_define(io_reserve_type<char_type,T>,t)};
 		std::size_t len{scatter.len*sizeof(char_type)};
 		constexpr int int_max{std::numeric_limits<int>::max()};
 		if(len>int_max)
@@ -218,7 +218,7 @@ inline void kpr_scatter_reserve_print_recursive(kpr_scatter_struct* p,char_type*
 	}
 	if constexpr(sizeof...(Args)!=0)
 	{
-		if constexpr((scatter_type_printable<char_type,Args>&&...))
+		if constexpr((scatter_printable<char_type,Args>&&...))
 			kpr_scatter_print_recursive<char_type>(p,args...);
 		else
 			kpr_scatter_reserve_print_recursive(p,buffer,args...);
@@ -248,7 +248,7 @@ inline constexpr bool kpr_total_print_reserve_size_less_or_equal_than512(std::si
 		if(size>512)
 			return false;
 	}
-	else if constexpr(!scatter_type_printable<char_type,T>)
+	else if constexpr(!scatter_printable<char_type,T>)
 		return false;
 	if constexpr(sizeof...(Args)==0)
 	{
@@ -276,7 +276,7 @@ inline void deal_with_kpr_ignore_line(char const* fmt_str,Args ...args)
 	else
 	{
 		kpr_scatter_struct buffer[n];
-		if constexpr((scatter_type_printable<char_type,Args>&&...))
+		if constexpr((scatter_printable<char_type,Args>&&...))
 		{
 			kpr_scatter_print_recursive<char_type>(buffer+n,args...);
 			deal_with_kpr_fmt_real<n>(fmt_str,buffer);

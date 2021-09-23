@@ -129,15 +129,6 @@ using io_generator_type_t=io_reserve_type_t<char_type,T,io_reserve_flags::genera
 template<std::integral char_type,typename T>
 inline constexpr io_generator_type_t<char_type,T> io_generator_type{};
 
-template<typename T>
-struct print_scatter_type_t
-{
-explicit constexpr print_scatter_type_t() noexcept =default;
-};
-
-template<typename T>
-inline constexpr print_scatter_type_t<T> print_scatter_type{};
-
 struct io_alias_t
 {
 explicit constexpr io_alias_t() noexcept =default;

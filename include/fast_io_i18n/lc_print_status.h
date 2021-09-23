@@ -24,16 +24,11 @@ inline constexpr auto print_reserve_define(basic_lc_all<char_type> const* __rest
 {
 	return print_reserve_define(all,begin,para.reference);
 }
+
 template<typename char_type,typename T>
 concept lc_scatter_printable=requires(basic_lc_all<char_type> const* all,T t)
 {
-	{print_scatter_define(all,t)}->std::convertible_to<io_scatter_t>;
-};
-
-template<typename char_type,typename T>
-concept lc_scatter_type_printable=lc_scatter_printable<char_type,T>&&requires(basic_lc_all<char_type> const* all,T t)
-{
-	{print_scatter_define(all,t)}->std::convertible_to<basic_io_scatter_t<char_type>>;
+	{print_scatter_define(all,t)}->std::same_as<basic_io_scatter_t<char_type>>;
 };
 
 template<typename char_type,typename T>
@@ -93,8 +88,8 @@ inline constexpr void lc_scatter_print_with_dynamic_reserve_recursive(
 		if constexpr(sizeof...(Args)!=0)
 			dynamic_buffer_ptr = end_ptr;
 	}
-	else if constexpr(scatter_type_printable<char_type,T>)
-		*arr=print_scatter_define(print_scatter_type<char_type>,t);
+	else if constexpr(scatter_printable<char_type,T>)
+		*arr=print_scatter_define(io_reserve_type<char_type,T>,t);
 	else if constexpr(reserve_printable<char_type,T>)
 	{
 		auto end_ptr = print_reserve_define(io_reserve_type<char_type,T>,ptr,t);
@@ -144,7 +139,7 @@ inline constexpr void lc_print_control(basic_lc_all<typename output::char_type> 
 {
 	using char_type = typename output::char_type;
 	using value_type = std::remove_cvref_t<T>;
-	if constexpr(lc_scatter_type_printable<char_type,value_type>)
+	if constexpr(lc_scatter_printable<char_type,value_type>)
 	{
 		basic_io_scatter_t<char_type> scatter{print_scatter_define(lc,t)};
 		if constexpr(line)
@@ -246,7 +241,7 @@ inline constexpr void lc_scatter_print_recursive(basic_lc_all<char_type> const* 
 	if constexpr(lc_scatter_printable<char_type,T>)
 		*arr=print_scatter_define(lc,t);
 	else
-		*arr=print_scatter_define(print_scatter_type<char_type>,t);
+		*arr=print_scatter_define(io_reserve_type<char_type,T>,t);
 	if constexpr(sizeof...(Args)!=0)
 	{
 		if constexpr(((!lc_scatter_printable<char_type,Args>)&&...))
@@ -356,7 +351,7 @@ inline constexpr void lc_print_status_define_further_decay(basic_lc_all<typename
 	}
 	else if constexpr(sizeof...(Args)==1&&!ln
 	&&((printable<output,Args>||
-	scatter_type_printable<char_type,Args>||lc_scatter_type_printable<char_type,Args>||
+	scatter_printable<char_type,Args>||lc_scatter_printable<char_type,Args>||
 	lc_dynamic_reserve_printable<char_type,Args>||
 	reserve_printable<char_type,Args>||dynamic_reserve_printable<char_type,Args>
 	)&&...)
@@ -374,7 +369,14 @@ inline constexpr void lc_print_status_define_further_decay(basic_lc_all<typename
 
 }
 
+template<typename char_type,typename... Args>
+concept lc_print_status_define_okay_character_type = std::integral<char_type>&&(
+	print_freestanding_decay_okay_character_type_no_status<char_type,Args...>||
+	((lc_printable<char_type,Args>||lc_dynamic_reserve_printable<char_type,Args>||
+	lc_scatter_printable<char_type,Args>)&&...));
+
 template<bool line,output_stream output,typename... Args>
+requires lc_print_status_define_okay_character_type<typename output::char_type,Args...>
 inline constexpr void print_status_define(lc_imbuer<output> imb,Args... args)
 {
 	::fast_io::details::decay::lc_print_status_define_further_decay<line>(imb.all,imb.handle,args...);

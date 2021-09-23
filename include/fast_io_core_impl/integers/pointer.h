@@ -36,11 +36,27 @@ inline constexpr chvw_t<T const*> chvw(T const* ch) noexcept
 {
 	return {ch};
 }
-
+#if 0
+template<std::integral T>
+inline constexpr basic_io_scatter_t<T> chvw(T const* ch,std::size_t n) noexcept
+{
+	return {ch,
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_strnlen)
+	__builtin_strnlen(ch,n)
+#else
+	::std::strnlen(ch,n)
+#endif
+#else
+	::std::strnlen(ch,n)
+#endif
+	};
+}
+#endif
 }
 
 template<std::integral char_type>
-inline constexpr basic_io_scatter_t<char_type> print_scatter_define(print_scatter_type_t<char_type>,basic_io_scatter_t<char_type> iosc) noexcept
+inline constexpr basic_io_scatter_t<char_type> print_scatter_define(io_reserve_type_t<char_type,basic_io_scatter_t<char_type>>,basic_io_scatter_t<char_type> iosc) noexcept
 {
 	return iosc;
 }
