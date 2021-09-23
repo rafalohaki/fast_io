@@ -46,8 +46,6 @@ inline constexpr std::size_t calculate_scatter_reserve_size()
 		calculate_scatter_reserve_size<char_type,Args...>());
 }
 
-
-
 template<std::integral char_type,typename T,typename... Args>
 inline constexpr std::size_t calculate_scatter_dynamic_reserve_size([[maybe_unused]] T t,Args... args)
 {

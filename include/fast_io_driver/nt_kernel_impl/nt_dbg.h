@@ -48,7 +48,7 @@ __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
 #endif
-extern std::uint32_t DbgPrint(char const* fmt,...) noexcept
+extern std::uint32_t DbgPrint(char8_t const* fmt,...) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
 #if !defined(__clang__)
@@ -67,7 +67,7 @@ __declspec(dllimport)
 #elif __has_cpp_attribute(gnu::dllimport)
 [[gnu::dllimport]]
 #endif
-extern std::uint32_t DbgPrintEx(std::uint32_t comment,std::uint32_t level,char const* fmt,...) noexcept
+extern std::uint32_t DbgPrintEx(std::uint32_t comment,std::uint32_t level,char8_t const* fmt,...) noexcept
 #if defined(__clang__) || defined(__GNUC__)
 #if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
 #if !defined(__clang__)
@@ -135,7 +135,7 @@ BREAKPOINT_PRINT
 		.MaximumLength=u16alignment_size,
 		.Buffer=nullptr
 	};
-	constexpr char const* fmt{std::same_as<char_type,char16_t>?"%wZ":"%Z"};
+	constexpr char8_t const* fmt{std::same_as<char_type,char16_t>?u8"%wZ":u8"%Z"};
 	std::size_t i{};
 #if _WIN32_WINNT >= 0x0501
 	std::uint32_t const comment_id{service.comment_id};
