@@ -9,7 +9,7 @@ namespace details::decay
 template<std::integral char_type,typename T,typename... Args>
 inline constexpr std::size_t lc_calculate_scatter_dynamic_reserve_size_with_scatter(basic_lc_all<char_type> const* all,[[maybe_unused]] T t,Args... args)
 {
-	if constexpr((!(lc_dynamic_reserve_printable<char_type,T>||lc_scatter_type_printable<char_type,T>)&&((!(lc_dynamic_reserve_printable<char_type,Args>||lc_scatter_type_printable<char_type,Args>))&&...)))
+	if constexpr((!(lc_dynamic_reserve_printable<char_type,T>||lc_scatter_printable<char_type,T>)&&((!(lc_dynamic_reserve_printable<char_type,Args>||lc_scatter_printable<char_type,Args>))&&...)))
 		return calculate_scatter_dynamic_reserve_size_with_scatter(t,args...);
 	else if constexpr(lc_dynamic_reserve_printable<char_type,T>)
 	{
@@ -19,7 +19,7 @@ inline constexpr std::size_t lc_calculate_scatter_dynamic_reserve_size_with_scat
 		else
 			return ::fast_io::details::intrinsics::add_or_overflow_die(res,lc_calculate_scatter_dynamic_reserve_size_with_scatter<char_type>(all,args...));
 	}
-	else if constexpr(lc_scatter_type_printable<char_type,T>)
+	else if constexpr(lc_scatter_printable<char_type,T>)
 	{
 		std::size_t res{print_scatter_define(all,t).len};
 		if constexpr(sizeof...(Args)==0)
@@ -35,9 +35,9 @@ inline constexpr std::size_t lc_calculate_scatter_dynamic_reserve_size_with_scat
 		else
 			return ::fast_io::details::intrinsics::add_or_overflow_die(res,lc_calculate_scatter_dynamic_reserve_size_with_scatter<char_type>(all,args...));
 	}
-	else if constexpr(scatter_type_printable<char_type,T>)
+	else if constexpr(scatter_printable<char_type,T>)
 	{
-		std::size_t res{print_scatter_define(print_scatter_type<char_type>,t).len};
+		std::size_t res{print_scatter_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,t).len};
 		if constexpr(sizeof...(Args)==0)
 			return res;
 		else
@@ -55,11 +55,11 @@ inline constexpr std::size_t lc_calculate_scatter_dynamic_reserve_size_with_scat
 template<bool line,typename ptr_type,std::integral char_type,typename T,typename... Args>
 inline constexpr ptr_type lc_print_reserve_define_chain_scatter_impl(basic_lc_all<char_type> const* all,ptr_type p,T t,Args ...args)
 {
-	if constexpr((!(lc_dynamic_reserve_printable<char_type,T>||lc_scatter_type_printable<char_type,T>)&&((!(lc_dynamic_reserve_printable<char_type,Args>||lc_scatter_type_printable<char_type,Args>))&&...)))
+	if constexpr((!(lc_dynamic_reserve_printable<char_type,T>||lc_scatter_printable<char_type,T>)&&((!(lc_dynamic_reserve_printable<char_type,Args>||lc_scatter_printable<char_type,Args>))&&...)))
 		return print_reserve_define_chain_scatter_impl<line>(p,t,args...);
 	else if constexpr(lc_dynamic_reserve_printable<char_type,T>)
 		p = print_reserve_define(all,p,t);
-	else if constexpr(lc_scatter_type_printable<char_type,T>)
+	else if constexpr(lc_scatter_printable<char_type,T>)
 	{
 		basic_io_scatter_t<char_type> sc{print_scatter_define(all,t)};
 		p = non_overlapped_copy_n(sc.base,sc.len,p);
@@ -68,7 +68,7 @@ inline constexpr ptr_type lc_print_reserve_define_chain_scatter_impl(basic_lc_al
 		p = print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,p,t);
 	else
 	{
-		basic_io_scatter_t<char_type> sc{print_scatter_define(print_scatter_type<char_type>,t)};
+		basic_io_scatter_t<char_type> sc{print_scatter_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,t)};
 		p = non_overlapped_copy_n(sc.base,sc.len,p);
 	}
 	if constexpr(sizeof...(Args)==0)
@@ -108,7 +108,7 @@ inline constexpr T lc_concat_decay_impl(basic_lc_all<typename T::value_type> con
 			return {};
 		}
 	}
-	else if constexpr(((reserve_printable<ch_type,Args>||scatter_type_printable<ch_type,Args>||dynamic_reserve_printable<ch_type,Args>||lc_scatter_type_printable<ch_type,Args>||lc_dynamic_reserve_printable<ch_type,Args>)&&...))
+	else if constexpr(((reserve_printable<ch_type,Args>||scatter_printable<ch_type,Args>||dynamic_reserve_printable<ch_type,Args>||lc_scatter_printable<ch_type,Args>||lc_dynamic_reserve_printable<ch_type,Args>)&&...))
 	{
 		constexpr std::size_t sz_with_line{static_cast<std::size_t>(line)};
 		if constexpr((!line)&&sizeof...(args)==1&&(lc_scatter_printable<ch_type,Args>&&...))

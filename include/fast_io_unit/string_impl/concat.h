@@ -36,9 +36,9 @@ inline constexpr std::size_t calculate_scatter_dynamic_reserve_size_with_scatter
 		else
 			return ::fast_io::details::intrinsics::add_or_overflow_die(res,calculate_scatter_dynamic_reserve_size_with_scatter<char_type>(args...));
 	}
-	else if constexpr(scatter_type_printable<char_type,T>)
+	else if constexpr(scatter_printable<char_type,T>)
 	{
-		std::size_t res{print_scatter_define(print_scatter_type<char_type>,t).len};
+		std::size_t res{print_scatter_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,t).len};
 		if constexpr(sizeof...(Args)==0)
 			return res;
 		else
@@ -61,7 +61,7 @@ inline constexpr ptr_type print_reserve_define_chain_scatter_impl(ptr_type p,T t
 		p = print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,p,t);
 	else
 	{
-		basic_io_scatter_t<char_type> sc{print_scatter_define(print_scatter_type<char_type>,t)};
+		auto sc{print_scatter_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,t)};
 		p = non_overlapped_copy_n(sc.base,sc.len,p);
 	}
 	if constexpr(sizeof...(Args)==0)
@@ -80,7 +80,7 @@ inline constexpr ptr_type print_reserve_define_chain_scatter_impl(ptr_type p,T t
 template<std::integral ch_type,typename T>
 inline constexpr basic_io_scatter_t<ch_type> print_scatter_define_extract_one(T t)
 {
-	return print_scatter_define<ch_type>(print_scatter_type<ch_type>,t);
+	return print_scatter_define(io_reserve_type<ch_type,std::remove_cvref_t<T>>,t);
 }
 
 template<bool line,typename T,typename Arg>
@@ -122,7 +122,7 @@ inline constexpr T basic_concat_decay_impl(Args ...args)
 			return {};
 		}
 	}
-	else if constexpr(((reserve_printable<ch_type,Args>||scatter_type_printable<ch_type,Args>||dynamic_reserve_printable<ch_type,Args>)&&...))
+	else if constexpr(((reserve_printable<ch_type,Args>||scatter_printable<ch_type,Args>||dynamic_reserve_printable<ch_type,Args>)&&...))
 	{
 		constexpr std::size_t sz{calculate_scatter_reserve_size<ch_type,Args...>()};
 		if constexpr(line)

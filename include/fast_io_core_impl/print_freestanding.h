@@ -339,6 +339,11 @@ inline constexpr void print_control(output out,T t)
 }
 
 template<bool ln,output_stream output,typename T,typename... Args>
+#if __has_cpp_attribute(gnu::always_inline)
+[[gnu::always_inline]]
+#elif __has_cpp_attribute(msvc::forceinline)
+[[msvc::forceinline]]
+#endif
 inline constexpr void print_controls_line(output out,T t,Args... args)
 {
 	if constexpr(sizeof...(Args)==0)
@@ -491,10 +496,7 @@ inline constexpr void print_freestanding_decay_no_status(output out,Args ...args
 			put(out,char_literal_v<u8'\n',char_type>);
 		else
 		{
-			if constexpr(line)
-				details::decay::print_controls_line<line>(out,args...);
-			else
-				(details::decay::print_control<line>(out,args),...);
+			details::decay::print_controls_line<line>(out,args...);
 		}
 	}
 	else if constexpr(sizeof...(Args)==1&&
