@@ -193,9 +193,9 @@ inline void kpr_scatter_print_recursive(kpr_scatter_struct* p,T t,Args ...args)
 	constexpr int int_max{std::numeric_limits<int>::max()};
 	if(len>int_max)
 		len=int_max;
-	*p={reinterpret_cast<char const*>(scatter.base),static_cast<int>(len)};
+	*--p={reinterpret_cast<char const*>(scatter.base),static_cast<int>(len)};
 	if constexpr(sizeof...(Args)!=0)
-		kpr_scatter_print_recursive<char_type>(p+1,args...);
+		kpr_scatter_print_recursive<char_type>(p,args...);
 }
 
 template<std::integral char_type,typename T,typename... Args>
@@ -208,20 +208,20 @@ inline void kpr_scatter_reserve_print_recursive(kpr_scatter_struct* p,char_type*
 		constexpr int int_max{std::numeric_limits<int>::max()};
 		if(len>int_max)
 			len=int_max;
-		*p={reinterpret_cast<char const*>(scatter.base),static_cast<int>(len)};
+		*--p={reinterpret_cast<char const*>(scatter.base),static_cast<int>(len)};
 	}
 	else
 	{
 		auto newbufferptr{print_reserve_define(io_reserve_type<char_type,T>,buffer,t)};
-		*p={reinterpret_cast<char const*>(buffer),static_cast<int>(newbufferptr-buffer)};
+		*--p={reinterpret_cast<char const*>(buffer),static_cast<int>(newbufferptr-buffer)};
 		buffer=newbufferptr;
 	}
 	if constexpr(sizeof...(Args)!=0)
 	{
 		if constexpr((scatter_type_printable<char_type,Args>&&...))
-			kpr_scatter_print_recursive<char_type>(p+1,args...);
+			kpr_scatter_print_recursive<char_type>(p,args...);
 		else
-			kpr_scatter_reserve_print_recursive(p+1,buffer,args...);
+			kpr_scatter_reserve_print_recursive(p,buffer,args...);
 	}
 }
 
@@ -278,14 +278,14 @@ inline void deal_with_kpr_ignore_line(char const* fmt_str,Args ...args)
 		kpr_scatter_struct buffer[n];
 		if constexpr((scatter_type_printable<char_type,Args>&&...))
 		{
-			kpr_scatter_print_recursive<char_type>(buffer,args...);
+			kpr_scatter_print_recursive<char_type>(buffer+n,args...);
 			deal_with_kpr_fmt_real<n>(fmt_str,buffer);
 		}
 		else
 		{
 			constexpr std::size_t reserve_size{::fast_io::details::decay::calculate_scatter_reserve_size<char_type,Args...>()};
 			char_type reserve_buffer[reserve_size];
-			kpr_scatter_reserve_print_recursive(buffer,reserve_buffer,args...);
+			kpr_scatter_reserve_print_recursive(buffer+n,reserve_buffer,args...);
 			deal_with_kpr_fmt_real<n>(fmt_str,buffer);
 		}
 	}
