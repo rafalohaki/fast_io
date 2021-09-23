@@ -232,7 +232,7 @@ inline void deal_with_kpr_fmt_real(char const* fmt_str,kpr_scatter_struct* s,Arg
 	if constexpr(n==0)
 		::fast_io::linux::linux_kernel_printk(fmt_str,args...);
 	else
-		deal_with_kpr_fmt_real<n-1>(fmt_str,s+1,s->ptr,s->bytes,args...);
+		deal_with_kpr_fmt_real<n-1>(fmt_str,s+1,s->bytes,s->ptr,args...);
 }
 
 template<std::integral char_type,typename T,typename... Args>
