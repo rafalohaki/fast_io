@@ -41,7 +41,7 @@ struct bio_new_fp_flags
 inline std::FILE* bio_to_fp(BIO* bio) noexcept
 {
 	std::FILE* fp{};
-	::fast_io::noexcept_call(BIO_get_fp,bio,__builtin_addressof(fp));
+	::fast_io::noexcept_call(BIO_ctrl,bio,BIO_C_GET_FILE_PTR,0,reinterpret_cast<char*>(__builtin_addressof(fp)));
 	return fp;
 }
 
@@ -51,7 +51,7 @@ inline int bio_to_fd(BIO* bio) noexcept
 	if(fp==nullptr)
 	{
 		int fd{-1};
-		::fast_io::noexcept_call(BIO_get_fd,bio,__builtin_addressof(fd));
+		::fast_io::noexcept_call(::BIO_ctrl,bio,BIO_C_GET_FD,0,reinterpret_cast<char*>(__builtin_addressof(fd)));
 		return fd;
 	}
 	return ::fast_io::details::fp_to_fd(fp);
@@ -234,6 +234,19 @@ inline BIO* construct_bio_by_args(Args&&... args)
 	}
 }
 
+inline BIO* open_bio_with_fp_phase2(FILE* fp,int om)
+{
+	auto bio{::fast_io::noexcept_call(BIO_new_fp,fp,om)};
+	if(bio==nullptr)[[unlikely]]
+		throw_openssl_error();
+	return bio;
+}
+
+inline BIO* open_bio_with_fp(FILE* fp,::fast_io::open_mode om)
+{
+	return open_bio_with_fp_phase2(fp,calculate_bio_new_fp_flags<true>(om));
+}
+
 }
 
 template<std::integral ch_type>
@@ -284,11 +297,6 @@ public:
 template<std::integral ch_type>
 class basic_bio_file:public basic_bio_io_observer<ch_type>
 {
-	void detect_open_failure()
-	{
-		if(this->bio==nullptr)[[unlikely]]
-			throw_openssl_error();
-	}
 public:
 	using native_handle_type = BIO*;
 	using char_type = ch_type;
@@ -304,23 +312,16 @@ public:
 	}
 	template<c_family family>
 	basic_bio_file(basic_c_family_io_handle<family,char_type>&& bmv,fast_io::open_mode om):
-		basic_bio_io_observer<char_type>{::fast_io::noexcept_call(BIO_new_fp,bmv.fp,details::calculate_bio_new_fp_flags<true>(om))}
+		basic_bio_io_observer<char_type>{::fast_io::details::open_bio_with_fp(bmv.fp,om)}
 	{
-		detect_open_failure();
-		bmv.release();
+		bmv.fp=nullptr;
 	}
 	basic_bio_file(basic_posix_io_handle<char_type>&& bmv,fast_io::open_mode om):
-		basic_bio_io_observer<char_type>{::fast_io::noexcept_call(BIO_new_fd,bmv.fd,details::calculate_bio_new_fp_flags<true>(om))}
-	{
-		detect_open_failure();
-		bmv.release();
-	}
-
-
+		basic_bio_file(basic_c_file(::fast_io::freestanding::move(bmv),om),om){}
 #if (defined(_WIN32)&&!defined(__WINE__)) || defined(__CYGWIN__)
 	template<win32_family family>
-	basic_bio_file(basic_win32_family_io_handle<family,char_type>&& bmv,fast_io::open_mode om):
-		basic_bio_file(basic_posix_file(::fast_io::freestanding::move(bmv),om),om)
+	basic_bio_file(basic_win32_family_io_handle<family,char_type>&& win32_handle,fast_io::open_mode om):
+		basic_bio_file(basic_posix_file(::fast_io::freestanding::move(win32_handle),om),om)
 	{
 	}
 	template<nt_family family>

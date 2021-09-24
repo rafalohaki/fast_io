@@ -65,7 +65,7 @@ inline constexpr auto hash_type_cal() noexcept
 	using enum hash_flag;
 	if constexpr(ctx_type==md2)
 	{
-#ifdef FAST_IO_OPENSSL_ENABLE_MD2
+#if __has_include(<openssl/md2.h>) && defined(MD2_CTX)
 		return hash_native_handle_type_carrier<MD2_CTX>{};
 #else
 		static_assert(ctx_type==md2,"MD2 is dangerous and removed from OpenSSL");
@@ -90,7 +90,7 @@ template<hash_flag ctx_type,typename T>
 inline constexpr auto hash_type_initialize(T* context)
 {
 	using enum hash_flag;
-#ifdef FAST_IO_OPENSSL_ENABLE_MD2
+#if __has_include(<openssl/md2.h>) && defined(MD2_CTX)
 	if constexpr(ctx_type==md2)
 	{
 		if(!MD2_Init(context))
@@ -139,7 +139,7 @@ template<hash_flag ctx_type,typename T>
 inline constexpr auto hash_do_final(T* ctx)
 {
 	using enum hash_flag;
-#ifdef FAST_IO_OPENSSL_ENABLE_MD2
+#if __has_include(<openssl/md2.h>) && defined(MD2_CTX)
 	if constexpr(ctx_type==md2)
 	{
 		hash_final_result<MD2_DIGEST_LENGTH> ret; 

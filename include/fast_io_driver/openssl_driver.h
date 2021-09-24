@@ -3,14 +3,16 @@
 #include<openssl/ssl.h>
 #include<openssl/err.h>
 
-#ifdef FAST_IO_OPENSSL_ENABLE_MD2
+#if __has_include(<openssl/md2.h>)
 #include<openssl/md2.h>
 #endif
 #include<openssl/md4.h>
 #include<openssl/md5.h>
 #include<openssl/sha.h>
 #include<openssl/crypto.h>
+#if __cpp_rtti
 #include<typeinfo>
+#endif
 
 #include"../fast_io_hosted.h"
 #include"../fast_io_legacy_impl/c/impl.h"
