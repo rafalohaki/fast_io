@@ -317,11 +317,11 @@ public:
 		bmv.fp=nullptr;
 	}
 	basic_bio_file(basic_posix_io_handle<char_type>&& bmv,fast_io::open_mode om):
-		basic_bio_file(basic_c_file(::fast_io::freestanding::move(bmv),om),om){}
+		basic_bio_file(basic_c_file<char_type>(::fast_io::freestanding::move(bmv),om),om){}
 #if (defined(_WIN32)&&!defined(__WINE__)) || defined(__CYGWIN__)
 	template<win32_family family>
 	basic_bio_file(basic_win32_family_io_handle<family,char_type>&& win32_handle,fast_io::open_mode om):
-		basic_bio_file(basic_posix_file(::fast_io::freestanding::move(win32_handle),om),om)
+		basic_bio_file(basic_posix_file<char_type>(::fast_io::freestanding::move(win32_handle),om),om)
 	{
 	}
 	template<nt_family family>
@@ -437,13 +437,13 @@ inline posix_file_status bio_status_impl(BIO* bio)
 template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter read(basic_bio_io_observer<ch_type> iob,Iter begin,Iter end)
 {
-	return begin+details::bio_read_impl(iob.bio,::fast_io::freestanding::to_address(begin),(end-begin)*sizeof(*begin))/sizeof(*begin);
+	return begin+details::bio_read_impl(iob.bio,::fast_io::freestanding::to_address(begin),static_cast<std::size_t>(end-begin)*sizeof(*begin))/sizeof(*begin);
 }
 
 template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter write(basic_bio_io_observer<ch_type> iob,Iter begin,Iter end)
 {
-	return begin+details::bio_write_impl(iob.bio,::fast_io::freestanding::to_address(begin),(end-begin)*sizeof(*begin))/sizeof(*begin);
+	return begin+details::bio_write_impl(iob.bio,::fast_io::freestanding::to_address(begin),static_cast<std::size_t>(end-begin)*sizeof(*begin))/sizeof(*begin);
 }
 
 #if __cpp_lib_three_way_comparison >= 201907L
@@ -499,7 +499,7 @@ inline void print_define_openssl_error(output out)
 
 template<output_stream output>
 requires (std::is_trivially_copyable_v<output>&&std::same_as<typename output::char_type,char>)
-inline void print_define(io_reserve_type_t<char,openssl_error>,output out,openssl_error err)
+inline void print_define(io_reserve_type_t<char,openssl_error>,output out,openssl_error)
 {
 	::fast_io::details::print_define_openssl_error(out);
 }
