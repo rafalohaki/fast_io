@@ -106,36 +106,52 @@ struct nt_dbg_carrier
 	std::uint32_t level;
 };
 
-template<std::integral char_type>
-requires (std::same_as<char_type,char>||std::same_as<char_type,char16_t>)
-inline void nt_debug_service_common_impl([[maybe_unused]] nt_dbg_carrier service,void const* first,void const* last) noexcept
+struct nt_fmt_parameter
 {
-/*
-BREAKPOINT_PRINT
-*/
+	bool wide{};
+	bool line{};
+};
+
+inline void nt_debug_service_common_with_line_impl([[maybe_unused]] nt_dbg_carrier service,void const* first,void const* last,nt_fmt_parameter para) noexcept
+{
+	char8_t const* each_fmt;
+	char8_t const* last_fmt;
+	bool wide{para.wide};
+	bool line{para.line};
+	if(wide)
+	{
+		last_fmt=each_fmt=u8"%wZ";
+		if(line)
+			last_fmt=u8"%wZ\n";
+	}
+	else
+	{
+		last_fmt=each_fmt=u8"%Z";
+		if(line)
+			last_fmt=u8"%Z\n";
+	}
 	using char_type_const_may_alias_ptr
 #if __has_cpp_attribute(gnu::may_alias)
 	[[gnu::may_alias]]
 #endif
-	= char_type const*;
+	= char const*;
 	using char_type_may_alias_ptr
 #if __has_cpp_attribute(gnu::may_alias)
 	[[gnu::may_alias]]
 #endif
-	= char_type*;
+	= char*;
 	auto first_char_const_ptr{reinterpret_cast<char_type_const_may_alias_ptr>(first)};
 	auto last_char_const_ptr{reinterpret_cast<char_type_const_may_alias_ptr>(last)};
 	std::size_t n{static_cast<std::size_t>(last_char_const_ptr-first_char_const_ptr)};
 	auto first_char_ptr{const_cast<char_type_may_alias_ptr>(first_char_const_ptr)};
 	constexpr std::size_t alignment_size{static_cast<std::size_t>(512u)};
 	constexpr std::uint16_t u16alignment_size{static_cast<std::uint16_t>(alignment_size)};
-	std::conditional_t<std::same_as<char_type,char16_t>,::fast_io::win32::nt::utf16_string,::fast_io::win32::nt::ansi_string> nstr
+	::fast_io::win32::nt::ansi_string nstr
 	{
 		.Length=u16alignment_size,
 		.MaximumLength=u16alignment_size,
 		.Buffer=nullptr
 	};
-	constexpr char8_t const* fmt{std::same_as<char_type,char16_t>?u8"%wZ":u8"%Z"};
 	std::size_t i{};
 #if _WIN32_WINNT >= 0x0501
 	std::uint32_t const comment_id{service.comment_id};
@@ -145,9 +161,9 @@ BREAKPOINT_PRINT
 	{
 		nstr.Buffer=first_char_ptr+i;
 #if _WIN32_WINNT >= 0x0501
-		::fast_io::win32::nt::DbgPrintEx(comment_id,level,fmt,__builtin_addressof(nstr));
+		::fast_io::win32::nt::DbgPrintEx(comment_id,level,each_fmt,__builtin_addressof(nstr));
 #else
-		::fast_io::win32::nt::DbgPrint(fmt,__builtin_addressof(nstr));
+		::fast_io::win32::nt::DbgPrint(each_fmt,__builtin_addressof(nstr));
 #endif
 	}
 	std::size_t const remain_size{static_cast<std::size_t>(n-i)};
@@ -155,23 +171,23 @@ BREAKPOINT_PRINT
 	nstr.MaximumLength=nstr.Length=u16remain_size;
 	nstr.Buffer=first_char_ptr+i;
 #if _WIN32_WINNT >= 0x0501
-	::fast_io::win32::nt::DbgPrintEx(comment_id,level,fmt,__builtin_addressof(nstr));
+	::fast_io::win32::nt::DbgPrintEx(comment_id,level,last_fmt,__builtin_addressof(nstr));
 #else
-	::fast_io::win32::nt::DbgPrint(fmt,__builtin_addressof(nstr));
+	::fast_io::win32::nt::DbgPrint(last_fmt,__builtin_addressof(nstr));
 #endif
-
 }
 
-template<std::integral char_type>
+template<bool line,std::integral char_type>
 #if __has_cpp_attribute(gnu::cold)
 [[gnu::cold]]
 #endif
 inline void nt_debug_service_impl(nt_dbg_carrier service,void const* first,void const* last) noexcept
 {
-	if constexpr(sizeof(char_type)==sizeof(char16_t))
-		nt_debug_service_common_impl<char16_t>(service,first,last);
+	static_assert(!is_ebcdic<char_type>||(is_ebcdic<char_type>&&!line));
+	if constexpr(sizeof(char_type)==sizeof(char16_t)&&(!is_ebcdic<char_type>))
+		nt_debug_service_common_with_line_impl(service,first,last,{true,line});
 	else
-		nt_debug_service_common_impl<char>(service,first,last);
+		nt_debug_service_common_with_line_impl(service,first,last,{false,line});
 }
 
 }
@@ -179,7 +195,14 @@ inline void nt_debug_service_impl(nt_dbg_carrier service,void const* first,void 
 template<std::integral char_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline void write(basic_nt_dbg<char_type> service,Iter first,Iter last) noexcept
 {
-	::fast_io::details::nt_debug_service_impl<char_type>({service.comment_id,service.level},::fast_io::freestanding::to_address(first),::fast_io::freestanding::to_address(last));
+	::fast_io::details::nt_debug_service_impl<false,char_type>({service.comment_id,service.level},::fast_io::freestanding::to_address(first),::fast_io::freestanding::to_address(last));
+}
+
+template<std::integral char_type,::fast_io::freestanding::contiguous_iterator Iter>
+requires (!::fast_io::details::is_ebcdic<char_type>)
+inline void writeln(basic_nt_dbg<char_type> service,Iter first,Iter last) noexcept
+{
+	::fast_io::details::nt_debug_service_impl<true,char_type>({service.comment_id,service.level},::fast_io::freestanding::to_address(first),::fast_io::freestanding::to_address(last));
 }
 
 using nt_dbg = basic_nt_dbg<char>;

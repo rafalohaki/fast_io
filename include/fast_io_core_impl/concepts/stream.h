@@ -13,6 +13,12 @@ template<typename T>
 concept output_stream = stream<T>&&details::output_stream_impl<T>;
 
 template<typename T>
+concept output_stream_with_writeln = output_stream<T>&&requires(T&& t,typename std::remove_cvref_t<T>::char_type const* p)
+{
+	writeln(t,p,p);
+};
+
+template<typename T>
 concept mutex_stream = stream<T>&&details::mutex_stream_impl<T>;
 
 template<typename T>

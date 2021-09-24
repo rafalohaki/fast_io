@@ -140,40 +140,7 @@ inline constexpr void lc_print_control(basic_lc_all<typename output::char_type> 
 	using char_type = typename output::char_type;
 	using value_type = std::remove_cvref_t<T>;
 	if constexpr(lc_scatter_printable<char_type,value_type>)
-	{
-		basic_io_scatter_t<char_type> scatter{print_scatter_define(lc,t)};
-		if constexpr(line)
-		{
-			if constexpr(buffer_output_stream<output>)
-			{
-				auto curr=obuffer_curr(out);
-				auto end=obuffer_end(out);
-				std::size_t const len{scatter.len};
-				std::ptrdiff_t const diff(end-curr-1);
-				if(static_cast<std::ptrdiff_t>(len)<diff)[[likely]]
-				{
-					curr=non_overlapped_copy_n(scatter.base,len,curr);
-					*curr=char_literal_v<u8'\n',char_type>;
-					++curr;
-					obuffer_set_curr(out,curr);
-				}
-				else
-				{
-					write(out,scatter.base,scatter.base+scatter.len);
-					put(out,char_literal_v<u8'\n',char_type>);
-				}
-			}
-			else
-			{
-				write(out,scatter.base,scatter.base+scatter.len);
-				put(out,char_literal_v<u8'\n',char_type>);
-			}
-		}
-		else
-		{
-			write(out,scatter.base,scatter.base+scatter.len);
-		}
-	}
+		print_control<line>(out,print_scatter_define(lc,t));
 	else if constexpr(lc_dynamic_reserve_printable<char_type,value_type>)
 	{
 		std::size_t sz{print_reserve_size(lc,t)};

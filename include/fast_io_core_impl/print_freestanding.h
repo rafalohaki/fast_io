@@ -172,8 +172,10 @@ inline constexpr void print_control(output out,T t)
 	{
 		basic_io_scatter_t<char_type> scatter{print_scatter_define(io_reserve_type<char_type,value_type>,t)};
 		if constexpr(line)
-		{
-			if constexpr(contiguous_output_stream<output>)
+		{		
+			if constexpr(output_stream_with_writeln<output>)
+				writeln(out,scatter.base,scatter.base+scatter.len);
+			else if constexpr(contiguous_output_stream<output>)
 			{
 				auto curr=obuffer_curr(out);
 				auto end=obuffer_end(out);
@@ -205,7 +207,7 @@ inline constexpr void print_control(output out,T t)
 					put(out,lfch);
 				}
 			}
-			else
+			else 
 			{
 				write(out,scatter.base,scatter.base+scatter.len);
 				write(out,__builtin_addressof(lfch),
@@ -442,6 +444,7 @@ inline constexpr void print_fallback(output out,Args ...args)
 			print_with_virtual_device<line>(construct_virtual_device_from_output_stream(out),args...);
 		}
 	}
+
 }
 
 }
@@ -500,7 +503,7 @@ inline constexpr void print_freestanding_decay_no_status(output out,Args ...args
 		}
 	}
 	else if constexpr(sizeof...(Args)==1&&
-		(((!line&&((printable<char_type,Args>||scatter_printable<char_type,Args>)&&...))||
+		((((!line||output_stream_with_writeln<output>)&&((printable<char_type,Args>||scatter_printable<char_type,Args>)&&...))||
 		((reserve_printable<char_type,Args>||dynamic_reserve_printable<char_type,Args>)&&...))))
 	{
 		(details::decay::print_control<line>(out,args),...);

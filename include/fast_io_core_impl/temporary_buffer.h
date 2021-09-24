@@ -42,6 +42,8 @@ template<typename output>
 inline constexpr void flush(temporary_buffer<output>& out)
 {
 	auto start{out.buffer};
+	if(out.pos==0)
+		return;
 	write(out.out,start,start+out.pos);
 	out.pos=0;
 }
@@ -58,7 +60,7 @@ inline constexpr void obuffer_overflow(temporary_buffer<output>& out,typename ou
 	out.pos=1;
 }
 
-template<typename output>
+template<bool line,typename output>
 #if __has_cpp_attribute(gnu::cold)
 [[gnu::cold]]
 #endif
@@ -66,22 +68,65 @@ inline constexpr void temporary_buffer_write_cold_path(temporary_buffer<output>&
 	typename output::char_type const* first,
 	typename output::char_type const* last)
 {
+	using char_type = typename output::char_type;
 	auto start{out.buffer};
 	std::size_t const pos{out.pos};
-	std::size_t const remain_space{static_cast<std::size_t>(temporary_buffer<output>::buffer_size-pos)};
+	constexpr std::size_t buffsz{temporary_buffer<output>::buffer_size};
+	constexpr std::size_t buffszm1{buffsz-1};
+	std::size_t const remain_space{static_cast<std::size_t>(buffsz-pos)};
+	if constexpr(line)
+	{
+		std::size_t diff{static_cast<std::size_t>(last-first)};
+		std::size_t diffp1{diff};
+		++diffp1;
+		if(diffp1==remain_space)
+		{
+			non_overlapped_copy_n(first,diff,start+pos);
+			out.buffer[buffszm1]=char_literal_v<u8'\n',char_type>;
+			write(out,start,start+buffsz);
+			out.pos=0;
+			return;
+		}
+
+	}
 	non_overlapped_copy_n(first,remain_space,start+pos);
 	first+=remain_space;
-	write(out.out,start,start+temporary_buffer<output>::buffer_size);
+	write(out.out,start,start+buffsz);
 	out.pos=0;
 	std::size_t const new_diff{static_cast<std::size_t>(last-first)};
-	if(new_diff<temporary_buffer<output>::buffer_size)
+	if constexpr(line)
 	{
-		non_overlapped_copy_n(first,new_diff,start);
-		out.pos=new_diff;
+		if(new_diff<buffszm1)
+		{
+			non_overlapped_copy_n(first,new_diff,start);
+			*(out.pos=new_diff)=char_literal_v<u8'\n',char_type>;
+			++out.pos;
+		}
+		else
+		{
+			if constexpr(output_stream_with_writeln<output>)
+			{
+				writeln(out.out,first,last);
+			}
+			else
+			{
+				write(out.out,first,last);
+				*out.buffer=char_literal_v<u8'\n',char_type>;
+				out.pos=0;
+			}
+		}
 	}
 	else
 	{
-		write(out.out,first,last);	//write remaining characters
+		if(new_diff<buffsz)
+		{
+			non_overlapped_copy_n(first,new_diff,start);
+			out.pos=new_diff;
+		}
+		else
+		{
+			write(out.out,first,last);	//write remaining characters
+		}
 	}
 }
 
@@ -97,10 +142,30 @@ inline constexpr void write(temporary_buffer<output>& out,
 #if __has_cpp_attribute(unlikely)
 [[unlikely]]
 #endif
-		return temporary_buffer_write_cold_path(out,first,last);
+		return temporary_buffer_write_cold_path<false>(out,first,last);
 	auto start{out.buffer};
 	non_overlapped_copy_n(first,ptr_diff,start+pos);
 	out.pos+=ptr_diff;
+}
+
+template<typename output>
+inline constexpr void writeln(temporary_buffer<output>& out,
+	typename output::char_type const* first,
+	typename output::char_type const* last)
+{
+	using char_type = typename output::char_type;
+	std::size_t const pos{out.pos};
+	std::size_t const remain_space{temporary_buffer<output>::buffer_size-pos};
+	std::size_t const ptr_diff{static_cast<std::size_t>(last-first)};
+	if(remain_space<ptr_diff)
+#if __has_cpp_attribute(unlikely)
+[[unlikely]]
+#endif
+		return temporary_buffer_write_cold_path<true>(out,first,last);
+	auto start{out.buffer};
+	non_overlapped_copy_n(first,ptr_diff,start+pos);
+	*(out.pos+=ptr_diff)=char_literal_v<u8'\n',char_type>;
+	++out.pos;
 }
 
 template<std::integral ch_type>
