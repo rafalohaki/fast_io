@@ -3,7 +3,7 @@
 namespace fast_io
 {
 
-class openssl_error:public std::exception
+class openssl_error
 {
 public:
 #if 0

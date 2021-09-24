@@ -526,12 +526,6 @@ explicit constexpr native_interface_t() noexcept=default;
 };
 inline constexpr native_interface_t native_interface{};
 
-struct io_cookie_t
-{
-explicit constexpr io_cookie_t() noexcept=default;
-};
-inline constexpr io_cookie_t io_cookie{};
-
 struct io_async_t
 {
 explicit constexpr io_async_t() noexcept=default;

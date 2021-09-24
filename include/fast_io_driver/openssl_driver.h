@@ -18,8 +18,12 @@
 #include"openssl_driver/observer.h"
 #include"openssl_driver/error.h"
 #include"openssl_driver/bio.h"
+#if 0
 #include"openssl_driver/ossl_lib_context.h"
 #include"openssl_driver/context.h"
 #include"openssl_driver/ssl.h"
+#endif
 #include"openssl_driver/sha.h"
+#if 0
 #include"openssl_driver/evp.h"
+#endif

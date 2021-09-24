@@ -216,33 +216,33 @@ https://linux.die.net/man/3/pem_read_rsa_pubkey
 
 template<output_stream output>
 requires (std::same_as<typename std::remove_cvref_t<output>::char_type,char>&&(std::derived_from<std::remove_cvref_t<output>,bio_io_observer>||buffer_output_stream<std::remove_cvref_t<output>>))
-inline void print_define(output& out,private_key const& key)
+inline void print_define(io_reserve_type_t<typename output::char_type,private_key>,output out,private_key const& key)
 {
 	if constexpr(std::derived_from<std::remove_cvref_t<output>,bio_io_observer>)
 	{
-		if(!PEM_write_bio_PrivateKey(out.native_handle(),key.x.native_handle(),key.enc,key.kstr,key.klen,key.cb,key.u))
+		if(!noexcept_call(PEM_write_bio_PrivateKey,out.bio,key.x.key,key.enc,key.kstr,key.klen,key.cb,key.u))
 			throw_openssl_error();
 	}
 	else
 	{
-		bio_file bf(io_cookie,out);
-		print_define(bf,key);
+		bio_file bf(io_cookie_type<output>,out);
+		print_freestanding(bf,key);
 	}	
 }
 
 template<output_stream output>
 requires (std::same_as<typename std::remove_cvref_t<output>::char_type,char>&&(std::derived_from<std::remove_cvref_t<output>,bio_io_observer>||buffer_output_stream<std::remove_cvref_t<output>>))
-inline void print_define(output& out,public_key const& key)
+inline void print_define(io_reserve_type_t<typename output::char_type,public_key>,output out,public_key key)
 {
 	if constexpr(std::derived_from<std::remove_cvref_t<output>,bio_io_observer>)
 	{
-		if(!PEM_write_bio_PUBKEY(out.native_handle(),key.x.native_handle()))
+		if(!noexcept_call(PEM_write_bio_PUBKEY,out.bio,key.x.key))
 			throw_openssl_error();
 	}
 	else
 	{
 		bio_file bf(io_cookie,out);
-		print_define(bf,key);
+		print_freestanding(bf,key);
 	}
 }
 

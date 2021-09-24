@@ -20,7 +20,7 @@ public:
 	constexpr hash_final_result() noexcept=default;
 	constexpr hash_final_result(hash_final_result const&) noexcept=default;
 	constexpr hash_final_result& operator=(hash_final_result const&) noexcept=default;
-	~hash_final_result()
+	constexpr ~hash_final_result()
 	{
 		secure_clear(digest_block.data(),N);
 	}
