@@ -41,7 +41,7 @@ struct bio_new_fp_flags
 inline std::FILE* bio_to_fp(BIO* bio) noexcept
 {
 	std::FILE* fp{};
-	BIO_get_fp(bio,__builtin_addressof(fp));
+	::fast_io::noexcept_call(BIO_get_fp,bio,__builtin_addressof(fp));
 	return fp;
 }
 
@@ -51,7 +51,7 @@ inline int bio_to_fd(BIO* bio) noexcept
 	if(fp==nullptr)
 	{
 		int fd{-1};
-		BIO_get_fd(bio,__builtin_addressof(fd));
+		::fast_io::noexcept_call(BIO_get_fd,bio,__builtin_addressof(fd));
 		return fd;
 	}
 	return ::fast_io::details::fp_to_fd(fp);
@@ -414,7 +414,7 @@ namespace details
 inline std::size_t bio_read_impl(BIO* bio,void* address,std::size_t size)
 {
 	std::size_t read_bytes{};
-	if(noexcept_call(BIO_read_ex,bio,address,size,__builtin_addressof(read_bytes))==-1)
+	if(::fast_io::noexcept_call(BIO_read_ex,bio,address,size,__builtin_addressof(read_bytes))==-1)
 		throw_openssl_error();
 	return read_bytes;
 }
@@ -422,7 +422,7 @@ inline std::size_t bio_read_impl(BIO* bio,void* address,std::size_t size)
 inline std::size_t bio_write_impl(BIO* bio,void const* address,std::size_t size)
 {
 	std::size_t written_bytes{};
-	if(noexcept_call(BIO_write_ex,bio,address,size,__builtin_addressof(written_bytes))==-1)
+	if(::fast_io::noexcept_call(BIO_write_ex,bio,address,size,__builtin_addressof(written_bytes))==-1)
 		throw_openssl_error();
 	return written_bytes;
 }
@@ -477,9 +477,6 @@ inline constexpr posix_file_status status(basic_bio_io_observer<ch_type> bio)
 	return details::bio_status_impl(bio.bio);
 }
 
-static_assert(input_stream<bio_file>);
-static_assert(output_stream<bio_file>);
-
 namespace details
 {
 
@@ -488,12 +485,12 @@ inline void print_define_openssl_error(output out)
 {
 	if constexpr(std::same_as<output,bio_io_observer>)
 	{
-		noexcept_call(ERR_print_errors,out.bio);
+		::fast_io::noexcept_call(ERR_print_errors,out.bio);
 	}
 	else
 	{
 		bio_file bf(io_cookie_type<output>,out);
-		noexcept_call(ERR_print_errors,bf.bio);		
+		::fast_io::noexcept_call(ERR_print_errors,bf.bio);		
 	}
 }
 
