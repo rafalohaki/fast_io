@@ -15,11 +15,15 @@ struct basic_decorators
 	using internal_type = ch_type;
 	using internal_decorator_type=internaltype;
 	using external_decorator_type=externaltype;
-#if __has_cpp_attribute(no_unique_address) >= 201803
+#if __has_cpp_attribute(msvc::no_unique_address)
+	[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
 	[[no_unique_address]]
 #endif
 	internal_decorator_type internal_decorator;
-#if __has_cpp_attribute(no_unique_address) >= 201803
+#if __has_cpp_attribute(msvc::no_unique_address)
+	[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
 	[[no_unique_address]]
 #endif
 	external_decorator_type external_decorator;
@@ -158,26 +162,36 @@ public:
 	[[no_unique_address]]
 #endif
 	ibuffer_type ibuffer;
-#if __has_cpp_attribute(no_unique_address) >= 201803L
+#if __has_cpp_attribute(msvc::no_unique_address)
+	[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
 	[[no_unique_address]]
 #endif
 	obuffer_type obuffer;
 
-#if __has_cpp_attribute(no_unique_address) >= 201803L
+#if __has_cpp_attribute(msvc::no_unique_address)
+	[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
 	[[no_unique_address]]
 #endif
 	ibuffer_external_type ibuffer_external;
 
-#if __has_cpp_attribute(no_unique_address) >= 201803L
+#if __has_cpp_attribute(msvc::no_unique_address)
+	[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
 	[[no_unique_address]]
 #endif
 	obuffer_external_type obuffer_external;
 
-#if __has_cpp_attribute(no_unique_address) >= 201803L
+#if __has_cpp_attribute(msvc::no_unique_address)
+	[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
 	[[no_unique_address]]
 #endif
 	handle_type handle;
-#if __has_cpp_attribute(no_unique_address) >= 201803L
+#if __has_cpp_attribute(msvc::no_unique_address)
+	[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
 	[[no_unique_address]]
 #endif
 	decorators_type decorators;

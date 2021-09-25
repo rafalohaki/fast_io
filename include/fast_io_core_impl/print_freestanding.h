@@ -349,13 +349,14 @@ template<bool ln,output_stream output,typename T,typename... Args>
 inline constexpr void print_controls_line(output out,T t,Args... args)
 {
 	if constexpr(sizeof...(Args)==0)
-	{
 		print_control<ln>(out,t);
+	else if constexpr(ln)
+	{
+		print_controls_line<ln>(out,args...);
 	}
 	else
 	{
-		print_control<false>(out,t);
-		print_controls_line<ln>(out,args...);
+		(print_control<false>(out,args),...);
 	}
 }
 
@@ -365,7 +366,14 @@ inline void print_with_virtual_device(basic_virtual_output_device<char_type> dev
 	basic_virtual_temporary_buffer<char_type> buffer;
 	buffer.out=device;
 	auto ref{io_ref(buffer)};
-	print_controls_line<line>(ref,args...);
+	if constexpr(line)
+	{
+		print_controls_line<line>(ref,args...);
+	}
+	else
+	{
+		(print_control<false>(ref,args),...);
+	}
 	flush(buffer);
 }
 
@@ -499,18 +507,32 @@ inline constexpr void print_freestanding_decay_no_status(output out,Args ...args
 			put(out,char_literal_v<u8'\n',char_type>);
 		else
 		{
-			details::decay::print_controls_line<line>(out,args...);
+			if constexpr(line)
+			{
+				::fast_io::details::decay::print_controls_line<line>(out,args...);
+			}
+			else
+			{
+				(::fast_io::details::decay::print_control<false>(out,args),...);
+			}
 		}
 	}
 	else if constexpr(sizeof...(Args)==1&&
 		((((!line||output_stream_with_writeln<output>)&&((printable<char_type,Args>||scatter_printable<char_type,Args>)&&...))||
 		((reserve_printable<char_type,Args>||dynamic_reserve_printable<char_type,Args>)&&...))))
 	{
-		(details::decay::print_control<line>(out,args),...);
+		if constexpr(line)
+		{
+			::fast_io::details::decay::print_controls_line<line>(out,args...);
+		}
+		else
+		{
+			(::fast_io::details::decay::print_control<false>(out,args),...);
+		}
 	}
 	else
 	{
-		details::decay::print_fallback<line>(out,args...);
+		::fast_io::details::decay::print_fallback<line>(out,args...);
 	}
 }
 

@@ -201,7 +201,16 @@ inline constexpr void lc_print_controls_line(basic_lc_all<typename output::char_
 		if constexpr(((lc_scatter_printable<char_type,Args>||
 		lc_dynamic_reserve_printable<char_type,Args>||
 		lc_printable<char_type,Args>)||...))
-			lc_print_controls_line<line>(lc,out,args...);
+		{
+			if constexpr(line)
+			{
+				lc_print_controls_line<line>(lc,out,args...);
+			}
+			else
+			{
+				(lc_print_control<false>(lc,out,args),...);
+			}
+		}
 		else
 			print_controls_line<line>(out,args...);
 	}
@@ -315,13 +324,10 @@ inline constexpr void lc_print_status_define_further_decay(basic_lc_all<typename
 		}
 		else
 		{
-			if constexpr(ln)
-				lc_print_controls_line<ln>(lc,out,args...);
-			else
-				(lc_print_control<ln>(lc,out,args),...);
+			lc_print_controls_line<ln>(lc,out,args...);
 		}
 	}
-	else if constexpr(sizeof...(Args)==1&&!ln
+	else if constexpr(sizeof...(Args)==1&&(!ln||output_stream_with_writeln<output>)
 	&&((printable<output,Args>||
 	scatter_printable<char_type,Args>||lc_scatter_printable<char_type,Args>||
 	lc_dynamic_reserve_printable<char_type,Args>||
@@ -329,7 +335,7 @@ inline constexpr void lc_print_status_define_further_decay(basic_lc_all<typename
 	)&&...)
 	)
 	{
-		(lc_print_control<false>(lc,out,args),...);
+		lc_print_controls_line<ln>(lc,out,args...);
 	}
 	else if constexpr(sizeof...(Args)==1&&ln&&((lc_dynamic_reserve_printable<char_type,Args>)&&...))
 	{
