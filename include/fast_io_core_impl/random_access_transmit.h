@@ -36,7 +36,7 @@ inline constexpr auto random_access_transmit_impl(output& outp,input& inp,std::i
 {
 	if constexpr(mutex_stream<input>)
 	{
-		details::lock_guard lg{inp};
+		io_lock_guard lg{inp};
 		decltype(auto) uh{inp.unlocked_handle()};
 		return random_access_transmit_impl(outp,uh,::fast_io::freestanding::forward<Args>(args)...);
 	}

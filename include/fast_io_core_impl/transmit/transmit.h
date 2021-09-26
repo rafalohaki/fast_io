@@ -95,13 +95,13 @@ inline constexpr decltype(auto) transmit_decay(output outs,input ins)
 {
 	if constexpr(mutex_stream<input>)
 	{
-		details::lock_guard lg{ins};
+		io_lock_guard lg{ins};
 		decltype(auto) uh{ins.unlocked_handle()};
 		return transmit_decay(outs,io_ref(uh));
 	}
 	else if constexpr(mutex_stream<output>)
 	{
-		details::lock_guard lg{outs};
+		io_lock_guard lg{outs};
 		decltype(auto) uh{outs.unlocked_handle()};
 		return transmit_decay(io_ref(uh),ins);
 	}

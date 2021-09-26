@@ -312,7 +312,7 @@ inline constexpr void lc_print_status_define_further_decay(basic_lc_all<typename
 		return;
 	else if constexpr(mutex_stream<output>)
 	{
-		lock_guard lg{out};
+		io_lock_guard lg{out};
 		decltype(auto) dout{out.unlocked_handle()};
 		lc_print_status_define_further_decay<ln>(lc,io_ref(dout),args...);
 	}

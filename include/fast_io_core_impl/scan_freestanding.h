@@ -386,7 +386,7 @@ requires (status_input_stream<input>||input_stream<input>)
 		return scan_status_define(in,args...);
 	else if constexpr(mutex_stream<input>)
 	{
-		details::lock_guard lg{in};
+		io_lock_guard lg{in};
 		decltype(auto) unlocked_in{in.unlocked_handle()};
 		return scan_freestanding_decay(io_ref(unlocked_in),args...);
 	}

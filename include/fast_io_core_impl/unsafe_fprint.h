@@ -311,7 +311,7 @@ inline constexpr void unsafe_fprint_freestanding_decay(output out,
 	}
 	else if constexpr(mutex_stream<output>)
 	{
-		details::lock_guard lg{out};
+		io_lock_guard lg{out};
 		decltype(auto) dout{out.unlocked_handle()};
 		unsafe_fprint_freestanding_decay(io_ref(dout),view,args...);
 	}

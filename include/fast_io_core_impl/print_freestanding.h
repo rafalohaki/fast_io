@@ -689,7 +689,7 @@ inline constexpr void print_freestanding_decay_no_status(output out,Args ...args
 		return;
 	else if constexpr(mutex_stream<output>)
 	{
-		details::lock_guard lg{out};
+		io_lock_guard lg{out};
 		decltype(auto) dout{out.unlocked_handle()};
 		print_freestanding_decay_no_status<line>(io_ref(dout),args...);
 	}

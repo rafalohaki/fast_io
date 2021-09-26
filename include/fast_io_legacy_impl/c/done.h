@@ -217,7 +217,7 @@ inline std::size_t c_io_write_impl(basic_c_family_io_observer<family,char_type> 
 	}
 	else if constexpr(buffer_output_stream_impl<basic_c_family_io_observer<c_family::unlocked,char_type>>)
 	{
-		lock_guard guard{cfhd};
+		io_lock_guard guard{cfhd};
 		return c_io_write_impl(basic_c_io_observer_unlocked<char_type>{cfhd.fp},begin,end);
 	}
 	else
@@ -242,7 +242,7 @@ inline std::size_t c_io_read_impl(basic_c_family_io_observer<family,char_type> c
 	}
 	else if constexpr(buffer_input_stream_impl<basic_c_family_io_observer<c_family::unlocked,char_type>>)
 	{
-		lock_guard guard{cfhd};
+		io_lock_guard guard{cfhd};
 		return c_io_read_impl(basic_c_io_observer_unlocked<char_type>{cfhd.fp},begin,end);
 	}
 	else

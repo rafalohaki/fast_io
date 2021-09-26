@@ -114,7 +114,7 @@ inline constexpr void lc_unsafe_fprint_status_define_further_decay(basic_lc_all<
 {
 	if constexpr(mutex_stream<output>)
 	{
-		lock_guard lg{out};
+		io_lock_guard lg{out};
 		decltype(auto) dout{out.unlocked_handle()};
 		lc_unsafe_fprint_status_define_further_decay(lc,io_ref(dout),view,args...);
 	}

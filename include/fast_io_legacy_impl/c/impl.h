@@ -780,7 +780,7 @@ inline void my_c_clear_screen_impl(FILE* fp)
 		else
 		{
 			basic_c_family_io_observer<c_family::native,char> ciob{fp};
-			lock_guard guard{ciob};
+			io_lock_guard guard{ciob};
 			my_c_clear_screen_impl<c_family::native_unlocked>(fp);
 		}
 	}

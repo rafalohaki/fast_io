@@ -96,6 +96,30 @@ decltype(auto) noexcept_call(F* f,Args&& ...args) noexcept
 #endif
 }
 
+
+/*
+Since many toolchains do not provide lock_guard. Let's implement it by ourselves based on libstdc++'s lock_guard
+https://github.com/gcc-mirror/gcc/blob/53046f072c6e92aa4ba4594c992fe31d89e223ed/libstdc%2B%2B-v3/include/bits/std_mutex.h#L152
+*/
+
+template<typename mutx_type>
+struct io_lock_guard
+{
+	using mutex_type = mutx_type;
+	mutex_type device;
+	explicit constexpr io_lock_guard(mutex_type& m) noexcept: device(m)
+	{ device.lock(); }
+
+	#if __cpp_constexpr >= 201907L
+	constexpr
+	#endif
+	~io_lock_guard() noexcept
+	{ device.unlock(); }
+
+	io_lock_guard(io_lock_guard const&) = delete;
+	io_lock_guard& operator=(io_lock_guard const&) = delete;
+};
+
 namespace details
 {
 
@@ -586,31 +610,6 @@ inline constexpr output_iter copy_scatter(basic_io_scatter_t<::fast_io::freestan
 {
 	return details::non_overlapped_copy_n(scatter.base,scatter.len,result);
 }
-
-/*
-Since many toolchains do not provide lock_guard. Let's implement it by ourselves based on libstdc++'s lock_guard
-https://github.com/gcc-mirror/gcc/blob/53046f072c6e92aa4ba4594c992fe31d89e223ed/libstdc%2B%2B-v3/include/bits/std_mutex.h#L152
-*/
-
-template<typename mutex_type>
-struct lock_guard
-{
-mutex_type& device;
-
-explicit constexpr lock_guard(mutex_type& m) noexcept: device(m)
-{ device.lock(); }
-
-#if __cpp_constexpr >= 201907L
-constexpr
-#endif
-~lock_guard() noexcept
-{ device.unlock(); }
-
-lock_guard(lock_guard const&) = delete;
-lock_guard& operator=(lock_guard const&) = delete;
-
-};
-
 
 template<my_integral T>
 inline constexpr T compile_time_pow(T base,std::size_t pow) noexcept
