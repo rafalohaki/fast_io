@@ -39,6 +39,7 @@ cxx-prefix := " CXX [M]  "
 	@echo $(cxx-prefix)$@
 	@$(CXX) $(cxxflags) -c $< -o $@
 	@echo -n > $$(dirname $@)/.$$(basename $@).cmd
+        @echo " echo [M]  .$$(basename $@).cmd"
 
 all:
 	make -C /lib/modules/$(shell uname -r)/build/ M=$(PWD) modules
