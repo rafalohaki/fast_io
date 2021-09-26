@@ -1,7 +1,5 @@
 #pragma once
-#if defined(_MSC_VER) && defined(_M_X64)
-#include <intrin.h>
-#endif
+
 namespace fast_io::details::ryu
 {
 

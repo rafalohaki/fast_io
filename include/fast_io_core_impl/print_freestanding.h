@@ -352,10 +352,12 @@ inline constexpr void print_controls_line(output out,T t,Args... args)
 		print_control<ln>(out,t);
 	else if constexpr(ln)
 	{
+		print_control<false>(out,t);
 		print_controls_line<ln>(out,args...);
 	}
 	else
 	{
+		print_control<false>(out,t);
 		(print_control<false>(out,args),...);
 	}
 }
