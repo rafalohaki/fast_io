@@ -2,6 +2,7 @@ MOD_NAME    := fast_io_module
 KERNEL      := /lib/modules/$(shell uname -r)/build
 FLAGS       := -Wall
 KMOD_DIR    := $(shell pwd)
+CXX	    := g++
 
 OBJECTS := kernel.o main.cc.o
 CONFIG_LTO = y
@@ -21,8 +22,8 @@ cxxflags = $(FLAGS) \
             -fno-rtti \
             -fno-exceptions \
             -std=c++20 \
-	    -O2 \
-	    -mcmodel=kernel -ffreestanding -s -Wall -Wextra -Wpedantic -Wmisleading-indentation -Wunused -Wuninitialized -Wshadow -Wconversion
+	    -O3 \
+	    -mcmodel=kernel -ffreestanding -Wall -Wextra -Wpedantic -Wmisleading-indentation -Wunused -Wuninitialized -Wshadow -Wconversion
 
 obj-m += $(MOD_NAME).o
 
@@ -32,16 +33,15 @@ $(MOD_NAME)-y := $(OBJECTS)
 $(MOD_NAME).ko:
 	make -C $(KERNEL) M=$(KMOD_DIR) modules
 
-cxx-prefix := " $(HOSTCXX) [M]  "
+cxx-prefix := " CXX [M]  "
 
 %.cc.o: %.cc
 	@echo $(cxx-prefix)$@
-	@$(HOSTCXX) $(cxxflags) -c $< -o $@
+	@$(CXX) $(cxxflags) -c $< -o $@
+	@echo -n > $$(dirname $@)/.$$(basename $@).cmd
 
-all:.main.cc.o.cmd
+all:
 	make -C /lib/modules/$(shell uname -r)/build/ M=$(PWD) modules
-.main.cc.o.cmd:
-	echo "" > .main.cc.o.cmd
 
 .PHONY: clean
 clean:
