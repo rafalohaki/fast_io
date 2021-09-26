@@ -414,10 +414,10 @@ constexpr void print_define_impl_lc_time(output bos,basic_lc_time<char_type> con
 		"era_d_t_fmt\t\"",time.era_d_t_fmt,"\"\n",
 		"era_t_fmt\t\"",time.era_t_fmt,"\"\n");
 		::fast_io::details::print_loc_days_impl(bos,"alt_digits",time.alt_digits);
-		print_freestanding(bos,"week\t",time.week.ndays,";",time.week.first_day,";",time.week.first_week,"\n",
+		println_freestanding(bos,"week\t",time.week.ndays,";",time.week.first_day,";",time.week.first_week,"\n",
 		"first_weekday\t",time.first_weekday,"\n"
 		"first_workday\t",time.first_workday,"\n"
-		"cal_direction\t",time.cal_direction,"\n");
+		"cal_direction\t",time.cal_direction);
 		::fast_io::details::print_loc_days_impl(bos,"timezone",time.timezone);
 		print_freestanding(bos,"END LC_TIME");
 	}
@@ -441,10 +441,10 @@ constexpr void print_define_impl_lc_time(output bos,basic_lc_time<char_type> con
 		L"era_d_t_fmt\t\"",time.era_d_t_fmt,L"\"\n",
 		L"era_t_fmt\t\"",time.era_t_fmt,L"\"\n");
 		::fast_io::details::print_loc_days_impl(bos,L"alt_digits",time.alt_digits);
-		print_freestanding(bos,L"week\t",time.week.ndays,L";",time.week.first_day,L";",time.week.first_week,L"\n",
+		println_freestanding(bos,L"week\t",time.week.ndays,L";",time.week.first_day,L";",time.week.first_week,L"\n",
 		L"first_weekday\t",time.first_weekday,L"\n"
 		L"first_workday\t",time.first_workday,L"\n"
-		L"cal_direction\t",time.cal_direction,L"\n");
+		L"cal_direction\t",time.cal_direction);
 		::fast_io::details::print_loc_days_impl(bos,L"timezone",time.timezone);
 		print_freestanding(bos,L"END LC_TIME");
 	}
@@ -468,10 +468,10 @@ constexpr void print_define_impl_lc_time(output bos,basic_lc_time<char_type> con
 		u"era_d_t_fmt\t\"",time.era_d_t_fmt,u"\"\n",
 		u"era_t_fmt\t\"",time.era_t_fmt,u"\"\n");
 		::fast_io::details::print_loc_days_impl(bos,u"alt_digits",time.alt_digits);
-		print_freestanding(bos,u"week\t",time.week.ndays,u";",time.week.first_day,u";",time.week.first_week,u"\n",
+		println_freestanding(bos,u"week\t",time.week.ndays,u";",time.week.first_day,u";",time.week.first_week,u"\n",
 		u"first_weekday\t",time.first_weekday,u"\n"
 		u"first_workday\t",time.first_workday,u"\n"
-		u"cal_direction\t",time.cal_direction,u"\n");
+		u"cal_direction\t",time.cal_direction);
 		::fast_io::details::print_loc_days_impl(bos,u"timezone",time.timezone);
 		print_freestanding(bos,u"END LC_TIME");
 	}
@@ -495,10 +495,10 @@ constexpr void print_define_impl_lc_time(output bos,basic_lc_time<char_type> con
 		U"era_d_t_fmt\t\"",time.era_d_t_fmt,U"\"\n",
 		U"era_t_fmt\t\"",time.era_t_fmt,U"\"\n");
 		::fast_io::details::print_loc_days_impl(bos,U"alt_digits",time.alt_digits);
-		print_freestanding(bos,U"week\t",time.week.ndays,U";",time.week.first_day,U";",time.week.first_week,U"\n",
+		println_freestanding(bos,U"week\t",time.week.ndays,U";",time.week.first_day,U";",time.week.first_week,U"\n",
 		U"first_weekday\t",time.first_weekday,U"\n"
 		U"first_workday\t",time.first_workday,U"\n"
-		U"cal_direction\t",time.cal_direction,U"\n");
+		U"cal_direction\t",time.cal_direction);
 		::fast_io::details::print_loc_days_impl(bos,U"timezone",time.timezone);
 		print_freestanding(bos,U"END LC_TIME");
 	}
@@ -522,10 +522,10 @@ constexpr void print_define_impl_lc_time(output bos,basic_lc_time<char_type> con
 		u8"era_d_t_fmt\t\"",time.era_d_t_fmt,u8"\"\n",
 		u8"era_t_fmt\t\"",time.era_t_fmt,u8"\"\n");
 		::fast_io::details::print_loc_days_impl(bos,u8"alt_digits",time.alt_digits);
-		print_freestanding(bos,u8"week\t",time.week.ndays,u8";",time.week.first_day,u8";",time.week.first_week,u8"\n",
+		println_freestanding(bos,u8"week\t",time.week.ndays,u8";",time.week.first_day,u8";",time.week.first_week,u8"\n",
 		u8"first_weekday\t",time.first_weekday,u8"\n"
 		u8"first_workday\t",time.first_workday,u8"\n"
-		u8"cal_direction\t",time.cal_direction,u8"\n");
+		u8"cal_direction\t",time.cal_direction);
 		::fast_io::details::print_loc_days_impl(bos,u8"timezone",time.timezone);
 		print_freestanding(bos,u8"END LC_TIME");
 	}

@@ -664,7 +664,7 @@ inline constexpr std::uint_least64_t fast_lup_switch(std::uint_least32_t value) 
 #endif
 
 template<std::uint_least32_t base,bool ryu_mode=false,std::size_t mx_size=std::numeric_limits<std::size_t>::max(),my_unsigned_integral U>
-inline constexpr std::size_t chars_len(U value) noexcept
+constexpr std::size_t chars_len(U value) noexcept
 {
 #if 0
 	if constexpr(base==10&&2<=sizeof(U)&&sizeof(U)<=4&&sizeof(std::size_t)>=8&&!ryu_mode)

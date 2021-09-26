@@ -472,7 +472,7 @@ template<std::integral char_type,std::size_t base>
 inline constexpr auto base_prefix_array{generate_base_prefix_array<char_type,base>()};
 
 template<std::size_t base,bool uppercase_showbase,::fast_io::freestanding::random_access_iterator Iter>
-inline constexpr Iter print_reserve_show_base_impl(Iter iter)
+constexpr Iter print_reserve_show_base_impl(Iter iter)
 {
 	static_assert(2<=base&&base<=36);
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
@@ -578,7 +578,7 @@ inline constexpr Iter print_reserve_show_base_impl(Iter iter)
 }
 
 template<std::size_t base,bool uppercase,::fast_io::freestanding::random_access_iterator Iter,typename T>
-inline constexpr void print_reserve_integral_main_impl(Iter iter,T t,std::size_t len)
+constexpr void print_reserve_integral_main_impl(Iter iter,T t,std::size_t len)
 {
 	if constexpr(base<=10&&uppercase)
 	{
@@ -693,7 +693,7 @@ inline constexpr void print_reserve_integral_main_impl(Iter iter,T t,std::size_t
 }
 
 template<bool full,std::size_t base,bool uppercase,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral T>
-inline constexpr Iter print_reserve_integral_withfull_main_impl(Iter first,T u)
+constexpr Iter print_reserve_integral_withfull_main_impl(Iter first,T u)
 {
 	if constexpr(base<=10&&uppercase)
 	{
@@ -737,7 +737,7 @@ template<std::size_t base,
 	bool uppercase=false,
 	bool full=false,
 	typename int_type,::fast_io::freestanding::random_access_iterator Iter>
-inline constexpr Iter print_reserve_integral_define(Iter first,int_type t)
+constexpr Iter print_reserve_integral_define(Iter first,int_type t)
 {
 	if constexpr(base<=10&&uppercase)
 	{
@@ -811,7 +811,7 @@ template<std::size_t base,
 	bool showpos=false,
 	bool uppercase=false,
 	typename int_type,::fast_io::freestanding::random_access_iterator Iter>
-inline constexpr void print_reserve_integral_define_precise(Iter start,std::size_t n,int_type t)
+constexpr void print_reserve_integral_define_precise(Iter start,std::size_t n,int_type t)
 {	
 	if constexpr(base<=10&&uppercase)
 	{
@@ -1285,7 +1285,7 @@ requires (details::my_integral<T>||std::same_as<std::remove_cv_t<T>,std::byte>||
 #if __has_cpp_attribute(gnu::always_inline)
 [[gnu::always_inline]]//always inline to reduce inline depth in GCC and LLVM clang
 #endif
-inline constexpr Iter print_reserve_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,::fast_io::manipulators::scalar_manip_t<flags,T>>,Iter iter,::fast_io::manipulators::scalar_manip_t<flags,T> t) noexcept
+constexpr Iter print_reserve_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,::fast_io::manipulators::scalar_manip_t<flags,T>>,Iter iter,::fast_io::manipulators::scalar_manip_t<flags,T> t) noexcept
 {
 	if constexpr(flags.alphabet)
 	{
