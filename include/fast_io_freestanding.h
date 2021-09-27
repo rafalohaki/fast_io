@@ -20,7 +20,7 @@
 #include"fast_io_freestanding_impl/io_buffer/impl.h"
 #include"fast_io_freestanding_impl/naive_vector.h"
 #include"fast_io_freestanding_impl/auto_indent.h"
-#include"fast_io_freestanding_impl/ovector.h"
+#include"fast_io_freestanding_impl/space_reserve.h"
 #if 0
 #include"fast_io_freestanding_impl/serialize.h"
 #endif
