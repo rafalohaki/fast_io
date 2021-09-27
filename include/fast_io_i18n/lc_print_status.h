@@ -300,7 +300,7 @@ inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type>
 		else
 #endif
 		{
-#if defined(__OPTIMIZE__) || defined(__OPTIMIZE_SIZE__)
+#if 0
 			temporary_buffer<output> buffer;
 			buffer.out=out;
 			auto ref{io_ref(buffer)};

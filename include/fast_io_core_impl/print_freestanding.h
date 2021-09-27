@@ -635,7 +635,7 @@ inline constexpr void print_fallback(output out,Args ...args)
 		else
 #endif
 		{
-#if defined(__OPTIMIZE__) || defined(__OPTIMIZE_SIZE__)
+#if 0
 			temporary_buffer<output> buffer;
 			buffer.out=out;
 			auto ref{io_ref(buffer)};
