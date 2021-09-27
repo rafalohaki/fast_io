@@ -288,28 +288,11 @@ inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type>
 	}
 	else
 	{
-#if __cpp_lib_is_constant_evaluated >= 201811L
-		if(std::is_constant_evaluated())
-		{
-			temporary_buffer<output> buffer;
-			buffer.out=out;
-			auto ref{io_ref(buffer)};
-			lc_print_controls_line<ln>(ref,args...);
-			flush(buffer);
-		}
-		else
-#endif
-		{
-#if 0
-			temporary_buffer<output> buffer;
-			buffer.out=out;
-			auto ref{io_ref(buffer)};
-			lc_print_controls_line<ln>(ref,args...);
-			flush(buffer);
-#else
-			lc_print_with_virtual_device<ln>(lc,construct_virtual_device_from_output_stream(out),args...);
-#endif
-		}
+		temporary_buffer<output> buffer;
+		buffer.out=out;
+		auto ref{io_ref(buffer)};
+		lc_print_controls_line<ln>(lc,ref,args...);
+		flush(buffer);
 	}
 }
 

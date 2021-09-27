@@ -168,48 +168,4 @@ inline constexpr void writeln(temporary_buffer<output>& out,
 	++out.pos;
 }
 
-template<std::integral ch_type>
-struct basic_virtual_output_device
-{
-	using char_type = ch_type;
-	void* device{};
-	void (*write_ptr)(void* device,ch_type const* first,ch_type const* last)={};
-};
-
-template<std::integral ch_type>
-constexpr void write(basic_virtual_output_device<ch_type> device,ch_type const* first,ch_type const* last)
-{
-	(device.write_ptr)(device.device,first,last);
-}
-
-template<std::integral ch_type>
-using basic_virtual_temporary_buffer = temporary_buffer<basic_virtual_output_device<ch_type>>;
-
-template<typename output>
-inline basic_virtual_output_device<typename output::char_type> construct_virtual_device_from_output_stream(output out)
-{
-	using char_type = typename output::char_type;
-	constexpr bool without_indirection{(sizeof(output)<=sizeof(void*)) && std::is_trivially_copyable_v<output>};
-	void* out_ptr;
-	if constexpr(without_indirection)
-		my_memcpy(__builtin_addressof(out_ptr),__builtin_addressof(out),sizeof(output));
-	else
-		out_ptr=__builtin_addressof(out);
-	return {
-	.device=out_ptr,
-	.write_ptr=[](void* dev,char_type const* first,char_type const* last)
-	{
-		if constexpr(without_indirection)
-		{
-			output pout;
-			my_memcpy(__builtin_addressof(pout),__builtin_addressof(dev),sizeof(output));
-			write(pout,first,last);
-		}
-		else
-		{
-			write(*reinterpret_cast<output*>(dev),first,last);
-		}
-	}};
-}
-
 }

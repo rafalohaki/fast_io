@@ -623,30 +623,12 @@ inline constexpr void print_fallback(output out,Args ...args)
 	}
 	else
 	{
-#if __cpp_lib_is_constant_evaluated >= 201811L
-		if(std::is_constant_evaluated())
-		{
-			temporary_buffer<output> buffer;
-			buffer.out=out;
-			auto ref{io_ref(buffer)};
-			print_controls_line<line>(ref,args...);
-			flush(buffer);
-		}
-		else
-#endif
-		{
-#if 0
-			temporary_buffer<output> buffer;
-			buffer.out=out;
-			auto ref{io_ref(buffer)};
-			print_controls_line_multi_impl<line,0>(ref,args...);
-			flush(buffer);
-#else
-			print_with_virtual_device<line>(construct_virtual_device_from_output_stream(out),args...);
-#endif
-		}
+		temporary_buffer<output> buffer;
+		buffer.out=out;
+		auto ref{io_ref(buffer)};
+		print_controls_line_multi_impl<line,0>(ref,args...);
+		flush(buffer);
 	}
-
 }
 
 }
