@@ -33,7 +33,7 @@ public:
 	{
 		return basic_posix_io_observer<char_type>{this->qdevice->handle()};
 	}
-#ifdef _WIN32
+#if (defined(_WIN32) && !defined(__WINE__)) || defined(__CYGWIN__)
 	inline operator basic_win32_io_observer<char_type>() requires requires()
 	{
 		{this->qdevice->handle()}->std::same_as<int>;
@@ -158,3 +158,4 @@ using u16qt_io_observer = basic_qt_io_observer<char16_t>;
 using u32qt_io_observer = basic_qt_io_observer<char32_t>;
 
 }
+

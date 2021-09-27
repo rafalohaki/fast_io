@@ -637,7 +637,7 @@ inline constexpr void print_fallback(output out,Args ...args)
 #if defined(__OPTIMIZE__) || defined(__OPTIMIZE_SIZE__)
 			temporary_buffer<output> buffer;
 			auto ref{io_ref(buffer)};
-			print_controls_line_multi_impl<line,0>(out,args...);
+			print_controls_line_multi_impl<line,0>(ref,args...);
 			flush(buffer);
 #else
 			print_with_virtual_device<line>(construct_virtual_device_from_output_stream(out),args...);

@@ -21,7 +21,7 @@ public:
 	}
 	std::size_t size() const noexcept
 	{
-		return qstr.size();
+		return static_cast<std::size_t>(qstr.size());
 	}
 };
 
@@ -29,15 +29,7 @@ namespace details
 {
 
 template<typename T>
-concept qt_qstring_view_like_impl = std::same_as<std::remove_cvref_t<T>,QString>||
-	std::same_as<std::remove_cvref_t<T>,QStringRef>||
-	std::same_as<std::remove_cvref_t<T>,qt_error>
-#if defined(QT_VERSION) && defined(QT_VERSION_CHECK)
-#if (QT_VERSION >= QT_VERSION_CHECK(5,6,0))
-	||std::same_as<std::remove_cvref_t<T>,QStringView>
-#endif
-#endif
-;
+concept qt_qstring_view_like_impl = std::same_as<std::remove_cvref_t<T>,QString>||std::same_as<std::remove_cvref_t<T>,qt_error>;
 
 template<typename T>
 concept qt_convertible_to_qstring_impl = requires(T const& e)
@@ -87,7 +79,7 @@ constexpr std::conditional_t<sizeof(char_type)==sizeof(char16_t),basic_io_scatte
 }
 
 template<typename T>
-requires (!details::qt_qstring_view_like_impl<T>&&details::qt_convertible_to_qstring_impl<T>)
+requires (details::qt_convertible_to_qstring_impl<T>)
 inline QString print_alias_define(io_alias_t,T const& hstr) noexcept
 {
 	return {hstr.toString()};

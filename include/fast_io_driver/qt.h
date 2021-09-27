@@ -1,15 +1,25 @@
 #pragma once
 
 #include"../fast_io.h"
+#if __has_include(<QIODevice>)
 #include<QIODevice>
-#include<QFile>
-#include<QFileDevice>
-#include<QString>
-#include<QStringRef>
-#if defined(QT_VERSION) && defined(QT_VERSION_CHECK)
-#if (QT_VERSION >= QT_VERSION_CHECK(5,6,0))
-#include<QStringView>
+#else
+#include<QtCore/QIODevice>
 #endif
+#if __has_include(<QFile>)
+#include<QFile>
+#else
+#include<QtCore/QFile>
+#endif
+#if __has_include(<QFileDevice>)
+#include<QFileDevice>
+#else
+#include<QtCore/QFileDevice>
+#endif
+#if __has_include(<QString>)
+#include<QString>
+#else
+#include<QtCore/QString>
 #endif
 
 #include"qt_impl/qstring.h"
