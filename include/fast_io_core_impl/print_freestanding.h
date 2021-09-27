@@ -627,6 +627,7 @@ inline constexpr void print_fallback(output out,Args ...args)
 		if(std::is_constant_evaluated())
 		{
 			temporary_buffer<output> buffer;
+			buffer.out=out;
 			auto ref{io_ref(buffer)};
 			print_controls_line<line>(ref,args...);
 			flush(buffer);
@@ -636,6 +637,7 @@ inline constexpr void print_fallback(output out,Args ...args)
 		{
 #if defined(__OPTIMIZE__) || defined(__OPTIMIZE_SIZE__)
 			temporary_buffer<output> buffer;
+			buffer.out=out;
 			auto ref{io_ref(buffer)};
 			print_controls_line_multi_impl<line,0>(ref,args...);
 			flush(buffer);

@@ -292,14 +292,23 @@ inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type>
 		if(std::is_constant_evaluated())
 		{
 			temporary_buffer<output> buffer;
+			buffer.out=out;
 			auto ref{io_ref(buffer)};
-			print_controls_line<ln>(ref,args...);
+			lc_print_controls_line<ln>(ref,args...);
 			flush(buffer);
 		}
 		else
 #endif
 		{
+#if defined(__OPTIMIZE__) || defined(__OPTIMIZE_SIZE__)
+			temporary_buffer<output> buffer;
+			buffer.out=out;
+			auto ref{io_ref(buffer)};
+			lc_print_controls_line<ln>(ref,args...);
+			flush(buffer);
+#else
 			lc_print_with_virtual_device<ln>(lc,construct_virtual_device_from_output_stream(out),args...);
+#endif
 		}
 	}
 }
