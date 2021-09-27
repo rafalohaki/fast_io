@@ -541,27 +541,6 @@ inline constexpr void print_controls_line(output out,T t,Args... args)
 	}
 }
 
-template<bool line,std::integral char_type,typename ...Args>
-inline void print_with_virtual_device(basic_virtual_output_device<char_type> device,Args... args)
-{
-	basic_virtual_temporary_buffer<char_type> buffer;
-	buffer.out=device;
-	auto ref{io_ref(buffer)};
-#if defined(__OPTIMIZE__) || defined(__OPTIMIZE_SIZE__)
-	print_controls_line_multi_impl<line,0>(ref,args...);
-#else
-	if constexpr(line)
-	{
-		print_controls_line<line>(ref,args...);
-	}
-	else
-	{
-		(print_control<false>(ref,args),...);
-	}
-#endif
-	flush(buffer);
-}
-
 template<bool line,output_stream output,typename ...Args>
 inline constexpr void print_fallback(output out,Args ...args)
 {

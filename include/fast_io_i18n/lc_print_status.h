@@ -231,15 +231,6 @@ inline constexpr void lc_scatter_print_recursive(basic_lc_all<char_type> const* 
 			lc_scatter_print_recursive(lc,arr+1,args...);
 	}
 }
-template<bool line,std::integral char_type,typename ...Args>
-inline void lc_print_with_virtual_device(basic_lc_all<char_type> const* __restrict lc,basic_virtual_output_device<char_type> device,Args... args)
-{
-	basic_virtual_temporary_buffer<char_type> buffer;
-	buffer.out=device;
-	auto ref{io_ref(buffer)};
-	lc_print_controls_line<line>(lc,ref,args...);
-	flush(buffer);
-}
 
 template<bool ln,output_stream output,typename... Args>
 inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type> const* __restrict lc,output out,Args... args)
