@@ -6,7 +6,7 @@
 int main()
 {
 	constexpr std::size_t N(10000000);
-	constexpr fast_io::format_string_view view("{}\n",3);
+	constexpr fast_io::unsafe_rt_format_string_view view("{}\n",3);
 	{
 	fast_io::timer t(u8"output");
 	fast_io::obuf_file obf("iobuf_file_unsafe_rt_fprint.txt");

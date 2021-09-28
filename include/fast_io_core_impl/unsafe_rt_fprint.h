@@ -10,30 +10,30 @@ We have to put restrictions on them and mark them as unsafe.
 */
 
 template<std::integral ch_type>
-struct basic_format_string_view
+struct basic_unsafe_rt_format_string_view
 {
 	using char_type = ch_type;
 	char_type const* data_first_ptr{};
 	char_type const* data_last_ptr{};
-	inline explicit constexpr basic_format_string_view() noexcept = default;
-	inline explicit constexpr basic_format_string_view(char_type const* dat,std::size_t le) noexcept:data_first_ptr{dat},data_last_ptr{dat+le}{}
+	inline explicit constexpr basic_unsafe_rt_format_string_view() noexcept = default;
+	inline explicit constexpr basic_unsafe_rt_format_string_view(char_type const* dat,std::size_t le) noexcept:data_first_ptr{dat},data_last_ptr{dat+le}{}
 	template<::fast_io::freestanding::contiguous_iterator Iter>
 	requires (std::same_as<::fast_io::freestanding::iter_value_t<Iter>,char_type>)
-	inline explicit constexpr basic_format_string_view(Iter first,Iter last):
+	inline explicit constexpr basic_unsafe_rt_format_string_view(Iter first,Iter last):
 		data_first_ptr{::fast_io::freestanding::to_address(first)},
 		data_last_ptr{::fast_io::freestanding::to_address(last)}{}
 #if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __cpp_lib_ranges >= 202106L
 	template<::std::ranges::contiguous_range rg>
 	requires (std::same_as<::std::ranges::range_value_t<std::remove_cvref_t<rg>>,char_type>&&!::std::is_array_v<rg>&&::std::is_lvalue_reference_v<rg&>)
-	inline explicit constexpr basic_format_string_view(rg& r):data_first_ptr{::std::ranges::data(r)},data_last_ptr{::std::ranges::data(r)+::std::ranges::size(r)}{}
+	inline explicit constexpr basic_unsafe_rt_format_string_view(rg& r):data_first_ptr{::std::ranges::data(r)},data_last_ptr{::std::ranges::data(r)+::std::ranges::size(r)}{}
 #endif
 };
 
-using format_string_view = basic_format_string_view<char>;
-using wformat_string_view = basic_format_string_view<wchar_t>;
-using u8format_string_view = basic_format_string_view<char8_t>;
-using u16format_string_view = basic_format_string_view<char16_t>;
-using u32format_string_view = basic_format_string_view<char32_t>;
+using unsafe_rt_format_string_view = basic_unsafe_rt_format_string_view<char>;
+using wunsafe_rt_format_string_view = basic_unsafe_rt_format_string_view<wchar_t>;
+using u8unsafe_rt_format_string_view = basic_unsafe_rt_format_string_view<char8_t>;
+using u16unsafe_rt_format_string_view = basic_unsafe_rt_format_string_view<char16_t>;
+using u32unsafe_rt_format_string_view = basic_unsafe_rt_format_string_view<char32_t>;
 
 namespace details
 {
@@ -375,7 +375,7 @@ inline constexpr void unsafe_rt_fprint_freestanding_decay(output out,
 }
 
 template<typename output,typename... Args>
-inline constexpr void unsafe_rt_fprint(output&& out,::fast_io::basic_format_string_view<typename std::remove_cvref_t<output>::char_type> view,Args&& ...args)
+inline constexpr void unsafe_rt_fprint(output&& out,::fast_io::basic_unsafe_rt_format_string_view<typename std::remove_cvref_t<output>::char_type> view,Args&& ...args)
 {
 	constexpr bool no_parameters{sizeof...(Args)!=0};
 	if constexpr(no_parameters)
