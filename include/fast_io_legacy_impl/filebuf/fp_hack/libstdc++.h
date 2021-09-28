@@ -66,47 +66,36 @@ public:
 };
 
 template<typename CharT, typename Traits>
-#if __has_cpp_attribute(nodiscard)
-[[nodiscard]]
-#endif
-inline std::basic_filebuf<CharT, Traits>* open_libstdcxx_basic_filebuf_ios_base_open_mode(::std::__c_file* fp, std::ios_base::openmode mode)
+struct libstdcxx_filebuf_guard
 {
-	if(fp==nullptr)
-		return nullptr;
 	using filebuf_type = ::std::basic_filebuf<CharT,Traits>;
-	using hack_filebuf_type = hack_libstdcxx_basic_filebuf<CharT,Traits>;
-	struct filebuf_guard
+	filebuf_type* new_filebuf{new std::basic_filebuf<CharT,Traits>};
+
+	explicit libstdcxx_filebuf_guard() = default;
+	libstdcxx_filebuf_guard(libstdcxx_filebuf_guard const&)=delete;
+	libstdcxx_filebuf_guard& operator=(libstdcxx_filebuf_guard const&)=delete;
+
+	~libstdcxx_filebuf_guard()
 	{
-		filebuf_type* new_filebuf{new std::basic_filebuf<CharT,Traits>};
+		if(new_filebuf)
+			delete new_filebuf;
+	}
+	inline constexpr filebuf_type* release() noexcept
+	{
+		auto temp{new_filebuf};
+		new_filebuf=nullptr;
+		return temp;
+	}
+};
 
-		explicit filebuf_guard() = default;
-		filebuf_guard(filebuf_guard const&)=delete;
-		filebuf_guard& operator=(filebuf_guard const&)=delete;
-
-		~filebuf_guard()
-		{
-			if(new_filebuf)
-				delete new_filebuf;
-		}
-		inline constexpr filebuf_type* release() noexcept
-		{
-			auto temp{new_filebuf};
-			new_filebuf=nullptr;
-			return temp;
-		}
-	}fbf_guard;
+template<typename CharT, typename Traits>
+inline void open_libstdcxx_basic_filebuf_ios_base_open_mode_common(std::basic_filebuf<CharT, Traits>* ptr_fbf, std::ios_base::openmode mode)
+{
+	using hack_filebuf_type = hack_libstdcxx_basic_filebuf<CharT,Traits>;
 	constexpr auto libstdcxx_filebuf_M_set_buffer{&hack_filebuf_type::_M_set_buffer};
 	constexpr auto libstdcxx_filebuf_M_allocate_internal_buffer_ptr{&hack_filebuf_type::_M_allocate_internal_buffer};
-
-	auto const ptr_fbf{fbf_guard.new_filebuf};
 	auto& fbf_ref{*ptr_fbf};
 	auto pfbf{reinterpret_cast<char unsigned*>(ptr_fbf)};
-
-	auto& libstdcxx_filebuf_m_file{*reinterpret_cast<decltype(hack_filebuf_type::_M_file)*>(pfbf+__builtin_offsetof(hack_filebuf_type,_M_file))};
-	libstdcxx_filebuf_m_file.sys_open(fp,mode);
-	auto& libstdcxx_filebuf_c_file_m_cfile_created{*reinterpret_cast<bool*>(pfbf+__builtin_offsetof(hack_filebuf_type,_M_file)+sizeof(::std::__c_file*))};
-	libstdcxx_filebuf_c_file_m_cfile_created=true;
-
 	auto& libstdcxx_filebuf_m_mode{*reinterpret_cast<decltype(hack_filebuf_type::_M_mode)*>(pfbf+__builtin_offsetof(hack_filebuf_type,_M_mode))};
 	auto& libstdcxx_filebuf_m_buf_size{*reinterpret_cast<decltype(hack_filebuf_type::_M_buf_size)*>(pfbf+__builtin_offsetof(hack_filebuf_type,_M_buf_size))};
 
@@ -120,8 +109,58 @@ inline std::basic_filebuf<CharT, Traits>* open_libstdcxx_basic_filebuf_ios_base_
 	libstdcxx_filebuf_m_reading=false;
 	libstdcxx_filebuf_m_writing=false;
 	(fbf_ref.*libstdcxx_filebuf_M_set_buffer)(-1);
+}
+
+#if !defined(_GLIBCXX_USE_STDIO_PURE)
+template<typename CharT, typename Traits>
+#if __has_cpp_attribute(nodiscard)
+[[nodiscard]]
+#endif
+inline std::basic_filebuf<CharT, Traits>* open_libstdcxx_basic_filebuf_ios_base_open_mode_from_fd(int fd, std::ios_base::openmode mode)
+{
+	if(fd==-1)
+		throw_posix_error(EINVAL);
+	using hack_filebuf_type = hack_libstdcxx_basic_filebuf<CharT,Traits>;
+	libstdcxx_filebuf_guard<CharT, Traits> fbf_guard;
+	auto const ptr_fbf{fbf_guard.new_filebuf};
+	auto pfbf{reinterpret_cast<char unsigned*>(ptr_fbf)};
+	auto& libstdcxx_filebuf_m_file{*reinterpret_cast<decltype(hack_filebuf_type::_M_file)*>(pfbf+__builtin_offsetof(hack_filebuf_type,_M_file))};
+	libstdcxx_filebuf_m_file.sys_open(fd,mode);
+	open_libstdcxx_basic_filebuf_ios_base_open_mode_common(ptr_fbf,mode);
 	return fbf_guard.release();
 }
+
+
+template<typename CharT, typename Traits>
+#if __has_cpp_attribute(nodiscard)
+[[nodiscard]]
+#endif
+inline std::basic_filebuf<CharT, Traits>* open_libstdcxx_basic_filebuf_from_fd(int fd, ::fast_io::open_mode mode)
+{
+	return open_libstdcxx_basic_filebuf_ios_base_open_mode_from_fd<CharT,Traits>(fd,::fast_io::details::calculate_fstream_file_open_mode(mode));
+}
+#endif
+
+template<typename CharT, typename Traits>
+#if __has_cpp_attribute(nodiscard)
+[[nodiscard]]
+#endif
+inline std::basic_filebuf<CharT, Traits>* open_libstdcxx_basic_filebuf_ios_base_open_mode(::std::__c_file* fp, std::ios_base::openmode mode)
+{
+	if(fp==nullptr)
+		throw_posix_error(EINVAL);
+	using hack_filebuf_type = hack_libstdcxx_basic_filebuf<CharT,Traits>;
+	libstdcxx_filebuf_guard<CharT, Traits> fbf_guard;
+	auto const ptr_fbf{fbf_guard.new_filebuf};
+	auto pfbf{reinterpret_cast<char unsigned*>(ptr_fbf)};
+	auto& libstdcxx_filebuf_m_file{*reinterpret_cast<decltype(hack_filebuf_type::_M_file)*>(pfbf+__builtin_offsetof(hack_filebuf_type,_M_file))};
+	libstdcxx_filebuf_m_file.sys_open(fp,mode);
+	auto& libstdcxx_filebuf_c_file_m_cfile_created{*reinterpret_cast<bool*>(pfbf+__builtin_offsetof(hack_filebuf_type,_M_file)+sizeof(::std::__c_file*))};
+	libstdcxx_filebuf_c_file_m_cfile_created=true;
+	open_libstdcxx_basic_filebuf_ios_base_open_mode_common(ptr_fbf,mode);
+	return fbf_guard.release();
+}
+
 template<typename CharT, typename Traits>
 #if __has_cpp_attribute(nodiscard)
 [[nodiscard]]

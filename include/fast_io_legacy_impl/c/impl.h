@@ -376,6 +376,10 @@ inline int my_fclose_impl(FILE* fp) noexcept
 
 #if !defined(__NEWLIB__) || defined(__CYGWIN__)
 
+#if defined(__GLIBC__)
+extern size_t glibc_fbufsize(FILE *stream) noexcept asm("__fbufsize");
+#endif
+
 inline FILE* my_fdopen(int fd,char const* mode) noexcept
 {
 	auto fp{
@@ -387,6 +391,12 @@ inline FILE* my_fdopen(int fd,char const* mode) noexcept
 		noexcept_call(fdopen,fd,mode)
 #endif
 	};
+/*
+WSL since microsoft sets the fstat block size incorrectly, leading to massive IO slow down for glibc.
+i woud like to add bandaids to fix it. Not working. setvbuf is a noop
+
+For fstream for GNU libstdc++. We should no longer construct FILE* by ourself if user is not using c_file to construct filebuf_file.
+*/
 	return fp;
 }
 

@@ -73,11 +73,14 @@ public:
 		details::streambuf_hack::msvc_hack_set_close(this->fb);
 	}
 #endif
-#if !defined(__AVR__)
+#if !defined(__AVR__) && !defined(_GLIBCXX_USE_STDIO_PURE)
+#if defined(__GLIBCXX__) && !defined(_LIBCPP_VERSION)
 	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
-		basic_filebuf_file(basic_c_file_unlocked<char_type>(::fast_io::freestanding::move(piohd),mode),mode)
+		basic_filebuf_io_observer<CharT,Traits>{::fast_io::details::streambuf_hack::open_libstdcxx_basic_filebuf_from_fd<CharT,Traits>(piohd.fd,mode)}
 	{
+		piohd.fd=-1;
 	}
+#endif
 #if (defined(_WIN32)&&!defined(__WINE__)) || defined(__CYGWIN__)
 //windows specific. open posix file from win32 io handle
 	template<win32_family family>
