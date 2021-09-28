@@ -157,8 +157,9 @@ public:
 	details::has_external_decorator_impl<decorators_type>),
 	basic_io_buffer_pointers_no_curr<external_char_type>,
 	empty_buffer_pointers>;
-
-#if __has_cpp_attribute(no_unique_address) >= 201803L
+#if __has_cpp_attribute(msvc::no_unique_address)
+	[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803L
 	[[no_unique_address]]
 #endif
 	ibuffer_type ibuffer;
