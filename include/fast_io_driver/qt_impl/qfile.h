@@ -29,26 +29,28 @@ inline constexpr int to_qt_open_mode(open_mode mode) noexcept
 	return res;
 }
 
+struct qfile_scoped_guard
+{
+	QFile* qf{new QFile};
+	explicit qfile_scoped_guard() = default;
+	qfile_scoped_guard(qfile_scoped_guard const&)=delete;
+	qfile_scoped_guard& operator=(qfile_scoped_guard const&)=delete;
+	inline constexpr QFile* release() noexcept
+	{
+		auto temp{qf};
+		qf=nullptr;
+		return temp;
+	}
+	~qfile_scoped_guard()
+	{
+		if(qf)
+			delete qf;
+	}
+};
+
 inline QFile* open_qfile_with_fp_internal(FILE* fp,QIODevice::OpenModeFlag mode)
 {
-	struct qfile_scoped_guard
-	{
-		QFile* qf{new QFile};
-		explicit qfile_scoped_guard() = default;
-		qfile_scoped_guard(qfile_scoped_guard const&)=delete;
-		qfile_scoped_guard& operator=(qfile_scoped_guard const&)=delete;
-		inline constexpr QFile* release() noexcept
-		{
-			auto temp{qf};
-			qf=nullptr;
-			return temp;
-		}
-		~qfile_scoped_guard()
-		{
-			if(qf)
-				delete qf;
-		}
-	}guard;
+	qfile_scoped_guard guard;
 	guard.qf->open(fp,mode,QFileDevice::AutoCloseHandle);
 	return guard.release();
 }
@@ -57,6 +59,19 @@ inline QFile* open_qfile_with_fp(FILE* fp,open_mode mode)
 {
 	return open_qfile_with_fp_internal(fp,static_cast<QIODevice::OpenModeFlag>(to_qt_open_mode(mode)));
 }
+
+inline QFile* open_qfile_with_fd_internal(int fd,QIODevice::OpenModeFlag mode)
+{
+	qfile_scoped_guard guard;
+	guard.qf->open(fd,mode,QFileDevice::AutoCloseHandle);
+	return guard.release();
+}
+
+inline QFile* open_qfile_with_fd(int fd,open_mode mode)
+{
+	return open_qfile_with_fd_internal(fd,static_cast<QIODevice::OpenModeFlag>(to_qt_open_mode(mode)));
+}
+
 }
 
 template<std::integral ch_type>
@@ -75,8 +90,10 @@ public:
 		cioh.fp=nullptr;
 	}
 #if !defined(__AVR__)
-	basic_qt_file(basic_posix_io_handle<ch_type>&& pioh,open_mode mode)
-		:basic_qt_file(basic_c_file_unlocked<ch_type>(::fast_io::freestanding::move(pioh),mode),mode){}
+	basic_qt_file(basic_posix_io_handle<ch_type>&& pioh,open_mode mode):basic_qt_io_observer<char_type>{::fast_io::details::open_qfile_with_fd(pioh.fd,mode)}
+	{
+		pioh.fd=-1;
+	}
 #if (defined(_WIN32) && !defined(__WINE__)) || defined(__CYGWIN__)
 	template<win32_family family>
 	basic_qt_file(basic_win32_family_io_handle<family,ch_type>&& wioh,open_mode mode):
@@ -141,24 +158,20 @@ public:
 			this->qdevice->close();
 		}
 	}
-
 private:
 	void close_nothrow() noexcept
 	{
-		if(this->qdevice)[[likely]]
+#ifdef __cpp_exceptions
+		try
 		{
-#ifdef __cpp_exceptions
-			try
-			{
 #endif
-				this->close();
+			this->close();
 #ifdef __cpp_exceptions
-			}
-			catch(...)
-			{
-			}
-#endif
 		}
+		catch(...)
+		{
+		}
+#endif
 	}
 public:
 
