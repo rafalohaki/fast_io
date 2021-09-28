@@ -51,7 +51,7 @@ This is an example to explain how fast_io's files work with each other, and how 
 #else
 	"Unknown C++ standard library\n"
 #endif
-	"qdevice*:",qf.qdevice,"\n"
+	"qdevice:",qf.qdevice,"\n"
 	"fd:",static_cast<fast_io::posix_io_observer>(qf).fd
 #if (defined(_WIN32) && !defined(__WINE__)) || defined(__CYGWIN__)
 	,"\n"
