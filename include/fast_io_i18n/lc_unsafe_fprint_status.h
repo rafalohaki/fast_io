@@ -36,7 +36,6 @@ inline constexpr void lc_unsafe_fprint_freestanding_decay_impl(basic_lc_all<type
 	typename output::char_type const* data_first_ptr,typename output::char_type const* data_last_ptr,
 	Args ...args)
 {
-	using char_type = typename output::char_type;
 	if constexpr(sizeof...(Args)==1)
 	{
 		unsafe_fprint_impl(data_first_ptr,data_last_ptr,
