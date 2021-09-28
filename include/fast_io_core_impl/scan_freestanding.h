@@ -8,8 +8,12 @@ requires std::is_trivially_copyable_v<T>
 struct unget_temp_buffer
 {
 	using char_type = typename T::char_type;
-#if __has_cpp_attribute(no_unique_address)
+#ifndef __INTELLISENSE__
+#if __has_cpp_attribute(msvc::no_unique_address)
+[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
 [[no_unique_address]]
+#endif
 #endif
 	T input;
 	typename T::char_type buffer;

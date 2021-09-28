@@ -25,12 +25,20 @@ public:
 	using function_type = Func;
 	function_type& function;
 	inline static constexpr std::size_t block_size = function_type::block_size;
-#if __has_cpp_attribute(no_unique_address)
-	[[no_unique_address]]
+#ifndef __INTELLISENSE__
+#if __has_cpp_attribute(msvc::no_unique_address)
+[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
+[[no_unique_address]]
+#endif
 #endif
 	::fast_io::freestanding::array<std::byte,block_size> temporary_buffer{};
-#if __has_cpp_attribute(no_unique_address)
-	[[no_unique_address]]
+#ifndef __INTELLISENSE__
+#if __has_cpp_attribute(msvc::no_unique_address)
+[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
+[[no_unique_address]]
+#endif
 #endif
 	std::conditional_t<block_size==0,details::compress_current_position,std::size_t> current_position{};
 	constexpr basic_hash_processor(function_type& func) noexcept:function(func)

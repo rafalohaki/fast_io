@@ -16,8 +16,12 @@ struct serializer
 {
 	using handle_type = stm;
 	using char_type = typename handle_type::char_type;
-#if __has_cpp_attribute(no_unique_address)
+#ifndef __INTELLISENSE__
+#if __has_cpp_attribute(msvc::no_unique_address)
+[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
 [[no_unique_address]]
+#endif
 #endif
 	handle_type handle{};
 };
@@ -59,8 +63,12 @@ struct deserializer
 {
 	using handle_type = stm;
 	using char_type = typename handle_type::char_type;
-#if __has_cpp_attribute(no_unique_address)
+#ifndef __INTELLISENSE__
+#if __has_cpp_attribute(msvc::no_unique_address)
+[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
 [[no_unique_address]]
+#endif
 #endif
 	handle_type handle{};
 };

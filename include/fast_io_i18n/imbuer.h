@@ -14,8 +14,12 @@ struct lc_imbuer
 	using char_type = typename handle_type::char_type;
 	using lc_all_type = basic_lc_all<char_type>;
 	lc_all_type const* all{};
-#if __has_cpp_attribute(no_unique_address)
-	[[no_unique_address]]
+#ifndef __INTELLISENSE__
+#if __has_cpp_attribute(msvc::no_unique_address)
+[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
+[[no_unique_address]]
+#endif
 #endif
 	handle_type handle{};
 };

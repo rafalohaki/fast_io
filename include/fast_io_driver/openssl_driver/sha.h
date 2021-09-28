@@ -13,8 +13,12 @@ class hash_final_result
 {
 public:
 	using digest_type = ::fast_io::freestanding::array<unsigned char,N>;
-#if __has_cpp_attribute(no_unique_address)
-	[[no_unique_address]]
+#ifndef __INTELLISENSE__
+#if __has_cpp_attribute(msvc::no_unique_address)
+[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
+[[no_unique_address]]
+#endif
 #endif
 	digest_type digest_block;
 	constexpr hash_final_result() noexcept=default;
@@ -276,8 +280,12 @@ public:
 	static inline constexpr hash_flag flag = flg;
 	using char_type = ch_type;
 	using native_handle_type = details::real_hash_type<flg>;
-#if __has_cpp_attribute(no_unique_address)
-	[[no_unique_address]]
+#ifndef __INTELLISENSE__
+#if __has_cpp_attribute(msvc::no_unique_address)
+[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
+[[no_unique_address]]
+#endif
 #endif
 	native_handle_type ctx;
 	basic_hash_context()

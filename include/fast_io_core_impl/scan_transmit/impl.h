@@ -16,8 +16,12 @@ requires (std::invocable<Func,char8_t>)
 struct scan_transmitter
 {
 	using function_type = Func;
-#if __has_cpp_attribute(no_unique_address)
+#ifndef __INTELLISENSE__
+#if __has_cpp_attribute(msvc::no_unique_address)
+[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
 [[no_unique_address]]
+#endif
 #endif
 	function_type reference;
 };

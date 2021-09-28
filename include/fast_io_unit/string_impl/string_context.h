@@ -142,8 +142,12 @@ struct voldmort
 {
 	Iter iter;
 	parse_code code=parse_code::ok;
-#if __has_cpp_attribute(no_unique_address)
+#ifndef __INTELLISENSE__
+#if __has_cpp_attribute(msvc::no_unique_address)
+[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
 [[no_unique_address]]
+#endif
 #endif
 	std::conditional_t<contiguous_only,empty,bool> not_empty_str{};
 	inline constexpr bool test_eof([[maybe_unused]]T) noexcept requires(!contiguous_only)

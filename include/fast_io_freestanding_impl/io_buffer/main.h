@@ -15,16 +15,20 @@ struct basic_decorators
 	using internal_type = ch_type;
 	using internal_decorator_type=internaltype;
 	using external_decorator_type=externaltype;
+#ifndef __INTELLISENSE__
 #if __has_cpp_attribute(msvc::no_unique_address)
-	[[msvc::no_unique_address]]
+[[msvc::no_unique_address]]
 #elif __has_cpp_attribute(no_unique_address) >= 201803
-	[[no_unique_address]]
+[[no_unique_address]]
+#endif
 #endif
 	internal_decorator_type internal_decorator;
+#ifndef __INTELLISENSE__
 #if __has_cpp_attribute(msvc::no_unique_address)
-	[[msvc::no_unique_address]]
+[[msvc::no_unique_address]]
 #elif __has_cpp_attribute(no_unique_address) >= 201803
-	[[no_unique_address]]
+[[no_unique_address]]
+#endif
 #endif
 	external_decorator_type external_decorator;
 };
@@ -157,43 +161,55 @@ public:
 	details::has_external_decorator_impl<decorators_type>),
 	basic_io_buffer_pointers_no_curr<external_char_type>,
 	empty_buffer_pointers>;
+#ifndef __INTELLISENSE__
 #if __has_cpp_attribute(msvc::no_unique_address)
-	[[msvc::no_unique_address]]
-#elif __has_cpp_attribute(no_unique_address) >= 201803L
-	[[no_unique_address]]
+[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
+[[no_unique_address]]
+#endif
 #endif
 	ibuffer_type ibuffer;
+#ifndef __INTELLISENSE__
 #if __has_cpp_attribute(msvc::no_unique_address)
-	[[msvc::no_unique_address]]
+[[msvc::no_unique_address]]
 #elif __has_cpp_attribute(no_unique_address) >= 201803
-	[[no_unique_address]]
+[[no_unique_address]]
+#endif
 #endif
 	obuffer_type obuffer;
 
+#ifndef __INTELLISENSE__
 #if __has_cpp_attribute(msvc::no_unique_address)
-	[[msvc::no_unique_address]]
+[[msvc::no_unique_address]]
 #elif __has_cpp_attribute(no_unique_address) >= 201803
-	[[no_unique_address]]
+[[no_unique_address]]
+#endif
 #endif
 	ibuffer_external_type ibuffer_external;
 
+#ifndef __INTELLISENSE__
 #if __has_cpp_attribute(msvc::no_unique_address)
-	[[msvc::no_unique_address]]
+[[msvc::no_unique_address]]
 #elif __has_cpp_attribute(no_unique_address) >= 201803
-	[[no_unique_address]]
+[[no_unique_address]]
+#endif
 #endif
 	obuffer_external_type obuffer_external;
 
+#ifndef __INTELLISENSE__
 #if __has_cpp_attribute(msvc::no_unique_address)
-	[[msvc::no_unique_address]]
+[[msvc::no_unique_address]]
 #elif __has_cpp_attribute(no_unique_address) >= 201803
-	[[no_unique_address]]
+[[no_unique_address]]
+#endif
 #endif
 	handle_type handle;
+#ifndef __INTELLISENSE__
 #if __has_cpp_attribute(msvc::no_unique_address)
-	[[msvc::no_unique_address]]
+[[msvc::no_unique_address]]
 #elif __has_cpp_attribute(no_unique_address) >= 201803
-	[[no_unique_address]]
+[[no_unique_address]]
+#endif
 #endif
 	decorators_type decorators;
 private:

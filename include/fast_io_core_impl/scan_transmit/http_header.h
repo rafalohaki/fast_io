@@ -223,16 +223,28 @@ struct http_header_line_iterator
 	using line_type = basic_http_header_line<char_type>;
 	using handle_type = input;
 
-#if __has_cpp_attribute(no_unique_address)
+#ifndef __INTELLISENSE__
+#if __has_cpp_attribute(msvc::no_unique_address)
+[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
 [[no_unique_address]]
+#endif
 #endif
 	line_type line{};
-#if __has_cpp_attribute(no_unique_address)
+#ifndef __INTELLISENSE__
+#if __has_cpp_attribute(msvc::no_unique_address)
+[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
 [[no_unique_address]]
 #endif
+#endif
 	handle_type handle;
-#if __has_cpp_attribute(no_unique_address)
+#ifndef __INTELLISENSE__
+#if __has_cpp_attribute(msvc::no_unique_address)
+[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
 [[no_unique_address]]
+#endif
 #endif
 	std::conditional_t<contiguous_input_stream<input>,details::empty,http_line_buffer> buffer;
 	inline constexpr http_header_line_iterator& operator++()

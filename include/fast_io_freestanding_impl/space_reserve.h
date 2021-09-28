@@ -8,11 +8,13 @@ struct space_reserve
 {
 	using function_type = Function;
 	std::size_t size{};
+#ifndef __INTELLISENSE__
 #if __has_cpp_attribute(msvc::no_unique_address)
-	[[msvc::no_unique_address]]
-#else
-	[[no_unique_address]]
-#endif	
+[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
+[[no_unique_address]]
+#endif
+#endif
 	function_type func{};
 };
 

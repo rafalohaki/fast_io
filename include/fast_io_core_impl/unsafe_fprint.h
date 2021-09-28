@@ -55,8 +55,12 @@ one,less_than_11,other
 template<fprint_args_num_para_enum ag>
 struct fprint_args_num_para
 {
-#if __has_cpp_attribute(no_unique_address)
-	[[no_unique_address]]
+#ifndef __INTELLISENSE__
+#if __has_cpp_attribute(msvc::no_unique_address)
+[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
+[[no_unique_address]]
+#endif
 #endif
 	std::conditional_t<ag==fprint_args_num_para_enum::one,empty,std::size_t> arg_num;
 };

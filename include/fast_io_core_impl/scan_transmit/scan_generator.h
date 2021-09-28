@@ -6,8 +6,12 @@ template<buffer_input_stream input,typename Func>
 struct scan_iterator
 {
 	using char_type = typename input::char_type;
-#if __has_cpp_attribute(no_unique_address)
+#ifndef __INTELLISENSE__
+#if __has_cpp_attribute(msvc::no_unique_address)
+[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
 [[no_unique_address]]
+#endif
 #endif
 	std::conditional_t<value_based_stream<input>,input,input*> nullable_handle;
 	inline constexpr decltype(auto) reference() const noexcept
@@ -17,12 +21,20 @@ struct scan_iterator
 		else
 			return *nullable_handle;
 	}
-#if __has_cpp_attribute(no_unique_address)
+#ifndef __INTELLISENSE__
+#if __has_cpp_attribute(msvc::no_unique_address)
+[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
 [[no_unique_address]]
 #endif
+#endif
 	Func function;
-#if __has_cpp_attribute(no_unique_address)
+#ifndef __INTELLISENSE__
+#if __has_cpp_attribute(msvc::no_unique_address)
+[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
 [[no_unique_address]]
+#endif
 #endif
 	std::conditional_t<contiguous_input_stream<input>,details::empty,dynamic_io_buffer<typename input::char_type>> buffer;
 private:
@@ -129,8 +141,12 @@ template<input_stream input,typename Fun>
 requires (buffer_input_stream<input>||mutex_stream<input>)
 struct scan_generator
 {
-#if __has_cpp_attribute(no_unique_address)
+#ifndef __INTELLISENSE__
+#if __has_cpp_attribute(msvc::no_unique_address)
+[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address) >= 201803
 [[no_unique_address]]
+#endif
 #endif
 	std::conditional_t<value_based_stream<input>,input,input&> reference;
 	constexpr scan_generator(input pt) requires(value_based_stream<input>):reference(pt)
