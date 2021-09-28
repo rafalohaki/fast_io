@@ -83,7 +83,7 @@
 #endif
 #include"fast_io_core_impl/io_deco_ref.h"
 
-//#include"fast_io_core_impl/unsafe_fprint.h"
+#include"fast_io_core_impl/unsafe_fprint.h"
 #endif
 #include"fast_io_core_impl/timestamp_counter.h"
 #include"fast_io_core_impl/dll_mode.h"

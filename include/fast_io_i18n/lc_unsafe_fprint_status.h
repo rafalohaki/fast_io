@@ -33,46 +33,38 @@ template<typename output,typename... Args>
 requires (sizeof...(Args)!=0)
 inline constexpr void lc_unsafe_fprint_freestanding_decay_impl(basic_lc_all<typename output::char_type> const* __restrict lc,
 	output out,
-	::fast_io::freestanding::basic_string_view<typename output::char_type> view,
+	typename output::char_type const* data_first_ptr,typename output::char_type const* data_last_ptr,
 	Args ...args)
 {
 	using char_type = typename output::char_type;
 	if constexpr(sizeof...(Args)==1)
 	{
-		unsafe_fprint_impl(view.data(),view.data()+view.size(),
-			[out](char_type const* beg_ptr,char_type const* end_ptr)
+		unsafe_fprint_impl(data_first_ptr,data_last_ptr,
+			unsafe_fprint_parameter_write_func<output>{.out=out},[&]()
 		{
-			write(out,beg_ptr,end_ptr);
-		},[&]()
-		{
-			((decay::lc_print_control(lc,out,args)),...);
+			((decay::lc_print_control<false>(lc,out,args)),...);
 		},fprint_args_num_para<fprint_args_num_para_enum::one>{});
 	}
 	else
 	{
-		unsafe_fprint_impl(view.data(),view.data()+view.size(),
-			[out](char_type const* beg_ptr,char_type const* end_ptr)
-		{
-			write(out,beg_ptr,end_ptr);
-		},[&](std::size_t pos)
+		unsafe_fprint_impl(data_first_ptr,data_last_ptr,
+			unsafe_fprint_parameter_write_func<output>{.out=out},[&](std::size_t pos)
 		{
 			lc_print_para_at_pos(lc,out,pos,args...);
 		},fprint_args_num_para<sizeof...(Args)<11?fprint_args_num_para_enum::less_than_11:fprint_args_num_para_enum::other>{sizeof...(Args)});
 	}
 }
 
-
-
 template<output_stream output,typename... Args>
 inline constexpr void lc_unsafe_fprint_fallback(basic_lc_all<typename output::char_type> const* __restrict lc,output out,
-	::fast_io::freestanding::basic_string_view<typename output::char_type> view,Args... args)
+	typename output::char_type const* data_first_ptr,typename output::char_type const* data_last_ptr,Args... args)
 {
 	using char_type = typename output::char_type;
 	if constexpr((((!lc_dynamic_reserve_printable<char_type,Args>&&
 	!lc_printable<io_reference_wrapper<
 		dynamic_io_buffer<char_type>>,Args>&&!lc_scatter_printable<char_type,Args>))&&...))
 	{
-		unsafe_fprint_freestanding_decay(out,view,args...);
+		unsafe_fprint_freestanding_decay(out,data_first_ptr,data_last_ptr,args...);
 	}
 	else if constexpr(scatter_output_stream<output>&&
 	((reserve_printable<char_type,Args>
@@ -86,52 +78,53 @@ inline constexpr void lc_unsafe_fprint_fallback(basic_lc_all<typename output::ch
 		if constexpr(((scatter_printable<char_type,Args>||lc_scatter_printable<char_type,Args>)&&...))
 		{
 			decay::lc_scatter_print_recursive(lc,scatters.data(),args...);
-			scatter_fprint_write<sizeof...(Args)>(out,view,scatters.data());
+			scatter_fprint_write<sizeof...(Args)>(out,data_first_ptr,data_last_ptr,scatters.data());
 		}
 		else
 		{
 			::fast_io::freestanding::array<char_type,decay::calculate_scatter_reserve_size<char_type,Args...>()> array;
 			local_operator_new_array_ptr<char_type> new_ptr(decay::calculate_lc_scatter_dynamic_reserve_size<char_type>(lc,args...));
 			decay::lc_scatter_print_with_dynamic_reserve_recursive(lc,scatters.data(),array.data(),new_ptr.ptr,args...);
-			scatter_fprint_write<sizeof...(Args)>(out,view,scatters.data());
+			scatter_fprint_write<sizeof...(Args)>(out,data_first_ptr,data_last_ptr,scatters.data());
 		}
 	}
 	else
 	{
-		dynamic_io_buffer<typename output::char_type> buffer;
+		temporary_buffer<output> buffer{.out=out};
 		auto ref{io_ref(buffer)};
-		lc_unsafe_fprint_freestanding_decay_impl(lc,ref,view,args...);
-		write(out,buffer.beg_ptr,buffer.end_ptr);
+		lc_unsafe_fprint_freestanding_decay_impl(lc,ref,data_first_ptr,data_last_ptr,args...);
+		flush(buffer);
 	}
 
 }
+
 
 template<output_stream output,typename... Args>
 inline constexpr void lc_unsafe_fprint_status_define_further_decay(basic_lc_all<typename output::char_type> const* __restrict lc,
 	output out,
-	::fast_io::freestanding::basic_string_view<typename output::char_type> view,
+	typename output::char_type const* data_first_ptr,typename output::char_type const* data_last_ptr,
 	Args... args)
 {
 	if constexpr(mutex_stream<output>)
 	{
-		io_lock_guard lg{out};
+		::fast_io::io_lock_guard lg{out};
 		decltype(auto) dout{out.unlocked_handle()};
-		lc_unsafe_fprint_status_define_further_decay(lc,io_ref(dout),view,args...);
+		::fast_io::details::lc_unsafe_fprint_status_define_further_decay(lc,io_ref(dout),data_first_ptr,data_last_ptr,args...);
 	}
 	else if constexpr(buffer_output_stream<output>)
 	{
-		lc_unsafe_fprint_freestanding_decay_impl(lc,out,view,args...);
+		::fast_io::details::lc_unsafe_fprint_freestanding_decay_impl(lc,out,data_first_ptr,data_last_ptr,args...);
 	}
 	else
-		lc_unsafe_fprint_fallback(lc,out,view,args...);
+		::fast_io::details::lc_unsafe_fprint_fallback(lc,out,data_first_ptr,data_last_ptr,args...);
 }
 }
 
 template<output_stream output,typename... Args>
-requires (sizeof...(Args)!=0)
-inline constexpr void unsafe_fprint_status_define(lc_imbuer<output> imb,::fast_io::freestanding::basic_string_view<typename output::char_type> view,Args... args)
+inline constexpr void unsafe_fprint_status_define(lc_imbuer<output> imb,typename output::char_type const* data_first_ptr,typename output::char_type const* data_last_ptr,Args... args)
 {
-	details::lc_unsafe_fprint_status_define_further_decay(imb.all,imb.handle,view,args...);
+	static_assert(sizeof...(Args)!=0);
+	::fast_io::details::lc_unsafe_fprint_status_define_further_decay(imb.all,imb.handle,data_first_ptr,data_last_ptr,args...);
 }
 
 }
