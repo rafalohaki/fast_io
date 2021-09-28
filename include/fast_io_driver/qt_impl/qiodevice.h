@@ -11,11 +11,7 @@ public:
 	using native_handle_type = T*;
 	native_handle_type qdevice{};
 
-	inline constexpr auto& native_handle() noexcept
-	{
-		return qdevice;
-	}
-	inline constexpr auto& native_handle() const noexcept
+	inline constexpr auto native_handle() const noexcept
 	{
 		return qdevice;
 	}
