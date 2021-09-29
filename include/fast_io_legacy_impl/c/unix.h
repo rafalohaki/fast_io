@@ -155,9 +155,6 @@ inline T* bsd_get_buffer_ptr_impl(FILE* __restrict fpp) noexcept
 
 
 template<bool w,typename T>
-#if __has_cpp_attribute(gnu::may_alias)
-[[gnu::may_alias]]
-#endif
 inline void bsd_set_buffer_curr_ptr_impl(FILE* __restrict fpp,
 #if __has_cpp_attribute(gnu::may_alias)
 [[gnu::may_alias]]
