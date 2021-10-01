@@ -43,6 +43,13 @@ concept lc_printable_internal_shift=requires(basic_lc_all<char_type> const* all,
 	{print_define_internal_shift(all,t)}->std::same_as<std::size_t>;
 };
 
+template<std::integral char_type,typename value_type>
+requires lc_printable_internal_shift<char_type,std::remove_cvref_t<value_type>>
+inline constexpr auto print_define_internal_shift(basic_lc_all<char_type> const* __restrict all,parameter<value_type> para)
+{
+	return print_define_internal_shift(all,para.reference);
+}
+
 namespace details::decay
 {
 
