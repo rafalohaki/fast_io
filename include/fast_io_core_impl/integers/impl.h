@@ -100,7 +100,7 @@ struct scalar_manip_t
 template<scalar_flags flags,typename T>
 struct scalar_manip_precision_t
 {
-	using reference_type = scalar_flags;
+	using scalar_flags_type = scalar_flags;
 	using manip_tag = manip_tag_t;
 #ifndef __INTELLISENSE__
 #if __has_cpp_attribute(msvc::no_unique_address)
