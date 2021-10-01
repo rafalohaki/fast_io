@@ -252,7 +252,7 @@ inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type>
 	if constexpr((((!lc_dynamic_reserve_printable<char_type,Args>&&
 	!lc_printable<char_type,Args>&&!lc_scatter_printable<char_type,Args>))&&...))
 	{
-		print_freestanding_decay_normal<ln>(out,args...);
+		print_freestanding_decay_no_status<ln>(out,args...);
 	}
 	else if constexpr(scatter_output_stream<output>&&
 	((reserve_printable<char_type,Args>
