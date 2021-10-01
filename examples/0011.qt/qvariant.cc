@@ -1,6 +1,6 @@
 #include<fast_io.h>
 #include<fast_io_driver/qt.h>
-#include<QVariant>
+#include<QtCore/QVariant>
 
 int main()
 {

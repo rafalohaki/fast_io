@@ -85,8 +85,64 @@ namespace manipulators
 template<scalar_flags flags,typename T>
 struct scalar_manip_t
 {
+	using scalar_flags_type = scalar_flags;
 	using manip_tag = manip_tag_t;
+#ifndef __INTELLISENSE__
+#if __has_cpp_attribute(msvc::no_unique_address)
+	[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address)
+	[[no_unique_address]]
+#endif
+#endif
 	T reference;
+};
+
+template<scalar_flags flags,typename T>
+struct scalar_manip_precision_t
+{
+	using reference_type = scalar_flags;
+	using manip_tag = manip_tag_t;
+#ifndef __INTELLISENSE__
+#if __has_cpp_attribute(msvc::no_unique_address)
+	[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address)
+	[[no_unique_address]]
+#endif
+#endif
+	T reference;
+	std::size_t precision;
+};
+
+template<scalar_placement flags,typename T>
+struct width_t
+{
+	using manip_tag = manip_tag_t;
+#ifndef __INTELLISENSE__
+#if __has_cpp_attribute(msvc::no_unique_address)
+	[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address)
+	[[no_unique_address]]
+#endif
+#endif
+	T reference;
+	std::size_t width;
+};
+
+template<scalar_placement flags,typename T,std::integral ch_type>
+struct width_ch_t
+{
+	using manip_tag = manip_tag_t;
+	using char_type = ch_type;
+#ifndef __INTELLISENSE__
+#if __has_cpp_attribute(msvc::no_unique_address)
+	[[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address)
+	[[no_unique_address]]
+#endif
+#endif
+	T reference;
+	std::size_t width;
+	char_type ch;
 };
 
 template<std::size_t bs,bool shbase=false,bool full=false,typename scalar_type>
@@ -353,7 +409,47 @@ inline constexpr auto comma_general(scalar_type t) noexcept
 		return scalar_manip_t<::fast_io::details::dcmfloat_mani_flags_cache<uppercase,true,manipulators::floating_format::general>,std::remove_cvref_t<scalar_type>>{t};
 }
 
+template<bool uppercase=false,typename scalar_type>
+requires (::fast_io::details::my_floating_point<scalar_type>)
+inline constexpr auto general(scalar_type t,std::size_t n) noexcept
+{
+	if constexpr(std::same_as<std::remove_cvref_t<scalar_type>,long double>
+#if defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)
+	||std::same_as<std::remove_cvref_t<scalar_type>,__float128>
+#endif
+	)
+	{
+#if (defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)) && defined(__SIZEOF_INT128__)
+		if constexpr(sizeof(scalar_type)>sizeof(double))
+			return scalar_manip_precision_t<::fast_io::details::dcmfloat_mani_flags_cache<uppercase,false,manipulators::floating_format::general>,__float128>{static_cast<__float128>(t),n};
+		else
+#endif
+			return scalar_manip_precision_t<::fast_io::details::dcmfloat_mani_flags_cache<uppercase,false,manipulators::floating_format::general>,double>{static_cast<double>(t),n};
+	}
+	else
+		return scalar_manip_precision_t<::fast_io::details::dcmfloat_mani_flags_cache<uppercase,false,manipulators::floating_format::general>,std::remove_cvref_t<scalar_type>>{t,n};
+}
 
+template<bool uppercase=false,typename scalar_type>
+requires (::fast_io::details::my_floating_point<scalar_type>)
+inline constexpr auto comma_general(scalar_type t,std::size_t n) noexcept
+{
+	if constexpr(std::same_as<std::remove_cvref_t<scalar_type>,long double>
+#if defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)
+	||std::same_as<std::remove_cvref_t<scalar_type>,__float128>
+#endif
+	)
+	{
+#if (defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)) && defined(__SIZEOF_INT128__)
+		if constexpr(sizeof(scalar_type)>sizeof(double))
+			return scalar_manip_precision_t<::fast_io::details::dcmfloat_mani_flags_cache<uppercase,true,manipulators::floating_format::general>,__float128>{static_cast<__float128>(t),n};
+		else
+#endif
+			return scalar_manip_precision_t<::fast_io::details::dcmfloat_mani_flags_cache<uppercase,true,manipulators::floating_format::general>,double>{static_cast<double>(t),n};
+	}
+	else
+		return scalar_manip_precision_t<::fast_io::details::dcmfloat_mani_flags_cache<uppercase,true,manipulators::floating_format::general>,std::remove_cvref_t<scalar_type>>{t,n};
+}
 
 template<bool uppercase=false,typename scalar_type>
 requires (::fast_io::details::my_floating_point<scalar_type>)
@@ -397,6 +493,49 @@ inline constexpr auto comma_fixed(scalar_type t) noexcept
 		return scalar_manip_t<::fast_io::details::dcmfloat_mani_flags_cache<uppercase,true,manipulators::floating_format::fixed>,std::remove_cvref_t<scalar_type>>{t};
 }
 
+
+template<bool uppercase=false,typename scalar_type>
+requires (::fast_io::details::my_floating_point<scalar_type>)
+inline constexpr auto fixed(scalar_type t,std::size_t n) noexcept
+{
+	if constexpr(std::same_as<std::remove_cvref_t<scalar_type>,long double>
+#if defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)
+	||std::same_as<std::remove_cvref_t<scalar_type>,__float128>
+#endif
+	)
+	{
+#if (defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)) && defined(__SIZEOF_INT128__)
+		if constexpr(sizeof(scalar_type)>sizeof(double))
+			return scalar_manip_precision_t<::fast_io::details::dcmfloat_mani_flags_cache<uppercase,false,manipulators::floating_format::fixed>,__float128>{static_cast<__float128>(t),n};
+		else
+#endif
+			return scalar_manip_precision_t<::fast_io::details::dcmfloat_mani_flags_cache<uppercase,false,manipulators::floating_format::fixed>,double>{static_cast<double>(t),n};
+	}
+	else
+		return scalar_manip_precision_t<::fast_io::details::dcmfloat_mani_flags_cache<uppercase,false,manipulators::floating_format::fixed>,std::remove_cvref_t<scalar_type>>{t,n};
+}
+
+template<bool uppercase=false,typename scalar_type>
+requires (::fast_io::details::my_floating_point<scalar_type>)
+inline constexpr auto comma_fixed(scalar_type t,std::size_t n) noexcept
+{
+	if constexpr(std::same_as<std::remove_cvref_t<scalar_type>,long double>
+#if defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)
+	||std::same_as<std::remove_cvref_t<scalar_type>,__float128>
+#endif
+	)
+	{
+#if (defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)) && defined(__SIZEOF_INT128__)
+		if constexpr(sizeof(scalar_type)>sizeof(double))
+			return scalar_manip_precision_t<::fast_io::details::dcmfloat_mani_flags_cache<uppercase,true,manipulators::floating_format::fixed>,__float128>{static_cast<__float128>(t),n};
+		else
+#endif
+			return scalar_manip_precision_t<::fast_io::details::dcmfloat_mani_flags_cache<uppercase,true,manipulators::floating_format::fixed>,double>{static_cast<double>(t),n};
+	}
+	else
+		return scalar_manip_precision_t<::fast_io::details::dcmfloat_mani_flags_cache<uppercase,true,manipulators::floating_format::fixed>,std::remove_cvref_t<scalar_type>>{t,n};
+}
+
 template<bool uppercase=false,typename scalar_type>
 requires (::fast_io::details::my_floating_point<scalar_type>)
 inline constexpr auto scientific(scalar_type t) noexcept
@@ -437,6 +576,50 @@ inline constexpr auto comma_scientific(scalar_type t) noexcept
 	}
 	else
 		return scalar_manip_t<::fast_io::details::dcmfloat_mani_flags_cache<uppercase,true,manipulators::floating_format::scientific>,std::remove_cvref_t<scalar_type>>{t};
+}
+
+
+
+template<bool uppercase=false,typename scalar_type>
+requires (::fast_io::details::my_floating_point<scalar_type>)
+inline constexpr auto scientific(scalar_type t,std::size_t n) noexcept
+{
+	if constexpr(std::same_as<std::remove_cvref_t<scalar_type>,long double>
+#if defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)
+	||std::same_as<std::remove_cvref_t<scalar_type>,__float128>
+#endif
+	)
+	{
+#if (defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)) && defined(__SIZEOF_INT128__)
+		if constexpr(sizeof(scalar_type)>sizeof(double))
+			return scalar_manip_precision_t<::fast_io::details::dcmfloat_mani_flags_cache<uppercase,false,manipulators::floating_format::scientific>,__float128>{static_cast<__float128>(t),n};
+		else
+#endif
+			return scalar_manip_precision_t<::fast_io::details::dcmfloat_mani_flags_cache<uppercase,false,manipulators::floating_format::scientific>,double>{static_cast<double>(t),n};
+	}
+	else
+		return scalar_manip_precision_t<::fast_io::details::dcmfloat_mani_flags_cache<uppercase,false,manipulators::floating_format::scientific>,std::remove_cvref_t<scalar_type>>{t,n};
+}
+
+template<bool uppercase=false,typename scalar_type>
+requires (::fast_io::details::my_floating_point<scalar_type>)
+inline constexpr auto comma_scientific(scalar_type t,std::size_t n) noexcept
+{
+	if constexpr(std::same_as<std::remove_cvref_t<scalar_type>,long double>
+#if defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)
+	||std::same_as<std::remove_cvref_t<scalar_type>,__float128>
+#endif
+	)
+	{
+#if (defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)) && defined(__SIZEOF_INT128__)
+		if constexpr(sizeof(scalar_type)>sizeof(double))
+			return scalar_manip_precision_t<::fast_io::details::dcmfloat_mani_flags_cache<uppercase,true,manipulators::floating_format::scientific>,__float128>{static_cast<__float128>(t),n};
+		else
+#endif
+			return scalar_manip_precision_t<::fast_io::details::dcmfloat_mani_flags_cache<uppercase,true,manipulators::floating_format::scientific>,double>{static_cast<double>(t),n};
+	}
+	else
+		return scalar_manip_precision_t<::fast_io::details::dcmfloat_mani_flags_cache<uppercase,true,manipulators::floating_format::scientific>,std::remove_cvref_t<scalar_type>>{t,n};
 }
 
 
@@ -1326,6 +1509,22 @@ inline constexpr void print_reserve_precise_define(io_reserve_type_t<char_type,m
 		details::print_reserve_integral_define_precise<flags.base,flags.showbase,flags.uppercase_showbase,flags.showpos,flags.uppercase>(iter,n,static_cast<char8_t>(t.reference));
 	else
 		details::print_reserve_integral_define_precise<flags.base,flags.showbase,flags.uppercase_showbase,flags.showpos,flags.uppercase>(iter,n,t.reference);
+}
+
+template<std::integral char_type,manipulators::scalar_flags flags,typename T>
+requires ((details::my_integral<T>||std::same_as<std::remove_cv_t<T>,std::byte>) && !flags.alphabet&&(
+	flags.showpos||(details::my_signed_integral<T>&&!std::same_as<std::remove_cv_t<T>,bool>)
+))
+inline constexpr std::size_t print_define_internal_shift(io_reserve_type_t<char_type,manipulators::scalar_manip_t<flags,T>>,manipulators::scalar_manip_t<flags,T> t) noexcept
+{
+	if constexpr(flags.showpos)
+	{
+		return 1;
+	}
+	else
+	{
+		return t.reference<0;
+	}
 }
 
 }

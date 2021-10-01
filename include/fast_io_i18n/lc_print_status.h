@@ -37,6 +37,12 @@ concept lc_printable = requires(basic_lc_all<char_type> const* all,::fast_io::de
 	print_define(all,out,t);
 };
 
+template<typename char_type,typename T>
+concept lc_printable_internal_shift=requires(basic_lc_all<char_type> const* all,T t)
+{
+	{print_define_internal_shift(all,t)}->std::same_as<std::size_t>;
+};
+
 namespace details::decay
 {
 

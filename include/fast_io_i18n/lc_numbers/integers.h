@@ -427,5 +427,25 @@ inline constexpr Iter print_reserve_define(basic_lc_all<::fast_io::freestanding:
 		return details::print_reserve_define_grouping_timestamp_impl(all,iter,{ts.seconds,ts.subseconds});
 }
 
+template<std::integral char_type,::fast_io::manipulators::scalar_flags flags,typename T>
+requires ((details::my_integral<T>||std::same_as<std::remove_cv_t<T>,std::byte>)&&!flags.alphabet&&!std::same_as<std::remove_cv_t<T>,bool>&&(flags.showpos||!details::my_unsigned_integral<T>))
+inline constexpr std::size_t print_define_internal_shift(basic_lc_all<char_type> const* __restrict,manipulators::scalar_manip_t<flags,T> t) noexcept
+{
+	if constexpr(flags.showpos)
+	{
+		return 1;
+	}
+	else
+	{
+		return t.reference<0;
+	}
+}
+
+template<std::integral char_type,::fast_io::manipulators::scalar_flags flags,std::int_least64_t off_to_epoch>
+inline constexpr std::size_t print_define_internal_shift(basic_lc_all<char_type> const* __restrict,basic_timestamp<off_to_epoch> t) noexcept
+{
+	return t.seconds<0;
+}
+
 
 }

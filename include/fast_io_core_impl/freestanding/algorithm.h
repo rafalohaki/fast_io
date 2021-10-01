@@ -66,7 +66,10 @@ template<::fast_io::freestanding::input_iterator fwd_iter,typename T>
 inline constexpr void fill_n(fwd_iter first,std::size_t n,T value)
 {
 	for(std::size_t i{};i!=n;++i)
+	{
 		*first=value;
+		++first;
+	}
 }
 
 

@@ -1,8 +1,6 @@
 #pragma once
 
-#if 0
 #include"width.h"
-#endif
 
 #include"boolalpha.h"
 #include"integers.h"
@@ -13,6 +11,4 @@
 #endif
 #endif
 
-#if 1
 #include"lc_time.h"
-#endif

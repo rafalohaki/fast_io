@@ -93,6 +93,12 @@ concept dynamic_reserve_printable=std::integral<char_type>&&requires(T t,char_ty
 };
 
 template<typename char_type,typename T>
+concept printable_internal_shift=requires(T t)
+{
+	{print_define_internal_shift(io_reserve_type<char_type,std::remove_cvref_t<T>>,t)}->std::same_as<std::size_t>;
+};
+
+template<typename char_type,typename T>
 concept precise_reserve_printable=std::integral<char_type>&&(reserve_printable<char_type,T>||dynamic_reserve_printable<char_type,T>)&&requires(T t,char_type* ptr,std::size_t n)
 {
 	{print_reserve_precise_size(io_reserve_type<char_type,std::remove_cvref_t<T>>,t)}->std::convertible_to<std::size_t>;
@@ -184,6 +190,12 @@ constexpr auto print_reserve_define(io_reserve_type_t<char_type,parameter<value_
 	return print_reserve_define(io_reserve_type<char_type,std::remove_cvref_t<value_type>>,begin,para.reference);
 }
 
+template<std::integral char_type,typename value_type,typename Iter>
+requires (printable_internal_shift<char_type,std::remove_cvref_t<value_type>>)
+constexpr auto print_define_internal_shift(io_reserve_type_t<char_type,parameter<value_type>>,Iter begin,parameter<value_type> para)
+{
+	return print_define_internal_shift(io_reserve_type<char_type,std::remove_cvref_t<value_type>>,begin,para.reference);
+}
 
 template<std::integral char_type,typename value_type>
 requires precise_reserve_printable<char_type,std::remove_cvref_t<value_type>>
