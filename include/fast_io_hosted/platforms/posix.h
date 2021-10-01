@@ -635,13 +635,18 @@ inline std::uintmax_t posix_seek_impl(int fd,std::intmax_t offset,seekdir s)
 		return static_cast<std::uintmax_t>(static_cast<std::uint64_t>(ret));
 	}
 #else
+	if constexpr(sizeof(off_t)<=sizeof(std::int32_t))
+	{
+		if(offset<static_cast<std::intmax_t>(std::numeric_limits<off_t>::min())||offset>static_cast<std::intmax_t>(std::numeric_limits<off_t>::max()))
+			throw_posix_error(EOVERFLOW);
+	}
 	auto ret(
 #if (defined(_WIN32)&&!defined(__WINE__)) && !defined(__CYGWIN__)
 		::_lseeki64
 #else
 		::lseek
 #endif
-		(fd,offset,static_cast<int>(s)));
+		(fd,static_cast<off_t>(offset),static_cast<int>(s)));
 	system_call_throw_error(ret);
 	return static_cast<std::uintmax_t>(static_cast<std::uint64_t>(ret));
 #endif
