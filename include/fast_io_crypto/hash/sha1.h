@@ -522,7 +522,7 @@ __has_builtin(__builtin_ia32_pshufb128) && (!defined(__clang__)||(defined(__SSE4
 		abcd = (abcdstate+=abcd);
 	}
 	simd_vector<int,4>{abcd[3],abcd[2],abcd[1],abcd[0]}.store(state);
-	state[4]=e0.back();
+	state[4]=static_cast<std::uint32_t>(e0.back());
 #elif defined(FAST_IO_ARM_SHA) && ( defined(__arm__) || defined(__aarch32__) || defined(__arm64__) || defined(__aarch64__) || defined(_M_ARM) )
 	sha1_arm_function(state,blocks_start,blocks_bytes);
 #else

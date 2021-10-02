@@ -65,9 +65,9 @@ std::uint32_t do_crc32c_main(std::uint32_t crc,std::byte const* block_start,std:
 			std::uint64_t v;
 			::fast_io::details::my_memcpy(&v,block_start,block_size);
 #if (defined(__GNUC__) || defined(__clang__)) && !defined(__INTEL_COMPILER)
-		 	crc = __builtin_ia32_crc32di(crc,v);
+		 	crc = static_cast<std::uint32_t>(__builtin_ia32_crc32di(static_cast<std::uint64_t>(crc),v));
 #else
-			crc = static_cast<std::uint32_t>(_mm_crc32_u64(crc,v));
+			crc = static_cast<std::uint32_t>(_mm_crc32_u64(static_cast<std::uint64_t>(crc),v));
 #endif
 		}
 		return crc;
