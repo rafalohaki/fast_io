@@ -70,7 +70,7 @@ void sha256_do_constexpr_function(std::uint32_t* __restrict state,std::byte cons
 	using namespace fast_io::details::sha256;
 	for(auto data(blocks_start),ed(blocks_start+blocks_bytes);data!=ed;)
 	{
-		std::uint32_t i{};
+		std::uint_least32_t i{};
 		for (; i < 16; ++i)
 		{
 #if __cpp_lib_is_constant_evaluated >= 201811L
@@ -149,7 +149,6 @@ inline void sha256_arm_function(std::uint32_t* __restrict state,std::byte const*
 
 	STATE0 = vld1q_u32(state));
 	STATE1 = vld1q_u32(state+4);
-
 	for(auto data(blocks_start),ed(blocks_start+blocks_bytes);data!=ed;data+=block_size)
 	{
 		ABEF_SAVE = STATE0;
@@ -307,7 +306,6 @@ __has_builtin(__builtin_ia32_sha256msg1) && \
 __has_builtin(__builtin_ia32_sha256msg2) && \
 __has_builtin(__builtin_ia32_pshufb128)
 	constexpr std::size_t block_size{64};
-#if defined(__GNUC__) || defined(__clang__)
 	using ::fast_io::intrinsics::simd_vector;
 	constexpr simd_vector<char,16> mask{3,2,1,0,7,6,5,4,11,10,9,8,15,14,13,12};
 	simd_vector<int,4> state0st{static_cast<int>(state[5]),static_cast<int>(state[4]),
@@ -556,7 +554,7 @@ __has_builtin(__builtin_ia32_pshufb128)
 	state[6]=static_cast<std::uint32_t>(state1[1]);
 	state[7]=static_cast<std::uint32_t>(state1[0]);
 #elif defined(FAST_IO_ARM_SHA) && ( defined(__arm__) || defined(__aarch32__) || defined(__arm64__) || defined(__aarch64__) || defined(_M_ARM) )
-	sha256_arm_function(state,blocks_start,blocks_bytes));
+	sha256_arm_function(state,blocks_start,blocks_bytes);
 #else
 	sha256_do_constexpr_function(state,blocks_start,blocks_bytes);
 #endif
@@ -745,7 +743,6 @@ __has_builtin(__builtin_ia32_pshufb128)
 	/* Save state */
 	_mm_storeu_si128((__m128i*) (state), STATE0);
 	_mm_storeu_si128((__m128i*) (state+4), STATE1);
-#endif
 #elif defined(FAST_IO_ARM_SHA) && ( defined(__arm__) || defined(__aarch32__) || defined(__arm64__) || defined(__aarch64__) || defined(_M_ARM) )
 	sha256_arm_function(state,blocks_start,blocks_bytes);
 #else

@@ -17,7 +17,6 @@ inline constexpr void R0(std::uint32_t* __restrict block, std::uint32_t const v,
 	w = std::rotl(w, 30);
 }
 
-
 inline constexpr void R1(std::uint32_t* __restrict block, std::uint32_t const v, std::uint32_t &w, std::uint32_t const x, std::uint32_t const y, std::uint32_t &z, std::size_t i) noexcept
 {
 	block[i] = blk(block, i);
@@ -75,14 +74,11 @@ void sha1_do_constexpr_function(std::uint32_t* __restrict state,std::byte const*
 #endif
 		{
 			my_memcpy(X,data,block_size);
-			X[0]=big_endian(X[0]);
-			X[1]=big_endian(X[1]);
-			X[2]=big_endian(X[2]);
-			X[3]=big_endian(X[3]);
-			X[4]=big_endian(X[4]);
-			X[5]=big_endian(X[5]);
-			X[6]=big_endian(X[6]);
-			X[7]=big_endian(X[7]);
+			if constexpr(std::endian::big!=std::endian::native)
+			{
+				for(auto& e : X)
+					e=big_endian(e);
+			}
 		}
 		/* 4 rounds of 20 operations each. Loop unrolled. */
 		R0(X, a, b, c, d, e,  0);
