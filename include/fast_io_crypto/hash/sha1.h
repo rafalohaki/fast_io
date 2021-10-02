@@ -76,8 +76,8 @@ void sha1_do_constexpr_function(std::uint32_t* __restrict state,std::byte const*
 			my_memcpy(X,data,block_size);
 			if constexpr(std::endian::big!=std::endian::native)
 			{
-				for(auto& e : X)
-					e=big_endian(e);
+				for(auto& ele : X)
+					ele=big_endian(ele);
 			}
 		}
 		/* 4 rounds of 20 operations each. Loop unrolled. */
@@ -349,7 +349,7 @@ inline void sha1_do_function(std::uint32_t* __restrict state,std::byte const* __
 #if __has_builtin(__builtin_ia32_sha1rnds4)&& \
 __has_builtin(__builtin_ia32_sha1nexte)&& \
 __has_builtin(__builtin_ia32_sha1msg1) && \
-__has_builtin(__builtin_ia32_pshufb128)
+__has_builtin(__builtin_ia32_pshufb128) && (!defined(__clang__)||(defined(__SSE4_2__)&&defined(__SHA__)))
 	using namespace ::fast_io::intrinsics;
 	constexpr simd_vector<char,16> mask{15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0};
 	simd_vector<int,4> abcdstate{static_cast<int>(state[3]),static_cast<int>(state[2]),

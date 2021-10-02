@@ -304,7 +304,7 @@ __has_builtin(__builtin_ia32_pshufd)&& \
 __has_builtin(__builtin_ia32_palignr128) && \
 __has_builtin(__builtin_ia32_sha256msg1) && \
 __has_builtin(__builtin_ia32_sha256msg2) && \
-__has_builtin(__builtin_ia32_pshufb128)
+__has_builtin(__builtin_ia32_pshufb128) && (!defined(__clang__)||(defined(__SSE4_2__)&&defined(__SHA__)))
 	constexpr std::size_t block_size{64};
 	using ::fast_io::intrinsics::simd_vector;
 	constexpr simd_vector<char,16> mask{3,2,1,0,7,6,5,4,11,10,9,8,15,14,13,12};
