@@ -847,7 +847,7 @@ constexpr std::size_t chars_len(U value) noexcept
 			else
 			{
 				constexpr std::size_t one{1};
-				constexpr std::size_t log2base{std::countr_zero(base)};
+				constexpr std::size_t log2base{static_cast<std::size_t>(std::countr_zero(base))};
 				return (base2len-one)/log2base+one;
 			}
 		}
@@ -861,7 +861,7 @@ constexpr std::size_t chars_len(U value) noexcept
 			else
 			{
 				constexpr std::size_t one{1};
-				constexpr std::size_t log2base{std::countr_zero(base)};
+				constexpr std::size_t log2base{static_cast<std::size_t>(std::countr_zero(base))};
 				return (base2len-one)/log2base+one;
 			}
 		}
