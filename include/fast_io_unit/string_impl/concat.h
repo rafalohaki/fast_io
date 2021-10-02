@@ -95,7 +95,6 @@ inline constexpr T basic_concat_decay_impl_precise(Arg arg)
 	constexpr std::size_t local_cap{string_hack::local_capacity<T>()};
 	if(local_cap<precise_size_with_line)
 		str.reserve(precise_size_with_line);
-
 	print_reserve_precise_define(io_reserve_type<ch_type,Arg>,str.data(),precise_size,arg);
 	auto ptr{str.data()+precise_size};
 	if constexpr(line)
@@ -131,12 +130,15 @@ inline constexpr T basic_concat_decay_impl(Args ...args)
 		if constexpr((reserve_printable<ch_type,Args>&&...))
 		{
 			constexpr std::size_t local_cap{string_hack::local_capacity<T>()};
-			if constexpr((local_cap<sz_with_line && ((sizeof...(Args)==1)&&(precise_reserve_printable<ch_type,Args>&&...))))
+			constexpr bool not_enough_space{(local_cap<sz_with_line)};
+			if constexpr(not_enough_space && ((sizeof...(Args)==1)&&(precise_reserve_printable<ch_type,Args>&&...)))
+			{
 				return basic_concat_decay_impl_precise<line,T>(args...);
+			}
 			else
 			{
 				T str;
-				if constexpr(local_cap<sz_with_line)
+				if constexpr(not_enough_space)
 					str.reserve(sz_with_line);
 				set_basic_string_ptr(str,print_reserve_define_chain_impl<line>(str.data(),args...));
 				return str;
