@@ -1,4 +1,4 @@
-inline void test()
+﻿inline void test()
 {
 	for(std::size_t i{};i!=1000000;++i)
 		println(i);

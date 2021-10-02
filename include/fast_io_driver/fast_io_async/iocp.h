@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include<thread>
 
 namespace fast_io::win32

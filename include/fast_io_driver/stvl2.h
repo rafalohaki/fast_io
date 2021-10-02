@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include"../fast_io_concept.h"
 #include"bootloader/stvl2.h"
 

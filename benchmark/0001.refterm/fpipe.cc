@@ -1,4 +1,4 @@
-inline void test()
+﻿inline void test()
 {
 	fast_io::u8obuf_file obf(fast_io::win32_refterm_fast_pipe());
 	for(std::size_t i{};i!=1000000;++i)

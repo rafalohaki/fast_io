@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 //https://github.com/bminor/glibc/master/sysdeps/unix/sysv/linux/x86_64/sysdep.h
 
 namespace fast_io

@@ -1,4 +1,4 @@
-inline void test()
+﻿inline void test()
 {
 	fast_io::nt_file wf(fast_io::io_dup,fast_io::nt_stdout());
 	fast_io::filebuf_file fbf(std::move(wf),fast_io::open_mode::out);

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include"output_normal.h"
 #include"output_deco.h"
 

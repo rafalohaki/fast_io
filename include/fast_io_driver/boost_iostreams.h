@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include<ios>
 #include"../fast_io_core_impl/seek.h"
 

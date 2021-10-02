@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include"input_normal.h"
 #include"input_deco.h"
 

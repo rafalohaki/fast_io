@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 struct bio_method_st
 {
 int type;

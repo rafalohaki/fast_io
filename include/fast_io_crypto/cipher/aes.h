@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #if defined(__AES__)
 #include <wmmintrin.h>

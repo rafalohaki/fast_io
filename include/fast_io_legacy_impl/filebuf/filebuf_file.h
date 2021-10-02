@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include"streambuf_io_observer.h"
 

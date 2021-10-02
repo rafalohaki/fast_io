@@ -1,4 +1,4 @@
-	if constexpr(std::same_as<char_type,char>)
+﻿	if constexpr(std::same_as<char_type,char>)
 	{
 		return tsc("Unknown");
 	}

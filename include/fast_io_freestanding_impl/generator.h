@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 //https://github.com/lewissbaker/cppcoro/blob/master/include/cppcoro/generator.hpp
 namespace fast_io
 {

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include"gb18030.h"
 #include"utf_ebcdic.h"

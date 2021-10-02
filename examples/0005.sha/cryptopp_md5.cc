@@ -1,4 +1,4 @@
-#include<fast_io.h>
+﻿#include<fast_io.h>
 #include<fast_io_device.h>
 #include<fast_io_driver/cryptopp_driver.h>
 #include<CryptoPP/MD5.h>

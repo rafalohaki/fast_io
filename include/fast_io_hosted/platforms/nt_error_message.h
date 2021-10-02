@@ -1,4 +1,4 @@
-case 0x00000000:	return u8R"(nt[0x00000000(STATUS_SUCCESS/STATUS_WAIT_0)]The operation completed successfully./The caller specified WaitAny for WaitType and one of the dispatcher objects in the Object array has been set to the signaled state.)";
+﻿case 0x00000000:	return u8R"(nt[0x00000000(STATUS_SUCCESS/STATUS_WAIT_0)]The operation completed successfully./The caller specified WaitAny for WaitType and one of the dispatcher objects in the Object array has been set to the signaled state.)";
 case 0x00000001:	return u8R"(nt[0x00000001(STATUS_WAIT_1)]The caller specified WaitAny for WaitType and one of the dispatcher objects in the Object array has been set to the signaled state.)";
 case 0x00000002:	return u8R"(nt[0x00000002(STATUS_WAIT_2)]The caller specified WaitAny for WaitType and one of the dispatcher objects in the Object array has been set to the signaled state.)";
 case 0x00000003:	return u8R"(nt[0x00000003(STATUS_WAIT_3)]The caller specified WaitAny for WaitType and one of the dispatcher objects in the Object array has been set to the signaled state.)";

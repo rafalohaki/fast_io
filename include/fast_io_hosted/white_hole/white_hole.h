@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #if defined(_WIN32) || defined(__CYGWIN__)
 #include"rtl_gen_random.h"
 #endif

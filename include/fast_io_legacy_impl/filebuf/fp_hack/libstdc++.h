@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 //https://www.ginac.de/~kreckel/fileno/
 #ifdef __cpp_rtti
 #include <ext/stdio_sync_filebuf.h>

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #if __has_include(<cwchar>)
 #include<cwchar>
 #elif __has_include(<wchar.h>)

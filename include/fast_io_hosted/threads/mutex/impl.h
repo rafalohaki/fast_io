@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include"single.h"
 #ifdef __USING_MCFGTHREAD__

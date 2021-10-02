@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #if defined(__arm__) || defined(__aarch32__) || defined(__arm64__) || defined(__aarch64__) || defined(_M_ARM)
 # if defined(__ARM_NEON) || defined(_MSC_VER)
 #  include <arm_neon.h>

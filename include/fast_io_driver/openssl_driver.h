@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include<openssl/bio.h>
 #include<openssl/ssl.h>
 #include<openssl/err.h>

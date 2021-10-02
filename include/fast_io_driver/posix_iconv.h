@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include"../fast_io_device.h"
 #include"posix_iconv_impl/impl.h"
 

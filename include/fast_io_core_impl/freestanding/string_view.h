@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #if defined(_GLIBCXX_STRING_VIEW) || defined(_LIBCPP_STRING_VIEW) || defined(_STRING_VIEW_)
 

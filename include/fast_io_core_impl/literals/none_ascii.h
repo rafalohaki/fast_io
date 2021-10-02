@@ -1,4 +1,4 @@
-	if constexpr(::fast_io::details::is_ebcdic<ch_type>&&(std::same_as<ch_type,char>||std::same_as<ch_type,wchar_t>))
+﻿	if constexpr(::fast_io::details::is_ebcdic<ch_type>&&(std::same_as<ch_type,char>||std::same_as<ch_type,wchar_t>))
 	{
 		if constexpr(std::same_as<ch_type,char>)
 switch(ch)

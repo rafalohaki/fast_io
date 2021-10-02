@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 
 //Let's do great brutal hack to GCC's libstdc++ and LLVM's libc++ with memcpy

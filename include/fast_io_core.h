@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 //fast_io_core.h is required to be usable in freestanding environment with EVEN dynamic memory allocation and exceptions are disabled.
 
 #if !defined(__cplusplus)

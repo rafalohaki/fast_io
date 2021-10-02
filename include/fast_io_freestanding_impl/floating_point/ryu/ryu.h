@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include"floating_traits.h"
 #include"fixed_table.h"
 #include"dbl_table.h"

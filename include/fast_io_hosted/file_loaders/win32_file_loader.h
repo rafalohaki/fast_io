@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 namespace fast_io
 {
@@ -258,6 +258,11 @@ public:
 	inline constexpr const_reference operator[](size_type size) const noexcept
 	{
 		return address_begin[size];
+	}
+	inline void close()
+	{
+		win32::details::win32_unload_address(address_begin);
+		address_end=address_begin=nullptr;
 	}
 	~win32_family_file_loader()
 	{

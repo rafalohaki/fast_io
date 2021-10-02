@@ -1,4 +1,4 @@
-#include<fast_io.h>
+﻿#include<fast_io.h>
 #include<fast_io_driver/nt_kernel.h>
 
 extern "C" std::uint32_t DriverEntry(::fast_io::win32::nt::driver_object* driverobject,::fast_io::win32::nt::utf16_string* registrypath) noexcept

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 //std::string is not usable in freestanding environments and cause problems for this library
 //This is a very simple stuff for internal use
 

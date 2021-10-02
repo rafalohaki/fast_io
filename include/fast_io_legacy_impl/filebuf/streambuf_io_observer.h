@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include"fp_hack/impl.h"
 

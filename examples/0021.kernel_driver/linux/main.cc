@@ -1,4 +1,4 @@
-#include<fast_io.h>
+﻿#include<fast_io.h>
 #include<fast_io_driver/linux_kernel.h>
 
 extern "C" int fast_io_dummy_init() noexcept

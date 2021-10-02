@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 // To verify __NR_copy_file_range
 namespace fast_io
 {

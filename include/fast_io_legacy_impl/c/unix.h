@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 /*
 newlib and many other libcs (including MSVCRT and UCRT windows)'s FILE is very similar to BSD. Maybe they all come from BSD?
 

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #if defined(__linux__)
 #include<asm/unistd.h>

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 /*
 https://github.com/vkandy/jenkins-hash-java/blob/master/src/JenkinsHash.java

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #if !defined(__MSDOS__) && !defined(__NEWLIB__) && !defined(__wasi__) && !defined(_PICOLIBC__)
 

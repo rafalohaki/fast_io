@@ -1,4 +1,4 @@
-inline void test()
+﻿inline void test()
 {
 	auto obf{fast_io::out_buf()};
 	for(std::size_t i{};i!=1000000;++i)

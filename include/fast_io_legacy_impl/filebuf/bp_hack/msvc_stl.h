@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 //Let's do great brutal hack to msvc_stl with ::fast_io::details::my_memcpy
 namespace fast_io
 {

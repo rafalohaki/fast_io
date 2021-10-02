@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 // Copyright 2020 Junekey Jeon
 //
 // The contents of this file may be used under the terms of

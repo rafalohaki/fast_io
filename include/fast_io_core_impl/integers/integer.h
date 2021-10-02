@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include"twodigits/shared_base_table.h"
 #include"match.h"

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include"win32_definitions.h"
 #include"apis.h"

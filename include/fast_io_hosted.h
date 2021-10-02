@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 /*
 https://en.cppreference.com/w/cpp/freestanding
 There are two kinds of implementations defined by the C++ standard:

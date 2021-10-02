@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include"sock_family.h"
 #include"sock_protocol.h"

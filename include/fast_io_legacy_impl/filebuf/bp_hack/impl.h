@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #if defined(__GLIBCXX__) || defined(_LIBCPP_VERSION)
 #include"libstdc++_libc++.h"

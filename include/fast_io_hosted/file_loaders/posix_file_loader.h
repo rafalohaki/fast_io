@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #if defined(__linux__) && defined(__NR_statx) && !defined(__statx_defined)
 #include<linux/stat.h>
 #endif
@@ -326,7 +326,7 @@ public:
 		if constexpr(allocation)
 			other.address_end=other.address_begin=nullptr;
 		else
-			other.address_end=other.address_begin=(void*)-1;
+			other.address_end=other.address_begin=(char*)-1;
 	}
 	posix_file_loader_impl& operator=(posix_file_loader_impl && other) noexcept
 	{
@@ -338,7 +338,7 @@ public:
 		if constexpr(allocation)
 			other.address_end=other.address_begin=nullptr;
 		else
-			other.address_end=other.address_begin=(void*)-1;
+			other.address_end=other.address_begin=(char*)-1;
 		return *this;
 	}
 	constexpr pointer data() const noexcept
@@ -428,6 +428,14 @@ public:
 	inline constexpr const_reference operator[](size_type size) const noexcept
 	{
 		return address_begin[size];
+	}
+	inline void close()
+	{
+		posix_unload_address<allocation>(address_begin,static_cast<std::size_t>(address_end-address_begin));
+		if constexpr(allocation)
+			address_end=address_begin=nullptr;
+		else
+			address_end=address_begin=(char*)-1;
 	}
 	~posix_file_loader_impl()
 	{

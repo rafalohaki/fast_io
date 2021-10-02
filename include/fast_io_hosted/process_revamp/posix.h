@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #if __has_include(<initializer_list>)
 #include<initializer_list>
 #endif

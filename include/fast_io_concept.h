@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 //fast_io_concept.h allows you define your device and type without compilation time penalty
 #if !defined(__cplusplus)

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 //fast_io_freestanding.h is usable when the underlining system implements dynamic memory allocations and exceptions
 #if !defined(__cplusplus)

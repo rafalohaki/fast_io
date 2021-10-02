@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 /*
 Algorithm: Dragonbox
 Author: Jk Jeon

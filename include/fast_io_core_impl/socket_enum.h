@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 //https://github.com/bminor/glibc/blob/5f72f9800b250410cad3abfeeb09469ef12b2438/sysdeps/unix/sysv/linux/bits/socket.h
 //https://github.com/freebsd/freebsd/blob/230874c33e0e80cfe736ebb023cd26102b0572e2/sys/sys/socket.h

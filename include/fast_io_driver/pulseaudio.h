@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <pulse/pulseaudio.h>
 #include <pulse/simple.h>
 #include"../fast_io_hosted.h"

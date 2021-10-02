@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include"posix_file_loader.h"
 #if defined(_WIN32) || defined(__CYGWIN__)
 #include"win32_file_loader.h"

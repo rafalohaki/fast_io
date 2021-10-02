@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #if (!defined(__GNUC__)&&!defined(__clang__)||defined(__INTEL_COMPILER))
 #include<intrin.h>
 #endif

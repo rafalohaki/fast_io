@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include"hash_processor.h"
 #include"jenkins.h"

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #if ((defined(_WIN32)&&!defined(__WINE__))&&!defined(__CYGWIN__)) || defined(__MSDOS__)
 #if __has_include(<io.h>)

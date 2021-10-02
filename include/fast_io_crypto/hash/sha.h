@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include"sha256.h"
 #include"sha_impl.h"

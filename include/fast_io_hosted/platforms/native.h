@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include"native_base.h"
 #if defined(_WIN32) || defined(__CYGWIN__)
 #include"win32_mapping.h"
