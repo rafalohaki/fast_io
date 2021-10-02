@@ -822,6 +822,50 @@ constexpr std::size_t chars_len(U value) noexcept
 			return 2;
 		return 1;
 	}
+	else if constexpr(base==2u||base==4u||base==8u||base==16u||base==32u)
+	{
+		constexpr std::size_t bits{sizeof(U)*8u};
+#if defined(__SIZEOF_INT128__)
+		if constexpr(sizeof(U)==sizeof(__uint128_t))
+		{
+			std::uint64_t high{static_cast<std::uint64_t>(value>>64u)};
+			constexpr std::uint64_t zero{};
+			std::size_t base2len;
+			if(high==zero)
+			{
+				constexpr std::uint64_t one_constant{1};
+				std::uint64_t low{static_cast<std::uint64_t>(value)|one_constant};
+				constexpr std::size_t bitsdv2{bits>>1u};
+				base2len=bitsdv2-static_cast<std::size_t>(std::countl_zero(low));
+			}
+			else
+			{
+				base2len=bits-static_cast<std::size_t>(std::countl_zero(high));
+			}
+			if constexpr(base==2)
+				return base2len;
+			else
+			{
+				constexpr std::size_t one{1};
+				constexpr std::size_t log2base{std::countr_zero(base)};
+				return (base2len-one)/log2base+one;
+			}
+		}
+		else
+#endif
+		{
+			constexpr U one_constant{1};
+			std::size_t const base2len{bits-static_cast<std::size_t>(std::countl_zero(value|one_constant))};
+			if constexpr(base==2)
+				return base2len;
+			else
+			{
+				constexpr std::size_t one{1};
+				constexpr std::size_t log2base{std::countr_zero(base)};
+				return (base2len-one)/log2base+one;
+			}
+		}
+	}
 	else
 	{
 		constexpr std::uint_least32_t base2(base  * base);
