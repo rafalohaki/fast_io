@@ -1,16 +1,21 @@
 ﻿#pragma once
-#if defined(_WIN32) || defined(__CYGWIN__)
+#if (defined(_WIN32)&&!defined(__WINE__)) || defined(__CYGWIN__)
 #include"rtl_gen_random.h"
 #endif
 #include"posix_dev_urandom.h"
+#if (defined(__linux__) && defined(__NR_getrandom)) || __has_include(<sys/random.h>)
+#include"linux_getrandom.h"
+#endif
 
 namespace fast_io
 {
 
 template<std::integral char_type>
 using basic_native_white_hole =
-#ifdef _WIN32
+#if defined(_WIN32)&&!defined(__WINE__)
 basic_rtl_gen_random<char_type>;
+#elif (defined(__linux__) && defined(__NR_getrandom)) || __has_include(<sys/random.h>)
+basic_linux_getrandom<char_type>;
 #else
 posix_dev_urandom<basic_native_file<char_type>>;
 #endif
@@ -33,6 +38,16 @@ using u16ibuf_white_hole = basic_ibuf_white_hole<char16_t>;
 using u32native_white_hole = basic_native_white_hole<char32_t>;
 using u32ibuf_white_hole = basic_ibuf_white_hole<char32_t>;
 
+namespace details
+{
+
+template<typename T>
+concept has_entroy_method_impl = requires(T handle)
+{
+	{handle.entropy()}->std::same_as<double>;
+};
+
+}
 
 template<input_stream handletype>
 requires std::same_as<std::remove_cvref_t<typename handletype::char_type>,char>
@@ -49,9 +64,12 @@ struct basic_white_hole_engine
 	{
 		return SIZE_MAX;
 	}
-	inline constexpr double entroy() const noexcept
+	inline constexpr double entropy() const noexcept
 	{
-		return static_cast<double>(sizeof(std::size_t));
+		if constexpr(::fast_io::details::has_entroy_method_impl<handletype>)
+			return handle.entropy();
+		else
+			return static_cast<double>(sizeof(std::size_t));
 	}
 	inline constexpr result_type operator()()
 	{

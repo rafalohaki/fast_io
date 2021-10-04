@@ -48,16 +48,11 @@ inline Iter read(basic_rtl_gen_random<char_type>,Iter bg,Iter ed)
 }
 
 template<std::integral char_type>
-inline std::size_t scatter_read(basic_rtl_gen_random<char_type>,io_scatters_t sp)
+inline constexpr basic_rtl_gen_random<char_type> io_value_handle(basic_rtl_gen_random<char_type> brg) noexcept
 {
-	std::size_t total_bytes{};
-	for(std::size_t i{};i!=sp.len;++i)
-	{
-		win32::details::rtl_gen_random_read(const_cast<void*>(sp.base[i].base),sp.base[i].len);
-		total_bytes+=sp.base[i].len;
-	}
-	return total_bytes;
+	return brg;	
 }
+
 using rtl_gen_random = basic_rtl_gen_random<char>;
 
 template<std::integral char_type>
