@@ -41,6 +41,13 @@ inline constexpr auto scatter_read(posix_dev_urandom<T>& t,io_scatters_t scatter
 }
 
 template<typename T>
-inline constexpr void require_secure_clear(posix_dev_urandom<T>){}
+inline constexpr void require_secure_clear(posix_dev_urandom<T>&){}
+
+template<typename T>
+requires ::fast_io::details::has_entroy_method_impl<T>
+inline constexpr auto random_entropy(posix_dev_urandom<T> const& pu) noexcept
+{
+	return random_entropy(pu.device);
+}
 
 }

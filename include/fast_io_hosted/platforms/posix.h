@@ -333,6 +333,7 @@ inline void* my_get_osfile_handle(int fd) noexcept
 	return reinterpret_cast<void*>(ret);
 #endif
 }
+
 }
 #endif
 
