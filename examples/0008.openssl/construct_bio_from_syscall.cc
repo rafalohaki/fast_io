@@ -31,9 +31,9 @@ This is an example to explain how fast_io's files work with each other, and how 
 	"UTC:",utc(unix_ts),"\n",
 	"Local:",local(unix_ts)," Timezone:",fast_io::timezone_name(),"\n"
 #ifdef __clang__
-	"LLVM clang ",__clang_version__,"\n"
-#elif defined(__GNUC__)
-	"gcc ",__GNUC__,"\n"
+	"LLVM clang " __clang_version__ "\n"
+#elif defined(__GNUC__) && defined(__VERSION__)
+	"GCC " __VERSION__ "\n"
 #elif defined(_MSC_VER)
 	"Microsoft Visual C++ ",_MSC_VER,"\n"
 #else
