@@ -385,7 +385,25 @@ inline constexpr punning_result<flt> get_punned_result(flt f) noexcept
 	return {unwrap&mantissa_mask,static_cast<std::uint32_t>((unwrap>>mbits)&exponent_mask),static_cast<bool>((unwrap>>total_bits)&1u)};
 }
 
-
+template<bool showpos,::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter print_rsv_fp_sign_impl(Iter iter,bool sign) noexcept
+{
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	if constexpr(showpos)
+	{
+		*iter=sign?char_literal_v<u8'-',char_type>:char_literal_v<u8'+',char_type>;
+		++iter;
+	}
+	else
+	{
+		if(sign)
+		{
+			*iter=char_literal_v<u8'-',char_type>;
+			++iter;
+		}
+	}
+	return iter;
+}
 
 template<::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>
 #if __has_cpp_attribute(gnu::hot)

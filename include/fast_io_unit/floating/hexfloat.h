@@ -32,19 +32,7 @@ inline constexpr Iter print_rsvhexfloat_define_impl(Iter iter,flt f) noexcept
 	constexpr std::uint32_t exponent_mask_u32{static_cast<std::uint32_t>(exponent_mask)};
 	constexpr std::int32_t minus_bias{-static_cast<std::int32_t>(bias)};
 	constexpr std::uint32_t makeup_bits{((mbits / 4 + 1) * 4 - mbits) % 4};//Thanks jk-jeon for the formula
-	if constexpr(showpos)
-	{
-		*iter=sign?char_literal_v<u8'-',char_type>:char_literal_v<u8'+',char_type>;
-		++iter;
-	}
-	else
-	{
-		if(sign)
-		{
-			*iter=char_literal_v<u8'-',char_type>;
-			++iter;
-		}
-	}
+	iter=print_rsv_fp_sign_impl<showpos>(iter,sign);
 	if(exponent==exponent_mask_u32)
 		return prsv_fp_nan_impl<uppercase>(iter,mantissa);
 	if constexpr(showbase)
