@@ -425,15 +425,21 @@ inline constexpr parse_result<Iter> scan_int_contiguous_none_space_part_define_i
 			++first;
 	}
 	constexpr auto zero{char_literal_v<u8'0',char_type>};
-	if(first!=last&&*first==zero)
+	if(first!=last)
 	{
-		++first;
-		if((first==last)||(!char_is_digit<base,char_type>(static_cast<unsigned_char_type>(*first))))
+		auto first_ch{*first};
+		if(!char_is_digit<base,char_type>(static_cast<unsigned_char_type>(first_ch)))[[unlikely]]
+			return {first,parse_code::invalid};
+		else if(first_ch==zero)
 		{
-			t={};
-			return {first,parse_code::ok};
+			++first;
+			if((first==last)||(!char_is_digit<base,char_type>(static_cast<unsigned_char_type>(*first))))
+			{
+				t={};
+				return {first,parse_code::ok};
+			}
+			return {first,parse_code::invalid};
 		}
-		return {first,parse_code::invalid};
 	}
 	using unsigned_type = my_make_unsigned_t<std::remove_cvref_t<T>>;
 	unsigned_type res{};
@@ -594,20 +600,27 @@ inline constexpr parse_result<Iter> scan_context_define_parse_impl(State& st,Ite
 			return {first,parse_code::partial};
 		}
 		constexpr auto zero{char_literal_v<u8'0',char_type>};
-		if(*first==zero)
 		{
-			++first;
-			if(first==last)
+			auto first_ch{*first};
+			if(!char_is_digit<base,char_type>(static_cast<unsigned_char_type>(first_ch)))[[unlikely]]
 			{
-				st.integer_phase=scan_integral_context_phase::zero_invalid;
-				return {first,parse_code::partial};
+				return {first,parse_code::invalid};
 			}
-			if(!char_is_digit<base,char_type>(static_cast<unsigned_char_type>(*first)))
+			else if(first_ch==zero)[[unlikely]]
 			{
-				t={};
-				return {first,parse_code::ok};
+				++first;
+				if(first==last)
+				{
+					st.integer_phase=scan_integral_context_phase::zero_invalid;
+					return {first,parse_code::partial};
+				}
+				if(!char_is_digit<base,char_type>(static_cast<unsigned_char_type>(*first)))
+				{
+					t={};
+					return {first,parse_code::ok};
+				}
+				return {first,parse_code::invalid};
 			}
-			return {first,parse_code::invalid};
 		}
 		[[fallthrough]];
 	}
