@@ -34,7 +34,7 @@ inline constexpr std::uint64_t pow10_float32_tb[]
 0xc5371912364ce305, 0xf684df56c3e01bc6, 0x9a130b963a6c115c, 0xc097ce7bc90715b3,
 0xf0bdc21abb48db20, 0x96769950b50d88f4, 0xbc143fa4e250eb31, 0xeb194f8e1ae525fd,
 0x92efd1b8d0cf37be, 0xb7abc627050305ad, 0xe596b7b0c643c719, 0x8f7e32ce7bea5c6f,
-0xb35dbf821ae4f38b, 0xe0352f62a19e306e, 0x8C213D9DA502DE45
+0xb35dbf821ae4f38b, 0xe0352f62a19e306e
 };
 
 inline constexpr auto compute_pow10_float32{pow10_float32_tb+31};
@@ -853,14 +853,13 @@ inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> dragonbo
 	constexpr std::size_t mbits{trait::mbits};
 	constexpr std::size_t ebits{trait::ebits};
 	constexpr std::uint32_t bias{(static_cast<std::uint32_t>(1<<ebits)>>1)-1};
-
 	constexpr std::int32_t exponent_bias{bias+mbits};
 	constexpr mantissa_type mflags{static_cast<mantissa_type>(static_cast<mantissa_type>(1)<<mbits)};
-
-	constexpr std::int32_t kappa{2};
-	constexpr std::uint32_t big_divisor{1000};
-	constexpr std::uint32_t small_divisor{100};
+	constexpr std::int32_t kappa{(sizeof(flt)==sizeof(std::uint32_t))?1:2};
+	constexpr std::uint32_t big_divisor{kappa==2?1000:100};
+	constexpr std::uint32_t small_divisor{big_divisor/10};
 	constexpr std::uint32_t small_divisor_div2{small_divisor/2};
+
 	if(e2==0)[[unlikely]]
 	{
 		constexpr std::int32_t e2bias{1-static_cast<std::int32_t>(exponent_bias)};
@@ -881,7 +880,6 @@ inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> dragonbo
 	std::int32_t const minus_k{mul_ln2_div_ln10_floor(e2)-kappa};
 	std::int32_t const plus_k{-minus_k};
 	std::int32_t const beta_minus_1{e2+mul_ln10_div_ln2_floor(plus_k)};
-
 	if constexpr(std::same_as<flt,double>)
 	{
 		uint64x2 const pow10{compute_pow10_double[plus_k]};
@@ -925,7 +923,6 @@ inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> dragonbo
 		std::uint32_t q{zi/big_divisor};
 		std::uint32_t r{zi%big_divisor};
 		std::uint32_t const delta{static_cast<std::uint32_t>(pow10>>(63-beta_minus_1))};
-
 		if(r<delta)
 		{
 			if(r||is_even||!is_integral_end_point(static_cast<std::uint64_t>(two_fr),e2,minus_k))
@@ -940,10 +937,10 @@ inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> dragonbo
 		}
 		q *= 10;
 		std::uint32_t const dist{static_cast<std::uint32_t>(r-delta/2+small_divisor_div2)};
-		std::uint32_t const dist_q{dist / 100};
-		std::uint32_t const dist_q_mul100{dist * 100};
+		std::uint32_t const dist_q{dist / small_divisor};
+		std::uint32_t const dist_q_mul10{dist * small_divisor};
 		q+=dist_q;
-		if(dist==dist_q_mul100)
+		if(dist==dist_q_mul10)
 		{
 			bool const approx_y_parity(dist & 1);
 			if((mul_parity_float32(two_fc,pow10,beta_minus_1)!=approx_y_parity)||((q&1)&&is_integral_mid_point(static_cast<std::uint64_t>(two_fc), e2, minus_k)))
