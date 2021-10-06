@@ -787,6 +787,28 @@ inline constexpr bool is_integral_mid_point(std::uint64_t two_f,std::int32_t e2,
 	return false;
 }
 
+inline constexpr bool is_integral_end_point_float32(std::uint32_t two_f,std::int32_t e2,std::int32_t minus_k) noexcept
+{
+	if(e2<-1)
+		return false;
+	if(e2<=6)
+		return true;
+	if(e2<=39)
+		return multiple_of_pow5(two_f, static_cast<std::uint32_t>(minus_k));
+	return false;
+}
+
+inline constexpr bool is_integral_mid_point_float32(std::uint32_t two_f,std::int32_t e2,std::int32_t minus_k) noexcept
+{
+	if(e2<-2)
+		return multiple_of_pow2(two_f,minus_k-e2+1);
+	if(e2<=6)
+		return true;
+	if(e2<=39)
+		return multiple_of_pow5(two_f,static_cast<std::uint32_t>(minus_k));
+	return false;
+}
+
 template<typename flt>
 #if __has_cpp_attribute(gnu::cold)
 [[gnu::cold]]
@@ -876,7 +898,7 @@ inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> dragonbo
 		if(m2==0&&e2_temp>1)[[unlikely]]
 			return schubfach_asymmetric_interval<flt>(e2);
 	}
-	bool const is_even{static_cast<bool>(m2&1u)};
+	bool const is_even(m2&1u);
 	std::int32_t const minus_k{mul_ln2_div_ln10_floor(e2)-kappa};
 	std::int32_t const plus_k{-minus_k};
 	std::int32_t const beta_minus_1{e2+mul_ln10_div_ln2_floor(plus_k)};
@@ -925,14 +947,14 @@ inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> dragonbo
 		std::uint32_t const delta{static_cast<std::uint32_t>(pow10>>(63-beta_minus_1))};
 		if(r<delta)
 		{
-			if(r||is_even||!is_integral_end_point(static_cast<std::uint64_t>(two_fr),e2,minus_k))
+			if(r||is_even||!is_integral_end_point_float32(two_fr,e2,minus_k))
 				return {q,minus_k+kappa+1};
 			--q;
 			r=big_divisor;
 		}
 		else if(r==delta)
 		{
-			if((is_even&&is_integral_end_point(static_cast<std::uint64_t>(two_fl), e2, minus_k))||mul_parity_float32(two_fl,pow10,beta_minus_1))
+			if((is_even&&is_integral_end_point_float32(two_fl, e2, minus_k))||mul_parity_float32(two_fl,pow10,beta_minus_1))
 				return {q,minus_k+kappa+1};
 		}
 		q *= 10;
@@ -943,7 +965,7 @@ inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> dragonbo
 		if(dist==dist_q_mul10)
 		{
 			bool const approx_y_parity(dist & 1);
-			if((mul_parity_float32(two_fc,pow10,beta_minus_1)!=approx_y_parity)||((q&1)&&is_integral_mid_point(static_cast<std::uint64_t>(two_fc), e2, minus_k)))
+			if((mul_parity_float32(two_fc,pow10,beta_minus_1)!=approx_y_parity)||((q&1)&&is_integral_mid_point_float32(two_fc, e2, minus_k)))
 				--q;
 		}
 		return {q,minus_k+kappa};
