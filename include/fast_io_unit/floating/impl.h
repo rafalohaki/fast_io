@@ -40,7 +40,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,mani
 		{
 			return details::print_rsv_cache<double,flags.floating>;
 		}
-		static_assert(std::same_as<std::remove_cvref_t<flt>,double>||std::same_as<std::remove_cvref_t<flt>,float>,"currently only support double, sorry");
+		static_assert((std::same_as<std::remove_cvref_t<flt>,double>||std::same_as<std::remove_cvref_t<flt>,float>),"currently only support double, sorry");
 		return details::print_rsv_cache<std::remove_cvref_t<flt>,flags.floating>;
 	}
 }
@@ -80,7 +80,7 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<freestanding::iter_
 		else
 		{
 			//this is the case for every other platform, including xxx-windows-gnu
-			static_assert(std::same_as<std::remove_cvref_t<flt>,double>,"currently only support double, sorry");
+			static_assert((std::same_as<std::remove_cvref_t<flt>,double>||std::same_as<std::remove_cvref_t<flt>,float>),"currently only support double, sorry");
 			return details::print_rsvflt_define_impl<flags.showpos,flags.uppercase,flags.uppercase_e,flags.comma,flags.floating>(iter,f.reference);
 		}
 	}
