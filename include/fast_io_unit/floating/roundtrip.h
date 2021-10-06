@@ -13,6 +13,32 @@ std::uint64_t hi;
 std::uint64_t lo;
 };
 
+inline constexpr std::uint64_t pow10_float32_tb[]
+{
+0x81ceb32c4b43fcf5, 0xa2425ff75e14fc32, 0xcad2f7f5359a3b3f, 0xfd87b5f28300ca0e,
+0x9e74d1b791e07e49, 0xc612062576589ddb, 0xf79687aed3eec552, 0x9abe14cd44753b53,
+0xc16d9a0095928a28, 0xf1c90080baf72cb2, 0x971da05074da7bef, 0xbce5086492111aeb,
+0xec1e4a7db69561a6, 0x9392ee8e921d5d08, 0xb877aa3236a4b44a, 0xe69594bec44de15c,
+0x901d7cf73ab0acda, 0xb424dc35095cd810, 0xe12e13424bb40e14, 0x8cbccc096f5088cc,
+0xafebff0bcb24aaff, 0xdbe6fecebdedd5bf, 0x89705f4136b4a598, 0xabcc77118461cefd,
+0xd6bf94d5e57a42bd, 0x8637bd05af6c69b6, 0xa7c5ac471b478424, 0xd1b71758e219652c,
+0x83126e978d4fdf3c, 0xa3d70a3d70a3d70b, 0xcccccccccccccccd, 0x8000000000000000,
+0xa000000000000000, 0xc800000000000000, 0xfa00000000000000, 0x9c40000000000000,
+0xc350000000000000, 0xf424000000000000, 0x9896800000000000, 0xbebc200000000000,
+0xee6b280000000000, 0x9502f90000000000, 0xba43b74000000000, 0xe8d4a51000000000,
+0x9184e72a00000000, 0xb5e620f480000000, 0xe35fa931a0000000, 0x8e1bc9bf04000000,
+0xb1a2bc2ec5000000, 0xde0b6b3a76400000, 0x8ac7230489e80000, 0xad78ebc5ac620000,
+0xd8d726b7177a8000, 0x878678326eac9000, 0xa968163f0a57b400, 0xd3c21bcecceda100,
+0x84595161401484a0, 0xa56fa5b99019a5c8, 0xcecb8f27f4200f3a, 0x813f3978f8940984,
+0xa18f07d736b90be5, 0xc9f2c9cd04674ede, 0xfc6f7c4045812296, 0x9dc5ada82b70b59d,
+0xc5371912364ce305, 0xf684df56c3e01bc6, 0x9a130b963a6c115c, 0xc097ce7bc90715b3,
+0xf0bdc21abb48db20, 0x96769950b50d88f4, 0xbc143fa4e250eb31, 0xeb194f8e1ae525fd,
+0x92efd1b8d0cf37be, 0xb7abc627050305ad, 0xe596b7b0c643c719, 0x8f7e32ce7bea5c6f,
+0xb35dbf821ae4f38b, 0xe0352f62a19e306e, 0x8C213D9DA502DE45
+};
+
+inline constexpr auto compute_pow10_float32{pow10_float32_tb+31};
+
 inline constexpr uint64x2 pow10_double_tb[]
 {
 {0xFF77B1FCBEBCDC4F, 0x25E8E89C13BB0F7B},
@@ -695,7 +721,14 @@ inline constexpr std::uint64_t mulshift_double(std::uint64_t x,std::uint64_t ylo
 	return p1high;
 }
 
-inline constexpr bool mul_parity(std::uint64_t two_f,std::uint64_t pow10_low,std::uint64_t pow10_high,std::int32_t beta_minus_1) noexcept
+inline constexpr std::uint32_t mulshift_float32(std::uint32_t x,std::uint64_t y) noexcept
+{
+	std::uint64_t p1high;
+	intrinsics::umul(x,y,p1high);
+	return static_cast<std::uint32_t>(p1high);
+}
+
+inline constexpr bool mul_parity_float64(std::uint64_t two_f,std::uint64_t pow10_low,std::uint64_t pow10_high,std::int32_t beta_minus_1) noexcept
 {
 	std::uint64_t const p01{two_f * pow10_high};
 	std::uint64_t p10;
@@ -705,15 +738,25 @@ inline constexpr bool mul_parity(std::uint64_t two_f,std::uint64_t pow10_low,std
 	return (mid & (one << (64 - beta_minus_1)));
 }
 
-inline constexpr bool multiple_of_pow2_unchecked(std::uint64_t value,std::uint32_t e2) noexcept
+inline constexpr bool mul_parity_float32(std::uint64_t two_f,std::uint64_t pow10,std::int32_t beta_minus_1) noexcept
 {
+	std::uint64_t const p01{two_f * pow10};
 	constexpr std::uint64_t one{1};
-	return (value & ((one << e2) - 1)) == 0;
+	return (p01 & (one << (64 - beta_minus_1)));
 }
 
-inline constexpr bool multiple_of_pow2(std::uint64_t value,std::int32_t e2) noexcept
+template<my_unsigned_integral value_type>
+inline constexpr bool multiple_of_pow2_unchecked(value_type value,std::uint32_t e2) noexcept
 {
-	return e2 < 64 && multiple_of_pow2_unchecked(value,static_cast<std::uint32_t>(e2));
+	constexpr value_type one{1};
+	return !(value & ((one << e2) - 1));
+}
+
+template<my_unsigned_integral value_type>
+inline constexpr bool multiple_of_pow2(value_type value,std::int32_t e2) noexcept
+{
+	constexpr std::int32_t e2max_bits{static_cast<std::int32_t>(sizeof(value_type)*8)};
+	return e2 < e2max_bits && multiple_of_pow2_unchecked(value,static_cast<std::uint32_t>(e2));
 }
 
 inline constexpr bool multiple_of_pow5(std::uint64_t value,std::uint32_t e5) noexcept
@@ -754,23 +797,45 @@ inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> schubfac
 
 	constexpr std::int32_t mbits{trait::mbits};
 	std::int32_t const minus_k{(e2 * 1262611 - 524031)>>22};
-	std::int32_t const beta_minus_1{e2 + mul_ln10_div_ln2_floor(-minus_k)};
-	uint64x2 const pw{compute_pow10_double[-minus_k]};
-	std::uint64_t const pw_lo{pw.lo},pw_hi{pw.hi};
-	std::uint32_t const rshift(64-mbits-beta_minus_1);
-	std::uint64_t const lower_endpoint{(pw_hi-(pw_hi>>(mbits+1)))>>rshift};
-	std::uint64_t q{(pw_lo+(pw_hi>>mbits))>>rshift};
-	bool const lower_endpoint_is_not_integer((2!=e2)&(3!=e2));
-	std::uint64_t const xi{lower_endpoint+lower_endpoint_is_not_integer};
-	q/=10;
-	if(q*10>=xi)
-		return {q,minus_k+1};
-	q=((pw_hi>>(rshift-1))+1)>>1;
-	if(e2==-77)
-		q-=(q&1);
+	std::int32_t const plus_k{-minus_k};
+	std::int32_t const beta_minus_1{e2 + mul_ln10_div_ln2_floor(plus_k)};
+	std::uint32_t const rshift{static_cast<std::uint32_t>(64-mbits-beta_minus_1)};
+	if constexpr(sizeof(flt)==sizeof(double))
+	{
+		uint64x2 const pw{compute_pow10_double[plus_k]};
+		std::uint64_t const pw_lo{pw.lo},pw_hi{pw.hi};
+		std::uint64_t const lower_endpoint{(pw_hi-(pw_hi>>(mbits+1)))>>rshift};
+		std::uint64_t q{(pw_lo+(pw_hi>>mbits))>>rshift};
+		bool const lower_endpoint_is_not_integer((2!=e2)&(3!=e2));
+		std::uint64_t const xi{lower_endpoint+lower_endpoint_is_not_integer};
+		q/=10;
+		if(q*10>=xi)
+			return {q,minus_k+1};
+		q=((pw_hi>>(rshift-1))+1)>>1;
+		if(e2==-77)
+			q-=(q&1);
+		else
+			q+=(q<xi);
+
+		return {q,minus_k};
+	}
 	else
-		q+=(q<xi);
-	return {q,minus_k};
+	{
+		std::uint64_t const pw{compute_pow10_float32[plus_k]};
+		std::uint64_t const lower_endpoint{(pw-(pw>>(mbits+1)))>>rshift};
+		std::uint64_t q{(pw>>mbits)>>rshift};
+		bool const lower_endpoint_is_not_integer((2!=e2)&(3!=e2));
+		std::uint64_t const xi{lower_endpoint+lower_endpoint_is_not_integer};
+		q/=10;
+		if(q*10>=xi)
+			return {static_cast<std::uint32_t>(q),minus_k+1};
+		q=((pw>>(rshift-1))+1)>>1;
+		if(e2==-77)
+			q-=(q&1);
+		else
+			q+=(q<xi);
+		return {static_cast<std::uint32_t>(q),minus_k};
+	}
 }
 
 template<typename flt>
@@ -812,41 +877,80 @@ inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> dragonbo
 		if(m2==0&&e2_temp>1)[[unlikely]]
 			return schubfach_asymmetric_interval<flt>(e2);
 	}
-	bool const is_even(m2&1);
+	bool const is_even{static_cast<bool>(m2&1u)};
 	std::int32_t const minus_k{mul_ln2_div_ln10_floor(e2)-kappa};
-	std::int32_t const beta_minus_1{e2+mul_ln10_div_ln2_floor(-minus_k)};
-	uint64x2 const pow10{compute_pow10_double[-minus_k]};
-	std::uint64_t const pow10_lo{pow10.lo};
-	std::uint64_t const pow10_hi{pow10.hi};
-	std::uint32_t const delta{static_cast<std::uint32_t>(pow10_hi>>(63-beta_minus_1))};
-	std::uint64_t const two_fc{m2<<1},two_fl{two_fc-1},two_fr{two_fc+1};
-	std::uint64_t const zi{mulshift_double(two_fr<<beta_minus_1,pow10_lo,pow10_hi)};
-	std::uint64_t q{zi/big_divisor};
-	std::uint64_t r{zi%big_divisor};
-	if(r<delta)
+	std::int32_t const plus_k{-minus_k};
+	std::int32_t const beta_minus_1{e2+mul_ln10_div_ln2_floor(plus_k)};
+
+	if constexpr(std::same_as<flt,double>)
 	{
-		if(r||is_even||!is_integral_end_point(two_fr,e2,minus_k))
-			return {q,minus_k+kappa+1};
-		--q;
-		r=big_divisor;
-	}
-	else if(r==delta)
-	{
-		if((is_even&&is_integral_end_point(two_fl, e2, minus_k))||mul_parity(two_fl,pow10_lo,pow10_hi,beta_minus_1))
-			return {q,minus_k+kappa+1};
-	}
-	q *= 10;
-	std::uint32_t const dist{static_cast<std::uint32_t>(r-delta/2+small_divisor_div2)};
-	std::uint32_t const dist_q{dist / 100};
-	std::uint32_t const dist_q_mul100{dist * 100};
-	q+=dist_q;
-	if(dist==dist_q_mul100)
-	{
-		bool const approx_y_parity(dist & 1);
-		if((mul_parity(two_fc,pow10_lo,pow10_hi,beta_minus_1)!=approx_y_parity)||((q&1)&&is_integral_end_point(two_fc, e2, minus_k)))
+		uint64x2 const pow10{compute_pow10_double[plus_k]};
+		std::uint64_t const pow10_lo{pow10.lo};
+		std::uint64_t const pow10_hi{pow10.hi};
+		std::uint32_t const delta{static_cast<std::uint32_t>(pow10_hi>>(63-beta_minus_1))};
+		std::uint64_t const two_fc{m2<<1},two_fl{two_fc-1},two_fr{two_fc+1};
+		std::uint64_t const zi{mulshift_double(two_fr<<beta_minus_1,pow10_lo,pow10_hi)};
+		std::uint64_t q{zi/big_divisor};
+		std::uint64_t r{zi%big_divisor};
+		if(r<delta)
+		{
+			if(r||is_even||!is_integral_end_point(two_fr,e2,minus_k))
+				return {q,minus_k+kappa+1};
 			--q;
+			r=big_divisor;
+		}
+		else if(r==delta)
+		{
+			if((is_even&&is_integral_end_point(two_fl, e2, minus_k))||mul_parity_float64(two_fl,pow10_lo,pow10_hi,beta_minus_1))
+				return {q,minus_k+kappa+1};
+		}
+		q *= 10;
+		std::uint32_t const dist{static_cast<std::uint32_t>(r-delta/2+small_divisor_div2)};
+		std::uint32_t const dist_q{dist / 100};
+		std::uint32_t const dist_q_mul100{dist * 100};
+		q+=dist_q;
+		if(dist==dist_q_mul100)
+		{
+			bool const approx_y_parity(dist & 1);
+			if((mul_parity_float64(two_fc,pow10_lo,pow10_hi,beta_minus_1)!=approx_y_parity)||((q&1)&&is_integral_mid_point(two_fc, e2, minus_k)))
+				--q;
+		}
+		return {q,minus_k+kappa};
 	}
-	return {q,minus_k+kappa};
+	else if constexpr(std::same_as<flt,float>)
+	{
+		std::uint64_t const pow10{compute_pow10_float32[plus_k]};
+		std::uint32_t const two_fc{m2<<1},two_fl{two_fc-1},two_fr{two_fc+1};
+		std::uint32_t const zi{mulshift_float32(two_fr<<beta_minus_1,pow10)};
+		std::uint32_t q{zi/big_divisor};
+		std::uint32_t r{zi%big_divisor};
+		std::uint32_t const delta{static_cast<std::uint32_t>(pow10>>(63-beta_minus_1))};
+
+		if(r<delta)
+		{
+			if(r||is_even||!is_integral_end_point(static_cast<std::uint64_t>(two_fr),e2,minus_k))
+				return {q,minus_k+kappa+1};
+			--q;
+			r=big_divisor;
+		}
+		else if(r==delta)
+		{
+			if((is_even&&is_integral_end_point(static_cast<std::uint64_t>(two_fl), e2, minus_k))||mul_parity_float32(two_fl,pow10,beta_minus_1))
+				return {q,minus_k+kappa+1};
+		}
+		q *= 10;
+		std::uint32_t const dist{static_cast<std::uint32_t>(r-delta/2+small_divisor_div2)};
+		std::uint32_t const dist_q{dist / 100};
+		std::uint32_t const dist_q_mul100{dist * 100};
+		q+=dist_q;
+		if(dist==dist_q_mul100)
+		{
+			bool const approx_y_parity(dist & 1);
+			if((mul_parity_float32(two_fc,pow10,beta_minus_1)!=approx_y_parity)||((q&1)&&is_integral_mid_point(static_cast<std::uint64_t>(two_fc), e2, minus_k)))
+				--q;
+		}
+		return {q,minus_k+kappa};
+	}
 }
 
 template<typename flt>
@@ -975,19 +1079,19 @@ inline constexpr Iter print_rsv_fp_fixed_decision_impl(Iter iter,typename iec559
 	std::int32_t const real_exp(static_cast<std::int32_t>(e10 + olength - 1));
 	if(olength<=real_exp)
 	{
-		print_reserve_integral_main_impl<10,false>(iter+=olength,m10,olength);
-		return fill_zeros_impl(iter,real_exp+1-olength);
+		print_reserve_integral_main_impl<10,false>(iter+=olength,m10,static_cast<std::uint32_t>(olength));
+		return fill_zeros_impl(iter,static_cast<std::uint32_t>(real_exp+1-olength));
 	}
 	else if(0<=real_exp&&real_exp<olength)
 	{
 		auto eposition(real_exp+1);
 		if(olength==eposition)
-			print_reserve_integral_main_impl<10,false>(iter+=olength,m10,olength);
+			print_reserve_integral_main_impl<10,false>(iter+=olength,m10,static_cast<std::uint32_t>(olength));
 		else
 		{
 			auto tmp{iter};
-			print_reserve_integral_main_impl<10,false>(iter+=olength+1,m10,olength);
-			my_copy_n(tmp+1,eposition,tmp);
+			print_reserve_integral_main_impl<10,false>(iter+=olength+1,m10,static_cast<std::uint32_t>(olength));
+			my_copy_n(tmp+1,static_cast<std::uint32_t>(eposition),tmp);
 			tmp[eposition]=char_literal_v<(comma?u8',':u8'.'),char_type>;
 		}
 	}
@@ -995,7 +1099,7 @@ inline constexpr Iter print_rsv_fp_fixed_decision_impl(Iter iter,typename iec559
 	{
 		iter=fill_zero_point_impl<comma>(iter);
 		iter=fill_zeros_impl(iter,static_cast<std::uint32_t>(-real_exp-1));
-		print_reserve_integral_main_impl<10,false>(iter+=olength,m10,olength);
+		print_reserve_integral_main_impl<10,false>(iter+=olength,m10,static_cast<std::uint32_t>(olength));
 	}
 	return iter;
 }
@@ -1055,18 +1159,18 @@ inline constexpr Iter print_rsv_fp_decision_impl(Iter iter,typename iec559_trait
 		switch(this_case)
 		{
 		case 1:
-			print_reserve_integral_main_impl<10,false>(iter+=olength,m10,olength);
-			return fill_zeros_impl(iter,real_exp+1-olength);
+			print_reserve_integral_main_impl<10,false>(iter+=olength,m10,static_cast<std::uint32_t>(olength));
+			return fill_zeros_impl(iter,static_cast<std::uint32_t>(real_exp+1-olength));
 		case 2:
 		{
 			auto eposition(real_exp+1);
 			if(olength==eposition)
-				print_reserve_integral_main_impl<10,false>(iter+=olength,m10,olength);
+				print_reserve_integral_main_impl<10,false>(iter+=olength,m10,static_cast<std::uint32_t>(olength));
 			else
 			{
 				auto tmp{iter};
-				print_reserve_integral_main_impl<10,false>(iter+=olength+1,m10,olength);
-				my_copy_n(tmp+1,eposition,tmp);
+				print_reserve_integral_main_impl<10,false>(iter+=olength+1,m10,static_cast<std::uint32_t>(olength));
+				my_copy_n(tmp+1,static_cast<std::uint32_t>(eposition),tmp);
 				tmp[eposition]=char_literal_v<comma?u8',':u8'.',char_type>;
 			}
 			return iter;
@@ -1075,7 +1179,7 @@ inline constexpr Iter print_rsv_fp_decision_impl(Iter iter,typename iec559_trait
 		{
 			iter=fill_zero_point_impl<comma>(iter);
 			iter=fill_zeros_impl(iter,static_cast<std::uint32_t>(-real_exp-1));
-			print_reserve_integral_main_impl<10,false>(iter+=olength,m10,olength);
+			print_reserve_integral_main_impl<10,false>(iter+=olength,m10,static_cast<std::uint32_t>(olength));
 			return iter;
 		}
 		}
@@ -1118,7 +1222,7 @@ inline constexpr Iter print_rsvflt_define_impl(Iter iter,flt f) noexcept
 			else
 				return prsv_fp_dece0<uppercase>(iter);
 		}
-		auto [m10,e10] = dragonbox_impl<flt>(mantissa,exponent);
+		auto [m10,e10] = dragonbox_impl<flt>(mantissa,static_cast<std::int32_t>(exponent));
 		if constexpr(mt==::fast_io::manipulators::floating_format::fixed)
 			return print_rsv_fp_fixed_decision_impl<flt,comma>(iter,m10,e10);
 		else

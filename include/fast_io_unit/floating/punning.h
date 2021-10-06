@@ -486,7 +486,7 @@ inline constexpr Iter prt_rsv_exponent_impl(Iter iter,U u) noexcept
 					U mod100{u%hundred};
 					*iter=static_cast<char_type>(char_literal_v<u8'0',char_type>+static_cast<unsigned_char_type>(div100));
 					++iter;
-					return prt_rsv_hundred_flt_impl(iter,u);
+					return prt_rsv_hundred_flt_impl(iter,mod100);
 				}
 				else if(u<ten)
 				{

@@ -46,7 +46,10 @@ inline constexpr Iter print_rsvhexfloat_define_impl(Iter iter,flt f) noexcept
 		constexpr std::uint32_t mdigits_d4{static_cast<std::uint32_t>((mbits+makeup_bits)>>2)};
 		std::uint32_t digits_d4{digits>>2};
 		std::uint32_t digits_d4m4{digits_d4<<2};
-		mantissa>>=(digits_d4m4-makeup_bits);
+		if(digits_d4m4<makeup_bits)[[unlikely]]
+			mantissa<<=(makeup_bits-digits_d4m4);
+		else
+			mantissa>>=(digits_d4m4-makeup_bits);
 		std::uint32_t len{mdigits_d4-digits_d4};
 		if(exponent==0)
 		{

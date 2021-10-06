@@ -36,7 +36,7 @@ inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,mani
 	}
 	else
 	{
-		if constexpr(std::same_as<std::remove_cvref_t<flt>,long double>&&sizeof(flt)==sizeof(long double))	//this is the case on xxx-windows-msvc
+		if constexpr(std::same_as<std::remove_cvref_t<flt>,long double>&&sizeof(flt)==sizeof(double))	//this is the case on xxx-windows-msvc
 		{
 			return details::print_rsv_cache<double,flags.floating>;
 		}
@@ -73,7 +73,7 @@ inline constexpr Iter print_reserve_define(io_reserve_type_t<freestanding::iter_
 	}
 	else
 	{
-		if constexpr(std::same_as<std::remove_cvref_t<flt>,long double>&&sizeof(flt)==sizeof(long double))	//this is the case on xxx-windows-msvc
+		if constexpr(std::same_as<std::remove_cvref_t<flt>,long double>&&sizeof(flt)==sizeof(double))	//this is the case on xxx-windows-msvc
 		{
 			return details::print_rsvflt_define_impl<flags.showpos,flags.uppercase,flags.uppercase_e,flags.comma,flags.floating>(iter,static_cast<double>(f.reference));
 		}
