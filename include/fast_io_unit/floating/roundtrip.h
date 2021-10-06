@@ -927,7 +927,7 @@ inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> dragonbo
 		q *= 10;
 		std::uint32_t const dist{static_cast<std::uint32_t>(r-delta/2+small_divisor_div2)};
 		std::uint32_t const dist_q{dist / 100};
-		std::uint32_t const dist_q_mul100{dist * 100};
+		std::uint32_t const dist_q_mul100{dist_q * 100};
 		q+=dist_q;
 		if(dist==dist_q_mul100)
 		{
@@ -960,13 +960,14 @@ inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> dragonbo
 		q *= 10;
 		std::uint32_t const dist{static_cast<std::uint32_t>(r-delta/2+small_divisor_div2)};
 		std::uint32_t const dist_q{dist / small_divisor};
-		std::uint32_t const dist_q_mul10{dist * small_divisor};
+		std::uint32_t const dist_q_mul100{dist_q * small_divisor};
 		q+=dist_q;
-		if(dist==dist_q_mul10)
+		if(dist==dist_q_mul100)
 		{
 			bool const approx_y_parity(dist & 1);
 			if((mul_parity_float32(two_fc,pow10,beta_minus_1)!=approx_y_parity)||((q&1)&&is_integral_mid_point_float32(two_fc, e2, minus_k)))
 				--q;
+
 		}
 		return {q,minus_k+kappa};
 	}
