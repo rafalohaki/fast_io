@@ -876,7 +876,7 @@ inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> schubfac
 		if(q*10>=xi)
 			return {static_cast<std::uint32_t>(q),minus_k+1};
 		q=((pw>>(rshift-1))+1)>>1;
-		if(e2==-77)
+		if(e2==-35)
 			q-=(q&1);
 		else
 			q+=(q<xi);
