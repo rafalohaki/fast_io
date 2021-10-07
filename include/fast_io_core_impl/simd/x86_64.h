@@ -118,7 +118,11 @@ struct simd_vector
 #endif
 	void wrap_add_assign(T2 const& b) noexcept requires(std::integral<value_type>)
 	{
-		if constexpr(std::same_as<simd_vector<T,N>,T2>||!std::unsigned_integral<value_type>)
+		if constexpr(std::same_as<simd_vector<T,N>,T2>&&std::unsigned_integral<value_type>)
+		{
+			value+=b.value;
+		}
+		else
 		{
 			using unsigned_type = std::make_unsigned_t<T>;
 			using unsigned_vec_type = typename simd_vector<unsigned_type,N>::vec_type;
@@ -132,10 +136,6 @@ struct simd_vector
 			asv+=bsv;
 			__builtin_memcpy(this,__builtin_addressof(asv),sizeof(unsigned_vec_type));
 #endif
-		}
-		else
-		{
-			value+=b.value;
 		}
 	}
 	inline constexpr simd_vector<T,N>& operator&=(simd_vector<T,N> const& other) noexcept
