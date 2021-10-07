@@ -224,13 +224,21 @@ std::uint64_t umul_naive(std::uint64_t a,std::uint64_t b,std::uint64_t& high) no
 }
 
 inline
-#if __cpp_lib_is_constant_evaluated >= 201811L
+#if __cpp_if_consteval >= 202106L || __cpp_lib_is_constant_evaluated >= 201811L
 constexpr
 #endif
 std::uint64_t umul(std::uint64_t a,std::uint64_t b,std::uint64_t& high) noexcept
 {
 #ifdef __SIZEOF_INT128__
-#if __cpp_lib_is_constant_evaluated >= 201811L
+#if __cpp_if_consteval >= 202106L
+	if consteval
+	{
+		__uint128_t res{static_cast<__uint128_t>(a)*b};
+		high=static_cast<std::uint64_t>(res>>64);
+		return static_cast<std::uint64_t>(res);
+	}
+	else
+#elif __cpp_lib_is_constant_evaluated >= 201811L
 	if(std::is_constant_evaluated())
 	{
 		__uint128_t res{static_cast<__uint128_t>(a)*b};
@@ -272,14 +280,95 @@ std::uint64_t umul(std::uint64_t a,std::uint64_t b,std::uint64_t& high) noexcept
 #endif
 	}
 #elif defined(_MSC_VER) && defined(_M_X64)
-#if __cpp_lib_is_constant_evaluated >= 201811L
-	if(std::is_constant_evaluated())
+#if __cpp_if_consteval >= 202106L
+	if consteval
+	{
 		return umul_naive(a,b,high);
+	}
+	else
+#elif __cpp_lib_is_constant_evaluated >= 201811L
+	if(std::is_constant_evaluated())
+	{
+		return umul_naive(a,b,high);
+	}
 	else
 #endif
+	{
 		return _umul128(a,b,__builtin_addressof(high));
+	}
 #else
 	return umul_naive(a,b,high);
+#endif
+}
+
+inline
+#if __cpp_lib_is_constant_evaluated >= 201811L
+constexpr
+#endif
+std::uint_least64_t umul_least64_high_naive(std::uint_least64_t a,std::uint_least64_t b) noexcept
+{
+	constexpr std::uint_least32_t ul32bits{sizeof(std::uint_least32_t)*
+#if defined(__CHAR_BIT__)
+	__CHAR_BIT__
+#else
+	8u
+#endif
+	};
+	std::uint_least32_t a0(static_cast<std::uint_least32_t>(a));
+	std::uint_least32_t a1(static_cast<std::uint_least32_t>(a>>ul32bits));
+	std::uint_least32_t b0(static_cast<std::uint_least32_t>(b));
+	std::uint_least32_t b1(static_cast<std::uint_least32_t>(b>>ul32bits));
+	std::uint_least64_t c00(static_cast<std::uint_least64_t>(a0)*b0);
+	std::uint_least64_t c01(static_cast<std::uint_least64_t>(a0)*b1);
+	std::uint_least64_t c10(static_cast<std::uint_least64_t>(a1)*b0);
+	std::uint_least64_t c11(static_cast<std::uint_least64_t>(a1)*b1);
+
+	std::uint_least64_t c00_high{c00>>ul32bits};
+	std::uint_least64_t c01_low{static_cast<std::uint_least32_t>(c01)};
+	std::uint_least64_t c01_high{c01>>ul32bits};
+	std::uint_least64_t c10_low{static_cast<std::uint_least32_t>(c10)};
+	std::uint_least64_t c10_high{c10>>ul32bits};
+
+	std::uint_least64_t d1{c00_high+c01_low+c10_low};
+	std::uint_least64_t d2{(d1>>ul32bits)+c10_high+c01_high};
+	std::uint_least64_t d3{(d2>>ul32bits)+c11};
+	return d2|(d3<<ul32bits);
+}
+
+inline
+#if __cpp_if_consteval >= 202106L || __cpp_lib_is_constant_evaluated >= 201811L
+constexpr
+#endif
+std::uint_least64_t umul_least64_high(std::uint_least64_t a,std::uint_least64_t b) noexcept
+{
+#ifdef __SIZEOF_INT128__
+	constexpr std::uint_least64_t ul64bits{sizeof(std::uint_least64_t)*
+#if defined(__CHAR_BIT__)
+	__CHAR_BIT__
+#else
+	8u
+#endif
+	};
+	return static_cast<std::uint_least64_t>((static_cast<__uint128_t>(a)*b)>>ul64bits);
+#elif defined(_MSC_VER) && defined(_M_X64)
+#if __cpp_if_consteval >= 202106L
+	if consteval
+	{
+		return umul_least64_high_naive(a,b);
+	}
+	else
+#elif __cpp_lib_is_constant_evaluated >= 201811L
+	if(std::is_constant_evaluated())
+	{
+		return umul_least64_high_naive(a,b);
+	}
+	else
+#endif
+	{
+		return __umulh(a,b);
+	}
+#else
+	return umul_least64_high_naive(a,b);
 #endif
 }
 

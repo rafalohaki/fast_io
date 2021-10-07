@@ -7,6 +7,13 @@ Reference: Abolz
 namespace fast_io::details
 {
 
+
+struct uint32x2
+{
+std::uint32_t hi;
+std::uint32_t lo;
+};
+
 struct uint64x2
 {
 std::uint64_t hi;
@@ -35,6 +42,22 @@ inline constexpr std::uint64_t pow10_float32_tb[]
 0xf0bdc21abb48db20, 0x96769950b50d88f4, 0xbc143fa4e250eb31, 0xeb194f8e1ae525fd,
 0x92efd1b8d0cf37be, 0xb7abc627050305ad, 0xe596b7b0c643c719, 0x8f7e32ce7bea5c6f,
 0xb35dbf821ae4f38b, 0xe0352f62a19e306e
+};
+
+inline constexpr uint32x2 float_mod5_tb[]
+{
+{0x00000001u,0xFFFFFFFFu},
+{0xCCCCCCCDu,0x33333333u},
+{0xC28F5C29u,0x0A3D70A3u},
+{0x26E978D5u,0x020C49BAu},
+{0x3AFB7E91u,0x0068DB8Bu},
+{0x0BCBE61Du,0x0014F8B5u},
+{0x68C26139u,0x000431BDu},
+{0xAE8D46A5u,0x0000D6BFu},
+{0x22E90E21u,0x00002AF3u},
+{0x3A2E9C6Du,0x00000897u},
+{0x3ED61F49u,0x000001B7u},
+{0x0C913975u,0x00000057u}
 };
 
 inline constexpr auto compute_pow10_float32{pow10_float32_tb+31};
@@ -712,8 +735,7 @@ inline constexpr std::int32_t mul_ln10_div_ln2_floor(std::int32_t e) noexcept
 
 inline constexpr std::uint64_t mulshift_double(std::uint64_t x,std::uint64_t ylow,std::uint64_t yhigh) noexcept
 {
-	std::uint64_t p0high;
-	intrinsics::umul(x,ylow,p0high);
+	std::uint64_t p0high{intrinsics::umul_least64_high(x,ylow)};
 	std::uint64_t p1high;
 	std::uint64_t p1low{intrinsics::umul(x,yhigh,p1high)};
 	constexpr std::uint64_t zero{};
@@ -723,16 +745,13 @@ inline constexpr std::uint64_t mulshift_double(std::uint64_t x,std::uint64_t ylo
 
 inline constexpr std::uint32_t mulshift_float32(std::uint32_t x,std::uint64_t y) noexcept
 {
-	std::uint64_t p1high;
-	intrinsics::umul(x,y,p1high);
-	return static_cast<std::uint32_t>(p1high);
+	return static_cast<std::uint32_t>(intrinsics::umul_least64_high(x,y));
 }
 
 inline constexpr bool mul_parity_float64(std::uint64_t two_f,std::uint64_t pow10_low,std::uint64_t pow10_high,std::int32_t beta_minus_1) noexcept
 {
 	std::uint64_t const p01{two_f * pow10_high};
-	std::uint64_t p10;
-	intrinsics::umul(two_f,pow10_low,p10);
+	std::uint64_t const p10{intrinsics::umul_least64_high(two_f,pow10_low)};
 	std::uint64_t const mid{p01 + p10};
 	constexpr std::uint64_t one{1};
 	return (mid & (one << (64 - beta_minus_1)));
@@ -787,6 +806,12 @@ inline constexpr bool is_integral_mid_point(std::uint64_t two_f,std::int32_t e2,
 	return false;
 }
 
+inline constexpr bool multiple_of_pow5_float32(std::uint32_t value,std::uint32_t e5) noexcept
+{
+	auto m5{float_mod5_tb[e5]};
+	return value*m5.hi <= m5.lo;
+}
+
 inline constexpr bool is_integral_end_point_float32(std::uint32_t two_f,std::int32_t e2,std::int32_t minus_k) noexcept
 {
 	if(e2<-1)
@@ -794,7 +819,7 @@ inline constexpr bool is_integral_end_point_float32(std::uint32_t two_f,std::int
 	if(e2<=6)
 		return true;
 	if(e2<=39)
-		return multiple_of_pow5(two_f, static_cast<std::uint32_t>(minus_k));
+		return multiple_of_pow5_float32(two_f, static_cast<std::uint32_t>(minus_k));
 	return false;
 }
 
@@ -805,7 +830,7 @@ inline constexpr bool is_integral_mid_point_float32(std::uint32_t two_f,std::int
 	if(e2<=6)
 		return true;
 	if(e2<=39)
-		return multiple_of_pow5(two_f,static_cast<std::uint32_t>(minus_k));
+		return multiple_of_pow5_float32(two_f,static_cast<std::uint32_t>(minus_k));
 	return false;
 }
 
