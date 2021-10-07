@@ -55,8 +55,7 @@ inline constexpr uint32x2 float_mod5_tb[]
 {0xAE8D46A5u,0x0000D6BFu},
 {0x22E90E21u,0x00002AF3u},
 {0x3A2E9C6Du,0x00000897u},
-{0x3ED61F49u,0x000001B7u},
-{0x0C913975u,0x00000057u}
+{0x3ED61F49u,0x000001B7u}
 };
 
 inline constexpr auto compute_pow10_float32{pow10_float32_tb+31};
@@ -709,8 +708,7 @@ inline constexpr uint64x2 double_mod5_tb[]
 {0xD489E3A9ADDEC2D1u, 0x000000000002F394u}, // 5^20
 {0x90E860BB892C8D5Du, 0x000000000000971Du}, // 5^21
 {0x502E79BF1B6F4F79u, 0x0000000000001E39u}, // 5^22
-{0xDCD618596BE30FE5u, 0x000000000000060Bu}, // 5^23
-{0x2C2AD1AB7BFA3661u, 0x0000000000000135u}, // 5^24
+{0xDCD618596BE30FE5u, 0x000000000000060Bu} // 5^23
 };
 
 inline constexpr auto compute_pow10_double{pow10_double_tb+292};
