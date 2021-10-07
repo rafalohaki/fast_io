@@ -111,7 +111,7 @@ struct simd_vector
 	}
 
 	template<typename T2>
-	requires (sizeof(T2)==sizeof(T)*N)
+	requires ((sizeof(T2)==sizeof(T)*N)&&std::is_trivially_copyable_v<T2>)
 	inline
 #if __has_builtin(__builtin_bit_cast)
 	constexpr
