@@ -240,6 +240,7 @@ inline constexpr void print_control(output out,T t)
 		}
 		else
 		{
+#if !defined(__SANITIZE_ADDRESS__) || defined(__OPTIMIZE__)
 			if constexpr(buffer_output_stream<output>)
 			{
 				if constexpr(std::same_as<char_type*,decltype(obuffer_curr(out))>&&std::same_as<char_type*,decltype(obuffer_end(out))>)
@@ -293,6 +294,7 @@ inline constexpr void print_control(output out,T t)
 				}
 			}
 			else
+#endif
 			{
 				char_type buffer[size];
 				char_type* i{print_reserve_define(io_reserve_type<char_type,value_type>,buffer,t)};

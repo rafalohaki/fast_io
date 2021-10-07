@@ -363,7 +363,7 @@ __has_builtin(__builtin_ia32_pshufb128) && (!defined(__clang__)||(defined(__SSE4
 		// Rounds 0-3
 		msg0.load(block);
 		msg0.shuffle(mask);
-		e0 += msg0;
+		e0.wrap_add_assign(msg0);
 		simd_vector<int,4> e1=abcd;
 		abcd = __builtin_ia32_sha1rnds4(abcd,e0,0);
 
@@ -519,7 +519,8 @@ __has_builtin(__builtin_ia32_pshufb128) && (!defined(__clang__)||(defined(__SSE4
 
 		// Add values back to state
 		e0 = ( estate = __builtin_ia32_sha1nexte(e0, estate));
-		abcd = (abcdstate+=abcd);
+		abcdstate.wrap_add_assign(abcd);
+		abcd = abcdstate;
 	}
 	simd_vector<int,4>{abcd[3],abcd[2],abcd[1],abcd[0]}.store(state);
 	state[4]=static_cast<std::uint32_t>(e0.back());
