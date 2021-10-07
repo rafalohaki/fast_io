@@ -7,7 +7,7 @@
 
 int main()
 {
-	constexpr std::size_t N{2000000};
+	constexpr std::size_t N{10000000};
 	std::mt19937_64 eng{};
 	std::uniform_real_distribution<double> dis(DBL_MIN,DBL_MAX);
 	std::vector<double> vec;
@@ -28,6 +28,5 @@ int main()
 			++res;
 			write(file,start,res);
 		}
-//			println(file,fast_io::mnp::hexfloat(e));
 	}
 }

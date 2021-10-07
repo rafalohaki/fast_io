@@ -898,7 +898,7 @@ inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> dragonbo
 		if(m2==0&&e2_temp>1)[[unlikely]]
 			return schubfach_asymmetric_interval<flt>(e2);
 	}
-	bool const is_even(m2&1u);
+	bool const is_even{(m2&1u)!=0u};
 	std::int32_t const minus_k{mul_ln2_div_ln10_floor(e2)-kappa};
 	std::int32_t const plus_k{-minus_k};
 	std::int32_t const beta_minus_1{e2+mul_ln10_div_ln2_floor(plus_k)};
@@ -931,7 +931,7 @@ inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> dragonbo
 		q+=dist_q;
 		if(dist==dist_q_mul100)
 		{
-			bool const approx_y_parity(dist & 1);
+			bool const approx_y_parity{((dist ^ 1u) & 1u)!=0u};
 			if((mul_parity_float64(two_fc,pow10_lo,pow10_hi,beta_minus_1)!=approx_y_parity)||((q&1)&&is_integral_mid_point(two_fc, e2, minus_k)))
 				--q;
 		}
@@ -964,10 +964,9 @@ inline constexpr m10_result<typename iec559_traits<flt>::mantissa_type> dragonbo
 		q+=dist_q;
 		if(dist==dist_q_mul100)
 		{
-			bool const approx_y_parity(dist & 1);
+			bool const approx_y_parity{((dist ^ 1u) & 1u)!=0u};
 			if((mul_parity_float32(two_fc,pow10,beta_minus_1)!=approx_y_parity)||((q&1)&&is_integral_mid_point_float32(two_fc, e2, minus_k)))
 				--q;
-
 		}
 		return {q,minus_k+kappa};
 	}
