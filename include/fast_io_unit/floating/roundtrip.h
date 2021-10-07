@@ -7,7 +7,6 @@ Reference: Abolz
 namespace fast_io::details
 {
 
-
 struct uint32x2
 {
 std::uint32_t hi;
