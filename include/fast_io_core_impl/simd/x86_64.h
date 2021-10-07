@@ -328,31 +328,16 @@ inline constexpr Iter print_reserve_df_mm_impl(Iter iter,::fast_io::intrinsics::
 	if constexpr(size==0)
 		return iter;
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
-	if constexpr(std::same_as<char_type,char>)
-		*iter='(';		
-	else if constexpr(std::same_as<char_type,wchar_t>)
-		*iter=L'(';
-	else 
-		*iter=u8'(';
+	*iter=char_literal_v<u8'(',char_type>;
 	++iter;
 	iter=print_reserve_define(io_reserve_type<char_type,T>,iter,mm[0]);
 	for(std::size_t i{1};i!=size;++i)
 	{
-		if constexpr(std::same_as<char_type,char>)
-			*iter=',';		
-		else if constexpr(std::same_as<char_type,wchar_t>)
-			*iter=L',';
-		else 
-			*iter=u8',';
+		*iter=char_literal_v<u8',',char_type>;
 		++iter;
 		iter=print_reserve_define(io_reserve_type<char_type,T>,iter,mm[i]);
 	}
-	if constexpr(std::same_as<char_type,char>)
-		*iter=')';		
-	else if constexpr(std::same_as<char_type,wchar_t>)
-		*iter=L')';
-	else 
-		*iter=u8')';
+	*iter=char_literal_v<u8')',char_type>;
 	++iter;
 	return iter;
 }
