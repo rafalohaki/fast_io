@@ -42,15 +42,14 @@ inline constexpr Iter print_rsvhexfloat_define_impl(Iter iter,flt f) noexcept
 	std::int32_t e2{static_cast<std::int32_t>(exponent)+minus_bias};
 	if(mantissa)
 	{
-		std::uint32_t digits{static_cast<std::uint32_t>(my_countr_zero_unchecked(mantissa))+makeup_bits};
-		constexpr std::uint32_t mdigits_d4{static_cast<std::uint32_t>((mbits+makeup_bits)>>2)};
-		std::uint32_t digits_d4{digits>>2};
-		std::uint32_t digits_d4m4{digits_d4<<2};
-		if(digits_d4m4<makeup_bits)[[unlikely]]
-			mantissa<<=(makeup_bits-digits_d4m4);
-		else
-			mantissa>>=(digits_d4m4-makeup_bits);
-		std::uint32_t len{mdigits_d4-digits_d4};
+		std::uint32_t trailing_zeros_digits{static_cast<std::uint32_t>(my_countr_zero_unchecked(mantissa))+makeup_bits};
+		constexpr std::uint32_t trailing_zeros_mdigits_d4{static_cast<std::uint32_t>((mbits+makeup_bits)>>2)};
+		std::uint32_t trailing_zeros_digits_d4{trailing_zeros_digits>>2};
+		std::uint32_t trailing_zeros_digits_d4m4{trailing_zeros_digits_d4<<2};
+
+		mantissa<<=makeup_bits;
+		mantissa>>=trailing_zeros_digits_d4m4;
+		std::uint32_t mantissa_len{trailing_zeros_mdigits_d4-trailing_zeros_digits_d4};
 		if(exponent==0)
 		{
 			++e2;
@@ -58,7 +57,7 @@ inline constexpr Iter print_rsvhexfloat_define_impl(Iter iter,flt f) noexcept
 		}
 		else
 			iter=prsv_fp_hex1d<comma>(iter);
-		print_reserve_integral_main_impl<16,uppercase>(iter+=len,mantissa,len);
+		print_reserve_integral_main_impl<16,uppercase>(iter+=mantissa_len,mantissa,mantissa_len);
 	}
 	else
 	{
