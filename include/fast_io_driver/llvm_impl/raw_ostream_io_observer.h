@@ -4,7 +4,7 @@ namespace fast_io::llvm
 {
 
 template<std::integral ch_type,typename T>
-requires (std::derived_from<T,raw_ostream>&&sizeof(ch_type)==1)
+requires (std::derived_from<T,::llvm::raw_ostream>&&sizeof(ch_type)==1)
 class basic_general_raw_ostream_io_observer
 {
 public:
@@ -64,7 +64,7 @@ inline constexpr basic_general_raw_ostream_io_observer<char_type,T> io_value_han
 namespace details
 {
 
-inline void llvm_ostream_write_impl(raw_ostream* os,void const* first_vptr,void const* last_vptr)
+inline void llvm_ostream_write_impl(::llvm::raw_ostream* os,void const* first_vptr,void const* last_vptr)
 {
 	char const* first{reinterpret_cast<char const*>(first_vptr)};
 	char const* last{reinterpret_cast<char const*>(last_vptr)};

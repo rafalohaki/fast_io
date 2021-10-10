@@ -32,13 +32,14 @@ inline char_type* llvm_raw_ostream_obuffer_ptr(::llvm::raw_ostream* os) noexcept
 inline void llvm_raw_ostream_set_obuffer_curr_ptr(::llvm::raw_ostream* os,void* vdptr)
 {
 	constexpr std::size_t offset{llvm_raw_ostream_cal_obuffer_ptr_position<1>()};
-	::fast_io::details::my_memcpy(reinterpret_cast<char*>(os+offset),__builtin_addressof(vptr),sizeof(char*));
+	::fast_io::details::my_memcpy(reinterpret_cast<char*>(os+offset),__builtin_addressof(vdptr),sizeof(char*));
 }
 
 inline void llvm_raw_ostream_overflow(::llvm::raw_ostream* os,char ch)
 {
 	os->flush();
-	os->write(__builtin_addressof(ch),__builtin_addressof(ch)+1);
+	constexpr std::size_t one{1u};
+	os->write(__builtin_addressof(ch),one);
 }
 
 }
