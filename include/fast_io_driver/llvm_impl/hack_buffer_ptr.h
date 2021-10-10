@@ -1,6 +1,6 @@
 #pragma once
 
-namespace fast_io::details
+namespace fast_io::llvm::details
 {
 
 template<std::size_t position>
