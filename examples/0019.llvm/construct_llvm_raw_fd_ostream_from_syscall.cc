@@ -19,9 +19,9 @@ This is an example to explain how fast_io's files work with each other, and how 
 #else
 	fast_io::posix_file pf("posix_file.txt",fast_io::open_mode::out);
 #endif
-	fast_io::llvm::raw_fd_ostream_file osf(std::move(cf),fast_io::open_mode::out);
+	fast_io::llvm::raw_fd_ostream_file osf(std::move(pf),fast_io::open_mode::out);
 
-	osf.os->write(llvm::StringRef("Hello World from llvm::raw_fd_ostream\n"));
+	(*osf.os)<<"Hello World from llvm::raw_fd_ostream\n";
 	print(osf,"Hello World from fast_io::llvm::raw_fd_ostream_file\n");
 	fast_io::posix_tzset();
 	auto unix_ts{fast_io::posix_clock_gettime(fast_io::posix_clock_id::realtime)};

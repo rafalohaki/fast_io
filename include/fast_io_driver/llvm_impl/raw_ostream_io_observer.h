@@ -3,24 +3,6 @@
 namespace fast_io::llvm
 {
 
-namespace details
-{
-inline int hack_fd_from_llvm_raw_fd_ostream(::llvm::raw_fd_ostream* os) noexcept
-{
-	if(os==nullptr)
-		return -1;
-	int fd;
-	::fast_io::details::my_memcpy(__builtin_addressof(fd),reinterpret_cast<char*>(os)+sizeof(::llvm::raw_pwrite_stream),sizeof(int));
-	return fd;
-}
-
-inline void hack_set_fd_to_llvm_raw_fd_ostream(::llvm::raw_fd_ostream* os,int fd) noexcept
-{
-	::fast_io::details::my_memcpy(reinterpret_cast<char*>(os)+sizeof(::llvm::raw_pwrite_stream),__builtin_addressof(fd),sizeof(int));
-}
-
-}
-
 template<std::integral ch_type,typename T>
 requires (std::derived_from<T,::llvm::raw_ostream>&&sizeof(ch_type)==1)
 class basic_general_raw_ostream_io_observer
