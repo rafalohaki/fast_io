@@ -13,9 +13,9 @@ inline raw_fd_ostream* open_llvm_raw_fd_ostream_from_fd(int fd)
 
 }
 
-template<std::integral char_type>
+template<std::integral ch_type>
 requires (sizeof(char_type)==1)
-class basic_raw_fd_ostream_file:public basic_general_raw_ostream_io_observer<char_type>
+class basic_raw_fd_ostream_file:public basic_general_raw_ostream_io_observer<ch_type>
 {
 public:
 	using char_type = ch_type;
