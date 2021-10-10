@@ -220,41 +220,20 @@ requires (sizeof(T)>1)
 constexpr void lc_print_unsigned_with_3_seperator_len(::fast_io::freestanding::iter_value_t<Iter> seperator_ch,Iter iter,T value,std::size_t size) noexcept
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
-#ifndef __OPTIMIZE_SIZE__
 	constexpr auto table(get_shared_inline_constexpr_base_table<char_type,base,uppercase>().element);
-#endif
 	constexpr std::uint_least32_t cpow1{static_cast<std::uint_least32_t>(base)};
-#if !defined(__OPTIMIZE_SIZE__)
 	constexpr std::uint_least32_t cpow2{static_cast<std::uint_least32_t>(cpow1*cpow1)};
 	constexpr std::uint_least32_t cpow3{static_cast<std::uint_least32_t>(cpow2*cpow1)};
-#endif
 	for(;3u<size;*--iter=seperator_ch)
 	{
-#if defined(__OPTIMIZE_SIZE__)
-		for(std::size_t i{};i!=3u;++i)
-		{
-			T remained{static_cast<T>(value%cpow1)};
-			value/=cpow1;
-			*--iter=to_char_single_digit<char_type,base,uppercase>(remained);
-		}
-#else
 		T low3digits{static_cast<T>(value%cpow3)};
 		value/=cpow3;
 		T low2digits{static_cast<T>(low3digits%cpow2)};
 		T highdigit{static_cast<T>(low3digits/cpow2)};
 		non_overlapped_copy_n(table[low2digits].element,2u,iter-=2u);
 		*--iter=to_char_single_digit<char_type,base,uppercase>(highdigit);
-#endif
 		size-=3u;
 	}
-#if defined(__OPTIMIZE_SIZE__)
-	for(;size;--size)
-	{
-		T remained{static_cast<T>(value%cpow1)};
-		value/=cpow1;
-		*--iter=to_char_single_digit<char_type,base,uppercase>(remained);
-	}
-#else
 	if(size==3)
 	{
 		T low2digits{static_cast<T>(value%cpow2)};
@@ -268,7 +247,6 @@ constexpr void lc_print_unsigned_with_3_seperator_len(::fast_io::freestanding::i
 	{
 		*--iter=to_char_single_digit<char_type,base,uppercase>(value);
 	}
-#endif
 }
 
 template<bool full,std::size_t base,bool uppercase,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral int_type>

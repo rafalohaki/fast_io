@@ -412,20 +412,8 @@ template<::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integr
 inline constexpr Iter prt_rsv_hundred_flt_impl(Iter iter,U u) noexcept
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
-#ifdef __OPTIMIZE_SIZE__
-	using unsigned_char_type = std::make_unsigned_t<char_type>;
-	constexpr U ten{10u};
-	U div10{u/ten};
-	U mod10{u%ten};
-	*iter=static_cast<char_type>(char_literal_v<u8'0',char_type>+static_cast<unsigned_char_type>(div10));
-	++iter;
-	*iter=static_cast<char_type>(char_literal_v<u8'0',char_type>+static_cast<unsigned_char_type>(mod10));
-	++iter;
-	return iter;
-#else
 	constexpr auto tb{::fast_io::details::get_shared_inline_constexpr_base_table<char_type,10,false>().element};
 	return non_overlapped_copy_n(tb[u].element,2,iter);
-#endif
 }
 
 template<std::size_t mxdigits,bool indent,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral U>

@@ -770,91 +770,6 @@ constexpr void print_reserve_integral_main_impl(Iter iter,T t,std::size_t len)
 	else
 	{
 		using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
-#ifdef __OPTIMIZE_SIZE__
-		constexpr bool ebcdic{is_ebcdic<char_type>};
-		constexpr T pw{static_cast<T>(base)};
-		for(std::size_t i{};i!=len;++i)
-		{
-			auto const rem{t%pw};
-			t/=pw;
-			--iter;
-			if constexpr(base<=10)
-			{
-				*iter=static_cast<char_type>(rem+char_literal_v<u8'0',char_type>);
-			}
-			else
-			{
-				if constexpr(ebcdic)
-				{
-					if(rem<10)
-						*iter=static_cast<char_type>(0xF0+rem);
-					else
-					{
-						if constexpr(base<=19)
-						{
-							if constexpr(uppercase)
-								*iter=static_cast<char_type>((0xC1-10)+rem);
-							else
-								*iter=static_cast<char_type>((0x81-10)+rem);
-						}
-						else if constexpr(base<=28)
-						{
-							if(rem<19u)
-							{
-								if constexpr(uppercase)
-									*iter=static_cast<char_type>((0xC1-10)+rem);
-								else
-									*iter=static_cast<char_type>((0x81-10)+rem);
-							}
-							else
-							{
-								if constexpr(uppercase)
-									*iter=static_cast<char_type>((0xD1-19)+rem);
-								else
-									*iter=static_cast<char_type>((0x91-19)+rem);
-							}
-						}
-						else
-						{
-							if(rem<19)
-							{
-								if constexpr(uppercase)
-									*iter=static_cast<char_type>((0xC1-10)+rem);
-								else
-									*iter=static_cast<char_type>((0x81-10)+rem);
-							}
-							else if(rem<28)
-							{
-								if constexpr(uppercase)
-									*iter=static_cast<char_type>((0xD1-19)+rem);
-								else
-									*iter=static_cast<char_type>((0x91-19)+rem);
-							}
-							else
-							{
-								if constexpr(uppercase)
-									*iter=static_cast<char_type>((0xE2-28)+rem);
-								else
-									*iter=static_cast<char_type>((0xA2-28)+rem);
-							}
-						}
-					}
-				}
-				else
-				{
-					if(rem<10)
-						*iter=static_cast<char_type>(u8'0'+rem);
-					else
-					{
-						if constexpr(uppercase)
-							*iter=static_cast<char_type>((u8'A'-10u)+rem);
-						else
-							*iter=static_cast<char_type>((u8'a'-10u)+rem);
-					}
-				}
-			}
-		}
-#else
 		constexpr auto tb{::fast_io::details::get_shared_inline_constexpr_base_table<char_type,base,uppercase>().element};
 		constexpr T pw{static_cast<T>(base*base)};
 		std::size_t const len2{len>>static_cast<std::size_t>(1u)};
@@ -871,7 +786,6 @@ constexpr void print_reserve_integral_main_impl(Iter iter,T t,std::size_t len)
 			else
 				*--iter=static_cast<char_type>(tb[t].element[1]);
 		}
-#endif
 	}
 }
 
