@@ -69,8 +69,8 @@ inline void llvm_ostream_write_impl(::llvm::raw_ostream* os,void const* first_vp
 	char const* first{reinterpret_cast<char const*>(first_vptr)};
 	char const* last{reinterpret_cast<char const*>(last_vptr)};
 	std::size_t const n{static_cast<std::size_t>(last-first)};
-	auto os_obuffer_curr_ptr{llvm_raw_ostream_obuffer_ptr<1,char>()};
-	auto os_obuffer_end_ptr{llvm_raw_ostream_obuffer_ptr<2,char>()};
+	auto os_obuffer_curr_ptr{llvm_raw_ostream_obuffer_ptr<1,char>(os)};
+	auto os_obuffer_end_ptr{llvm_raw_ostream_obuffer_ptr<2,char>(os)};
 	std::size_t const remain_size{static_cast<std::size_t>(os_obuffer_end_ptr-os_obuffer_curr_ptr)};
 	if(n<remain_size)[[likely]]
 	{

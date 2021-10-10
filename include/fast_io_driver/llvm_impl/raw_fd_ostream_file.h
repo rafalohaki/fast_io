@@ -6,7 +6,7 @@ namespace fast_io::llvm
 namespace details
 {
 
-inline raw_fd_ostream* open_llvm_raw_fd_ostream_from_fd(int fd)
+inline ::llvm::raw_fd_ostream* open_llvm_raw_fd_ostream_from_fd(int fd)
 {
 	return new ::llvm::raw_fd_ostream(fd,true);
 }
