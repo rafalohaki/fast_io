@@ -3,11 +3,23 @@
 namespace fast_io::llvm::details
 {
 
+class llvm_raw_ostream_model {
+public:
+	void* ptr{};
+	::llvm::raw_ostream::OStreamKind Kind;
+	char *OutBufStart, *OutBufEnd, *OutBufCur;
+	bool ColorEnabled = false;
+
+	/// Optional stream this stream is tied to. If this stream is written to, the
+	/// tied-to stream will be flushed first.
+	::llvm::raw_ostream *TiedStream = nullptr;
+};
+
 template<std::size_t position>
 requires (position<3u)
 inline constexpr std::size_t llvm_raw_ostream_cal_obuffer_ptr_position() noexcept
 {
-	constexpr std::size_t offset{sizeof(void*) /*vptr*/+sizeof(::llvm::raw_ostream::OStreamKind)};
+	constexpr std::size_t offset{__builtin_offsetof(llvm_raw_ostream_model,OutBufStart)};
 	if constexpr(position==0u)
 		return offset;
 	else if constexpr(position==1u)
@@ -25,14 +37,14 @@ inline char_type* llvm_raw_ostream_obuffer_ptr(::llvm::raw_ostream* os) noexcept
 {
 	constexpr std::size_t offset{llvm_raw_ostream_cal_obuffer_ptr_position<position>()};
 	char_type* ptr;
-	::fast_io::details::my_memcpy(__builtin_addressof(ptr),reinterpret_cast<char*>(os+offset),sizeof(char_type*));
+	::fast_io::details::my_memcpy(__builtin_addressof(ptr),reinterpret_cast<char*>(os)+offset,sizeof(char_type*));
 	return ptr;
 }
 
-inline void llvm_raw_ostream_set_obuffer_curr_ptr(::llvm::raw_ostream* os,void* vdptr)
+inline void llvm_raw_ostream_set_obuffer_curr_ptr(::llvm::raw_ostream* os,char* vdptr)
 {
 	constexpr std::size_t offset{llvm_raw_ostream_cal_obuffer_ptr_position<1>()};
-	::fast_io::details::my_memcpy(reinterpret_cast<char*>(os+offset),__builtin_addressof(vdptr),sizeof(char*));
+	::fast_io::details::my_memcpy(reinterpret_cast<char*>(os)+offset,__builtin_addressof(vdptr),sizeof(char*));
 }
 
 inline void llvm_raw_ostream_overflow(::llvm::raw_ostream* os,char ch)

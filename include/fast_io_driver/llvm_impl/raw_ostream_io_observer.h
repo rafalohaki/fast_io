@@ -5,15 +5,18 @@ namespace fast_io::llvm
 
 namespace details
 {
-inline int hack_fd_from_llvm_raw_fd_ostream(::llvm::raw_fd_ostream const* os) noexcept
+inline int hack_fd_from_llvm_raw_fd_ostream(::llvm::raw_fd_ostream* os) noexcept
 {
-	class raw_fd_inheritance_dummy_model:private ::llvm::raw_fd_ostream
-	{
-	public:
-		using ::llvm::raw_fd_ostream::get_fd;
-	};
-	constexpr auto hack_llvm_get_fd_func_ptr{raw_fd_inheritance_dummy_model::get_fd};
-	return (os->(*hack_get_fd_func_ptr))();
+	if(os==nullptr)
+		return -1;
+	int fd;
+	::fast_io::details::my_memcpy(__builtin_addressof(fd),reinterpret_cast<char*>(os)+sizeof(::llvm::raw_pwrite_stream),sizeof(int));
+	return fd;
+}
+
+inline void hack_set_fd_to_llvm_raw_fd_ostream(::llvm::raw_fd_ostream* os,int fd) noexcept
+{
+	::fast_io::details::my_memcpy(reinterpret_cast<char*>(os)+sizeof(::llvm::raw_pwrite_stream),__builtin_addressof(fd),sizeof(int));
 }
 
 }
@@ -134,7 +137,7 @@ inline void obuffer_set_curr(basic_general_raw_ostream_io_observer<char_type,T> 
 #endif
 char_type* ptr) noexcept
 {
-	::fast_io::llvm::details::llvm_raw_ostream_set_obuffer_curr_ptr(osiob.os,ptr);
+	::fast_io::llvm::details::llvm_raw_ostream_set_obuffer_curr_ptr(osiob.os,reinterpret_cast<char*>(ptr));
 }
 
 template<std::integral char_type,typename T>

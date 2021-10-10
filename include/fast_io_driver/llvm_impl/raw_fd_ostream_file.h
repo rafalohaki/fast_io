@@ -10,12 +10,19 @@ inline ::llvm::raw_fd_ostream* open_llvm_raw_fd_ostream_from_fd(int fd)
 {
 	return new ::llvm::raw_fd_ostream(fd,true);
 }
-#if 0
-inline ::llvm::raw_fd_ostream* open_llvm_raw_fd_ostream_from_fd_dup(int fd)
+
+inline ::llvm::raw_fd_ostream* open_llvm_raw_fd_ostream_from_fd_dup(::llvm::raw_fd_ostream* f)
 {
-	return open_llvm_raw_fd_ostream_from_fd(::fast_io::details::sys_dup(piob.fd));
+	return open_llvm_raw_fd_ostream_from_fd(::fast_io::details::sys_dup(hack_fd_from_llvm_raw_fd_ostream(f)));
 }
-#endif
+
+inline ::llvm::raw_fd_ostream* open_llvm_raw_fd_ostream_from_fd_dup2(::llvm::raw_fd_ostream* thisfdos,::llvm::raw_fd_ostream* otherfdos)
+{
+	if(thisfdos==nullptr)
+		return open_llvm_raw_fd_ostream_from_fd_dup(otherfdos);
+	hack_set_fd_to_llvm_raw_fd_ostream(thisfdos,::fast_io::details::sys_dup2(hack_fd_from_llvm_raw_fd_ostream(otherfdos),hack_fd_from_llvm_raw_fd_ostream(thisfdos)));
+	return thisfdos;
+}
 
 }
 
@@ -45,18 +52,14 @@ public:
 		this->os=other.os;
 		other.os=nullptr;
 	}
-#if 0
-	basic_raw_fd_ostream_file(basic_raw_fd_ostream_file const& other):basic_raw_fd_ostream_io_observer<char_type>{open_llvm_raw_fd_ostream_from_fd_dup(this->os->get_fd())}{}
+	basic_raw_fd_ostream_file(basic_raw_fd_ostream_file const& other):basic_raw_fd_ostream_io_observer<char_type>{open_llvm_raw_fd_ostream_from_fd_dup(other.os)}{}
 	basic_raw_fd_ostream_file& operator=(basic_raw_fd_ostream_file const& other)
 	{
-		this->fd=details::sys_dup2(dp.fd,this->fd);
-		::fast_io::sys_dup2this->os->get_fd()
+		this->os=::fast_io::llvm::details::open_llvm_raw_fd_ostream_from_fd_dup2(this->os,other.os);
+		return *this;
 	}
-#else
-	basic_raw_fd_ostream_file(basic_raw_fd_ostream_file const&)=delete;
-	basic_raw_fd_ostream_file& operator=(basic_raw_fd_ostream_file const&)=delete;
-#endif
-	basic_raw_fd_ostream_file(basic_posix_io_handle<char_type>&& pioh,::fast_io::open_mode):basic_raw_fd_ostream_io_observer<char_type>{::fast_io::llvm::details::open_llvm_raw_fd_ostream_from_fd(pioh.fd)}
+	basic_raw_fd_ostream_file(basic_posix_io_handle<char_type>&& pioh,::fast_io::open_mode):
+		basic_raw_fd_ostream_io_observer<char_type>{new ::llvm::raw_fd_ostream(pioh.fd,true)}
 	{
 		pioh.fd=-1;
 	}
@@ -73,6 +76,24 @@ public:
 	{
 	}
 #endif
+	void close()
+	{
+		if(this->os)
+		{
+			struct destroy
+			{
+				native_handle_type& hd;
+				
+
+				~destroy()
+				{
+					delete hd;
+					hd=nullptr;
+				}
+			}des{this->os};
+			this->os.close();
+		}
+	}
 	~basic_raw_fd_ostream_file()
 	{
 		delete this->os;
