@@ -79,4 +79,7 @@ public:
 #endif
 };
 
+using raw_fd_ostream_file=basic_raw_fd_ostream_file<char>;
+using u8raw_fd_ostream_file=basic_raw_fd_ostream_file<char8_t>;
+
 }
