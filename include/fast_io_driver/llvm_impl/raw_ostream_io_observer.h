@@ -77,7 +77,7 @@ inline void llvm_ostream_write_impl(::llvm::raw_ostream* os,void const* first_vp
 		::fast_io::details::llvm_raw_ostream_set_obuffer_curr_ptr(os,::fast_io::details::non_overlapped_copy_n(first,n,os_obuffer_curr_ptr));
 		return;
 	}
-	pos->write(first,n);
+	os->write(first,n);
 }
 
 }
@@ -94,7 +94,7 @@ inline constexpr void flush(basic_general_raw_ostream_io_observer<char_type,T> o
 	osiob.os->flush();
 }
 
-template<std::integral char_type>
+template<std::integral char_type,typename T>
 #if __has_cpp_attribute(gnu::may_alias)
 [[gnu::may_alias]]
 #endif
@@ -103,7 +103,7 @@ inline char_type* obuffer_begin(basic_general_raw_ostream_io_observer<char_type,
 	return ::fast_io::details::llvm_raw_ostream_obuffer_ptr<0,char_type>(osiob.os);
 }
 
-template<std::integral char_type>
+template<std::integral char_type,typename T>
 #if __has_cpp_attribute(gnu::may_alias)
 [[gnu::may_alias]]
 #endif
@@ -112,7 +112,7 @@ inline char_type* obuffer_curr(basic_general_raw_ostream_io_observer<char_type,T
 	return ::fast_io::details::llvm_raw_ostream_obuffer_ptr<1,char_type>(osiob.os);
 }
 
-template<std::integral char_type>
+template<std::integral char_type,typename T>
 #if __has_cpp_attribute(gnu::may_alias)
 [[gnu::may_alias]]
 #endif
@@ -121,7 +121,7 @@ inline char_type* obuffer_end(basic_general_raw_ostream_io_observer<char_type,T>
 	return ::fast_io::details::llvm_raw_ostream_obuffer_ptr<2,char_type>(osiob.os);
 }
 
-template<std::integral char_type>
+template<std::integral char_type,typename T>
 inline void obuffer_set_curr(basic_general_raw_ostream_io_observer<char_type,T> osiob,
 #if __has_cpp_attribute(gnu::may_alias)
 [[gnu::may_alias]]
@@ -131,7 +131,7 @@ char_type* ptr) noexcept
 	::fast_io::details::llvm_raw_ostream_set_obuffer_curr_ptr(osiob.os,ptr);
 }
 
-template<std::integral char_type>
+template<std::integral char_type,typename T>
 inline void obuffer_overflow(basic_general_raw_ostream_io_observer<char_type,T> osiob,char_type ch) noexcept
 {
 	::fast_io::details::llvm_raw_ostream_overflow(osiob.os,static_cast<char>(ch));
