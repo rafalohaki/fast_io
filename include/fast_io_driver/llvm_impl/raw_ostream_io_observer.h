@@ -13,7 +13,7 @@ inline int hack_fd_from_llvm_raw_fd_ostream(::llvm::raw_fd_ostream const* os) no
 		using ::llvm::raw_fd_ostream::get_fd;
 	};
 	constexpr auto hack_llvm_get_fd_func_ptr{raw_fd_inheritance_dummy_model::get_fd};
-	return os->(*hack_get_fd_func_ptr)();
+	return (os->(*hack_get_fd_func_ptr))();
 }
 
 }
