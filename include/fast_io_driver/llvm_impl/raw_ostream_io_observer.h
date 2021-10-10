@@ -5,7 +5,7 @@ namespace fast_io::llvm
 
 namespace details
 {
-inline int hack_fd_from_llvm_raw_fd_ostream(::llvm::raw_fd_ostream* os) noexcept
+inline int hack_fd_from_llvm_raw_fd_ostream(::llvm::raw_fd_ostream const* os) noexcept
 {
 	class raw_fd_inheritance_dummy_model:private ::llvm::raw_fd_ostream
 	{
