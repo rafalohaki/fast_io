@@ -1,31 +1,12 @@
-﻿#pragma once
+#pragma once
 /*
 Algorithm: fast_io
 Author: cqwrteur
 Reference: no reference
 Credit: Jk jeon
 */
-namespace fast_io
+namespace fast_io::details
 {
-
-namespace details
-{
-
-template<std::uint32_t e2hexdigits,::fast_io::freestanding::random_access_iterator Iter>
-inline constexpr Iter with_sign_prt_rsv_exponent_hex_impl(Iter iter,std::int32_t e2)
-{
-	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
-	std::uint32_t ue2{static_cast<std::uint32_t>(e2)};
-	if(e2<0)
-	{
-		ue2=0u-ue2;
-		*iter=char_literal_v<u8'-',char_type>;
-	}
-	else
-		*iter=char_literal_v<u8'+',char_type>;
-	++iter;
-	return prt_rsv_exponent_impl<e2hexdigits,false>(iter,ue2);
-}
 
 template<
 bool showbase,
@@ -33,9 +14,8 @@ bool showbase_uppercase,
 bool showpos,
 bool uppercase,
 bool uppercase_e,
-bool comma,
 typename flt,::fast_io::freestanding::random_access_iterator Iter>
-inline constexpr Iter print_rsvhexfloat_define_impl(Iter iter,flt f) noexcept
+inline constexpr Iter lc_print_rsvhexfloat_define_impl(Iter iter,flt f,::fast_io::freestanding::iter_value_t<Iter> const* decimal_point_base,std::size_t decimal_point_len) noexcept
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	using trait = iec559_traits<flt>;
@@ -62,17 +42,28 @@ inline constexpr Iter print_rsvhexfloat_define_impl(Iter iter,flt f) noexcept
 		constexpr std::uint32_t trailing_zeros_mdigits_d4{static_cast<std::uint32_t>((mbits+makeup_bits)>>2)};
 		std::uint32_t trailing_zeros_digits_d4{trailing_zeros_digits>>2};
 		std::uint32_t trailing_zeros_digits_d4m4{trailing_zeros_digits_d4<<2};
-
 		mantissa<<=makeup_bits;
 		mantissa>>=trailing_zeros_digits_d4m4;
 		std::uint32_t mantissa_len{trailing_zeros_mdigits_d4-trailing_zeros_digits_d4};
 		if(exponent==0)
 		{
 			++e2;
-			iter=prsv_fp_hex0d<comma>(iter);
+			*iter=char_literal_v<u8'0',char_type>;
 		}
 		else
-			iter=prsv_fp_hex1d<comma>(iter);
+		{
+			*iter=char_literal_v<u8'1',char_type>;
+		}
+		++iter;
+		if(decimal_point_len==1)[[likely]]
+		{
+			*iter=*decimal_point_base;
+			++iter;
+		}
+		else
+		{
+			iter=non_overlapped_copy_n(decimal_point_base,decimal_point_len,iter);
+		}
 		print_reserve_integral_main_impl<16,uppercase>(iter+=mantissa_len,mantissa,mantissa_len);
 	}
 	else
@@ -83,19 +74,6 @@ inline constexpr Iter print_rsvhexfloat_define_impl(Iter iter,flt f) noexcept
 	*iter=char_literal_v<uppercase_e?u8'P':u8'p',char_type>;
 	++iter;
 	return with_sign_prt_rsv_exponent_hex_impl<trait::e2hexdigits>(iter,e2);
-}
-
-
-template<
-bool showbase,
-typename mantissa_type>
-inline constexpr std::size_t print_rsvhexfloat_size_cache
-{
-print_integer_reserved_size_cache<16,showbase,true,mantissa_type>+
-6+
-print_integer_reserved_size_cache<10,true,true,std::int32_t>
-};
-
 }
 
 }
