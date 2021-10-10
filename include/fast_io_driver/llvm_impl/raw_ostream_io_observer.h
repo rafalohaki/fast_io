@@ -3,6 +3,21 @@
 namespace fast_io::llvm
 {
 
+namespace details
+{
+inline int hack_fd_from_llvm_raw_fd_ostream(::llvm::raw_fd_ostream* os) noexcept
+{
+	class raw_fd_inheritance_dummy_model:private ::llvm::raw_fd_ostream
+	{
+	public:
+		using ::llvm::raw_fd_ostream::get_fd;
+	};
+	inline constexpr auto hack_llvm_get_fd_func_ptr{::raw_fd_inheritance_dummy_model::get_fd};
+	return os->(*hack_get_fd_func_ptr)();
+}
+
+}
+
 template<std::integral ch_type,typename T>
 requires (std::derived_from<T,::llvm::raw_ostream>&&sizeof(ch_type)==1)
 class basic_general_raw_ostream_io_observer
@@ -26,27 +41,18 @@ public:
 		return os;
 	}
 #if !defined(__AVR__)
-	explicit operator basic_posix_io_observer<char_type>() const noexcept requires requires
+	explicit operator basic_posix_io_observer<char_type>() const noexcept requires(std::derived_from<T,::llvm::raw_fd_ostream>)
 	{
-		{os.get_fd()}->std::same_as<int>;
-	}
-	{
-		return {os->get_fd()};
+		return {::fast_io::llvm::details::hack_fd_from_llvm_raw_fd_ostream(this->os)};
 	}
 #if (defined(_WIN32)&&!defined(__WINE__)) || defined(__CYGWIN__)
-	explicit operator basic_win32_io_observer<char_type>() const noexcept requires requires
-	{
-		{os.get_fd()}->std::same_as<int>;
-	}
+	explicit operator basic_win32_io_observer<char_type>() const noexcept requires(std::derived_from<T,::llvm::raw_fd_ostream>)
 	{
 		return static_cast<basic_win32_io_observer<char_type>>
 		(static_cast<basic_posix_io_observer<char_type>>(*this));
 	}
 	template<nt_family fam>
-	explicit operator basic_nt_family_io_observer<fam,char_type>() const noexcept requires requires
-	{
-		{os.get_fd()}->std::same_as<int>;
-	}
+	explicit operator basic_nt_family_io_observer<fam,char_type>() const noexcept requires(std::derived_from<T,::llvm::raw_fd_ostream>)
 	{
 		return static_cast<basic_nt_family_io_observer<fam,char_type>>
 		(static_cast<basic_posix_io_observer<char_type>>(*this));

@@ -10,6 +10,12 @@ inline ::llvm::raw_fd_ostream* open_llvm_raw_fd_ostream_from_fd(int fd)
 {
 	return new ::llvm::raw_fd_ostream(fd,true);
 }
+#if 0
+inline ::llvm::raw_fd_ostream* open_llvm_raw_fd_ostream_from_fd_dup(int fd)
+{
+	return open_llvm_raw_fd_ostream_from_fd(::fast_io::details::sys_dup(piob.fd));
+}
+#endif
 
 }
 
@@ -24,8 +30,32 @@ public:
 	template<typename T>
 	requires std::same_as<T,::llvm::raw_fd_ostream>
 	explicit constexpr basic_raw_fd_ostream_file(T* p) noexcept:basic_raw_fd_ostream_io_observer<char_type>{p}{}
-
-#if !defined(__AVR__)
+	constexpr basic_raw_fd_ostream_file(basic_raw_fd_ostream_file&& other) noexcept:basic_raw_fd_ostream_io_observer<char_type>{other.os}
+	{
+		other.os=nullptr;
+	}
+	basic_raw_fd_ostream_file& operator=(basic_raw_fd_ostream_file&& other) noexcept
+	{
+		if(__builtin_addressof(other)==this)
+#if __has_cpp_attribute(unlikely)
+[[unlikely]]
+#endif
+			return *this;
+		delete this->os;
+		this->os=other.os;
+		other.os=nullptr;
+	}
+#if 0
+	basic_raw_fd_ostream_file(basic_raw_fd_ostream_file const& other):basic_raw_fd_ostream_io_observer<char_type>{open_llvm_raw_fd_ostream_from_fd_dup(this->os->get_fd())}{}
+	basic_raw_fd_ostream_file& operator=(basic_raw_fd_ostream_file const& other)
+	{
+		this->fd=details::sys_dup2(dp.fd,this->fd);
+		::fast_io::sys_dup2this->os->get_fd()
+	}
+#else
+	basic_raw_fd_ostream_file(basic_raw_fd_ostream_file const&)=delete;
+	basic_raw_fd_ostream_file& operator=(basic_raw_fd_ostream_file const&)=delete;
+#endif
 	basic_raw_fd_ostream_file(basic_posix_io_handle<char_type>&& pioh,::fast_io::open_mode):basic_raw_fd_ostream_io_observer<char_type>{::fast_io::llvm::details::open_llvm_raw_fd_ostream_from_fd(pioh.fd)}
 	{
 		pioh.fd=-1;
@@ -43,6 +73,10 @@ public:
 	{
 	}
 #endif
+	~basic_raw_fd_ostream_file()
+	{
+		delete this->os;
+	}
 	basic_raw_fd_ostream_file(native_fs_dirent fsdirent,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_raw_fd_ostream_file(basic_posix_file<char_type>(fsdirent,om,pm),om)
 	{}
@@ -76,7 +110,6 @@ public:
 	basic_raw_fd_ostream_file(native_at_entry nate,u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_raw_fd_ostream_file(basic_posix_file<char_type>(nate,file,om,pm),om)
 	{}
-#endif
 };
 
 using raw_fd_ostream_file=basic_raw_fd_ostream_file<char>;
