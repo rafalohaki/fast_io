@@ -74,7 +74,7 @@ inline void llvm_ostream_write_impl(::llvm::raw_ostream* os,void const* first_vp
 	std::size_t const remain_size{static_cast<std::size_t>(os_obuffer_end_ptr-os_obuffer_curr_ptr)};
 	if(n<remain_size)[[likely]]
 	{
-		::fast_io::details::llvm_raw_ostream_set_obuffer_curr_ptr(os,::fast_io::details::non_overlapped_copy_n(first,n,os_obuffer_curr_ptr));
+		::fast_io::llvm::details::llvm_raw_ostream_set_obuffer_curr_ptr(os,::fast_io::details::non_overlapped_copy_n(first,n,os_obuffer_curr_ptr));
 		return;
 	}
 	os->write(first,n);
@@ -85,7 +85,7 @@ inline void llvm_ostream_write_impl(::llvm::raw_ostream* os,void const* first_vp
 template<std::integral char_type,typename T,::fast_io::freestanding::contiguous_iterator Iter>
 inline constexpr void write(basic_general_raw_ostream_io_observer<char_type,T> osiob,Iter first,Iter last)
 {
-	::fast_io::details::llvm_ostream_write_impl(osiob.os,::fast_io::freestanding::to_address(first),::fast_io::freestanding::to_address(last));
+	::fast_io::llvm::details::llvm_ostream_write_impl(osiob.os,::fast_io::freestanding::to_address(first),::fast_io::freestanding::to_address(last));
 }
 
 template<std::integral char_type,typename T>
@@ -100,7 +100,7 @@ template<std::integral char_type,typename T>
 #endif
 inline char_type* obuffer_begin(basic_general_raw_ostream_io_observer<char_type,T> osiob) noexcept
 {
-	return ::fast_io::details::llvm_raw_ostream_obuffer_ptr<0,char_type>(osiob.os);
+	return ::fast_io::llvm::details::llvm_raw_ostream_obuffer_ptr<0,char_type>(osiob.os);
 }
 
 template<std::integral char_type,typename T>
@@ -109,7 +109,7 @@ template<std::integral char_type,typename T>
 #endif
 inline char_type* obuffer_curr(basic_general_raw_ostream_io_observer<char_type,T> osiob) noexcept
 {
-	return ::fast_io::details::llvm_raw_ostream_obuffer_ptr<1,char_type>(osiob.os);
+	return ::fast_io::llvm::details::llvm_raw_ostream_obuffer_ptr<1,char_type>(osiob.os);
 }
 
 template<std::integral char_type,typename T>
@@ -118,7 +118,7 @@ template<std::integral char_type,typename T>
 #endif
 inline char_type* obuffer_end(basic_general_raw_ostream_io_observer<char_type,T> osiob) noexcept
 {
-	return ::fast_io::details::llvm_raw_ostream_obuffer_ptr<2,char_type>(osiob.os);
+	return ::fast_io::llvm::details::llvm_raw_ostream_obuffer_ptr<2,char_type>(osiob.os);
 }
 
 template<std::integral char_type,typename T>
@@ -128,13 +128,13 @@ inline void obuffer_set_curr(basic_general_raw_ostream_io_observer<char_type,T> 
 #endif
 char_type* ptr) noexcept
 {
-	::fast_io::details::llvm_raw_ostream_set_obuffer_curr_ptr(osiob.os,ptr);
+	::fast_io::llvm::details::llvm_raw_ostream_set_obuffer_curr_ptr(osiob.os,ptr);
 }
 
 template<std::integral char_type,typename T>
 inline void obuffer_overflow(basic_general_raw_ostream_io_observer<char_type,T> osiob,char_type ch) noexcept
 {
-	::fast_io::details::llvm_raw_ostream_overflow(osiob.os,static_cast<char>(ch));
+	::fast_io::llvm::details::llvm_raw_ostream_overflow(osiob.os,static_cast<char>(ch));
 }
 
 template<std::integral char_type>
