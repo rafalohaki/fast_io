@@ -66,8 +66,8 @@ inline constexpr std::int_least64_t day_diff(iso8601_timestamp const& tsp_after,
 	return ::fast_io::details::day_diff(tsp_after.year, tsp_after.month, tsp_after.day, tsp_before.year, tsp_before.month, tsp_before.day);
 }
 
-template<std::integral char_type>
-inline constexpr std::size_t lc_format_alt_digits_len(basic_io_scatter_t<basic_io_scatter_t<char_type>> const& alt_digits,std::uint_least8_t value) noexcept
+template<std::integral T,std::integral char_type>
+inline constexpr std::size_t lc_format_alt_digits_len(basic_io_scatter_t<basic_io_scatter_t<char_type>> const& alt_digits,T value) noexcept
 {
 	std::size_t size_value{static_cast<std::size_t>(value)};
 	std::size_t alt_digits_len{alt_digits.len};
@@ -75,13 +75,13 @@ inline constexpr std::size_t lc_format_alt_digits_len(basic_io_scatter_t<basic_i
 		return alt_digits.base[size_value].len;
 	else
 	{
-		constexpr std::size_t uint_least8_reserve_size{ print_reserve_size(io_reserve_type<char_type, std::uint_least8_t>) };
-		return uint_least8_reserve_size;
+		constexpr std::size_t int_type_reserve_size{ print_reserve_size(io_reserve_type<char_type, T>) };
+		return int_type_reserve_size;
 	}
 }
 
-template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter>
-inline constexpr Iter lc_format_alt_digits_print(basic_io_scatter_t<basic_io_scatter_t<char_type>> const& alt_digits,std::uint_least8_t value,Iter iter) noexcept
+template<std::integral T,std::integral char_type,::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter lc_format_alt_digits_print(basic_io_scatter_t<basic_io_scatter_t<char_type>> const& alt_digits,T value,Iter iter) noexcept
 {
 	std::size_t size_value{static_cast<std::size_t>(value)};
 	std::size_t alt_digits_len{alt_digits.len};
@@ -164,6 +164,102 @@ inline constexpr basic_lc_time_era<char_type> const* lc_time_find_era_impl(
 		}
 	}
 	return first;
+}
+
+struct lc_time_ox_common_res
+{
+	std::uint_least8_t alt_value{};
+	bool failed{};
+};
+
+template<std::integral char_type>
+inline constexpr lc_time_ox_common_res lc_time_ox_common_impl(iso8601_timestamp const& tsp,char_type ch) noexcept
+{
+	switch(ch)
+	{
+		case char_literal_v<u8'd', char_type>:
+		case char_literal_v<u8'e', char_type>:
+		{
+			return {tsp.day};
+		}
+		case char_literal_v<u8'H', char_type>:
+		{
+			return {tsp.hours};
+		}
+		case char_literal_v<u8'I', char_type>:
+		{
+			std::uint_least8_t hours{tsp.hours};
+			constexpr std::uint_least8_t twlv{static_cast<std::uint_least8_t>(12u)};
+			if (hours == 0u)
+			{
+				hours=twlv;
+			}
+			else if(twlv<hours)
+			{
+				hours-=twlv;
+			}
+			return {hours};
+		}
+		case char_literal_v<u8'm', char_type>:
+		{
+			return {tsp.month};
+		}
+		case char_literal_v<u8'M', char_type>:
+		{
+			return {tsp.minutes};
+		}
+		case char_literal_v<u8'S', char_type>:
+		{
+			return {tsp.seconds};
+		}
+		case char_literal_v<u8'u', char_type>:
+		{
+			return {weekday(tsp)};
+		}
+		case char_literal_v<u8'U', char_type>:
+		{
+			return {static_cast<std::uint_least8_t>(static_cast<std::uint_least16_t>(weekday(tsp.year, 1, 1)+day_of_the_year(tsp)-1u)/7u)};
+		}
+		case char_literal_v<u8'w', char_type>:
+		{
+			return {c_weekday(tsp)};
+		}
+		case char_literal_v<u8'o', char_type>:
+		{
+			return {c_weekday(tsp)};
+		}
+		case char_literal_v<u8'y', char_type>:
+		{
+			std::uint_least64_t year{static_cast<std::uint_least64_t>(tsp.year)};
+			if(tsp.year<0)
+			{
+				year=0u-year;
+			}
+			return {static_cast<std::uint_least8_t>(year%100u)};
+		}
+		default:
+		{
+			return {0,true};
+		}
+	}
+	return {0,true};
+}
+
+template<::fast_io::freestanding::input_or_output_iterator srcIter,::fast_io::freestanding::input_or_output_iterator Iter>
+inline constexpr Iter non_overlapped_copy_to_lowercase(srcIter first,srcIter last, Iter dest) noexcept
+{
+	for(;first!=last;++first)
+	{
+		*dest=::fast_io::char_category::to_c_lower(*first);
+		++dest;
+	}
+	return dest;
+}
+
+template<std::integral char_type,::fast_io::freestanding::input_or_output_iterator Iter>
+inline constexpr Iter copy_scatter_to_lowercase(basic_io_scatter_t<char_type> const& scatter, Iter iter) noexcept
+{
+	return non_overlapped_copy_to_lowercase(scatter.base,scatter.base+scatter.len,iter);
 }
 
 template<std::integral char_type>
@@ -336,64 +432,39 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 			if((++p)==end_it)[[unlikely]]
 				return value+2;
 			char_type const ch{*p};
-			std::uint_least8_t altvalue{};
 			switch(ch)
 			{
-				case char_literal_v<u8'd', char_type>:
-				case char_literal_v<u8'e', char_type>:
-				{
-					altvalue = tsp.day;
-					break;
-				}
-				case char_literal_v<u8'H', char_type>:
-				{
-					altvalue = tsp.hours;
-					break;
-				}
-				case char_literal_v<u8'I', char_type>:
-				{
-					altvalue = (tsp.hours > 12u) ? static_cast<std::uint_least8_t>(tsp.hours - 12u) : tsp.hours;
-					break;
-				}
-				case char_literal_v<u8'm', char_type>:
-				case char_literal_v<u8'B', char_type>://ab_alt_mon
-				case char_literal_v<u8'b', char_type>://ab_alt_mon
-				{
-					altvalue = tsp.month;
-					break;
-				}
-				case char_literal_v<u8'M', char_type>:
-				{
-					altvalue = tsp.minutes;
-					break;
-				}
-				case char_literal_v<u8'S', char_type>:
-				{
-					altvalue = tsp.seconds;
-					break;
-				}
-				case char_literal_v<u8'U', char_type>:
-				{
-					// maybe too time-consuming
-					altvalue = static_cast<std::uint_least8_t>(static_cast<std::uint_least16_t>(weekday(tsp.year, 1, 1) + day_of_the_year(tsp) - 1u) / 7u);
-					break;
-				}
-				case char_literal_v<u8'u', char_type>:
-				{
-					altvalue = weekday(tsp);
-					break;
-				}
-				case char_literal_v<u8'w', char_type>:
-				{
-					altvalue = c_weekday(tsp);
-					break;
-				}
-				default:
+			case char_literal_v<u8'C', char_type>:	
+			{
+				std::int_least64_t yr{tsp.year/100};
+				value += lc_format_alt_digits_len<std::int_least64_t>(t.alt_digits,yr);
+				break;
+			}
+			case char_literal_v<u8'p', char_type>:		//Glibc's changelog said do not use %Op but the upstream still use this
+			case char_literal_v<u8'P', char_type>:
+			{
+				std::uint_least8_t const hours{tsp.hours};
+				if(hours<12u)
+					value += t.am_pm[0].len;
+				else if(hours<24u)
+					value += t.am_pm[1].len;
+				//if hours >=24, ignore am pm
+				break;
+			}
+			default:
+			{
+				auto ret{lc_time_ox_common_impl(tsp,ch)};
+				if(ret.failed)[[unlikely]]
 				{
 					return value+static_cast<std::size_t>(end_it-p+2);
 				}
+				else
+				{
+					value += lc_format_alt_digits_len<std::uint_least8_t>(t.alt_digits,ret.alt_value);
+					break;
+				}
 			}
-			value += lc_format_alt_digits_len(t.alt_digits,altvalue);
+			}
 			break;
 		}
 		case char_literal_v<u8'N', char_type>:
@@ -402,6 +473,7 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 			break;
 		}
 		case char_literal_v<u8'p', char_type>:
+		case char_literal_v<u8'P', char_type>:
 		{
 			std::uint_least8_t const hours{tsp.hours};
 			if(hours<12u)
@@ -795,88 +867,58 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 				else
 					return non_overlapped_copy_n(end_it-2,2,iter);
 			}
-			std::uint_least8_t altvalue{};
-
-			switch(*p)
+			char_type const ch{*p};
+			switch(ch)
 			{
-			case char_literal_v<u8'd', char_type>:
-			case char_literal_v<u8'e', char_type>:
+			case char_literal_v<u8'C', char_type>:
 			{
-				altvalue=tsp.day;
+				iter = lc_format_alt_digits_print<std::int_least64_t>(t.alt_digits,tsp.year/100,iter);
 				break;
 			}
-			case char_literal_v<u8'H', char_type>:
+			case char_literal_v<u8'P', char_type>:
 			{
-				altvalue=tsp.hours;
+				auto hours{tsp.hours};
+				if (hours < 24u)[[likely]]
+					iter = copy_scatter_to_lowercase(t.am_pm[hours<12u], iter);
 				break;
 			}
-			case char_literal_v<u8'I', char_type>:
+			case char_literal_v<u8'p', char_type>:
 			{
-				std::uint_least8_t hours{tsp.hours};
-				constexpr std::uint_least8_t twlv{static_cast<std::uint_least8_t>(12u)};
-				if (hours == 0u)
-				{
-					hours=twlv;
-				}
-				else if(twlv<hours)
-				{
-					hours-=twlv;
-				}
-				altvalue=hours;
+				auto hours{tsp.hours};
+				if (hours < 24u)[[likely]]
+					iter = copy_scatter(t.am_pm[hours<12u], iter);
 				break;
 			}
-			case char_literal_v<u8'm', char_type>:
-			{
-				altvalue=tsp.month;
-				break;
-			}
-			case char_literal_v<u8'M', char_type>:
-			{
-				altvalue=tsp.minutes;
-				break;
-			}
-			case char_literal_v<u8'S', char_type>:
-			{
-				altvalue=tsp.seconds;
-				break;
-			}
-			case char_literal_v<u8'u', char_type>:
-			{
-				altvalue=weekday(tsp);
-				break;
-			}
-			case char_literal_v<u8'U', char_type>:
-			{
-				altvalue=static_cast<std::uint_least8_t>(static_cast<std::uint_least16_t>(weekday(tsp.year, 1, 1)+day_of_the_year(tsp)-1u)/7u);
-				break;
-			}
-			case char_literal_v<u8'w', char_type>:
-			{
-				altvalue=c_weekday(tsp);
-				break;
-			}
-#if 0
-			case char_literal_v<u8'y', char_type>:
-			{
-				break;
-			}
-#endif
 			default:
 			{
-				if(omit)
-					--p;
-				return non_overlapped_copy(p-2,end_it,iter);
+				auto ret{lc_time_ox_common_impl(tsp,ch)};
+				if(ret.failed)[[unlikely]]
+				{
+					if(omit)
+						--p;
+					return non_overlapped_copy(p-2,end_it,iter);
+				}
+				else
+				{
+					iter = lc_format_alt_digits_print<std::uint_least8_t>(t.alt_digits,ret.alt_value,iter);
+					break;
+				}
 			}
 			}
-			iter=lc_format_alt_digits_print(t.alt_digits,altvalue,iter);
+			break;
+		}
+		case char_literal_v<u8'P', char_type>:
+		{
+			auto hours{tsp.hours};
+			if (hours < 24u)[[likely]]
+				iter = copy_scatter_to_lowercase(t.am_pm[hours<12u], iter);
 			break;
 		}
 		case char_literal_v<u8'p', char_type>:
 		{
-			if (tsp.hours < 12u)
-				iter = copy_scatter(t.am_pm[0], iter);
-			else if (tsp.hours < 24u)
-				iter = copy_scatter(t.am_pm[1], iter);
+			auto hours{tsp.hours};
+			if (hours < 24u)[[likely]]
+				iter = copy_scatter(t.am_pm[hours<12u], iter);
 			break;
 		}
 		case char_literal_v<u8'r', char_type>:
@@ -953,7 +995,7 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 				// calculate the week number of 12/31 of the last year
 				std::uint_least64_t weekday_of_12_31{ static_cast<std::uint_least64_t>(weekday_of_1st_day_this_year.u + day_of_the_year(tsp) - 2u) % ndays };
 				auto day_of_12_31{ static_cast<std::uint_least16_t>(is_leap_year(year - 1) ? 366u : 365u) };
-				auto weekday_of_1st_day_last_year{ static_cast<std::uint_least64_t>((weekday_of_1st_day_this_year.s - day_of_12_31 - 1) % my_make_signed_t<std::size_t>(ndays) + ndays + 1) };
+				auto weekday_of_1st_day_last_year{ static_cast<std::uint_least64_t>((weekday_of_1st_day_this_year.s - day_of_12_31 - 1) % my_make_signed_t<std::size_t>(ndays) + static_cast<std::int_least64_t>(ndays) + 1) };
 				std::uint_least64_t weeknum{ static_cast<std::uint_least64_t>(day_of_12_31 + weekday_of_1st_day_last_year - weekday_of_12_31 - 1u) / ndays };
 				if (weekday_of_1st_day_last_year < ndays - first_week + 2u)
 					++weeknum;

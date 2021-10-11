@@ -106,20 +106,20 @@ namespace details
 {
 inline constexpr char32_t to_c_upper_ascii_impl(char32_t ch) noexcept
 {
-    constexpr char32_t alphanum{static_cast<char32_t>(26u)};
-    char32_t res{ch-U'a'};
-    if(res<alphanum)
-        return res+U'A';
-    return ch;
+	constexpr char32_t alphanum{static_cast<char32_t>(26u)};
+	char32_t res{ch-U'a'};
+	if(res<alphanum)
+		return res+U'A';
+	return ch;
 }
 
 inline constexpr char32_t to_c_lower_ascii_impl(char32_t ch) noexcept
 {
-    constexpr char32_t alphanum{static_cast<char32_t>(26u)};
-    char32_t res{ch-U'A'};
-    if(res<alphanum)
-        return res+U'a';
-    return ch;
+	constexpr char32_t alphanum{static_cast<char32_t>(26u)};
+	char32_t res{ch-U'A'};
+	if(res<alphanum)
+		return res+U'a';
+	return ch;
 }
 
 }
@@ -127,8 +127,9 @@ inline constexpr char32_t to_c_lower_ascii_impl(char32_t ch) noexcept
 template<std::integral char_type>
 inline constexpr char_type to_c_lower(char_type ch) noexcept
 {
+	using unsigned_char_type = std::make_unsigned_t<char_type>;
 	if constexpr(!::fast_io::details::exec_charset_is_ebcdic<char_type>())
-		return details::to_c_lower_ascii_impl(ch);
+		return static_cast<char_type>(static_cast<unsigned_char_type>(details::to_c_lower_ascii_impl(static_cast<unsigned_char_type>(ch))));
 	else if constexpr(std::same_as<char,char_type>)
 switch(ch){case 'A':return 'a';case 'B':return 'b';case 'C':return 'c';case 'D':return 'd';case 'E':return 'e';case 'F':return 'f';case 'G':return 'g';case 'H':return 'h';case 'I':return 'i';case 'J':return 'j';case 'K':return 'k';case 'L':return 'l';case 'M':return 'm';case 'N':return 'n';case 'O':return 'o';case 'P':return 'p';case 'Q':return 'q';case 'R':return 'r';case 'S':return 's';case 'T':return 't';case 'U':return 'u';case 'V':return 'v';case 'W':return 'w';case 'X':return 'x';case 'Y':return 'y';case 'Z':return 'z';default:return ch;}
 	else if constexpr(std::same_as<wchar_t,char_type>)
@@ -138,8 +139,9 @@ switch(ch){case L'A':return L'a';case L'B':return L'b';case L'C':return L'c';cas
 template<std::integral char_type>
 inline constexpr char_type to_c_upper(char_type ch) noexcept
 {
+	using unsigned_char_type = std::make_unsigned_t<char_type>;
 	if constexpr(!::fast_io::details::exec_charset_is_ebcdic<char_type>())
-		return details::to_c_upper_ascii_impl(ch);
+		return static_cast<char_type>(static_cast<unsigned_char_type>(details::to_c_upper_ascii_impl(static_cast<unsigned_char_type>(ch))));
 	else if constexpr(std::same_as<char,char_type>)
 switch(ch){case 'a':return 'A';case 'b':return 'B';case 'c':return 'C';case 'd':return 'D';case 'e':return 'E';case 'f':return 'F';case 'g':return 'G';case 'h':return 'H';case 'i':return 'I';case 'j':return 'J';case 'k':return 'K';case 'l':return 'L';case 'm':return 'M';case 'n':return 'N';case 'o':return 'O';case 'p':return 'P';case 'q':return 'Q';case 'r':return 'R';case 's':return 'S';case 't':return 'T';case 'u':return 'U';case 'v':return 'V';case 'w':return 'W';case 'x':return 'X';case 'y':return 'Y';case 'z':return 'Z';default:return ch;}
 	else if constexpr(std::same_as<wchar_t,char_type>)
