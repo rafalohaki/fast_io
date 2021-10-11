@@ -1112,37 +1112,56 @@ inline constexpr Iter fill_zero_point_impl(Iter iter) noexcept
 	}
 }
 
+template<typename flt,::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter fixed_case0_full_integer(Iter iter,typename iec559_traits<flt>::mantissa_type m10,std::int32_t olength,std::int32_t real_exp)
+{
+	print_reserve_integral_main_impl<10,false>(iter+=olength,m10,static_cast<std::uint32_t>(olength));
+	return fill_zeros_impl(iter,static_cast<std::uint32_t>(real_exp+1-olength));
+}
+
+template<typename flt,bool comma,::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter fixed_case1_integer_and_point(Iter iter,typename iec559_traits<flt>::mantissa_type m10,std::int32_t olength,std::int32_t real_exp)
+{
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	auto eposition(real_exp+1);
+	if(olength==eposition)
+		print_reserve_integral_main_impl<10,false>(iter+=olength,m10,static_cast<std::uint32_t>(olength));
+	else
+	{
+		auto tmp{iter};
+		print_reserve_integral_main_impl<10,false>(iter+=olength+1,m10,static_cast<std::uint32_t>(olength));
+		my_copy_n(tmp+1,static_cast<std::uint32_t>(eposition),tmp);
+		tmp[eposition]=char_literal_v<(comma?u8',':u8'.'),char_type>;
+	}
+	return iter;
+}
+
+template<typename flt,bool comma,::fast_io::freestanding::random_access_iterator Iter>
+inline constexpr Iter fixed_case2_all_point(Iter iter,typename iec559_traits<flt>::mantissa_type m10,std::int32_t olength,std::int32_t real_exp)
+{
+	iter=fill_zero_point_impl<comma>(iter);
+	iter=fill_zeros_impl(iter,static_cast<std::uint32_t>(-real_exp-1));
+	print_reserve_integral_main_impl<10,false>(iter+=olength,m10,static_cast<std::uint32_t>(olength));
+	return iter;
+}
+
 template<typename flt,bool comma,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter print_rsv_fp_fixed_decision_impl(Iter iter,typename iec559_traits<flt>::mantissa_type m10,std::int32_t e10) noexcept
 {
-	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	std::int32_t olength(static_cast<std::int32_t>(chars_len<10,true>(m10)));	
 	std::int32_t const real_exp(static_cast<std::int32_t>(e10 + olength - 1));
 	if(olength<=real_exp)
 	{
-		print_reserve_integral_main_impl<10,false>(iter+=olength,m10,static_cast<std::uint32_t>(olength));
-		return fill_zeros_impl(iter,static_cast<std::uint32_t>(real_exp+1-olength));
+		return fixed_case0_full_integer<flt>(iter,m10,olength,real_exp);
 	}
 	else if(0<=real_exp&&real_exp<olength)
 	{
-		auto eposition(real_exp+1);
-		if(olength==eposition)
-			print_reserve_integral_main_impl<10,false>(iter+=olength,m10,static_cast<std::uint32_t>(olength));
-		else
-		{
-			auto tmp{iter};
-			print_reserve_integral_main_impl<10,false>(iter+=olength+1,m10,static_cast<std::uint32_t>(olength));
-			my_copy_n(tmp+1,static_cast<std::uint32_t>(eposition),tmp);
-			tmp[eposition]=char_literal_v<(comma?u8',':u8'.'),char_type>;
-		}
+		return fixed_case1_integer_and_point<flt,comma>(iter,m10,olength,real_exp);
 	}
 	else
 	{
-		iter=fill_zero_point_impl<comma>(iter);
-		iter=fill_zeros_impl(iter,static_cast<std::uint32_t>(-real_exp-1));
-		print_reserve_integral_main_impl<10,false>(iter+=olength,m10,static_cast<std::uint32_t>(olength));
+		return fixed_case2_all_point<flt,comma>(iter,m10,olength,real_exp);
 	}
-	return iter;
 }
 
 template<
@@ -1200,28 +1219,14 @@ inline constexpr Iter print_rsv_fp_decision_impl(Iter iter,typename iec559_trait
 		switch(this_case)
 		{
 		case 1:
-			print_reserve_integral_main_impl<10,false>(iter+=olength,m10,static_cast<std::uint32_t>(olength));
-			return fill_zeros_impl(iter,static_cast<std::uint32_t>(real_exp+1-olength));
+			return fixed_case0_full_integer<flt>(iter,m10,olength,real_exp);
 		case 2:
 		{
-			auto eposition(real_exp+1);
-			if(olength==eposition)
-				print_reserve_integral_main_impl<10,false>(iter+=olength,m10,static_cast<std::uint32_t>(olength));
-			else
-			{
-				auto tmp{iter};
-				print_reserve_integral_main_impl<10,false>(iter+=olength+1,m10,static_cast<std::uint32_t>(olength));
-				my_copy_n(tmp+1,static_cast<std::uint32_t>(eposition),tmp);
-				tmp[eposition]=char_literal_v<comma?u8',':u8'.',char_type>;
-			}
-			return iter;
+			return fixed_case1_integer_and_point<flt,comma>(iter,m10,olength,real_exp);
 		}
 		default:
 		{
-			iter=fill_zero_point_impl<comma>(iter);
-			iter=fill_zeros_impl(iter,static_cast<std::uint32_t>(-real_exp-1));
-			print_reserve_integral_main_impl<10,false>(iter+=olength,m10,static_cast<std::uint32_t>(olength));
-			return iter;
+			return fixed_case2_all_point<flt,comma>(iter,m10,olength,real_exp);
 		}
 		}
 	}
