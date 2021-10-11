@@ -336,11 +336,6 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 			if((++p)==end_it)[[unlikely]]
 				return value+2;
 			char_type const ch{*p};
-			if (ch == char_literal_v<u8'U', char_type>)
-			{
-				value += uint_least8_reserve_size;
-				break;
-			}
 			std::uint_least8_t altvalue{};
 			switch(ch)
 			{
@@ -361,16 +356,26 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 					break;
 				}
 				case char_literal_v<u8'm', char_type>:
-				case char_literal_v<u8'M', char_type>:
 				case char_literal_v<u8'B', char_type>://ab_alt_mon
 				case char_literal_v<u8'b', char_type>://ab_alt_mon
 				{
 					altvalue = tsp.month;
 					break;
 				}
+				case char_literal_v<u8'M', char_type>:
+				{
+					altvalue = tsp.minutes;
+					break;
+				}
 				case char_literal_v<u8'S', char_type>:
 				{
 					altvalue = tsp.seconds;
+					break;
+				}
+				case char_literal_v<u8'U', char_type>:
+				{
+					// maybe too time-consuming
+					altvalue = static_cast<std::uint_least8_t>(static_cast<std::uint_least16_t>(weekday(tsp.year, 1, 1) + day_of_the_year(tsp) - 1u) / 7u);
 					break;
 				}
 				case char_literal_v<u8'w', char_type>:
@@ -837,7 +842,7 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 			}
 			case char_literal_v<u8'U', char_type>:
 			{
-				altvalue= static_cast<std::uint_least8_t>(static_cast<std::uint_least16_t>(weekday(tsp.year, 1, 1)+day_of_the_year(tsp)-1u)/7u);
+				altvalue=static_cast<std::uint_least8_t>(static_cast<std::uint_least16_t>(weekday(tsp.year, 1, 1)+day_of_the_year(tsp)-1u)/7u);
 				break;
 			}
 			case char_literal_v<u8'w', char_type>:
@@ -995,7 +1000,8 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 		}
 		case char_literal_v<u8'w', char_type>:
 		{
-			iter = lc_format_alt_digits_print(t.alt_digits,c_weekday(tsp),iter);
+			iter = (c_weekday(tsp), iter);
+			static_assert(false, "I need one digit to be printed!!!!!!!!!!!");
 			break;
 		}
 		case char_literal_v<u8'W', char_type>:
