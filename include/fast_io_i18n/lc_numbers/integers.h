@@ -373,6 +373,7 @@ inline constexpr std::size_t print_reserve_size(basic_lc_all<char_type> const* _
 }
 
 template<::fast_io::freestanding::random_access_iterator Iter,::fast_io::manipulators::scalar_flags flags,typename T>
+requires ((details::my_integral<T>||std::same_as<std::remove_cv_t<T>,std::byte>)&&!flags.alphabet&&!std::same_as<std::remove_cv_t<T>,bool>)
 inline constexpr Iter print_reserve_define(basic_lc_all<::fast_io::freestanding::iter_value_t<Iter>> const* __restrict all,Iter iter,manipulators::scalar_manip_t<flags,T> t) noexcept
 {
 	if constexpr(std::same_as<std::remove_cv_t<T>,std::byte>)
