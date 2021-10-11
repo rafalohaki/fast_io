@@ -5,7 +5,6 @@
 
 int main()
 {
-	fast_io::l10n loc("");
 	fast_io::u8obuf_file f("u8out.txt");
 
 	std::u8string s(1000, u8'\0');
@@ -18,6 +17,7 @@ int main()
 		auto ts{ utc(posix_clock_gettime(fast_io::posix_clock_id::realtime)) };
 		char8_t format_buffer[3]{ u8'%',u8'%',u8'%' };
 		fast_io::basic_io_scatter_t<char8_t> test_format{ format_buffer,2 };
+		fast_io::l10n loc(fnm);
 		auto test = [&] (char8_t i) {
 			std::size_t reserved{ ::fast_io::details::lc_print_reserve_size_time_format_common_impl(loc.loc.u8all->time, ts, test_format) };
 			s.resize(reserved);
