@@ -16,7 +16,7 @@ inline void test(fast_io::u8lc_all const* u8all,char8_t i,fast_io::iso8601_times
 
 int main()
 {
-	fast_io::l10n loc("");
+	fast_io::l10n loc("ja_JP");
 	auto ts{utc(posix_clock_gettime(fast_io::posix_clock_id::realtime))};
 	char8_t format_buffer[3]{u8'%',u8'%',u8'%'};
 	fast_io::basic_io_scatter_t<char8_t> test_format{format_buffer,2};
@@ -33,6 +33,19 @@ int main()
 	format_buffer[1]=u8'O';
 	test_format.len=3;
 	print("%Ox start strings:\n");
+	for(char8_t i{u8'A'};i<=u8'Z';++i)
+	{
+		format_buffer[2]=i;
+		test(loc.loc.u8all,i,ts,test_format);
+	}
+	for(char8_t i{u8'a'};i<=u8'z';++i)
+	{
+		format_buffer[2]=i;
+		test(loc.loc.u8all,i,ts,test_format);
+	}
+	format_buffer[1]=u8'E';
+	test_format.len=3;
+	print("%Ex start strings:\n");
 	for(char8_t i{u8'A'};i<=u8'Z';++i)
 	{
 		format_buffer[2]=i;
