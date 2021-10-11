@@ -22,7 +22,6 @@ int main()
 			std::size_t reserved{ ::fast_io::details::lc_print_reserve_size_time_format_common_impl(loc.loc.u8all->time, ts, test_format) };
 			s.resize(reserved);
 			auto itr = ::fast_io::details::lc_print_reserve_define_time_fmt_common_impl(loc.loc.u8all->time, s.data(), ts, test_format);
-			*itr = u8'\0';
 			std::size_t actual{static_cast<std::size_t>(itr - s.data())};
 			print(f, fast_io::mnp::chvw(i), u8" reserved:", reserved, u8"\tactually use:", actual);
 			if (reserved < actual)
