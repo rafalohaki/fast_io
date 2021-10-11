@@ -18,9 +18,10 @@ int main()
 		std::size_t actual(itr - s.data());
 		print(f, fast_io::mnp::chvw(i), u8" reserved:", reserved, u8"\tactually use:", actual);
 		if (reserved < actual)
-			println(f, u8"\twrong!\n", s);
-		else
-			println(f);
+			print(f, u8"\twrong!");
+		print(f,u8"\tresult:");
+		write(f,s.data(),itr);
+		println(f);
 	};
 	for (char8_t i{ u8'A' }; i <= u8'Z'; ++i)
 	{
