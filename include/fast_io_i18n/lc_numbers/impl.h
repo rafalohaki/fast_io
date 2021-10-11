@@ -11,6 +11,5 @@
 #endif
 #endif
 
-#if 0
+
 #include"lc_time.h"
-#endif

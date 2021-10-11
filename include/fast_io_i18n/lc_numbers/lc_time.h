@@ -409,6 +409,22 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 			value += lc_print_reserve_size_time_format_common_impl(t, tsp, t.t_fmt);
 			break;
 		}
+		case char_literal_v<u8'r', char_type>:
+		{
+			value += lc_print_reserve_size_time_format_common_impl(t, tsp, t.t_fmt_ampm);
+			break;
+		}
+		case char_literal_v<u8'R', char_type>:
+		{
+			constexpr std::size_t uint_least8_reserve_sizedouble{uint_least8_reserve_size*2+1};
+			value += uint_least8_reserve_sizedouble;
+			break;
+		}
+		case char_literal_v<u8't', char_type>:
+		{
+			++value;
+			break;
+		}
 		case char_literal_v<u8'T', char_type>:
 		{
 			constexpr std::size_t uint_least8_reserve_size_result{ 2 + 3 * uint_least8_reserve_size };
@@ -421,7 +437,8 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 			value += print_reserve_size_timezone_impl_v<char_type>;
 			break;
 		}
-		default:	// the format string is invalid
+		default:
+			// the format string is invalid
 				// or it contains other string. %c %r %x %X %Ec %Ex %EX
 			return value+static_cast<std::size_t>(end_it-p+1);
 		}
