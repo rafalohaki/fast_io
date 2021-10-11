@@ -88,7 +88,7 @@ inline constexpr char_type to_char_single_digit(T t) noexcept
 }
 
 template<bool full,std::size_t base,bool uppercase,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral T>
-constexpr Iter lc_grouping_single_sep_impl(basic_io_scatter_t<std::size_t> const& grouping,Iter iter,T t) noexcept
+constexpr Iter lc_grouping_single_sep_ch_impl(basic_io_scatter_t<std::size_t> const& grouping,Iter iter,T t,::fast_io::freestanding::iter_value_t<Iter> replacement_ch) noexcept
 {
 	std::size_t const* grouping_base{grouping.base};
 	std::size_t const grouping_len{grouping.len};
@@ -117,7 +117,7 @@ constexpr Iter lc_grouping_single_sep_impl(basic_io_scatter_t<std::size_t> const
 					return iter;
 			}
 		}
-		*--iter=char_literal_v<u8',',char_type>;
+		*--iter=replacement_ch;
 	}
 	if(i!=grouping_len)
 	{
@@ -139,7 +139,7 @@ constexpr Iter lc_grouping_single_sep_impl(basic_io_scatter_t<std::size_t> const
 	}
 	else
 	{
-		for(std::size_t e{grouping_base[i-1]};;*--iter=char_literal_v<u8',',char_type>)
+		for(std::size_t e{grouping_base[i-1]};;*--iter=replacement_ch)
 		{
 			for(std::size_t j{};j!=e;++j)
 			{
@@ -160,43 +160,22 @@ constexpr Iter lc_grouping_single_sep_impl(basic_io_scatter_t<std::size_t> const
 	}
 }
 
+
 template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter>
-constexpr Iter grouping_mul_sep_print_sep_impl(basic_io_scatter_t<char_type> const& thousands_sep,
+constexpr Iter grouping_mul_sep_print_sep_impl(char_type const* thousands_sep_base,std::size_t thousands_sep_len,
 	char_type const* first,char_type const* last,
 	Iter outit) noexcept
 {
-	if(thousands_sep.len==1)[[likely]]
+	for(;first!=last;++first)
 	{
-		auto const sep_ch{*thousands_sep.base};
-		if(sep_ch==char_literal_v<u8',',char_type>)
+		if(*first==char_literal_v<u8',',char_type>)
 		{
-			return non_overlapped_copy(first,last,outit);
+			outit=non_overlapped_copy_n(thousands_sep_base,thousands_sep_len,outit);
 		}
 		else
 		{
-			for(;first!=last;++first)
-			{
-				if(*first==char_literal_v<u8',',char_type>)
-					*outit=sep_ch;
-				else
-				{
-					*outit=*first;
-					++outit;
-				}
-			}
-		}
-	}
-	else
-	{
-		for(;first!=last;++first)
-		{
-			if(*first==char_literal_v<u8',',char_type>)
-				outit=copy_scatter(thousands_sep,outit);
-			else
-			{
-				*outit=*first;
-				++outit;
-			}
+			*outit=*first;
+			++outit;
 		}
 	}
 	return outit;
@@ -208,11 +187,23 @@ constexpr Iter grouping_mul_sep_impl(basic_lc_all<::fast_io::freestanding::iter_
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	constexpr std::size_t array_len{cal_max_int_size<T,base>()*2u-1u};
 	char_type array[array_len];
-
 	auto const ed{array+array_len};
-	auto first{lc_grouping_single_sep_impl<full,base,uppercase>(all->numeric.grouping,ed,t)};
-
-	return grouping_mul_sep_print_sep_impl(all->numeric.thousands_sep,first,ed,iter);
+	auto thousands_sep{all->numeric.thousands_sep};
+	char_type replacement_ch{char_literal_v<u8',',char_type>};
+	bool single_character{thousands_sep.len==1};
+	if(single_character)
+	{
+		replacement_ch=*thousands_sep.base;
+	}
+	auto first{lc_grouping_single_sep_ch_impl<full,base,uppercase>(all->numeric.grouping,ed,t,replacement_ch)};
+	if(single_character)
+	{
+		return non_overlapped_copy(first,ed,iter);
+	}
+	else
+	{
+		return grouping_mul_sep_print_sep_impl(thousands_sep.base,thousands_sep.len,first,ed,iter);
+	}
 }
 
 template<std::size_t base,bool uppercase,::fast_io::freestanding::random_access_iterator Iter,my_unsigned_integral T>

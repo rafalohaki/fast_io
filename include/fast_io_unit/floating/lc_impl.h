@@ -20,22 +20,22 @@ inline constexpr std::size_t lc_print_rsv_iec559_size(basic_lc_all<char_type> co
 		constexpr std::size_t digits{trait::e10max+trait::m10digits};
 		static_assert(digits!=0);
 		constexpr std::size_t digitsm1{digits-1};
-		return sum+all->numeric.decimal_point.len+digitsm1*all->numeric.thousand_sep.len;
+		return sum+digitsm1+all->numeric.decimal_point.len+digitsm1*all->numeric.thousands_sep.len;
 	}
 	else if constexpr(mf==::fast_io::manipulators::floating_format::scientific)
 	{
-		constexpr std::size_t summ1{print_rsv_cache<flt,mf>-1u};
-		return summ1+all->numeric.decimal_point.len;
+		constexpr std::size_t sum{print_rsv_cache<flt,mf>};
+		return sum+all->numeric.decimal_point.len;
 	}
 	else
 	{
 		constexpr std::size_t sum{3+trait::e10digits};
 		constexpr std::size_t digitsplus3{trait::m10digits+3};
-		return sum+all->numeric.decimal_point.len+digitsplus3*all->numeric.thousand_sep.len;
+		return sum+digitsplus3+all->numeric.decimal_point.len+digitsplus3*all->numeric.thousands_sep.len;
 	}
 }
 
-template<std::integral char_type,manipulators::scalar_flags flags,details::my_floating_point flt>
+template<std::integral char_type,manipulators::scalar_flags flags,::fast_io::details::my_floating_point flt>
 inline constexpr std::size_t lc_print_reserve_float_size_impl(basic_lc_all<char_type> const* all) noexcept
 {
 	static_assert(manipulators::floating_format::general==flags.floating||
@@ -101,13 +101,13 @@ inline constexpr Iter print_reserve_define(basic_lc_all<freestanding::iter_value
 	{
 		if constexpr(std::same_as<std::remove_cvref_t<flt>,long double>&&sizeof(flt)==sizeof(double))	//this is the case on xxx-windows-msvc
 		{
-			return ::fast_io::details::lc_print_rsvflt_define_impl<flags.showpos,flags.uppercase,flags.uppercase_e,flags.comma,flags.floating>(all,iter,static_cast<double>(f.reference));
+			return ::fast_io::details::lc_print_rsvflt_define_impl<flags.showpos,flags.uppercase,flags.uppercase_e,flags.floating>(all,iter,static_cast<double>(f.reference));
 		}
 		else
 		{
 			//this is the case for every other platform, including xxx-windows-gnu
 			static_assert((std::same_as<std::remove_cvref_t<flt>,double>||std::same_as<std::remove_cvref_t<flt>,float>),"currently only support iec559 float32 and float64, sorry");
-			return ::fast_io::details::lc_print_rsvflt_define_impl<flags.showpos,flags.uppercase,flags.uppercase_e,flags.comma,flags.floating>(all,iter,f.reference);
+			return ::fast_io::details::lc_print_rsvflt_define_impl<flags.showpos,flags.uppercase,flags.uppercase_e,flags.floating>(all,iter,f.reference);
 		}
 		return iter;
 	}

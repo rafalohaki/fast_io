@@ -28,5 +28,5 @@
 #endif
 
 #ifndef FAST_IO_DISABLE_FLOATING_POINT
-//#include"fast_io_unit/floating/lc_impl.h"
+#include"fast_io_unit/floating/lc_impl.h"
 #endif

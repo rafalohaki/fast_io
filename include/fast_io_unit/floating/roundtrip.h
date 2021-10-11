@@ -1113,14 +1113,14 @@ inline constexpr Iter fill_zero_point_impl(Iter iter) noexcept
 }
 
 template<typename flt,::fast_io::freestanding::random_access_iterator Iter>
-inline constexpr Iter fixed_case0_full_integer(Iter iter,typename iec559_traits<flt>::mantissa_type m10,std::int32_t olength,std::int32_t real_exp)
+inline constexpr Iter fixed_case0_full_integer(Iter iter,typename iec559_traits<flt>::mantissa_type m10,std::int32_t olength,std::int32_t real_exp) noexcept
 {
 	print_reserve_integral_main_impl<10,false>(iter+=olength,m10,static_cast<std::uint32_t>(olength));
 	return fill_zeros_impl(iter,static_cast<std::uint32_t>(real_exp+1-olength));
 }
 
 template<typename flt,bool comma,::fast_io::freestanding::random_access_iterator Iter>
-inline constexpr Iter fixed_case1_integer_and_point(Iter iter,typename iec559_traits<flt>::mantissa_type m10,std::int32_t olength,std::int32_t real_exp)
+inline constexpr Iter fixed_case1_integer_and_point(Iter iter,typename iec559_traits<flt>::mantissa_type m10,std::int32_t olength,std::int32_t real_exp) noexcept
 {
 	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	auto eposition(real_exp+1);
@@ -1137,7 +1137,7 @@ inline constexpr Iter fixed_case1_integer_and_point(Iter iter,typename iec559_tr
 }
 
 template<typename flt,bool comma,::fast_io::freestanding::random_access_iterator Iter>
-inline constexpr Iter fixed_case2_all_point(Iter iter,typename iec559_traits<flt>::mantissa_type m10,std::int32_t olength,std::int32_t real_exp)
+inline constexpr Iter fixed_case2_all_point(Iter iter,typename iec559_traits<flt>::mantissa_type m10,std::int32_t olength,std::int32_t real_exp) noexcept
 {
 	iter=fill_zero_point_impl<comma>(iter);
 	iter=fill_zeros_impl(iter,static_cast<std::uint32_t>(-real_exp-1));
