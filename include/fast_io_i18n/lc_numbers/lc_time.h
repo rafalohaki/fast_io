@@ -876,14 +876,14 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 			{
 				auto hours{tsp.hours};
 				if (hours < 24u)[[likely]]
-					iter = copy_scatter_to_lowercase(t.am_pm[hours<12u], iter);
+					iter = copy_scatter_to_lowercase(t.am_pm[12u<=hours], iter);
 				break;
 			}
 			case char_literal_v<u8'p', char_type>:
 			{
 				auto hours{tsp.hours};
 				if (hours < 24u)[[likely]]
-					iter = copy_scatter(t.am_pm[hours<12u], iter);
+					iter = copy_scatter(t.am_pm[12u<=hours], iter);
 				break;
 			}
 			default:
@@ -908,14 +908,14 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 		{
 			auto hours{tsp.hours};
 			if (hours < 24u)[[likely]]
-				iter = copy_scatter_to_lowercase(t.am_pm[hours<12u], iter);
+				iter = copy_scatter_to_lowercase(t.am_pm[12u<=hours], iter);
 			break;
 		}
 		case char_literal_v<u8'p', char_type>:
 		{
 			auto hours{tsp.hours};
 			if (hours < 24u)[[likely]]
-				iter = copy_scatter(t.am_pm[hours<12u], iter);
+				iter = copy_scatter(t.am_pm[12u<=hours], iter);
 			break;
 		}
 		case char_literal_v<u8'r', char_type>:
