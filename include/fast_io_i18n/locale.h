@@ -181,7 +181,7 @@ inline void sanitize_locale_name(::fast_io::freestanding::basic_string_view<char
 #else
 			throw_posix_error(EINVAL);
 #endif
-	if((locale_name.front()==u8'.')|(locale_name.back()==u8'.'))
+	if((locale_name.front()==u8'.')||(locale_name.back()==u8'.'))
 	{
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__WINE__)
 			throw_win32_error(0x00000057);
