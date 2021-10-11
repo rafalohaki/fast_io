@@ -279,14 +279,17 @@ inline unix_timestamp win32_posix_clock_gettime_process_or_thread_time_impl()
 
 inline unix_timestamp win32_posix_clock_gettime_boottime_xp_impl()
 {
-	std::int64_t freq{::fast_io::details::win32_query_performance_frequency()};
+	std::uint64_t freq{static_cast<std::uint64_t>(::fast_io::details::win32_query_performance_frequency())};
 	std::int64_t counter{};
 	if(!::fast_io::win32::QueryPerformanceCounter(__builtin_addressof(counter)))
 		throw_win32_error();
-	std::int64_t val{static_cast<std::int64_t>(uint_least64_subseconds_per_second)/freq};
-	std::int64_t dv{counter/freq};
-	std::uint64_t md{static_cast<std::uint64_t>(counter%freq)};
-	return unix_timestamp{dv,static_cast<std::uint_least64_t>(md*static_cast<std::uint64_t>(val))};
+	if(counter<0)
+		throw_win32_error(0x00000057);
+	std::uint64_t ucounter{static_cast<std::uint64_t>(counter)};
+	std::uint64_t val{uint_least64_subseconds_per_second/freq};
+	std::uint64_t dv{ucounter/freq};
+	std::uint64_t md{ucounter%freq};
+	return unix_timestamp{static_cast<std::int_least64_t>(dv),static_cast<std::uint_least64_t>(md*static_cast<std::uint64_t>(val))};
 }
 
 }
