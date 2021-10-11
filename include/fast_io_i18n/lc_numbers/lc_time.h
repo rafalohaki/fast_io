@@ -200,7 +200,7 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 		case char_literal_v<u8'a', char_type>:
 		case char_literal_v<u8'A', char_type>:
 		{
-			basic_io_scatter_t<char> const* base_ptr;
+			basic_io_scatter_t<char_type> const* base_ptr;
 			if(*p==char_literal_v<u8'a', char_type>)
 				base_ptr=t.abday;
 			else
