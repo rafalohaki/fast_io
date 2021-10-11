@@ -345,8 +345,8 @@ inline constexpr void lc_print_status_define_further_decay(basic_lc_all<typename
 
 template<typename char_type,typename... Args>
 concept lc_print_status_define_okay_character_type = std::integral<char_type>&&(
-	print_freestanding_decay_okay_character_type_no_status<char_type,Args...>||
-	((lc_printable<char_type,Args>||lc_dynamic_reserve_printable<char_type,Args>||
+	((printable<char_type,Args>||reserve_printable<char_type,Args>||dynamic_reserve_printable<char_type,Args>||scatter_printable<char_type,Args>||
+	lc_printable<char_type,Args>||lc_dynamic_reserve_printable<char_type,Args>||
 	lc_scatter_printable<char_type,Args>)&&...));
 
 template<bool line,output_stream output,typename... Args>
