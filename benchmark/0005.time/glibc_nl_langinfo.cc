@@ -18,7 +18,7 @@ int main()
 	{
 	auto nl_str{nl_langinfo_l(_DATE_FMT,glibc_locale)};
 	fast_io::timer timer(u8"glibc_nl_langinfo");
-	fast_io::obuf_file obf("glibc_nl_langinfo.txt");
+	fast_io::obuf_file obf(u8"glibc_nl_langinfo.txt");
 	for(std::size_t i{};i!=N;++i)
 	{
 		std::size_t diff{strftime_l(buffer,buffer_size,nl_str,__builtin_addressof(tm_value),glibc_locale)};
