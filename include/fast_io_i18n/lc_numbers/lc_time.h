@@ -226,6 +226,8 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 			break;
 		}
 		case char_literal_v<u8'C', char_type>:
+		case char_literal_v<u8'g', char_type>:
+		case char_literal_v<u8'G', char_type>:
 		case char_literal_v<u8'y', char_type>:
 		case char_literal_v<u8'Y', char_type>:
 		{
