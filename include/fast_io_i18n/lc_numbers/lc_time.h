@@ -221,9 +221,6 @@ inline constexpr lc_time_ox_common_res lc_time_ox_common_impl(iso8601_timestamp 
 			return {static_cast<std::uint_least8_t>(static_cast<std::uint_least16_t>(weekday(tsp.year, 1, 1)+day_of_the_year(tsp)-1u)/7u)};
 		}
 		case char_literal_v<u8'w', char_type>:
-		{
-			return {c_weekday(tsp)};
-		}
 		case char_literal_v<u8'o', char_type>:
 		{
 			return {c_weekday(tsp)};
