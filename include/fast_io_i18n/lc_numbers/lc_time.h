@@ -1000,7 +1000,7 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 		}
 		case char_literal_v<u8'w', char_type>:
 		{
-			iter = static_cast<char_type>(c_weekday(tsp)+char_literal_v<u8'0',char_type>);
+			*iter = static_cast<char_type>(c_weekday(tsp)+char_literal_v<u8'0',char_type>);
 			++iter;
 			break;
 		}
