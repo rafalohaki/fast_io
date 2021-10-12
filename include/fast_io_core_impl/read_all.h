@@ -118,7 +118,6 @@ inline constexpr void read_all_impl_none_contiguous(input in,Iter first,Iter las
 template<::fast_io::input_stream input>
 inline constexpr void read_all_impl_decay(input in,typename input::char_type* first,typename input::char_type* last)
 {
-	using char_type = typename input::char_type;
 	std::ptrdiff_t diff{last-first};
 	if constexpr(buffer_input_stream<input>)
 	{
@@ -144,9 +143,9 @@ template<::fast_io::input_stream input,fast_io::freestanding::input_or_output_it
 requires std::same_as<typename input::char_type,char>||std::same_as<typename input::char_type,::fast_io::freestanding::iter_value_t<Iter>>
 inline constexpr void read_all_impl(input in,Iter first,Iter last)
 {
-	using char_type = typename input::char_type;
 	using iter_char_type = ::fast_io::freestanding::iter_value_t<Iter>;
 #if 0
+	using char_type = typename input::char_type;
 	if constexpr(::fast_io::freestanding::contiguous_iterator<Iter>)
 	{
 		if constexpr(std::same_as<typename input::char_type,iter_char_type>)
