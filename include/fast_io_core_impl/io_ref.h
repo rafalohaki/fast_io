@@ -180,11 +180,6 @@ constexpr void ibuffer_set_curr(io_reference_wrapper<input> in,std::remove_cvref
 	ibuffer_set_curr(*in.ptr,ptr);
 }
 
-template<refill_buffer_input_stream input>
-constexpr decltype(auto) irefill(io_reference_wrapper<input> in)
-{
-	return irefill(*in.ptr);
-}
 template<memory_map_input_stream input>
 constexpr decltype(auto) memory_map_in_handle(io_reference_wrapper<input> in)
 {

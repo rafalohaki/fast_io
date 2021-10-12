@@ -88,3 +88,4 @@
 #include"fast_io_core_impl/timestamp_counter.h"
 #include"fast_io_core_impl/dll_mode.h"
 #include"fast_io_core_impl/socket/impl.h"
+#include"fast_io_core_impl/read_all.h"
