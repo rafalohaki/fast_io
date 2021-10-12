@@ -70,11 +70,17 @@ inline constexpr auto print_alias_define(io_alias_t,char_type const(&s)[n]) noex
 		return basic_io_scatter_t<char_type>{s,n-1};
 }
 
-template<std::integral char_type>
-inline constexpr basic_io_scatter_t<char_type> print_alias_define(io_alias_t,::fast_io::freestanding::basic_string_view<char_type> svw) noexcept
+#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __cpp_lib_ranges >= 201911L
+template<typename T>
+requires (::std::ranges::contiguous_range<T>&&requires(T&& t)
 {
-	return {svw.data(),svw.size()};
+	t.substr();
+})
+inline constexpr basic_io_scatter_t<::std::remove_cvref_t<::std::ranges::range_value_t<T>>> print_alias_define(io_alias_t,T&& svw) noexcept
+{
+	return {::std::ranges::data(svw),::std::ranges::size(svw)};
 }
+#endif
 
 template<std::integral T>
 inline constexpr auto print_alias_define(io_alias_t,manipulators::chvw_t<T const*> svw) noexcept
