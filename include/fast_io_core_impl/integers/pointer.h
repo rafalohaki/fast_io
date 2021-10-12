@@ -32,25 +32,36 @@ inline constexpr chvw_t<T> chvw(T ch) noexcept
 }
 
 template<std::integral T>
-inline constexpr chvw_t<T const*> chvw(T const* ch) noexcept
+inline constexpr basic_io_scatter_t<T> chvw(T const* ch) noexcept
 {
-	return {ch};
+	return {ch,::fast_io::cstr_len(ch)};
 }
-#if 0
+
 template<std::integral T>
 inline constexpr basic_io_scatter_t<T> chvw(T const* ch,std::size_t n) noexcept
 {
-	return {ch,
-#if defined(__has_builtin)
-#if __has_builtin(__builtin_strnlen)
-	__builtin_strnlen(ch,n)
-#else
-	::std::strnlen(ch,n)
-#endif
-#else
-	::std::strnlen(ch,n)
-#endif
-	};
+	return {ch,::fast_io::cstr_nlen(ch,n)};
+}
+
+template<::fast_io::freestanding::contiguous_iterator Iter>
+requires ::std::integral<::fast_io::freestanding::iter_value_t<Iter>>
+inline constexpr basic_io_scatter_t<::std::remove_cvref_t<::fast_io::freestanding::iter_value_t<Iter>>> strvw(Iter first,Iter last) noexcept
+{
+	return {::fast_io::freestanding::to_address(first),static_cast<std::size_t>(last-first)};
+}
+#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __cpp_lib_ranges >= 201911L
+template<::std::ranges::contiguous_range rg>
+requires ::std::integral<::std::ranges::range_value_t<rg>>
+inline constexpr basic_io_scatter_t<::std::remove_cvref_t<::std::ranges::range_value_t<rg>>> strvw(rg&& r) noexcept
+{
+	return {::std::ranges::data(r),::std::ranges::size(r)};
+}
+
+template<::std::ranges::contiguous_range rg>
+requires ::std::integral<::std::ranges::range_value_t<rg>>
+inline constexpr basic_io_scatter_t<::std::remove_cvref_t<::std::ranges::range_value_t<rg>>> chvw(rg&& r) noexcept
+{
+	return ::fast_io::mnp::chvw(::std::ranges::data(r),::std::ranges::size(r));
 }
 #endif
 }
@@ -81,13 +92,6 @@ inline constexpr basic_io_scatter_t<::std::remove_cvref_t<::std::ranges::range_v
 	return {::std::ranges::data(svw),::std::ranges::size(svw)};
 }
 #endif
-
-template<std::integral T>
-inline constexpr auto print_alias_define(io_alias_t,manipulators::chvw_t<T const*> svw) noexcept
-{
-	::fast_io::freestanding::basic_string_view<T> bsv{svw.reference};
-	return basic_io_scatter_t<T>{bsv.data(),bsv.size()};
-}
 
 template<std::integral char_type,std::integral pchar_type>
 inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,manipulators::chvw_t<pchar_type>>) noexcept
