@@ -113,6 +113,7 @@ buffer_mode mde,
 typename decorators,
 std::size_t bfs,::fast_io::freestanding::random_access_iterator Iter>
 requires (((mde&buffer_mode::in)==buffer_mode::in)&&details::allow_iobuf_punning<typename decorators::internal_type,Iter>)
+[[nodiscard]]
 inline constexpr Iter read(basic_io_buffer<handletype,mde,decorators,bfs>& bios,Iter first,Iter last)
 {
 	using iter_char_type = ::fast_io::freestanding::iter_value_t<Iter>;
