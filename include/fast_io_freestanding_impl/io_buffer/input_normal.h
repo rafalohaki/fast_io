@@ -42,7 +42,7 @@ inline constexpr Iter iobuf_read_unhappy_decay_impl(T t,basic_io_buffer_pointers
 	if(diff<iter_diff)
 		iter_diff=diff;
 	first=non_overlapped_copy_n(ibuffer.buffer_curr,iter_diff,first);
-	ibuffer.buffer_curr+=diff;
+	ibuffer.buffer_curr+=iter_diff;
 	return first;
 }
 }
