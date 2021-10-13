@@ -85,8 +85,6 @@ inline constexpr parse_code determine_http_header_location(basic_http_header_buf
 	for(;i!=e&&*i!=char_literal_v<u8' ',ch_type>;++i);
 	if(i==e)
 		return parse_code::invalid;
-	if(!::fast_io::char_category::is_c_digit(*j)||!::fast_io::char_category::is_c_digit(j[1])||!::fast_io::char_category::is_c_digit(j[2]))
-		return parse_code::invalid;
 	b.http_status_code_end_location=static_cast<std::size_t>(i-b.buffer);
 	}
 	for(;i!=e&&*i==char_literal_v<u8' ',ch_type>;++i);
