@@ -44,14 +44,18 @@ inline void* create_win32_temp_file()
 	return nullptr;
 }
 #endif
-template<typename... Args>
-requires (sizeof...(Args)==4)
-inline auto create_io_completion_port(Args&&... args)
+
+inline void* create_io_completion_port(void* filehandle,void* existing_completionport,std::uintptr_t completionkey,std::uint32_t numberofconcurrentthreads)
 {
-	auto ptr{fast_io::win32::CreateIoCompletionPort(::fast_io::freestanding::forward<Args>(args)...)};
+	void* ptr{fast_io::win32::CreateIoCompletionPort(filehandle,existing_completionport,completionkey,numberofconcurrentthreads)};
 	if(ptr==nullptr)[[unlikely]]
 		throw_win32_error();
 	return ptr;
+}
+
+inline void* create_io_completion_port_impl()
+{
+	return create_io_completion_port(reinterpret_cast<void*>(static_cast<std::uintptr_t>(-1)),nullptr,0,0);
 }
 
 struct win32_open_mode
@@ -750,72 +754,108 @@ inline io_scatter_status_t scatter_write(basic_win32_family_io_observer<family,c
 }
 
 #if 0
-template<win32_family family,std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
-inline void async_read_callback(basic_win32_family_io_observer<char>,basic_win32_family_io_observer<ch_type> h,Iter cbegin,Iter cend,
-	iocp_overlapped_observer callback,std::ptrdiff_t offset=0)
+namespace details
 {
-	std::size_t to_read((cend-cbegin)*sizeof(*cbegin));
-	if constexpr(4<sizeof(std::size_t))
-		if(static_cast<std::size_t>(UINT32_MAX)<to_read)
-			to_read=static_cast<std::size_t>(UINT32_MAX);
-	if constexpr(4<sizeof(std::size_t))
-	{
-		callback.handle->dummy_union_name.dummy_struct_name.Offset=static_cast<std::size_t>(offset)&std::numeric_limits<std::uint32_t>::max();
-		callback.handle->dummy_union_name.dummy_struct_name.OffsetHigh=static_cast<std::size_t>(offset)>>static_cast<std::size_t>(32);
-	}
-	else
-	{
-		callback.handle->dummy_union_name.dummy_struct_name.Offset=static_cast<std::uint32_t>(offset);
-		callback.handle->dummy_union_name.dummy_struct_name.OffsetHigh=0;
-	}
-	if(!win32::ReadFile(h.handle,::fast_io::freestanding::to_address(cbegin),static_cast<std::uint32_t>(to_read),nullptr,callback.handle))[[likely]]
-	{
-		auto err(win32::GetLastError());
-		if(err==997)[[likely]]
-			return;
-		throw_win32_error(err);
-	}
-}
 
-template<win32_family family,std::integral char_type>
-inline constexpr io_type_t<basic_win32_family_io_observer<family,char>> async_scheduler_type(basic_win32_family_io_observer<family,char_type>)
+struct iocp_overlapped_base:public ::fast_io::win32::overlapped
 {
-	return {};
-}
+#if __cpp_constexpr >= 201907L
+	constexpr
+#endif
+	virtual void invoke(std::size_t) = 0;
+#if __cpp_constexpr >= 201907L
+	constexpr
+#endif
+	virtual ~iocp_overlapped_base() noexcept=default;
+};
 
-template<win32_family family,std::integral char_type>
-inline constexpr io_type_t<iocp_overlapped> async_overlapped_type(basic_win32_family_io_observer<family,char_type>)
+template<typename Func>
+struct iocp_overlapped_derived:iocp_overlapped_base
 {
-	return {};
-}
+	Func func;
+	template<typename... Args>
+	requires std::constructible_from<Func,Args...>
+	iocp_overlapped_derived(Args&& ...args):func(::fast_io::freestanding::forward<Args>(args)...){}
+#if __cpp_constexpr >= 201907L
+	constexpr
+#endif
+	void invoke(std::size_t value) override
+	{
+		func(value);
+	}
+};
 
-template<win32_family family,std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
-inline void async_write_callback(basic_win32_family_io_observer<family,char>,basic_win32_family_io_observer<family,ch_type> h,Iter cbegin,Iter cend,
-	iocp_overlapped_observer callback,std::ptrdiff_t offset=0)
+inline void iocp_async_write_define_impl(void* handle,void const* data,std::size_t to_write,std::ptrdiff_t offset,iocp_overlapped_base* callback)
 {
-	std::size_t to_write((cend-cbegin)*sizeof(*cbegin));
+
 	if constexpr(4<sizeof(std::size_t))
 		if(static_cast<std::size_t>(UINT32_MAX)<to_write)
 			to_write=static_cast<std::size_t>(UINT32_MAX);
 	if constexpr(4<sizeof(std::size_t))
 	{
-		callback.handle->dummy_union_name.dummy_struct_name.Offset=static_cast<std::size_t>(offset)&std::numeric_limits<std::uint32_t>::max();
-		callback.handle->dummy_union_name.dummy_struct_name.OffsetHigh=static_cast<std::size_t>(offset)>>static_cast<std::size_t>(32);
+		callback->dummy_union_name.dummy_struct_name.Offset=static_cast<std::size_t>(offset)&std::numeric_limits<std::uint32_t>::max();
+		callback->dummy_union_name.dummy_struct_name.OffsetHigh=static_cast<std::size_t>(offset)>>static_cast<std::size_t>(32);
 	}
 	else
 	{
-		callback.handle->dummy_union_name.dummy_struct_name.Offset=static_cast<std::uint32_t>(offset);
-		callback.handle->dummy_union_name.dummy_struct_name.OffsetHigh=0;
+		callback->dummy_union_name.dummy_struct_name.Offset=static_cast<std::uint32_t>(offset);
+		callback->dummy_union_name.dummy_struct_name.OffsetHigh=0;
 	}
-	if(!win32::WriteFile(h.handle,::fast_io::freestanding::to_address(cbegin),static_cast<std::uint32_t>(to_write),nullptr,callback.handle))[[likely]]
+	if(!win32::WriteFile(handle,data,static_cast<std::uint32_t>(to_write),nullptr,callback))[[likely]]
 	{
 		auto err(win32::GetLastError());
 		if(err==997)[[likely]]
 			return;
+		delete callback;
 		throw_win32_error(err);
 	}
 }
+
+template<typename Func>
+inline void iocp_async_write_define(void* handle,void const* data,std::size_t bytes,std::ptrdiff_t offset,Func callback)
+{
+	iocp_async_write_define_impl(handle,data,bytes,offset,new iocp_overlapped_derived<Func>{callback});
+}
+
+inline void iocp_set_async_context(void* iocp_handle,void* filehandle)
+{
+	if(iocp_handle==nullptr||filehandle==nullptr)
+		throw_win32_error(0x000000A0);
+	create_io_completion_port(filehandle,iocp_handle,0,0);
+}
+
+inline void iocp_async_wait_impl(void* handle)
+{
+	std::uint32_t transferred{};
+	std::uintptr_t completionkey{};
+	::fast_io::win32::overlapped *over{};
+	if(!::fast_io::win32::GetQueuedCompletionStatus(handle,__builtin_addressof(transferred),__builtin_addressof(completionkey),
+		over,std::numeric_limits<std::uint32_t>::max()))
+		throw_win32_error();
+	static_cast<iocp_overlapped_base*>(over)->invoke(static_cast<std::size_t>(transferred));
+}
+
+}
+
+template<win32_family fam,typename Func>
+inline void async_write_define(basic_win32_family_io_observer<fam,char>,nt_at_entry h,void const* data,std::size_t bytes,std::ptrdiff_t offset,Func callback)
+{
+	::fast_io::details::iocp_async_write_define(h.handle,data,bytes,offset,std::move(callback));
+}
+
+template<win32_family fam>
+inline void set_async_context(basic_win32_family_io_observer<fam,char> iocp,nt_at_entry h)
+{
+	::fast_io::details::iocp_set_async_context(iocp.handle,h.handle);
+}
+
+template<win32_family fam>
+inline void io_async_wait(basic_win32_family_io_observer<fam,char> iocp)
+{
+	::fast_io::details::iocp_async_wait_impl(iocp.handle);
+}
 #endif
+
 template<win32_family family,std::integral ch_type>
 inline void cancel(basic_win32_family_io_observer<family,ch_type> h)
 {
@@ -833,7 +873,6 @@ inline void io_control(basic_win32_family_io_observer<family,ch_type> h,Args&& .
 	if(!fast_io::win32::DeviceIoControl(h.handle,::fast_io::freestanding::forward<Args>(args)...))
 		throw_win32_error();
 }
-
 
 struct
 #if __has_cpp_attribute(gnu::trivial_abi)
@@ -921,6 +960,9 @@ public:
 				basic_win32_family_io_handle<family,char_type>(details::win32_create_file_impl<family>(filename.c_str(),filename.size(),{om,pm}))
 	{}
 
+	explicit basic_win32_family_file(io_async_t) requires(std::same_as<char_type,char>):basic_win32_family_io_handle<family,char_type>{details::create_io_completion_port_impl()}
+	{
+	}
 	~basic_win32_family_file()
 	{
 		if(this->handle)[[likely]]

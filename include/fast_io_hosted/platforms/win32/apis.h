@@ -1684,4 +1684,23 @@ asm("FlushFileBuffers")
 #endif
 ;
 
+#if defined(_MSC_VER) && !defined(__clang__)
+__declspec(dllimport)
+#elif __has_cpp_attribute(gnu::dllimport)
+[[gnu::dllimport]]
+#endif
+extern int __stdcall GetQueuedCompletionStatus(void*,std::uint32_t*,std::uintptr_t*,overlapped*,std::uint32_t)
+#if defined(__clang__) || defined(__GNUC__)
+#if SIZE_MAX<=UINT32_MAX &&(defined(__x86__) || defined(_M_IX86) || defined(__i386__))
+#if !defined(__clang__)
+asm("GetQueuedCompletionStatus@20")
+#else
+asm("_GetQueuedCompletionStatus@20")
+#endif
+#else
+asm("GetQueuedCompletionStatus")
+#endif
+#endif
+;
+
 }
