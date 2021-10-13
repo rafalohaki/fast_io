@@ -66,9 +66,7 @@ inline constexpr parse_code determine_http_header_location(basic_http_header_buf
 	if(i!=e&&*i==char_literal_v<u8' ',ch_type>)
 		return parse_code::invalid;
 	{
-	auto j{i};
 	for(;i!=e&&*i!=char_literal_v<u8' ',ch_type>;++i);
-	auto diff{i-j};
 	if(i==e)
 	{
 		return parse_code::invalid;
@@ -81,7 +79,6 @@ inline constexpr parse_code determine_http_header_location(basic_http_header_buf
 		return parse_code::invalid;
 	b.http_status_code_start_location=static_cast<std::size_t>(i-b.buffer);
 	{
-	auto j{i};
 	for(;i!=e&&*i!=char_literal_v<u8' ',ch_type>;++i);
 	if(i==e)
 		return parse_code::invalid;
