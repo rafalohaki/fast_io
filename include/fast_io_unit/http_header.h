@@ -13,7 +13,7 @@ struct basic_http_header_buffer
 	std::size_t http_status_code_end_location{};
 	std::size_t http_status_reason_start_location{};
 	std::size_t http_status_reason_end_location{};
-	char_type buffer[16384];
+	char_type buffer[4096];
 	inline constexpr ::std::basic_string_view<char_type> request() const noexcept
 	{
 		return ::std::basic_string_view<char_type>(buffer,buffer+http_request_end_location);
@@ -51,7 +51,7 @@ template<std::integral ch_type,::fast_io::freestanding::random_access_iterator I
 inline bool try_copy_into_buffer(basic_http_header_buffer<ch_type>& b,Iter first,Iter last) noexcept
 {
 	std::size_t diff{static_cast<std::size_t>(last-first)};
-	std::size_t remain_space{static_cast<std::size_t>(16384u-b.header_length)};
+	std::size_t remain_space{static_cast<std::size_t>(4096u-b.header_length)};
 	if(remain_space<diff)
 		return false;
 	non_overlapped_copy_n(first,diff,b.buffer+b.header_length);
