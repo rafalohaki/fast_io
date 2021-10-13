@@ -8,21 +8,21 @@ struct basic_http_header_buffer
 {
 	using char_type = ch_type;
 	std::size_t header_length{};
-	std::size_t http_version_end_location{};
+	std::size_t http_request_end_location{};
 	std::size_t http_status_code_start_location{};
 	std::size_t http_status_code_end_location{};
 	std::size_t http_status_reason_start_location{};
 	std::size_t http_status_reason_end_location{};
 	char_type buffer[4096];
-	inline constexpr ::std::basic_string_view<char_type> http_version() const noexcept
+	inline constexpr ::std::basic_string_view<char_type> request() const noexcept
 	{
-		return ::std::basic_string_view<char_type>(buffer,buffer+http_version_end_location);
+		return ::std::basic_string_view<char_type>(buffer,buffer+http_request_end_location);
 	}
-	inline constexpr ::std::basic_string_view<char_type> http_status_code() const noexcept
+	inline constexpr ::std::basic_string_view<char_type> code() const noexcept
 	{
 		return ::std::basic_string_view<char_type>(buffer+http_status_code_start_location,buffer+http_status_code_end_location);
 	}
-	inline constexpr ::std::basic_string_view<char_type> http_status_reason() const noexcept
+	inline constexpr ::std::basic_string_view<char_type> reason() const noexcept
 	{
 		return ::std::basic_string_view<char_type>(buffer+http_status_reason_start_location,buffer+http_status_reason_end_location);
 	}
@@ -68,13 +68,11 @@ inline constexpr parse_code determine_http_header_location(basic_http_header_buf
 	auto j{i};
 	for(;i!=e&&*i!=char_literal_v<u8' ',ch_type>;++i);
 	auto diff{i-j};
-	if(i==e||diff<=8||diff>=10)
+	if(i==e||diff>=10)
 	{
 		return parse_code::invalid;
 	}
-	if(*j!=char_literal_v<u8'H',ch_type>||j[1]!=char_literal_v<u8'T',ch_type>||j[2]!=char_literal_v<u8'T',ch_type>||j[3]!=char_literal_v<u8'P',ch_type>||j[4]!=char_literal_v<u8'/',ch_type>)
-		return parse_code::invalid;
-	b.http_version_end_location=static_cast<std::size_t>(i-b.buffer);
+	b.http_request_end_location=static_cast<std::size_t>(i-b.buffer);
 	}
 	++i;
 	for(;i!=e&&*i==char_literal_v<u8' ',ch_type>;++i);
@@ -263,14 +261,17 @@ inline constexpr basic_http_line_generator<char_type>& operator++(basic_http_lin
 		b.value_end=b.value_start=b.key_end=last;
 		return b;
 	}
-	for(++b.current;b.current!=last&&*b.current==char_literal_v<u8' ',char_type>;++b.current);
+	auto line_last{b.current};
+	for(;line_last!=last&&*line_last!=char_literal_v<u8'\r',char_type>;++line_last);
+	for(++b.current;b.current!=line_last&&*b.current==char_literal_v<u8' ',char_type>;++b.current);
 	auto curr{b.current};
-	for(;curr!=last&&*curr!=char_literal_v<u8' ',char_type>;++curr);
+	for(;curr!=line_last&&*curr!=char_literal_v<u8':',char_type>;++curr);
 	b.key_end=curr;
-	for(;curr!=last&&*curr==char_literal_v<u8' ',char_type>;++curr);
+	if(curr!=line_last)
+		++curr;
+	for(;curr!=line_last&&*curr==char_literal_v<u8' ',char_type>;++curr);
 	b.value_start=curr;
-	for(;curr!=last&&*curr!=char_literal_v<u8'\r',char_type>;++curr);
-	b.value_end=curr;
+	b.value_end=line_last;
 	return b;
 }
 
