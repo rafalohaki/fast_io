@@ -52,6 +52,7 @@ public:
 		details::streambuf_hack::fp_hack_open(this->fb,chd.fp,details::calculate_fstream_open_value(mode));
 		chd.fp=nullptr;
 	}
+	basic_filebuf_file(decltype(nullptr)) = delete;
 #elif defined(__GLIBCXX__)
 	template<c_family family>
 	requires std::same_as<::std::__c_file*,typename basic_c_family_io_handle<family,char_type>::native_handle_type>

@@ -864,6 +864,7 @@ public:
 
 	basic_c_family_io_handle(basic_c_family_io_handle const&)=delete;
 	basic_c_family_io_handle& operator=(basic_c_family_io_handle const&)=delete;
+	constexpr basic_c_family_io_handle(decltype(nullptr)) noexcept = delete;
 	constexpr basic_c_family_io_handle(basic_c_family_io_handle&& other) noexcept:basic_c_family_io_observer<family,ch_type>{other.fp}
 	{
 		other.fp=nullptr;
@@ -945,6 +946,7 @@ public:
 	{
 		other.fp=nullptr;
 	}
+	constexpr basic_c_family_file(decltype(nullptr)) noexcept = delete;
 	basic_c_family_file(basic_c_family_file const&)=delete;
 	basic_c_family_file& operator=(basic_c_family_file const&)=delete;
 	constexpr basic_c_family_file(basic_c_family_file&&) noexcept=default;

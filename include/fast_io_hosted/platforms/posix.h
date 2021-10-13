@@ -411,6 +411,7 @@ public:
 	using char_type = ch_type;
 	using native_handle_type = int;
 	constexpr explicit basic_posix_io_handle()=default;
+	constexpr basic_posix_io_handle(decltype(nullptr)) noexcept = delete;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	constexpr explicit basic_posix_io_handle(native_hd fdd):basic_posix_io_observer<ch_type>{fdd}{}
@@ -1211,6 +1212,7 @@ public:
 	{
 		factory.fd=-1;
 	}
+	constexpr basic_posix_file(decltype(nullptr)) noexcept = delete;
 #if (defined(_WIN32)&&!defined(__WINE__)) && !defined(__CYGWIN__)
 //windows specific. open posix file from win32 io handle
 	template<win32_family family>

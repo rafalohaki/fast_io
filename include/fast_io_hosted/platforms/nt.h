@@ -734,6 +734,7 @@ public:
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	explicit constexpr basic_nt_family_io_handle(native_hd hd) noexcept:basic_nt_family_io_observer<family,ch_type>{hd}{}
+	constexpr basic_nt_family_io_handle(decltype(nullptr)) noexcept = delete;
 	void reset(native_handle_type newhandle=nullptr) noexcept
 	{
 		if(this->handle)[[likely]]
@@ -806,8 +807,9 @@ public:
 	constexpr basic_nt_family_file()=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	explicit constexpr basic_nt_family_file(native_hd hd):basic_nt_family_io_handle<family,ch_type>(hd){}
-	explicit constexpr basic_nt_family_file(nt_family_file_factory<family>&& hd):basic_nt_family_io_handle<family,ch_type>(hd)
+	explicit constexpr basic_nt_family_file(native_hd hd) noexcept:basic_nt_family_io_handle<family,ch_type>(hd){}
+	constexpr basic_nt_family_file(decltype(nullptr)) noexcept = delete;
+	explicit constexpr basic_nt_family_file(nt_family_file_factory<family>&& hd) noexcept:basic_nt_family_io_handle<family,ch_type>(hd)
 	{
 		hd.handle=nullptr;
 	}

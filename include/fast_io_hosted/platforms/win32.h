@@ -475,6 +475,7 @@ public:
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	explicit constexpr basic_win32_family_io_handle(native_hd handle1) noexcept:
 		basic_win32_family_io_observer<family,ch_type>{handle1}{}
+	constexpr basic_win32_family_io_handle(decltype(nullptr)) noexcept = delete;
 	basic_win32_family_io_handle(basic_win32_family_io_handle const& other):basic_win32_family_io_observer<family,ch_type>{win32::details::win32_dup_impl(other.handle)}{}
 	basic_win32_family_io_handle& operator=(basic_win32_family_io_handle const& other)
 	{
@@ -872,7 +873,7 @@ public:
 	{
 		fact.handle=nullptr;
 	}
-
+	explicit constexpr basic_win32_family_file(decltype(nullptr)) noexcept = delete;
 #if 0
 	explicit basic_win32_family_file(io_temp_t):basic_win32_family_io_handle<family,char_type>(details::create_win32_temp_file()){}
 #endif

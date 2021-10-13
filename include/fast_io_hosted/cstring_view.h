@@ -29,6 +29,7 @@ public:
 	size_type n{};
 
 	constexpr basic_cstring_view() noexcept=default;
+	constexpr basic_cstring_view(decltype(nullptr)) noexcept=delete;
 	template<std::size_t len>
 	requires (len!=0)
 	constexpr basic_cstring_view(ch_type const (&cstr)[len]) noexcept:ptr{cstr},n{len-1}
@@ -40,6 +41,8 @@ public:
 	{
 	}
 	constexpr basic_cstring_view(null_terminated_t, const_pointer c, size_type len) noexcept:ptr(c),n(len){}
+
+	constexpr basic_cstring_view(null_terminated_t, decltype(nullptr), size_type len) noexcept=delete;
 #if  !defined(_LIBCPP_VERSION)
 	template<std::ranges::contiguous_range crg>
 	requires (std::same_as<std::ranges::range_value_t<crg>, ch_type>&&requires(crg cont)
