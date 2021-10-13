@@ -69,7 +69,7 @@ inline constexpr parse_code determine_http_header_location(basic_http_header_buf
 	auto j{i};
 	for(;i!=e&&*i!=char_literal_v<u8' ',ch_type>;++i);
 	auto diff{i-j};
-	if(i==e||diff>=10)
+	if(i==e)
 	{
 		return parse_code::invalid;
 	}
@@ -83,7 +83,7 @@ inline constexpr parse_code determine_http_header_location(basic_http_header_buf
 	{
 	auto j{i};
 	for(;i!=e&&*i!=char_literal_v<u8' ',ch_type>;++i);
-	if(i==e||i-j!=3)
+	if(i==e)
 		return parse_code::invalid;
 	if(!::fast_io::char_category::is_c_digit(*j)||!::fast_io::char_category::is_c_digit(j[1])||!::fast_io::char_category::is_c_digit(j[2]))
 		return parse_code::invalid;
