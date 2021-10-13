@@ -150,11 +150,11 @@ inline constexpr void read_all_impl(input in,Iter first,Iter last)
 	{
 		if constexpr(std::same_as<typename input::char_type,iter_char_type>)
 		{
-			read_all_impl_decay(in,std::to_address(first),std::to_address(last));
+			read_all_impl_decay(in,::fast_io::freestanding::to_address(first),::fast_io::freestanding::to_address(last));
 		}
 		else
 		{
-			read_all_impl_decay(in,reinterpret_cast<char*>(std::to_address(first)),reinterpret_cast<char*>(std::to_address(last)));
+			read_all_impl_decay(in,reinterpret_cast<char*>(::fast_io::freestanding::to_address(first)),reinterpret_cast<char*>(::fast_io::freestanding::to_address(last)));
 		}
 	}
 	else
@@ -169,11 +169,11 @@ inline constexpr void read_all_impl(input in,Iter first,Iter last)
 	static_assert(::fast_io::freestanding::contiguous_iterator<Iter>);
 	if constexpr(std::same_as<typename input::char_type,iter_char_type>)
 	{
-		read_all_impl_decay(in,std::to_address(first),std::to_address(last));
+		read_all_impl_decay(in,::fast_io::freestanding::to_address(first),::fast_io::freestanding::to_address(last));
 	}
 	else
 	{
-		read_all_impl_decay(in,reinterpret_cast<char*>(std::to_address(first)),reinterpret_cast<char*>(std::to_address(last)));
+		read_all_impl_decay(in,reinterpret_cast<char*>(::fast_io::freestanding::to_address(first)),reinterpret_cast<char*>(::fast_io::freestanding::to_address(last)));
 	}
 #endif
 }
