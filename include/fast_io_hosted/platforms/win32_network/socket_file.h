@@ -40,8 +40,8 @@ inline std::uint32_t win32_socket_write_simple_impl(std::uintptr_t socket, void 
 {
 	wsabuf buffer{len,const_cast<char*>(reinterpret_cast<char const*>(data))};
 	std::uint32_t sent{};
-	if(WSASend(socket,__builtin_addressof(buffer),1,__builtin_addressof(sent),0,nullptr,nullptr))
-		throw_win32_error(static_cast<std::uint32_t>(WSAGetLastError()));
+	if(::fast_io::win32::WSASend(socket,__builtin_addressof(buffer),1,__builtin_addressof(sent),0,nullptr,nullptr))
+		throw_win32_error(static_cast<std::uint32_t>(::fast_io::win32::WSAGetLastError()));
 	return sent;
 }
 
@@ -78,7 +78,7 @@ inline std::size_t win32_socket_read_impl(std::uintptr_t socket, void* data,std:
 	}
 	int recved{::fast_io::win32::recv(socket,reinterpret_cast<char*>(data),static_cast<int>(static_cast<unsigned>(to_read)),0)};
 	if(recved==-1)
-		throw_win32_error(static_cast<std::uint32_t>(WSAGetLastError()));
+		throw_win32_error(static_cast<std::uint32_t>(::fast_io::win32::WSAGetLastError()));
 	return static_cast<std::size_t>(static_cast<int>(recved));
 }
 

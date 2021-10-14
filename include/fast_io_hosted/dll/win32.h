@@ -71,7 +71,7 @@ inline void* create_win32_dll_9xa(char const* filename)	//9x kernel does not sup
 		throw_win32_error();
 	return hmodule;
 }
-inline void* create_win32_dll_ntw(wchar_t const* filename,dll_mode mode)
+inline void* create_win32_dll_ntw(wchar_t const* filename,[[maybe_unused]] dll_mode mode)
 {
 	auto hmodule{
 #if defined(_WIN32_WINNT) && _WIN32_WINNT <= 0x0500

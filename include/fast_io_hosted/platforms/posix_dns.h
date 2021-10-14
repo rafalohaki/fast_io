@@ -61,13 +61,14 @@ struct posix_dns_iterator
 	native_handle_type res{};
 };
 
-inline constexpr bool operator==(posix_dns_iterator a, posix_dns_iterator b) noexcept
+inline constexpr bool operator==(posix_dns_iterator a, ::fast_io::freestanding::default_sentinel_t) noexcept
 {
-	return a.res == b.res;
+	return a.res == nullptr;
 }
-inline constexpr bool operator!=(posix_dns_iterator a, posix_dns_iterator b) noexcept
+
+inline constexpr bool operator!=(posix_dns_iterator a, ::fast_io::freestanding::default_sentinel_t) noexcept
 {
-	return !(a==b);
+	return a.res;
 }
 
 inline constexpr posix_dns_io_observer operator*(posix_dns_iterator d) noexcept
@@ -88,13 +89,29 @@ inline constexpr posix_dns_iterator operator++(posix_dns_iterator& d, int) noexc
 	return temp;
 }
 
-inline constexpr ::fast_io::ip to_ip(posix_dns_io_observer d,std::uint16_t port)
-{
-	return to_ip_with_ai_addr(d.res->ai_family,d.res->ai_addr,port);
-}
-
 namespace details
 {
+inline constexpr ::fast_io::ip posix_to_ip_with_ai_addr_impl(int ai_family,posix_sockaddr const* ai_addr,std::uint_least16_t port) noexcept
+{
+	::fast_io::ip ret;
+	switch(ai_family)
+	{
+	case AF_INET:
+	{
+		::fast_io::details::my_memcpy(__builtin_addressof(ret.address.v4),__builtin_addressof(reinterpret_cast<posix_sockaddr_in const*>(ai_addr)->sin_addr),sizeof(posix_in_addr));
+		ret.port = port;
+		ret.isv4=true;
+		break;
+	}
+	case AF_INET6:
+	{
+		::fast_io::details::my_memcpy(__builtin_addressof(ret.address.v6),__builtin_addressof(reinterpret_cast<posix_sockaddr_in6 const*>(ai_addr)->sin6_addr),sizeof(posix_in6_addr));
+		ret.port = port;
+		break;
+	}
+	}
+	return ret;
+}
 
 inline posix_addrinfo* my_getaddrinfo_impl(char const* node,char const* service,posix_addrinfo const* hints)
 {
@@ -164,6 +181,11 @@ inline constexpr auto posix_dns_open_impl(T const& t)
 
 }
 
+inline constexpr ::fast_io::ip to_ip(posix_dns_io_observer d,std::uint_least16_t port)
+{
+	return fast_io::details::posix_to_ip_with_ai_addr_impl(d.res->ai_family,d.res->ai_addr,port);
+}
+
 class
 #if __has_cpp_attribute(gnu::trivial_abi)
 [[gnu::trivial_abi]]
@@ -223,33 +245,14 @@ inline constexpr posix_dns_iterator cbegin(posix_dns_io_observer pdniob) noexcep
 	return {pdniob.res};
 }
 
-inline constexpr posix_dns_iterator end(posix_dns_io_observer) noexcept
+inline constexpr ::fast_io::freestanding::default_sentinel_t end(posix_dns_io_observer) noexcept
 {
 	return {};
 }
 
-inline constexpr posix_dns_iterator cend(posix_dns_io_observer) noexcept
+inline constexpr ::fast_io::freestanding::default_sentinel_t cend(posix_dns_io_observer) noexcept
 {
 	return {};
-}
-
-inline posix_dns_file posix_addrinfo_serivce(char const* node,char const* service)
-{
-	constexpr posix_addrinfo info{.ai_family=AF_UNSPEC};
-	return posix_dns_file(node,service,__builtin_addressof(info));
-}
-
-inline posix_dns_file native_addrinfo_serivce(char const* node,char const* service)
-{
-	return posix_addrinfo_serivce(node,service);
-}
-
-inline posix_file_factory addrinfo_service_connect(posix_dns_io_observer dniob,open_mode mode={})
-{
-	auto& info{*dniob.res};
-	posix_file pf(details::sys_socket(info.ai_family,info.ai_socktype|to_native_sock_open_mode(mode),info.ai_protocol));
-	posix_connect(pf,info.ai_addr,info.ai_addrlen);
-	return posix_file_factory(pf.release());
 }
 
 using native_addrinfo = posix_addrinfo;

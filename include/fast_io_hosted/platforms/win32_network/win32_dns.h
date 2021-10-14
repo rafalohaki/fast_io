@@ -36,15 +36,15 @@ struct win32_family_dns_iterator
 };
 
 template<win32_family fam>
-inline constexpr bool operator==(win32_family_dns_iterator<fam> a, win32_family_dns_iterator<fam> b) noexcept
+inline constexpr bool operator==(win32_family_dns_iterator<fam> a, ::fast_io::freestanding::default_sentinel_t) noexcept
 {
-	return a.res == b.res;
+	return a.res == nullptr;
 }
 
 template<win32_family fam>
-inline constexpr bool operator!=(win32_family_dns_iterator<fam> a, win32_family_dns_iterator<fam> b) noexcept
+inline constexpr bool operator!=(win32_family_dns_iterator<fam> a, ::fast_io::freestanding::default_sentinel_t) noexcept
 {
-	return !(a==b);
+	return a.res;
 }
 
 template<win32_family fam>
@@ -68,10 +68,35 @@ inline constexpr win32_family_dns_iterator<fam> operator++(win32_family_dns_iter
 	return temp;
 }
 
-template<win32_family fam>
-inline constexpr ::fast_io::ip to_ip(win32_family_dns_io_observer<fam> d,std::uint16_t port)
+namespace details
 {
-	return to_ip_with_ai_addr(d.res->ai_family,d.res->ai_addr,port);
+inline constexpr ::fast_io::ip win32_to_ip_with_ai_addr_impl(int ai_family,posix_sockaddr const* ai_addr,std::uint_least16_t port) noexcept
+{
+	::fast_io::ip ret;
+	switch(ai_family)
+	{
+	case 2:
+	{
+		::fast_io::details::my_memcpy(__builtin_addressof(ret.address.v4),__builtin_addressof(reinterpret_cast<posix_sockaddr_in const*>(ai_addr)->sin_addr),sizeof(posix_in_addr));
+		ret.port = port;
+		ret.isv4=true;
+		break;
+	}
+	case 23:
+	{
+		::fast_io::details::my_memcpy(__builtin_addressof(ret.address.v6),__builtin_addressof(reinterpret_cast<posix_sockaddr_in6 const*>(ai_addr)->sin6_addr),sizeof(posix_in6_addr));
+		ret.port = port;
+		break;
+	}
+	}
+	return ret;
+}
+}
+
+template<win32_family fam>
+inline constexpr ::fast_io::ip to_ip(win32_family_dns_io_observer<fam> d,std::uint_least16_t port)
+{
+	return ::fast_io::details::win32_to_ip_with_ai_addr_impl(d.res->ai_family,d.res->ai_addr,port);
 }
 
 namespace details
@@ -234,13 +259,13 @@ inline constexpr win32_family_dns_iterator<fam> cbegin(win32_family_dns_io_obser
 }
 
 template<win32_family fam>
-inline constexpr win32_family_dns_iterator<fam> end(win32_family_dns_io_observer<fam>) noexcept
+inline constexpr ::fast_io::freestanding::default_sentinel_t end(win32_family_dns_io_observer<fam>) noexcept
 {
 	return {};
 }
 
 template<win32_family fam>
-inline constexpr win32_family_dns_iterator<fam> cend(win32_family_dns_io_observer<fam>) noexcept
+inline constexpr ::fast_io::freestanding::default_sentinel_t cend(win32_family_dns_io_observer<fam>) noexcept
 {
 	return {};
 }
@@ -262,32 +287,15 @@ using win32_dns_iterator_9xa = win32_family_dns_iterator<win32_family::ansi_9x>;
 using win32_dns_iterator_ntw = win32_family_dns_iterator<win32_family::wide_nt>;
 using win32_dns_iterator = win32_family_dns_iterator<win32_family::native>;
 
-
-inline win32_dns_file_9xa win32_addrinfo_serivce(char const* node,char const* service)
-{
-	constexpr win32_addrinfo_9xa info{.ai_family=0};
-	return win32_dns_file_9xa(node,service,__builtin_addressof(info));
-}
-
 #if !defined(__WINE__) && !defined(__CYGWIN__)
-inline win32_dns_file_9xa native_addrinfo_service(char const* node,char const* service)
-{
-	return win32_addrinfo_serivce(node,service);
-}
-
 using native_addrinfo = win32_addrinfo;
+
+#if (defined(_MSC_VER) || (!defined(_WIN32_WINDOWS) && _WIN32_WINNT>=0x0501))
 using native_dns_io_observer = win32_dns_io_observer;
 using native_dns_file = win32_dns_file;
 using native_dns_iterator = win32_dns_iterator;
 #endif
 
-template<win32_family fam>
-inline win32_socket_factory addrinfo_service_connect(win32_family_dns_io_observer<fam> dniob,open_mode mode={})
-{
-	auto& info{*dniob.res};
-	basic_win32_socket_file<char> pf(::fast_io::win32::details::open_win32_socket_raw_om_custom_only_impl<win32_family::native>(info.ai_family,info.ai_socktype,info.ai_protocol,mode));
-	posix_connect(pf,info.ai_addr,info.ai_addrlen);
-	return win32_socket_factory(pf.release());
-}
+#endif
 
 }
