@@ -6,3 +6,4 @@
 
 #include"service.h"
 #include"socket_file.h"
+#include"win32_dns.h"

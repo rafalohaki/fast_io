@@ -5,6 +5,8 @@
 #include"sock_type.h"
 #include"posix_sockaddr.h"
 #include"ip.h"
+#include"posix_sockaddr_to_ip.h"
+#include"addrprt.h"
 
 namespace fast_io
 {
@@ -14,4 +16,5 @@ struct
 #endif
 posix_empty_network_service{};
 //a dummy service to make serivce work with windows at a cross platform level
+
 }

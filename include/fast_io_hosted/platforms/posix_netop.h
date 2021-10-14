@@ -48,13 +48,13 @@ inline int posix_tcp_connect_ip_impl(ip v,open_mode m)
 	if(v.isv4)
 	{
 		constexpr auto inet{to_posix_sock_family(sock_family::inet)};
-		posix_sockaddr_in in{.sin_family=inet,.sin_port=big_endian(v.address.v4.port),.sin_addr=v.address.v4.address};
+		posix_sockaddr_in in{.sin_family=inet,.sin_port=big_endian(v.port),.sin_addr=v.address.v4};
 		posix_connect(soc,__builtin_addressof(in),sizeof(in));
 	}
 	else
 	{
 		constexpr auto inet6{to_posix_sock_family(sock_family::inet6)};
-		posix_sockaddr_in6 in6{.sin6_family=inet6,.sin6_port=big_endian(v.address.v6.port),.sin6_addr=v.address.v6.address};
+		posix_sockaddr_in6 in6{.sin6_family=inet6,.sin6_port=big_endian(v.port),.sin6_addr=v.address.v6};
 		posix_connect(soc,__builtin_addressof(in6),sizeof(in6));
 	}
 	return soc.release();

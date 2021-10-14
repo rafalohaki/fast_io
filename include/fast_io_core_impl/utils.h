@@ -928,6 +928,13 @@ inline constexpr basic_io_scatter_t<char_type> tsc(char_type const (&a)[N]) noex
 {
 	return {a,N-1};
 }
+
+template<typename char_type,std::size_t N>
+inline constexpr std::size_t cal_array_size(char_type const (&)[N]) noexcept
+{
+	return N-1;
+}
+
 template<std::integral char_type,bool iobuf=false>
 inline constexpr std::size_t cal_buffer_size()
 {

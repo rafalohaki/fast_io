@@ -136,13 +136,13 @@ template<win32_family family,std::integral ch_type,::fast_io::freestanding::cont
 [[nodiscard]]
 inline constexpr Iter read(basic_win32_family_socket_io_observer<family,ch_type> sockiob,Iter first,Iter last) 
 {
-	return win32::details::win32_socket_read_impl(sockiob.hsocket,::fast_io::freestanding::to_address(first),sizeof(*first)*(::fast_io::freestanding::to_address(last)-::fast_io::freestanding::to_address(first)))/sizeof(*first)+first;
+	return win32::details::win32_socket_read_impl(sockiob.hsocket,::fast_io::freestanding::to_address(first),sizeof(*first)*static_cast<std::size_t>(::fast_io::freestanding::to_address(last)-::fast_io::freestanding::to_address(first)))/sizeof(*first)+first;
 }
 
 template<win32_family family,std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline constexpr Iter write(basic_win32_family_socket_io_observer<family,ch_type> sockiob,Iter first,Iter last)
 {
-	return win32::details::win32_socket_write_impl(sockiob.hsocket,::fast_io::freestanding::to_address(first),sizeof(*first)*(::fast_io::freestanding::to_address(last)-::fast_io::freestanding::to_address(first)))/sizeof(*first)+first;
+	return win32::details::win32_socket_write_impl(sockiob.hsocket,::fast_io::freestanding::to_address(first),sizeof(*first)*static_cast<std::size_t>(::fast_io::freestanding::to_address(last)-::fast_io::freestanding::to_address(first)))/sizeof(*first)+first;
 }
 
 template<win32_family family,std::integral ch_type>
@@ -450,14 +450,10 @@ namespace win32::details
 {
 
 template<win32_family family>
-inline std::uintptr_t open_win32_socket_impl(sock_family d,sock_type t,open_mode m,sock_protocol p)
+inline std::uintptr_t open_win32_socket_raw_impl(int af,int tp,int prt,std::uint32_t dwflags)
 {
-	int af{to_win32_sock_family(d)};
-	int tp{to_win32_sock_type(t)};
-	int prt{to_win32_sock_protocol(p)};
 	if constexpr(family==win32_family::wide_nt)
 	{
-		std::uint32_t dwflags{to_win32_sock_open_mode(m)};
 		std::uintptr_t ret{WSASocketW(af,tp,prt,nullptr,0,dwflags)};
 		if(ret==UINTPTR_MAX)
 			throw_win32_error(static_cast<std::uint32_t>(WSAGetLastError()));
@@ -465,11 +461,30 @@ inline std::uintptr_t open_win32_socket_impl(sock_family d,sock_type t,open_mode
 	}
 	else
 	{
-		std::uintptr_t ret{WSASocketA(af,tp,prt,nullptr,0,to_win32_sock_open_mode_9xa(m))};
+		std::uintptr_t ret{WSASocketA(af,tp,prt,nullptr,0,dwflags)};
 		if(ret==UINTPTR_MAX)
 			throw_win32_error(static_cast<std::uint32_t>(WSAGetLastError()));
 		return ret;
 	}
+}
+
+template<win32_family family>
+inline std::uintptr_t open_win32_socket_raw_om_custom_only_impl(int af,int tp,int prt,open_mode om)
+{
+	if constexpr(family==::fast_io::win32_family::wide_nt)
+	{
+		return open_win32_socket_raw_impl<family>(af,tp,prt,to_win32_sock_open_mode(om));
+	}
+	else
+	{
+		return open_win32_socket_raw_impl<family>(af,tp,prt,to_win32_sock_open_mode_9xa(om));
+	}
+}
+
+template<win32_family family>
+inline std::uintptr_t open_win32_socket_impl(sock_family d,sock_type t,open_mode m,sock_protocol p)
+{
+	return open_win32_socket_raw_om_custom_only_impl<family>(to_win32_sock_family(d),to_win32_sock_type(t),to_win32_sock_protocol(p),m);
 }
 
 }
@@ -529,12 +544,10 @@ public:
 	basic_win32_family_socket_file& operator=(basic_win32_family_socket_file const&)=default;
 	constexpr basic_win32_family_socket_file(basic_win32_family_socket_file&&) noexcept=default;
 	basic_win32_family_socket_file& operator=(basic_win32_family_socket_file&&) noexcept=default;
-
 	explicit constexpr basic_win32_family_socket_file(win32_socket_factory&& other) noexcept : basic_win32_family_socket_io_handle<family,char_type>{other.hsocket}
 	{
 		other.hsocket=0;
 	}
-
 	~basic_win32_family_socket_file()
 	{
 		if(this->hsocket)[[likely]]
@@ -574,13 +587,13 @@ inline std::uintptr_t win32_family_tcp_connect_ip_impl(ip v,open_mode m)
 	if(v.isv4)
 	{
 		constexpr auto inet{to_win32_sock_family(sock_family::inet)};
-		posix_sockaddr_in in{.sin_family=inet,.sin_port=big_endian(v.address.v4.port),.sin_addr=v.address.v4.address};
+		posix_sockaddr_in in{.sin_family=inet,.sin_port=big_endian(v.port),.sin_addr=v.address.v4};
 		posix_connect(soc,__builtin_addressof(in),sizeof(in));
 	}
 	else
 	{
 		constexpr auto inet6{to_win32_sock_family(sock_family::inet6)};
-		posix_sockaddr_in6 in6{.sin6_family=inet6,.sin6_port=big_endian(v.address.v6.port),.sin6_addr=v.address.v6.address};
+		posix_sockaddr_in6 in6{.sin6_family=inet6,.sin6_port=big_endian(v.port),.sin6_addr=v.address.v6};
 		posix_connect(soc,__builtin_addressof(in6),sizeof(in6));
 	}
 	return soc.release();
