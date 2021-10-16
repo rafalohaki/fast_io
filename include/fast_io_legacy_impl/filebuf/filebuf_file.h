@@ -81,6 +81,9 @@ public:
 	{
 		piohd.fd=-1;
 	}
+#else
+	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
+		basic_filebuf_file(basic_c_file_unlocked<char_type>(::fast_io::freestanding::move(piohd),mode),mode){}
 #endif
 #if (defined(_WIN32)&&!defined(__WINE__)) || defined(__CYGWIN__)
 //windows specific. open posix file from win32 io handle
