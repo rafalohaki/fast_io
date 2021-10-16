@@ -134,6 +134,128 @@ inline constexpr decltype(auto) transmit_decay(output outs,input ins)
 	}
 }
 
+template<output_stream output,input_stream input>
+requires (std::is_trivially_copyable_v<output>&&std::is_trivially_copyable_v<input>)
+inline constexpr std::uint_least64_t raw_transmit64_decay(output outs,input ins,std::uint_least64_t characters)
+{
+	if constexpr(contiguous_input_stream<input>)
+	{
+		auto curr{ibuffer_curr(ins)};
+		auto ed{ibuffer_end(ins)};
+		std::uint_least64_t this_round{static_cast<std::uint_least64_t>(ed-curr)};
+		if(characters<=this_round)
+		{
+			this_round=characters;
+		}
+		ed=curr+this_round;
+		write(outs,curr,ed);
+		auto diff{ed-curr};
+		ibuffer_set_curr(ins,ed);
+		return this_round;
+	}
+	else if constexpr(buffer_input_stream<input>)
+	{
+		std::uint_least64_t chars{};
+		do
+		{
+			auto curr{ibuffer_curr(ins)};
+			auto ed{ibuffer_end(ins)};
+			if(curr==ed)[[unlikely]]
+				continue;
+			std::uint_least64_t this_round{static_cast<std::uint_least64_t>(ed-curr)};
+			bool transmit_enough_characters{characters<=this_round};
+			if(transmit_enough_characters)
+				this_round=characters;
+			ed=curr+this_round;
+			write(outs,curr,ed);
+			ibuffer_set_curr(ins,ed);
+			chars+=this_round;
+			characters-=this_round;
+			if(transmit_enough_characters)
+				break;
+		}
+		while(ibuffer_underflow(ins));
+		return chars;
+	}
+	else
+	{
+		using input_char_type = typename input::char_type;
+		std::uint_least64_t chars{};
+		constexpr std::size_t buffer_size{details::transmit_buffer_size_cache<input_char_type>};
+		std::size_t to_allocate{buffer_size};
+		if(characters<to_allocate)
+			to_allocate=characters;
+		details::buffer_alloc_arr_ptr<input_char_type,secure_clear_requirement_stream<input>> array_ptr(to_allocate);
+		auto array_start{array_ptr.ptr},array_end{array_ptr.ptr+to_allocate};
+		for(;;)
+		{
+			std::uint_least64_t this_round{to_allocate};
+			bool transmit_enough_characters{characters<=this_round};
+			if(transmit_enough_characters)
+				this_round=characters;
+			if(this_round==0)
+				break;
+			auto ed{read(ins,array_start,array_start+this_round)};
+			if(array_start==ed)[[unlikely]]
+				break;
+			write(outs,array_start,ed);
+			chars+=this_round;
+			characters-=this_round;
+			if(transmit_enough_characters)
+				break;
+		}
+		return chars;
+	}
+}
+
+template<output_stream output,input_stream input>
+requires (std::is_trivially_copyable_v<output>&&std::is_trivially_copyable_v<input>)
+inline constexpr decltype(auto) transmit64_decay(output outs,input ins,std::uint_least64_t characters)
+{
+	if constexpr(mutex_stream<input>)
+	{
+		io_lock_guard lg{ins};
+		decltype(auto) uh{ins.unlocked_handle()};
+		return transmit64_decay(outs,io_ref(uh),characters);
+	}
+	else if constexpr(mutex_stream<output>)
+	{
+		io_lock_guard lg{outs};
+		decltype(auto) uh{outs.unlocked_handle()};
+		return transmit64_decay(io_ref(uh),ins,characters);
+	}
+#if 0
+	else if constexpr(zero_copy_transmitable<output,input>)
+	{
+		if constexpr(buffer_output_stream<output>&&!flush_output_stream<output>)
+			return raw_transmit64_decay(outs,ins,characters);
+		else
+		{
+			std::uintmax_t chars{};
+			if constexpr(buffer_input_stream<input>)
+			{
+				auto curr{ibuffer_curr(ins)};
+				auto ed{ibuffer_end(ins)};
+				write(outs,curr,ed);
+				chars+=static_cast<std::size_t>(ed-curr);
+				ibuffer_set_curr(ins,ed);
+			}
+			if constexpr(buffer_output_stream<output>)
+				flush(outs);
+			return chars+zero_copy_transmit64_define(io_alias,zero_copy_out_handle(outs),zero_copy_in_handle(ins),characters);
+		}
+	}
+#endif
+	else if constexpr(output_stream<output>&&input_stream<input>)
+		return raw_transmit64_decay(outs,ins,characters);
+	else
+	{
+		constexpr bool no{output_stream<output>&&input_stream<input>};
+		static_assert(no,"transmit must happen to output stream from input stream");
+	}
+}
+
+
 template<typename output,typename input>
 #if __has_cpp_attribute(gnu::always_inline)
 [[gnu::always_inline]]
@@ -146,6 +268,20 @@ inline constexpr decltype(auto) transmit(output&& outs,input&& ins)
 		return status_transmit_define(io_alias,::fast_io::freestanding::forward<output>(outs),::fast_io::freestanding::forward<input>(ins));
 	else
 		return transmit_decay(fast_io::io_ref(outs),fast_io::io_ref(ins));
+}
+
+template<typename output,typename input>
+#if __has_cpp_attribute(gnu::always_inline)
+[[gnu::always_inline]]
+#elif __has_cpp_attribute(msvc::forceinline)
+[[msvc::forceinline]]
+#endif
+inline constexpr decltype(auto) transmit64(output&& outs,input&& ins,std::uint_least64_t characters=UINT_LEAST64_MAX)
+{
+	if constexpr(status_transmitable<output,input>)
+		return status_transmit64_define(io_alias,::fast_io::freestanding::forward<output>(outs),::fast_io::freestanding::forward<input>(ins),characters);
+	else
+		return transmit64_decay(fast_io::io_ref(outs),fast_io::io_ref(ins),characters);
 }
 
 }
