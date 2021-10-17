@@ -41,18 +41,6 @@ concept mutex_stream_impl = requires(T&& t)
 };
 
 template<typename T>
-concept character_input_stream_impl = requires(T&& in)
-{
-	igenerator(in);
-};
-
-template<typename T>
-concept character_output_stream_impl = requires(T&& out,typename std::remove_cvref_t<T>::char_type ch)
-{
-	put(out,ch);
-};
-
-template<typename T>
 concept random_access_stream_impl = requires(T&& t)
 {
 	seek(t,5);
@@ -132,18 +120,6 @@ concept redirect_stream_impl = requires(T&& h)
 };
 
 template<typename T>
-concept memory_map_input_stream_impl = requires(T&& in)
-{
-	memory_map_in_handle(in);
-};
-
-template<typename T>
-concept memory_map_output_stream_impl = requires(T&& out)
-{
-	memory_map_out_handle(out);
-};
-
-template<typename T>
 concept status_stream_impl = requires(T&& stm)
 {
 	typename std::remove_cvref_t<T>::status_type;
@@ -201,8 +177,6 @@ inline constexpr void obuffer_overflow(dummy_buffer_output_stream<char_type>,cha
 template<std::integral char_type>
 inline constexpr void write(dummy_buffer_output_stream<char_type>,char_type const*,char_type const*) noexcept{}
 
-
-
 template<std::integral ch_type>
 struct dummy_buffer_input_stream
 {
@@ -249,48 +223,21 @@ inline constexpr char_type* read(dummy_buffer_input_stream<char_type>,char_type*
 }
 
 #if 0
-//async stream concepts
 
 template<typename T>
-concept async_input_stream_impl = stream_char_type_requirement<T>&&
-	requires(T&& in,typename std::remove_cvref_t<T>::char_type* b)
+concept async_input_stream64_impl = requires(T in,typename T::char_type* first,typename T::char_type* last,std::int_least64_t offset)
 {
-	requires requires(typename std::remove_cvref_t<decltype(async_scheduler_type(in))>::type sch,
-	typename std::remove_cvref_t<decltype(async_overlapped_type(in))>::type overlapped,std::ptrdiff_t offset)
+	async_read_define64(in,first,last,offset,[](typename T::char_type*,::std::errc ec)
 	{
-		async_read_callback(sch,in,b,b,overlapped,offset);
-	};
+	});
 };
 
 template<typename T>
-concept async_output_stream_impl = stream_char_type_requirement<T>&&
-	requires(T&& out,typename std::remove_cvref_t<T>::char_type const* b)
+concept async_input_stream64_impl = requires(T in,typename T::char_type* first,typename T::char_type* last,std::int_least64_t offset)
 {
-	requires requires(typename std::remove_cvref_t<decltype(async_scheduler_type(out))>::type sch,
-	typename std::remove_cvref_t<decltype(async_overlapped_type(out))>::type overlapped,std::ptrdiff_t offset)
+	async_write_define64(in,first,last,offset,[](typename T::char_type*,::std::errc ec)
 	{
-		async_write_callback(sch,out,b,b,overlapped,offset);
-	};
-};
-
-template<typename T>
-concept async_scatter_input_stream_impl = requires(T&& in,std::span<io_scatter_t const> sp)
-{
-	requires requires(typename std::remove_cvref_t<decltype(async_scheduler_type(in))>::type sch,
-	typename std::remove_cvref_t<decltype(async_overlapped_type(in))>::type overlapped,std::ptrdiff_t offset)
-	{
-		async_scatter_read_callback(sch,in,sp,overlapped,offset);
-	};
-};
-
-template<typename T>
-concept async_scatter_output_stream_impl = requires(T&& out,std::span<io_scatter_t const> sp)
-{
-	requires requires(typename std::remove_cvref_t<decltype(async_scheduler_type(out))>::type sch,
-	typename std::remove_cvref_t<decltype(async_overlapped_type(out))>::type overlapped,std::ptrdiff_t offset)
-	{
-		async_scatter_write_callback(sch,out,sp,overlapped,offset);
-	};
+	});
 };
 
 #endif

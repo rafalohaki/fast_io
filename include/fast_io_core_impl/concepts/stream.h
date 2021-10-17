@@ -28,22 +28,10 @@ template<typename T>
 concept io_stream = input_stream<T>&&output_stream<T>;
 
 template<typename T>
-concept character_input_stream = input_stream<T>&&details::character_input_stream_impl<T>;
-
-template<typename T>
-concept character_output_stream = output_stream<T>&&details::character_output_stream_impl<T>;
-
-template<typename T>
-concept character_io_stream = character_input_stream<T>&&character_output_stream<T>;
-
-template<typename T>
 concept flush_output_stream = output_stream<T>&&details::flush_output_stream_impl<T>;
 
 template<typename T>
 concept buffer_input_stream = input_stream<T>&&details::buffer_input_stream_impl<T>;
-
-template<typename T>
-concept refill_buffer_input_stream = buffer_input_stream<T>&&details::refill_buffer_input_stream_impl<T>;
 
 template<typename T>
 concept contiguous_input_stream = buffer_input_stream<T>&&details::contiguous_input_stream_impl<T>;
@@ -53,9 +41,6 @@ concept buffer_output_stream = output_stream<T>&&details::buffer_output_stream_i
 
 template<typename T>
 concept contiguous_output_stream = buffer_output_stream<T>&&details::contiguous_output_stream_impl<T>;
-
-template<typename T>
-concept fill_nc_output_stream = output_stream<T>&&details::fill_nc_output_stream_impl<T>;
 
 template<typename T>
 concept buffer_io_stream = buffer_input_stream<T>&&buffer_output_stream<T>&&io_stream<T>;
@@ -83,15 +68,6 @@ concept zero_copy_output_stream = output_stream<T>&&details::zero_copy_output_st
 
 template<typename T>
 concept zero_copy_io_stream = zero_copy_input_stream<T>&&zero_copy_output_stream<T>;
-
-template<typename T>
-concept memory_map_input_stream = input_stream<T>&&details::memory_map_input_stream_impl<T>;
-
-template<typename T>
-concept memory_map_output_stream = output_stream<T>&&details::memory_map_output_stream_impl<T>;
-
-template<typename T>
-concept memory_map_io_stream = memory_map_input_stream<T>&&memory_map_output_stream<T>;
 
 template<typename T>
 concept scatter_input_stream = input_stream<T>&&details::scatter_input_stream_impl<T>;

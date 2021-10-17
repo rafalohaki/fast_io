@@ -11,5 +11,5 @@
 #endif
 
 #include"ostring_ref.h"
-#include"string_context.h"
 #include"concat.h"
+#include"scan_str_ctx_impl.h"

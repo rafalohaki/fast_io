@@ -138,13 +138,6 @@ constexpr Iter read(io_reference_wrapper<input> in,Iter first,Iter last)
 {
 	return read(*in.ptr,first,last);
 }
-
-template<character_input_stream input>
-constexpr decltype(auto) igenerator(io_reference_wrapper<input> in)
-{
-	return igenerator(*in.ptr);
-}
-
 template<buffer_input_stream input>
 constexpr bool ibuffer_underflow(io_reference_wrapper<input> in)
 {
@@ -178,18 +171,6 @@ template<buffer_input_stream input>
 constexpr void ibuffer_set_curr(io_reference_wrapper<input> in,std::remove_cvref_t<decltype(ibuffer_curr(*in.ptr))> ptr)
 {
 	ibuffer_set_curr(*in.ptr,ptr);
-}
-
-template<memory_map_input_stream input>
-constexpr decltype(auto) memory_map_in_handle(io_reference_wrapper<input> in)
-{
-	return memory_map_in_handle(*in.ptr);
-}
-
-template<memory_map_output_stream output>
-constexpr decltype(auto) memory_map_out_handle(io_reference_wrapper<output> out)
-{
-	return memory_map_out_handle(*out.ptr);
 }
 
 template<zero_copy_input_stream input>
@@ -236,12 +217,6 @@ template<flush_output_stream output>
 constexpr void flush(io_reference_wrapper<output> co)
 {
 	flush(*co.ptr);
-}
-
-template<fill_nc_output_stream T>
-constexpr void fill_nc_define(io_reference_wrapper<T> fnc,std::size_t n,typename std::remove_cvref_t<T>::char_type ch)
-{
-	fill_nc_define(*fnc.ptr,n,ch);
 }
 
 }

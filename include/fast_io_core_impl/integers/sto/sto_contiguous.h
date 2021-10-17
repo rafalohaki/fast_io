@@ -769,7 +769,7 @@ inline constexpr parse_result<Iter> scan_contiguous_define(io_reserve_type_t<::f
 }
 
 template<::fast_io::freestanding::input_iterator Iter,manipulators::scalar_flags flags,typename State,details::my_integral T>
-inline constexpr parse_result<Iter> scan_context_define2(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,::fast_io::manipulators::scalar_manip_t<flags,T&>>,State& state,Iter begin,Iter end,::fast_io::manipulators::scalar_manip_t<flags,T&> t) noexcept
+inline constexpr parse_result<Iter> scan_context_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,::fast_io::manipulators::scalar_manip_t<flags,T&>>,State& state,Iter begin,Iter end,::fast_io::manipulators::scalar_manip_t<flags,T&> t) noexcept
 {
 	return details::scan_context_define_parse_impl<flags.base>(state,begin,end,t.reference);
 }
@@ -801,7 +801,7 @@ inline constexpr io_type_t<details::empty> scan_context_type(io_reserve_type_t<c
 }
 
 template<::fast_io::freestanding::input_iterator Iter>
-inline constexpr parse_result<Iter> scan_context_define2(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,manipulators::ch_get_t<::fast_io::freestanding::iter_value_t<Iter>&>>,details::empty,Iter begin,Iter end,manipulators::ch_get_t<::fast_io::freestanding::iter_value_t<Iter>&> t) noexcept
+inline constexpr parse_result<Iter> scan_context_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,manipulators::ch_get_t<::fast_io::freestanding::iter_value_t<Iter>&>>,details::empty,Iter begin,Iter end,manipulators::ch_get_t<::fast_io::freestanding::iter_value_t<Iter>&> t) noexcept
 {
 	return details::ch_get_context_impl(begin,end,t.reference);
 }

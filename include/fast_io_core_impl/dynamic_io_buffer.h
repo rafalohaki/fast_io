@@ -159,7 +159,7 @@ inline constexpr void write(dynamic_io_buffer<ch_type>& ob,Iter first,Iter last)
 			details::dynamic_io_buffer_write_impl_unhappy(ob,first,diff);
 			return;
 		}
-		details::non_overlapped_copy(first,last,ob.buffer_begin);
+		ob.buffer_curr=details::non_overlapped_copy(first,last,ob.buffer_begin);
 	}
 }
 

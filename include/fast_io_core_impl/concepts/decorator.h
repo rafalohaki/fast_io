@@ -2,7 +2,7 @@
 
 namespace fast_io
 {
-/*
+#if 0
 template<typename to_value_type,typename T>
 concept decorator=requires(T t,to_value_type* dest,std::size_t size)
 {
@@ -33,18 +33,18 @@ concept reserve_inverse_size_decorator=decorator<to_value_type,T>&&requires(T t,
 {
 	{deco_reserve_inverse_size(io_reserve_type<to_value_type,T>,t,size)}->std::same_as<std::size_t>;
 };
-*/
+#endif
 template<typename T>
 concept value_based_decorator = requires(T t)
 {
 	{deco_value_handle(t)};
 };
-/*
+#if 0
 template<typename to_value_type,typename T>
 concept unshift_decorator = decorator<to_value_type,T>&&requires(T t,to_value_type const* from_iter,to_value_type const* to_iter)
 {
 	{deco_unshift_size(io_reserve_type<to_value_type,T>,t)};
 	{deco_unshift_define(io_reserve_type<to_value_type,T>,t,from_iter,to_iter)};
 };
-*/
+#endif
 }

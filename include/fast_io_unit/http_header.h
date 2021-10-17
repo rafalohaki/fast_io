@@ -204,7 +204,7 @@ inline constexpr parse_result<Iter> http_header_scan_context_define_impl(std::si
 }
 
 template<::fast_io::freestanding::random_access_iterator Iter>
-inline constexpr parse_result<Iter> scan_context_define2(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,::fast_io::parameter<basic_http_header_buffer<::fast_io::freestanding::iter_value_t<Iter>>&>>,http_buffer_parse_context& statetp,Iter first1,Iter last,::fast_io::parameter<basic_http_header_buffer<::fast_io::freestanding::iter_value_t<Iter>>&> t) noexcept
+inline constexpr parse_result<Iter> scan_context_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,::fast_io::parameter<basic_http_header_buffer<::fast_io::freestanding::iter_value_t<Iter>>&>>,http_buffer_parse_context& statetp,Iter first1,Iter last,::fast_io::parameter<basic_http_header_buffer<::fast_io::freestanding::iter_value_t<Iter>>&> t) noexcept
 {
 	return ::fast_io::details::http_header_scan_context_define_impl(statetp.state,first1,last,t.reference);
 }

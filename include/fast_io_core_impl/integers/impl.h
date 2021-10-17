@@ -44,11 +44,12 @@ struct scalar_flags
 	bool uppercase_e{};
 	bool showpos_e{true};
 	bool comma{};
-	bool localeparse{};
 	bool full{};
 	scalar_placement placement{scalar_placement::none};
 	floating_format floating{floating_format::general};
 	lc_time_flag time_flag{};
+	bool localeparse{};
+	bool line{};
 };
 
 inline constexpr scalar_flags integral_default_scalar_flags{.floating=floating_format::fixed};

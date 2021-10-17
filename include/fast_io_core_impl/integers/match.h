@@ -50,7 +50,7 @@ inline constexpr io_type_t<match_context> scan_context_type(io_reserve_type_t<ch
 }
 
 template<::fast_io::freestanding::input_iterator Iter>
-inline constexpr parse_result<Iter> scan_context_define2(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,manipulators::basic_matcher_t<basic_io_scatter_t<::fast_io::freestanding::iter_value_t<Iter>>>>,match_context& ctx,Iter first,Iter last,manipulators::basic_matcher_t<basic_io_scatter_t<::fast_io::freestanding::iter_value_t<Iter>>> t) noexcept
+inline constexpr parse_result<Iter> scan_context_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,manipulators::basic_matcher_t<basic_io_scatter_t<::fast_io::freestanding::iter_value_t<Iter>>>>,match_context& ctx,Iter first,Iter last,manipulators::basic_matcher_t<basic_io_scatter_t<::fast_io::freestanding::iter_value_t<Iter>>> t) noexcept
 {
 	return details::match_context_impl(ctx.matched,first,last,t.reference.base,t.reference.len);
 }

@@ -301,7 +301,12 @@ inline constexpr bool is_html_whitespace(char_type ch) noexcept
 namespace fast_io
 {
 
-
+template<::fast_io::freestanding::forward_iterator Iter>
+inline constexpr Iter find_lf(Iter first, Iter last)
+{
+	using char_type = ::fast_io::freestanding::iter_value_t<Iter>;
+	return ::fast_io::freestanding::find(first,last,::fast_io::char_literal_v<u8'\n',char_type>);
+}
 
 template<::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter find_non_c_space(Iter begin,Iter end)
