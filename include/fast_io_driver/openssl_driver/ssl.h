@@ -33,7 +33,7 @@ public:
 template<std::integral ch_type,std::integral ch_type1,std::integral ch_type2>
 inline void set_bio(basic_ssl_io_observer<ch_type> siob,basic_bio_file<ch_type1>&& rbio,basic_bio_file<ch_type2>&& wbio) noexcept
 {
-	SSL_set_bio(siob.ssl,rbio.bio,wbio.bio);
+	::fast_io::noexcept_call(SSL_set_bio,siob.ssl,rbio.bio,wbio.bio);
 	rbio.bio=nullptr;
 	wbio.bio=nullptr;
 }
@@ -47,7 +47,7 @@ inline std::size_t use_count(basic_ssl_io_observer<ch_type> siob)
 template<std::integral ch_type>
 inline void connect(basic_ssl_io_observer<ch_type> siob)
 {
-	if(SSL_connect(siob.ssl)==-1)
+	if(::fast_io::noexcept_call(SSL_connect,siob.ssl)==-1)
 		throw_openssl_error();
 }
 
