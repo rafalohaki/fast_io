@@ -171,7 +171,7 @@ inline constexpr std::uint_least64_t raw_transmit64_decay(output outs,input ins,
 			ibuffer_set_curr(ins,ed);
 			chars+=this_round;
 			characters-=this_round;
-			if(transmit_enough_characters)
+			if(characters==0)
 				break;
 		}
 		while(ibuffer_underflow(ins));
@@ -199,9 +199,10 @@ inline constexpr std::uint_least64_t raw_transmit64_decay(output outs,input ins,
 			if(array_start==ed)[[unlikely]]
 				break;
 			write(outs,array_start,ed);
-			chars+=this_round;
-			characters-=this_round;
-			if(transmit_enough_characters)
+			std::uint_least64_t real_transmit_this_round{static_cast<std::uint_least64_t>(static_cast<std::size_t>(ed-array_start))};
+			chars+=real_transmit_this_round;
+			characters-=real_transmit_this_round;
+			if(characters==0)
 				break;
 		}
 		return chars;
@@ -230,13 +231,14 @@ inline constexpr decltype(auto) transmit64_decay(output outs,input ins,std::uint
 			return raw_transmit64_decay(outs,ins,characters);
 		else
 		{
+			using input_char_type = typename input::char_type;
 			std::uint_least64_t chars{};
 			if constexpr(buffer_input_stream<input>)
 			{
 				auto curr{ibuffer_curr(ins)};
 				auto ed{ibuffer_end(ins)};
 				std::size_t diff{static_cast<std::size_t>(ed-curr)};
-				bool const no_need_further_transmit{chars<=diff};
+				bool const no_need_further_transmit{characters<=diff};
 				if(no_need_further_transmit)
 				{
 					diff=static_cast<std::size_t>(characters);
@@ -244,6 +246,7 @@ inline constexpr decltype(auto) transmit64_decay(output outs,input ins,std::uint
 				auto ed_ptr{curr+diff};
 				write(outs,curr,curr+diff);
 				chars+=diff;
+				characters-=diff;
 				ibuffer_set_curr(ins,ed_ptr);
 				if(no_need_further_transmit)
 					return chars;
