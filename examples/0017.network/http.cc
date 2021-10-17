@@ -19,9 +19,7 @@ int main()
 	{
 		if(key==u8"Content-Length"sv)
 		{
-			fast_io::u8ibuffer_view content_length_view{value};
-			std::uint_least64_t content_length{};
-			scan(content_length_view,content_length);
+			auto content_length{::fast_io::u8to<std::uint_least64_t>(value)};
 			fast_io::u8native_file nf(u8"index.html",fast_io::open_mode::out);
 			transmit64(nf,socket,content_length);
 			return 0;
