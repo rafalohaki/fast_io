@@ -235,15 +235,16 @@ inline constexpr decltype(auto) transmit64_decay(output outs,input ins,std::uint
 			{
 				auto curr{ibuffer_curr(ins)};
 				auto ed{ibuffer_end(ins)};
-				std::size_t const diff{static_cast<std::size_t>(ed-curr)};
+				std::size_t diff{static_cast<std::size_t>(ed-curr)};
 				bool const no_need_further_transmit{chars<=diff};
 				if(no_need_further_transmit)
 				{
 					diff=static_cast<std::size_t>(characters);
 				}
+				auto ed_ptr{curr+diff};
 				write(outs,curr,curr+diff);
 				chars+=diff;
-				ibuffer_set_curr(ins,ed);
+				ibuffer_set_curr(ins,ed_ptr);
 				if(no_need_further_transmit)
 					return chars;
 			}

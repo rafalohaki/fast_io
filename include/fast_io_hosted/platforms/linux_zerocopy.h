@@ -101,9 +101,9 @@ inline std::uintmax_t zero_copy_transmit_define(io_alias_t,basic_linux_zero_copy
 }
 
 template<std::integral ch_type1,std::integral ch_type2>
-inline std::uint_least64_t zero_copy_transmit_define64(io_alias_t,basic_linux_zero_copy_entry<ch_type1> outs,basic_linux_zero_copy_entry<ch_type2> ins)
+inline std::uint_least64_t zero_copy_transmit64_define(io_alias_t,basic_linux_zero_copy_entry<ch_type1> outs,basic_linux_zero_copy_entry<ch_type2> ins,std::uint_least64_t characters)
 {
-	return details::zero_copy_transmit_define64_impl(outs.fd,ins.fd)/sizeof(ch_type2);
+	return details::zero_copy_transmit_define64_impl(outs.fd,ins.fd,characters)/sizeof(ch_type2);
 }
 
 }
