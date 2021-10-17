@@ -74,7 +74,7 @@ inline std::uint_least64_t zero_copy_transmit_define64_impl(int out_fd,int in_fd
 			to_transmit_this_round=count;
 		auto diff{
 #if defined(__NR_sendfile64)
-		system_call<__NR_sendfile64,std::int_least64_t>
+		system_call<__NR_sendfile64,posix_ssize_t>
 #else
 		system_call<__NR_sendfile,posix_ssize_t>
 #endif
