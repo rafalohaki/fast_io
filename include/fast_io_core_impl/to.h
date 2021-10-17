@@ -115,35 +115,7 @@ inline constexpr void inplace_to_decay_buffer_context_impl(char_type* buffer,sta
 		}
 	}
 }
-#if 0
-template<std::integral char_type,typename state,typename T,typename Arg1,typename ...Args>
-#if __has_cpp_attribute(gnu::always_inline)
-[[gnu::always_inline]]
-#elif __has_cpp_attribute(msvc::forceinline)
-[[msvc::forceinline]]
-#endif
-inline constexpr void inplace_to_all_scatters_decay_context_impl(state& s,char_type const* buffer_begin,char_type const* buffer_curr,T t,Arg1 arg,Args... args)
-{
-	auto [it,ec]=scan_context_define(io_reserve_type<char_type,T>,s,buffer_begin,buffer_curr,t);
-	if(it!=buffer_curr)
-	{
-		if(ec!=parse_code::ok)
-			throw_parse_code(ec);
-		return;
-	}
-	if constexpr(sizeof...(Args)!=0)
-	{
-		buffer.ptr->buffer_curr=buffer_begin;
-		inplace_to_decay_context_impl(buffer,s,t,args...);
-	}
-	else
-	{
-		parse_code p{scan_context_eof_define(io_reserve_type<char_type,T>,s,t)};
-		if(p!=parse_code::ok)
-			throw_parse_code(p);
-	}
-}
-#endif
+
 template<std::integral char_type,bool ln,typename T,typename... Args>
 inline constexpr std::size_t calculate_print_normal_maxium_size_main(std::size_t mx_value) noexcept
 {
