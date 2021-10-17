@@ -60,7 +60,36 @@ inline std::uintmax_t zero_copy_transmit_define_impl(int out_fd,int in_fd)
 		total_bytes+=static_cast<std::size_t>(diff);
 	}
 	return total_bytes;
+}
 
+inline std::uint_least64_t zero_copy_transmit_define64_impl(int out_fd,int in_fd,std::uint_least64_t count)
+{
+	using posix_ssize_t = std::make_signed_t<std::size_t>;
+	constexpr std::size_t transmit_a_round{static_cast<std::size_t>(std::numeric_limits<posix_ssize_t>::max())};
+	std::uint_least64_t total_bytes{};
+	for(;;)
+	{
+		std::uint_least64_t to_transmit_this_round{transmit_a_round};
+		if(count<to_transmit_this_round)
+			to_transmit_this_round=count;
+		posix_ssize_t diff{
+#if defined(__NR_sendfile64)
+		system_call<__NR_sendfile64,posix_ssize_t>
+#else
+		system_call<__NR_sendfile,posix_ssize_t>
+#endif
+		(out_fd,in_fd,nullptr,to_transmit_this_round)};
+		if(linux_system_call_fails(diff))[[unlikely]]
+			return total_bytes+raw_transmit64_decay(posix_io_observer{out_fd},posix_io_observer{in_fd},count);
+		else if(diff==0)[[unlikely]]
+			break;
+		std::uint_least64_t diff64{static_cast<std::uint_least64_t>(diff)};
+		total_bytes+=diff64;
+		count-=diff64;
+		if(count==0)
+			break;
+	}
+	return total_bytes;
 }
 
 }
@@ -69,6 +98,12 @@ template<std::integral ch_type1,std::integral ch_type2>
 inline std::uintmax_t zero_copy_transmit_define(io_alias_t,basic_linux_zero_copy_entry<ch_type1> outs,basic_linux_zero_copy_entry<ch_type2> ins)
 {
 	return details::zero_copy_transmit_define_impl(outs.fd,ins.fd)/sizeof(ch_type2);
+}
+
+template<std::integral ch_type1,std::integral ch_type2>
+inline std::uint_least64_t zero_copy_transmit_define64(io_alias_t,basic_linux_zero_copy_entry<ch_type1> outs,basic_linux_zero_copy_entry<ch_type2> ins)
+{
+	return details::zero_copy_transmit_define64_impl(outs.fd,ins.fd)/sizeof(ch_type2);
 }
 
 }

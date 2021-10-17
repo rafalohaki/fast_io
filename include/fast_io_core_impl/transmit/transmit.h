@@ -185,8 +185,8 @@ inline constexpr std::uint_least64_t raw_transmit64_decay(output outs,input ins,
 		std::size_t to_allocate{buffer_size};
 		if(characters<to_allocate)
 			to_allocate=characters;
-		details::buffer_alloc_arr_ptr<input_char_type,secure_clear_requirement_stream<input>> array_ptr(to_allocate);
-		auto array_start{array_ptr.ptr},array_end{array_ptr.ptr+to_allocate};
+		::fast_io::details::buffer_alloc_arr_ptr<input_char_type,secure_clear_requirement_stream<input>> array_ptr(to_allocate);
+		auto array_start{array_ptr.ptr};
 		for(;;)
 		{
 			std::uint_least64_t this_round{to_allocate};
@@ -224,28 +224,34 @@ inline constexpr decltype(auto) transmit64_decay(output outs,input ins,std::uint
 		decltype(auto) uh{outs.unlocked_handle()};
 		return transmit64_decay(io_ref(uh),ins,characters);
 	}
-#if 0
 	else if constexpr(zero_copy_transmitable<output,input>)
 	{
 		if constexpr(buffer_output_stream<output>&&!flush_output_stream<output>)
 			return raw_transmit64_decay(outs,ins,characters);
 		else
 		{
-			std::uintmax_t chars{};
+			std::uint_least64_t chars{};
 			if constexpr(buffer_input_stream<input>)
 			{
 				auto curr{ibuffer_curr(ins)};
 				auto ed{ibuffer_end(ins)};
-				write(outs,curr,ed);
-				chars+=static_cast<std::size_t>(ed-curr);
+				std::size_t const diff{static_cast<std::size_t>(ed-curr)};
+				bool const no_need_further_transmit{chars<=diff};
+				if(no_need_further_transmit)
+				{
+					diff=static_cast<std::size_t>(characters);
+				}
+				write(outs,curr,curr+diff);
+				chars+=diff;
 				ibuffer_set_curr(ins,ed);
+				if(no_need_further_transmit)
+					return chars;
 			}
 			if constexpr(buffer_output_stream<output>)
 				flush(outs);
 			return chars+zero_copy_transmit64_define(io_alias,zero_copy_out_handle(outs),zero_copy_in_handle(ins),characters);
 		}
 	}
-#endif
 	else if constexpr(output_stream<output>&&input_stream<input>)
 		return raw_transmit64_decay(outs,ins,characters);
 	else
