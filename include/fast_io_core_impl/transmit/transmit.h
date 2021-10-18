@@ -231,7 +231,6 @@ inline constexpr decltype(auto) transmit64_decay(output outs,input ins,std::uint
 			return raw_transmit64_decay(outs,ins,characters);
 		else
 		{
-			using input_char_type = typename input::char_type;
 			std::uint_least64_t chars{};
 			if constexpr(buffer_input_stream<input>)
 			{

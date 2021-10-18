@@ -310,7 +310,10 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 			if (month_minus_1 > 11u) [[unlikely]]
 				value += uint_least8_reserve_size;
 			else
-				value += t.mon[month_minus_1].len;
+			{
+				auto mon_or_abmon{*p==char_literal_v<u8'B', char_type>?t.mon:t.abmon};
+				value += mon_or_abmon[month_minus_1].len;
+			}
 			break;
 		}
 		case char_literal_v<u8'c', char_type>:
@@ -659,7 +662,8 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 		case char_literal_v<u8'b', char_type>:
 		case char_literal_v<u8'h', char_type>:
 		{
-			iter=lc_print_month_fmt_common(t.abmon,iter,tsp.month);
+			auto mon_or_abmon{first_format_ch==char_literal_v<u8'B',char_type>?t.mon:t.abmon};
+			iter=lc_print_month_fmt_common(mon_or_abmon,iter,tsp.month);
 			break;
 		}
 		case char_literal_v<u8'c', char_type>:
