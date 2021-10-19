@@ -324,6 +324,7 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 		case char_literal_v<u8'C', char_type>:
 		case char_literal_v<u8'g', char_type>:
 		case char_literal_v<u8'G', char_type>:
+		case char_literal_v<u8'v', char_type>:
 		case char_literal_v<u8'y', char_type>:
 		case char_literal_v<u8'Y', char_type>:
 		{
@@ -333,18 +334,19 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 		case char_literal_v<u8'd', char_type>:
 		case char_literal_v<u8'e', char_type>:
 		case char_literal_v<u8'H', char_type>:
+		case char_literal_v<u8'I', char_type>:
+		case char_literal_v<u8'k', char_type>:
+		case char_literal_v<u8'l', char_type>:
 		case char_literal_v<u8'm', char_type>:
 		case char_literal_v<u8'M', char_type>:
 		case char_literal_v<u8'S', char_type>:
-		case char_literal_v<u8'U', char_type>:
-		case char_literal_v<u8'W', char_type>:
-		case char_literal_v<u8'l', char_type>:
-		case char_literal_v<u8'I', char_type>:
-		case char_literal_v<u8'k', char_type>:
 		{
 			value+=uint_least8_reserve_size;
 			break;
 		}
+		case char_literal_v<u8'U', char_type>:
+		case char_literal_v<u8'V', char_type>:
+		case char_literal_v<u8'W', char_type>:
 		case char_literal_v<u8'j', char_type>:
 		{
 			value += uint_least16_reserve_size;
@@ -483,16 +485,6 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 			//if hours >=24, ignore am pm
 			break;
 		}
-		case char_literal_v<u8'x', char_type>:
-		{
-			value += lc_print_reserve_size_time_format_common_impl(t, tsp, t.d_fmt);
-			break;
-		}
-		case char_literal_v<u8'X', char_type>:
-		{
-			value += lc_print_reserve_size_time_format_common_impl(t, tsp, t.t_fmt);
-			break;
-		}
 		case char_literal_v<u8'r', char_type>:
 		{
 			value += lc_print_reserve_size_time_format_common_impl(t, tsp, t.t_fmt_ampm);
@@ -513,6 +505,16 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 		{
 			constexpr std::size_t uint_least8_reserve_size_result{ 2 + 3 * uint_least8_reserve_size };
 			value += uint_least8_reserve_size_result;
+			break;
+		}
+		case char_literal_v<u8'x', char_type>:
+		{
+			value += lc_print_reserve_size_time_format_common_impl(t, tsp, t.d_fmt);
+			break;
+		}
+		case char_literal_v<u8'X', char_type>:
+		{
+			value += lc_print_reserve_size_time_format_common_impl(t, tsp, t.t_fmt);
 			break;
 		}
 		case char_literal_v<u8'z',char_type>:
@@ -984,7 +986,7 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 			} weekday_of_1st_day_this_year{ day_diff(year, 1, 1, benchmark_year, benchmark_month, benchmark_day) % my_make_signed_t<std::size_t>(ndays) };
 			if (weekday_of_1st_day_this_year.s < 0)
 				weekday_of_1st_day_this_year.u += ndays + 1u;
- 			else
+			else
 				++weekday_of_1st_day_this_year.u;
 			std::uint_least64_t weekday_of_last_day_this_year;
 			if (is_leap_year(year))
