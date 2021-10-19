@@ -305,14 +305,14 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 		case char_literal_v<u8'B', char_type>:
 		case char_literal_v<u8'h', char_type>:
 		{
-			std::uint_least8_t month_minus_1{ tsp.month };
-			--month_minus_1;
-			if (month_minus_1 > 11u) [[unlikely]]
+			std::uint_least8_t month_minus1{ tsp.month };
+			--month_minus1;
+			if (month_minus1 > 11u) [[unlikely]]
 				value += uint_least8_reserve_size;
 			else
 			{
 				auto mon_or_abmon{*p==char_literal_v<u8'B', char_type>?t.mon:t.abmon};
-				value += mon_or_abmon[month_minus_1].len;
+				value += mon_or_abmon[month_minus1].len;
 			}
 			break;
 		}
@@ -436,6 +436,15 @@ inline constexpr std::size_t lc_print_reserve_size_time_format_common_impl(basic
 			char_type const ch{*p};
 			switch(ch)
 			{
+			case char_literal_v<u8'b', char_type>:	
+			case char_literal_v<u8'h', char_type>:
+			{
+				auto month_minus1{ static_cast<std::uint_least8_t>(tsp.month - 1u) };
+				if (month_minus1 > 11u) [[unlikely]]
+					month_minus1 = 0u;
+				value += t.ab_alt_mon[month_minus1].len;
+				break;
+			}
 			case char_literal_v<u8'C', char_type>:	
 			{
 				std::int_least64_t yr{tsp.year/100};
@@ -600,11 +609,11 @@ inline constexpr Iter lc_copy_53_impl(Iter iter) noexcept
 template<std::integral char_type,::fast_io::freestanding::random_access_iterator Iter>
 inline constexpr Iter lc_print_month_fmt_common(basic_io_scatter_t<char_type> const* month_array,Iter iter,std::uint_least8_t month)
 {
-	constexpr std::uint_least8_t constant{12};
-	std::uint_least8_t monthm1{month};
-	--monthm1;
-	if(monthm1 < constant) [[likely]]
-		return copy_scatter(month_array[monthm1], iter);
+	constexpr std::uint_least8_t twelve{12};
+	std::uint_least8_t month_minus1{month};
+	--month_minus1;
+	if(month_minus1 < twelve) [[likely]]
+		return copy_scatter(month_array[month_minus1], iter);
 	else
 		return print_reserve_integral_define<10>(iter, month);
 }
@@ -873,6 +882,16 @@ inline constexpr Iter lc_print_reserve_define_time_fmt_common_impl(basic_lc_time
 			char_type const ch{*p};
 			switch(ch)
 			{
+			case char_literal_v<u8'b', char_type>:
+			case char_literal_v<u8'h', char_type>:
+			{
+				auto month_minus1{ static_cast<std::uint_least8_t>(tsp.month - 1u) };
+				if (month_minus1 > 11u) [[unlikely]]
+					month_minus1 = 0u;
+				auto month_scatter{ t.ab_alt_mon[month_minus1] };
+				iter = non_overlapped_copy_n(month_scatter.base, month_scatter.len, iter);
+				break;
+			}
 			case char_literal_v<u8'C', char_type>:
 			{
 				iter = lc_format_alt_digits_print<std::int_least64_t>(t.alt_digits,tsp.year/100,iter);
