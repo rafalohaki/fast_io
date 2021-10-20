@@ -32,7 +32,7 @@ int main()
 		for (auto fnm : files)
 		{
 			println(f, u8"Current Locale:", fast_io::mnp::code_cvt(std::string_view(fnm)));
-			println(f, u8"Current Timestamp", ts);
+			println(f, u8"Current Timestamp:", ts);
 			char8_t format_buffer[3]{ u8'%',u8'%',u8'%' };
 			fast_io::basic_io_scatter_t<char8_t> test_format{ format_buffer,2 };
 			fast_io::l10n loc(fnm);
