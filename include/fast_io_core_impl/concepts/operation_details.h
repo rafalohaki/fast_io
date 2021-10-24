@@ -8,7 +8,7 @@ concept character = std::integral<ch_type>&&(std::same_as<ch_type,char>||std::sa
 std::same_as<ch_type,char8_t>||std::same_as<ch_type,char32_t>);
 
 template<typename T>
-concept c_str_pointer = std::same_as<T,char const*>||std::same_as<T,char8_t const*>||std::same_as<T,char8_t const*>||
+concept c_str_pointer = std::same_as<T,char const*>||std::same_as<T,char8_t const*>||std::same_as<T,wchar_t const*>||
 	std::same_as<T,char16_t const*>||std::same_as<T,char32_t const*>;
 
 }
