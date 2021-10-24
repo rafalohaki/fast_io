@@ -102,34 +102,12 @@ public:
 	basic_filebuf_file(native_fs_dirent fsdirent,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_filebuf_file(basic_posix_file<char_type>(fsdirent,om,pm),om)
 	{}
-	basic_filebuf_file(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+	template<::fast_io::constructible_to_os_c_str T>
+	basic_filebuf_file(T const& file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_filebuf_file(basic_posix_file<char_type>(file,om,pm),om)
 	{}
-	basic_filebuf_file(native_at_entry nate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_filebuf_file(basic_posix_file<char_type>(nate,file,om,pm),om)
-	{}
-	basic_filebuf_file(wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_filebuf_file(basic_posix_file<char_type>(file,om,pm),om)
-	{}
-	basic_filebuf_file(native_at_entry nate,wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_filebuf_file(basic_posix_file<char_type>(nate,file,om,pm),om)
-	{}
-	basic_filebuf_file(u8cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_filebuf_file(basic_posix_file<char_type>(file,om,pm),om)
-	{}
-	basic_filebuf_file(native_at_entry nate,u8cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_filebuf_file(basic_posix_file<char_type>(nate,file,om,pm),om)
-	{}
-	basic_filebuf_file(u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_filebuf_file(basic_posix_file<char_type>(file,om,pm),om)
-	{}
-	basic_filebuf_file(native_at_entry nate,u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_filebuf_file(basic_posix_file<char_type>(nate,file,om,pm),om)
-	{}
-	basic_filebuf_file(u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_filebuf_file(basic_posix_file<char_type>(file,om,pm),om)
-	{}
-	basic_filebuf_file(native_at_entry nate,u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+	template<::fast_io::constructible_to_os_c_str T>
+	basic_filebuf_file(native_at_entry nate,T const& file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_filebuf_file(basic_posix_file<char_type>(nate,file,om,pm),om)
 	{}
 #endif

@@ -282,19 +282,118 @@ struct nt_create_callback
 	}
 };
 
+template<bool zw>
+inline void* nt_create_file_internal_char16_impl(char16_t const* filename_cstr,nt_open_mode const& ntmode)
+{
+	return ::fast_io::win32::nt::details::nt_call_invoke_without_directory_handle_impl(filename_cstr,nt_create_callback<zw>{ntmode});
+}
+
 template<bool zw,std::integral char_type>
-inline void* nt_create_file_impl(char_type const* filename_cstr,std::size_t filename_len,open_mode_perms op)
+requires (sizeof(char_type)!=sizeof(char16_t))
+inline void* nt_create_file_internal_none_char16_impl(char_type const* filename_cstr,std::size_t filename_c_str_len,nt_open_mode const& ntmode)
+{
+	return ::fast_io::win32::nt::details::nt_call_invoke_without_directory_handle(filename_cstr,filename_c_str_len,nt_create_callback<zw>{ntmode});
+}
+
+template<bool zw,typename T>
+requires (::fast_io::constructible_to_os_c_str<T>)
+inline void* nt_create_file_internal_impl(T const& t,nt_open_mode const& ntmode)
+{
+	using char16_const_may_alias_ptr
+#if __has_cpp_attribute(gnu::may_alias)
+	[[gnu::may_alias]]
+#endif
+	= char16_t const*;
+	if constexpr(::std::is_array_v<T>)
+	{
+		using cstr_char_type = std::remove_extent_t<T>;
+		auto p{t};
+		if constexpr(sizeof(cstr_char_type)==sizeof(char16_t))
+		{
+			return ::fast_io::win32::nt::details::nt_create_file_internal_char16_impl<zw>(reinterpret_cast<char16_const_may_alias_ptr>(p),ntmode);
+		}
+		else
+		{
+			return ::fast_io::win32::nt::details::nt_create_file_internal_none_char16_impl<zw>(p,::fast_io::details::cal_array_size(t),ntmode);
+		}
+	}
+	else
+	{
+		using cstr_char_type = std::remove_pointer_t<decltype(t.c_str())>;
+		if constexpr(sizeof(cstr_char_type)==sizeof(char16_t))
+		{
+			return ::fast_io::win32::nt::details::nt_create_file_internal_char16_impl<zw>(reinterpret_cast<char16_const_may_alias_ptr>(t.c_str()),ntmode);
+		}
+		else
+		{
+#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __cpp_lib_ranges >= 201911L
+			if constexpr(::std::ranges::contiguous_range<std::remove_cvref_t<T>>)
+			{
+				return ::fast_io::win32::nt::details::nt_create_file_internal_none_char16_impl<zw>(::std::ranges::data(t),::std::ranges::size(t),ntmode);
+			}
+			else
+#endif
+			{
+				auto ptr{t.c_str()};
+				return ::fast_io::win32::nt::details::nt_create_file_internal_none_char16_impl<zw>(ptr,::fast_io::cstr_len(ptr),ntmode);
+			}
+		}
+	}
+}
+
+template<bool zw,typename T>
+requires (::fast_io::constructible_to_os_c_str<T>)
+inline void* nt_create_file_impl(T const& t,open_mode_perms op)
 {
 	nt_open_mode const md{win32::nt::details::calculate_nt_open_mode(op)};
-	return nt_call_callback_without_directory_handle(filename_cstr,filename_len,nt_create_callback<zw>{md});
+	return nt_create_file_internal_impl<zw>(t,md);
+}
+
+template<bool zw,std::integral char_type>
+inline void* nt_create_file_at_internal_impl(void* directory_handle,char_type const* filename_c_str,std::size_t filename_c_str_len,nt_open_mode const& md)
+{
+	return nt_call_callback(directory_handle,filename_c_str,filename_c_str_len,nt_create_callback<zw>{md});
 }
 
 template<bool zw,std::integral char_type>
 //4 parameters calling convention all pass by value
-inline void* nt_create_file_at_impl(void* directory_handle,char_type const* filename_cstr,std::size_t filename_len,open_mode_perms op)
+inline void* nt_create_file_at_fs_dirent_impl(void* directory_handle,char_type const* filename_c_str,std::size_t filename_c_str_len,open_mode_perms op)
 {
 	nt_open_mode const md{win32::nt::details::calculate_nt_open_mode(op)};
-	return nt_call_callback(directory_handle,filename_cstr,filename_len,nt_create_callback<zw>{md});
+	return nt_create_file_at_internal_impl<zw>(directory_handle,filename_c_str,filename_c_str_len,md);
+}
+
+template<bool zw,typename T>
+requires (::fast_io::constructible_to_os_c_str<T>)
+inline void* nt_create_file_at_ntmode_impl(void* handle,T const& t,nt_open_mode ntmode)
+{
+	if constexpr(::std::is_array_v<T>)
+	{
+		auto p{t};
+		return ::fast_io::win32::nt::details::nt_create_file_at_internal_impl<zw>(handle,p,::fast_io::details::cal_array_size(t),ntmode);
+	}
+	else
+	{
+#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __cpp_lib_ranges >= 201911L
+		if constexpr(::std::ranges::contiguous_range<std::remove_cvref_t<T>>)
+		{
+			return ::fast_io::win32::nt::details::nt_create_file_at_internal_impl<zw>(handle,::std::ranges::data(t),::std::ranges::size(t),ntmode);
+		}
+		else
+#endif
+		{
+			auto ptr{t.c_str()};
+			return ::fast_io::win32::nt::details::nt_create_file_at_internal_impl<zw>(handle,ptr,::fast_io::cstr_len(ptr),ntmode);
+		}
+	}
+}
+
+template<bool zw,typename T>
+requires (::fast_io::constructible_to_os_c_str<T>)
+inline void* nt_create_file_at_impl(void* directory_handle,T const& t,open_mode_perms op)
+{
+	nt_open_mode const md{win32::nt::details::calculate_nt_open_mode(op)};
+	return nt_create_file_at_ntmode_impl<zw>(directory_handle,t,md);
 }
 
 template<bool zw>
@@ -817,47 +916,12 @@ public:
 		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_dup_impl<family==nt_family::zw>(wiob.handle))
 	{}
 	explicit basic_nt_family_file(nt_fs_dirent fsdirent,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_at_impl<family==nt_family::zw>(fsdirent.handle,fsdirent.filename.c_str(),fsdirent.filename.size(),{om,pm})){}
-	explicit basic_nt_family_file(cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_create_file_impl<family==nt_family::zw>(filename.c_str(),filename.size(),{om,pm}))
-	{
-	}
-	explicit basic_nt_family_file(nt_at_entry nate,cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_at_impl<family==nt_family::zw>(nate.handle,filename.c_str(),filename.size(),{om,pm}))
-	{
-	}
-	explicit basic_nt_family_file(wcstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_create_file_impl<family==nt_family::zw>(filename.c_str(),filename.size(),{om,pm}))
-	{
-	}
-	explicit basic_nt_family_file(nt_at_entry nate,wcstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_at_impl<family==nt_family::zw>(nate.handle,filename.c_str(),filename.size(),{om,pm}))
-	{
-	}
-	explicit basic_nt_family_file(u8cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_create_file_impl<family==nt_family::zw>(filename.c_str(),filename.size(),{om,pm}))
-	{
-	}
-	explicit basic_nt_family_file(nt_at_entry nate,u8cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_at_impl<family==nt_family::zw>(nate.handle,filename.c_str(),filename.size(),{om,pm}))
-	{
-	}
-	explicit basic_nt_family_file(u16cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_create_file_impl<family==nt_family::zw>(filename.c_str(),filename.size(),{om,pm}))
-	{
-	}
-	explicit basic_nt_family_file(nt_at_entry nate,u16cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_at_impl<family==nt_family::zw>(nate.handle,filename.c_str(),filename.size(),{om,pm}))
-	{
-	}
-	explicit basic_nt_family_file(u32cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_create_file_impl<family==nt_family::zw>(filename.c_str(),filename.size(),{om,pm}))
-	{
-	}
-	explicit basic_nt_family_file(nt_at_entry nate,u32cstring_view filename,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_at_impl<family==nt_family::zw>(nate.handle,filename.c_str(),filename.size(),{om,pm}))
-	{
-	}
+		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_create_file_at_fs_dirent_impl<family==nt_family::zw>(fsdirent.handle,fsdirent.filename.c_str(),fsdirent.filename.size(),{om,pm})){}
+	template<::fast_io::constructible_to_os_c_str T>
+	explicit basic_nt_family_file(T const& t,open_mode om,perms pm=static_cast<perms>(436)):basic_nt_family_io_handle<family,ch_type>{::fast_io::win32::nt::details::nt_create_file_impl<family==nt_family::zw>(t,{om,pm})}{}
+	template<::fast_io::constructible_to_os_c_str T>
+	explicit basic_nt_family_file(nt_at_entry ent,T const& t,open_mode om,perms pm=static_cast<perms>(436)):basic_nt_family_io_handle<family,ch_type>{::fast_io::win32::nt::details::nt_create_file_at_impl<family==nt_family::zw>(ent.handle,t,{om,pm})}{}
+
  	basic_nt_family_file(basic_nt_family_file const&)=default;
 	basic_nt_family_file& operator=(basic_nt_family_file const&)=default;
 	constexpr basic_nt_family_file(basic_nt_family_file&&) noexcept=default;

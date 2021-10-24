@@ -330,34 +330,12 @@ public:
 	{
 	}
 #endif
-	basic_bio_file(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+	template<::fast_io::constructible_to_os_c_str T>
+	basic_bio_file(T const& file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_bio_file(basic_c_file<char_type>(file,om,pm),om)
 	{}
-	basic_bio_file(native_at_entry nate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_bio_file(basic_c_file<char_type>(nate,file,om,pm),om)
-	{}
-	basic_bio_file(wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_bio_file(basic_c_file<char_type>(file,om,pm),om)
-	{}
-	basic_bio_file(native_at_entry nate,wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_bio_file(basic_c_file<char_type>(nate,file,om,pm),om)
-	{}
-	basic_bio_file(u8cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_bio_file(basic_c_file<char_type>(file,om,pm),om)
-	{}
-	basic_bio_file(native_at_entry nate,u8cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_bio_file(basic_c_file<char_type>(nate,file,om,pm),om)
-	{}
-	basic_bio_file(u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_bio_file(basic_c_file<char_type>(file,om,pm),om)
-	{}
-	basic_bio_file(native_at_entry nate,u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_bio_file(basic_c_file<char_type>(nate,file,om,pm),om)
-	{}
-	basic_bio_file(u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_bio_file(basic_c_file<char_type>(file,om,pm),om)
-	{}
-	basic_bio_file(native_at_entry nate,u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+	template<::fast_io::constructible_to_os_c_str T>
+	basic_bio_file(native_at_entry nate,T const& file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_bio_file(basic_c_file<char_type>(nate,file,om,pm),om)
 	{}
 	inline constexpr void reset(native_handle_type newhandle=nullptr) noexcept

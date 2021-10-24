@@ -1123,48 +1123,104 @@ inline int my_posix_openat_file_internal_impl(int dirfd,char const* filepath,ope
 	return my_posix_openat(dirfd,filepath,details::calculate_posix_open_mode(om),static_cast<mode_t>(pm));
 }
 
-template<std::integral char_type>
-inline int my_posix_openat_file_impl(int dirfd,basic_cstring_view<char_type> filepath,open_mode om,perms pm)
+template<std::integral char_type,typename Func>
+requires (sizeof(char_type)!=sizeof(char))
+inline int posix_api_common_codecvt_impl(char_type const* filename_c_str,std::size_t filename_c_str_len,Func callback)
 {
-	if constexpr(std::same_as<char_type,char>)
+	posix_api_encoding_converter converter(filename_c_str,filename_c_str_len);
+	return callback(converter.native_c_str());
+}
+
+template<typename T,typename Func>
+requires (::fast_io::constructible_to_os_c_str<T>)
+inline int posix_api_common_impl(T const& t,Func callback)
+{
+	if constexpr(::std::is_array_v<T>)
 	{
-		return my_posix_openat_file_internal_impl(dirfd,filepath.c_str(),om,pm);
-	}
-	else if constexpr(sizeof(char_type)==1)
-	{
-		return my_posix_openat_file_internal_impl(dirfd,reinterpret_cast<char const*>(filepath.c_str()),om,pm);
+		using cstr_char_type = std::remove_extent_t<T>;
+		static_assert(::std::integral<cstr_char_type>);
+		auto p{t};
+		if constexpr(sizeof(cstr_char_type)==sizeof(char))
+		{
+			return callback(reinterpret_cast<char const*>(p));
+		}
+		else
+		{
+			return posix_api_common_codecvt_impl(p,::fast_io::details::cal_array_size(t),callback);
+		}
 	}
 	else
 	{
-		posix_api_encoding_converter converter(filepath.data(),filepath.size());
-		return my_posix_openat_file_internal_impl(dirfd,converter.native_c_str(),om,pm);
+		using cstr_char_type = std::remove_pointer_t<decltype(t.c_str())>;
+		if constexpr(sizeof(cstr_char_type)==sizeof(char))
+		{
+			return callback(reinterpret_cast<char const*>(t.c_str()));
+		}
+		else
+		{
+#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __cpp_lib_ranges >= 201911L
+			if constexpr(::std::ranges::contiguous_range<std::remove_cvref_t<T>>)
+			{
+				return posix_api_common_codecvt_impl(::std::ranges::data(t),::std::ranges::size(t),callback);
+			}
+			else
+#endif
+			{
+				auto ptr{t.c_str()};
+				return posix_api_common_codecvt_impl(ptr,::fast_io::cstr_len(ptr),callback);
+			}
+		}
 	}
 }
 
-inline int my_posix_open_file_internal_impl(char const* filepath,open_mode om,perms pm)
+struct my_posix_at_open_paramter
 {
-	return my_posix_open(filepath,details::calculate_posix_open_mode(om),static_cast<mode_t>(pm));
+	int dirfd{-1};
+	int om{};
+	mode_t pm{};
+	inline int operator()(char const* filename) const noexcept
+	{
+		return my_posix_openat(dirfd,filename,om,pm);
+	}
+};
+
+struct my_posix_open_paramter
+{
+	int om{};
+	mode_t pm{};
+	inline int operator()(char const* filename) const noexcept
+	{
+		return my_posix_open(filename,om,pm);
+	}
+};
+
+#if defined(__MSDOS__) || (defined(__NEWLIB__) && !defined(AT_FDCWD)) || defined(_PICOLIBC__)
+
+template<typename T>
+requires ::fast_io::constructible_to_os_c_str<T>
+inline constexpr int posix_openat_file_impl(int,T const&,open_mode,perms)
+{
+	throw_posix_error(EINVAL);
+	return -1;
 }
 
-template<std::integral char_type>
-inline int my_posix_open_file_impl(basic_cstring_view<char_type> filepath,open_mode om,perms pm)
+#else
+template<typename T>
+requires ::fast_io::constructible_to_os_c_str<T>
+inline constexpr int posix_openat_file_impl(int dirfd,T const& t,open_mode om,perms pm)
+{
+	return posix_api_common_impl(t,my_posix_at_open_paramter{dirfd,::fast_io::details::calculate_posix_open_mode(om),static_cast<mode_t>(pm)});
+}
+#endif
+
+template<typename T>
+requires ::fast_io::constructible_to_os_c_str<T>
+inline constexpr int posix_open_file_impl(T const& t,open_mode om,perms pm)
 {
 #if defined(__MSDOS__) || (defined(__NEWLIB__) && !defined(AT_FDCWD)) || defined(_PICOLIBC__)
-	if constexpr(std::same_as<char_type,char>)
-	{
-		return my_posix_open_file_internal_impl(filepath.c_str(),om,pm);
-	}
-	else if constexpr(sizeof(char_type)==1)
-	{
-		return my_posix_open_file_internal_impl(reinterpret_cast<char const*>(filepath.c_str()),om,pm);
-	}
-	else
-	{
-		posix_api_encoding_converter converter(filepath.data(),filepath.size());
-		return my_posix_open_file_internal_impl(converter.native_c_str(),om,pm);
-	}
+	return posix_api_common_impl(t,my_posix_open_paramter{::fast_io::details::calculate_posix_open_mode(om),static_cast<mode_t>(pm)});
 #else
-	return my_posix_openat_file_impl(AT_FDCWD,filepath,om,pm);
+	return posix_api_common_impl(t,my_posix_at_open_paramter{AT_FDCWD,::fast_io::details::calculate_posix_open_mode(om),static_cast<mode_t>(pm)});
 #endif
 }
 
@@ -1229,34 +1285,12 @@ public:
 	}
 	basic_posix_file(nt_fs_dirent fsdirent,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_posix_file(basic_win32_file<char_type>(fsdirent,om,pm),om){}
-	basic_posix_file(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+	template<::fast_io::constructible_to_os_c_str T>
+	basic_posix_file(T const& file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_posix_file(basic_win32_file<char_type>(file,om,pm),om)
 	{}
-	basic_posix_file(wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_posix_file(basic_win32_file<char_type>(file,om,pm),om)
-	{}
-	basic_posix_file(u8cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_posix_file(basic_win32_file<char_type>(file,om,pm),om)
-	{}
-	basic_posix_file(u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_posix_file(basic_win32_file<char_type>(file,om,pm),om)
-	{}
-	basic_posix_file(u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_posix_file(basic_win32_file<char_type>(file,om,pm),om)
-	{}
-	basic_posix_file(nt_at_entry nate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_posix_file(basic_win32_file<char_type>(nate,file,om,pm),om)
-	{}
-	basic_posix_file(nt_at_entry nate,wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_posix_file(basic_win32_file<char_type>(nate,file,om,pm),om)
-	{}
-	basic_posix_file(nt_at_entry nate,u8cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_posix_file(basic_win32_file<char_type>(nate,file,om,pm),om)
-	{}
-	basic_posix_file(nt_at_entry nate,u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_posix_file(basic_win32_file<char_type>(nate,file,om,pm),om)
-	{}
-	basic_posix_file(nt_at_entry nate,u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+	template<::fast_io::constructible_to_os_c_str T>
+	basic_posix_file(nt_at_entry nate,T const& file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_posix_file(basic_win32_file<char_type>(nate,file,om,pm),om)
 	{}
 
@@ -1278,19 +1312,19 @@ public:
 #endif
 	basic_posix_file(posix_fs_dirent fsdirent,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_posix_file(details::my_posix_openat_file_internal_impl(fsdirent.fd,fsdirent.filename,om,pm)){}
-	basic_posix_file(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_open_file_impl(file,om,pm)){}
-	basic_posix_file(posix_at_entry pate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_openat_file_impl(pate.fd,file,om,pm)){}
-	basic_posix_file(wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_open_file_impl(file,om,pm)){}
-	basic_posix_file(posix_at_entry pate,wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_openat_file_impl(pate.fd,file,om,pm)){}
-	basic_posix_file(u8cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_open_file_impl(file,om,pm)){}
-	basic_posix_file(posix_at_entry pate,u8cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_openat_file_impl(pate.fd,file,om,pm)){}
-	basic_posix_file(u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_open_file_impl(file,om,pm)){}
-	basic_posix_file(posix_at_entry pate,u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_openat_file_impl(pate.fd,file,om,pm)){}
-	basic_posix_file(u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_open_file_impl(file,om,pm)){}
-	basic_posix_file(posix_at_entry pate,u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):basic_posix_file(details::my_posix_openat_file_impl(pate.fd,file,om,pm)){}
 #if !defined(__wasi__) && __has_include(<sys/socket.h>) && __has_include(<netinet/in.h>)
-	basic_posix_file(sock_family d,sock_type t,open_mode m,sock_protocol p):basic_posix_io_handle<char_type>(details::open_socket_impl(d,t,m,p)){}
+	basic_posix_file(sock_family d,sock_type t,open_mode m,sock_protocol p):basic_posix_io_handle<char_type>(::fast_io::details::open_socket_impl(d,t,m,p)){}
 #endif
+
+	template<::fast_io::constructible_to_os_c_str T>
+	explicit basic_posix_file(T const& filename,open_mode om,perms pm=static_cast<perms>(436)):
+			basic_posix_io_handle<char_type>(::fast_io::details::posix_open_file_impl(filename,{om,pm}))
+	{}
+
+	template<::fast_io::constructible_to_os_c_str T>
+	explicit basic_posix_file(posix_at_entry pate,T const& filename,open_mode om,perms pm=static_cast<perms>(436)):
+			basic_posix_io_handle<char_type>(::fast_io::details::posix_openat_file_impl(pate.fd,filename,{om,pm}))
+	{}
 
 #endif
 

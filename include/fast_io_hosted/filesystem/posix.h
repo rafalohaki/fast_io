@@ -130,24 +130,11 @@ public:
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	constexpr posix_directory_file(native_hd dirp1):posix_directory_io_handle(dirp1){}
-	posix_directory_file(posix_io_handle&& pioh):posix_directory_io_handle(fdopendir(pioh.native_handle()))
+	posix_directory_file(posix_io_handle&& pioh):posix_directory_io_handle(noexcept_call(::fdopendir,pioh.fd))
 	{
 		if(this->native_handle()==nullptr)
 			throw_posix_error();
 		pioh.release();
-	}
-	posix_directory_file(cstring_view filename):posix_directory_file(posix_file(filename,open_mode::directory))
-	{
-/*
-https://code.woboq.org/userspace/glibc/sysdeps/posix/opendir.c.html
-glibc:
-enum {
-  opendir_oflags = O_RDONLY|O_NDELAY|O_DIRECTORY|O_LARGEFILE|O_CLOEXEC
-};
-*/
-	}
-	posix_directory_file(posix_at_entry pate,cstring_view filename):posix_directory_file(posix_file(pate,filename,open_mode::directory))
-	{
 	}
 	posix_directory_file(posix_directory_file const&) = default;
 	posix_directory_file& operator=(posix_directory_file const&) = default;
@@ -396,7 +383,7 @@ inline posix_recursive_directory_iterator& operator++(posix_recursive_directory_
 			auto name{prdit.entry->d_name};
 			if((*name==u8'.'&&name[1]==0)||(*name==u8'.'&&name[1]==u8'.'&&name[2]==0))
 				continue;
-			prdit.stack.emplace_back(posix_at_entry{details::dirp_to_fd(prdit.stack.empty()?prdit.dirp:prdit.stack.back().dirp)},name);
+			prdit.stack.emplace_back(::fast_io::posix_file(::fast_io::posix_fs_dirent{details::dirp_to_fd(prdit.stack.empty()?prdit.dirp:prdit.stack.back().dirp),name},::fast_io::open_mode::directory));
 		}
 		if(prdit.entry)[[likely]]
 		{

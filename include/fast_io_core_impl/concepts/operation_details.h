@@ -30,7 +30,7 @@ struct basic_os_c_str
 {
 	using char_type = ch_type;
 	char_type const* ptr{};
-	inline constexpr char_type const* c_str() noexcept
+	inline constexpr char_type const* c_str() const noexcept
 	{
 		return ptr;
 	}

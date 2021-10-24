@@ -61,14 +61,27 @@ inline auto nt_call_invoke_with_directory_handle_impl(void* directory,char_type 
 }
 
 template<std::integral char_type,typename func>
+requires (sizeof(char_type)==sizeof(char16_t))
 inline auto nt_call_invoke_without_directory_handle_impl(char_type const* filename_c_str,func callback)
 {
-	wchar_t const* part_name{};
-	win32::nt::rtl_relative_name_u relative_name{};
-	win32::nt::unicode_string nt_name{};
-	nt_file_rtl_path(filename_c_str,nt_name,part_name,relative_name);
-	win32::nt::rtl_unicode_string_unique_ptr us_ptr{__builtin_addressof(nt_name)};
-	return callback(nullptr,__builtin_addressof(nt_name));
+	if constexpr(std::same_as<char_type,wchar_t>)
+	{
+		wchar_t const* part_name{};
+		win32::nt::rtl_relative_name_u relative_name{};
+		win32::nt::unicode_string nt_name{};
+		nt_file_rtl_path(filename_c_str,nt_name,part_name,relative_name);
+		win32::nt::rtl_unicode_string_unique_ptr us_ptr{__builtin_addressof(nt_name)};
+		return callback(nullptr,__builtin_addressof(nt_name));
+	}
+	else
+	{
+		using wchar_t_may_alias_const_ptr
+#if __has_cpp_attribute(gnu::may_alias)
+		[[gnu::may_alias]]
+#endif
+		= wchar_t const*;
+		return nt_call_invoke_without_directory_handle_impl(reinterpret_cast<wchar_t_may_alias_const_ptr>(filename_c_str),callback);
+	}
 }
 
 template<std::integral char_type,typename func>

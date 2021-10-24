@@ -984,34 +984,12 @@ public:
 	basic_c_family_file(native_fs_dirent ent,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_c_family_file(basic_posix_file<char_type>(ent,om,pm),om)
 	{}
-	basic_c_family_file(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+	template<::fast_io::constructible_to_os_c_str T>
+	basic_c_family_file(T const& file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_c_family_file(basic_posix_file<char_type>(file,om,pm),om)
 	{}
-	basic_c_family_file(native_at_entry nate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_c_family_file(basic_posix_file<char_type>(nate,file,om,pm),om)
-	{}
-	basic_c_family_file(wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_c_family_file(basic_posix_file<char_type>(file,om,pm),om)
-	{}
-	basic_c_family_file(native_at_entry nate,wcstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_c_family_file(basic_posix_file<char_type>(nate,file,om,pm),om)
-	{}
-	basic_c_family_file(u8cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_c_family_file(basic_posix_file<char_type>(file,om,pm),om)
-	{}
-	basic_c_family_file(native_at_entry nate,u8cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_c_family_file(basic_posix_file<char_type>(nate,file,om,pm),om)
-	{}
-	basic_c_family_file(u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_c_family_file(basic_posix_file<char_type>(file,om,pm),om)
-	{}
-	basic_c_family_file(native_at_entry nate,u16cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_c_family_file(basic_posix_file<char_type>(nate,file,om,pm),om)
-	{}
-	basic_c_family_file(u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_c_family_file(basic_posix_file<char_type>(file,om,pm),om)
-	{}
-	basic_c_family_file(native_at_entry nate,u32cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+	template<::fast_io::constructible_to_os_c_str T>
+	basic_c_family_file(native_at_entry nate,T const& file,open_mode om,perms pm=static_cast<perms>(436)):
 		basic_c_family_file(basic_posix_file<char_type>(nate,file,om,pm),om)
 	{}
 #endif
