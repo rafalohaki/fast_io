@@ -7,7 +7,7 @@ int main(int argc,char** argv)
 		perr("Usage: ",fast_io::mnp::chvw(*argv)," <file>\n");
 		return 1;
 	}
-	fast_io::native_file_loader loader(argv[1]);
+	fast_io::native_file_loader loader(::fast_io::mnp::os_c_str(argv[1]));
 	//This will load entire file to memory through memory mapping.
 	/*
 	This is a contiguous container of the file.

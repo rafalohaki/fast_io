@@ -1196,8 +1196,7 @@ struct my_posix_open_paramter
 
 #if defined(__MSDOS__) || (defined(__NEWLIB__) && !defined(AT_FDCWD)) || defined(_PICOLIBC__)
 
-template<typename T>
-requires ::fast_io::constructible_to_os_c_str<T>
+template<::fast_io::constructible_to_os_c_str T>
 inline constexpr int posix_openat_file_impl(int,T const&,open_mode,perms)
 {
 	throw_posix_error(EINVAL);
@@ -1205,16 +1204,14 @@ inline constexpr int posix_openat_file_impl(int,T const&,open_mode,perms)
 }
 
 #else
-template<typename T>
-requires ::fast_io::constructible_to_os_c_str<T>
+template<::fast_io::constructible_to_os_c_str T>
 inline constexpr int posix_openat_file_impl(int dirfd,T const& t,open_mode om,perms pm)
 {
 	return posix_api_common_impl(t,my_posix_at_open_paramter{dirfd,::fast_io::details::calculate_posix_open_mode(om),static_cast<mode_t>(pm)});
 }
 #endif
 
-template<typename T>
-requires ::fast_io::constructible_to_os_c_str<T>
+template<::fast_io::constructible_to_os_c_str T>
 inline constexpr int posix_open_file_impl(T const& t,open_mode om,perms pm)
 {
 #if defined(__MSDOS__) || (defined(__NEWLIB__) && !defined(AT_FDCWD)) || defined(_PICOLIBC__)
@@ -1318,12 +1315,12 @@ public:
 
 	template<::fast_io::constructible_to_os_c_str T>
 	explicit basic_posix_file(T const& filename,open_mode om,perms pm=static_cast<perms>(436)):
-			basic_posix_io_handle<char_type>(::fast_io::details::posix_open_file_impl(filename,{om,pm}))
+			basic_posix_io_handle<char_type>(::fast_io::details::posix_open_file_impl(filename,om,pm))
 	{}
 
 	template<::fast_io::constructible_to_os_c_str T>
 	explicit basic_posix_file(posix_at_entry pate,T const& filename,open_mode om,perms pm=static_cast<perms>(436)):
-			basic_posix_io_handle<char_type>(::fast_io::details::posix_openat_file_impl(pate.fd,filename,{om,pm}))
+			basic_posix_io_handle<char_type>(::fast_io::details::posix_openat_file_impl(pate.fd,filename,om,pm))
 	{}
 
 #endif
