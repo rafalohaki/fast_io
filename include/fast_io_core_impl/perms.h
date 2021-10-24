@@ -66,35 +66,11 @@ inline constexpr void print_perm_per_check(raiter i,perms p,perms checked) noexc
 {
 	if((p&checked)==perms::none)
 	{
-		if constexpr(std::same_as<ch_type,char>)
-			*i='-';
-		else if constexpr(std::same_as<ch_type,wchar_t>)
-			*i=L'-';
-		else
-			*i=u8'-';
+		*i=char_literal_v<u8'-',ch_type>;
 	}
 	else
 	{
-		if constexpr(std::same_as<ch_type,char>)
-		{
-			if constexpr(fillch==u8'r')
-				*i='r';
-			else if constexpr(fillch==u8'w')
-				*i='w';
-			else if constexpr(fillch==u8'x')
-				*i='x';
-		}
-		else if constexpr(std::same_as<ch_type,wchar_t>)
-		{
-			if constexpr(fillch==u8'r')
-				*i=L'r';
-			else if constexpr(fillch==u8'w')
-				*i=L'w';
-			else if constexpr(fillch==u8'x')
-				*i=L'x';
-		}
-		else
-			*i=fillch;
+		*i=char_literal_v<fillch,ch_type>;
 	}
 }
 
@@ -119,7 +95,8 @@ inline constexpr raiter print_status_impl(raiter iter,perms p) noexcept
 	details::perm::print_perm_per_check<char_type,u8'r'>(++iter,p,perms::others_read);
 	details::perm::print_perm_per_check<char_type,u8'w'>(++iter,p,perms::others_write);
 	details::perm::print_perm_per_check<char_type,u8'x'>(++iter,p,perms::others_exec);
-	return ++iter;
+	++iter;
+	return iter;
 }
 }
 
