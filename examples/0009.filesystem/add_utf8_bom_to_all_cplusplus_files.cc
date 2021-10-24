@@ -14,7 +14,7 @@ int main(int argc,char** argv)
 	}
 	using namespace std::string_view_literals;
 	constexpr std::array<char8_t,3> utf8bom{0xEF,0xBB,0xBF};
-	fast_io::dir_file df(argv[1]);
+	fast_io::dir_file df(::fast_io::mnp::os_c_str(argv[1]));
 	for(auto const& ent : recursive(at(df)))
 	{
 		auto exts{extension(ent)};

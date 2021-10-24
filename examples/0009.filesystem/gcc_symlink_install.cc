@@ -14,7 +14,7 @@ int main(int argc,char const** argv)
 		return 1;
 	}
 	std::vector<std::u8string> names;
-	fast_io::dir_file df(argv[1]);
+	fast_io::dir_file df(::fast_io::mnp::os_c_str(argv[1]));
 	using namespace std::string_view_literals;
 	for(auto const& ent:current(at(df)))
 	{

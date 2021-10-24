@@ -16,7 +16,7 @@ int main(int argc,char** argv)
 	}
 	auto t0{fast_io::posix_clock_gettime(fast_io::posix_clock_id::realtime)};
 	fast_io::ossl::sha512 processor;
-	fast_io::ibuf_file ibf(argv[1]);
+	fast_io::ibuf_file ibf(::fast_io::mnp::os_c_str(argv[1]));
 	auto transmitted{transmit(processor,ibf)};
 	println(processor.do_final()," *",chvw(argv[1]),"\nTransmitted:",transmitted," bytes\tElapsed Time:",fast_io::posix_clock_gettime(fast_io::posix_clock_id::realtime)-t0);
 }

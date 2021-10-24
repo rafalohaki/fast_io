@@ -18,7 +18,7 @@ int main(int argc,char** argv)
 	auto t0{fast_io::posix_clock_gettime(fast_io::posix_clock_id::realtime)};
 	CryptoPP::SHA512 sha;
 	fast_io::cryptopp::iterated_hash_ref ref(sha);
-	fast_io::ibuf_file ibf(argv[1]);
+	fast_io::ibuf_file ibf(::fast_io::mnp::os_c_str(argv[1]));
 	auto transmitted{transmit(ref,ibf)};
 	println(do_final(ref)," *",chvw(argv[1]),"\nTransmitted:",transmitted," bytes\tElapsed Time:",fast_io::posix_clock_gettime(fast_io::posix_clock_id::realtime)-t0);
 }
