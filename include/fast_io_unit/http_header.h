@@ -3,7 +3,8 @@
 namespace fast_io
 {
 
-template<std::integral ch_type>
+template<std::integral ch_type,std::size_t buffer_size=4096u>
+requires (buffer_size>=64u)
 struct basic_http_header_buffer
 {
 	using char_type = ch_type;
@@ -13,7 +14,11 @@ struct basic_http_header_buffer
 	std::size_t http_status_code_end_location{};
 	std::size_t http_status_reason_start_location{};
 	std::size_t http_status_reason_end_location{};
-	char_type buffer[4096];
+	char_type buffer[buffer_size];
+	inline static constexpr std::size_t size() noexcept
+	{
+		return buffer_size;
+	}
 	inline constexpr ::std::basic_string_view<char_type> request() const noexcept
 	{
 		return ::std::basic_string_view<char_type>(buffer,buffer+http_request_end_location);
@@ -33,25 +38,25 @@ struct http_buffer_parse_context
 	std::size_t state{};
 };
 
-template<std::integral char_type>
-inline constexpr auto scan_context_type(io_reserve_type_t<char_type,::fast_io::parameter<::fast_io::basic_http_header_buffer<char_type>&>>) noexcept
+template<std::integral char_type,std::size_t buffer_size>
+inline constexpr auto scan_context_type(io_reserve_type_t<char_type,::fast_io::parameter<::fast_io::basic_http_header_buffer<char_type,buffer_size>&>>) noexcept
 {
 	return io_type_t<http_buffer_parse_context>{};
 }
 
-template<std::integral ch_type>
-inline constexpr basic_io_scatter_t<ch_type> print_alias_define(io_alias_t,basic_http_header_buffer<ch_type> const& b) noexcept
+template<std::integral ch_type,std::size_t buffer_size>
+inline constexpr basic_io_scatter_t<ch_type> print_alias_define(io_alias_t,basic_http_header_buffer<ch_type,buffer_size> const& b) noexcept
 {
 	return {b.buffer,b.header_length};
 }
 
 namespace details
 {
-template<std::integral ch_type,::fast_io::freestanding::random_access_iterator Iter>
-inline bool try_copy_into_buffer(basic_http_header_buffer<ch_type>& b,Iter first,Iter last) noexcept
+template<std::integral ch_type,std::size_t buffer_size,::fast_io::freestanding::random_access_iterator Iter>
+inline bool try_copy_into_buffer(basic_http_header_buffer<ch_type,buffer_size>& b,Iter first,Iter last) noexcept
 {
 	std::size_t diff{static_cast<std::size_t>(last-first)};
-	std::size_t remain_space{static_cast<std::size_t>(4096u-b.header_length)};
+	std::size_t remain_space{static_cast<std::size_t>(buffer_size-b.header_length)};
 	if(remain_space<diff)
 		return false;
 	non_overlapped_copy_n(first,diff,b.buffer+b.header_length);
@@ -59,8 +64,8 @@ inline bool try_copy_into_buffer(basic_http_header_buffer<ch_type>& b,Iter first
 	return true;
 }
 
-template<std::integral ch_type>
-inline constexpr parse_code determine_http_header_location(basic_http_header_buffer<ch_type>& b) noexcept
+template<std::integral ch_type,std::size_t buffer_size>
+inline constexpr parse_code determine_http_header_location(basic_http_header_buffer<ch_type,buffer_size>& b) noexcept
 {
 	auto i{b.buffer},e{b.buffer+b.header_length};
 	if(i!=e&&*i==char_literal_v<u8' ',ch_type>)
@@ -95,8 +100,8 @@ inline constexpr parse_code determine_http_header_location(basic_http_header_buf
 	return parse_code::ok;
 }
 
-template<::fast_io::freestanding::random_access_iterator Iter>
-inline constexpr parse_result<Iter> http_header_scan_context_define_impl(std::size_t& state,Iter first1,Iter last,basic_http_header_buffer<::fast_io::freestanding::iter_value_t<Iter>>& bufferref) noexcept
+template<::fast_io::freestanding::random_access_iterator Iter,std::size_t buffer_size>
+inline constexpr parse_result<Iter> http_header_scan_context_define_impl(std::size_t& state,Iter first1,Iter last,basic_http_header_buffer<::fast_io::freestanding::iter_value_t<Iter>,buffer_size>& bufferref) noexcept
 {
 	using ch_type = ::fast_io::freestanding::iter_value_t<Iter>;
 	auto first{first1};
@@ -203,23 +208,28 @@ inline constexpr parse_result<Iter> http_header_scan_context_define_impl(std::si
 
 }
 
-template<::fast_io::freestanding::random_access_iterator Iter>
-inline constexpr parse_result<Iter> scan_context_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,::fast_io::parameter<basic_http_header_buffer<::fast_io::freestanding::iter_value_t<Iter>>&>>,http_buffer_parse_context& statetp,Iter first1,Iter last,::fast_io::parameter<basic_http_header_buffer<::fast_io::freestanding::iter_value_t<Iter>>&> t) noexcept
+template<::fast_io::freestanding::random_access_iterator Iter,std::size_t buffer_size>
+inline constexpr parse_result<Iter> scan_context_define(io_reserve_type_t<::fast_io::freestanding::iter_value_t<Iter>,::fast_io::parameter<basic_http_header_buffer<::fast_io::freestanding::iter_value_t<Iter>,buffer_size>&>>,http_buffer_parse_context& statetp,Iter first1,Iter last,::fast_io::parameter<basic_http_header_buffer<::fast_io::freestanding::iter_value_t<Iter>>&> t) noexcept
 {
 	return ::fast_io::details::http_header_scan_context_define_impl(statetp.state,first1,last,t.reference);
 }
 
-template<std::integral char_type>
-inline constexpr parse_code scan_context_eof_define(io_reserve_type_t<char_type,::fast_io::parameter<basic_http_header_buffer<char_type>&>>,http_buffer_parse_context,::fast_io::parameter<basic_http_header_buffer<char_type>&>) noexcept
+template<std::integral char_type,std::size_t buffer_size>
+inline constexpr parse_code scan_context_eof_define(io_reserve_type_t<char_type,::fast_io::parameter<basic_http_header_buffer<char_type>&>>,http_buffer_parse_context,::fast_io::parameter<basic_http_header_buffer<char_type,buffer_size>&>) noexcept
 {
 	return parse_code::invalid;
 }
 
-using http_header_buffer = basic_http_header_buffer<char>;
-using u8http_header_buffer = basic_http_header_buffer<char8_t>;
-using u16http_header_buffer = basic_http_header_buffer<char16_t>;
-using u32http_header_buffer = basic_http_header_buffer<char32_t>;
-using whttp_header_buffer = basic_http_header_buffer<wchar_t>;
+template<std::size_t buffer_size=4096u>
+using http_header_buffer = basic_http_header_buffer<char,buffer_size>;
+template<std::size_t buffer_size=4096u>
+using u8http_header_buffer = basic_http_header_buffer<char8_t,buffer_size>;
+template<std::size_t buffer_size=4096u>
+using u16http_header_buffer = basic_http_header_buffer<char16_t,buffer_size>;
+template<std::size_t buffer_size=4096u>
+using u32http_header_buffer = basic_http_header_buffer<char32_t,buffer_size>;
+template<std::size_t buffer_size=4096u>
+using whttp_header_buffer = basic_http_header_buffer<wchar_t,buffer_size>;
 
 template<std::integral char_type>
 struct basic_http_line_generator
@@ -237,8 +247,8 @@ struct basic_http_line
 	::std::basic_string_view<char_type> key,value;
 };
 
-template<std::integral char_type>
-inline constexpr basic_http_line_generator<char_type> line_generator(basic_http_header_buffer<char_type>& b) noexcept
+template<std::integral char_type,std::size_t buffer_size>
+inline constexpr basic_http_line_generator<char_type> line_generator(basic_http_header_buffer<char_type,buffer_size>& b) noexcept
 {
 	std::size_t end_loc{b.http_status_reason_end_location};
 	char_type const* start{b.buffer+end_loc};

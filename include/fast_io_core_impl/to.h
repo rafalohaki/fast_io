@@ -1,5 +1,9 @@
 #pragma once
 
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC system_header
+#endif
+
 namespace fast_io
 {
 
@@ -421,7 +425,11 @@ template<std::integral char_type,typename T,typename ...Args>
 inline constexpr T basic_to_decay(Args... args)
 {
 	constexpr bool failed{::fast_io::details::can_do_inplace_to<char_type,T,Args...>};
-	if constexpr(failed)
+	if constexpr(sizeof...(Args)==0)
+	{
+		return T();
+	}
+	else if constexpr(failed)
 	{
 		T v;
 		basic_inplace_to_decay<char_type>(::fast_io::io_scan_forward<char_type>(::fast_io::io_scan_alias(v)),args...);
