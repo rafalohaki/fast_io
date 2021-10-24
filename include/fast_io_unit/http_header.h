@@ -220,16 +220,11 @@ inline constexpr parse_code scan_context_eof_define(io_reserve_type_t<char_type,
 	return parse_code::invalid;
 }
 
-template<std::size_t buffer_size=4096u>
-using http_header_buffer = basic_http_header_buffer<char,buffer_size>;
-template<std::size_t buffer_size=4096u>
-using u8http_header_buffer = basic_http_header_buffer<char8_t,buffer_size>;
-template<std::size_t buffer_size=4096u>
-using u16http_header_buffer = basic_http_header_buffer<char16_t,buffer_size>;
-template<std::size_t buffer_size=4096u>
-using u32http_header_buffer = basic_http_header_buffer<char32_t,buffer_size>;
-template<std::size_t buffer_size=4096u>
-using whttp_header_buffer = basic_http_header_buffer<wchar_t,buffer_size>;
+using http_header_buffer = basic_http_header_buffer<char>;
+using u8http_header_buffer = basic_http_header_buffer<char8_t>;
+using u16http_header_buffer = basic_http_header_buffer<char16_t>;
+using u32http_header_buffer = basic_http_header_buffer<char32_t>;
+using whttp_header_buffer = basic_http_header_buffer<wchar_t>;
 
 template<std::integral char_type>
 struct basic_http_line_generator
