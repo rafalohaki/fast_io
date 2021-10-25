@@ -100,11 +100,19 @@ inline void* create_posix_rtld(char const* filename,dll_mode mode)
 	return hd;
 }
 
-template<std::integral char_type>
-inline void* create_posix_rtld_api_converter(char_type const* filename,std::size_t size,dll_mode mode)
+struct posix_rtld_impl_context
 {
-	posix_api_encoding_converter converter(filename,size);
-	return create_posix_rtld(reinterpret_cast<char const*>(converter.c_str()),mode);
+	dll_mode mode{};
+	inline void* operator()(char const* filename) const
+	{
+		return create_posix_rtld(filename,mode);
+	}
+};
+
+template<typename T>
+inline void* create_posix_rtld_impl(T const& t,dll_mode mode)
+{
+	return ::fast_io::details::posix_api_common_impl(t,posix_rtld_impl_context{mode});
 }
 
 }
@@ -121,11 +129,9 @@ public:
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	explicit constexpr posix_dll_file(native_hd handle) noexcept:posix_dll_io_observer{handle}{}
-	explicit posix_dll_file(cstring_view filename,dll_mode mode):posix_dll_io_observer{details::create_posix_rtld(filename.c_str(),mode)}{}
-	explicit posix_dll_file(u8cstring_view filename,dll_mode mode):posix_dll_io_observer{details::create_posix_rtld(reinterpret_cast<char const*>(filename.c_str()),mode)}{}
-	explicit posix_dll_file(wcstring_view filename,dll_mode mode):posix_dll_io_observer{details::create_posix_rtld_api_converter(filename.c_str(),filename.size(),mode)}{}
-	explicit posix_dll_file(u16cstring_view filename,dll_mode mode):posix_dll_io_observer{details::create_posix_rtld_api_converter(filename.c_str(),filename.size(),mode)}{}
-	explicit posix_dll_file(u32cstring_view filename,dll_mode mode):posix_dll_io_observer{details::create_posix_rtld_api_converter(filename.c_str(),filename.size(),mode)}{}
+	explicit constexpr posix_dll_file(decltype(nullptr)) noexcept = delete;
+	template<::fast_io::constructible_to_os_c_str T>
+	explicit posix_dll_file(T const& t,dll_mode mode):posix_dll_io_observer{::fast_io::details::create_posix_rtld_impl(t,mode)}{}
 	posix_dll_file(posix_dll_file const&)=delete;
 	posix_dll_file& operator=(posix_dll_file const&)=delete;
 	constexpr posix_dll_file(posix_dll_file&& other) noexcept:posix_dll_io_observer{other.rtld_handle}
@@ -159,17 +165,32 @@ public:
 	}
 };
 
-inline void* dll_load_symbol(posix_dll_io_observer pdliob,char const* symbol)
+namespace details
 {
-	auto ptr{noexcept_call(dlsym,pdliob.rtld_handle,symbol)};
+
+inline void* posix_dll_load_symbol_impl(void* rtld_handle,char const* symbol)
+{
+	auto ptr{noexcept_call(dlsym,rtld_handle,symbol)};
 	if(ptr==nullptr)[[unlikely]]
 		throw_posix_error(EINVAL);
 	return ptr;
 }
 
-inline void* dll_load_symbol(posix_dll_io_observer pdliob,char8_t const* symbol)
+struct posix_dll_load_impl_context
 {
-	return dll_load_symbol(pdliob,reinterpret_cast<char const*>(symbol));
+	void* rtld_handle{};
+	inline void* operator()(char const* symbol) const
+	{
+		return posix_dll_load_symbol_impl(rtld_handle,symbol);
+	}
+};
+
+}
+
+template<::fast_io::constructible_to_os_c_str T>
+inline void* dll_load_symbol(posix_dll_io_observer pdliob,T const& symbol)
+{
+	return ::fast_io::details::posix_api_common_impl(symbol,::fast_io::details::posix_dll_load_impl_context{pdliob.rtld_handle});
 }
 
 using native_dll_io_observer = posix_dll_io_observer;

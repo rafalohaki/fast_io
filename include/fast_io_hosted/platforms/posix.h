@@ -1125,7 +1125,7 @@ inline int my_posix_openat_file_internal_impl(int dirfd,char const* filepath,ope
 
 template<std::integral char_type,typename Func>
 requires (sizeof(char_type)!=sizeof(char))
-inline int posix_api_common_codecvt_impl(char_type const* filename_c_str,std::size_t filename_c_str_len,Func callback)
+inline auto posix_api_common_codecvt_impl(char_type const* filename_c_str,std::size_t filename_c_str_len,Func callback)
 {
 	posix_api_encoding_converter converter(filename_c_str,filename_c_str_len);
 	return callback(converter.native_c_str());
@@ -1133,7 +1133,7 @@ inline int posix_api_common_codecvt_impl(char_type const* filename_c_str,std::si
 
 template<typename T,typename Func>
 requires (::fast_io::constructible_to_os_c_str<T>)
-inline int posix_api_common_impl(T const& t,Func callback)
+inline auto posix_api_common_impl(T const& t,Func callback)
 {
 	if constexpr(::std::is_array_v<T>)
 	{
