@@ -68,55 +68,34 @@ std::uint32_t dwFlagsAndAttributes{};//=128|0x10000000;//FILE_ATTRIBUTE_NORMAL|F
 };
 
 template<win32_family family>
-requires (family==win32_family::wide_nt)
-inline void* win32_create_file_impld(wchar_t const* lpFileName,win32_open_mode const& mode)
+inline void* win32_family_create_file_internal_impl(std::conditional_t<family==win32_family::wide_nt,wchar_t,char> const* lpFileName,win32_open_mode const& mode)
 {
-	win32::security_attributes sec_attr{sizeof(win32::security_attributes),nullptr,true};
-	auto handle(win32::CreateFileW(lpFileName,
-	mode.dwDesiredAccess,
-	mode.dwShareMode,
-	mode.inherit?__builtin_addressof(sec_attr):nullptr,
-	mode.dwCreationDisposition,
-	mode.dwFlagsAndAttributes,
-	nullptr));
-	if(handle==((void*) (std::intptr_t)-1))
-		throw_win32_error();
-	return handle;
-}
-
-template<win32_family family>
-requires (family==win32_family::ansi_9x)
-inline void* win32_create_file_impld(char const* lpFileName,win32_open_mode const& mode)
-{
-	auto handle(win32::CreateFileA(lpFileName,
-	mode.dwDesiredAccess,
-	mode.dwShareMode,
-	nullptr,//9x kernel does not support security attributes
-	mode.dwCreationDisposition,
-	mode.dwFlagsAndAttributes,
-	nullptr));
-	if(handle==((void*) (std::intptr_t)-1))
-		throw_win32_error();
-	return handle;
-}
-
-template<win32_family family,std::integral char_type>
-inline void* win32_create_file_internal_impl(char_type const* filename_c_str,std::size_t filename_size,win32_open_mode const& mode)
-{
-	using family_char_type = std::conditional_t<family==win32_family::wide_nt,wchar_t,char>;
-	if constexpr(sizeof(char_type)==sizeof(family_char_type))
+	if constexpr(family==win32_family::wide_nt)
 	{
-		using family_char_type_may_alias_ptr
-#if __has_cpp_attribute(gnu::may_alias)
-		[[gnu::may_alias]]
-#endif
-		= family_char_type const*;
-		return win32_create_file_impld<family>(reinterpret_cast<family_char_type_may_alias_ptr>(filename_c_str),mode);
+		win32::security_attributes sec_attr{sizeof(win32::security_attributes),nullptr,true};
+		auto handle(win32::CreateFileW(lpFileName,
+		mode.dwDesiredAccess,
+		mode.dwShareMode,
+		mode.inherit?__builtin_addressof(sec_attr):nullptr,
+		mode.dwCreationDisposition,
+		mode.dwFlagsAndAttributes,
+		nullptr));
+		if(handle==((void*) (std::intptr_t)-1))
+			throw_win32_error();
+		return handle;
 	}
 	else
 	{
-		win32_family_api_encoding_converter<family> converter(filename_c_str,filename_size);
-		return win32_create_file_impld<family>(converter.native_c_str(),mode);
+		auto handle(win32::CreateFileA(lpFileName,
+		mode.dwDesiredAccess,
+		mode.dwShareMode,
+		nullptr,//9x kernel does not support security attributes
+		mode.dwCreationDisposition,
+		mode.dwFlagsAndAttributes,
+		nullptr));
+		if(handle==((void*) (std::intptr_t)-1))
+			throw_win32_error();
+		return handle;
 	}
 }
 
@@ -307,59 +286,28 @@ I tried this. Oh no. It cannot
 	return mode;
 }
 
-template<win32_family family,typename T>
-requires (::fast_io::constructible_to_os_c_str<T>)
-inline void* win32_create_fileint_impl(T const& t,win32_open_mode const& mode)
+template<win32_family family>
+inline void* win32_family_create_file_impl(std::conditional_t<family==win32_family::wide_nt,wchar_t,char> const* filename_c_str,open_mode_perms ompm)
+{
+	return win32_family_create_file_internal_impl<family>(filename_c_str,calculate_win32_open_mode(ompm));
+}
+
+template<win32_family family>
+struct win32_family_open_file_parameter
 {
 	using family_char_type = std::conditional_t<family==win32_family::wide_nt,wchar_t,char>;
-
-	using family_char_type_const_may_alias_ptr
-#if __has_cpp_attribute(gnu::may_alias)
-	[[gnu::may_alias]]
-#endif
-	= family_char_type const*;
-	if constexpr(::std::is_array_v<T>)
+	open_mode_perms ompm{};
+	inline void* operator()(family_char_type const* filename)
 	{
-		using cstr_char_type = std::remove_extent_t<T>;
-		auto p{t};
-		if constexpr(sizeof(cstr_char_type)==sizeof(family_char_type))
-		{
-			return ::fast_io::details::win32_create_file_impld<family>(reinterpret_cast<family_char_type_const_may_alias_ptr>(p),mode);
-		}
-		else
-		{
-			return ::fast_io::details::win32_create_file_internal_impl<family>(p,::fast_io::details::cal_array_size(t),mode);
-		}
+		return win32_family_create_file_impl<family>(filename,ompm);
 	}
-	else
-	{
-		using cstr_char_type = std::remove_pointer_t<decltype(t.c_str())>;
-		if constexpr(sizeof(cstr_char_type)==sizeof(family_char_type_const_may_alias_ptr))
-		{
-			return ::fast_io::details::win32_create_file_impld<family>(reinterpret_cast<family_char_type_const_may_alias_ptr>(t.c_str()),mode);
-		}
-		else
-		{
-#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __cpp_lib_ranges >= 201911L
-			if constexpr(::std::ranges::contiguous_range<std::remove_cvref_t<T>>)
-			{
-				return ::fast_io::details::win32_create_file_internal_impl<family>(::std::ranges::data(t),::std::ranges::size(t),mode);
-			}
-			else
-#endif
-			{
-				auto ptr{t.c_str()};
-				return ::fast_io::details::win32_create_file_internal_impl<family>(ptr,::fast_io::cstr_len(ptr),mode);
-			}
-		}
-	}
-}
+};
 
 template<win32_family family,typename T>
 requires (::fast_io::constructible_to_os_c_str<T>)
 inline void* win32_create_file_impl(T const& t,open_mode_perms ompm)
 {
-	return win32_create_fileint_impl<family>(t,calculate_win32_open_mode(ompm));
+	return ::fast_io::win32_family_api_common<family>(t,win32_family_open_file_parameter<family>{ompm});
 }
 
 template<win32_family,typename T>

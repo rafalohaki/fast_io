@@ -27,4 +27,5 @@ template<win32_family family>
 using win32_family_api_encoding_converter=std::conditional_t<family==win32_family::ansi_9x,posix_api_encoding_converter,nt_api_encoding_converter>;
 
 }
+#include"win32.h"
 #endif

@@ -86,50 +86,29 @@ inline void* create_win32_dll_ntw(wchar_t const* filename,[[maybe_unused]] dll_m
 	return hmodule;
 }
 
-template<std::integral char_type>
-inline void* create_win32_dll_9x_main_impl(basic_cstring_view<char_type> view)
+template<win32_family family>
+struct win32_family_win32_dll_parameter
 {
-	posix_api_encoding_converter converter(view.data(),view.size());
-	return create_win32_dll_9xa(reinterpret_cast<char const*>(converter.c_str()));
-}
+	using family_char_type = std::conditional_t<family==win32_family::wide_nt,wchar_t,char>;
+	dll_mode mode{};
+	inline void* operator()(family_char_type const* filename_c_str)
+	{
+		if constexpr(family==win32_family::wide_nt)
+		{
+			return create_win32_dll_ntw(filename_c_str,mode);
+		}
+		else
+		{
+			return create_win32_dll_9xa(filename_c_str);
+		}
+	}
+};
 
-template<win32_family family,std::integral char_type>
-requires (family==win32_family::ansi_9x||family==win32_family::wide_nt)
-inline void* create_win32_dll_main_impl(basic_cstring_view<char_type> view,dll_mode mode)
+template<win32_family family,typename T>
+requires (::fast_io::constructible_to_os_c_str<T>)
+inline void* create_win32_family_dll_impl(T const& t,dll_mode mode)
 {
-	if constexpr(family==win32_family::ansi_9x)
-	{
-		if constexpr(sizeof(char_type)==1)
-			return create_win32_dll_9xa(view.c_str());
-		else
-			return create_win32_dll_9x_main_impl(view);
-	}
-	else
-	{
-		if constexpr(std::same_as<char_type,wchar_t>)
-		{
-			return create_win32_dll_ntw(view.c_str(),mode);
-		}
-		else if constexpr(sizeof(char_type)==2)
-		{
-			using general_wchar_may_alias_ptr
-#if __has_cpp_attribute(gnu::may_alias)
-			[[gnu::may_alias]]
-#endif
-			= wchar_t const*;
-			return create_win32_dll_ntw(reinterpret_cast<general_wchar_may_alias_ptr>(view.c_str()),mode);
-		}
-		else
-		{
-			nt_api_encoding_converter converter(view.data(),view.size());
-			using general_wchar_may_alias_ptr
-#if __has_cpp_attribute(gnu::may_alias)
-			[[gnu::may_alias]]
-#endif
-			= wchar_t const*;
-			return create_win32_dll_ntw(reinterpret_cast<general_wchar_may_alias_ptr>(converter.c_str()),mode);
-		}
-	}
+	return ::fast_io::win32_family_api_common<family>(t,win32_family_win32_dll_parameter<family>{mode});
 }
 
 }
@@ -147,16 +126,14 @@ public:
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
 	explicit constexpr win32_family_dll_file(native_hd handle) noexcept:win32_family_dll_io_observer<family>{handle}{}
-	explicit win32_family_dll_file(cstring_view filename,dll_mode mode):win32_family_dll_io_observer<family>{details::create_win32_dll_main_impl<family>(filename,mode)}{}
-	explicit win32_family_dll_file(u8cstring_view filename,dll_mode mode):win32_family_dll_io_observer<family>{details::create_win32_dll_main_impl<family>(filename,mode)}{}
-	explicit win32_family_dll_file(wcstring_view filename,dll_mode mode):win32_family_dll_io_observer<family>{details::create_win32_dll_main_impl<family>(filename,mode)}{}
-	explicit win32_family_dll_file(u16cstring_view filename,dll_mode mode):win32_family_dll_io_observer<family>{details::create_win32_dll_main_impl<family>(filename,mode)}{}
-	explicit win32_family_dll_file(u32cstring_view filename,dll_mode mode):win32_family_dll_io_observer<family>{details::create_win32_dll_main_impl<family>(filename,mode)}{}
+	explicit constexpr win32_family_dll_file(decltype(nullptr)) noexcept = delete;
+	template<::fast_io::constructible_to_os_c_str T>
+	explicit win32_family_dll_file(T const& t,dll_mode mode):win32_family_dll_io_observer<family>{::fast_io::details::create_win32_family_dll_impl<family>(t,mode)}{}
 	win32_family_dll_file(win32_family_dll_file const&)=delete;
 	win32_family_dll_file& operator=(win32_family_dll_file const&)=delete;
-	constexpr win32_family_dll_file(win32_family_dll_file&& other) noexcept:win32_family_dll_io_observer<family>{other.rtld_handle}
+	constexpr win32_family_dll_file(win32_family_dll_file&& other) noexcept:win32_family_dll_io_observer<family>{other.hmodule}
 	{
-		other.rtld_handle=nullptr;
+		other.hmodule=nullptr;
 	}
 	win32_family_dll_file& operator=(win32_family_dll_file&& other) noexcept
 	{
@@ -195,18 +172,21 @@ inline void* win32_dll_load_symbol_impl(void* hmodule,char const* symbol)
 	return reinterpret_cast<void*>(ptr);
 }
 
+struct win32_dll_load_impl_context
+{
+	void* hmodule{};
+	inline void* operator()(char const* symbol) const
+	{
+		return win32_dll_load_symbol_impl(hmodule,symbol);
+	}
+};
+
 }
 
-template<win32_family family>
-inline void* dll_load_symbol(win32_family_dll_io_observer<family> pdliob,char const* symbol)
+template<win32_family family,::fast_io::constructible_to_os_c_str T>
+inline void* dll_load_symbol(win32_family_dll_io_observer<family> pdliob,T const& symbol)
 {
-	return details::win32_dll_load_symbol_impl(pdliob.hmodule,symbol);
-}
-
-template<win32_family family>
-inline void* dll_load_symbol(win32_family_dll_io_observer<family> pdliob,char8_t const* symbol)
-{
-	return details::win32_dll_load_symbol_impl(pdliob.hmodule,reinterpret_cast<char const*>(symbol));
+	return ::fast_io::posix_api_common(symbol,::fast_io::details::win32_dll_load_impl_context{pdliob.hmodule});
 }
 
 using win32_dll_io_observer_9xa = win32_family_dll_io_observer<win32_family::ansi_9x>;

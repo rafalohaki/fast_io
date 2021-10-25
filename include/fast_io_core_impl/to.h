@@ -1,9 +1,5 @@
 #pragma once
 
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC system_header
-#endif
-
 namespace fast_io
 {
 
@@ -431,9 +427,18 @@ inline constexpr T basic_to_decay(Args... args)
 	}
 	else if constexpr(failed)
 	{
-		T v;
-		basic_inplace_to_decay<char_type>(::fast_io::io_scan_forward<char_type>(::fast_io::io_scan_alias(v)),args...);
-		return v;
+		if constexpr(std::is_scalar_v<T>)
+		{
+			T v{};
+			basic_inplace_to_decay<char_type>(::fast_io::io_scan_forward<char_type>(::fast_io::io_scan_alias(v)),args...);
+			return v;
+		}
+		else
+		{
+			T v;
+			basic_inplace_to_decay<char_type>(::fast_io::io_scan_forward<char_type>(::fast_io::io_scan_alias(v)),args...);
+			return v;
+		}
 	}
 	else
 	{

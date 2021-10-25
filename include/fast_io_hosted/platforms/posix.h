@@ -1123,56 +1123,6 @@ inline int my_posix_openat_file_internal_impl(int dirfd,char const* filepath,ope
 	return my_posix_openat(dirfd,filepath,details::calculate_posix_open_mode(om),static_cast<mode_t>(pm));
 }
 
-template<std::integral char_type,typename Func>
-requires (sizeof(char_type)!=sizeof(char))
-inline auto posix_api_common_codecvt_impl(char_type const* filename_c_str,std::size_t filename_c_str_len,Func callback)
-{
-	posix_api_encoding_converter converter(filename_c_str,filename_c_str_len);
-	return callback(converter.native_c_str());
-}
-
-template<typename T,typename Func>
-requires (::fast_io::constructible_to_os_c_str<T>)
-inline auto posix_api_common_impl(T const& t,Func callback)
-{
-	if constexpr(::std::is_array_v<T>)
-	{
-		using cstr_char_type = std::remove_extent_t<T>;
-		static_assert(::std::integral<cstr_char_type>);
-		auto p{t};
-		if constexpr(sizeof(cstr_char_type)==sizeof(char))
-		{
-			return callback(reinterpret_cast<char const*>(p));
-		}
-		else
-		{
-			return posix_api_common_codecvt_impl(p,::fast_io::details::cal_array_size(t),callback);
-		}
-	}
-	else
-	{
-		using cstr_char_type = std::remove_pointer_t<decltype(t.c_str())>;
-		if constexpr(sizeof(cstr_char_type)==sizeof(char))
-		{
-			return callback(reinterpret_cast<char const*>(t.c_str()));
-		}
-		else
-		{
-#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __cpp_lib_ranges >= 201911L
-			if constexpr(::std::ranges::contiguous_range<std::remove_cvref_t<T>>)
-			{
-				return posix_api_common_codecvt_impl(::std::ranges::data(t),::std::ranges::size(t),callback);
-			}
-			else
-#endif
-			{
-				auto ptr{t.c_str()};
-				return posix_api_common_codecvt_impl(ptr,::fast_io::cstr_len(ptr),callback);
-			}
-		}
-	}
-}
-
 struct my_posix_at_open_paramter
 {
 	int dirfd{-1};
@@ -1207,7 +1157,7 @@ inline constexpr int posix_openat_file_impl(int,T const&,open_mode,perms)
 template<::fast_io::constructible_to_os_c_str T>
 inline constexpr int posix_openat_file_impl(int dirfd,T const& t,open_mode om,perms pm)
 {
-	return posix_api_common_impl(t,my_posix_at_open_paramter{dirfd,::fast_io::details::calculate_posix_open_mode(om),static_cast<mode_t>(pm)});
+	return ::fast_io::posix_api_common(t,my_posix_at_open_paramter{dirfd,::fast_io::details::calculate_posix_open_mode(om),static_cast<mode_t>(pm)});
 }
 #endif
 
@@ -1215,9 +1165,9 @@ template<::fast_io::constructible_to_os_c_str T>
 inline constexpr int posix_open_file_impl(T const& t,open_mode om,perms pm)
 {
 #if defined(__MSDOS__) || (defined(__NEWLIB__) && !defined(AT_FDCWD)) || defined(_PICOLIBC__)
-	return posix_api_common_impl(t,my_posix_open_paramter{::fast_io::details::calculate_posix_open_mode(om),static_cast<mode_t>(pm)});
+	return ::fast_io::posix_api_common(t,my_posix_open_paramter{::fast_io::details::calculate_posix_open_mode(om),static_cast<mode_t>(pm)});
 #else
-	return posix_api_common_impl(t,my_posix_at_open_paramter{AT_FDCWD,::fast_io::details::calculate_posix_open_mode(om),static_cast<mode_t>(pm)});
+	return ::fast_io::posix_api_common(t,my_posix_at_open_paramter{AT_FDCWD,::fast_io::details::calculate_posix_open_mode(om),static_cast<mode_t>(pm)});
 #endif
 }
 

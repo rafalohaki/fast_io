@@ -1,19 +1,8 @@
 ﻿#include<fast_io.h>
+#include<fast_io_device.h>
 
 int main()
-try
 {
-	fast_io::native_dll_file dll("a.dll",fast_io::dll_mode::posix_rtld_lazy);
-	auto proc{dll_load_symbol(dll,"GetProc")};
+	fast_io::native_dll_file dll(L"a.dll",fast_io::dll_mode::posix_rtld_lazy);
+	[[maybe_unused]] auto proc{dll_load_symbol(dll,u8"GetProc")};
 }
-#if defined(_WIN32)
-catch(fast_io::win32_error e)
-{
-	perrln(e);
-}
-#else
-catch(fast_io::posix_rtld_error e)
-{
-	perrln(e);
-}
-#endif

@@ -122,61 +122,25 @@ inline posix_addrinfo* my_getaddrinfo_impl(char const* node,char const* service,
 	return res;
 }
 
-template<typename T>
-inline constexpr auto posix_dns_open_alien_char_type_impl(T const* t,std::size_t n)
+inline auto posix_dns_open_internal_impl(char const* node)
 {
-	posix_api_encoding_converter converter(t,n);
 	constexpr posix_addrinfo info{.ai_family=AF_UNSPEC};
-	return my_getaddrinfo_impl(converter.native_c_str(),nullptr,__builtin_addressof(info));
+	return my_getaddrinfo_impl(node,nullptr,__builtin_addressof(info));
 }
+
+struct posix_dns_open_parameter
+{
+	inline auto operator()(char const* node_name_c_str)
+	{
+		return ::fast_io::details::posix_dns_open_internal_impl(node_name_c_str);
+	}
+};
 
 template<typename T>
 requires ::fast_io::constructible_to_os_c_str<T>
 inline constexpr auto posix_dns_open_impl(T const& t)
 {
-	if constexpr(::std::is_array_v<T>)
-	{
-		using cstr_char_type = std::remove_extent_t<T>;
-		static_assert(::std::integral<cstr_char_type>);
-		auto p{t};
-		if constexpr(sizeof(cstr_char_type)==sizeof(char))
-		{
-			constexpr posix_addrinfo info{.ai_family=AF_UNSPEC};
-			using char_type_may_alias_ptr
-#if __has_cpp_attribute(gnu::may_alias)
-			[[gnu::may_alias]]
-#endif
-			= char const*;
-			return my_getaddrinfo_impl(reinterpret_cast<char_type_may_alias_ptr>(p),nullptr,__builtin_addressof(info));
-		}
-		else
-		{
-			return posix_dns_open_alien_char_type_impl(p,::fast_io::details::cal_array_size(t));
-		}
-	}
-	else
-	{
-		using cstr_char_type = std::remove_pointer_t<decltype(t.c_str())>;
-		if constexpr(sizeof(cstr_char_type)==sizeof(char))
-		{
-			constexpr posix_addrinfo info{.ai_family=AF_UNSPEC};
-			return my_getaddrinfo_impl(reinterpret_cast<char const*>(t.c_str()),nullptr,__builtin_addressof(info));
-		}
-		else
-		{
-#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __cpp_lib_ranges >= 201911L
-			if constexpr(::std::ranges::contiguous_range<std::remove_cvref_t<T>>)
-			{
-				return posix_dns_open_alien_char_type_impl(::std::ranges::data(t),::std::ranges::size(t));
-			}
-			else
-#endif
-			{
-				auto ptr{t.c_str()};
-				return posix_dns_open_alien_char_type_impl(ptr,::fast_io::cstr_len(ptr));
-			}
-		}
-	}
+	return ::fast_io::posix_api_common(t,posix_dns_open_parameter{});
 }
 
 }

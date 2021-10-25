@@ -112,7 +112,7 @@ struct posix_rtld_impl_context
 template<typename T>
 inline void* create_posix_rtld_impl(T const& t,dll_mode mode)
 {
-	return ::fast_io::details::posix_api_common_impl(t,posix_rtld_impl_context{mode});
+	return ::fast_io::posix_api_common(t,posix_rtld_impl_context{mode});
 }
 
 }
@@ -190,7 +190,7 @@ struct posix_dll_load_impl_context
 template<::fast_io::constructible_to_os_c_str T>
 inline void* dll_load_symbol(posix_dll_io_observer pdliob,T const& symbol)
 {
-	return ::fast_io::details::posix_api_common_impl(symbol,::fast_io::details::posix_dll_load_impl_context{pdliob.rtld_handle});
+	return ::fast_io::posix_api_common(symbol,::fast_io::details::posix_dll_load_impl_context{pdliob.rtld_handle});
 }
 
 using native_dll_io_observer = posix_dll_io_observer;

@@ -135,67 +135,27 @@ inline void win32_family_freeaddrinfo_impl(::fast_io::win32::win32_family_addrin
 }
 
 
-template<win32_family fam,typename T>
-inline constexpr auto win32_family_dns_open_alien_char_type_impl(T const* t,std::size_t n)
+template<win32_family fam>
+inline constexpr auto win32_family_dns_open_internal_impl(std::conditional_t<fam==win32_family::wide_nt,wchar_t,char> const* node)
 {
-	win32_family_api_encoding_converter<fam> converter(t,n);
 	constexpr ::fast_io::win32::win32_family_addrinfo<fam> info{.ai_family=0};
-	return win32_getaddrinfo_impl<fam>(converter.native_c_str(),nullptr,__builtin_addressof(info));
+	return win32_getaddrinfo_impl<fam>(node,nullptr,__builtin_addressof(info));
 }
+
+template<win32_family fam>
+struct win32_family_dns_open_parameter
+{
+	inline auto operator()(std::conditional_t<fam==win32_family::wide_nt,wchar_t,char> const* node_name_c_str)
+	{
+		return ::fast_io::details::win32_family_dns_open_internal_impl<fam>(node_name_c_str);
+	}
+};
 
 template<win32_family fam,typename T>
 requires ::fast_io::constructible_to_os_c_str<T>
 inline constexpr auto win32_family_dns_open_impl(T const& t)
 {
-	using char_type=std::conditional_t<fam==::fast_io::win32_family::ansi_9x,char,wchar_t>;
-	if constexpr(::std::is_array_v<T>)
-	{
-		using cstr_char_type = std::remove_extent_t<T>;
-		static_assert(::std::integral<cstr_char_type>);
-		auto p{t};
-		if constexpr(sizeof(cstr_char_type)==sizeof(char_type))
-		{
-			constexpr ::fast_io::win32::win32_family_addrinfo<fam> info{.ai_family=0};
-			using char_type_may_alias_ptr
-#if __has_cpp_attribute(gnu::may_alias)
-			[[gnu::may_alias]]
-#endif
-			= char_type const*;
-			return win32_getaddrinfo_impl<fam>(reinterpret_cast<char_type_may_alias_ptr>(p),nullptr,__builtin_addressof(info));
-		}
-		else
-		{
-			return win32_family_dns_open_alien_char_type_impl<fam>(p,::fast_io::details::cal_array_size(t));
-		}
-	}
-	else
-	{
-		using cstr_char_type = std::remove_pointer_t<decltype(t.c_str())>;
-		if constexpr(sizeof(cstr_char_type)==sizeof(char_type))
-		{
-			constexpr ::fast_io::win32::win32_family_addrinfo<fam> info{.ai_family=0};
-			using char_type_may_alias_ptr
-#if __has_cpp_attribute(gnu::may_alias)
-			[[gnu::may_alias]]
-#endif
-			= char_type const*;
-			return win32_getaddrinfo_impl<fam>(reinterpret_cast<char_type_may_alias_ptr>(t.c_str()),nullptr,__builtin_addressof(info));
-		}
-		else
-		{
-#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __cpp_lib_ranges >= 201911L
-			if constexpr(::std::ranges::contiguous_range<std::remove_cvref_t<T>>)
-			{
-				return win32_family_dns_open_alien_char_type_impl<fam>(::std::ranges::data(t),::std::ranges::size(t));
-			}
-			else
-#endif
-			{
-				auto ptr{t.c_str()};
-				return win32_family_dns_open_alien_char_type_impl<fam>(ptr,::fast_io::cstr_len(ptr));
-			}
-		}
-	}
+	return ::fast_io::win32_family_api_common<fam>(t,win32_family_dns_open_parameter<fam>{});
 }
 
 }

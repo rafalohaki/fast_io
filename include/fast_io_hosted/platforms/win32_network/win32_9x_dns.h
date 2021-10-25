@@ -157,59 +157,21 @@ inline ::fast_io::win32::hostent* win32_9x_gethostbyname_impl(char const* name)
 	return ret;
 }
 
-template<typename T>
-inline constexpr auto win32_9x_dns_open_alien_char_type_impl(T const* t,std::size_t n)
+struct win32_9x_dns_open_parameter
 {
-	posix_api_encoding_converter converter(t,n);
-	return win32_9x_gethostbyname_impl(converter.native_c_str());
-}
+	inline auto operator()(char const* node_name_c_str)
+	{
+		return ::fast_io::details::win32_9x_gethostbyname_impl(node_name_c_str);
+	}
+};
 
 template<typename T>
 requires ::fast_io::constructible_to_os_c_str<T>
 inline constexpr auto win32_9x_dns_open_impl(T const& t)
 {
-	if constexpr(::std::is_array_v<T>)
-	{
-		using cstr_char_type = std::remove_extent_t<T>;
-		static_assert(::std::integral<cstr_char_type>);
-		auto p{t};
-		if constexpr(sizeof(cstr_char_type)==sizeof(char))
-		{
-			using char_type_may_alias_ptr
-#if __has_cpp_attribute(gnu::may_alias)
-			[[gnu::may_alias]]
-#endif
-			= char const*;
-			return win32_9x_gethostbyname_impl(reinterpret_cast<char_type_may_alias_ptr>(p));
-		}
-		else
-		{
-			return win32_9x_dns_open_alien_char_type_impl(p,::fast_io::details::cal_array_size(t));
-		}
-	}
-	else
-	{
-		using cstr_char_type = std::remove_pointer_t<decltype(t.c_str())>;
-		if constexpr(sizeof(cstr_char_type)==sizeof(char))
-		{
-			return win32_9x_gethostbyname_impl(reinterpret_cast<char const*>(t.c_str()));
-		}
-		else
-		{
-#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __cpp_lib_ranges >= 201911L
-			if constexpr(::std::ranges::contiguous_range<std::remove_cvref_t<T>>)
-			{
-				return win32_9x_dns_open_alien_char_type_impl(::std::ranges::data(t),::std::ranges::size(t));
-			}
-			else
-#endif
-			{
-				auto ptr{t.c_str()};
-				return win32_9x_dns_open_alien_char_type_impl(ptr,::fast_io::cstr_len(ptr));
-			}
-		}
-	}
+	return ::fast_io::posix_api_common(t,win32_9x_dns_open_parameter{});
 }
+
 }
 
 class win32_9x_dns_file:public win32_9x_dns_io_observer
