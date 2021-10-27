@@ -96,7 +96,7 @@ inline auto posix_api_common(T const& t,Func callback)
 		}
 		else
 		{
-#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __cpp_lib_ranges >= 201911L
+#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __has_include(<ranges>)
 			if constexpr(::std::ranges::contiguous_range<std::remove_cvref_t<T>>)
 			{
 				return ::fast_io::details::posix_api_common_codecvt_impl(::std::ranges::data(t),::std::ranges::size(t),callback);

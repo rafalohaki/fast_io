@@ -326,7 +326,7 @@ inline void* nt_create_file_internal_impl(T const& t,nt_open_mode const& ntmode)
 		}
 		else
 		{
-#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __cpp_lib_ranges >= 201911L
+#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __has_include(<ranges>)
 			if constexpr(::std::ranges::contiguous_range<std::remove_cvref_t<T>>)
 			{
 				return ::fast_io::win32::nt::details::nt_create_file_internal_none_char16_impl<zw>(::std::ranges::data(t),::std::ranges::size(t),ntmode);
@@ -374,7 +374,7 @@ inline void* nt_create_file_at_ntmode_impl(void* handle,T const& t,nt_open_mode 
 	}
 	else
 	{
-#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __cpp_lib_ranges >= 201911L
+#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __has_include(<ranges>)
 		if constexpr(::std::ranges::contiguous_range<std::remove_cvref_t<T>>)
 		{
 			return ::fast_io::win32::nt::details::nt_create_file_at_internal_impl<zw>(handle,::std::ranges::data(t),::std::ranges::size(t),ntmode);

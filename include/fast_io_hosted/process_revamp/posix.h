@@ -364,7 +364,7 @@ struct posix_process_args
 	constexpr posix_process_args(Iter begin,Iter end):
 		args(details::dup_enviro_entry(begin,end)),is_dynamic_allocated(true)
 	{}
-#if __cpp_lib_ranges >= 201911L
+#if __has_include(<ranges>)
 	template<std::ranges::contiguous_range range>
 	requires (std::convertible_to<std::ranges::range_value_t<range>,char const*>||requires(std::ranges::range_value_t<range> v)
 	{

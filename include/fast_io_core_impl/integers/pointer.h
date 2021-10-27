@@ -49,7 +49,7 @@ inline constexpr basic_io_scatter_t<::std::remove_cvref_t<::fast_io::freestandin
 {
 	return {::fast_io::freestanding::to_address(first),static_cast<std::size_t>(last-first)};
 }
-#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __cpp_lib_ranges >= 201911L
+#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __has_include(<ranges>)
 template<::std::ranges::contiguous_range rg>
 requires ::std::integral<::std::ranges::range_value_t<rg>>
 inline constexpr basic_io_scatter_t<::std::remove_cvref_t<::std::ranges::range_value_t<rg>>> strvw(rg&& r) noexcept
@@ -81,7 +81,7 @@ inline constexpr auto print_alias_define(io_alias_t,char_type const(&s)[n]) noex
 		return basic_io_scatter_t<char_type>{s,n-1};
 }
 
-#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __cpp_lib_ranges >= 201911L
+#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __has_include(<ranges>)
 template<typename T>
 requires (::std::ranges::contiguous_range<T>&&requires(T&& t)
 {

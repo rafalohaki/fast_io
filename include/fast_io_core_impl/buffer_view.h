@@ -12,7 +12,7 @@ struct basic_ibuffer_view
 	template<::fast_io::freestanding::contiguous_iterator Iter>
 	requires std::same_as<std::remove_cvref_t<::fast_io::freestanding::iter_value_t<Iter>>,char_type>
 	constexpr basic_ibuffer_view(Iter first,Iter last) noexcept:begin_ptr{::fast_io::freestanding::to_address(first)},curr_ptr{begin_ptr},end_ptr{curr_ptr+(last-first)}{}
-#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __cpp_lib_ranges >= 201911L
+#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __has_include(<ranges>)
 //std::ranges are not freestanding
 	template<std::ranges::contiguous_range rg>
 	requires std::same_as<std::remove_cvref_t<::std::ranges::range_value_t<rg>>,char_type>
@@ -78,7 +78,7 @@ struct basic_obuffer_view
 	template<::fast_io::freestanding::contiguous_iterator Iter>
 	requires std::same_as<::fast_io::freestanding::iter_value_t<Iter>,char_type>
 	constexpr basic_obuffer_view(Iter first,Iter last) noexcept:begin_ptr{::fast_io::freestanding::to_address(first)},curr_ptr{begin_ptr+(last-first)},end_ptr{curr_ptr}{}
-#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __cpp_lib_ranges >= 201911L
+#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __has_include(<ranges>)
 //std::ranges are not freestanding
 	template<std::ranges::contiguous_range rg>
 	requires std::same_as<::std::ranges::range_value_t<rg>,char_type>

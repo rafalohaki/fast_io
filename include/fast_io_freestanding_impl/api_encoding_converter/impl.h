@@ -25,7 +25,17 @@ using win32_api_encoding_converter = nt_api_encoding_converter;
 
 template<win32_family family>
 using win32_family_api_encoding_converter=std::conditional_t<family==win32_family::ansi_9x,posix_api_encoding_converter,nt_api_encoding_converter>;
+#if defined(__CYGWIN__) || defined(__WINE__)
+using native_char_type = char;
+#else
+using native_char_type = std::conditional_t<win32_family::native==win32_family::ansi_9x,char,wchar_t>;
+#endif
 
 }
 #include"win32.h"
+#else
+namespace fast_io
+{
+using native_char_type = char;
+}
 #endif
