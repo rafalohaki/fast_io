@@ -23,7 +23,13 @@ requires (std::unsigned_integral<T>)
 #endif
 inline constexpr bool add_carry(bool carry,T a,T b,T& out) noexcept
 {
-#if __cpp_lib_is_constant_evaluated >= 201811L
+#if __cpp_if_consteval >= 202106L
+	if consteval
+	{
+		return add_carry_naive(carry,a,b,out);
+	}
+	else
+#elif __cpp_lib_is_constant_evaluated >= 201811L
 	if(std::is_constant_evaluated())
 		return add_carry_naive(carry,a,b,out);
 	else
@@ -150,7 +156,12 @@ requires (std::unsigned_integral<T>)
 #endif
 inline constexpr bool sub_borrow(bool borrow,T a,T b,T& out) noexcept
 {
-#if __cpp_lib_is_constant_evaluated >= 201811L
+#if __cpp_if_consteval >= 202106L
+	if consteval
+	{
+		return sub_borrow_naive(borrow,a,b,out);
+	}
+#elif __cpp_lib_is_constant_evaluated >= 201811L
 	if(std::is_constant_evaluated())
 		return sub_borrow_naive(borrow,a,b,out);
 	else
