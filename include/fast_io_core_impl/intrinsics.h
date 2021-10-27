@@ -52,6 +52,41 @@ inline constexpr bool add_carry(bool carry,T a,T b,T& out) noexcept
 #else
 		return add_carry_naive(carry,a,b,out);
 #endif
+#elif defined(__has_builtin) && (__has_builtin(__builtin_addcb)&&__has_builtin(__builtin_addcs)&&__has_builtin(__builtin_addc)&&__has_builtin(__builtin_addcl)&&__has_builtin(__builtin_addcll))
+	if constexpr(sizeof(T)==sizeof(long long unsigned))
+	{
+		long long unsigned carryout;
+		out=__builtin_addcll(a,b,carry,__builtin_addressof(carryout));
+		return carryout;
+	}
+	else if constexpr(sizeof(T)==sizeof(long unsigned))
+	{
+		long unsigned carryout;
+		out=__builtin_addcl(a,b,carry,__builtin_addressof(carryout));
+		return carryout;
+	}
+	else if constexpr(sizeof(T)==sizeof(unsigned))
+	{
+		unsigned carryout;
+		out=__builtin_addc(a,b,carry,__builtin_addressof(carryout));
+		return carryout;
+	}
+	else if constexpr(sizeof(T)==sizeof(short unsigned))
+	{
+		short unsigned carryout;
+		out=__builtin_addcs(a,b,carry,__builtin_addressof(carryout));
+		return carryout;
+	}
+	else if constexpr(sizeof(T)==sizeof(char unsigned))
+	{
+		char unsigned carryout;
+		out=__builtin_addcb(a,b,carry,__builtin_addressof(carryout));
+		return carryout;
+	}
+	else
+	{
+		return add_carry_naive(carry,a,b,out);
+	}
 #elif defined(__has_builtin) && (__has_builtin(__builtin_ia32_addcarryx_u32)||__has_builtin(__builtin_ia32_addcarry_u32)||__has_builtin(__builtin_ia32_addcarryx_u64))
 	if constexpr(sizeof(T)==8)
 	{
@@ -144,6 +179,41 @@ inline constexpr bool sub_borrow(bool borrow,T a,T b,T& out) noexcept
 #else
 		return sub_borrow_naive(borrow,a,b,out);
 #endif
+#elif defined(__has_builtin) && (__has_builtin(__builtin_subcb)&&__has_builtin(__builtin_subcs)&&__has_builtin(__builtin_subc)&&__has_builtin(__builtin_subcl)&&__has_builtin(__builtin_subcll))
+	if constexpr(sizeof(T)==sizeof(long long unsigned))
+	{
+		long long unsigned borrowout;
+		out=__builtin_subcll(a,b,borrow,__builtin_addressof(borrowout));
+		return borrowout;
+	}
+	else if constexpr(sizeof(T)==sizeof(long unsigned))
+	{
+		long unsigned borrowout;
+		out=__builtin_subcl(a,b,borrow,__builtin_addressof(borrowout));
+		return borrowout;
+	}
+	else if constexpr(sizeof(T)==sizeof(unsigned))
+	{
+		unsigned borrowout;
+		out=__builtin_subc(a,b,borrow,__builtin_addressof(borrowout));
+		return borrowout;
+	}
+	else if constexpr(sizeof(T)==sizeof(short unsigned))
+	{
+		short unsigned borrowout;
+		out=__builtin_subcs(a,b,borrow,__builtin_addressof(borrowout));
+		return borrowout;
+	}
+	else if constexpr(sizeof(T)==sizeof(char unsigned))
+	{
+		char unsigned borrowout;
+		out=__builtin_subcb(a,b,borrow,__builtin_addressof(borrowout));
+		return borrowout;
+	}
+	else
+	{
+		return sub_borrow_naive(borrow,a,b,out);
+	}
 #elif defined(__has_builtin) && (__has_builtin(__builtin_ia32_sbb_u32)||__has_builtin(__builtin_ia32_sbb_u64) || __has_builtin(__builtin_ia32_subborrow_u64) || __has_builtin(__builtin_ia32_subborrow_u32))
 	if constexpr(sizeof(T)==8)
 	{
