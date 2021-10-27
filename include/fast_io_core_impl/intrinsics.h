@@ -304,7 +304,7 @@ std::uint64_t umul(std::uint64_t a,std::uint64_t b,std::uint64_t& high) noexcept
 	if consteval
 	{
 		__uint128_t res{static_cast<__uint128_t>(a)*b};
-		high=static_cast<std::uint64_t>(res>>64);
+		high=static_cast<std::uint64_t>(res>>64u);
 		return static_cast<std::uint64_t>(res);
 	}
 	else
@@ -312,42 +312,49 @@ std::uint64_t umul(std::uint64_t a,std::uint64_t b,std::uint64_t& high) noexcept
 	if(std::is_constant_evaluated())
 	{
 		__uint128_t res{static_cast<__uint128_t>(a)*b};
-		high=static_cast<std::uint64_t>(res>>64);
+		high=static_cast<std::uint64_t>(res>>64u);
 		return static_cast<std::uint64_t>(res);
 	}
 	else
 
 #endif
 	{
-#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ || __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-		struct u64x2_t
-		{
-		#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-			std::uint64_t high,low;
-		#else
-			std::uint64_t low,high;
-		#endif
-		};
-		static_assert(sizeof(__uint128_t)==sizeof(u64x2_t));
-		__uint128_t res{static_cast<__uint128_t>(a)*b};	
-		u64x2_t u;
 #if defined(__has_builtin)
+		if constexpr(std::endian::native==std::endian::little||std::endian::native==std::endian::big)
+		{
+			struct u64x2_little_endian_t
+			{
+				std::uint64_t low,high;
+			};
+			struct u64x2_big_endian_t
+			{
+				std::uint64_t high,low;
+			};
+			using u64x2_t = std::conditional_t<std::endian::native==std::endian::little,u64x2_little_endian_t,u64x2_big_endian_t>;
+			static_assert(sizeof(__uint128_t)==sizeof(u64x2_t));
+#if __has_builtin(__builtin_bit_cast)
+			auto u{__builtin_bit_cast(u64x2_t,static_cast<__uint128_t>(a)*b)};
+			high=u.high;
+			return u.low;
+#else
+			__uint128_t res{static_cast<__uint128_t>(a)*b};
+			u64x2_t u;
 #if __has_builtin(__builtin_memcpy)
-		__builtin_memcpy
+			__builtin_memcpy(__builtin_addressof(u),__builtin_addressof(res),sizeof(u64x2_t));
 #else
-		std::memcpy
+			std::memcpy(__builtin_addressof(u),__builtin_addressof(res),sizeof(u64x2_t));
 #endif
-#else
-		std::memcpy
+			high=u.high;
+			return u.low;
 #endif
-		(__builtin_addressof(u),__builtin_addressof(res),sizeof(__uint128_t));
-		high=u.high;
-		return u.low;
-#else
-		__uint128_t res{static_cast<__uint128_t>(a)*b};
-		high=static_cast<std::uint64_t>(res>>64);
-		return static_cast<std::uint64_t>(res);
+		}
+		else
 #endif
+		{
+			__uint128_t res{static_cast<__uint128_t>(a)*b};
+			high=static_cast<std::uint64_t>(res>>64u);
+			return static_cast<std::uint64_t>(res);
+		}
 	}
 #elif defined(_MSC_VER) && defined(_M_X64)
 #if __cpp_if_consteval >= 202106L
