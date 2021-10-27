@@ -264,8 +264,36 @@ inline constexpr bool sub_borrow(bool borrow,T a,T b,T& out) noexcept
 	}
 }
 
+struct ul32x2_little_endian
+{
+	std::uint_least32_t low,high;
+};
+struct ul32x2_big_endian
+{
+	std::uint_least32_t high,low;
+};
+
+using ul32x2 = std::conditional_t<std::endian::native==std::endian::big,ul32x2_big_endian,ul32x2_little_endian>;
+
+inline constexpr std::uint_least32_t umul_least_32(std::uint_least32_t a,std::uint_least32_t b,std::uint_least32_t& high) noexcept
+{
+	if constexpr(std::endian::native==std::endian::little||std::endian::native==std::endian::big)
+	{
+		auto ret{__builtin_bit_cast(ul32x2,static_cast<std::uint_least64_t>(a)*b)};
+		high=ret.high;
+		return ret.low;
+	}
+	else
+	{
+		std::uint_least64_t v{static_cast<std::uint_least64_t>(a)*b};
+		high=static_cast<std::uint_least32_t>(v>>32u);
+		return static_cast<std::uint_least32_t>(v);
+	}
+}
+
+
 inline
-#if __cpp_lib_is_constant_evaluated >= 201811L
+#if __cpp_if_consteval >= 202106L || __cpp_lib_is_constant_evaluated >= 201811L
 constexpr
 #endif
 std::uint64_t umul_naive(std::uint64_t a,std::uint64_t b,std::uint64_t& high) noexcept
@@ -291,6 +319,70 @@ std::uint64_t umul_naive(std::uint64_t a,std::uint64_t b,std::uint64_t& high) no
 	std::uint64_t d3{(d2>>32)+c11};
 	high=d2|(d3<<32);
 	return d0|(d1<<32);
+}
+
+
+inline constexpr ul32x2_little_endian unpack_ul64(std::uint_least64_t a) noexcept
+{
+#if defined(__has_builtin) && defined(__GNUC__) && !defined(__clang__)
+#if __has_builtin(__builtin_bit_cast)
+	if constexpr(std::endian::native==std::endian::little)
+	{
+		return __builtin_bit_cast(ul32x2_little_endian,a);	//get around gcc bug
+	}
+	else if constexpr(std::endian::native==std::endian::big)
+	{
+		auto [a1,a0]=__builtin_bit_cast(ul32x2_big_endian,a);
+		return {a0,a1};
+	}
+	else
+#endif
+#endif
+	{
+		return {static_cast<std::uint_least32_t>(a),static_cast<std::uint_least32_t>(a>>32u)};
+	}
+}
+
+inline constexpr std::uint_least64_t pack_ul64(std::uint_least32_t low,std::uint_least32_t high) noexcept
+{
+#if defined(__has_builtin) && defined(__GNUC__) && !defined(__clang__)
+#if __has_builtin(__builtin_bit_cast)
+	if constexpr(std::endian::native==std::endian::little)
+	{
+		return __builtin_bit_cast(std::uint_least64_t,ul32x2_little_endian{low,high});	//get around gcc bug
+	}
+	else if constexpr(std::endian::native==std::endian::big)
+	{
+		return __builtin_bit_cast(std::uint_least64_t,ul32x2_big_endian{high,low});	//get around gcc bug
+	}
+	else
+#endif
+#endif
+	{
+		return (static_cast<std::uint_least64_t>(high)<<32u)|low;
+	}
+}
+
+inline constexpr std::uint_least64_t umul_least_64(std::uint_least64_t a,std::uint_least64_t b,std::uint_least64_t& high) noexcept
+{
+	auto [a0,a1]=unpack_ul64(a);
+	auto [b0,b1]=unpack_ul64(b);
+	std::uint_least32_t c1;
+	std::uint_least32_t c0{umul_least_32(a0,b0,c1)};
+	std::uint_least32_t a0b1h;
+	std::uint_least32_t a0b1l{umul_least_32(a0,b1,a0b1h)};
+	std::uint_least32_t a1b0h;
+	std::uint_least32_t a1b0l{umul_least_32(a1,b0,a1b0h)};
+	std::uint_least32_t c3;
+	std::uint_least32_t c2{umul_least_32(a1,b1,c3)};
+	bool carry{add_carry(false,c1,a0b1l,c1)};
+	carry=add_carry(carry,a0b1h,c2,c2);
+	std::uint_least32_t temp{carry};
+	carry=add_carry(false,c1,a1b0l,c1);
+	carry=add_carry(carry,a1b0h,c2,c2);
+	add_carry(carry,temp,c3,c3);
+	high=pack_ul64(c2,c3);
+	return pack_ul64(c0,c1);
 }
 
 inline
@@ -374,15 +466,15 @@ std::uint64_t umul(std::uint64_t a,std::uint64_t b,std::uint64_t& high) noexcept
 		return _umul128(a,b,__builtin_addressof(high));
 	}
 #else
+#if defined(__clang__) || (defined(__GNUC__) && defined(__i386__))
+	return umul_least_64(a,b,high);
+#else
 	return umul_naive(a,b,high);
+#endif
 #endif
 }
 
-inline
-#if __cpp_lib_is_constant_evaluated >= 201811L
-constexpr
-#endif
-std::uint_least64_t umul_least64_high_naive(std::uint_least64_t a,std::uint_least64_t b) noexcept
+inline constexpr std::uint_least64_t umul_least64_high_naive(std::uint_least64_t a,std::uint_least64_t b) noexcept
 {
 	constexpr std::uint_least32_t ul32bits{sizeof(std::uint_least32_t)*
 #if defined(__CHAR_BIT__)

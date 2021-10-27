@@ -184,7 +184,7 @@ inline constexpr std::uint_least64_t raw_transmit64_decay(output outs,input ins,
 		constexpr std::size_t buffer_size{details::transmit_buffer_size_cache<input_char_type>};
 		std::size_t to_allocate{buffer_size};
 		if(characters<to_allocate)
-			to_allocate=characters;
+			to_allocate=static_cast<std::size_t>(characters);
 		::fast_io::details::buffer_alloc_arr_ptr<input_char_type,secure_clear_requirement_stream<input>> array_ptr(to_allocate);
 		auto array_start{array_ptr.ptr};
 		for(;;)
