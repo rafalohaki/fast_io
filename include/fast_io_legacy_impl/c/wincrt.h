@@ -112,7 +112,7 @@ _CLIENT_BLOCK An application can keep special track of a given group of allocati
 
 */
 
-	_malloc_dbg(buffer_size,
+	::fast_io::noexcept_call(_malloc_dbg,buffer_size,
 #if defined(_CRT_BLOCK)
 	_CRT_BLOCK
 #else
