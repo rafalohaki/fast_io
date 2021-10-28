@@ -435,9 +435,6 @@ inline T* wincrt_get_buffer_ptr_impl(FILE* __restrict fpp) noexcept
 
 
 template<typename T>
-#if __has_cpp_attribute(gnu::may_alias)
-[[gnu::may_alias]]
-#endif
 inline void wincrt_set_buffer_curr_ptr_impl(FILE* __restrict fpp,
 #if __has_cpp_attribute(gnu::may_alias)
 [[gnu::may_alias]]
