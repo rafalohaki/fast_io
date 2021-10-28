@@ -7,7 +7,9 @@ template<std::integral ch_type>
 struct basic_ibuffer_view
 {
 	using char_type = ch_type;
-	char_type const *begin_ptr{},*curr_ptr{},*end_ptr{};
+	char_type const *begin_ptr{};
+	char_type const *curr_ptr{};
+	char_type const *end_ptr{};
 	constexpr basic_ibuffer_view() noexcept = default;
 	template<::fast_io::freestanding::contiguous_iterator Iter>
 	requires std::same_as<std::remove_cvref_t<::fast_io::freestanding::iter_value_t<Iter>>,char_type>
@@ -18,6 +20,10 @@ struct basic_ibuffer_view
 	requires std::same_as<std::remove_cvref_t<::std::ranges::range_value_t<rg>>,char_type>
 	explicit constexpr basic_ibuffer_view(rg& r) noexcept : basic_ibuffer_view(::std::ranges::cbegin(r),::std::ranges::cend(r)){}
 #endif
+	constexpr void clear() noexcept
+	{
+		curr_ptr=begin_ptr;
+	}
 };
 
 template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
@@ -84,6 +90,10 @@ struct basic_obuffer_view
 	requires std::same_as<::std::ranges::range_value_t<rg>,char_type>
 	explicit constexpr basic_obuffer_view(rg& r) noexcept : basic_obuffer_view(::std::ranges::cbegin(r),::std::ranges::cend(r)){}
 #endif
+	constexpr void clear() noexcept
+	{
+		curr_ptr=begin_ptr;
+	}
 };
 
 template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter>
