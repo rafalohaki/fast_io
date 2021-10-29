@@ -55,9 +55,9 @@ inline constexpr ::fast_io::parse_result<Iter> scan_context_define_string_impl(b
 inline constexpr ::fast_io::parse_code scan_context_eof_string_define_impl(bool skip_space_done) noexcept
 {
 	if(skip_space_done)
-		return ::fast_io::parse_code::end_of_file;
-	else
 		return ::fast_io::parse_code::ok;
+	else
+		return ::fast_io::parse_code::end_of_file;
 }
 
 template<bool noskipws,bool line>
