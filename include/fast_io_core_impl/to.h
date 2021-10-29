@@ -167,7 +167,7 @@ template<std::integral char_type,typename T>
 inline constexpr void deal_with_single_to(char_type const* buffer_begin,char_type const* buffer_end,T t)
 {
 	auto code{scan_contiguous_define(io_reserve_type<char_type,T>,buffer_begin,buffer_end,t).code};
-	if(code==parse_code::invalid)
+	if(code!=parse_code::ok)
 		throw_parse_code(code);
 }
 

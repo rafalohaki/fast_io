@@ -192,14 +192,13 @@ inline constexpr bool scan_context_status_impl(input in,P arg)
 		auto curr{ibuffer_curr(in)};
 		auto end{ibuffer_end(in)};
 		auto [it,ec]=scan_context_define(io_reserve_type<char_type,P>,state,curr,end,arg);
+		ibuffer_set_curr(in,it);
 		if(ec==parse_code::ok)
 		{
-			ibuffer_set_curr(in,it);
 			return true;
 		}
 		else if(ec!=parse_code::partial)
 			throw_parse_code(ec);
-		ibuffer_set_curr(in,it);
 		if(!ibuffer_underflow(in))[[unlikely]]
 		{
 			ec=scan_context_eof_define(io_reserve_type<char_type,P>,state,arg);

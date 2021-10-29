@@ -397,17 +397,17 @@ inline constexpr parse_result<Iter> scan_int_contiguous_none_simd_space_part_def
 			constexpr unsigned_type risky_uint_max{static_cast<unsigned_type>(-1)};
 			constexpr unsigned_type risky_value{risky_uint_max/base};
 			constexpr unsigned_char_type risky_digit(risky_uint_max%base);
-			overflow=res>risky_value||(risky_value==0&&ch>risky_digit);
+			overflow=res>risky_value||(risky_value==res&&ch>risky_digit);;
 			if(!overflow)
 			{
 				res*=base_char_type;
 				res+=ch;
 			}
 			for(++first;first!=last&&char_is_digit<base,char_type>(static_cast<unsigned_char_type>(*first));++first)
-				overflow=true;
+				overflow|=true;
 		}
 	}
-	return {first,overflow?parse_code::overflow:parse_code::ok};
+	return {first,(overflow?(parse_code::overflow):(parse_code::ok))};
 }
 
 template<char8_t base,::fast_io::freestanding::random_access_iterator Iter,my_integral T>
