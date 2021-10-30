@@ -103,6 +103,12 @@ inline auto posix_api_common(T const& t,Func callback)
 			}
 			else
 #endif
+			if constexpr(::fast_io::details::cxx_std_filesystem_pseudo_concept<std::remove_cvref_t<T>>)
+			{
+				auto const& native{t.native()};
+				return ::fast_io::details::posix_api_common_codecvt_impl(native.c_str(),native.size(),callback);
+			}
+			else
 			{
 				auto ptr{t.c_str()};
 				return ::fast_io::details::posix_api_common_codecvt_impl(ptr,::fast_io::cstr_len(ptr),callback);

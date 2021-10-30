@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include"std_filesystem_pseudo.h"
 #include"nt.h"
 #include"posix.h"
 

@@ -39,23 +39,28 @@ inline auto win32_family_api_common(T const& t,Func callback)
 	else
 	{
 		using cstr_char_type = std::remove_pointer_t<decltype(t.c_str())>;
-		if constexpr(sizeof(cstr_char_type)==sizeof(family_char_type_const_may_alias_ptr))
+		if constexpr(sizeof(cstr_char_type)==sizeof(family_char_type))
 		{
-			return ::fast_io::details::win32_family_api_common_code_cvt_impl<family>(reinterpret_cast<family_char_type_const_may_alias_ptr>(t.c_str()),callback);
+			return callback(reinterpret_cast<family_char_type_const_may_alias_ptr>(t.c_str()));
+		}
+		else
+#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __has_include(<ranges>)
+		if constexpr(::std::ranges::contiguous_range<std::remove_cvref_t<T>>)
+		{
+
+			return ::fast_io::details::win32_family_api_common_code_cvt_impl<family>(::std::ranges::data(t),::std::ranges::size(t),callback);
+		}
+		else
+#endif
+		if constexpr(::fast_io::details::cxx_std_filesystem_pseudo_concept<std::remove_cvref_t<T>>)
+		{
+			auto const& native{t.native()};
+			return ::fast_io::details::win32_family_api_common_code_cvt_impl<family>(native.c_str(),native.size(),callback);
 		}
 		else
 		{
-#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && __has_include(<ranges>)
-			if constexpr(::std::ranges::contiguous_range<std::remove_cvref_t<T>>)
-			{
-				return ::fast_io::details::win32_family_api_common_code_cvt_impl<family>(::std::ranges::data(t),::std::ranges::size(t),callback);
-			}
-			else
-#endif
-			{
-				auto ptr{t.c_str()};
-				return ::fast_io::details::win32_family_api_common_code_cvt_impl<family>(ptr,::fast_io::cstr_len(ptr),callback);
-			}
+			auto ptr{t.c_str()};
+			return ::fast_io::details::win32_family_api_common_code_cvt_impl<family>(ptr,::fast_io::cstr_len(ptr),callback);
 		}
 	}
 }
