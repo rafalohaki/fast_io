@@ -320,7 +320,7 @@ inline void* win32_create_file_at_impl(void* directory_handle,T const& t,open_mo
 template<win32_family,std::integral char_type>
 inline void* win32_create_file_at_fs_dirent_impl(void* directory_handle,char_type const* filename_c_str,std::size_t filename_c_str_len,open_mode_perms ompm)
 {
-	return ::fast_io::win32::nt::details::nt_create_file_at_fs_dirent_impl<false>(directory_handle,filename_c_str,filename_c_str_len,ompm);
+	return ::fast_io::win32::nt::details::nt_family_create_file_at_impl<false>(directory_handle,filename_c_str,filename_c_str_len,ompm);
 }
 
 }
