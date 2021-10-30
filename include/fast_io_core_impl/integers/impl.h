@@ -349,6 +349,27 @@ inline constexpr auto hexfloat(scalar_type t) noexcept
 
 template<bool uppercase=false,typename scalar_type>
 requires (::fast_io::details::my_floating_point<scalar_type>)
+inline constexpr auto hexfloat(scalar_type t,std::size_t n) noexcept
+{
+	if constexpr(std::same_as<std::remove_cvref_t<scalar_type>,long double>
+#if defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)
+	||std::same_as<std::remove_cvref_t<scalar_type>,__float128>
+#endif
+	)
+	{
+#if (defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)) && defined(__SIZEOF_INT128__)
+		if constexpr(sizeof(scalar_type)>sizeof(double))
+			return scalar_manip_precision_t<::fast_io::details::hexafloat_mani_flags_cache<uppercase,false>,__float128>{static_cast<__float128>(t),n};
+		else
+#endif
+			return scalar_manip_precision_t<::fast_io::details::hexafloat_mani_flags_cache<uppercase,false>,double>{static_cast<double>(t),n};
+	}
+	else
+		return scalar_manip_precision_t<::fast_io::details::hexafloat_mani_flags_cache<uppercase,false>,std::remove_cvref_t<scalar_type>>{t,n};
+}
+
+template<bool uppercase=false,typename scalar_type>
+requires (::fast_io::details::my_floating_point<scalar_type>)
 inline constexpr auto comma_hexfloat(scalar_type t) noexcept
 {
 	if constexpr(std::same_as<std::remove_cvref_t<scalar_type>,long double>
@@ -366,6 +387,28 @@ inline constexpr auto comma_hexfloat(scalar_type t) noexcept
 	}
 	else
 		return scalar_manip_t<::fast_io::details::hexafloat_mani_flags_cache<uppercase,true>,std::remove_cvref_t<scalar_type>>{t};
+}
+
+
+template<bool uppercase=false,typename scalar_type>
+requires (::fast_io::details::my_floating_point<scalar_type>)
+inline constexpr auto comma_hexfloat(scalar_type t,std::size_t n) noexcept
+{
+	if constexpr(std::same_as<std::remove_cvref_t<scalar_type>,long double>
+#if defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)
+	||std::same_as<std::remove_cvref_t<scalar_type>,__float128>
+#endif
+	)
+	{
+#if (defined(__SIZEOF_FLOAT128__) || defined(__FLOAT128__)) && defined(__SIZEOF_INT128__)
+		if constexpr(sizeof(scalar_type)>sizeof(double))
+			return scalar_manip_precision_t<::fast_io::details::hexafloat_mani_flags_cache<uppercase,true>,__float128>{static_cast<__float128>(t),n};
+		else
+#endif
+			return scalar_manip_precision_t<::fast_io::details::hexafloat_mani_flags_cache<uppercase,true>,double>{static_cast<double>(t),n};
+	}
+	else
+		return scalar_manip_precision_t<::fast_io::details::hexafloat_mani_flags_cache<uppercase,true>,std::remove_cvref_t<scalar_type>>{t,n};
 }
 
 template<bool uppercase=false,typename scalar_type>
@@ -579,8 +622,6 @@ inline constexpr auto comma_scientific(scalar_type t) noexcept
 		return scalar_manip_t<::fast_io::details::dcmfloat_mani_flags_cache<uppercase,true,manipulators::floating_format::scientific>,std::remove_cvref_t<scalar_type>>{t};
 }
 
-
-
 template<bool uppercase=false,typename scalar_type>
 requires (::fast_io::details::my_floating_point<scalar_type>)
 inline constexpr auto scientific(scalar_type t,std::size_t n) noexcept
@@ -622,7 +663,6 @@ inline constexpr auto comma_scientific(scalar_type t,std::size_t n) noexcept
 	else
 		return scalar_manip_precision_t<::fast_io::details::dcmfloat_mani_flags_cache<uppercase,true,manipulators::floating_format::scientific>,std::remove_cvref_t<scalar_type>>{t,n};
 }
-
 
 }
 
