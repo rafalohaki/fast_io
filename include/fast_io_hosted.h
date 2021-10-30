@@ -51,14 +51,10 @@ For hosted implementations the set of standard library headers required by the C
 #if (defined(_MSC_VER) && !defined(__clang__))
 #include"fast_io_unit/gb18030.h"
 #endif
-//#include<memory_resource>
-//#include"fast_io_hosted/pmr_resource.h"
-
 
 #if defined(_WIN32) || defined(__CYGWIN__)
 #include"fast_io_hosted/box.h"
 #endif
-
 
 #if defined(_GLIBCXX_STRING) || defined(_LIBCPP_STRING) || defined(_STRING_)
 #include"fast_io_unit/string.h"
