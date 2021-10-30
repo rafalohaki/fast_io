@@ -12,4 +12,10 @@ concept cxx_std_filesystem_pseudo_concept = requires(T t)
 	{t.root_name()};
 };
 
+template<typename char_type,typename Func>
+concept api_common_has_size_overload = requires(Func callback,char_type const* cstr,std::size_t size)
+{
+	callback(cstr,size);
+};
+
 }
