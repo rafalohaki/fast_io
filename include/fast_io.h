@@ -74,38 +74,8 @@ decltype(auto) u8err() noexcept
 using in_buf_type = basic_ibuf<native_io_observer>;
 using out_buf_type = basic_obuf<native_io_observer>;
 
-inline in_buf_type in_buf()
-{
-	return in_buf_type(native_stdin());
-}
-
-inline out_buf_type out_buf()
-{
-	return out_buf_type(native_stdout());
-}
-
-inline out_buf_type err_buf()
-{
-	return out_buf_type(native_stderr());
-}
-
 using u8in_buf_type = basic_ibuf<u8native_io_observer>;
 using u8out_buf_type = basic_obuf<u8native_io_observer>;
-
-inline u8in_buf_type u8in_buf()
-{
-	return u8in_buf_type(native_stdin<char8_t>());
-}
-
-inline u8out_buf_type u8out_buf()
-{
-	return u8out_buf_type(native_stdout<char8_t>());
-}
-
-inline u8out_buf_type u8err_buf()
-{
-	return u8out_buf_type(native_stderr<char8_t>());
-}
 
 
 #if defined(_WIN32) || defined(__CYGWIN__)

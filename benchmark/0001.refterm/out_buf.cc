@@ -1,6 +1,6 @@
 ﻿inline void test()
 {
-	auto obf{fast_io::out_buf()};
+	fast_io::out_buf_type obf{fast_io::out()};
 	for(std::size_t i{};i!=1000000;++i)
 		println(obf,i);
 }
