@@ -75,7 +75,7 @@ public:
 	}
 #endif
 #if !defined(__AVR__) && !defined(_GLIBCXX_USE_STDIO_PURE)
-#if defined(__GLIBCXX__) && !defined(_LIBCPP_VERSION)
+#if defined(__GLIBCXX__) && !defined(_LIBCPP_VERSION) && (!defined(_WIN32_WINNT) || defined(_WIN32_WINDOWS) || defined(__WINE__) || defined(__CYGWIN__))
 	basic_filebuf_file(basic_posix_io_handle<char_type>&& piohd,open_mode mode):
 		basic_filebuf_io_observer<CharT,Traits>{::fast_io::details::streambuf_hack::open_libstdcxx_basic_filebuf_from_fd<CharT,Traits>(piohd.fd,mode)}
 	{
