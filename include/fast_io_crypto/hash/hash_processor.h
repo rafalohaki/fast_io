@@ -23,7 +23,7 @@ class basic_hash_processor
 public:
 	using char_type = ch_type;
 	using function_type = Func;
-	function_type& function;
+	function_type* function{};
 	inline static constexpr std::size_t block_size = function_type::block_size;
 #ifndef __INTELLISENSE__
 #if __has_cpp_attribute(msvc::no_unique_address)
@@ -41,7 +41,7 @@ public:
 #endif
 #endif
 	std::conditional_t<block_size==0,details::compress_current_position,std::size_t> current_position{};
-	constexpr basic_hash_processor(function_type& func) noexcept:function(func)
+	constexpr basic_hash_processor(function_type& func) noexcept:function(__builtin_addressof(func))
 	{
 		if constexpr(details::hash_require_block_init<function_type>)
 			current_position=func.block_init(temporary_buffer.data());
@@ -49,15 +49,15 @@ public:
 	constexpr void do_final() noexcept
 	{
 		if constexpr(block_size!=0)
-			function.digest(temporary_buffer.data(),current_position);
+			function->digest(temporary_buffer.data(),current_position);
 		else
-			function.digest();
+			function->digest();
 	}
 	constexpr void reset() noexcept
 	{
-		function={};
+		*function={};
 		if constexpr(details::hash_require_block_init<function_type>)
-			current_position=function.block_init(temporary_buffer.data());
+			current_position=function->block_init(temporary_buffer.data());
 		else
 			current_position=0;
 	}
@@ -74,8 +74,7 @@ public:
 		if(!std::is_constant_evaluated())
 #endif
 		{
-			secure_clear(temporary_buffer.data(),block_size);
-			secure_clear(__builtin_addressof(current_position),sizeof(current_position));
+			secure_clear(this,sizeof(basic_hash_processor<ch_type,Func>));
 		}
 	}
 };
@@ -120,7 +119,7 @@ inline constexpr void hash_write_cold_path_impl_common(function_type& func,std::
 template<typename range_type,std::integral char_type,typename Func>
 inline constexpr void hash_write_cold_path_impl(basic_hash_processor<char_type,Func>& out,range_type const* first,range_type const* last) noexcept
 {
-	hash_write_cold_path_impl_common<range_type>(out.function,out.current_position,out.temporary_buffer.data(),first,last);
+	hash_write_cold_path_impl_common<range_type>(*out.function,out.current_position,out.temporary_buffer.data(),first,last);
 }
 
 template<typename range_type,std::integral ch_type,typename function_type>
@@ -133,13 +132,13 @@ void hash_write_impl(basic_hash_processor<ch_type,function_type>& out,range_type
 	if constexpr(function_type::block_size==0)
 	{
 		if constexpr(std::same_as<range_type,std::byte>)
-			out.function(first,static_cast<std::size_t>(last-first));
+			out->function(first,static_cast<std::size_t>(last-first));
 		else
 		{
 			for(auto i{first};i!=last;++i)
 			{
 				::fast_io::freestanding::array<std::byte,sizeof(range_type)> arr{std::bit_cast<::fast_io::freestanding::array<std::byte,sizeof(range_type)>>(*i)};
-				out.function(arr.data(),arr.size());
+				out->function(arr.data(),arr.size());
 			}
 		}
 	}
