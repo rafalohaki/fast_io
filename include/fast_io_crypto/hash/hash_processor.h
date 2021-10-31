@@ -44,7 +44,7 @@ public:
 	constexpr basic_hash_processor(function_type& func) noexcept:function(func)
 	{
 		if constexpr(details::hash_require_block_init<function_type>)
-			current_position+=func.block_init(temporary_buffer.data());
+			current_position=func.block_init(temporary_buffer.data());
 	}
 	constexpr void do_final() noexcept
 	{
@@ -52,6 +52,14 @@ public:
 			function.digest(temporary_buffer.data(),current_position);
 		else
 			function.digest();
+	}
+	constexpr void reset() noexcept
+	{
+		function={};
+		if constexpr(details::hash_require_block_init<function_type>)
+			current_position=function.block_init(temporary_buffer.data());
+		else
+			current_position=0;
 	}
 	constexpr basic_hash_processor(basic_hash_processor const&)=default;
 	constexpr basic_hash_processor& operator=(basic_hash_processor const&)=default;
