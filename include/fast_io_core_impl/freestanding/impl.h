@@ -17,7 +17,7 @@ no std::move, std::forward, std::addressof. WTF???
 #if _LIBCPP_VERSION
 #if __has_include(<__ranges/concepts.h>)
 #include<__ranges/concepts.h>
-#else
+#elif __has_include(<ranges>)
 #include<ranges>
 #endif
 #endif
