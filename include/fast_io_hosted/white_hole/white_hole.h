@@ -2,6 +2,10 @@
 #if (defined(_WIN32)&&!defined(__WINE__)) || defined(__CYGWIN__)
 #include"rtl_gen_random.h"
 #endif
+#if defined(__wasi__)
+#include"wasi_random_get.h"
+#endif
+
 namespace fast_io::details
 {
 template<typename T>
@@ -10,7 +14,7 @@ concept has_entroy_method_impl = requires(T&& handle)
 	{random_entropy(handle)}->std::convertible_to<double>;
 };
 }
-#if (defined(__linux__) && defined(__NR_getrandom)) || __has_include(<sys/random.h>)
+#if ((defined(__linux__) && defined(__NR_getrandom)) || __has_include(<sys/random.h>)) && !defined(__wasi__)
 #include"linux_getrandom.h"
 #endif
 #include"posix_dev_urandom.h"
@@ -47,6 +51,8 @@ template<std::integral char_type>
 using basic_native_white_hole =
 #if defined(_WIN32)&&!defined(__WINE__)
 basic_rtl_gen_random<char_type>;
+#elif defined(__wasi__)
+basic_wasi_random_get<char_type>;
 #elif (defined(__linux__) && defined(__NR_getrandom)) || __has_include(<sys/random.h>)
 basic_linux_getrandom<char_type>;
 #else
