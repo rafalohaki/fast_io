@@ -43,7 +43,7 @@ inline void rtl_gen_random_read(void* ptr,std::size_t sz)
 template<std::integral char_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter read(basic_rtl_gen_random<char_type>,Iter bg,Iter ed)
 {
-	win32::details::rtl_gen_random_read(::fast_io::freestanding::to_address(bg),(ed-bg)*sizeof(*bg));
+	win32::details::rtl_gen_random_read(::fast_io::freestanding::to_address(bg),static_cast<std::size_t>(ed-bg)*sizeof(*bg));
 	return ed;
 }
 

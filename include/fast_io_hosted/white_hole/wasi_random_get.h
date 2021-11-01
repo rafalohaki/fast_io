@@ -35,7 +35,7 @@ public:
 template<std::integral char_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter read(basic_wasi_random_get<char_type>,Iter bg,Iter ed)
 {
-	::fast_io::details::wasi_random_get_impl(::fast_io::freestanding::to_address(bg),(ed-bg)*sizeof(*bg));
+	::fast_io::details::wasi_random_get_impl(::fast_io::freestanding::to_address(bg),static_cast<std::size_t>(ed-bg)*sizeof(*bg));
 	return ed;
 }
 

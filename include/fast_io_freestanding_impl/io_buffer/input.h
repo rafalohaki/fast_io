@@ -127,7 +127,7 @@ inline constexpr Iter read(basic_io_buffer<handletype,mde,decorators,bfs>& bios,
 		else
 		{
 			std::size_t diff(static_cast<std::size_t>(last-first));
-			std::size_t remain_space(bios.ibuffer.buffer_end-bios.ibuffer.buffer_curr);
+			std::size_t remain_space(static_cast<std::size_t>(bios.ibuffer.buffer_end-bios.ibuffer.buffer_curr));
 			if(remain_space<diff)[[unlikely]]
 				return details::iobuf_read_unhappy_impl(bios,first,last);
 			first=details::non_overlapped_copy_n(bios.ibuffer.buffer_curr,diff,first);
@@ -140,7 +140,7 @@ inline constexpr Iter read(basic_io_buffer<handletype,mde,decorators,bfs>& bios,
 		auto newb{reinterpret_cast<char*>(::fast_io::freestanding::to_address(first))};
 		auto ret{read(bios,newb,
 			reinterpret_cast<char*>(::fast_io::freestanding::to_address(last)))};
-		return first+(ret-newb)/sizeof(*first);
+		return first+static_cast<std::size_t>(ret-newb)/sizeof(*first);
 	}
 }
 
