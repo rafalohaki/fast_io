@@ -65,6 +65,7 @@ https://ewindy.gitee.io/fast_io_rst/index.html
 - mips-abin32
 - mips-abi64
 - avr
+- ia64
 - All architectures should work. (Just i do not have time to build all cross-toolchains to test them one by one)
 
 ## Platform Support
