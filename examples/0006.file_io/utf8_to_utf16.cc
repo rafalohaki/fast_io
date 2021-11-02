@@ -13,8 +13,8 @@ try
 		return 1;
 	}
 	auto t0{fast_io::posix_clock_gettime(fast_io::posix_clock_id::realtime)};
-	fast_io::u16iutf8_file file(argv[1]);//This will do codecvt from UTF-8 to UTF-16
-	fast_io::obuf_file obf(argv[2],fast_io::open_mode::excl);
+	fast_io::u16iutf8_file file(fast_io::mnp::os_cstr(argv[1]));//This will do codecvt from UTF-8 to UTF-16
+	fast_io::obuf_file obf(fast_io::mnp::os_cstr(argv[2]),fast_io::open_mode::excl);
 	auto transmitted{transmit(obf,file)};
 	println(chvw(argv[1])," => ",chvw(argv[2]),"\nTransmitted:",transmitted," utf-16 characters\tElapsed Time:",fast_io::posix_clock_gettime(fast_io::posix_clock_id::realtime)-t0);
 }
