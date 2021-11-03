@@ -60,7 +60,7 @@ posix_dev_urandom<basic_native_file<char_type>>;
 #endif
 
 template<std::integral char_type>
-using basic_ibuf_white_hole = basic_io_buffer<basic_native_white_hole<char_type>,buffer_mode::in|buffer_mode::secure_clear>;
+using basic_ibuf_white_hole = basic_io_buffer<basic_native_white_hole<char_type>,buffer_mode::in|buffer_mode::secure_clear,basic_decorators<char_type>,4096u>;
 
 using native_white_hole = basic_native_white_hole<char>;
 using ibuf_white_hole = basic_ibuf_white_hole<char>;
@@ -116,8 +116,7 @@ struct basic_white_hole_engine
 	inline constexpr result_type operator()()
 	{
 		result_type type;
-		if(read(handle,__builtin_addressof(type),__builtin_addressof(type)+1)!=__builtin_addressof(type)+1)
-			throw_posix_error(EINVAL);
+		::fast_io::read_all(handle,__builtin_addressof(type),__builtin_addressof(type)+1);
 		return type;
 	}
 };

@@ -4,23 +4,46 @@ namespace fast_io
 {
 namespace details
 {
-inline void wasi_random_get_impl(void* ptr,std::size_t sz)
+
+inline void wasi_random_get_full_impl(void* ptr,std::size_t sz)
 {
 	using u8ptr_may_alias
 #if __has_cpp_attribute(gnu::may_alias)
 	[[gnu::may_alias]]
 #endif
 	= std::uint8_t*;
-	if constexpr(sizeof(__wasi_size_t)!=sizeof(std::size_t))
+	auto ret{::fast_io::noexcept_call(__wasi_random_get,reinterpret_cast<u8ptr_may_alias>(ptr),static_cast<__wasi_size_t>(sz))};
+	if(ret)
+		throw_posix_error(ret);
+}
+
+inline std::size_t wasi_random_get_impl(void* ptr,std::size_t sz)
+{
+	using u8ptr_may_alias
+#if __has_cpp_attribute(gnu::may_alias)
+	[[gnu::may_alias]]
+#endif
+	= std::uint8_t*;
+	static_assert(std::unsigned_integral<__wasi_size_t>);
+	u8ptr_may_alias base_ptr{reinterpret_cast<u8ptr_may_alias>(ptr)};
+	u8ptr_may_alias iter{base_ptr};
+	while(sz)
 	{
-		throw_posix_error(EINVAL);
-	}
-	else
-	{
-		auto ret{::fast_io::noexcept_call(__wasi_random_get,reinterpret_cast<u8ptr_may_alias>(ptr),static_cast<__wasi_size_t>(sz))};
+		constexpr std::size_t sz_max{static_cast<std::size_t>(SIZE_MAX)};
+		__wasi_size_t mn{sz};
+		if(sz_max<sz)
+			mn=sz_max;
+		auto ret{::fast_io::noexcept_call(__wasi_random_get,iter,mn)};
 		if(ret)
-			throw_posix_error(ret);
+		{
+			if(base_ptr==iter)
+				throw_posix_error(ret);
+			break;
+		}
+		sz-=mn;
+		iter+=mn;
 	}
+	return static_cast<std::size_t>(iter-base_ptr);
 }
 }
 
@@ -35,8 +58,16 @@ public:
 template<std::integral char_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter read(basic_wasi_random_get<char_type>,Iter bg,Iter ed)
 {
-	::fast_io::details::wasi_random_get_impl(::fast_io::freestanding::to_address(bg),static_cast<std::size_t>(ed-bg)*sizeof(*bg));
-	return ed;
+	if constexpr(sizeof(__wasi_size_t)<sizeof(std::size_t))
+	{
+		std::size_t sz{::fast_io::details::wasi_random_get_impl(::fast_io::freestanding::to_address(bg),static_cast<std::size_t>(ed-bg)*sizeof(*bg))};
+		return bg+(sz/sizeof(*bg));
+	}
+	else
+	{
+		::fast_io::details::wasi_random_get_full_impl(::fast_io::freestanding::to_address(bg),static_cast<std::size_t>(ed-bg)*sizeof(*bg));
+		return ed;
+	}
 }
 
 template<std::integral char_type>

@@ -21,7 +21,7 @@ inline constexpr basic_linux_getrandom<char_type> io_value_handle(basic_linux_ge
 	return brg;	
 }
 
-namespace win32
+namespace linux
 {
 
 namespace details
@@ -44,7 +44,7 @@ inline std::size_t linux_getrandom_read(void* ptr,std::size_t sz,unsigned flags)
 template<std::integral char_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter read(basic_linux_getrandom<char_type> g,Iter bg,Iter ed)
 {
-	return bg+win32::details::linux_getrandom_read(::fast_io::freestanding::to_address(bg),(ed-bg)*sizeof(*bg),g.flags)/sizeof(*bg);
+	return bg+::fast_io::linux::details::linux_getrandom_read(::fast_io::freestanding::to_address(bg),(ed-bg)*sizeof(*bg),g.flags)/sizeof(*bg);
 }
 
 using linux_getrandom = basic_linux_getrandom<char>;

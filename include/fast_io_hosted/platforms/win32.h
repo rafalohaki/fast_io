@@ -108,7 +108,7 @@ inline constexpr win32_open_mode calculate_win32_open_mode(open_mode_perms ompm)
 		mode.dwDesiredAccess|=4;//FILE_APPEND_DATA
 	else if((value&open_mode::out)!=open_mode::none)
 		mode.dwDesiredAccess|=0x40000000;//GENERIC_WRITE
-	if(((value&open_mode::in)!=open_mode::none)|((value&open_mode::app)!=open_mode::none))
+	if(((value&open_mode::in)!=open_mode::none)||((value&open_mode::app)!=open_mode::none))
 	{
 		mode.dwDesiredAccess|=0x80000000;//GENERIC_READ
 		if((value&open_mode::out)!=open_mode::none&&((value&open_mode::app)!=open_mode::none&&(value&open_mode::trunc)!=open_mode::none))

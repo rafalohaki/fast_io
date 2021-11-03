@@ -16,26 +16,32 @@ namespace win32
 
 namespace details
 {
-inline void rtl_gen_random_read(void* ptr,std::size_t sz)
+inline void rtl_gen_random_read_u32(void* ptr,std::size_t sz)
 {
-	if constexpr(sizeof(std::uint32_t)<sizeof(std::size_t))
+	if(!SystemFunction036(ptr,static_cast<std::uint32_t>(sz)))
+		throw_win32_error();
+}
+
+inline std::size_t rtl_gen_random_read(void* ptr,std::size_t sz)
+{
+	std::byte *base_ptr{reinterpret_cast<std::byte*>(ptr)};
+	std::byte *iter{base_ptr};
+	while(sz)
 	{
-		for(;sz;)
+		constexpr std::size_t uint32_max{static_cast<std::size_t>(UINT32_MAX)};
+		std::size_t mn{sz};
+		if(uint32_max<sz)
+			mn=uint32_max;
+		if(!SystemFunction036(iter,static_cast<std::uint32_t>(mn)))
 		{
-			constexpr std::size_t uint32_max{static_cast<std::size_t>(UINT32_MAX)};
-			std::size_t mn{sz};
-			if(uint32_max<sz)
-				mn=uint32_max;
-			if(!SystemFunction036(ptr,static_cast<std::uint32_t>(mn)))
+			if(base_ptr==iter)
 				throw_win32_error();
-			sz-=mn;
+			break;
 		}
+		sz-=mn;
+		iter+=mn;
 	}
-	else
-	{
-		if(!SystemFunction036(ptr,static_cast<std::uint32_t>(sz)))
-			throw_win32_error();
-	}
+	return static_cast<std::size_t>(iter-base_ptr);
 }
 }
 }
@@ -43,8 +49,16 @@ inline void rtl_gen_random_read(void* ptr,std::size_t sz)
 template<std::integral char_type,::fast_io::freestanding::contiguous_iterator Iter>
 inline Iter read(basic_rtl_gen_random<char_type>,Iter bg,Iter ed)
 {
-	win32::details::rtl_gen_random_read(::fast_io::freestanding::to_address(bg),static_cast<std::size_t>(ed-bg)*sizeof(*bg));
-	return ed;
+	if constexpr(sizeof(std::uint32_t)<sizeof(std::size_t))
+	{
+		win32::details::rtl_gen_random_read_u32(::fast_io::freestanding::to_address(bg),static_cast<std::size_t>(ed-bg)*sizeof(*bg));
+		return ed;
+	}
+	else
+	{
+		auto ret{win32::details::rtl_gen_random_read(::fast_io::freestanding::to_address(bg),static_cast<std::size_t>(ed-bg)*sizeof(*bg))};
+		return bg+(ret/sizeof(*bg));
+	}
 }
 
 template<std::integral char_type>

@@ -77,7 +77,7 @@ inline constexpr nt_open_mode calculate_nt_open_mode(open_mode_perms ompm) noexc
 		mode.DesiredAccess|=0x120116;	//FILE_GENERIC_WRITE
 		generic_write=true;
 	}
-	if(((value&open_mode::in)!=open_mode::none)|((value&open_mode::app)!=open_mode::none))
+	if(((value&open_mode::in)!=open_mode::none)||((value&open_mode::app)!=open_mode::none))
 	{
 		mode.DesiredAccess|=0x120089;	//FILE_GENERIC_READ
 		if((value&open_mode::out)!=open_mode::none&&((value&open_mode::app)!=open_mode::none&&(value&open_mode::trunc)!=open_mode::none))
