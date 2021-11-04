@@ -6,7 +6,7 @@
 int main()
 {
 	fast_io::timer tm(u8"mt19937_64");
-	fast_io::u8obuf_file obf(u8"m19937_64.txt");
+	fast_io::u8obuf_file obf(u8"mt19937_64.txt");
 	std::mt19937_64 eng;//just use this as a comparison even it is deterministic
 	std::uniform_int_distribution<std::size_t> ud(0,61);
 	std::uniform_int_distribution<std::size_t> rlen(8,20);
