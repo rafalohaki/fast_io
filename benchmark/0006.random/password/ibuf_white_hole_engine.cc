@@ -1,10 +1,12 @@
 ﻿#include<fast_io.h>
 #include<fast_io_device.h>
 #include<random>
+#include<fast_io_driver/timer.h>
 
 int main()
 {
-	fast_io::u8obuf_file obf(u"password.txt");
+	fast_io::timer tm(u8"ibuf_white_whole_engine");
+	fast_io::u8obuf_file obf(u"ibuf_white_whole_engine.txt");
 	fast_io::ibuf_white_hole_engine eng;
 	std::uniform_int_distribution<std::size_t> ud(0,61);
 	std::uniform_int_distribution<std::size_t> rlen(8,20);
