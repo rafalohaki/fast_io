@@ -3,6 +3,10 @@
 namespace fast_io
 {
 
+#if defined(_MSC_VER)
+#pragma comment(lib,"advapi32.lib")
+#endif
+
 template<std::integral ch_type>
 class basic_rtl_gen_random
 {
@@ -51,13 +55,13 @@ inline Iter read(basic_rtl_gen_random<char_type>,Iter bg,Iter ed)
 {
 	if constexpr(sizeof(std::uint32_t)<sizeof(std::size_t))
 	{
-		win32::details::rtl_gen_random_read_u32(::fast_io::freestanding::to_address(bg),static_cast<std::size_t>(ed-bg)*sizeof(*bg));
-		return ed;
+		auto ret{win32::details::rtl_gen_random_read(::fast_io::freestanding::to_address(bg),static_cast<std::size_t>(ed-bg)*sizeof(*bg))};
+		return bg+(ret/sizeof(*bg));
 	}
 	else
 	{
-		auto ret{win32::details::rtl_gen_random_read(::fast_io::freestanding::to_address(bg),static_cast<std::size_t>(ed-bg)*sizeof(*bg))};
-		return bg+(ret/sizeof(*bg));
+		win32::details::rtl_gen_random_read_u32(::fast_io::freestanding::to_address(bg),static_cast<std::size_t>(ed-bg)*sizeof(*bg));
+		return ed;
 	}
 }
 
