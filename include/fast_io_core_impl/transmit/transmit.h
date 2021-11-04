@@ -76,7 +76,7 @@ inline constexpr std::uintmax_t raw_transmit_decay(output outs,input ins)
 		using input_char_type = typename input::char_type;
 		std::uintmax_t chars{};
 		constexpr std::size_t buffer_size{details::transmit_buffer_size_cache<input_char_type>};
-		details::buffer_alloc_arr_ptr<input_char_type,false> array_ptr(buffer_size);
+		::fast_io::details::buffer_alloc_arr_ptr<input_char_type,secure_clear_requirement_stream<input>||secure_clear_requirement_stream<output>> array_ptr(buffer_size);
 		auto array_start{array_ptr.ptr},array_end{array_ptr.ptr+buffer_size};
 		for(;;)
 		{
@@ -185,7 +185,7 @@ inline constexpr std::uint_least64_t raw_transmit64_decay(output outs,input ins,
 		std::size_t to_allocate{buffer_size};
 		if(characters<to_allocate)
 			to_allocate=static_cast<std::size_t>(characters);
-		::fast_io::details::buffer_alloc_arr_ptr<input_char_type,secure_clear_requirement_stream<input>> array_ptr(to_allocate);
+		::fast_io::details::buffer_alloc_arr_ptr<input_char_type,secure_clear_requirement_stream<input>||secure_clear_requirement_stream<output>> array_ptr(to_allocate);
 		auto array_start{array_ptr.ptr};
 		for(;;)
 		{
