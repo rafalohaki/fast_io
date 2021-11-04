@@ -3,7 +3,7 @@
 namespace fast_io
 {
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(_KERNEL_MODE)
 #pragma comment(lib,"advapi32.lib")
 #endif
 
