@@ -181,7 +181,11 @@ void write(basic_hash_processor<ch_type,Func>& out,Iter begin,Iter end)
 }
 
 template<std::integral ch_type,typename Func>
-inline void scatter_write(basic_hash_processor<ch_type,Func>& out,io_scatters_t sp)
+inline
+#if __cpp_lib_is_constant_evaluated >= 201811L && __cpp_lib_bit_cast >= 201806L
+constexpr
+#endif
+void scatter_write(basic_hash_processor<ch_type,Func>& out,io_scatters_t sp)
 {
 	for(std::size_t i{};i!=sp.len;++i)
 		details::hash_processor_impl::hash_write_impl<std::byte>(out,reinterpret_cast<std::byte const*>(sp.base[i].base),reinterpret_cast<std::byte const*>(sp.base[i].base)+sp.base[i].len);
@@ -199,5 +203,8 @@ public:
 
 template<typename Func>
 hash_processor(Func& func)->hash_processor<Func>;
+
+template<std::integral char_type,typename T>
+inline constexpr void require_secure_clear(basic_hash_processor<char_type,T>&){}
 
 }
