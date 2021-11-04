@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(_KERNEL_MODE)
 #pragma comment(lib,"ws2_32.lib")
 #endif
 
