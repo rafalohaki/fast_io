@@ -312,14 +312,59 @@ inline void* nt_create_file_impl(T const& t,open_mode_perms ompm)
 	return nt_api_common(t,nt_family_open_file_parameter<zw>{ompm});
 }
 
-template<bool zw>
+template<bool zw,bool kernel>
 inline void* nt_family_create_file_at_impl(void* directory_handle,wchar_t const* filename_c_str,std::size_t filename_c_str_len,open_mode_perms md)
 {
-	return ::fast_io::win32::nt::details::nt_call_callback(directory_handle,filename_c_str,filename_c_str_len,
+	if constexpr(kernel)
+	{
+		return ::fast_io::win32::nt::details::nt_call_kernel_callback(directory_handle,filename_c_str,filename_c_str_len,
+			nt_create_callback<zw>{::fast_io::win32::nt::details::calculate_nt_open_mode(md)});
+	}
+	else
+	{
+		return ::fast_io::win32::nt::details::nt_call_callback(directory_handle,filename_c_str,filename_c_str_len,
+			nt_create_callback<zw>{::fast_io::win32::nt::details::calculate_nt_open_mode(md)});
+	}
+}
+
+template<bool zw>
+inline void* nt_family_create_file_fs_dirent_impl(void* directory_handle,wchar_t const* filename_c_str,std::size_t filename_c_str_len,open_mode_perms md)
+{
+	return ::fast_io::win32::nt::details::nt_call_kernel_fs_dirent_callback(directory_handle,filename_c_str,filename_c_str_len,
 		nt_create_callback<zw>{::fast_io::win32::nt::details::calculate_nt_open_mode(md)});
 }
 
 template<bool zw>
+inline void* nt_family_create_file_kernel_impl(wchar_t const* filename_cstr,std::size_t filename_c_str_len,open_mode_perms ompm)
+{
+	return ::fast_io::win32::nt::details::nt_call_kernel_nodir_callback(
+				filename_cstr,filename_c_str_len,
+				nt_create_callback<zw>{::fast_io::win32::nt::details::calculate_nt_open_mode(ompm)});
+}
+
+template<bool zw>
+struct nt_family_open_file_kernel_parameter
+{
+	open_mode_perms ompm{};
+#if __has_cpp_attribute(gnu::always_inline)
+[[gnu::always_inline]]
+#elif __has_cpp_attribute(msvc::forceinline)
+[[msvc::forceinline]]
+#endif
+	inline void* operator()(wchar_t const* filename_cstr,std::size_t filename_c_str_len)
+	{
+		return nt_family_create_file_kernel_impl<zw>(filename_cstr,filename_c_str_len,ompm);
+	}
+};
+
+template<bool zw,typename T>
+requires (::fast_io::constructible_to_os_c_str<T>)
+inline void* nt_create_file_kernel_impl(T const& t,open_mode_perms op)
+{
+	return nt_api_common(t,nt_family_open_file_kernel_parameter<zw>{op});
+}
+
+template<bool zw,bool kernel>
 struct nt_family_open_file_at_parameter
 {
 	void* directory_handle{};
@@ -331,15 +376,15 @@ struct nt_family_open_file_at_parameter
 #endif
 	inline void* operator()(wchar_t const* filename_cstr,std::size_t filename_c_str_len)
 	{
-		return nt_family_create_file_at_impl<zw>(directory_handle,filename_cstr,filename_c_str_len,ompm);
+		return nt_family_create_file_at_impl<zw,kernel>(directory_handle,filename_cstr,filename_c_str_len,ompm);
 	}
 };
 
-template<bool zw,typename T>
+template<bool zw,bool kernel=false,typename T>
 requires (::fast_io::constructible_to_os_c_str<T>)
 inline void* nt_create_file_at_impl(void* directory_handle,T const& t,open_mode_perms op)
 {
-	return nt_api_common(t,nt_family_open_file_at_parameter<zw>{directory_handle,op});
+	return nt_api_common(t,nt_family_open_file_at_parameter<zw,kernel>{directory_handle,op});
 }
 
 template<bool zw>
@@ -500,7 +545,6 @@ inline nt_at_entry at_fdcwd() noexcept
 	return nt_at_fdcwd();
 }
 #endif
-
 
 template<nt_family family>
 struct nt_family_at_entry:nt_at_entry
@@ -852,22 +896,27 @@ public:
 	constexpr basic_nt_family_file()=default;
 	template<typename native_hd>
 	requires std::same_as<native_handle_type,std::remove_cvref_t<native_hd>>
-	explicit constexpr basic_nt_family_file(native_hd hd) noexcept:basic_nt_family_io_handle<family,ch_type>(hd){}
+	explicit constexpr basic_nt_family_file(native_hd hd) noexcept:basic_nt_family_io_handle<family,ch_type>{hd}{}
 	constexpr basic_nt_family_file(decltype(nullptr)) noexcept = delete;
-	explicit constexpr basic_nt_family_file(nt_family_file_factory<family>&& hd) noexcept:basic_nt_family_io_handle<family,ch_type>(hd)
+	explicit constexpr basic_nt_family_file(nt_family_file_factory<family>&& hd) noexcept:basic_nt_family_io_handle<family,ch_type>{hd}
 	{
 		hd.handle=nullptr;
 	}
 	explicit basic_nt_family_file(io_dup_t,basic_nt_family_io_observer<family,ch_type> wiob):
-		basic_nt_family_io_handle<family,ch_type>(win32::nt::details::nt_dup_impl<family==nt_family::zw>(wiob.handle))
+		basic_nt_family_io_handle<family,ch_type>{win32::nt::details::nt_dup_impl<family==nt_family::zw>(wiob.handle)}
 	{}
 	explicit basic_nt_family_file(nt_fs_dirent fsdirent,open_mode om,perms pm=static_cast<perms>(436)):
-		basic_nt_family_io_handle<family,char_type>(win32::nt::details::nt_family_create_file_at_impl<family==nt_family::zw>(fsdirent.handle,fsdirent.filename.c_str(),fsdirent.filename.size(),{om,pm})){}
+		basic_nt_family_io_handle<family,char_type>{win32::nt::details::nt_family_create_file_fs_dirent_impl<family==nt_family::zw>(fsdirent.handle,fsdirent.filename.c_str(),fsdirent.filename.size(),{om,pm})}{}
 	template<::fast_io::constructible_to_os_c_str T>
 	explicit basic_nt_family_file(T const& t,open_mode om,perms pm=static_cast<perms>(436)):basic_nt_family_io_handle<family,ch_type>{::fast_io::win32::nt::details::nt_create_file_impl<family==nt_family::zw>(t,{om,pm})}{}
 	template<::fast_io::constructible_to_os_c_str T>
 	explicit basic_nt_family_file(nt_at_entry ent,T const& t,open_mode om,perms pm=static_cast<perms>(436)):basic_nt_family_io_handle<family,ch_type>{::fast_io::win32::nt::details::nt_create_file_at_impl<family==nt_family::zw>(ent.handle,t,{om,pm})}{}
 
+	template<::fast_io::constructible_to_os_c_str T>
+	explicit basic_nt_family_file(io_kernel_t,T const& t,open_mode om,perms pm=static_cast<perms>(436)):basic_nt_family_io_handle<family,ch_type>{::fast_io::win32::nt::details::nt_create_file_kernel_impl<family==nt_family::zw>(t,{om,pm})}{}
+	template<::fast_io::constructible_to_os_c_str T>
+	explicit basic_nt_family_file(io_kernel_t,nt_at_entry ent,T const& t,open_mode om,perms pm=static_cast<perms>(436)):basic_nt_family_io_handle<family,ch_type>{::fast_io::win32::nt::details::nt_create_file_at_impl<family==nt_family::zw,true>(ent.handle,t,{om,pm})}{}
+ 
  	basic_nt_family_file(basic_nt_family_file const&)=default;
 	basic_nt_family_file& operator=(basic_nt_family_file const&)=default;
 	constexpr basic_nt_family_file(basic_nt_family_file&&) noexcept=default;

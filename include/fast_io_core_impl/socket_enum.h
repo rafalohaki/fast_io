@@ -5,14 +5,11 @@
 
 namespace fast_io
 {
-#undef unix
 
-enum class protocol_family: std::uint32_t
+enum class protocol_family: std::uint_least32_t
 {
 	unspec = 0,
 	local = 1,
-	unix = 1,
-	file = 1,
 	inet = 2,
 	ax25 = 3,
 	ipx = 4,
@@ -60,7 +57,5 @@ enum class protocol_family: std::uint32_t
 };
 
 using address_family = protocol_family;
-
-
 
 }

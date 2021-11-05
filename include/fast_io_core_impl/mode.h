@@ -544,6 +544,12 @@ explicit constexpr io_dup_t() noexcept=default;
 };
 inline constexpr io_dup_t io_dup{};
 
+struct io_kernel_t
+{
+explicit constexpr io_kernel_t() noexcept=default;
+};
+inline constexpr io_kernel_t io_kernel{};
+
 struct posix_at_entry
 {
 	int fd{-1};

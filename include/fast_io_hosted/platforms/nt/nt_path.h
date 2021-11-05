@@ -106,19 +106,50 @@ inline auto nt_call_callback(void* directory, char_type const* filename,std::siz
 {
 	if(directory==nullptr)
 		throw_nt_error(0xC0000008);	//STATUS_INVALID_HANDLE
-	else
-	{
-		if(directory==reinterpret_cast<void*>(std::intptr_t(-3)))
-			return nt_call_invoke_without_directory_handle(filename,filename_len,callback);
-		else
-			return nt_call_invoke_with_directory_handle_impl(directory,filename,filename_len,callback);
-	}
+	else if(directory==reinterpret_cast<void*>(std::intptr_t(-3)))
+		return nt_call_invoke_without_directory_handle(filename,filename_len,callback);
+	return nt_call_invoke_with_directory_handle_impl(directory,filename,filename_len,callback);
 }
 
 template<std::integral char_type,typename func>
 inline auto nt_call_callback_without_directory_handle(char_type const* filename,std::size_t filename_len,func callback)
 {
 	return nt_call_invoke_without_directory_handle(filename,filename_len,callback);
+}
+
+template<typename func>
+inline auto nt_call_kernel_common_impl(void* directory,wchar_t const* filename,std::size_t filename_len,func callback)
+{
+	std::uint16_t const bytes(nt_filename_bytes(filename_len));
+	win32::nt::unicode_string relative_path{
+		.Length=bytes,
+		.MaximumLength=bytes,
+		.Buffer=const_cast<wchar_t*>(filename)};
+	return callback(directory,__builtin_addressof(relative_path));
+}
+
+template<typename func>
+inline auto nt_call_kernel_nodir_callback(wchar_t const* filename,std::size_t filename_len,func callback)
+{
+	return nt_call_kernel_common_impl(nullptr,filename,filename_len,callback);
+}
+
+template<typename func>
+inline auto nt_call_kernel_callback(void* directory,wchar_t const* filename,std::size_t filename_len,func callback)
+{
+	if(directory==nullptr)
+		throw_nt_error(0xC0000008);	//STATUS_INVALID_HANDLE
+	else if(directory==reinterpret_cast<void*>(std::intptr_t(-3)))
+		directory=nullptr;
+	return nt_call_kernel_common_impl(directory,filename,filename_len,callback);
+}
+
+template<typename func>
+inline auto nt_call_kernel_fs_dirent_callback(void* directory,wchar_t const* filename,std::size_t filename_len,func callback)
+{
+	if(directory==nullptr)
+		throw_nt_error(0xC0000008);	//STATUS_INVALID_HANDLE
+	return nt_call_kernel_common_impl(directory,filename,filename_len,callback);
 }
 
 }
