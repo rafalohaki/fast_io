@@ -23,20 +23,21 @@ For hosted implementations the set of standard library headers required by the C
 #ifdef __MSDOS__
 #undef __STRICT_ANSI__
 #endif
-#include<ctime>
-#include"fast_io_hosted/timespec.h"
 
 #include"fast_io_hosted/io_io_file.h"
 #include"fast_io_hosted/cstring_view.h"
 
 #include"fast_io_hosted/mmap.h"
 #include"fast_io_hosted/posix_status.h"
+#include<ctime>
+#include"fast_io_unit/timespec.h"
 
 #if !defined(__AVR__)
 #include"fast_io_hosted/platforms/native.h"
 #include"fast_io_hosted/file_loaders/impl.h"
 #include"fast_io_hosted/wrapper.h"
 #include"fast_io_hosted/white_hole/white_hole.h"
+#include"fast_io_hosted/dbg/impl.h"
 #endif
 
 #include"fast_io_hosted/time.h"

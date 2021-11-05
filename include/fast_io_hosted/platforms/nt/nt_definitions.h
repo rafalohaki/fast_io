@@ -3,6 +3,13 @@
 namespace fast_io::win32::nt
 {
 
+struct ansi_string
+{
+std::uint16_t Length;
+std::uint16_t MaximumLength;
+char*  Buffer;
+};
+
 struct unicode_string
 {
 std::uint16_t Length;
