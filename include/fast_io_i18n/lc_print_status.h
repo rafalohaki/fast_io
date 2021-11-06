@@ -254,7 +254,7 @@ inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type>
 	{
 		print_freestanding_decay_no_status<ln>(out,args...);
 	}
-	else if constexpr(scatter_output_stream<output>&&
+	else if constexpr((scatter_output_stream<output>||scatter_constant_output_stream<output>)&&
 	((reserve_printable<char_type,Args>
 		||dynamic_reserve_printable<char_type,Args>
 		||lc_dynamic_reserve_printable<char_type,Args>
@@ -262,32 +262,43 @@ inline constexpr void lc_print_fallback(basic_lc_all<typename output::char_type>
 		||lc_scatter_printable<char_type,Args>
 		)&&...))
 	{
-		::fast_io::freestanding::array<io_scatter_t,sizeof...(Args)+static_cast<std::size_t>(ln)> scatters;
+		constexpr std::size_t args_num{sizeof...(Args)};
+		constexpr std::size_t scatters_num{args_num+static_cast<std::size_t>(ln)};
+		io_scatter_t scatters[scatters_num];
 		if constexpr(((scatter_printable<char_type,Args>||lc_scatter_printable<char_type,Args>)&&...))
 		{
-			lc_scatter_print_recursive(lc,scatters.data(),args...);
+			lc_scatter_print_recursive(lc,scatters,args...);
 			if constexpr(ln)
 			{
-				constexpr char_type ch(char_literal_v<u8'\n',char_type>);
-				scatters.back()={__builtin_addressof(ch),sizeof(ch)};
-				scatter_write(out,{scatters.data(),scatters.size()});
+				scatters[args_num]={__builtin_addressof(char_literal_v<u8'\n',char_type>),sizeof(char_type)};
+			}
+			if constexpr(scatter_constant_output_stream<output>)
+			{
+				scatter_constant_write<scatters_num>(out,scatters);
 			}
 			else
-				scatter_write(out,{scatters.data(),scatters.size()});
+			{
+				scatter_write(out,{scatters,scatters_num});
+			}
 		}
 		else
 		{
-			::fast_io::freestanding::array<char_type,calculate_scatter_reserve_size<char_type,Args...>()> array;
+			constexpr std::size_t arrayn{calculate_scatter_reserve_size<char_type,Args...>()};
+			char_type reserve_array[arrayn];
 			local_operator_new_array_ptr<char_type> new_ptr(calculate_lc_scatter_dynamic_reserve_size<char_type>(lc,args...));
-			lc_scatter_print_with_dynamic_reserve_recursive(lc,scatters.data(),array.data(),new_ptr.ptr,args...);
+			lc_scatter_print_with_dynamic_reserve_recursive(lc,scatters,reserve_array,new_ptr.ptr,args...);
 			if constexpr(ln)
 			{
-				constexpr char_type ch(char_literal_v<u8'\n',char_type>);
-				scatters.back()={__builtin_addressof(ch),sizeof(ch)};
-				scatter_write(out,{scatters.data(),scatters.size()});
+				scatters[args_num]={__builtin_addressof(char_literal_v<u8'\n',char_type>),sizeof(char_type)};
+			}
+			if constexpr(scatter_constant_output_stream<output>)
+			{
+				scatter_constant_write<scatters_num>(out,scatters);
 			}
 			else
-				scatter_write(out,{scatters.data(),scatters.size()});
+			{
+				scatter_write(out,{scatters,scatters_num});
+			}
 		}
 	}
 	else

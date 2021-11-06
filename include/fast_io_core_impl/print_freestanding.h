@@ -612,29 +612,32 @@ template<bool line,output_stream output,typename ...Args>
 inline constexpr void print_fallback(output out,Args ...args)
 {
 	using char_type = typename output::char_type;
-	constexpr auto lfch{char_literal_v<u8'\n',char_type>};
 	if constexpr(line&&sizeof...(Args)==0)
 	{
-		char_type ch{lfch};
-		write(out,__builtin_addressof(lfch),__builtin_addressof(lfch)+1);
+		write(out,__builtin_addressof(char_literal_v<u8'\n',char_type>),__builtin_addressof(char_literal_v<u8'\n',char_type>)+1);
 	}
 	else if constexpr(
-		scatter_output_stream<output>&&
+		(scatter_output_stream<output>||scatter_constant_output_stream<output>)&&
 		((scatter_printable<typename output::char_type,Args>||reserve_printable<typename output::char_type,Args>||dynamic_reserve_printable<typename output::char_type,Args>)&&...))
 	{
-		constexpr std::size_t n{(sizeof...(Args))+static_cast<std::size_t>(line)};
+		constexpr std::size_t args_num{sizeof...(Args)};
+		constexpr std::size_t n{args_num+static_cast<std::size_t>(line)};
 		io_scatter_t scatters[n];
 		if constexpr((scatter_printable<typename output::char_type,Args>&&...))
 		{
 			scatter_print_recursive<typename output::char_type>(scatters,args...);
 			if constexpr(line)
 			{
-				char_type ch{lfch};
-				scatters[n-1]={__builtin_addressof(ch),sizeof(ch)};
-				scatter_write(out,{scatters,n});
+				scatters[args_num]={__builtin_addressof(char_literal_v<u8'\n',char_type>),sizeof(char_type)};
+			}
+			if constexpr(scatter_constant_output_stream<output>)
+			{
+				scatter_constant_write<n>(out,scatters);
 			}
 			else
+			{
 				scatter_write(out,{scatters,n});
+			}
 		}
 		else if constexpr(((scatter_printable<char_type,Args>||
 			reserve_printable<char_type,Args>)&&...))
@@ -644,12 +647,16 @@ inline constexpr void print_fallback(output out,Args ...args)
 			scatter_print_with_reserve_recursive(buffer,scatters,args...);
 			if constexpr(line)
 			{
-				char_type ch{lfch};
-				scatters[n-1]={__builtin_addressof(ch),sizeof(ch)};
-				scatter_write(out,{scatters,n});
+				scatters[args_num]={__builtin_addressof(char_literal_v<u8'\n',char_type>),sizeof(char_type)};
+			}
+			if constexpr(scatter_constant_output_stream<output>)
+			{
+				scatter_constant_write<n>(out,scatters);
 			}
 			else
+			{
 				scatter_write(out,{scatters,n});
+			}
 		}
 		else
 		{
@@ -659,12 +666,16 @@ inline constexpr void print_fallback(output out,Args ...args)
 			scatter_print_with_dynamic_reserve_recursive(scatters,buffer,new_ptr.ptr,args...);
 			if constexpr(line)
 			{
-				char_type ch{lfch};
-				scatters[n-1]={__builtin_addressof(ch),sizeof(ch)};
-				scatter_write(out,{scatters,n});
+				scatters[args_num]={__builtin_addressof(char_literal_v<u8'\n',char_type>),sizeof(char_type)};
+			}
+			if constexpr(scatter_constant_output_stream<output>)
+			{
+				scatter_constant_write<n>(out,scatters);
 			}
 			else
+			{
 				scatter_write(out,{scatters,n});
+			}
 		}
 	}
 	else

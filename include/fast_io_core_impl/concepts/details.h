@@ -137,6 +137,12 @@ concept scatter_output_stream_impl = requires(T&& out,io_scatters_t sp)
 	scatter_write(out,sp);
 };
 
+template<typename T>
+concept scatter_constant_output_stream_impl = requires(T&& out,io_scatter_t const* sp)
+{
+	scatter_constant_write<1>(out,sp);
+};
+
 
 template<std::integral ch_type>
 struct dummy_buffer_output_stream

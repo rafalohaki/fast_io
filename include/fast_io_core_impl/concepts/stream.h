@@ -75,6 +75,9 @@ concept scatter_input_stream = input_stream<T>&&details::scatter_input_stream_im
 template<typename T>
 concept scatter_output_stream = output_stream<T>&&details::scatter_output_stream_impl<T>;
 
+template<typename T>
+concept scatter_constant_output_stream = output_stream<T>&&details::scatter_constant_output_stream_impl<T>;
+
 #if 0
 
 template<typename T>
@@ -125,11 +128,15 @@ template<typename T>
 concept value_based_stream = requires(T t)
 {
 	{io_value_handle(t)};
+}&&
+(std::is_trivially_copyable_v<T> ||
+requires(T t)
+{
 	typename T::native_handle_type;
 	t.release();
 	t.native_handle();
 	requires std::is_trivially_copyable_v<typename T::native_handle_type>;
-};
+});
 
 template<typename T>
 concept try_get_input_stream=input_stream<T>&&requires(T in)
