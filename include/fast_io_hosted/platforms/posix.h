@@ -1539,7 +1539,7 @@ inline std::size_t posix_scatter_read_size_impl(int fd,io_scatters_t sp)
 #if defined(__NEWLIB__) && !defined(__CYGWIN__)
 	std::ptrdiff_t val{newlib_readv(fd,ptr,static_cast<int>(sz))};
 #else
-	std::ptrdiff_t val{::readv(fd,ptr,static_cast<int>(sz))};
+	std::ptrdiff_t val{noexcept_call(::readv,fd,ptr,static_cast<int>(sz))};
 #endif
 	if(val<0)
 		throw_posix_error();
@@ -1633,7 +1633,7 @@ inline std::size_t posix_scatter_write_size_impl(int fd,io_scatters_t sp)
 #if defined(__NEWLIB__) && !defined(__CYGWIN__)
 	std::ptrdiff_t val{newlib_writev(fd,ptr,static_cast<int>(sz))};
 #else
-	std::ptrdiff_t val{::writev(fd,ptr,static_cast<int>(sz))};
+	std::ptrdiff_t val{noexcept_call(::writev,fd,ptr,static_cast<int>(sz))};
 #endif
 	if(val<0)
 		throw_posix_error();

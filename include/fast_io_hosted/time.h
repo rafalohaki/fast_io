@@ -362,65 +362,28 @@ inline void set_dos_unix_timestamp(unix_timestamp tsp)
 		static_cast<std::uint_least8_t>(iso8601.minutes),
 		static_cast<std::uint_least8_t>(iso8601.seconds),
 		static_cast<std::uint_least8_t>(iso8601.subseconds/precision)};
-	if(!my_dos_setdate(&dos_date))
+	if(!my_dos_setdate(__builtin_addressof(dos_date)))
 		throw_posix_error();
-	if(!my_dos_settime(&dos_time))
+	if(!my_dos_settime(__builtin_addressof(dos_time)))
 		throw_posix_error();
 	my_dos_date_t dos_date_temp;
 	for(std::size_t i{};i!=100;++i)
 	{
-		my_dos_getdate(&dos_date_temp);
+		my_dos_getdate(__builtin_addressof(dos_date_temp));
 		if(dos_date.day==dos_date_temp.day&&
 		dos_date.month==dos_date_temp.month&&
 		dos_date.year==dos_date_temp.year&&
 		dos_date.dayofweek==dos_date_temp.dayofweek)
 			return;
-		if(!my_dos_setdate(&dos_date))
+		if(!my_dos_setdate(__builtin_addressof(dos_date)))
 			throw_posix_error();
-		if(!my_dos_settime(&dos_time))
+		if(!my_dos_settime(__builtin_addressof(dos_time)))
 			throw_posix_error();
 	}
 	throw_posix_error(EINVAL);
 }
 
 }
-#endif
-
-#if 0
-
-inline unix_timestamp dos_posix_clock_gettime([[maybe_unused]] posix_clock_id pclk_id)
-{
-	switch(pclk_id)
-	{
-	case posix_clock_id::realtime:
-	case posix_clock_id::realtime_alarm:
-	case posix_clock_id::realtime_coarse:
-	case posix_clock_id::tai:
-	case posix_clock_id::monotonic:
-	case posix_clock_id::monotonic_coarse:
-	case posix_clock_id::monotonic_raw:
-	case posix_clock_id::boottime:
-	{
-		timeval tv;
-		constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/1000000u};
-		if(::gettimeofday(__builtin_addressof(tv), nullptr)<0)
-			throw_posix_error();
-		return {static_cast<std::int_least64_t>(tv.tv_sec),static_cast<std::uint_least64_t>(tv.tv_usec)*mul_factor};
-	}
-	case posix_clock_id::process_cputime_id:
-	case posix_clock_id::thread_cputime_id:
-	{
-		std::make_unsigned_t<decltype(uclock())> u(uclock());
-		std::uint_least64_t seconds(u/UCLOCKS_PER_SEC);
-		std::uint_least64_t subseconds(u%UCLOCKS_PER_SEC);
-		constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/UCLOCKS_PER_SEC};
-		return {static_cast<std::int_least64_t>(seconds),static_cast<std::uint_least64_t>(subseconds)*mul_factor};
-	}
-	default:
-		throw_posix_error(EINVAL);
-	}
-}
-
 #endif
 
 inline unix_timestamp posix_clock_gettime([[maybe_unused]] posix_clock_id pclk_id)
@@ -463,7 +426,7 @@ inline unix_timestamp posix_clock_gettime([[maybe_unused]] posix_clock_id pclk_i
 	case posix_clock_id::process_cputime_id:
 	case posix_clock_id::thread_cputime_id:
 	{
-		std::make_unsigned_t<decltype(uclock())> u(uclock());
+		std::make_unsigned_t<decltype(uclock())> u(noexcept_call(::uclock));
 		std::uint_least64_t seconds(u/UCLOCKS_PER_SEC);
 		std::uint_least64_t subseconds(u%UCLOCKS_PER_SEC);
 		constexpr std::uint_least64_t mul_factor{uint_least64_subseconds_per_second/UCLOCKS_PER_SEC};
@@ -545,12 +508,12 @@ inline struct tm unix_timestamp_to_tm_impl(std::int_least64_t seconds)
 	struct tm t;
 	if constexpr(local_tm)
 	{
-	if(localtime64_r(__builtin_addressof(val),__builtin_addressof(t))==0)
+	if(::fast_io::noexcept_call(localtime64_r,__builtin_addressof(val),__builtin_addressof(t))==0)
 		throw_posix_error();
 	}
 	else
 	{
-	if(gmtime64_r(__builtin_addressof(val),__builtin_addressof(t))==0)
+	if(::fast_io::noexcept_call(gmtime64_r,__builtin_addressof(val),__builtin_addressof(t))==0)
 		throw_posix_error();
 	}
 	return t;
@@ -625,7 +588,7 @@ inline iso8601_timestamp to_iso8601_local_impl(std::int_least64_t seconds,std::u
 #if defined(_WIN32)
 	#if defined(_MSC_VER) || defined(_UCRT)
 	{
-		auto errn{noexcept_call(_get_timezone,__builtin_addressof(tm_gmtoff))};
+		auto errn{::fast_io::noexcept_call(_get_timezone,__builtin_addressof(tm_gmtoff))};
 		if(errn)
 			throw_posix_error(static_cast<int>(errn));
 	}
@@ -636,7 +599,7 @@ inline iso8601_timestamp to_iso8601_local_impl(std::int_least64_t seconds,std::u
 	long seconds{};
 #if defined(_MSC_VER) || defined(_UCRT)
 	{
-		auto errn{_get_dstbias(&seconds)};
+		auto errn{::fast_io::noexcept_call(_get_dstbias,__builtin_addressof(seconds))};
 		if(errn)
 			throw_posix_error(static_cast<int>(errn));
 	}
