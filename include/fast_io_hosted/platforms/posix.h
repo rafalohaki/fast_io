@@ -477,13 +477,13 @@ inline std::size_t posix_read_impl(int fd,void* address,std::size_t bytes_to_rea
 #endif
 	auto read_bytes(
 #if defined(__linux__)
-		system_call<__NR_read,std::ptrdiff_t>
-#elif ((defined(_WIN32)&&!defined(__WINE__))&&!defined(__CYGWIN__)) || __MSDOS__
-		::_read
+		system_call<__NR_read,std::ptrdiff_t>(
+#elif (defined(_WIN32) && !defined(__CYGWIN__) && !defined(__WINE__)) || defined(__MSDOS__)
+		::fast_io::noexcept_call(::_read,
 #else
-		::read
+		::fast_io::noexcept_call(::read,
 #endif
-	(fd,address,
+	fd,address,
 #if (defined(_WIN32)&&!defined(__WINE__)) && !defined(__CYGWIN__)
 	static_cast<std::uint32_t>(bytes_to_read)
 #else
@@ -589,13 +589,13 @@ inline std::size_t posix_write_impl(int fd,void const* address,std::size_t to_wr
 #else
 	auto write_bytes(
 #if defined(__linux__)
-		system_call<__NR_write,std::ptrdiff_t>
-#elif _WIN32 || __MSDOS__
-		::_write
+		system_call<__NR_write,std::ptrdiff_t>(
+#elif (defined(_WIN32) && !defined(__CYGWIN__) && !defined(__WINE__)) || defined(__MSDOS__)
+		::fast_io::noexcept_call(::_write,
 #else
-		::write
+		::fast_io::noexcept_call(::write,
 #endif
-	(fd,address,to_write));
+	fd,address,to_write));
 	system_call_throw_error(write_bytes);
 	return static_cast<std::size_t>(write_bytes);
 #endif
