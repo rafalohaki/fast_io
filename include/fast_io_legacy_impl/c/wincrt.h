@@ -2,6 +2,22 @@
 
 namespace fast_io
 {
+
+namespace win32
+{
+#if __has_cpp_attribute(__gnu__::__const__)
+[[__gnu__::__const__]]
+#endif
+inline FILE* wincrt_acrt_iob_func(unsigned index) noexcept
+{
+#if defined(_MSC_VER) || defined(_UCRT)
+	return noexcept_call(__acrt_iob_func,index);
+#else
+	return ::fast_io::win32::wincrt_iob_func()+index;
+#endif
+}
+}
+
 namespace details
 {
 /*
@@ -315,7 +331,7 @@ inline void wincrt_fp_flush_stdout_impl()
 #endif
 inline std::size_t wincrt_fp_read_cold_impl(FILE* __restrict fpp,char* first,std::size_t diff)
 {
-	if(fpp==stdin)
+	if(fpp==::fast_io::win32::wincrt_acrt_iob_func(0))
 		wincrt_fp_flush_stdout_impl();
 #if defined(_MSC_VER) || defined(_UCRT)
 	ucrt_iobuf* fp{reinterpret_cast<ucrt_iobuf*>(fpp)};
@@ -395,7 +411,7 @@ template<std::integral char_type>
 #endif
 inline bool wincrt_fp_underflow_impl(FILE* __restrict fpp)
 {
-	if(fpp==stdin)
+	if(fpp==::fast_io::win32::wincrt_acrt_iob_func(0))
 		wincrt_fp_flush_stdout_impl();
 #if defined(_MSC_VER) || defined(_UCRT)
 	ucrt_iobuf* fp{reinterpret_cast<ucrt_iobuf*>(fpp)};
@@ -553,21 +569,6 @@ inline void write(basic_c_family_io_observer<family,char_type> ciob,Iter bg,Iter
 				reinterpret_cast<char_type*>(::fast_io::freestanding::to_address(ed)));
 	else
 		details::wincrt_fp_write_impl<family>(ciob.fp,bg,ed);
-}
-
-namespace win32
-{
-#if __has_cpp_attribute(__gnu__::__const__)
-[[__gnu__::__const__]]
-#endif
-inline FILE* wincrt_acrt_iob_func(unsigned index) noexcept
-{
-#if defined(_MSC_VER) || defined(_UCRT)
-	return noexcept_call(__acrt_iob_func,index);
-#else
-	return ::fast_io::win32::wincrt_iob_func()+index;
-#endif
-}
 }
 
 inline c_io_observer c_stdin() noexcept
