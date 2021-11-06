@@ -170,6 +170,12 @@ Also need to install msvcrt.dll
 - LLVM libc++
 - MSVC STL
 
+## Remote Debugger Support
+- WinDbg
+- Visual Studio Debugger
+- DbgViewer
+- Android ADB
+
 ## Special Support
 - LLVM Address Sanitizer
 - Full freestanding support (which means we do not have any headers besides freestanding headers. Tested with GCC's --disable-hosted-libstdcxx without any libc, including newlib)
@@ -191,6 +197,7 @@ A general purpose I/O library to replace stdio.h and iostream
 - No dual error reporting mechanism. Exception as the ONLY error reporting mechanism.
 - No std::error_code and std::system_error
 - No useless bounds checking
+- No format string nonsense
 - Addresss Sanitizer special code for protecting memory safety issues.
 
 ### Easy to use
