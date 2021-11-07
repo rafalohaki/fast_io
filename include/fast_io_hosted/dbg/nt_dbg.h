@@ -7,7 +7,7 @@ template<std::integral ch_type>
 struct basic_nt_dbg
 {
 	using char_type = ch_type;
-	std::uint32_t comment_id{UINT32_MAX};
+	std::uint32_t component_id{UINT32_MAX};
 	std::uint32_t level{};
 	static inline constexpr std::size_t output_buffer_alignment_size{512u};
 };
@@ -71,7 +71,7 @@ inline constexpr auto nt_fmt_cache{calculate_nt_dbg_fmt<iswide,n>()};
 
 struct nt_dbg_carrier
 {
-	std::uint32_t comment_id{UINT32_MAX};
+	std::uint32_t component_id{UINT32_MAX};
 	std::uint32_t level{};
 };
 
@@ -81,7 +81,7 @@ inline void nt_fmt_dbg_forward([[maybe_unused]] nt_dbg_carrier carr,char8_t cons
 	if constexpr(n==0)
 	{
 #if _WIN32_WINNT >= 0x0501
-		::fast_io::win32::nt::DbgPrintEx(carr.comment_id,carr.level,reinterpret_cast<char const*>(fmt),args...);
+		::fast_io::win32::nt::DbgPrintEx(carr.component_id,carr.level,reinterpret_cast<char const*>(fmt),args...);
 #else
 		::fast_io::win32::nt::DbgPrint(reinterpret_cast<char const*>(fmt),args...);
 #endif
@@ -115,7 +115,7 @@ inline void nt_dbg_write_impl([[maybe_unused]] nt_dbg_carrier carr,char const* f
 	std::uint16_t const u16argnlen{static_cast<std::uint16_t>(arg_n_len)};
 	::fast_io::win32::nt::ansi_string astr{u16argnlen,u16argnlen,const_cast<char*>(first)};
 #if _WIN32_WINNT >= 0x0501
-	::fast_io::win32::nt::DbgPrintEx(carr.comment_id,carr.level,
+	::fast_io::win32::nt::DbgPrintEx(carr.component_id,carr.level,
 		reinterpret_cast<char const*>(nt_fmt_cache<iswide,1>.element),
 		__builtin_addressof(astr));
 #else
@@ -146,7 +146,7 @@ template<std::integral ch_type,::fast_io::freestanding::contiguous_iterator Iter
 inline void write(basic_nt_dbg<ch_type> d,Iter first,Iter last) noexcept
 {
 	constexpr bool is_wide{sizeof(ch_type)==2&&std::same_as<::fast_io::freestanding::iter_value_t<Iter>,ch_type>};
-	::fast_io::details::nt_dbg_write_impl<is_wide>({d.comment_id,d.level},
+	::fast_io::details::nt_dbg_write_impl<is_wide>({d.component_id,d.level},
 		reinterpret_cast<char const*>(::fast_io::freestanding::to_address(first)),
 		reinterpret_cast<char const*>(::fast_io::freestanding::to_address(last)));
 }
@@ -155,29 +155,29 @@ template<std::size_t n,std::integral ch_type>
 inline void scatter_constant_write(basic_nt_dbg<ch_type> d,io_scatter_t const* pscatters) noexcept
 {
 	constexpr bool is_wide{sizeof(ch_type)==2};
-	::fast_io::details::nt_dbg_scatter_constant_write_impl<is_wide,n>({d.comment_id,d.level},pscatters);
+	::fast_io::details::nt_dbg_scatter_constant_write_impl<is_wide,n>({d.component_id,d.level},pscatters);
 }
 
 #if !defined(_WIN32_WINDOWS)
-inline auto dbg(std::uint32_t comment_id=UINT32_MAX,std::uint32_t level=0) noexcept
+inline auto dbg(std::uint32_t component_id=UINT32_MAX,std::uint32_t level=0) noexcept
 {
-	return nt_dbg{comment_id,level};
+	return nt_dbg{component_id,level};
 }
-inline auto wdbg(std::uint32_t comment_id=UINT32_MAX,std::uint32_t level=0) noexcept
+inline auto wdbg(std::uint32_t component_id=UINT32_MAX,std::uint32_t level=0) noexcept
 {
-	return wnt_dbg{comment_id,level};
+	return wnt_dbg{component_id,level};
 }
-inline auto u8dbg(std::uint32_t comment_id=UINT32_MAX,std::uint32_t level=0) noexcept
+inline auto u8dbg(std::uint32_t component_id=UINT32_MAX,std::uint32_t level=0) noexcept
 {
-	return u8nt_dbg{comment_id,level};
+	return u8nt_dbg{component_id,level};
 }
-inline auto u16dbg(std::uint32_t comment_id=UINT32_MAX,std::uint32_t level=0) noexcept
+inline auto u16dbg(std::uint32_t component_id=UINT32_MAX,std::uint32_t level=0) noexcept
 {
-	return u16nt_dbg{comment_id,level};
+	return u16nt_dbg{component_id,level};
 }
-inline auto u32dbg(std::uint32_t comment_id=UINT32_MAX,std::uint32_t level=0) noexcept
+inline auto u32dbg(std::uint32_t component_id=UINT32_MAX,std::uint32_t level=0) noexcept
 {
-	return u32nt_dbg{comment_id,level};
+	return u32nt_dbg{component_id,level};
 }
 #endif
 
