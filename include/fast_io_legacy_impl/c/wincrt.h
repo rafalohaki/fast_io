@@ -315,9 +315,9 @@ inline void wincrt_fp_overflow_impl(FILE* __restrict fpp,char_type ch)
 inline void wincrt_fp_flush_stdout_impl()
 {
 #if defined(_MSC_VER) || defined(_UCRT)
-	ucrt_iobuf* fp{reinterpret_cast<ucrt_iobuf*>(stdout)};
+	ucrt_iobuf* fp{reinterpret_cast<ucrt_iobuf*>(::fast_io::win32::wincrt_acrt_iob_func(1))};
 #else
-	FILE* fp{stdout};
+	FILE* fp{::fast_io::win32::wincrt_acrt_iob_func(1)};
 #endif
 	std::size_t diff{static_cast<std::size_t>(fp->_ptr-fp->_base)};
 	if(diff==0||!wincrt_fp_is_dirty_impl(fp))
