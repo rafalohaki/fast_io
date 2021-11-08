@@ -65,9 +65,9 @@ public:
 	}
 	basic_atl_io_handle& operator=(basic_atl_io_handle&& mcf) noexcept
 	{
-		if(mcf.phandle!=handle)
+		if(mcf.phandle!=this->phandle)
 		{
-			delete handle;
+			delete this->phandle;
 			this->phandle=mcf.phandle;
 			mcf.phandle=nullptr;
 		}
