@@ -2,7 +2,7 @@
 
 #if defined(__ATLSTR_H__)
 #include"../fast_io_concept.h"
-#include"mfc_impl/mfc_cstring.h"
+#include"mfc_impl/atl_cstring.h"
 #endif
 #if defined(__AFX_H__)
 #include"../fast_io_hosted.h"
