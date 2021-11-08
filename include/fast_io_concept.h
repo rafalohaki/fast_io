@@ -1,5 +1,6 @@
 ﻿#pragma once
-
+#undef min
+#undef max
 //fast_io_concept.h allows you define your device and type without compilation time penalty
 #if !defined(__cplusplus)
 #error "You are not using C++ compiler"

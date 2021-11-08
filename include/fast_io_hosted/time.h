@@ -674,7 +674,8 @@ inline bool posix_daylight() noexcept
 inline win32_timezone_t timezone_name(bool is_dst=posix_daylight())
 {
 	win32_timezone_t tzt{.is_dst=is_dst};
-	auto errn{::fast_io::noexcept_call(_get_tzname,__builtin_addressof(tzt.tz_name_len),nullptr,0,is_dst)};
+	constexpr std::size_t zero{};
+	auto errn{::fast_io::noexcept_call(_get_tzname,__builtin_addressof(tzt.tz_name_len),nullptr,zero,is_dst)};
 	if(errn)
 		throw_posix_error(static_cast<int>(errn));
 	return tzt;

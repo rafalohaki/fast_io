@@ -451,6 +451,35 @@ inline constexpr dest_char_type* general_code_cvt_full(src_char_type const* src_
 		return new_dst;
 	}
 }
+
+template<typename T>
+concept type_has_value_type = requires(T)
+{
+	typename T::value_type;
+};
+
+template<typename T>
+inline constexpr bool print_alias_test_codecvt_impl() noexcept
+{
+	if constexpr(alias_printable<T>)
+	{
+		using alias_type = decltype(print_alias_define(io_alias,*static_cast<T const*>(static_cast<void const*>(nullptr))));
+		if constexpr(type_has_value_type<alias_type>)
+		{
+			using value_type = typename alias_type::value_type;
+			return std::same_as<alias_type,basic_io_scatter_t<value_type>>;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	else
+	{
+		return false;
+	}
+}
+
 }
 
 namespace manipulators
@@ -466,36 +495,15 @@ struct code_cvt_t
 	basic_io_scatter_t<char_type> reference;
 };
 
-
 template<
 encoding_scheme src_scheme=encoding_scheme::execution_charset,
 encoding_scheme dst_scheme=encoding_scheme::execution_charset,
-std::integral char_type,std::size_t N>
-constexpr code_cvt_t<src_scheme,dst_scheme,char_type> code_cvt(char_type const (&t)[N])
+typename T>
+requires (::fast_io::details::codecvt::print_alias_test_codecvt_impl<T>())
+constexpr auto code_cvt(T const& t) noexcept
 {
-	return {{t,N-1}};
-}
-
-
-#if __STDC_HOSTED__==1 && (!defined(_GLIBCXX_HOSTED) || _GLIBCXX_HOSTED==1) && !defined(_LIBCPP_VERSION)
-template<
-encoding_scheme src_scheme=encoding_scheme::execution_charset,
-encoding_scheme dst_scheme=encoding_scheme::execution_charset,
-typename rg>
-requires (!std::is_array_v<std::remove_cvref_t<rg>>)
-constexpr code_cvt_t<src_scheme,dst_scheme,std::ranges::range_value_t<std::remove_cvref_t<rg>>> code_cvt(rg&& t)
-{
-	return {{std::ranges::data(t),std::ranges::size(t)}};
-}
-#endif
-template<
-encoding_scheme src_scheme=encoding_scheme::execution_charset,
-encoding_scheme dst_scheme=encoding_scheme::execution_charset,
-std::integral char_type>
-constexpr code_cvt_t<src_scheme,dst_scheme,char_type> code_cvt(chvw_t<char_type const*> t) noexcept
-{
-	::fast_io::freestanding::basic_string_view<char_type> view(t.reference);
-	return {{view.data(),view.size()}};
+	using value_type = typename decltype(print_alias_define(io_alias,t))::value_type;
+	return code_cvt_t<src_scheme,dst_scheme,value_type>{print_alias_define(io_alias,t)};
 }
 
 template<

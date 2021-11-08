@@ -19,8 +19,7 @@ inline void* win32_family_refterm_fast_pipe_impl(open_mode mode,perms pm)
 		constexpr std::size_t sz{sizeof(u"\\\\.\\pipe\\fastpipe")/sizeof(char16_t)-1};
 		char16_t* res{print_reserve_define(io_reserve_type<char16_t,type>,buffer+sz,{process_id})};
 		*res=0;
-		u16cstring_view view(null_terminated,buffer,res);
-		return win32_file_ntw(view,mode,pm).release();
+		return win32_file_ntw(::fast_io::mnp::os_c_str(buffer),mode,pm).release();
 	}
 	else
 	{
@@ -28,8 +27,7 @@ inline void* win32_family_refterm_fast_pipe_impl(open_mode mode,perms pm)
 		constexpr std::size_t sz{sizeof(u8"\\\\.\\pipe\\fastpipe")/sizeof(char8_t)-1};
 		char8_t* res{print_reserve_define(io_reserve_type<char8_t,type>,buffer+sz,{process_id})};
 		*res=0;
-		u8cstring_view view(null_terminated,buffer,res);
-		return win32_file_9xa(view,mode,pm).release();
+		return win32_file_9xa(::fast_io::mnp::os_c_str(buffer),mode,pm).release();
 	}
 
 }

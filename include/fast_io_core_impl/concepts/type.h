@@ -6,12 +6,9 @@ namespace fast_io
 template<typename T>
 struct basic_io_scatter_t
 {
+	using value_type = T;
 	T const* base;
 	std::size_t len;
-	inline operator basic_io_scatter_t<void>() const noexcept requires(!std::same_as<T,void>)
-	{
-		return {base,len*sizeof(T)};
-	}
 };
 
 //should be binary compatible with POSIX's iovec

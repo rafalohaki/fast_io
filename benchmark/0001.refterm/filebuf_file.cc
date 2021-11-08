@@ -1,4 +1,8 @@
-﻿inline void test()
+﻿#include<fast_io.h>
+#include<fast_io_device.h>
+#include<fast_io_legacy.h>
+#include<fast_io_driver/timer.h>
+inline void test()
 {
 	fast_io::nt_file wf(fast_io::io_dup,fast_io::nt_stdout());
 	fast_io::filebuf_file fbf(std::move(wf),fast_io::open_mode::out);

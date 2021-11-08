@@ -1,4 +1,7 @@
-﻿inline void test()
+﻿#include<fast_io.h>
+#include<fast_io_device.h>
+
+inline void test()
 {
 	for(std::size_t i{};i!=1000000;++i)
 		printf("%zu\n",i);
