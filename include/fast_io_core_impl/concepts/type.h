@@ -49,13 +49,13 @@ using type = T;
 };
 template<typename T>
 inline constexpr io_type_t<T> io_type{};
-#if 0
-template<typename T>
-struct io_message_t
+
+template<std::integral char_type>
+struct cross_code_cvt_t
 {
-	using type = typename std::remove_cvref_t<decltype(io_message_type(*static_cast<T*>(nullptr)))>::type;
+	using value_type = char_type;
+	basic_io_scatter_t<value_type> scatter;
 };
-#endif
 
 enum class io_reserve_flags
 {
