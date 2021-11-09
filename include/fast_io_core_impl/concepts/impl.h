@@ -7,3 +7,4 @@
 #include"operation_details.h"
 #include"operation.h"
 #include"decorator.h"
+#include"strlike.h"

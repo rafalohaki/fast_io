@@ -32,18 +32,18 @@ inline constexpr std::size_t calculate_scatter_reserve_size_unit()
 		return 0;
 }
 
-template<std::integral char_type,typename T>
-inline constexpr std::size_t calculate_scatter_reserve_size()
-{
-	return calculate_scatter_reserve_size_unit<char_type,T>();
-}
-
 template<std::integral char_type,typename T,typename... Args>
-requires (sizeof...(Args)!=0)
 inline constexpr std::size_t calculate_scatter_reserve_size()
 {
-	return ::fast_io::details::intrinsics::add_or_overflow_die(calculate_scatter_reserve_size_unit<char_type,T>(),
-		calculate_scatter_reserve_size<char_type,Args...>());
+	if constexpr(sizeof...(Args)==0)
+	{
+		return calculate_scatter_reserve_size_unit<char_type,T>();
+	}
+	else
+	{
+		return ::fast_io::details::intrinsics::add_or_overflow_die(calculate_scatter_reserve_size_unit<char_type,T>(),
+			calculate_scatter_reserve_size<char_type,Args...>());
+	}
 }
 
 template<std::integral char_type,typename T,typename... Args>

@@ -79,7 +79,7 @@ For hosted implementations the set of standard library headers required by the C
 
 #if defined(_WIN32) && defined(WINRT_BASE_H)
 #if __has_include(<winrt/base.h>)
-#include"fast_io_driver/cppwinrt.h"
+#include"fast_io_driver/cppwinrt_impl/impl.h"
 #endif
 #endif
 

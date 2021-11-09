@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #if defined(__ATLSTR_H__)
-#include"../fast_io_concept.h"
+#include"../fast_io_core.h"
 #include"mfc_impl/atl_cstring.h"
 #endif
 #if defined(__AFX_H__)

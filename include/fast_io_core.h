@@ -90,3 +90,4 @@
 #include"fast_io_core_impl/socket/impl.h"
 #include"fast_io_core_impl/read_all.h"
 #include"fast_io_core_impl/to.h"
+#include"fast_io_core_impl/concat/impl.h"

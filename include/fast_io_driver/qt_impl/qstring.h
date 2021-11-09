@@ -85,4 +85,38 @@ inline QString print_alias_define(io_alias_t,T const& hstr) noexcept
 	return {hstr.toString()};
 }
 
+inline QString strlike_construct_define(io_strlike_type_t<char16_t,QString>,char16_t const* first,char16_t const* last)
+{
+	std::size_t diff{static_cast<std::size_t>(last-first)};
+	if constexpr(sizeof(unsigned)<sizeof(std::size_t))
+	{
+		constexpr unsigned max_sz{INT_MAX/sizeof(char16_t)};
+		if(max_sz<diff)
+			::fast_io::fast_terminate();
+	}
+	using qchar_may_alias_ptr
+#if __has_cpp_attribute(gnu::may_alias)
+	[[gnu::may_alias]]
+#endif
+	= QChar const*;
+	return QString(reinterpret_cast<qchar_may_alias_ptr>(first),static_cast<unsigned>(diff));
+}
+
+inline QString strlike_single_character_construct_define(io_strlike_type_t<char16_t,QString>,char16_t ch)
+{
+	return QString(ch);
+}
+
+template<typename... Args>
+inline QString u16concat_qt_qstring(Args&& ...args)
+{
+	return ::fast_io::basic_general_concat<false,char16_t,QString>(::fast_io::freestanding::forward<Args>(args)...);
+}
+
+template<typename... Args>
+inline QString u16concatln_qt_qstring(Args&& ...args)
+{
+	return ::fast_io::basic_general_concat<true,char16_t,QString>(::fast_io::freestanding::forward<Args>(args)...);
+}
+
 }
