@@ -70,6 +70,8 @@ inline constexpr void basic_concat_buffer_strlike_reserve_cold_impl(::fast_io::d
 	{
 		deallocate_iobuf_space<false,char_type>(old_buffer_begin_ptr,df);
 	}
+	str.buffer_begin=newptr;
+	str.buffer_end=newptr+n;
 }
 
 template<std::integral char_type>
