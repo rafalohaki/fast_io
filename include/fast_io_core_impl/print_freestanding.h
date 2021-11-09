@@ -90,7 +90,8 @@ inline constexpr void scatter_print_with_reserve_recursive_unit(char_type*& star
 	}
 	else
 	{
-		*arr=print_scatter_define(io_reserve_type<char_type,real_type>,t);
+		auto scatter{print_scatter_define(io_reserve_type<char_type,real_type>,t)};
+		*arr={scatter.base,scatter.len*sizeof(*scatter.base)};
 	}
 }
 

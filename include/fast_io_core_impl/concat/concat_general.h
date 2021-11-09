@@ -80,14 +80,14 @@ inline constexpr basic_io_scatter_t<ch_type> print_scatter_define_extract_one(T 
 }
 
 template<bool line,std::integral ch_type,typename T,typename Arg>
-inline constexpr T basic_general_concat_decay_impl_precise(Arg arg)
+inline constexpr T basic_general_concat_decay_impl_precise(T& t,Arg arg)
 {
 	std::size_t precise_size{print_reserve_precise_size(io_reserve_type<ch_type,Arg>,arg)};
 	std::size_t precise_size_with_line{precise_size};
 	if constexpr(line)
 		++precise_size_with_line;
 	T str;
-	constexpr std::size_t local_cap{strlike_sso_size(io_reserve_type<ch_type,T>)};
+	constexpr std::size_t local_cap{strlike_sso_size(io_strlike_type<ch_type,T>)};
 	if(local_cap<precise_size_with_line)
 		strlike_reserve(io_strlike_type<ch_type,T>,str,local_cap);
 	auto first{strlike_begin(io_strlike_type<ch_type,T>,str)};
@@ -185,7 +185,7 @@ inline constexpr void basic_general_concat_decay_ref_impl_precise(T& str,Arg arg
 	std::size_t precise_size_with_line{precise_size};
 	if constexpr(line)
 		++precise_size_with_line;
-	constexpr std::size_t local_cap{strlike_sso_size(io_reserve_type<ch_type,T>)};
+	constexpr std::size_t local_cap{strlike_sso_size(io_strlike_type<ch_type,T>)};
 	if(local_cap<precise_size_with_line)
 		strlike_reserve(io_strlike_type<ch_type,T>,str,local_cap);
 	auto first{strlike_begin(io_strlike_type<ch_type,T>,str)};
