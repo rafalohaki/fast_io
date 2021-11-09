@@ -17,10 +17,18 @@ namespace fast_io
 {
 
 template<typename T>
-concept constructible_to_os_c_str = requires(T&& t)
+concept type_has_c_str_method = requires(T&& t)
 {
 	{t.c_str()}->::fast_io::details::c_str_pointer;
-}||(std::is_array_v<std::remove_reference_t<T>>);
+};
+
+template<typename T>
+concept constructible_to_os_c_str = type_has_c_str_method<T>||(std::is_array_v<std::remove_reference_t<T>>)||requires(T&& t)
+{
+	{t.length()};
+	{t.substr()};
+	{t.data()};
+};
 
 namespace manipulators
 {

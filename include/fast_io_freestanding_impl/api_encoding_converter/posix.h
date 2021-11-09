@@ -71,6 +71,7 @@ inline auto posix_api_common_codecvt_impl(char_type const* filename_c_str,std::s
 	else
 		return callback(converter.native_c_str());
 }
+
 }
 
 template<typename T,typename Func>
@@ -95,7 +96,7 @@ inline auto posix_api_common(T const& t,Func callback)
 			return ::fast_io::details::posix_api_common_codecvt_impl(p,::fast_io::details::cal_array_size(t),callback);
 		}
 	}
-	else
+	else if constexpr(type_has_c_str_method<T>)
 	{
 		using cstr_char_type = std::remove_pointer_t<decltype(t.c_str())>;
 		if constexpr(sizeof(cstr_char_type)==sizeof(char))
@@ -144,6 +145,18 @@ inline auto posix_api_common(T const& t,Func callback)
 				auto ptr{t.c_str()};
 				return ::fast_io::details::posix_api_common_codecvt_impl(ptr,::fast_io::cstr_len(ptr),callback);
 			}
+		}
+	}
+	else	//types like std::basic_string_view, we must allocate new space to hold that type
+	{
+		using strvw_char_type = std::remove_pointer_t<decltype(t.data())>;
+		if constexpr(sizeof(strvw_char_type)==sizeof(char))
+		{
+			return ::fast_io::details::api_common_copy_append0_strvw_case_impl<char>(reinterpret_cast<char const*>(t.data()),t.length(),callback);
+		}
+		else
+		{
+			return ::fast_io::details::posix_api_common_codecvt_impl(t.data(),t.length(),callback);
 		}
 	}
 }

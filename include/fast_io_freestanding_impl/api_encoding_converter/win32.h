@@ -15,6 +15,7 @@ inline auto nt_api_common_code_cvt_impl(char_type const* filename_c_str,std::siz
 	else
 		return callback(converter.native_c_str());
 }
+
 }
 
 template<typename T,typename Func>
@@ -43,7 +44,7 @@ inline auto nt_api_common(T const& t,Func callback)
 			return ::fast_io::details::nt_api_common_code_cvt_impl(p,::fast_io::details::cal_array_size(t),callback);
 		}
 	}
-	else
+	else if constexpr(type_has_c_str_method<T>)
 	{
 		using cstr_char_type = std::remove_pointer_t<decltype(t.c_str())>;
 		if constexpr(sizeof(cstr_char_type)==sizeof(wchar_t))
@@ -90,6 +91,18 @@ inline auto nt_api_common(T const& t,Func callback)
 		{
 			auto ptr{t.c_str()};
 			return ::fast_io::details::nt_api_common_code_cvt_impl(ptr,::fast_io::cstr_len(ptr),callback);
+		}
+	}
+	else	//types like std::basic_string_view, we must allocate new space to hold that type
+	{
+		using strvw_char_type = std::remove_pointer_t<decltype(t.data())>;
+		if constexpr(sizeof(strvw_char_type)==sizeof(wchar_t))
+		{
+			return ::fast_io::details::api_common_copy_append0_strvw_case_impl<wchar_t>(reinterpret_cast<wchar_t_const_may_alias_ptr>(t.data()),t.length(),callback);
+		}
+		else
+		{
+			return ::fast_io::details::nt_api_common_code_cvt_impl(t.data(),t.length(),callback);
 		}
 	}
 }
