@@ -40,7 +40,7 @@ template<typename T>
 inline constexpr void set_end_ptr(T& str,typename T::value_type* ptr) noexcept
 {
 	decltype(auto) scv{hack_scary_val(str)};
-	scv._Mysize=ptr-str.data();
+	scv._Mysize=static_cast<std::size_t>(ptr-str.data());
 }
 
 template<typename T>
