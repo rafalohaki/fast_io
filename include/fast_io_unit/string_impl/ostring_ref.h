@@ -36,6 +36,7 @@ inline constexpr char_type* strlike_end(io_strlike_type_t<char_type,::std::basic
 template<std::integral char_type,typename traits_type,typename allocator_type>
 inline constexpr void strlike_set_curr(io_strlike_type_t<char_type,::std::basic_string<char_type,traits_type,allocator_type>>,::std::basic_string<char_type,traits_type,allocator_type>& str,char_type* p)
 {
+	traits_type::assign(*ptr, char_type());
 	::fast_io::details::string_hack::set_end_ptr(str,p);
 }
 
