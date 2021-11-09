@@ -23,7 +23,7 @@ struct basic_concat_buffer
 #endif
 	~basic_concat_buffer()
 	{
-		if(buffer_begin!=stack_buffer)[[likely]]
+		if(buffer_begin!=stack_buffer)[[unlikely]]
 		{
 			deallocate_iobuf_space<false,ch_type>(buffer_begin,static_cast<std::size_t>(buffer_end-buffer_begin));
 		}
