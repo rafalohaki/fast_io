@@ -149,32 +149,35 @@ template<std::integral ch_type,typename T, ::fast_io::freestanding::contiguous_i
 requires (std::same_as<ch_type,char>||std::same_as<ch_type, ::fast_io::freestanding::iter_value_t<Iter>>)
 inline constexpr void write(io_strlike_reference_wrapper<ch_type,T> bref,Iter first,Iter last)
 {
-	if constexpr(std::is_pointer_v<Iter>)
+	if constexpr(std::same_as<::fast_io::freestanding::iter_value_t<Iter>,ch_type>)
 	{
-		auto& strref{*bref.ptr};
-		if constexpr(auxiliary_strlike<ch_type,T>)
+		if constexpr(std::is_pointer_v<Iter>)
 		{
-			strlike_append(io_strlike_type<ch_type,T>,strref,first,last);
+			auto& strref{*bref.ptr};
+			if constexpr(auxiliary_strlike<ch_type,T>)
+			{
+				strlike_append(io_strlike_type<ch_type,T>,strref,first,last);
+			}
+			else
+			{
+				std::size_t const iterdiff{static_cast<std::size_t>(last-first)};
+				ch_type* curr{strlike_curr(io_strlike_type<ch_type,T>,strref)};
+				std::size_t const bufferdiff{static_cast<std::size_t>(strlike_end(io_strlike_type<ch_type,T>,strref)-curr)};
+				if(iterdiff<=bufferdiff)[[likely]]
+				{
+					::fast_io::details::non_overlapped_copy_n(first,iterdiff,curr);
+					strlike_set_curr(io_strlike_type<ch_type,T>,strref,curr+iterdiff);
+				}
+				else[[unlikely]]
+				{
+					::fast_io::details::write_strike_like_cold(bref,first,last);
+				}
+			}
 		}
 		else
 		{
-			std::size_t const iterdiff{static_cast<std::size_t>(last-first)};
-			ch_type* curr{strlike_curr(io_strlike_type<ch_type,T>,strref)};
-			std::size_t const bufferdiff{static_cast<std::size_t>(strlike_end(io_strlike_type<ch_type,T>,strref)-curr)};
-			if(iterdiff<=bufferdiff)[[likely]]
-			{
-				::fast_io::details::non_overlapped_copy_n(first,iterdiff,curr);
-				strlike_set_curr(io_strlike_type<ch_type,T>,strref,curr+iterdiff);
-			}
-			else[[unlikely]]
-			{
-				::fast_io::details::write_strike_like_cold(bref,first,last);
-			}
+			write(bref,::fast_io::freestanding::to_address(first),::fast_io::freestanding::to_address(last));
 		}
-	}
-	else if constexpr(std::same_as<::fast_io::freestanding::iter_value_t<Iter>,ch_type>)
-	{
-		write(bref,::fast_io::freestanding::to_address(first),::fast_io::freestanding::to_address(last));
 	}
 	else
 	{
