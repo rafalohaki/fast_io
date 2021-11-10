@@ -9,13 +9,15 @@ namespace details::decay
 template<std::integral char_type,typename T>
 inline constexpr void scatter_print_recursive(io_scatter_t* arr,T t)
 {
-	*arr=print_scatter_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,t);
+	auto scatter{print_scatter_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,t)};
+	*arr={scatter.base,scatter.len*sizeof(char_type)};
 }
 
 template<std::integral char_type,typename T,typename... Args>
 inline constexpr void scatter_print_recursive(io_scatter_t* arr,T t, Args ...args)
 {
-	*arr=print_scatter_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,t);
+	auto scatter{print_scatter_define(io_reserve_type<char_type,std::remove_cvref_t<T>>,t)};
+	*arr={scatter.base,scatter.len*sizeof(char_type)};
 	scatter_print_recursive<char_type>(arr+1,args...);
 }
 
